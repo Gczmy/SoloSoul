@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-owned-memory-series",
+  "date": "2026-10-05",
+  "baseCommit": "e4d7b995ec83cf507f37c178dfaf2eae49c2e757",
+  "branch": "codex/rf312-memory-sampling",
+  "status": "Windows memory-series stage complete; RF-312 remains waiting for remaining native scenarios/platforms",
+  "codeScope": "Node tooling only; explicit --memory-interval-ms; default production frontend/Rust/dependencies unchanged",
+  "exe": {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\bin-spa\\solo_soul.exe",
+    "sha256": "25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef",
+    "bytes": 101859328
+  },
+  "buildProvenance": "rf312-windows-sdk-journey-2026-10-04.json",
+  "hardware": {
+    "at": "2026-10-04T23:50:22.4385290Z",
+    "cpu": {
+      "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+      "NumberOfCores": 8,
+      "NumberOfLogicalProcessors": 8
+    },
+    "memory": {
+      "TotalPhysicalMemory": 16951218176
+    },
+    "os": {
+      "Caption": "Microsoft Windows 11 Enterprise LTSC",
+      "Version": "10.0.26100",
+      "BuildNumber": "26100"
+    },
+    "video": {
+      "Name": "Intel(R) UHD Graphics 630",
+      "DriverVersion": "31.0.101.2135",
+      "CurrentHorizontalResolution": 1024,
+      "CurrentVerticalResolution": 768,
+      "CurrentRefreshRate": 60
+    }
+  },
+  "measurementSourceFreeze": {
+    "at": "2026-10-05T00:01:07.123579+00:00",
+    "files": [
+      {
+        "path": "tauri/scripts/native-perf-memory.mjs",
+        "sha256": "959ad8fbb30a23057f578241a2961af40e41bb464a11b9271824574da25d0157"
+      },
+      {
+        "path": "tauri/scripts/native-perf-memory.test.mjs",
+        "sha256": "b51e93056407b2c3ba19e31213215a4e5f5ecc9ad0ca9c658544d16a7ef31219"
+      },
+      {
+        "path": "tauri/scripts/native-perf-sdk-journey.mjs",
+        "sha256": "a8ed918cbe468d8920ec9448f13c91181c292dc987dea04e468383e0152b2420"
+      },
+      {
+        "path": "tauri/scripts/run-node-tests.mjs",
+        "sha256": "8b97f1691a9e7c4c99ab10e2c8387616fab20228a2ae9afe92de566ec76a6980"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.mjs",
+        "sha256": "1b4e5edbea26b9d55033d7c06111b72c29b2116a537660564aad0258b103fa60"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf.rs",
+        "sha256": "a7827b5bc1c6af95e52ca662d11b3e3adb2a399e5733875d7f8bab90d12e7c12"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.rs",
+        "sha256": "fa73c0000b731b051c81e98a4327598c995ed1ac728ee7e796b2abe0421c2b23"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.js",
+        "sha256": "5909227490bc706b61609b1f90f43aeee8feb6568e7a140be165a1cfa08d7c59"
+      },
+      {
+        "path": "tauri/src-tauri/Cargo.toml",
+        "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+      },
+      {
+        "path": "tauri/Cargo.lock",
+        "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.conf.json",
+        "sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f"
+      }
+    ]
+  },
+  "accepted": [
+    {
+      "count": 100,
+      "success": true,
+      "samples": 5,
+      "memorySummary": {
+        "samplesRequested": 5,
+        "successfulSamples": 5,
+        "medianObservedMaximumWorkingSetBytes": 636116992,
+        "p95ObservedMaximumWorkingSetBytes": 687767552
+      },
+      "phaseSummary": [
+        {
+          "name": "startup",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 1608.3463,
+          "p95Ms": 2211.8919
+        },
+        {
+          "name": "password-unlock",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 2256.2880999999998,
+          "p95Ms": 2581.0643999999998
+        },
+        {
+          "name": "workspace",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 465.6529,
+          "p95Ms": 511.01090000000005
+        },
+        {
+          "name": "search-needle",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 436.00680000000006,
+          "p95Ms": 453.4499
+        },
+        {
+          "name": "application-lock",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 139.8556,
+          "p95Ms": 335.1177
+        },
+        {
+          "name": "password-reunlock",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 3830.166,
+          "p95Ms": 6379.6026
+        }
+      ],
+      "totalPoints": 52,
+      "validPoints": 52,
+      "pointsPerSample": [13, 9, 10, 10, 10],
+      "maximumMiBPerSample": [
+        655.90625, 600.375, 606.6484375, 601.94140625, 612.43359375
+      ],
+      "collectionMedianMs": 1709.0753999999997,
+      "collectionMaximumMs": 13173.584499999997,
+      "maximumActualStartIntervalMs": 13175,
+      "collectionTotalMs": 113250.12330000008,
+      "confirmedExitedObservations": 20,
+      "startupIdentityRefreshes": 0,
+      "sourceUnchanged": true,
+      "cleanupComplete": true,
+      "ipcTotals": [554, 549, 548, 549, 533],
+      "all59Calls": true,
+      "all10Pointer3Text0Untrusted": true
+    },
+    {
+      "count": 5000,
+      "success": true,
+      "samples": 5,
+      "memorySummary": {
+        "samplesRequested": 5,
+        "successfulSamples": 5,
+        "medianObservedMaximumWorkingSetBytes": 714489856,
+        "p95ObservedMaximumWorkingSetBytes": 715829248
+      },
+      "phaseSummary": [
+        {
+          "name": "startup",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 1502.0563,
+          "p95Ms": 1871.6297
+        },
+        {
+          "name": "password-unlock",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 2427.8002,
+          "p95Ms": 2868.9556000000002
+        },
+        {
+          "name": "workspace",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 900.2792,
+          "p95Ms": 980.0078
+        },
+        {
+          "name": "search-needle",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 506.2352,
+          "p95Ms": 543.0546
+        },
+        {
+          "name": "application-lock",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 127.15899999999999,
+          "p95Ms": 166.3785
+        },
+        {
+          "name": "password-reunlock",
+          "successfulSamples": 5,
+          "requestedSamples": 5,
+          "medianMs": 2275.3522,
+          "p95Ms": 5407.1742
+        }
+      ],
+      "totalPoints": 53,
+      "validPoints": 53,
+      "pointsPerSample": [13, 10, 10, 10, 10],
+      "maximumMiBPerSample": [
+        681.390625, 672.9765625, 682.66796875, 682.65234375, 673.0234375
+      ],
+      "collectionMedianMs": 1818.9370000000054,
+      "collectionMaximumMs": 3852.9072999999917,
+      "maximumActualStartIntervalMs": 3860,
+      "collectionTotalMs": 104291.10370000004,
+      "confirmedExitedObservations": 18,
+      "startupIdentityRefreshes": 0,
+      "sourceUnchanged": true,
+      "cleanupComplete": true,
+      "ipcTotals": [554, 553, 553, 538, 554],
+      "all59Calls": true,
+      "all10Pointer3Text0Untrusted": true
+    }
+  ],
+  "originalFailures": [
+    {
+      "run": "sdk-memory-100",
+      "requested": 5,
+      "executed": 5,
+      "uiSuccessful": 5,
+      "accepted": 0,
+      "sourceUnchanged": true,
+      "cleanupComplete": [true, true, true, true, true],
+      "reason": null,
+      "originalMaximumMetricsNull": true
+    },
+    {
+      "run": "sdk-memory-confirmed-100",
+      "requested": 5,
+      "executed": 1,
+      "uiSuccessful": 1,
+      "accepted": 0,
+      "sourceUnchanged": true,
+      "cleanupComplete": [false],
+      "reason": "Owned process cleanup or exit could not be fully verified; further samples were stopped",
+      "originalMaximumMetricsNull": true
+    }
+  ],
+  "verification": {
+    "node": {
+      "total": 154,
+      "passed": 153,
+      "failed": 0,
+      "skipped": 1,
+      "skip": "existing Windows file symlink privilege case",
+      "raw": "rf312-windows-memory-series-2026-10-05/node-full-startup.log.gz"
+    },
+    "format": {
+      "exitCode": 0,
+      "raw": "rf312-windows-memory-series-2026-10-05/format-final.log.gz"
+    },
+    "nativePerfReleaseRebuilt": false,
+    "freshRustVitestProductionE2e": false,
+    "preservation": {
+      "at": "2026-10-05T00:26:44.335840+00:00",
+      "trackedBaselineCount": 3329,
+      "changed": [
+        "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "tauri/scripts/native-perf-run.mjs",
+        "tauri/scripts/native-perf-sdk-journey.mjs",
+        "tauri/scripts/run-node-tests.mjs"
+      ],
+      "unexpectedChanged": [],
+      "missing": [],
+      "fixtureFiles": 14,
+      "fixtureChanged": [],
+      "measurementSourceChanged": [],
+      "stashPreserved": true,
+      "submodulePreserved": true,
+      "exePreserved": true,
+      "headPreserved": true
+    },
+    "processExit": {
+      "at": "2026-10-05T00:18:47.3187280Z",
+      "identityCount": 213,
+      "identityMatchingLive": [],
+      "reusedRecordedPids": [],
+      "ownedPathMatches": [],
+      "noneOwnedLive": true,
+      "originalCleanupStatusesPreserved": true,
+      "terminatedExtraProcesses": false
+    },
+    "cacheCleanup": {
+      "checkedTargets": 128,
+      "removed": true,
+      "unlinkedWithoutTraversal": 16
+    },
+    "docs": {
+      "markdownBoundaryExitCode": 0,
+      "localLinksAndTaskCounts": {
+        "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md": {
+          "balancedFences": true,
+          "localLinks": 981,
+          "missing": [],
+          "controlCharacters": false
+        },
+        "docs/performance/RF-312-windows-native-app-baseline.md": {
+          "balancedFences": true,
+          "localLinks": 42,
+          "missing": [],
+          "controlCharacters": false
+        },
+        "taskIndex": {
+          "total": 281,
+          "closed": 272,
+          "waiting": 3,
+          "pending": 6
+        },
+        "at": "2026-10-05T00:36:09.993553+00:00"
+      },
+      "formatExitCode": 0,
+      "formatRaw": "rf312-windows-memory-series-2026-10-05/format-doc-green.log.gz"
+    },
+    "finalPreservation": {
+      "at": "2026-10-05T00:42:20.615449+00:00",
+      "baselineTracked": 3329,
+      "allowedChanged": [
+        "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "docs/performance/RF-312-windows-native-app-baseline.md",
+        "tauri/scripts/native-perf-run.mjs",
+        "tauri/scripts/native-perf-sdk-journey.mjs",
+        "tauri/scripts/run-node-tests.mjs"
+      ],
+      "unrelatedPreserved": 3324,
+      "resourcesPreserved": 94,
+      "fixtureFilesPreserved": 14,
+      "measurementInputsPreserved": 11,
+      "stashPreserved": true,
+      "submodulePreserved": true
+    }
+  },
+  "limits": [
+    "Working sets can double-count shared pages; sampled maximum is not a simultaneous continuous OS peak",
+    "Collection windows are not atomic; target 2000ms was not maintained during slow queries, with actual intervals recorded",
+    "CIM query wall time is not a measured causal application slowdown",
+    "No OCR/preview, OS sleep, same-profile process warm-start or other-platform acceptance",
+    "Startup identity refresh had zero triggers in final batches; coverage comes from actual PowerShell negative/positive regression, not a claimed field reproduction fix"
+  ],
+  "failureHistory": [
+    "First five complete UI journeys rejected for disappearing icacls/conhost memory readings; raw null metrics preserved",
+    "Confirmed-exit candidate executed one of five requested; startup identity gap plus late query timeout left cleanupIntegrity false and batch stopped; fresh identity/path absence is separate evidence",
+    "Added confirmed-exit regression failed before implementation; then passed",
+    "Startup PowerShell block extraction test briefly emitted two JSON objects after result serialization moved; extractor repaired, original failed log retained",
+    "Authoring cwd and default-cp1252 reads failed before source mutation; corrective records retained",
+    "PID-only final check observed pwsh/git on previously used PIDs; identity check passed without terminating extra processes",
+    "Python authoring escape sequences corrupted example paths before validation; Windows path block rewritten as raw text and control-character scan passed",
+    "Initial DOC task-row matcher omitted Markdown link brackets; corrected matcher counted 281 rows with 272 closed, 3 waiting and 6 pending",
+    "Staged whitespace check detected CRLF in -text archive metadata; index and attributes saved as explicit LF bytes, original index preserved in gzip"
+  ],
+  "rawArchive": {
+    "index": "rf312-windows-memory-series-2026-10-05/index.json",
+    "originalFiles": 254,
+    "sha256": "66b91085aa8c8a2d2c230067e6319872980ee39206ce91caee5d89f0dae6c7dd"
+  },
+  "remainingLocal": [
+    "reduce owned-only CIM command-line query overhead with measured before/after evidence",
+    "same-profile process warm-start with new identity and strict restart ownership",
+    "public OCR/attachment fixtures and actual UI measurement",
+    "KDF/storage/React/SDK attribution before business optimization"
+  ],
+  "push": false
+}

@@ -47,7 +47,7 @@ cargo run -p solosoul-core --no-default-features --release --example perf_baseli
 
 数据使用公开的合成密码 `perf-baseline-only-password`，账户为 `acc_rf312_100`、`acc_rf312_5000`。对象逻辑内容及每第20个对象命中 `needle` 的规则固定，预期命中5/250；加密盐、nonce和创建时间仍会变化，不要求Vault逐字节相同。Profile含空sections/preferences，UI固定英文、浅色/ocean主题并标记引导已完成；未包含附件或OCR图片。正式测量用Release生成，以免首次GUI解锁发生开发KDF到生产KDF迁移；完成标记记录实际KDF参数。
 
-生成使用原子目录创建，已有目录、文件或链接都拒绝。所有数据校验通过后才写入 `rf312-fixture.json`；失败时保留新目录供排查，后续调用仍拒绝覆盖。重开验证先确认账户清单、config、vault.db和UI偏好文件存在，再加载账户、真实解锁并检查对象数、搜索命中、Profile与UI配置，缺文件或校验失败返回非零退出码。程序不读取默认用户Vault，也不自动删除传入目录。
+完成标记的 KDF 取自新建账户 config.json 的实际参数，不重新读取环境推测，详见 [RF-1096 验证](../verification/rf1096-fixture-kdf-2026-10-06.json)。生成使用原子目录创建，已有目录、文件或链接都拒绝。所有数据校验通过后才写入 `rf312-fixture.json`；失败时保留新目录供排查，后续调用仍拒绝覆盖。重开验证先确认账户清单、config、vault.db和UI偏好文件存在，再加载账户、真实解锁并检查对象数、搜索命中、Profile与UI配置，缺文件或校验失败返回非零退出码。程序不读取默认用户Vault，也不自动删除传入目录。
 
 该入口只是原生应用测量的数据前置，不能证明GUI启动、OCR/预览、锁定恢复、内存或IPC指标。后续每次原生样本使用独立数据副本，保留失败样本；先使用独立的Windows测试账户或等价隔离环境。`SOLOSOUL_DATA_DIR`只隔离Vault和UI偏好：桌面[setup](../../tauri/src-tauri/src/setup/mod.rs)的日志/导入暂存清理仍解析固定 `com.solosoul.app` 目录，[插件存储](../../tauri/crates/solosoul-plugin/src/store.rs)仍使用系统用户目录。修改Tauri identifier或子进程的APPDATA/USERPROFILE变量不能视为这些路径已隔离。本阶段不启动GUI，RF-312保持待验证。
 

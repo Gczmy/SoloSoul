@@ -1,0 +1,2038 @@
+{
+  "schemaVersion": 1,
+  "format": "gzip original bytes, including BOM/CRLF where present; no normalized replacement",
+  "files": [
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\accepted-metrics.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/accepted-metrics.json.gz",
+      "bytes": 4700,
+      "sha256": "161f59936ac24521eba128fe5ac774eef6deeaafa83508de07f65f6e066a326e",
+      "gzipBytes": 938,
+      "gzipSha256": "ad3a7b98a5b02fc2857abd16b3f0288f417a0cf51fd238b616133a289db4cf6f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\authoring-encoding-error.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/authoring-encoding-error.json.gz",
+      "bytes": 284,
+      "sha256": "c9e969a69e6f316c6de45f4427e8db810897c1f9707617f6459805157b204c5b",
+      "gzipBytes": 208,
+      "gzipSha256": "c145203c81e179d70caf08feebc7203f815027b162bd41d54f677a0ffbb64756"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\authoring-path-error.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/authoring-path-error.json.gz",
+      "bytes": 317,
+      "sha256": "9ff6c801f5c4cf818392b9c249e573dcd78e0afa2d8e49fd0f0404abf8608cff",
+      "gzipBytes": 241,
+      "gzipSha256": "e56dd16b8ceca49b9a4e422b6a15f87e762989134ec89d104ca18debd3f408a0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\baseline.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/baseline.json.gz",
+      "bytes": 610493,
+      "sha256": "c908fd5d3ba59e0c99cb6e596125143ca7e6dbb72198ed2486ff48e4ccb34007",
+      "gzipBytes": 161956,
+      "gzipSha256": "88596c509d2253ab12816a5737c79c9c2ea44246eae54cdc7d20bd235adc14e4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\cache-inspection.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/cache-inspection.json.gz",
+      "bytes": 15826,
+      "sha256": "f6c3a7f36171b53b111e6ed308f2d52eb215f9c72404fb15f6bf1736bd534aab",
+      "gzipBytes": 1053,
+      "gzipSha256": "f42bb8ce7d71b5a678ad1271f3a962e4e107448c0991217402a22f28362fba20"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\cleanup-caches.ps1",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/cleanup-caches.ps1.gz",
+      "bytes": 4088,
+      "sha256": "d0051fbd5646a722b3f3ad3f87da3499c01d471c522a351d9c3c53b22a30daff",
+      "gzipBytes": 1542,
+      "gzipSha256": "bfa536257f12b93ac6f7018ed2b76a7974229ba1aa148862c6d7fa76f3016f91"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\cleanup-plan.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/cleanup-plan.json.gz",
+      "bytes": 38599,
+      "sha256": "d97e065bfc2feef963b02750782b1fa55de86f65d8a892973aa4f4331b5f8edd",
+      "gzipBytes": 1374,
+      "gzipSha256": "a58608fa2093e0024a07003b8d0e4e73b5acbfeab160a36e37e390f1957163ea"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\cleanup-result.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/cleanup-result.json.gz",
+      "bytes": 30338,
+      "sha256": "81fbcef67760bfa0423ff889f3b73491dde38567a286a9bc1ea5621f184ac1aa",
+      "gzipBytes": 1405,
+      "gzipSha256": "ec214bedbe3dcb5fd51b6fdd5e47c4672d3b5fda48926c35677bf7d781a2ac22"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\cleanup.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/cleanup.log.gz",
+      "bytes": 82,
+      "sha256": "6055de19d1dba5a6e5c22c4a9848661f0f9c7f8d8dc9dc93e36d38278a358a92",
+      "gzipBytes": 95,
+      "gzipSha256": "033093845ae5bcad05b1cc6e68c1e4ac1510a2caa658d07b47eea83e3377d8f7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\confirmed-exit-green.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/confirmed-exit-green.log.gz",
+      "bytes": 1087,
+      "sha256": "e60b6e18c9b2a34d96566b352374fa5c1660310f621ed8054cfe5e537b8c7f2f",
+      "gzipBytes": 610,
+      "gzipSha256": "fe96d7d82b9812e8f282b9aa1d8e9c8d91ee3e720647cb2a8418af48a9467f70"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\confirmed-exit-powershell.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/confirmed-exit-powershell.log.gz",
+      "bytes": 1210,
+      "sha256": "aed3d681549453bb980955a282a585164515a2db19562a9914076c2989746efe",
+      "gzipBytes": 676,
+      "gzipSha256": "5585b61647ce6c6eb0989025d1d312604e528b5064a67fdc8dcc707ac5a72743"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\confirmed-exit-red.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/confirmed-exit-red.log.gz",
+      "bytes": 2109,
+      "sha256": "5dfcf478da9adf7e652b2f481e15f38d05ec70f2b7b3f624193de2054258188e",
+      "gzipBytes": 1000,
+      "gzipSha256": "3719bb172d8b6882eb5b70a8110c29555d4391cb116ae830b103b34a8caad722"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\failed-runs-fresh-process-check.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/failed-runs-fresh-process-check.json.gz",
+      "bytes": 1138,
+      "sha256": "f67b26ada9abfb67129ee83747b708be8af0c695ef9301dafbe33abcd6a65497",
+      "gzipBytes": 421,
+      "gzipSha256": "8141400f09bdeabc37392bc3427a0d624c02a340b285e0f917fc8f83246efafe"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\final-process-check-pid-only.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/final-process-check-pid-only.json.gz",
+      "bytes": 4569,
+      "sha256": "ad0a8c1e7b66de8ec1a5c0f2055d87e48c1d507a405ad9485592183063cb42ce",
+      "gzipBytes": 957,
+      "gzipSha256": "71c1f0a49bab99f52421c76f8d728cfaa71386112b47d2bdb7fbf5c968f1aac0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\final-process-check.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/final-process-check.json.gz",
+      "bytes": 267,
+      "sha256": "8e2f9c52becffefc528cfe1913501beb7670473e5e22cd4fffc08735cceeb230",
+      "gzipBytes": 197,
+      "gzipSha256": "5bc3f2edc085f644750839115c0b1bf8ed3ea87a80f5d9486aef2bc939ad343c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\format-final.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/format-final.log.gz",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "gzipBytes": 84,
+      "gzipSha256": "7a5bed173ec847bbb2b6ddce36a78b0afa5acb724522a09fb91cca5e17dbd613"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\hardware.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/hardware.json.gz",
+      "bytes": 585,
+      "sha256": "750c9de2f113731bfa2c572334f93da425d6a1c826b98dff02434aa22d82ddb7",
+      "gzipBytes": 350,
+      "gzipSha256": "6f8a39470394bab070ed413a2f51c3d944466641e61741a51f49ae5b49a81bbe"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\node-full-confirmed.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/node-full-confirmed.log.gz",
+      "bytes": 15532,
+      "sha256": "400abcaeadaff0840e83ab796602c6d7e0b55509754dd823218f9b84306760c2",
+      "gzipBytes": 6717,
+      "gzipSha256": "0befa9e365d3739d91b89f761b6d81fb23fda95659d271c9ee8280643c773f47"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\node-full-final.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/node-full-final.log.gz",
+      "bytes": 15640,
+      "sha256": "d6370d98890b63d15898769370d19d753dba5bbd58f24734995bfa613bbb1f07",
+      "gzipBytes": 6748,
+      "gzipSha256": "0fac0aabc95b91a433b30edf66a984a2e020da6e68d25a8b45d111b420c1daf9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\node-full-startup.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/node-full-startup.log.gz",
+      "bytes": 15789,
+      "sha256": "6833aab6343f480a5cc2ed55bc2d41a2bd461133bd33b3552172be753b204e33",
+      "gzipBytes": 6801,
+      "gzipSha256": "bde9fcfcca051f7049a3c7ff0b403306b1e9e374364d2fe00a4b5fef9a1696b9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\node-full.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/node-full.log.gz",
+      "bytes": 15412,
+      "sha256": "1843ea55d2af8ac702fc1106e0323554e27b5b454162753a47a4900f7c4b9d2b",
+      "gzipBytes": 6653,
+      "gzipSha256": "2d22c8482c810053bc6f94639c0b287bd08b44282ada9b5bf8890666c36584a4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\observed-identities.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/observed-identities.json.gz",
+      "bytes": 26317,
+      "sha256": "d96cb39a54500e3fb08f594e27fb7813ffb2530a0eb5cdf4cb31980f0986ccf7",
+      "gzipBytes": 2160,
+      "gzipSha256": "976fa6c516e1c0d209319d4b255ff908177358938ba47f1bf1c3fb0b18bccd50"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\preservation-pre-doc.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/preservation-pre-doc.json.gz",
+      "bytes": 526,
+      "sha256": "118737ece8e5eb2739b6966a6a97b6f5b7ad38a225061cf1f03dc3145e49b26d",
+      "gzipBytes": 294,
+      "gzipSha256": "2d94483b63e55c65ac9347099695b27c92300443192f3eaa378033a246b863ad"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100-check.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100-check.json.gz",
+      "bytes": 120,
+      "sha256": "bb0e4bdd20884a680b90e61ebd619fcf918015911e21d45c21b7ffde371be008",
+      "gzipBytes": 111,
+      "gzipSha256": "f86bb0322c5af1a72a05da8aacae47ec11716192ef333a90786ec12e58e1cd89"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100.log.gz",
+      "bytes": 268,
+      "sha256": "ecbdca390326c2d123eafd2bc22758b6b2ebc2c14db5c19b17ddddb999f95f99",
+      "gzipBytes": 166,
+      "gzipSha256": "2fac0912a21b4c1456a4ee0ec00b0f3815622120d55747c459b3c2cc5668948e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100-check.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100-check.json.gz",
+      "bytes": 120,
+      "sha256": "c8ce94c3bbe07b0b51d89b0a2619d41c12a59d724de26f3fce86520cffe46a9e",
+      "gzipBytes": 111,
+      "gzipSha256": "ab5efe3e413844fbcad1511ab1a6688f470169490a2ef28f99dbc30afebf2e93"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100.log.gz",
+      "bytes": 174,
+      "sha256": "11b9d95f700a14061eba718d4a9aef7bba7f2fbbc5f76c3d838bc801102b1709",
+      "gzipBytes": 162,
+      "gzipSha256": "d01d4164644e3128b4cd494cdad4806fd3e7eff81200f4acea78f1ba35078a4c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100-check.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100-check.json.gz",
+      "bytes": 120,
+      "sha256": "75af9549214ec047613d3a65f37619552c8a815026284914180ebdb19f54e830",
+      "gzipBytes": 111,
+      "gzipSha256": "74e1a05e0d1348cb66141c195d0f46d2f9355d6031044cfb828d3cb5a0970c3a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100.log.gz",
+      "bytes": 276,
+      "sha256": "35a87b3e9fbf9230991b1673430bccf16e7cf113a9ce0f75535203a4a0e5d301",
+      "gzipBytes": 171,
+      "gzipSha256": "0e98057372f05c1746387c334c396f754b2f7a81c719b81e54f9edb36ccc793a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000-check.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000-check.json.gz",
+      "bytes": 120,
+      "sha256": "2eafbae8545b618841d8c3ed66058bbadb9797ecaf6ad74eb921a1ecb5493c6e",
+      "gzipBytes": 111,
+      "gzipSha256": "50eb81e47c8c30fc6ae7b21fbc73fe99fd42892f58a225768488cd22f213edf0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000.log.gz",
+      "bytes": 277,
+      "sha256": "85de5e7325e2b3cadaec4102d799a6d9f7654feab231dcd71c23d2be2c2a763e",
+      "gzipBytes": 172,
+      "gzipSha256": "c954e817a4ff547366351eb83eea879ac1c691ff164fd914d7c95ac32bb6d4ec"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\source-freeze-confirmed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/source-freeze-confirmed.json.gz",
+      "bytes": 1747,
+      "sha256": "ef42343661eeb17ba88355ddaa4cf8d52f5cef6dbe6e40d2345e47ce5f7582ba",
+      "gzipBytes": 693,
+      "gzipSha256": "ed68c9908cde04e4b1a3e42edf2abea702149f453d73bb7abcfee23107d4a68a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\source-freeze-measurement.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/source-freeze-measurement.json.gz",
+      "bytes": 1747,
+      "sha256": "985fe0cabb0595c0e056a77704d4c0872c0026ee899496451331c0c4de04f8ea",
+      "gzipBytes": 695,
+      "gzipSha256": "9534e509d92d69aaada76f3bce8b18c8909eefba810310503e332ee5637baca5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\source-freeze-startup.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/source-freeze-startup.json.gz",
+      "bytes": 1747,
+      "sha256": "40c9b509a07772f4e08f10d5b3d85ec7fc868cca2d8478ee513eba22a65cd82e",
+      "gzipBytes": 694,
+      "gzipSha256": "8fc69de3b16f732ba2ce7df03c7b98c285bcbf07f82dad69aafdc5d025eb7dcd"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\startup-refresh-first.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/startup-refresh-first.log.gz",
+      "bytes": 4628,
+      "sha256": "bde406ca394ec6bd7b7f7fd5f2bddb5ea23afa6f3793db0caf969f29cbecfe26",
+      "gzipBytes": 2052,
+      "gzipSha256": "ea82215fb70eee60a448e149a690bd190153256d7ad375343b60875162e59b29"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\startup-refresh-tests.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/startup-refresh-tests.log.gz",
+      "bytes": 3905,
+      "sha256": "1f3376d662a760594b6d79830c1c444b5390ec3113b0a2c3c1c0f5a1214e92c8",
+      "gzipBytes": 1819,
+      "gzipSha256": "0a6bafa2cd5ea41e480d644ce6e224294b955fae65c47ba0f818482e19bde5b4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\native-perf-sdk-journey-results.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/native-perf-sdk-journey-results.json.gz",
+      "bytes": 861063,
+      "sha256": "de6112b98da13f08b206f3e1b160bad8115dd8377080e0851c560c480ea3ba0a",
+      "gzipBytes": 62165,
+      "gzipSha256": "3ded55f3c4b9915213e8f61a3133c20621b31ca2c9c75fb2056ebc0f45e24c4a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001.json.gz",
+      "bytes": 149806,
+      "sha256": "fa18040235f66d82b05ca7e9dd5786d4cf0f51ae8cd86d2bea8a40db82708df7",
+      "gzipBytes": 12232,
+      "gzipSha256": "518686610c6a92ecaef5a0aa6cf7bf66d00cc1ef7932ecd3ac2ffc17e60295ed"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002.json.gz",
+      "bytes": 153103,
+      "sha256": "f7c901ddec9692a449716519a2400145754df9d55aa533712d210dbadfc75c9c",
+      "gzipBytes": 12267,
+      "gzipSha256": "d57361139da7c59a3be41bd4cfca9200b7af4f7fd73141b3f6339630791e9d04"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003.json.gz",
+      "bytes": 153706,
+      "sha256": "608c2463303fa4d6008edeb35c82c58ff1479c019ee063b46cc598412840549e",
+      "gzipBytes": 12403,
+      "gzipSha256": "66f334f6f99c4cad1c03199636cf9eb080362cd7a9429c4ba32dfd0a851a4d67"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004.json.gz",
+      "bytes": 148310,
+      "sha256": "3a7cc74693e953d35de75f665ef8b41001c49e080c3fa572f5d934e0f6fdb05f",
+      "gzipBytes": 12246,
+      "gzipSha256": "bb37b30896b8eb8df12562b073930e771aa2787ad9a6cd068fdc79509fe33363"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005.json.gz",
+      "bytes": 149930,
+      "sha256": "974f20123518fd556fcc263fbb18c2a7c49cfe1ca5350c9095bed0853327ad83",
+      "gzipBytes": 12261,
+      "gzipSha256": "98ad9f66892ebbecdbd7d08a259b9dbb35f33d65ee87d67fb11b597f095345fc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-consumed.json.gz",
+      "bytes": 264,
+      "sha256": "358d31d582700b32c34f54805d757c5c3a05e5f8af91a3d938e9771f021c977c",
+      "gzipBytes": 218,
+      "gzipSha256": "0b3da31a73d00b5ec982d3383b0de680419655272dd15a765f04d5c2bed694af"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-owned.json.gz",
+      "bytes": 3337,
+      "sha256": "e23fa2722875c6bd08505822c855c8710cfef611dbd5f03b723cee7c61468b2a",
+      "gzipBytes": 1078,
+      "gzipSha256": "0989319313552b69a46046d13f51b99caf4f7095b63367b7ede50a3e279b4950"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "ba39bcd838ff25cc3bd057350864537010eff4d96da86b4c947e9118ed37a25d",
+      "gzipBytes": 151,
+      "gzipSha256": "e62d297e37e7556b8b96667c50cb8c4fdb7b801e0c2316b09aae1968f41c1ea3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 575,
+      "sha256": "25e8d9a2d39f87800e6a1e8864a438eecf6a9e37d5f474f9f2b86c11428df9c7",
+      "gzipBytes": 394,
+      "gzipSha256": "80fcbc9a8a533c896b448f4f25f944a0f31a13139b34160cd3c3de1f7c1a225f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 356,
+      "sha256": "813937a807dace6543d8f8a2f37f9974e9a2fd5e36f88a37fc72d1d36e3ae4d7",
+      "gzipBytes": 275,
+      "gzipSha256": "a3a010bc3bba215fc79e9da4810e95f46577c34759b1706dbd29dbc107af9a19"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 63339,
+      "sha256": "cd3d0bffeb5f8a8f1d1b46bfe207e938801e7f6153d9b2e54a35dd92545869ae",
+      "gzipBytes": 4844,
+      "gzipSha256": "262eca3087db9c0659081d79a22d5f3c7d09e06b1a9bca9a17db6b170cdf0e30"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "33163182911902695588e0d2e028a6c8ba80fd4f6af444890033d4baa5a3bc11",
+      "gzipBytes": 408,
+      "gzipSha256": "1383d9fe75b573993ce0c6893db751f54d5e721a9e7a6b3fcf827acde37b5c0d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1174,
+      "sha256": "48e81ea026279e2af9884006bee9bd1e54fdfd2804cafb8dd74f37d8648b006e",
+      "gzipBytes": 501,
+      "gzipSha256": "b6a44b9a1d7f34f1ebab49745b10a3200cb3cb517858397c836d20d0e1ef35f7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 706,
+      "sha256": "620b5860d8b73321f92c85d331b5c2079c07e3ad6fc0de0593dfd360478bfeda",
+      "gzipBytes": 370,
+      "gzipSha256": "8c7ef1036009b355914912c97ff95cc274566bcbb4cbe95897fce0cce1688b78"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 331,
+      "sha256": "efccc16b30e2027c9d8df418abc3290dedc4df863330953d9c7d052312b06e21",
+      "gzipBytes": 218,
+      "gzipSha256": "e00a359396eb6d2f0f0c02f5d0a096e201dbb7c5c5723fa35ffb8b0e44041cdb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 613,
+      "sha256": "2421761ad5efd079b2ff8c3c5c0e7d0f7f9b374ff4a3209792339f1082ee1b65",
+      "gzipBytes": 332,
+      "gzipSha256": "19c835604ff2b57d33266a3b69b0c2e8705f94f6c42735a7c32a4e5bf1bccea4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 758,
+      "sha256": "a9c0b3b12bd153d9be8c9fac166bef93fe3efd5d34260184dbfb6ea5d05ccc8c",
+      "gzipBytes": 381,
+      "gzipSha256": "a6ba792412b7cefba3e15af5f10b470d9313f86e7577602d8885ba87143fd574"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-consumed.json.gz",
+      "bytes": 264,
+      "sha256": "b93f8b748b957a22a8c12c4e3afadbd44b0c1a90562708d95d256c4e19bdee4a",
+      "gzipBytes": 216,
+      "gzipSha256": "14a0c49d77b467fb8d1e1793b95af9d613971ce8e9df00bce5c2871107443158"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-owned.json.gz",
+      "bytes": 3337,
+      "sha256": "483d8d9f1366f225e280761d9f46a39195a9bc22d627000c0b158711d773351d",
+      "gzipBytes": 1079,
+      "gzipSha256": "2f04ed462a3036528fefaea4a1a5bceb1f6f5523e3f8b4fa885526fca67b83dc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "ea891ba258ea5f65201fdd201358de718af61dd6916432fcd43fbfb82908cbfd",
+      "gzipBytes": 151,
+      "gzipSha256": "a4f21edf0ca970b7c5bfbea3475f534b6975c942a12a9f1b1ae0e3081d6d3a81"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 575,
+      "sha256": "99d710dc3c70505c8f15a82bd720d9b4957f20f71407dc404266b96746deeaa5",
+      "gzipBytes": 393,
+      "gzipSha256": "66282ccf1c6d0ea30cbe9913d9944bbb12ef4a88fdd49b95cd4829c96631baf9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 356,
+      "sha256": "838a2078688ab905ae4091c7257fd990ac0970070a0cfa6e1c4996f3cf1d1631",
+      "gzipBytes": 274,
+      "gzipSha256": "1690ddd93482a272213ac2ec3b46227b6a6003d1ff202c3507470aa9b5482bce"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 65461,
+      "sha256": "fd7aa8ccbbbcfb4bd51933caf2e806d19a790b6b244f654d342bee4520748845",
+      "gzipBytes": 4973,
+      "gzipSha256": "e4cb8a8b765c39656ffcea52302ad373bae8f44f5d68ca00827bac673f801fa1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 817,
+      "sha256": "18d09a68965040eddc4dcf1669861157a65294046d2feebb16a1bc70ee973d32",
+      "gzipBytes": 405,
+      "gzipSha256": "00738f4e5bf946c9363e9d66e6efa648599888c9eb24058067a65d56ba2a09d9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1264,
+      "sha256": "e910b7e9921b1ce998eb0180e002855b266a20da9deeaf97b6481b600f0bc7e8",
+      "gzipBytes": 522,
+      "gzipSha256": "e228e4f9c99f893b065efcd004327bdac931bd141384c1616a6c5c2c844b7591"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 614,
+      "sha256": "dd49904485101c8a2cc561bb1607f621715ffc647a82e3eac3ef8ec619a011a0",
+      "gzipBytes": 336,
+      "gzipSha256": "3744cdd9af72fc54ad4978352748f39f8a3d7bc74ee6e053086c1fd9d358bd78"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 320,
+      "sha256": "92264b16fdb1ee660bed5e9fe184ab93490688007eee7711cf888f1de8723da3",
+      "gzipBytes": 214,
+      "gzipSha256": "432f94e2cf7ce5e30927bc57c276c5f2ec0efa183afc6d2611187b3411cc5ca1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 612,
+      "sha256": "e6f4eb128efd271c2c4c90f6c90c40e6d810a412d416737ed48fedb06e70c650",
+      "gzipBytes": 331,
+      "gzipSha256": "8963f524b378317c9445592597c9143c08c9a10628e3e9478d9ac04f3beb50eb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1221,
+      "sha256": "56f9a45efb90d331de2ecc6e68164f227a7cf35c89026b69ab4597edca14d1bb",
+      "gzipBytes": 514,
+      "gzipSha256": "98373de3dc437fa80bba7536c145e85123867ca641b34f41a9f47eef82c5b0c6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-consumed.json.gz",
+      "bytes": 264,
+      "sha256": "e5610a9c7550fd489baf59be7a2fb2271004984dac741e133761c31f2c76e5c5",
+      "gzipBytes": 220,
+      "gzipSha256": "12d4f3be6b1a878fe798983a8d21ce1027672e0b360f63c55664dada32576ae7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-owned.json.gz",
+      "bytes": 3337,
+      "sha256": "9a173172e56820cc4eccd0cd646f29552df3335690d3ad403d9a6c3bc0905233",
+      "gzipBytes": 1079,
+      "gzipSha256": "37baabaee50a569e754c293c25a88854bc826f72be0e8704d82a166c82c2d35a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "9e160002e4f892aabc1355b469838dc3bfd4889184ab1a7cc5421b2773b3af0c",
+      "gzipBytes": 152,
+      "gzipSha256": "1dd3e2273f1887b58c51216ff32df1904beda2fa224d545371381970f759d182"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 575,
+      "sha256": "0aadbb985f0604663643d6fbb38fbfe90f3c80f4892a5ac64f3b14c6b4f43f9c",
+      "gzipBytes": 393,
+      "gzipSha256": "bf51f723fc21ee3765ba04e4636463b5967723ab209bd2050816c2630167d3c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 356,
+      "sha256": "f6bdaa2bced81931f257fe4119a99a02448a7f9cba5ea6b304a178eb003c4b0b",
+      "gzipBytes": 275,
+      "gzipSha256": "f0debd978da527e5cfd61d7f9ef5b1665823ec845ff083ecd8f2bb22bb4e4389"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 65967,
+      "sha256": "9587650032e051058497417f32b33a7f19bc4fcfe780b2d32dd548d12484de94",
+      "gzipBytes": 5044,
+      "gzipSha256": "a2aa71e3bbe3dc2bbd7560ed9816a0f0e8acd21d69eca4ef13a73982657def4d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 813,
+      "sha256": "0373190187796fd0f6ffcc29911fb349a7c2b9dbc4927c79c1a23c98eb08b142",
+      "gzipBytes": 398,
+      "gzipSha256": "f9ad18c2254515aa2986d39ac6b11dca69588cc0d40059844b04168fcc2dfcaa"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1239,
+      "sha256": "24a91f8e30ad981a68332df97d28d0348e7fcc2df45698e3e114e54b57cb59ab",
+      "gzipBytes": 505,
+      "gzipSha256": "c4781a67e4fabf385ce29d20636bcee2f2435054693ffc8b3b9cf4ecb219a721"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 604,
+      "sha256": "8c629b3e262f0031149103f6b919578664b34439353fd03c7d957d8ad962b954",
+      "gzipBytes": 327,
+      "gzipSha256": "964b9e8c1a6f15042d2bc51b95a701ff9ee193dc9f557d4bc6e1428df21b14a8"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 330,
+      "sha256": "b6ac560f6e50b54b20c436ca24b9729e233c22ccc3ea6f15745484b1f975e987",
+      "gzipBytes": 215,
+      "gzipSha256": "850de344b158c476af84c0a927711d48d246eacd2b55f1695db812545a8a7b7e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 622,
+      "sha256": "420c2e0210fbef21f5b2540115646207841da4cfcbd9a9a1d7d7d1b2958fd093",
+      "gzipBytes": 334,
+      "gzipSha256": "385c70d8186455cc88af5f08f804975c12e6bdfa075cf2e071f177c048887740"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1220,
+      "sha256": "edb30bf620a06367cadcdc741c84790bc9d5bdd46864d3b66fbc661f3f691b89",
+      "gzipBytes": 521,
+      "gzipSha256": "6550295869ca9ba7b109eff99e8fabf229dfdaf89619e2be9301e718de68ef65"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-consumed.json.gz",
+      "bytes": 264,
+      "sha256": "124da06a97f2e3d2d8849b7b56ffb65b80fad0d30d92c397bb12d163b4a2d756",
+      "gzipBytes": 219,
+      "gzipSha256": "03ec7593068ecc58c38455d2a66be4f5d7d5966fb482f6cbac549131af8cb7e2"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-owned.json.gz",
+      "bytes": 3337,
+      "sha256": "bbb4cba653b7c235afbc3a0a5267c408012cac1ad20d58a4a5731f54379215ae",
+      "gzipBytes": 1081,
+      "gzipSha256": "b50804004a0756fb059ba1a004a3488cff2eb46eaa59e3066981e66a422700d1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "99c6b3cb3d6d379bba8da49690c00a720c2a7776681314f264bac10305f748c3",
+      "gzipBytes": 152,
+      "gzipSha256": "37fc24723b55b3898879a0111d0642f36f749255331b04fc401e6c3daa42797e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 575,
+      "sha256": "2bd09f67366feeedaae94625ecc09f9a05a1b7a4564a89436ee66c9b3f04797a",
+      "gzipBytes": 395,
+      "gzipSha256": "547c64ce872dc957c3c5c2fac5622b956171e44ed1fc2b2595b99e1a8aac329f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 356,
+      "sha256": "1a113baf0bedd8a931904a5a81f85aaad57358563cfa4610e81041191da29232",
+      "gzipBytes": 274,
+      "gzipSha256": "99af591dd17f9c371b454f85a03d044681f598db30103c5409057c7f4b049579"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-journey.json.gz",
+      "bytes": 66171,
+      "sha256": "1c219d68cbd9a32977d6bdaae0c3e573b336f9a72500311229486950381e95ba",
+      "gzipBytes": 5019,
+      "gzipSha256": "b531c867b99ade89142e923abd8d02fc90c3cfa9496a6df88a5bc7f33e748f3d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "cbc7ddfca35e104a245df3c46109a8c5e86779ff0228611a7e2fd47f1e51ace7",
+      "gzipBytes": 404,
+      "gzipSha256": "baeca8543f74b44f7121d2521a8115fb2a1091f2a3c018cbd929276c5a79736a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1255,
+      "sha256": "43cfa9ecd0aa7f953845cd987da710622a0faf9c12c0f47916a70eaaa6d0bb98",
+      "gzipBytes": 518,
+      "gzipSha256": "b082eaede5e635b446c592f8a7b9368641afe5fbe5070f7e0c5f4df6becc0d90"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-phase-03.json.gz",
+      "bytes": 615,
+      "sha256": "7708b4dfbefa06a5b585fa7d3cb16cf4d80e20b66202f4d9abeaf3e2f29c2ef2",
+      "gzipBytes": 330,
+      "gzipSha256": "350f69d63e127f5c3cf99055be0e47da0b4249b28b12dd7a9fc006834990161d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-phase-04.json.gz",
+      "bytes": 308,
+      "sha256": "68970a32478c51c35f6d0d4745eb4dace2c8217731327d4284432f055ac0010a",
+      "gzipBytes": 202,
+      "gzipSha256": "e5cb4b7db8d95009a10105e10a1cc1a2e78a312ab70c6419f10ffc3872f380e7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-phase-05.json.gz",
+      "bytes": 730,
+      "sha256": "247558216000097fdaa173cb2ef45b30c37d8ae43a61e6e682b59c7e87aa8d79",
+      "gzipBytes": 351,
+      "gzipSha256": "fca533550c2b6dd59254756ccbf9943efab9f6b542527470fc53c9e73a989297"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-004\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-004/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1242,
+      "sha256": "23879d65ab6a60727be9c91574320f6e67d2a8f7306bf3a417888a29190b9d55",
+      "gzipBytes": 508,
+      "gzipSha256": "b02b509fc808cbcdd7dcb3567fe1f564420fb1798260501c3d80f6be3d25c009"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-consumed.json.gz",
+      "bytes": 264,
+      "sha256": "e41b78c6e961a2b0286d5193e1c70ed45ef0d3ef0309674d203f4be28155e0a0",
+      "gzipBytes": 219,
+      "gzipSha256": "3f05e08f76a30279c5ea3ebc28e6d25eaf576115767f155a2b40ee9e6e11d165"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-owned.json.gz",
+      "bytes": 3337,
+      "sha256": "c421731623eea3c927465bf49a4d4e151aafe92fd634e3fcd9095a240b090dd6",
+      "gzipBytes": 1078,
+      "gzipSha256": "28a7b4e1e91bfac4d2c52603248b94ecf65c6eb2792a0957b8a97dc14906358e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "8d5bfe9cc39c3c3449e353cfb89d20f89bebf947273218cac4c4eb306666ae65",
+      "gzipBytes": 152,
+      "gzipSha256": "02aa66db6e678171a4d80891291649fdbfbdd2ae9b13871d68c23f7212c94811"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 575,
+      "sha256": "a0887481e04182d5f461e33c842c21c5edbe9d7bbf7efee6e22e4169966d4412",
+      "gzipBytes": 394,
+      "gzipSha256": "112eae93795371d49556dca6d4111869f626c69c00786273b5ac60066e5e9427"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 356,
+      "sha256": "a48c3126489008e5ee3154b4b42bfc3fc420490d462d84bc356e5a99f3f9aef7",
+      "gzipBytes": 275,
+      "gzipSha256": "ac5d84ae3c9788f2a17b900aec805eb161db2451ecdf56448565cae769098542"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-journey.json.gz",
+      "bytes": 66062,
+      "sha256": "3e0d210b48bdfbdde50ecd79e75c3226b540d023b973ac91125107cdc8ce5daf",
+      "gzipBytes": 5033,
+      "gzipSha256": "a72e34c5600b7b4d62ee15fa6169134c7c6b1004a5c77c16e75ed4e4eb60cbfc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "33bb3dfd0e28ab8b2a3bea204e03e79fead97c9fee8c64d7b728c0043290161f",
+      "gzipBytes": 406,
+      "gzipSha256": "31f3fe55148f23d87eb5b4e85425abe5f22756ead0c8ebb7c31f724939da6739"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1172,
+      "sha256": "7066c151efbc6a73a5ffbaddb9366488d36ccb5a063eed4cc630c72922c6a6a4",
+      "gzipBytes": 500,
+      "gzipSha256": "a340289bd26521508d397e5117e3e371034e58ec9bbb92c3a00285793861d9d0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-phase-03.json.gz",
+      "bytes": 691,
+      "sha256": "15df6c39bc7738bda54bbaa369c1c382ee5b8f5949f2819921327c6c55efbd42",
+      "gzipBytes": 359,
+      "gzipSha256": "4f21c11ed00e1e4100aad42ca1a640603d694143cd4e2d9fc007f685840b207d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-phase-04.json.gz",
+      "bytes": 453,
+      "sha256": "140d95e90b53e4fb570e91f19553b72cd950912ba8b17e005d35c2f456707635",
+      "gzipBytes": 260,
+      "gzipSha256": "1d0ab367b7e70f14a8ed573293f67d3d99b0a07c0d3409990dd04474876be5c1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-phase-05.json.gz",
+      "bytes": 600,
+      "sha256": "690d5ca3f5c7eb5b235f24958ba6f46b1dfb08702913c7f51c7874e6ef2e1a0d",
+      "gzipBytes": 323,
+      "gzipSha256": "67f7b6c0fe96f54231a667dceb714f3dc2f702117cc313824b1ca94c1930200d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-100\\sample-005\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-100/sample-005/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1245,
+      "sha256": "a4d536ee65e02f0d8543d5b53669e1e2529887ba1429a8cff1250fed393b0457",
+      "gzipBytes": 510,
+      "gzipSha256": "10dc1cb7557cd7c769851a43e914936b68acf15a52aa6564a260026fd3734a72"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\native-perf-sdk-journey-results.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/native-perf-sdk-journey-results.json.gz",
+      "bytes": 170028,
+      "sha256": "6715e81c20d6c227f244af03cba5c51d0985b11def65f738a526dd355dcfd819",
+      "gzipBytes": 14174,
+      "gzipSha256": "b2bcbba49c04ab2f7df79cf514761c0fdcc4d523b97c75f0cc82713f3aadc6c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001.json.gz",
+      "bytes": 145262,
+      "sha256": "2a5b961d267bafe7be2ffbd98885e241146ab546c7f30327d948fe4868be0322",
+      "gzipBytes": 12408,
+      "gzipSha256": "93f8155dc9fedf20581d52747b489c6acdbd6fcdf91216b75287be4fa7f3375c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-consumed.json.gz",
+      "bytes": 274,
+      "sha256": "6848972d3df2f67152cbcece738fb812397c1cceac9f2a6ff11dc7100097adec",
+      "gzipBytes": 225,
+      "gzipSha256": "f5ea93141edbed00e13ff41fa2f61211ca9fdb0ea4232cf38f5192753fe534bb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-owned.json.gz",
+      "bytes": 3387,
+      "sha256": "8eb3591495c347e8d7b022861c3ab1fd05858393c5b52b75dc37ae8c6e514590",
+      "gzipBytes": 1084,
+      "gzipSha256": "e6f4922f9993f811101045b81fb402b8e354b5a4f631c71d02c6b495d0f5df04"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "22da2e2fd8dfe3c972143d46c1c69be583c68ecbcb3ba3822990331fe1bc4fb6",
+      "gzipBytes": 152,
+      "gzipSha256": "4719c51d3830991dd000cbe283916203e1b19438f2292822fb196f894e1a6480"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 585,
+      "sha256": "b4ece74d01a952ed5f53e6d815828e771861290f1a56e0a49c1afd365ca962e0",
+      "gzipBytes": 403,
+      "gzipSha256": "f53ac3f4ae67ea38ce67377172030d805da00cc18acabe242e0cb75651a05902"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 366,
+      "sha256": "3d843d10be54b28343d7d62e88e16d22d473a2671c90bce5aa6b0281c96ab787",
+      "gzipBytes": 281,
+      "gzipSha256": "700638cbab32004ce495a48d62ab48d35b9d78aa9d0fe906e3b000da448a4d62"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 65289,
+      "sha256": "bd460661f209fbe0c696d3f8cdb98e4fba34be1b4477fd3780231e866d4660da",
+      "gzipBytes": 4935,
+      "gzipSha256": "f8edd6e98675d62f5e89373060614099c8fe937ac7f03c967868d985bdf875b4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "7f41e49032a7da0dbfc017dd39a7aab39957a212fcf7488ed2ca11d6594b5122",
+      "gzipBytes": 409,
+      "gzipSha256": "eb4a04b9b62144337ffc13b3b8ee3d41288dff2e66252d10b6d6d6af85e6a03f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1174,
+      "sha256": "14bb59c70d7d6f113fb037cd62434894907e0f67f8f0d032e4be9bc3812d3bc7",
+      "gzipBytes": 497,
+      "gzipSha256": "447608f142b5e8ce0dea0b743b2c8a301a9be7aaeff5ff7232f2be0e2b963cf7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 696,
+      "sha256": "c21898e0332cf0d165be038b8d38c24a07abfd093275fcad3b4e3c6ac6edb2d9",
+      "gzipBytes": 365,
+      "gzipSha256": "d2734690ef5a51abe05e16c7ef12dd96eadff2490338e6232553510f538915cc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 320,
+      "sha256": "22db8e5c71ab0fbfb552ff614c201cea88e593564ddcd986c1fc5f39a947cd1e",
+      "gzipBytes": 211,
+      "gzipSha256": "714abc24df5452b4ee61dfb929dd236c83c4c826b31d7af0f28206207ea7ef4d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 613,
+      "sha256": "7bd1bfaaf6e32fda75af5a401dbf8be76cfff85a5286bb1441820d73d8d84763",
+      "gzipBytes": 325,
+      "gzipSha256": "816004449f8bcfd0951c566b6aac6c2f10c1080b5e8a43e114268723ae36d7bc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-confirmed-100\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-confirmed-100/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1212,
+      "sha256": "7ad9ef98d283b9cb6cf4ff033001d1b82713da90053b92d988c18d27abaa9bd1",
+      "gzipBytes": 519,
+      "gzipSha256": "0832580b646d8ad47e1877b7ebf2d8fa8cf3a00d2eb1c50e7e45f7acfc870a86"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\native-perf-sdk-journey-results.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/native-perf-sdk-journey-results.json.gz",
+      "bytes": 812520,
+      "sha256": "7f3d899a9f498449891a63f68f3473a992aacf75aa50d4a7b8cb6d75407e1317",
+      "gzipBytes": 59699,
+      "gzipSha256": "6b5b716d1fdb76cf37f43f46c197dcf543819b47be738dbdd06361a154e43b2e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001.json.gz",
+      "bytes": 155238,
+      "sha256": "10265504d666d065f1eac1ede10b03253efa063dceec10725e9070be1e2d5fe6",
+      "gzipBytes": 12824,
+      "gzipSha256": "4ce28a19ea2e181d64fd4350d411ee9053579f4268631d60a29b491b19621ac1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002.json.gz",
+      "bytes": 135798,
+      "sha256": "b1a3f154c7975fe23d2c01c12ebd9c51c3739957f0afaee0aaf085741f400cb8",
+      "gzipBytes": 12043,
+      "gzipSha256": "5df15824149027de81645130dbe941296940184c61dd3ccff55937e51eaca742"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003.json.gz",
+      "bytes": 141327,
+      "sha256": "201f8195d21d17e366fcdb3d3ae620bdd85ba70870180ae384ec4918b09df98c",
+      "gzipBytes": 12432,
+      "gzipSha256": "9552ab0d757669dbd9b3b21c5558836a77d2eba88c2f241ae9582b09705bf2dc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004.json.gz",
+      "bytes": 140847,
+      "sha256": "8e4a17cf1708687a9ce238c10a35a9104a518dd5b2cf3cab03d81b931278844a",
+      "gzipBytes": 12380,
+      "gzipSha256": "a28eb27040a383a5f674630e1afa606ee0eb90bd1a2961553108678010e8b5ea"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005.json.gz",
+      "bytes": 137990,
+      "sha256": "7137c4f7bf965108383d0de9269f3f2e73ec62e26148a16bbbdcd1367378b8aa",
+      "gzipBytes": 12233,
+      "gzipSha256": "6548504716865e241d078c30c2dd12f9cea417f802a1341d5b3e3b28273d54af"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-consumed.json.gz",
+      "bytes": 272,
+      "sha256": "9d645b14b26c198266594bf3a21b2bd4562c9831ea35105ce952761ab8566e44",
+      "gzipBytes": 224,
+      "gzipSha256": "a677658460b9b5878d90b0a05be2b9a800b4ec5bdd283c9ced62e2b562b63286"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-owned.json.gz",
+      "bytes": 3377,
+      "sha256": "dd385ddf561c21d8158ccd8d8685f3f8c9261e2f5e1c7cb519b1f2378b84c391",
+      "gzipBytes": 1084,
+      "gzipSha256": "42b893f13132bc217afaff8a936fc4428c75a17e1354247e188a5b191d556a17"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "3797ecec06969b04791684cf7d6840fc5bc1e26e4265b0ea663084850bb781ce",
+      "gzipBytes": 152,
+      "gzipSha256": "e1f95631ba90efb2738b7a9a738a55a325bdb3ee4b290bd7da8f7ef08d0df0cc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 583,
+      "sha256": "88bca831c8ead61dd2ae21451b801bd6d8be79c255fc3da4025bd9033ca6c065",
+      "gzipBytes": 400,
+      "gzipSha256": "b69b205ceda4307baf6d24d90cf0a0adab4ab12fcef76f2c8b5644147922085c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 364,
+      "sha256": "2fd2d096702fc7fa44c074fecd530874e8ca6733730490ed57b654c42e8efc48",
+      "gzipBytes": 280,
+      "gzipSha256": "b86d4fa8fd890b8166b4924f34714b4b50e63551a86341ccb8b8b1551392f2f6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 65896,
+      "sha256": "688cde2deb702a0d0f204b804ad4bf295b130bee1e96efe5490fd46dbbe18440",
+      "gzipBytes": 4984,
+      "gzipSha256": "cb5d83856abfd410a114760a7fc7ce9a3d892094704990b0ddeece73d5be7f9f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "4e65a1908347ab95199f55d185f9385c9ffb87536b2f9c70bc8f84f01a77931a",
+      "gzipBytes": 405,
+      "gzipSha256": "e499629502fcdaf580eea0aa901cbff10b79627c291221fce68b15b8cd360bc5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1253,
+      "sha256": "2faf816ffc66c58ed9a75e2d487eb118ebefdae4cd0f76871625f3c09cce780f",
+      "gzipBytes": 514,
+      "gzipSha256": "78ebb1b540f5bf7caff2b86174fb9e3c06b649459fb83049b069569af2f8594d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 603,
+      "sha256": "9c62d90376ffd0c150ec082abf9b66c1238d5ad88a169b8bc895fc117b28608b",
+      "gzipBytes": 328,
+      "gzipSha256": "6ffaf78bc8c9309819540c55f53ea3a24233ec96a09519eaf28764f06590f297"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 319,
+      "sha256": "bc2bd793fff35208e0b3687e9cf1ba39640acb75f1b230a03f55f5eb6b41b75d",
+      "gzipBytes": 208,
+      "gzipSha256": "f3ad4293b6db2ce7b4ac2b5948022de8894c8f57fd3c29a7692bbda51bed4ac8"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 612,
+      "sha256": "cc6e946068f4286bea24218dd52cfc3ceb83c31621f440381e451e006deadd38",
+      "gzipBytes": 330,
+      "gzipSha256": "6db18b72f13cd39d8b9ff296f15872ea56fcf831367ee725b73615c450cd26e9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1312,
+      "sha256": "1e4907ff63cd864a4af04a6bf035fe7cc3715c05f89dfd38c53c6e85a92d0c5d",
+      "gzipBytes": 531,
+      "gzipSha256": "ae2b5989da1562ec684e9c5e831f5793295ca0010742a0097717b44f06fe2aeb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-consumed.json.gz",
+      "bytes": 272,
+      "sha256": "963edbadcb1a2e0bdfa66817844bd52c971ee4bd8b32f2a788796b6f8a8f7239",
+      "gzipBytes": 225,
+      "gzipSha256": "e825260b485e514a1865ed95ed9e2bd65a84f3ded0fa86a7cae3490a62178924"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-owned.json.gz",
+      "bytes": 3377,
+      "sha256": "2fe60af62322e68224507694b263b2f276017e8c8fb7eec354f11a836c80d618",
+      "gzipBytes": 1087,
+      "gzipSha256": "d67223531feb4eac3837c008ca9c2f5937d885f5018661133e93fb01dcb1ffd6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "f0f9a2b6ee427f6f304c583fed1af462a35070159ce71cc2169a5dd7d4afe967",
+      "gzipBytes": 152,
+      "gzipSha256": "f970cbbce7a8a00e4bb6d1dfb544ebbf64d322fd925dbeaae52f625783ff7d56"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 583,
+      "sha256": "661edb0b06f54482665283291375efac6c90e132ab03549b6b81a10cf43d907e",
+      "gzipBytes": 401,
+      "gzipSha256": "72b335fe04a1b2ce5c255cea4e040e32efa0ab23c4033c17af3dc1f2fdb2592d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 364,
+      "sha256": "32c4715a5d200de6d463cc55d05caea282dca17fdb0a5262afb89170e0c6d1ab",
+      "gzipBytes": 281,
+      "gzipSha256": "a466742c80450a1e29cf20c0033dc496f4afd6e019fccc3aadf8e8069366ee5b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 65049,
+      "sha256": "1991012e3cd6901f23daeee501637150d636fe34641a4196876ca4afed2d5785",
+      "gzipBytes": 4965,
+      "gzipSha256": "c28a57d2bd9097a00642a56c1d5d8845556bdc2302a409bdb126cf53b7f1fd2b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "02d9b9709f01bbc914e1fb038bbe1180d1bc50616949b122204b6a4aca63fdd1",
+      "gzipBytes": 404,
+      "gzipSha256": "19ac0cdc42f4b74ee719964e98c91bddc4686514c4e01027a75dd1991d102ada"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1216,
+      "sha256": "d2fed0263c873f6c3e0c4b02c77d5156d1702b6b618940e0db82c82d73f3eef4",
+      "gzipBytes": 498,
+      "gzipSha256": "9392aa9109099b3f67bdfb749b9e2370afda834981065bbba71d89e18fa07265"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 631,
+      "sha256": "88948cc5172e36fe59e0fd6cda01eb51418210c91c0007076e8e08106c8d3866",
+      "gzipBytes": 330,
+      "gzipSha256": "8b8429e2a7a515ba90735525fa4e25bce7130493344cf61a4c27f4cf49139b55"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 320,
+      "sha256": "5b87b09820429c81c3cdcb63ca4d5b09a1b6cd8dafd9fd8e2197af351a5913e7",
+      "gzipBytes": 209,
+      "gzipSha256": "5cca86f92d3a35d65afcf1f5111d00aab988697bf87548a181821f0687a67727"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 600,
+      "sha256": "1d1e586e77d7f6c4fa322bf313484f8e576421675d70f09253c5991afaa07c07",
+      "gzipBytes": 322,
+      "gzipSha256": "31b0b6fb7767cb4bab563e641c869d4c5d2480534c919224c16fd1e3a610caf5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1245,
+      "sha256": "423f6a644b8c17308dd8915398faa79364852eab0900daeac49779d58c879f0e",
+      "gzipBytes": 511,
+      "gzipSha256": "3bf1ca7a52d1cdfc534e8ac39804b972a372ee3a51724ba1137f05d86b32767b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-consumed.json.gz",
+      "bytes": 272,
+      "sha256": "868532cf451affa1939e38690c4c0c1c857ff2b36f55086ca52d4accb1634d36",
+      "gzipBytes": 226,
+      "gzipSha256": "ef30c7d6d0bd51e0178ef3f809712a61b1f4813e714b1c17e60ec5c9a8ca0f46"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-owned.json.gz",
+      "bytes": 3377,
+      "sha256": "5e326932b2070a84f69548bc65c1e3f1acda431efb591203f2c82357a73ca08b",
+      "gzipBytes": 1088,
+      "gzipSha256": "61530400676b07936922190bf16d5b8906b52c87a41e87ee491808968032da48"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "df257a52826c978cc639df0dcd6e73935c9ab94bbb9defbf61c038ec4f9859f8",
+      "gzipBytes": 152,
+      "gzipSha256": "8d5902702bc5afd54f7ebba88b82a7eab990a7e85c82f915b79828f2d06c04ff"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 583,
+      "sha256": "9a920e2a71d75133f3a8e5ddf6fb7313f1041a3e92688e0965a6773cd0e12f0e",
+      "gzipBytes": 401,
+      "gzipSha256": "cf68d785a8206003ff08289391ef273b0b5228a6558ccac1f509cbb691520240"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 364,
+      "sha256": "8b5f36a26fb5eec79fb49c3bcced040448b22a4ceabb1fbb788b5f9abc6dfe49",
+      "gzipBytes": 280,
+      "gzipSha256": "b03ff59b4565446bcce4e176c4af329029fbf7c236f89b989e95c9e44469071e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 64832,
+      "sha256": "b9e760df08e0f050685d3eccce3062f42c68f474f88a018732121bf305cbb02f",
+      "gzipBytes": 4955,
+      "gzipSha256": "49b802fe7ca55c8a205bdd3a7117e2483bd45e6341c74926df2260eefbc1d100"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "4ecabeee56071af26b51532eef34032e32ce5a59480c9c8bce6c46a3be24b32e",
+      "gzipBytes": 405,
+      "gzipSha256": "ca4d4e3aa3a1d287d61eb6b104666dc6367cf32c3ab6949614ee353486d63a4b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1285,
+      "sha256": "46388f5db885a5b67172bfc83dcc62d93d484bdfaabbc91c4589af43524ddb73",
+      "gzipBytes": 523,
+      "gzipSha256": "1ed833a6f904f7da14e74c53f04193337196f046c5633c090b8940f4735605a4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 613,
+      "sha256": "6d1095dd33f7a5bd7d81b6a070e7d7aaed18dea9009bb4dd742916fba8fe60c2",
+      "gzipBytes": 335,
+      "gzipSha256": "0cd7a4dec331122ffcdb8429b3c91c6871c229253f8c15a294db42c418cf372e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 318,
+      "sha256": "651ec640201c99b995e34838261e29f25ff1dd93d1b47c5fab5527e0b9a8c5f6",
+      "gzipBytes": 211,
+      "gzipSha256": "7b732792c4c740b4970f979b5c7efae4a9c7ce690e86aa95183baf98e9e9a89e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 612,
+      "sha256": "ff1defe91786a21ca3c88b04cfdb88e38e1e6ffb2e8d05db25673f92b3e47324",
+      "gzipBytes": 331,
+      "gzipSha256": "72bb5d29cb5a879f6ccfa88f22c89ebf7ce3ff7bd4cd6857db7bcee50cdf8fcc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1211,
+      "sha256": "d996dc78041e90d094faf92f447a237e6c7070d3d7ed86f96f89d4e7ee5f08d8",
+      "gzipBytes": 516,
+      "gzipSha256": "302a3e50c0f374d6c8b61e2984f87dcea8bcbc61f6ae290a325fa3bb969e9091"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-consumed.json.gz",
+      "bytes": 272,
+      "sha256": "f51a8ed528153fd268c87f950eb3a2c71c88ce779fd2156aed7c2b5d95834129",
+      "gzipBytes": 223,
+      "gzipSha256": "ba6d242cb2542f8bb061a0801ee83e958588d67ed2cdd5a57bb2822ae8a40e28"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-owned.json.gz",
+      "bytes": 3377,
+      "sha256": "8e20a3d064e32cae7835b4261eede01f9450acbedf2ea24aae3e4174241cb90b",
+      "gzipBytes": 1088,
+      "gzipSha256": "6281991dbd4d4ed146a3fe65a17d089fbb4cfb095f0410f7112170e48762a3a7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "3373c44f4fc6006c5758206f03e742a5e38e7566f6b787fa21153ba9c79de4ef",
+      "gzipBytes": 152,
+      "gzipSha256": "d409193a849cab33293a3fb0afaecce38cc52b758419f733c7dd737f64235684"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 583,
+      "sha256": "e3e8647bf560336dab6b8a1aa8c7a3f76d78485be8e76d4788c0502613c3b2f0",
+      "gzipBytes": 400,
+      "gzipSha256": "1e801610dad33e6e7f6ec30e3835f2eb5b462403e66693d8f5c9062869e14c50"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 364,
+      "sha256": "4d8773173a9716cf18ddbf04185550dc8a52c26fc7626441fbc94bcf61b9cf93",
+      "gzipBytes": 281,
+      "gzipSha256": "10c0c80f9b6266050342c29b1d89839b43a862d3aa5753e942a8a12c13254aef"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-journey.json.gz",
+      "bytes": 65114,
+      "sha256": "1a61da537f1c7cd6b2e7d2ffc24db8d8b717eb3a35bdc5feaf320c0ce877eaa4",
+      "gzipBytes": 4982,
+      "gzipSha256": "549b6463ec875462d57fab70942f4b09671c3f6b8f21d43f94bcf537d46b705c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "e2d5ec00feb5ae3f4c5e45e88866d6bec54902a54d881923776717e416183e43",
+      "gzipBytes": 408,
+      "gzipSha256": "979887982ab4d3c56e67ac8f1eefa61e30e067662f0c5c0017ce453a2909dd14"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1182,
+      "sha256": "f673aeca95d83ce6d0a6e8604281dc6bdfa07af04ad5305f0038f79d7b597a14",
+      "gzipBytes": 504,
+      "gzipSha256": "62ef50162da43d7833416ddbff6cd14e4d8d4f5839aa93fa8e5fa641b70ddeb2"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-phase-03.json.gz",
+      "bytes": 694,
+      "sha256": "1efa867335e31a5c87d5d99ab4b2ad371435c937232a5632711cf41f2611b933",
+      "gzipBytes": 363,
+      "gzipSha256": "c8ba617da70b84f63969d23dc4b8001f7a730114272dc277d3e1e28515d48250"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-phase-04.json.gz",
+      "bytes": 329,
+      "sha256": "aa6d45e09d31393f57a7ffdb8181f0f8eb5db9be7778ecd8805ac15cf71ba99a",
+      "gzipBytes": 217,
+      "gzipSha256": "1e2b385f02578c9182835691d02be29c6242df311bc1a9e5e43ad36f1bfb374d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-phase-05.json.gz",
+      "bytes": 612,
+      "sha256": "cabac3f0cc5c454ad1e3d95d517ce6a24b8fdf4061255917b170513738a8ee8d",
+      "gzipBytes": 331,
+      "gzipSha256": "7723417f02eefb315b274024d8d25da0db92c0f8821f2f46a9898b98ce8d6685"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-004\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-004/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1248,
+      "sha256": "c64a5f1b62acdde1c0c35bda8bfac9fb013115a1adfbc2f395d0364de3afd99d",
+      "gzipBytes": 513,
+      "gzipSha256": "df47d8d756f7ba1a1c9446ca2042346a04109d1c1b2ea4a4454cf3a30a169585"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-consumed.json.gz",
+      "bytes": 272,
+      "sha256": "8ead07074e7254e87ecceb358abdb1d84df4f8708ec13dcdec281f59db9eb5fd",
+      "gzipBytes": 223,
+      "gzipSha256": "d65a0d6871ec6b141dd577542b94faa9351ca779325098dfe73be42db0e07161"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-owned.json.gz",
+      "bytes": 3377,
+      "sha256": "501c91b5d3f2b97c1fcb39ea93c799085a35ffafac4e74e28578edac9034a6d3",
+      "gzipBytes": 1085,
+      "gzipSha256": "181a8aa74d9bfb8fc533e8273ef159d4605557c5baab1a50336fe12624da3f7f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "0a8fde80f8c53335c980649b65a4cfcd2111896a6123ce256e40cfddcc30d816",
+      "gzipBytes": 149,
+      "gzipSha256": "78b23e4f7e5a2984259d1d5741a1444617172206f0de159d4ae39bd9a724f98e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 583,
+      "sha256": "5a2a8f0fcd95930d4976d04e595b8da3b67e27854db347aa77f4a31460bb7c24",
+      "gzipBytes": 400,
+      "gzipSha256": "2e00186bb227ff3a2870435102a085f0a1c8c45da98182bfcec5e3e706e545e7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 364,
+      "sha256": "e3a1729eabfa97a8e42d3488833f7f4300dd6530e65cb6054340fe12863f68f2",
+      "gzipBytes": 278,
+      "gzipSha256": "a0460544c7700d3c2e62e802452bd4bddc6a20c21d2d0260d92dbf002469def6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-journey.json.gz",
+      "bytes": 63593,
+      "sha256": "0a08c11b0327f87715cc7cf6688820b8539168bb774a4071e6b3996073668cbf",
+      "gzipBytes": 4881,
+      "gzipSha256": "ce1577d996462d200ed43d86a06818f5fd0871dbe6bea4f1ad89ee6cd51c6bf4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "7a597cf8022de1a8ff63374e97f203e205a7e067de4edf2a24536b30d97d0dfd",
+      "gzipBytes": 410,
+      "gzipSha256": "8955b4edc318cf8365c851cc23ce3439d21e75ddb16b3e50388145bb3e1bc045"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1161,
+      "sha256": "663fdfe4564bbf83a2696039b0f4d2ed25b0c7006b33bd9a4f251c8c77e843f3",
+      "gzipBytes": 492,
+      "gzipSha256": "389f3bfd90154d74c9abfa3e41379c0d36c318092176726641f34e46cdac5593"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-phase-03.json.gz",
+      "bytes": 682,
+      "sha256": "fe619ba1339cb6777d9ee0476a1baa47ffc2d68c0ced733e68fa3e2f21b526ef",
+      "gzipBytes": 358,
+      "gzipSha256": "bb694eea641aa1291a02920f92a65daf0444bac405e970bd7339140d85a9e9c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-phase-04.json.gz",
+      "bytes": 305,
+      "sha256": "841d5a02470ba9501b7e9a464d0a4649024004055705a3f778cc88c504724df0",
+      "gzipBytes": 199,
+      "gzipSha256": "68751afeb1b2c5c4f89e1aebb3be947ee60f1fe4fca5f0cb6f5a5805c626e537"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-phase-05.json.gz",
+      "bytes": 600,
+      "sha256": "a157c48c4812ed49c1a49199801f41126f4b77324d225fef7933e97a650049f4",
+      "gzipBytes": 323,
+      "gzipSha256": "77c6eab738e962bcb8a0eee6a2ee539535f6f7813de9a3b1616bc34ce694b994"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-100\\sample-005\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-100/sample-005/native-perf-sdk-phase-06.json.gz",
+      "bytes": 839,
+      "sha256": "c5b6f51d9931072e1c925502984af8f8afc439666612d77f8646909db9a0e066",
+      "gzipBytes": 399,
+      "gzipSha256": "ab5821b16988ed7c963bfa0c8e380533a3ae178c706c020eddc8e82655ad4da5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\native-perf-sdk-journey-results.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/native-perf-sdk-journey-results.json.gz",
+      "bytes": 826283,
+      "sha256": "46c6ac94d153d4d9357c78812984dd6e19f1eca59ed2f6a209c0dbd3f43b3732",
+      "gzipBytes": 60345,
+      "gzipSha256": "34ed85d62ba455e47874b7fda5218bef4a8f79af39afae67119370c72c61d09f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001.json.gz",
+      "bytes": 155473,
+      "sha256": "0886dbb2a2bfe4486610f0027ca8ba91bb30eaea887e9042f262ebd176a05d47",
+      "gzipBytes": 12817,
+      "gzipSha256": "d27e3b1dfa97207b4abe9afb38f112b8cd74e0cd95bea1581c51841915008246"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002.json.gz",
+      "bytes": 141877,
+      "sha256": "f63bfacb5e94f04b2cab86e16d71a2fb8946d51ee0c203e4a8f50def4ecc4bbb",
+      "gzipBytes": 12347,
+      "gzipSha256": "a1895dadf2b4d183ddff7b20f787c1a484605aab8ac5def36e1471d1355116ca"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003.json.gz",
+      "bytes": 142887,
+      "sha256": "be839065865810291e8238d02a92f700734b3d92e268035052bb0dbc8ea2c8f3",
+      "gzipBytes": 12412,
+      "gzipSha256": "1b78fdc7c22833e1302095aa1c09abf734c9d6d0e6a0670a386cb56e3f2517b0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004.json.gz",
+      "bytes": 140045,
+      "sha256": "b56e32b2fd7bc53056606affddeb5146e8077827193b30a8dcb5e523679e7c0a",
+      "gzipBytes": 12361,
+      "gzipSha256": "54f757f86958590415e6624234f755281d979ca0098fe511b13df90e4483dab0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005.json.gz",
+      "bytes": 143405,
+      "sha256": "cb303521c96a24e0678a28ea58522e70ba6de29317fdc1da7fb0e8862e93043d",
+      "gzipBytes": 12542,
+      "gzipSha256": "e19ae2230f9e426b4390f5f0d02ab1104b547285d5b74d935560cc3492986ad6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-consumed.json.gz",
+      "bytes": 273,
+      "sha256": "8db7cd3309e12c9f3f063d4276b97dd5ebc1f74aa6d2bf19b42a71575a66a246",
+      "gzipBytes": 225,
+      "gzipSha256": "2f07b33c2161fac9c257f5d5b1e98c2cdef9bc15397c8bc8527376b141ea2527"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-owned.json.gz",
+      "bytes": 3393,
+      "sha256": "8a41b5df0c025c390358f75f7844e689a3f0c389c56036c6969fd56632410b24",
+      "gzipBytes": 1087,
+      "gzipSha256": "1f169c117c23a2ae3d660a2157a6efd8b894ab88ae21c1fa627445a809372953"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "53a876f53d595237259524e1de605a1ca82b688e4f387349a6826e967fc8350e",
+      "gzipBytes": 151,
+      "gzipSha256": "ef312deb9f30086551081a8110211dbbae51b1129592a5d6fdc869cc5fd8ea9d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 584,
+      "sha256": "4bf0261ae8e65b2b7cf49cf080c3f6458da768e1e7858978107ba007e056d4ba",
+      "gzipBytes": 402,
+      "gzipSha256": "57373f3df251f920a93c2c992f17ab0d70dc81140341d723ed410e5f0e12bf33"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 366,
+      "sha256": "558f522c8b9a1d467c1d792ff4c55e1859bf126dfd3c70aab6b48bf8d05ab5dd",
+      "gzipBytes": 282,
+      "gzipSha256": "318f26475be5625bbe1d94ebab7a374f553ab88001043eb70cff3d718a3c2bca"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 66361,
+      "sha256": "e159e4da73284f9540edbdd3b99dc008d6cab32557856702fe7c7bc8382f795f",
+      "gzipBytes": 5007,
+      "gzipSha256": "9ae4b8b87c0bc077cb5581be1a73c940a488d6acb5d89624be264959b240a0b7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "6c58278cf6a4c293ba769925d18d5e53bd91df364db7ad256da2f6519f5f1038",
+      "gzipBytes": 405,
+      "gzipSha256": "37d9d646b0ed9b210b7cb9c26c7cd0909eaa3f2df8c83a68bbd5a8a41ba86b1c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1288,
+      "sha256": "73afb224adb3ab843b6e237cdb21aa19e6f1e2262bf6ec0e93dbe0cd6e96176c",
+      "gzipBytes": 525,
+      "gzipSha256": "7854a6fa8cc1675f773ada7af3c92dcbe2903c5b480862184abd8dbc8a3379c3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 546,
+      "sha256": "7e3ec077b0157e487d4f6cd63e818657139b2edeef3ad3457bb79b896887146f",
+      "gzipBytes": 305,
+      "gzipSha256": "5473233af03d4bc730c4bf7d8d802e5775dca39871cfc8a136d4ff9614c8d195"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 454,
+      "sha256": "50042d1b23da3bb34716fa3582ab1f59815e77c36f70d78d5401898c56a06657",
+      "gzipBytes": 260,
+      "gzipSha256": "c189d1016f90d3caf0d3ee2d89d23a84fff50182b2c23f4dd33ebf0896d18974"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 623,
+      "sha256": "487473378932ac476f2697fa9b9b9e505864bae0544d47706d92d9b0fd4d6bd0",
+      "gzipBytes": 331,
+      "gzipSha256": "4b3e1ea36549a1a43813a830bd20b187fac1873cf9aedb7f3f038294a6e6c6a9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1291,
+      "sha256": "2b5ded8db417fd6fac600393c3d45ff1ce006c32cce4ae374e1c1e7179fd0866",
+      "gzipBytes": 530,
+      "gzipSha256": "d2368aa297df8d4ec0106ad9060a053e8da2062086ea454aca1cf13818c8be23"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-consumed.json.gz",
+      "bytes": 273,
+      "sha256": "913ecb8af932ec8f4ff24cd288a19399203a81dc16b89d1f271b73040aba4cf2",
+      "gzipBytes": 223,
+      "gzipSha256": "c6f4ff6c96b41d0fc4f48c8d436490c169f1a358cad983c78206a02c20388f44"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-owned.json.gz",
+      "bytes": 3393,
+      "sha256": "a141434feace1b2149c1f20e5edcbd084a90748f04a5f98d70038c6c30997b56",
+      "gzipBytes": 1088,
+      "gzipSha256": "95dd205a291252a6e59e3c8b2bc08fb3b09e8dfcde5e6f0a24112b72cc3450dd"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "150feac0c83eba7201a4e61d1689e8a0c3398898e7af9b41919adc58b56d1b90",
+      "gzipBytes": 150,
+      "gzipSha256": "f534babd580c789d2ae36870307c8594bf21b20a9b245d313991f742f1de2178"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 584,
+      "sha256": "184e05167c400d0580bbdcd7231d4a8c84fbce8573870924dc875ed47847b73b",
+      "gzipBytes": 400,
+      "gzipSha256": "176369051c8390ab3c19b6aacecc5764f5bd2865f391309fa1e6b207cdf9ba5a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 366,
+      "sha256": "ba47f03c389876c28e0bfedfb85ffec1a8107d6065892808d4cc7cfd60e1f297",
+      "gzipBytes": 281,
+      "gzipSha256": "64f7aee30bf2ee4ee27e0a123e7a06301b714e46c897a436a6464e4f4c11b5ff"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 66001,
+      "sha256": "501e8e5c27205c0ee720eb904cbf18bc47216d1a3ce89f685317c21b2f527591",
+      "gzipBytes": 5014,
+      "gzipSha256": "47a7675bf2b7e36cb4a3ff674b30512b9f7749e54776b206124179635cd2108e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "3d3e1ccf41c3717a960a2b0649f0cc5f73057c1a2ccf7e45ce546da026684be4",
+      "gzipBytes": 404,
+      "gzipSha256": "6a6ff3f55462edb164b1a8d728e27db0a30d6c303cab024a0d3ef7d23f794e43"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1172,
+      "sha256": "805900d42b67821b566d263f82fb8a5855c48efaa7fe97ff38752cdfa8e190bf",
+      "gzipBytes": 497,
+      "gzipSha256": "b22229b50abf7e33fc74fb1a9b34147002931ef30db8fa94f6dce8ef3ebe3aea"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 693,
+      "sha256": "3f94f01af2fd8a5f48158ef84199e57fa1dda742db3a5a66b17393a831f528f7",
+      "gzipBytes": 365,
+      "gzipSha256": "7ab2c66918a15440c3e737963677073b5530b78432828adb16e41c44fa95a405"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 308,
+      "sha256": "79c9adb3bec3bb3eb5ed409236de2435ba0a27cfdea1b5bbecbd426a72684ec8",
+      "gzipBytes": 203,
+      "gzipSha256": "60ddb7f272f442edc400b30f53337148ae2b73ff8685edb5ab372106f913dfce"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 733,
+      "sha256": "9349c28cf7bdbfa07ecbe2b3e4be0ead5f360730df6a7e5fc42013cd103c9fb0",
+      "gzipBytes": 358,
+      "gzipSha256": "7d8482ce7217499a201ba222921f8061eeeb22a382aa3f0a29c17002b1777cce"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1246,
+      "sha256": "c64eca55dc485b51624e076f3115fae55a6f4d5b07e49a0e84b627e2b7fe8a1a",
+      "gzipBytes": 514,
+      "gzipSha256": "46b6a4fde76effc05522cf8fea0b185635f65cb449a02cc85ec26ba2c7f7a5e5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-consumed.json.gz",
+      "bytes": 273,
+      "sha256": "ec2c120023cd274d955553febb729766a1e4c1e1779d7ef463f7ec8d3bdeed5a",
+      "gzipBytes": 226,
+      "gzipSha256": "956e1e734e773b9fe16d9ab8af84e0c09c42a0409562d30259d7a9e63669ec66"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-owned.json.gz",
+      "bytes": 3393,
+      "sha256": "f70fe71e8e670f7f74cd2e6527e5b72768a4ab04907a1e228bc9b482ce997185",
+      "gzipBytes": 1085,
+      "gzipSha256": "1edb058a088dd9811d17510b54e591a83956ffe4357bc15d2a4234f79aa15ac8"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "e75c003aca2b95797cf314500e7ac55a0dc290fd2a85b8c79c3c1c402e180aa3",
+      "gzipBytes": 151,
+      "gzipSha256": "fa307c367e510031999b71ed430bbadad9e8f8739e26ea0cb0b7f45623c24590"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 584,
+      "sha256": "f1f2aca7f3123f81d7b0a758ad022bc4a0bde5d84dd2f08d5674f4ca54d1de33",
+      "gzipBytes": 396,
+      "gzipSha256": "f0f2a5e90b13a6f4328515c14b838bfbd3e6ee342d27adf5d92dbaf65c5d39a3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 366,
+      "sha256": "55051e7d65196f506a1e60e3192aad88ca08867ff33e52015ca957e5bcd1abdc",
+      "gzipBytes": 282,
+      "gzipSha256": "aaeca11f161be3644d40efcbc2a2138c63ce8eb5ab32041a08123304c0dfe2f4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 65918,
+      "sha256": "a4fc74ef82ffd5a756528710e33eb708862e3dab36b41ccd5b18a3dec443e39e",
+      "gzipBytes": 4999,
+      "gzipSha256": "7ee16791e4583a63245a60051d4cae5b863a3adbcc788c0a706678459b080e1e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "cf7d36bd8beb9d26a4b6da4cf504ca5e880c29d4f566561e445c6428906be80c",
+      "gzipBytes": 410,
+      "gzipSha256": "4f552a2df6ffcfb52e3a03bad94ce4daca0870f0b71ad5a1bd35a483d4d6bb81"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1173,
+      "sha256": "386bd18b3e9493d60667f4c76c2d70210af316807a6fef00c8ab569d33774d93",
+      "gzipBytes": 501,
+      "gzipSha256": "1184e57e7dac4737ba7073028d378e76fd925adce5d51ee14d0a68ee4b40b728"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 635,
+      "sha256": "fdcb86dc81506ba680039726a1b183dc24b9918e2a24f9c4d3f755c254149c05",
+      "gzipBytes": 338,
+      "gzipSha256": "642dbd9cebea6e25332a3239a80bf9d916157d6b27937835503546dba6db8474"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 441,
+      "sha256": "c60fcfa0c727783c9d09cc2ef8aa3b76b3100363655d2ae9d9131b6538f5ad5a",
+      "gzipBytes": 250,
+      "gzipSha256": "85cca435f338526e3d45669a2fb184b51b77245beb3361402db919eca56aa895"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 610,
+      "sha256": "d539ba96ce732450ebac3dc7939a78c07c69805b25f3d81fcbf45393c911aa98",
+      "gzipBytes": 325,
+      "gzipSha256": "5666113d4dcce17331d7cefe9534998f94ae6250821029a7e9ea432ef8910066"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1259,
+      "sha256": "c3fc1586c174508c8c35e5941656ba053241136b95664cfbd67e294d4a8a2033",
+      "gzipBytes": 522,
+      "gzipSha256": "8b415dcd281c4d29a319ea68e0c916aada3c87856f2c4b2100cf5af6552c87f9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-consumed.json.gz",
+      "bytes": 273,
+      "sha256": "af59cd5b9df34e5f96a0acfdbce8bee3a8f93aa199c74ab0e5a952813cb9e437",
+      "gzipBytes": 227,
+      "gzipSha256": "48b66580d2d1cfcc133757a32993da17de0204dc7f44b72ced81db2a610e8359"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-owned.json.gz",
+      "bytes": 3393,
+      "sha256": "3751d1cb317f90b718b66359928e487fe4bbb89fc5040b9ba49456af5c1eae91",
+      "gzipBytes": 1088,
+      "gzipSha256": "99545744ba10522d99266c7bdf6f495f88b73e267a312d49a3062527ea7cb480"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "7b41036caf3d3c92db3546401360e56d30b27b526eab01948aef409b7b609a28",
+      "gzipBytes": 150,
+      "gzipSha256": "f2c4743e5731aa36d66f3915807190efb8f36189fd43180580eb68be524f376c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 584,
+      "sha256": "340913453185312359256beceb4d0eaceb48c4675a62151d28d4471ad07825c7",
+      "gzipBytes": 403,
+      "gzipSha256": "f25c7b8617e473c6c87c1b65b73582f88476f2d0126d6817ca4844b4fc005976"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 366,
+      "sha256": "d243ea0b12cfbd987dc7ad4237b483e2987d2cb06affaf127201e0eeee2dd269",
+      "gzipBytes": 282,
+      "gzipSha256": "bc8e0414ac432ad2ef64ae41d44b20c133e73b27060206be8bcd790d9e8bf617"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-journey.json.gz",
+      "bytes": 64276,
+      "sha256": "b8aa79d7a31ad1ff6815ce53d1eb594dad5c71eed42b66148bdc95b2020941b4",
+      "gzipBytes": 4942,
+      "gzipSha256": "c99d7cba583f7abe6cfbda8cdcb53c19ad54b66c499ae7829e1b0a6b73b72013"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "c45529d0aac22bc877c98a46f9f49a42b1c99b57665f543376c593ccd2007964",
+      "gzipBytes": 405,
+      "gzipSha256": "32528d1e075ee5ff14146ce6c3113fc748dd7e776312532ccee492b6bc1db9f4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1219,
+      "sha256": "737331c3f85e637213e83b7559942a3265b9f0fb744fa0f0c81ea2d60241cab9",
+      "gzipBytes": 502,
+      "gzipSha256": "44d9fa76092f6a7366e473e83c3fdf724096b0569085d45a79e3d8fbc865ea2b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-phase-03.json.gz",
+      "bytes": 647,
+      "sha256": "de663ea6cacd845e51e5e893e6c10e127be4aca2a16c0069fdecb297b9dfd014",
+      "gzipBytes": 340,
+      "gzipSha256": "e42373201882ee5a6056b456d4b596f722c016fff4221b1aec2010db2978eb38"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-phase-04.json.gz",
+      "bytes": 443,
+      "sha256": "d3eb1acbb1b20e97764431edabdb13d5ce32f5773b0794f5c9d9eb52a9543260",
+      "gzipBytes": 253,
+      "gzipSha256": "087082c5c2c0214607cf115916c03b4550da20863dcda9046fefffdaf905bc90"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-phase-05.json.gz",
+      "bytes": 613,
+      "sha256": "d59dc299667781ef5f5387ce956cd83afb6f14289341275e03fea3044667d8b9",
+      "gzipBytes": 326,
+      "gzipSha256": "037236e8b5b8e4427ca8e7100cd0051ed2981968bcb2935cb5735986d4aba728"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-004\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-004/native-perf-sdk-phase-06.json.gz",
+      "bytes": 873,
+      "sha256": "40e7a0678ef8fdfe1a212fb6ea5f738c47dc512cf912fc41c0bb605198f75bc4",
+      "gzipBytes": 408,
+      "gzipSha256": "544494f0b6c09894a124a454b3a0c35f11e4723d30af12dd760556be754ac3df"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-consumed.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-consumed.json.gz",
+      "bytes": 273,
+      "sha256": "e0d176ffd42c76528d9867e855d0dce025d6c5a6753db5358d10ebb255872da2",
+      "gzipBytes": 225,
+      "gzipSha256": "477be46566a94a31ced8688451e0c27fa3a0a41ee9f367aff75d4a7d2d9bc80b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-owned.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-owned.json.gz",
+      "bytes": 3393,
+      "sha256": "8daaceb0d08c569b42bfd2d3b0abc9f8b632f562a2dcd12c1c8157ae6af73929",
+      "gzipBytes": 1084,
+      "gzipSha256": "da8e5c8bb257ce9fd5879f79ae7c154959905b8e474589484dad8ba83ad96617"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-journey-authorized.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "5c2b81e4f416564852c52ec9ad144eb7e641a16217a5c69c656874485a158c1a",
+      "gzipBytes": 151,
+      "gzipSha256": "233fc3c5bd78756fe878e5747de9d3a5b04fec56eca304e77c22aefffadd3291"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-journey-bound.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 584,
+      "sha256": "2b20ac00501c9320d970a563224907ab98c796386bf8519a4d279a2c137da6eb",
+      "gzipBytes": 402,
+      "gzipSha256": "2579b0f35f6d5dd4b41bacd0d4c135b59c850df4c07e40a717156e2ef04e399c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-journey-requested.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 366,
+      "sha256": "a22bb46ab7fd2c6dcbe8f0a130d53741e6b96b4d4ce3c62c540892759fc04a23",
+      "gzipBytes": 280,
+      "gzipSha256": "e9804bcba21bbbf856abe221e73605e72d74f118f32b4343de52a977a652c6e4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-journey.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-journey.json.gz",
+      "bytes": 66311,
+      "sha256": "8db00cca207f3791860bc6acaf305ccf329efa405881804408b27950925fc954",
+      "gzipBytes": 5078,
+      "gzipSha256": "250afe88413bc6385f3a0b7febaa714d10bd3a48123fe0ff6eaebb435bdda35c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-phase-01.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "bf20c732f1f1cb6f968515e024bfa1ac9390907a12b60237499a17d6d05d8f1c",
+      "gzipBytes": 405,
+      "gzipSha256": "889cbfcfa3e6574aa22849f97bba7d316e92a2d4a777952d6886cc4ab2ebe554"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-phase-02.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-phase-02.json.gz",
+      "bytes": 802,
+      "sha256": "f0c5f6685b2eb5c06478c1e02480ce5e81469141358dc32c1fa39a46aaf72916",
+      "gzipBytes": 381,
+      "gzipSha256": "40bf33d92f64c5cd99f252145bbb9cc971c77d2baf29962d1d74f455c01c71d8"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-phase-03.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-phase-03.json.gz",
+      "bytes": 1041,
+      "sha256": "e09b9d7fb7bf7c592d028f77ad60bd6530a76c16be48b68373427a993167bb9c",
+      "gzipBytes": 446,
+      "gzipSha256": "92fc02100e3287da173a2860ece3898f00e078317c50b0e18a40cf0a0dcd0ac3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-phase-04.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-phase-04.json.gz",
+      "bytes": 454,
+      "sha256": "0cbae435208ae51246294b8db73ccbe1923e4810e64f1f50e9eec783ee287dfa",
+      "gzipBytes": 261,
+      "gzipSha256": "0c7ce2d0597a95c52545a5ebe01b125557bd86f4c3255cba4cf0a46e25ace201"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-phase-05.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-phase-05.json.gz",
+      "bytes": 613,
+      "sha256": "dc17e0b5ccb18212087d03855de5038b10620586eae65a8edc478d05320ef3f3",
+      "gzipBytes": 332,
+      "gzipSha256": "b225df8816807755364cb5bd7dc632d2402a4385fa44cc930649c08132c9beb4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\sdk-memory-startup-5000\\sample-005\\native-perf-sdk-phase-06.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/sdk-memory-startup-5000/sample-005/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1301,
+      "sha256": "ad4904ee162beef99ea5977524e16f30212dfcb408b8fd0d4758084300b64b45",
+      "gzipBytes": 524,
+      "gzipSha256": "3ac9b0ace04a55745e9227b8cd77c2b86edbfed3a5e199fa3a0d858b01321fa1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\format-doc-final.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/format-doc-final.log.gz",
+      "bytes": 178,
+      "sha256": "449ebf703dcf3782b6359bd6755dab2788f79d437282a3bc9e249d3bd5385799",
+      "gzipBytes": 164,
+      "gzipSha256": "48fd585f32c705b1a7de78fda8bca5bd4713050256b5d62b8ea2dadcef69cb1d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\markdown-boundary-final.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/markdown-boundary-final.log.gz",
+      "bytes": 94,
+      "sha256": "abfdf70db7efe8c7958233249d814ae44050d7f26c8abab8c94de1ab10d1e060",
+      "gzipBytes": 111,
+      "gzipSha256": "32f60cc73a25a0b31ce1c652c7eb9eb53657278192dff5f89ddd792c7d36360d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\doc-checks-final.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/doc-checks-final.json.gz",
+      "bytes": 485,
+      "sha256": "a09c76576e96f2dab722886dba0672a61809a6d20c17b450444a1ac496a6e397",
+      "gzipBytes": 277,
+      "gzipSha256": "14013e320bafd4c1f3345f5a46a20d7b08f504dfeacd31b639af12805d604ed0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\format-doc-green.log",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/format-doc-green.log.gz",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "gzipBytes": 84,
+      "gzipSha256": "7a5bed173ec847bbb2b6ddce36a78b0afa5acb724522a09fb91cca5e17dbd613"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\preservation-final.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/preservation-final.json.gz",
+      "bytes": 540,
+      "sha256": "6a2c0428f22e2d1d62941982edcb5aac696bce1b3a4779b6eeb528311ed65798",
+      "gzipBytes": 314,
+      "gzipSha256": "1aa2ac55718a190624743784ae05ae9e94b4bffad46270783e012a6a8f919444"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-memory-20261005\\archive-index-crlf-original.json",
+      "archive": "docs/performance/rf312-windows-memory-series-2026-10-05/archive-index-crlf-original.json.gz",
+      "bytes": 130591,
+      "sha256": "60665fb94f7f76206cfad11f59c7fa515625c770599814267fdeeb660c734c94",
+      "gzipBytes": 26470,
+      "gzipSha256": "483e9af85e1bd781cd0a9f49bf694af152d4b2eb1e21e44a0bca74f6f019e819"
+    }
+  ]
+}

@@ -37,6 +37,28 @@ describe('静态启动层交接', () => {
     expect(document.getElementById('startup-screen')).toBeNull();
   });
 
+  it('RF312 只在提交后的双帧交接点通知，不在取消的 effect 通知', () => {
+    const observations: boolean[] = [];
+    const onHandoff = () =>
+      observations.push(document.getElementById('startup-screen')?.dataset.ready === 'true');
+    window.addEventListener('solosoul:startup-handoff', onHandoff);
+    try {
+      const cancel = dismissStartupScreen();
+      cancel();
+      vi.advanceTimersByTime(32);
+      expect(observations).toEqual([]);
+      dismissStartupScreen();
+      vi.advanceTimersByTime(16);
+      expect(observations).toEqual([]);
+      vi.advanceTimersByTime(16);
+      expect(observations).toEqual([true]);
+      vi.advanceTimersByTime(180);
+      expect(observations).toEqual([true]);
+    } finally {
+      window.removeEventListener('solosoul:startup-handoff', onHandoff);
+    }
+  });
+
   it('减少动态效果时不等待淡出动画', () => {
     vi.stubGlobal('matchMedia', () => ({ matches: true }));
     dismissStartupScreen();

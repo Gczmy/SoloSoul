@@ -1,0 +1,910 @@
+{
+  "index": 4,
+  "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004",
+  "success": false,
+  "phases": [],
+  "startedAt": "2026-10-04T21:45:49.089Z",
+  "prepare": {
+    "exitCode": 0,
+    "signal": null,
+    "error": null
+  },
+  "owned": {
+    "appVersion": "2.13.2",
+    "fixture": {
+      "accountId": "acc_rf312_100",
+      "files": [
+        {
+          "relativePath": "acc_rf312_100\\config.json",
+          "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+        },
+        {
+          "relativePath": "acc_rf312_100\\vault.db",
+          "sha256": "563fc98e38d1108ea662d0a1c8ca33d9a83d530094c0ff698720385b0b41cab7"
+        },
+        {
+          "relativePath": "accounts.json",
+          "sha256": "9f5ff746634b2a5898cc6b6b6670d8f49ba5e10a2fbcfd19b9e71bea0cf56e5e"
+        },
+        {
+          "relativePath": "rf312-fixture.json",
+          "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+        },
+        {
+          "relativePath": "ui_preferences.json",
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "marker": {
+        "accountId": "acc_rf312_100",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 5,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 100,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "objectCount": 100,
+      "searchMatches": 5
+    },
+    "fixtureSource": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+    "identifier": "com.solosoul.rf312perf.b405d9859b964a89984a20fe3dab5c55",
+    "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.b405d9859b964a89984a20fe3dab5c55",
+    "nativePerfFeature": true,
+    "ownedPaths": [
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004",
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.b405d9859b964a89984a20fe3dab5c55",
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.b405d9859b964a89984a20fe3dab5c55"
+    ],
+    "preparationStatus": "ready",
+    "profile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\profile",
+    "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.b405d9859b964a89984a20fe3dab5c55",
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004",
+    "runId": "b405d9859b964a89984a20fe3dab5c55",
+    "schemaVersion": 1,
+    "scope": "windows-native-perf-owned",
+    "vault": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\vault",
+    "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\webview"
+  },
+  "port": 51668,
+  "processId": 15868,
+  "bound": {
+    "binding": {
+      "frameCreatedEvents": 0,
+      "loaderId": "17F6AF714B10E2D8B53C5354858A1C0F",
+      "mainFrameId": "B228A4DE95254EA29C43463140E6C18B",
+      "navigationEvents": 0,
+      "source": "http://tauri.localhost/login",
+      "timeOriginMs": null
+    },
+    "browserPid": 27508,
+    "pid": 15868,
+    "port": 51668,
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004",
+    "runId": "b405d9859b964a89984a20fe3dab5c55",
+    "schemaVersion": 1,
+    "scope": "windows-native-sdk-ui-bound",
+    "timeOriginMs": 1791150355355.4
+  },
+  "beforeSnapshot": {
+    "observedAt": "2026-10-04T21:45:58.183Z",
+    "collectionMs": 1949.2308000000048,
+    "workingSetBytes": 638648320,
+    "reason": null,
+    "userDataDirectoryMatches": true,
+    "browserDataChecks": [
+      {
+        "pid": 27508,
+        "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\webview",
+        "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\webview\\EBWebView",
+        "matchesExpected": true,
+        "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\webview\\EBWebView",
+        "reason": null
+      }
+    ],
+    "browserDataFilesystem": {
+      "valid": true,
+      "reason": null
+    },
+    "processCount": 9,
+    "processes": [
+      {
+        "pid": 15868,
+        "parentPid": 22128,
+        "creationMs": 1791150354126,
+        "executableName": "solo_soul.exe",
+        "workingSetBytes": 111632384,
+        "privateBytes": 52002816,
+        "cpuMs": 703.125,
+        "reason": null
+      },
+      {
+        "pid": 27508,
+        "parentPid": 15868,
+        "creationMs": 1791150354356,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 169914368,
+        "privateBytes": 71270400,
+        "cpuMs": 1671.875,
+        "reason": null
+      },
+      {
+        "pid": 32588,
+        "parentPid": 27508,
+        "creationMs": 1791150356047,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 25280512,
+        "privateBytes": 8179712,
+        "cpuMs": 109.375,
+        "reason": null
+      },
+      {
+        "pid": 17084,
+        "parentPid": 27508,
+        "creationMs": 1791150354936,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 20828160,
+        "privateBytes": 7933952,
+        "cpuMs": 93.75,
+        "reason": null
+      },
+      {
+        "pid": 1596,
+        "parentPid": 27508,
+        "creationMs": 1791150355098,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 99270656,
+        "privateBytes": 54845440,
+        "cpuMs": 531.25,
+        "reason": null
+      },
+      {
+        "pid": 22316,
+        "parentPid": 27508,
+        "creationMs": 1791150354893,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 106479616,
+        "privateBytes": 75456512,
+        "cpuMs": 531.25,
+        "reason": null
+      },
+      {
+        "pid": 43188,
+        "parentPid": 27508,
+        "creationMs": 1791150354453,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 11198464,
+        "privateBytes": 2543616,
+        "cpuMs": 62.5,
+        "reason": null
+      },
+      {
+        "pid": 14896,
+        "parentPid": 27508,
+        "creationMs": 1791150356048,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 49061888,
+        "privateBytes": 17920000,
+        "cpuMs": 203.125,
+        "reason": null
+      },
+      {
+        "pid": 6464,
+        "parentPid": 27508,
+        "creationMs": 1791150354896,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 44982272,
+        "privateBytes": 12992512,
+        "cpuMs": 203.125,
+        "reason": null
+      }
+    ]
+  },
+  "beforeProcessDiagnostics": {
+    "mode": "live",
+    "listeners": [],
+    "liveQueriesPerformed": true,
+    "success": true,
+    "scope": "windows-native-perf-process-diagnostics",
+    "identityVerified": true,
+    "listenersReason": null,
+    "reason": null,
+    "schemaVersion": 1,
+    "processes": [
+      {
+        "parentPid": 22128,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\bin\\solo_soul.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "root",
+        "version": {
+          "fileVersion": "2.13.2",
+          "productVersion": "2.13.2",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": null,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": "Not applicable to the host root process",
+          "address": null,
+          "observedDirectory": null,
+          "userDataDirectoryMatched": null
+        },
+        "pid": 15868,
+        "creationMs": 1791150354126,
+        "identityMatched": true
+      },
+      {
+        "parentPid": 15868,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.53\\msedgewebview2.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "browser",
+        "version": {
+          "fileVersion": "154.0.4258.53",
+          "productVersion": "154.0.4258.53",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": 51668,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": null,
+          "address": "127.0.0.1",
+          "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004\\webview\\EBWebView",
+          "userDataDirectoryMatched": true
+        },
+        "pid": 27508,
+        "creationMs": 1791150354356,
+        "identityMatched": true
+      }
+    ]
+  },
+  "consumed": {
+    "pid": 15868,
+    "port": 51668,
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004",
+    "runId": "b405d9859b964a89984a20fe3dab5c55",
+    "schemaVersion": 1,
+    "scope": "windows-native-perf-consumed"
+  },
+  "nativeProof": {
+    "binding": {
+      "frameCreatedEvents": 0,
+      "loaderId": "17F6AF714B10E2D8B53C5354858A1C0F",
+      "mainFrameId": "B228A4DE95254EA29C43463140E6C18B",
+      "navigationEvents": 0,
+      "source": "http://tauri.localhost/login",
+      "timeOriginMs": null
+    },
+    "browserPid": 27508,
+    "calls": [
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Input.insertText",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree"
+    ],
+    "elapsedMs": 9291.3523,
+    "failedStep": "clear",
+    "inputMethod": "SDK-CDP-Input",
+    "ipcAll": {
+      "attempts": 82,
+      "commands": {
+        "attachment_count_stats": 1,
+        "backup_list": 1,
+        "biometric_check_availability": 2,
+        "check_has_account": 2,
+        "desktop_prepare_update": 2,
+        "dismiss_lock_mask": 1,
+        "export_get_scope_tree": 1,
+        "get_lock_pending": 1,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 1,
+        "llm_get_config": 1,
+        "llm_get_providers": 1,
+        "login": 1,
+        "object_list": 1,
+        "object_trash_list": 1,
+        "ocr_get_active_tier": 1,
+        "ocr_get_model_status": 4,
+        "ocr_install_bundled_model_with_progress": 1,
+        "ocr_list_available_tiers": 1,
+        "pin_check_availability": 1,
+        "plugin:event|listen": 14,
+        "plugin:event|unlisten": 4,
+        "plugin:lock-state|registerListener": 1,
+        "plugin:lock-state|register_listener": 1,
+        "plugin_list_all": 1,
+        "plugin_list_installed": 1,
+        "profile_load": 1,
+        "set_status_bar_style": 4,
+        "set_titlebar_color": 5,
+        "show_main_window": 1,
+        "sync_get_auto_status": 2,
+        "sync_get_status": 1,
+        "sync_get_ui_prefs_sync": 2,
+        "sync_list_conflicts": 1,
+        "sync_listen_addr": 1,
+        "template_list": 1,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 7,
+        "user_data_get_preferences": 1,
+        "vault_check_directory": 1,
+        "vault_list_accounts": 3
+      },
+      "reason": null
+    },
+    "lastProbe": {
+      "atMs": 9648.800000190737,
+      "frameCount": 0,
+      "href": "http://tauri.localhost/",
+      "inputTrust": {
+        "pointer": 2,
+        "text": 1,
+        "untrusted": 0
+      },
+      "observer": {
+        "commands": [
+          {
+            "atMs": 372.5,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 450.20000076293945,
+            "command": "show_main_window"
+          },
+          {
+            "atMs": 508,
+            "command": "get_system_locale"
+          },
+          {
+            "atMs": 513.8000001907349,
+            "command": "get_platform_capabilities"
+          },
+          {
+            "atMs": 525.7000007629395,
+            "command": "ui_get_preferences"
+          },
+          {
+            "atMs": 531.5,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 532.1000003814697,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 567.9000005722046,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 568.7000007629395,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 571.6000003814697,
+            "command": "check_has_account"
+          },
+          {
+            "atMs": 572.6000003814697,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 573.2000007629395,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 573.7000007629395,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 574.1000003814697,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 575.2000007629395,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 575.9000005722046,
+            "command": "ui_get_preferences"
+          },
+          {
+            "atMs": 576.2000007629395,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 580.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 581.2000007629395,
+            "command": "desktop_prepare_update"
+          },
+          {
+            "atMs": 582.9000005722046,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 586.9000005722046,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 588.8000001907349,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 589.2000007629395,
+            "command": "ocr_install_bundled_model_with_progress"
+          },
+          {
+            "atMs": 593.2000007629395,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 594.8000001907349,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 607.3000001907349,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 607.8000001907349,
+            "command": "dismiss_lock_mask"
+          },
+          {
+            "atMs": 608.2000007629395,
+            "command": "check_has_account"
+          },
+          {
+            "atMs": 608.4000005722046,
+            "command": "biometric_check_availability"
+          },
+          {
+            "atMs": 634.2000007629395,
+            "command": "biometric_check_availability"
+          },
+          {
+            "atMs": 634.7000007629395,
+            "command": "pin_check_availability"
+          },
+          {
+            "atMs": 685.2000007629395,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 686.8000001907349,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 1334.1000003814695,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 7156.10000038147,
+            "command": "login"
+          },
+          {
+            "atMs": 9438.800000190737,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 9445.800000190737,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 9447,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 9453.20000076294,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 9453.800000190737,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 9454.800000190737,
+            "command": "plugin:lock-state|register_listener"
+          },
+          {
+            "atMs": 9455.20000076294,
+            "command": "get_lock_pending"
+          },
+          {
+            "atMs": 9495.900000572205,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 9497.10000038147,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 9497.60000038147,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 9498.20000076294,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 9501.900000572205,
+            "command": "desktop_prepare_update"
+          },
+          {
+            "atMs": 9503.5,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 9516.20000076294,
+            "command": "profile_load"
+          },
+          {
+            "atMs": 9516.70000076294,
+            "command": "user_data_get_preferences"
+          },
+          {
+            "atMs": 9517,
+            "command": "sync_get_auto_status"
+          },
+          {
+            "atMs": 9517.300000190737,
+            "command": "sync_get_ui_prefs_sync"
+          },
+          {
+            "atMs": 9517.800000190737,
+            "command": "attachment_count_stats"
+          },
+          {
+            "atMs": 9518.5,
+            "command": "ocr_get_active_tier"
+          },
+          {
+            "atMs": 9520.20000076294,
+            "command": "ocr_list_available_tiers"
+          },
+          {
+            "atMs": 9520.70000076294,
+            "command": "get_vault_stats"
+          },
+          {
+            "atMs": 9521,
+            "command": "backup_list"
+          },
+          {
+            "atMs": 9521.400000572205,
+            "command": "export_get_scope_tree"
+          },
+          {
+            "atMs": 9521.70000076294,
+            "command": "llm_get_config"
+          },
+          {
+            "atMs": 9522,
+            "command": "llm_get_providers"
+          },
+          {
+            "atMs": 9522.400000572205,
+            "command": "template_list"
+          },
+          {
+            "atMs": 9522.70000076294,
+            "command": "object_trash_list"
+          },
+          {
+            "atMs": 9523.10000038147,
+            "command": "plugin_list_all"
+          },
+          {
+            "atMs": 9523.5,
+            "command": "plugin_list_installed"
+          },
+          {
+            "atMs": 9523.900000572205,
+            "command": "sync_get_status"
+          },
+          {
+            "atMs": 9524.20000076294,
+            "command": "sync_listen_addr"
+          },
+          {
+            "atMs": 9524.60000038147,
+            "command": "sync_get_auto_status"
+          },
+          {
+            "atMs": 9524.900000572205,
+            "command": "sync_get_ui_prefs_sync"
+          },
+          {
+            "atMs": 9525.20000076294,
+            "command": "sync_list_conflicts"
+          },
+          {
+            "atMs": 9548.10000038147,
+            "command": "vault_check_directory"
+          },
+          {
+            "atMs": 9551.10000038147,
+            "command": "plugin:lock-state|registerListener"
+          },
+          {
+            "atMs": 9555.800000190737,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9561.20000076294,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 9561.60000038147,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 9561.900000572205,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 9576.60000038147,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9590.300000190737,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9595,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9620,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9634.800000190737,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9637.400000572205,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 9647.60000038147,
+            "command": "object_list"
+          }
+        ],
+        "installedAtMs": 353.4000005722046,
+        "invalidReasons": [],
+        "maxEvents": 16384,
+        "observedCount": 82,
+        "runId": "b405d9859b964a89984a20fe3dab5c55",
+        "schemaVersion": 1,
+        "scope": "windows-native-tauri-invoke-observer",
+        "timeOriginMs": 1791150355355.4,
+        "total": 82,
+        "valid": true
+      },
+      "origin": "http://tauri.localhost",
+      "outcome": "ready",
+      "rootPresent": true,
+      "runId": "b405d9859b964a89984a20fe3dab5c55",
+      "schemaVersion": 1,
+      "scope": "windows-native-sdk-ui-probe",
+      "step": "identity",
+      "target": {
+        "actionable": true,
+        "x": 115.5,
+        "y": 108
+      },
+      "timeOriginMs": 1791150355355.4
+    },
+    "objectCount": 100,
+    "phases": [
+      {
+        "durationMs": 1994.7932,
+        "fromAtMs": 0,
+        "inputTrust": {
+          "pointer": 0,
+          "text": 0,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 33,
+          "commands": {
+            "biometric_check_availability": 2,
+            "check_has_account": 2,
+            "desktop_prepare_update": 1,
+            "dismiss_lock_mask": 1,
+            "get_platform_capabilities": 1,
+            "get_system_locale": 1,
+            "ocr_get_model_status": 1,
+            "ocr_install_bundled_model_with_progress": 1,
+            "pin_check_availability": 1,
+            "plugin:event|listen": 9,
+            "plugin:event|unlisten": 3,
+            "set_status_bar_style": 2,
+            "set_titlebar_color": 3,
+            "show_main_window": 1,
+            "ui_get_preferences": 2,
+            "vault_list_accounts": 2
+          },
+          "reason": null
+        },
+        "name": "startup",
+        "success": true,
+        "toAtMs": 839.5
+      },
+      {
+        "durationMs": 2495.4429999999998,
+        "fromAtMs": 839.5,
+        "inputTrust": {
+          "pointer": 2,
+          "text": 1,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 36,
+          "commands": {
+            "attachment_count_stats": 1,
+            "backup_list": 1,
+            "desktop_prepare_update": 1,
+            "export_get_scope_tree": 1,
+            "get_lock_pending": 1,
+            "get_vault_stats": 1,
+            "llm_get_config": 1,
+            "llm_get_providers": 1,
+            "login": 1,
+            "object_trash_list": 1,
+            "ocr_get_active_tier": 1,
+            "ocr_list_available_tiers": 1,
+            "plugin:event|listen": 5,
+            "plugin:event|unlisten": 1,
+            "plugin:lock-state|register_listener": 1,
+            "plugin_list_all": 1,
+            "plugin_list_installed": 1,
+            "profile_load": 1,
+            "set_status_bar_style": 2,
+            "set_titlebar_color": 2,
+            "sync_get_auto_status": 2,
+            "sync_get_status": 1,
+            "sync_get_ui_prefs_sync": 2,
+            "sync_list_conflicts": 1,
+            "sync_listen_addr": 1,
+            "template_list": 1,
+            "user_data_get_preferences": 1,
+            "vault_list_accounts": 1
+          },
+          "reason": null
+        },
+        "name": "password-unlock",
+        "success": true,
+        "toAtMs": 9540.5
+      }
+    ],
+    "pid": 15868,
+    "port": 51668,
+    "reason": "frame-tree-mismatch",
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-004",
+    "runId": "b405d9859b964a89984a20fe3dab5c55",
+    "schemaVersion": 1,
+    "scope": "windows-native-sdk-ui-journey",
+    "success": false,
+    "timeOriginMs": 1791150355355.4,
+    "unmeasured": [
+      "OCR",
+      "attachment-preview",
+      "system-sleep",
+      "same-profile-warm-start",
+      "other-platforms"
+    ]
+  },
+  "error": "SDK UI journey proof rejected",
+  "cleanup": {
+    "cleanup": [
+      {
+        "status": "already-exited",
+        "pid": 14896
+      },
+      {
+        "status": "terminated",
+        "pid": 32588
+      },
+      {
+        "status": "terminated",
+        "pid": 1596
+      },
+      {
+        "status": "terminated",
+        "pid": 17084
+      },
+      {
+        "status": "terminated",
+        "pid": 6464
+      },
+      {
+        "status": "terminated",
+        "pid": 22316
+      },
+      {
+        "status": "terminated",
+        "pid": 43188
+      },
+      {
+        "status": "terminated",
+        "pid": 27508
+      },
+      {
+        "status": "terminated",
+        "pid": 15868
+      }
+    ],
+    "unverifiedDescendants": false
+  },
+  "ownedProcessExit": {
+    "exitCode": 4294967295,
+    "signal": null,
+    "error": null
+  },
+  "cleanupIntegrity": {
+    "complete": true,
+    "reason": null
+  },
+  "finishedAt": "2026-10-04T21:46:09.491Z"
+}

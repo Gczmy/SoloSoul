@@ -30,7 +30,7 @@
     "check:pref-keys": "node scripts/run-python-check.cjs scripts/check_pref_keys_sync.py",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
-    "test:native-perf": "node --test scripts/native-perf-run.test.mjs scripts/native-perf-diagnose.test.mjs scripts/native-perf-runtime.test.mjs scripts/native-perf-sdk-cdp.test.mjs src-tauri/src/native_perf/observer.node.test.mjs",
+    "test:native-perf": "node --test scripts/native-perf-run.test.mjs scripts/native-perf-diagnose.test.mjs scripts/native-perf-runtime.test.mjs scripts/native-perf-sdk-cdp.test.mjs scripts/native-perf-startup.test.mjs src-tauri/src/native_perf/observer.node.test.mjs",
     "test:node": "node scripts/run-node-tests.mjs"
   },
   "dependencies": {

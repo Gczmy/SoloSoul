@@ -5,9 +5,10 @@ use std::cell::{Cell, RefCell};
 use std::fs;
 use std::path::Path;
 use std::rc::{Rc, Weak};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
-use tauri::{webview::PageLoadPayload, Manager, WebviewWindow};
+use std::time::{Duration, Instant};
+use tauri::{webview::PageLoadPayload, Listener, Manager, WebviewWindow};
 use webview2_com::Microsoft::Web::WebView2::Win32::{
     ICoreWebView2, ICoreWebView2CallDevToolsProtocolMethodCompletedHandler,
     ICoreWebView2CallDevToolsProtocolMethodCompletedHandler_Impl, ICoreWebView2_4,
@@ -28,26 +29,177 @@ const MAX_ELAPSED_MS: u128 = 20_000;
 const FRAME_METHOD: &str = "Page.getFrameTree";
 const EVALUATE_METHOD: &str = "Runtime.evaluate";
 // 固定仅读表达式；不取 input.value、DOM 文本、账户数据或 IPC body。
-const EXPRESSION: &str = r#"(() => {
-  const root = document.getElementById('root');
-  const screen = document.getElementById('startup-screen');
-  const state = screen?.dataset.state;
-  const rootHasChildren = Boolean(root?.hasChildNodes());
+const EXPRESSION: &str = r#"(async () => {
+  const rootProbe = () => {
+    const root = document.getElementById('root');
+    const screen = document.getElementById('startup-screen');
+    const state = screen?.dataset.state;
+    return {
+      schemaVersion: 1, rootExists: Boolean(root), rootHasChildren: Boolean(root?.hasChildNodes()),
+      reactMountMarked: performance.getEntriesByName('solosoul:react-mount', 'mark').length > 0,
+      startupScreenPresent: Boolean(screen),
+      startupState: ['loading', 'error', 'ready'].includes(state) ? state : 'unavailable'
+    };
+  };
+  const startupProbe = () => {
+    const raw = window.__SOLOSOUL_STARTUP__?.diagnostic?.();
+    const value = raw?.schemaVersion === 1 ? raw : {};
+    return {
+      state: ['loading', 'error', 'ready'].includes(value.state) ? value.state : 'unavailable',
+      phase: ['application', 'i18n', 'platform', 'capabilities', 'preferences', 'accounts'].includes(value.phase) ? value.phase : 'unavailable',
+      reason: ['none', 'timeout', 'initialization-failed', 'backend-unavailable'].includes(value.reason) ? value.reason : 'unavailable'
+    };
+  };
+  const handedOff = () => performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length > 0;
+  const initial = rootProbe();
+  const initialStartup = startupProbe();
+  const initialHandoffMarked = handedOff();
+  // 同一次只读调用内等待既有真实交接事件；无轮询/重试/固定延迟成功。
+  const outcome = await new Promise(resolve => {
+    let finished = false;
+    let timeout;
+    const finish = outcome => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeout);
+      window.removeEventListener('solosoul:startup-handoff', check);
+      window.removeEventListener('solosoul:startup-state', check);
+      resolve(outcome);
+    };
+    const check = () => {
+      if (handedOff()) finish('handoff');
+      else if (startupProbe().state === 'error') finish('startup-error');
+    };
+    window.addEventListener('solosoul:startup-handoff', check);
+    window.addEventListener('solosoul:startup-state', check);
+    timeout = setTimeout(() => finish('timeout'), 8000);
+    check();
+  });
+  const final = rootProbe();
   return {
     origin: location.origin, href: location.href, documentUrl: document.URL,
     readyState: document.readyState, mainFrame: window.top === window,
     frameCount: document.querySelectorAll('iframe,frame').length,
-    uiRootPresent: rootHasChildren,
-    uiRootDiagnostic: {
-      schemaVersion: 1, rootExists: Boolean(root), rootHasChildren,
-      reactMountMarked: performance.getEntriesByName('solosoul:react-mount', 'mark').length > 0,
-      startupScreenPresent: Boolean(screen),
-      startupState: ['loading', 'error', 'ready'].includes(state) ? state : 'unavailable'
+    uiRootPresent: final.rootHasChildren, uiRootDiagnostic: final,
+    uiReadyDiagnostic: {
+      schemaVersion: 1, boundary: 'startup-handoff', outcome,
+      initialUiRootPresent: initial.rootHasChildren, initialHandoffMarked,
+      finalUiRootPresent: final.rootHasChildren, finalHandoffMarked: handedOff(),
+      initialStartup, finalStartup: startupProbe()
     },
     timeOriginMs: performance.timeOrigin, atMs: performance.now(),
     observer: window.__SOLOSOUL_NATIVE_PERF__?.snapshot()
   };
 })()"#;
+
+// 只在显式 sdk-cdp 模式安装一次；仅观察既有交接/错误标记，发送本轮固定控制事件。
+// 不操作 UI、读取账户/DOM 文本或业务 IPC payload，也不轮询或重试协议调用。
+const READINESS_EVENT: &str = "solosoul-native-perf-ui-gate";
+const READINESS_EXPRESSION: &str = r#"(() => {
+  let sent = false;
+  let timeout;
+  const finish = outcome => {
+    if (sent) return;
+    sent = true;
+    clearTimeout(timeout);
+    window.removeEventListener('solosoul:startup-handoff', check);
+    window.removeEventListener('solosoul:startup-state', check);
+    try {
+      Promise.resolve(window.__TAURI_INTERNALS__.invoke('plugin:event|emit', {
+        event: 'solosoul-native-perf-ui-gate',
+        payload: { schemaVersion: 1, scope: 'windows-native-ui-ready-gate',
+          runId: window.__SOLOSOUL_NATIVE_PERF_RUN_ID__, outcome }
+      })).catch(() => {});
+    } catch {}
+  };
+  const check = () => {
+    if (performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length > 0) finish('handoff');
+    else if (window.__SOLOSOUL_STARTUP__?.diagnostic?.().state === 'error') finish('startup-error');
+  };
+  // 注册后立即检查，覆盖交接早于原生安装的情况；不以时间延迟宣告成功。
+  window.addEventListener('solosoul:startup-handoff', check);
+  window.addEventListener('solosoul:startup-state', check);
+  timeout = setTimeout(() => finish('timeout'), 8000);
+  check();
+})()"#;
+
+fn readiness_outcome(payload: &str, run_id: &str) -> Result<&'static str, &'static str> {
+    let invalid = "ui-handoff-gate-mismatch";
+    if payload.len() > 512 {
+        return Err(invalid);
+    }
+    let value: Value = serde_json::from_str(payload).map_err(|_| invalid)?;
+    if value.as_object().map_or(0, |object| object.len()) != 4
+        || value["schemaVersion"] != 1
+        || value["scope"] != "windows-native-ui-ready-gate"
+        || value["runId"] != run_id
+    {
+        return Err(invalid);
+    }
+    match value["outcome"].as_str() {
+        Some("handoff") => Ok("handoff"),
+        Some("startup-error") => Ok("startup-error"),
+        Some("timeout") => Ok("timeout"),
+        _ => Err(invalid),
+    }
+}
+fn claim_readiness(done: &AtomicBool) -> bool {
+    !done.swap(true, Ordering::SeqCst)
+}
+
+fn arm_readiness_gate(config: RuntimeConfig, window: WebviewWindow) {
+    let started = Instant::now();
+    let done = Arc::new(AtomicBool::new(false));
+    let received = done.clone();
+    let event_config = config.clone();
+    let event_window = window.clone();
+    let id = window.once(READINESS_EVENT, move |event| {
+        if !claim_readiness(&received) {
+            return;
+        }
+        match readiness_outcome(event.payload(), &event_config.run_id) {
+            Ok("handoff" | "startup-error") => {
+                begin_capture(event_config, event_window, started);
+            }
+            Ok(_) => publish_early_failure(&event_config, started, "ui-handoff-gate-timeout"),
+            Err(reason) => publish_early_failure(&event_config, started, reason),
+        }
+    });
+    if window.eval(READINESS_EXPRESSION).is_err() && claim_readiness(&done) {
+        window.unlisten(id);
+        publish_early_failure(&config, started, "ui-handoff-gate-dispatch-failed");
+        return;
+    }
+    // 渲染器停滞/控制事件未送达时仍受原20秒预算约束；不留无限等待。
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(MAX_ELAPSED_MS as u64)).await;
+        if claim_readiness(&done) {
+            window.unlisten(id);
+            publish_early_failure(&config, started, "ui-handoff-gate-timeout");
+        }
+    });
+}
+fn begin_capture(config: RuntimeConfig, window: WebviewWindow, started: Instant) {
+    let app = window.app_handle().clone();
+    let on_error = config.clone();
+    if window
+        .with_webview(move |platform| {
+            let windows = app.webview_windows();
+            if windows.len() != 1 || !windows.contains_key("main") {
+                publish_early_failure(&config, started, "multiple-webviews");
+                return;
+            }
+            let core = unsafe { platform.controller().CoreWebView2() };
+            match core {
+                Ok(core) => Session::begin(config, core, started),
+                Err(_) => publish_early_failure(&config, started, "sdk-core-unavailable"),
+            }
+        })
+        .is_err()
+    {
+        publish_early_failure(&on_error, started, "main-thread-dispatch-failed");
+    }
+}
 
 pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
     if !config.sdk_cdp
@@ -122,27 +274,7 @@ impl Diagnostic {
         if !launch {
             return;
         }
-        let config = self.config.clone();
-        let app = window.app_handle().clone();
-        let on_error = self.config.clone();
-        if window
-            .with_webview(move |platform| {
-                let start = Instant::now();
-                let windows = app.webview_windows();
-                if windows.len() != 1 || !windows.contains_key("main") {
-                    publish_early_failure(&config, start, "multiple-webviews");
-                    return;
-                }
-                let core = unsafe { platform.controller().CoreWebView2() };
-                match core {
-                    Ok(core) => Session::begin(config, core, start),
-                    Err(_) => publish_early_failure(&config, start, "sdk-core-unavailable"),
-                }
-            })
-            .is_err()
-        {
-            publish_early_failure(&on_error, Instant::now(), "main-thread-dispatch-failed");
-        }
+        arm_readiness_gate(self.config.clone(), window);
     }
 }
 
@@ -165,6 +297,7 @@ struct Capture {
     document: Option<Value>,
     observer: Option<Value>,
     ui_root_diagnostic: Option<Value>,
+    ui_ready_diagnostic: Option<Value>,
 }
 impl Default for Capture {
     fn default() -> Self {
@@ -178,6 +311,7 @@ impl Default for Capture {
             document: None,
             observer: None,
             ui_root_diagnostic: None,
+            ui_ready_diagnostic: None,
         }
     }
 }
@@ -356,6 +490,93 @@ fn parse_evaluation(
     ))
 }
 
+// 只接纳已绑定主文档的固定交接诊断，拒绝额外键及私有字符串。
+fn ui_ready_diagnostic(value: &Value, source: &str) -> Option<Value> {
+    let payload = &value["result"]["value"];
+    if value.get("error").is_some()
+        || value.get("exceptionDetails").is_some()
+        || value["result"]["type"] != "object"
+        || payload["origin"] != EXPECTED_ORIGIN
+        || payload["href"] != source
+        || payload["documentUrl"] != source
+        || payload["readyState"] != "complete"
+        || payload["mainFrame"] != true
+        || payload["frameCount"] != 0
+    {
+        return None;
+    }
+    let probe = &payload["uiReadyDiagnostic"];
+    if probe.as_object()?.len() != 9
+        || probe["schemaVersion"] != 1
+        || probe["boundary"] != "startup-handoff"
+    {
+        return None;
+    }
+    for key in [
+        "initialUiRootPresent",
+        "initialHandoffMarked",
+        "finalUiRootPresent",
+        "finalHandoffMarked",
+    ] {
+        probe[key].as_bool()?;
+    }
+    if probe["finalUiRootPresent"] != payload["uiRootPresent"] {
+        return None;
+    }
+    for key in ["initialStartup", "finalStartup"] {
+        let state = &probe[key];
+        if state.as_object()?.len() != 3
+            || !matches!(
+                state["state"].as_str()?,
+                "loading" | "error" | "ready" | "unavailable"
+            )
+            || !matches!(
+                state["phase"].as_str()?,
+                "application"
+                    | "i18n"
+                    | "platform"
+                    | "capabilities"
+                    | "preferences"
+                    | "accounts"
+                    | "unavailable"
+            )
+            || !matches!(
+                state["reason"].as_str()?,
+                "none"
+                    | "timeout"
+                    | "initialization-failed"
+                    | "backend-unavailable"
+                    | "unavailable"
+            )
+        {
+            return None;
+        }
+    }
+    match probe["outcome"].as_str()? {
+        "handoff" if probe["finalHandoffMarked"] == true => {}
+        "startup-error"
+            if probe["finalHandoffMarked"] == false
+                && probe["finalStartup"]["state"] == "error" => {}
+        "timeout" if probe["finalHandoffMarked"] == false => {}
+        _ => return None,
+    }
+    Some(probe.clone())
+}
+fn parse_ready_evaluation(
+    value: &Value,
+    source: &str,
+    run_id: &str,
+) -> Result<(Value, Value, Value), &'static str> {
+    // 保留原校验及首个拒绝码；新的交接条件只加强成功标准。
+    let accepted = parse_evaluation(value, source, run_id)?;
+    if !ui_ready_diagnostic(value, source)
+        .is_some_and(|probe| probe["outcome"] == "handoff" && probe["finalUiRootPresent"] == true)
+    {
+        return Err("ui-ready-boundary-missing");
+    }
+    Ok(accepted)
+}
+
 // 仅在已通过文档绑定、被原有 root 条件拒绝时保存白名单结构；
 // 不解释错误原因，不接纳私有原值，也不改变 parse_evaluation 的成功标准。
 fn ui_root_diagnostic(value: &Value) -> Option<Value> {
@@ -398,7 +619,7 @@ fn ui_root_diagnostic(value: &Value) -> Option<Value> {
 
 /// SDK 提供有效 NUL 结尾缓冲区。先限制原始 UTF-16 和转换后 UTF-8 字节，
 /// 再分配 owned String；借用 PCWSTR 从不释放，不使用无界 as_wide/to_string。
-unsafe fn bounded_callback_json(source: &PCWSTR) -> Result<Value, &'static str> {
+pub(super) unsafe fn bounded_callback_json(source: &PCWSTR) -> Result<Value, &'static str> {
     if source.is_null() {
         return Err("empty-callback");
     }
@@ -537,7 +758,7 @@ impl Session {
         let parameters = if method == FRAME_METHOD {
             "{}".to_string()
         } else {
-            json!({"expression": EXPRESSION, "returnByValue": true, "awaitPromise": false})
+            json!({"expression": EXPRESSION, "returnByValue": true, "awaitPromise": true})
                 .to_string()
         };
         let method_wide: Vec<_> = method.encode_utf16().chain(Some(0)).collect();
@@ -593,7 +814,9 @@ impl Session {
             }
             self.issue(EVALUATE_METHOD);
         } else {
-            match parse_evaluation(&value, &self.source, &self.config.run_id) {
+            self.capture.borrow_mut().ui_ready_diagnostic =
+                ui_ready_diagnostic(&value, &self.source);
+            match parse_ready_evaluation(&value, &self.source, &self.config.run_id) {
                 Ok((document, observer, time_origin)) => {
                     let mut capture = self.capture.borrow_mut();
                     capture.document = Some(document);
@@ -677,7 +900,7 @@ fn invalidate_weak(weak: &Weak<Session>, reason: &'static str) {
         session.event(reason);
     }
 }
-fn sdk_binding(core: &ICoreWebView2) -> Result<(u32, String), ()> {
+pub(super) fn sdk_binding(core: &ICoreWebView2) -> Result<(u32, String), ()> {
     let mut pid = 0;
     unsafe { core.BrowserProcessId(&mut pid) }.map_err(|_| ())?;
     let mut source = PWSTR::null();
@@ -734,6 +957,11 @@ fn proof_value(
         "stage": stage, "reason": reason, "calls": capture.calls, "binding": capture.binding,
         "document": capture.document, "observer": capture.observer, "elapsedMs": elapsed_ms as u64,
     });
+    if matches!(stage, "evaluation" | "complete") {
+        if let Some(diagnostic) = &capture.ui_ready_diagnostic {
+            proof["uiReadyDiagnostic"] = diagnostic.clone();
+        }
+    }
     if !success && reason == Some("document-ui-root-absent") {
         if let Some(diagnostic) = &capture.ui_root_diagnostic {
             proof["uiRootDiagnostic"] = diagnostic.clone();
@@ -772,6 +1000,7 @@ fn bounded_proof(proof: &Value) -> Result<Value, &'static str> {
     failure["document"] = Value::Null;
     failure["observer"] = Value::Null;
     failure.as_object_mut().unwrap().remove("uiRootDiagnostic");
+    failure.as_object_mut().unwrap().remove("uiReadyDiagnostic");
     if serde_json::to_vec_pretty(&failure)
         .map_err(|_| "proof-serialization-failed")?
         .len()
@@ -815,6 +1044,15 @@ mod tests {
             run_id: RUN_ID.into(),
             chromium_log: None,
             sdk_cdp: true,
+            sdk_journey: false,
+            media_journey: false,
+            pdf_diagnostic: false,
+            pdf_preview: false,
+            ocr_journey: false,
+            pdf_resource: None,
+            pdf_ciphertext_sha256: None,
+            startup: None,
+            object_count: 100,
         }
     }
     fn frame() -> Value {
@@ -833,6 +1071,70 @@ mod tests {
                 "total": 0, "observedCount": 0, "commands": [],
                 "installedAtMs": 0.0, "maxEvents": 16384, "invalidReasons": []}
         }}})
+    }
+    #[test]
+    fn sdk_cdp_readiness_event_requires_exact_fixed_control_payload() {
+        let valid = json!({"schemaVersion": 1, "scope": "windows-native-ui-ready-gate",
+            "runId": RUN_ID, "outcome": "handoff"});
+        for outcome in ["handoff", "startup-error", "timeout"] {
+            let mut value = valid.clone();
+            value["outcome"] = json!(outcome);
+            assert_eq!(readiness_outcome(&value.to_string(), RUN_ID), Ok(outcome));
+        }
+        for (key, bad) in [
+            ("schemaVersion", json!(2)),
+            ("scope", json!("private-scope")),
+            ("runId", json!("another-run")),
+            ("outcome", json!("private-error")),
+            ("private", json!("private-extra")),
+        ] {
+            let mut value = valid.clone();
+            value[key] = bad;
+            assert_eq!(
+                readiness_outcome(&value.to_string(), RUN_ID),
+                Err("ui-handoff-gate-mismatch")
+            );
+        }
+        for key in ["schemaVersion", "scope", "runId", "outcome"] {
+            let mut value = valid.clone();
+            value.as_object_mut().unwrap().remove(key);
+            assert!(readiness_outcome(&value.to_string(), RUN_ID).is_err());
+        }
+        for bad in [
+            "null".to_string(),
+            "[]".to_string(),
+            "invalid".to_string(),
+            "x".repeat(513),
+        ] {
+            assert_eq!(
+                readiness_outcome(&bad, RUN_ID),
+                Err("ui-handoff-gate-mismatch")
+            );
+        }
+    }
+    #[test]
+    fn sdk_cdp_readiness_and_timeout_race_claims_capture_only_once() {
+        let done = Arc::new(AtomicBool::new(false));
+        let barrier = Arc::new(std::sync::Barrier::new(9));
+        let threads: Vec<_> = (0..8)
+            .map(|_| {
+                let done = done.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    claim_readiness(&done) as usize
+                })
+            })
+            .collect();
+        barrier.wait();
+        assert_eq!(
+            threads
+                .into_iter()
+                .map(|thread| thread.join().unwrap())
+                .sum::<usize>(),
+            1
+        );
+        assert!(!claim_readiness(&done));
     }
     #[test]
     fn sdk_cdp_gates_require_load_and_setup_and_only_start_once() {
@@ -1105,6 +1407,112 @@ mod tests {
             assert!(proof["document"].is_null());
             assert!(proof["observer"].is_null());
         }
+    }
+    fn handoff_evaluation() -> Value {
+        let mut value = evaluation();
+        value["result"]["value"]["uiReadyDiagnostic"] = json!({
+            "schemaVersion": 1, "boundary": "startup-handoff", "outcome": "handoff",
+            "initialUiRootPresent": false, "initialHandoffMarked": false,
+            "finalUiRootPresent": true, "finalHandoffMarked": true,
+            "initialStartup": {"state": "loading", "phase": "preferences", "reason": "none"},
+            "finalStartup": {"state": "ready", "phase": "accounts", "reason": "none"},
+        });
+        value
+    }
+    #[test]
+    fn sdk_cdp_handoff_strengthens_acceptance_without_changing_original_rejections() {
+        let valid = handoff_evaluation();
+        assert!(parse_ready_evaluation(&valid, SOURCE, RUN_ID).is_ok());
+        assert!(parse_evaluation(&evaluation(), SOURCE, RUN_ID).is_ok());
+        assert_eq!(
+            parse_ready_evaluation(&evaluation(), SOURCE, RUN_ID).unwrap_err(),
+            "ui-ready-boundary-missing"
+        );
+        for (key, changed, expected) in [
+            (
+                "origin",
+                json!("private-origin"),
+                "document-origin-mismatch",
+            ),
+            ("uiRootPresent", json!(false), "document-ui-root-absent"),
+            ("readyState", json!("loading"), "document-ready-state"),
+            ("atMs", Value::Null, "document-clock-invalid"),
+        ] {
+            let mut value = valid.clone();
+            value["result"]["value"][key] = changed;
+            assert_eq!(
+                parse_ready_evaluation(&value, SOURCE, RUN_ID).unwrap_err(),
+                expected
+            );
+        }
+        for (key, changed) in [
+            ("boundary", json!("private-boundary")),
+            ("outcome", json!("timeout")),
+            ("finalHandoffMarked", json!(false)),
+            ("schemaVersion", json!(2)),
+            ("initialUiRootPresent", json!("private-flag")),
+            ("extra", json!("private-extra")),
+            (
+                "finalStartup",
+                json!({"state":"ready", "phase":"private-phase", "reason":"none"}),
+            ),
+        ] {
+            let mut value = valid.clone();
+            value["result"]["value"]["uiReadyDiagnostic"][key] = changed;
+            assert_eq!(
+                parse_ready_evaluation(&value, SOURCE, RUN_ID).unwrap_err(),
+                "ui-ready-boundary-missing"
+            );
+        }
+    }
+    #[test]
+    fn sdk_cdp_handoff_failure_retains_bounded_early_and_final_states_without_acceptance() {
+        for outcome in ["timeout", "startup-error"] {
+            let mut value = handoff_evaluation();
+            value["result"]["value"]["uiRootPresent"] = json!(false);
+            let probe = &mut value["result"]["value"]["uiReadyDiagnostic"];
+            probe["outcome"] = json!(outcome);
+            probe["finalUiRootPresent"] = json!(false);
+            probe["finalHandoffMarked"] = json!(false);
+            probe["finalStartup"] = if outcome == "timeout" {
+                json!({"state":"loading", "phase":"preferences", "reason":"none"})
+            } else {
+                json!({"state":"error", "phase":"preferences", "reason":"timeout"})
+            };
+            let diagnostic = ui_ready_diagnostic(&value, SOURCE).unwrap();
+            assert_eq!(diagnostic["outcome"], outcome);
+            assert_eq!(
+                parse_ready_evaluation(&value, SOURCE, RUN_ID).unwrap_err(),
+                "document-ui-root-absent"
+            );
+            value["result"]["value"]["href"] = json!("private-url");
+            assert!(ui_ready_diagnostic(&value, SOURCE).is_none());
+        }
+    }
+    #[test]
+    fn sdk_cdp_handoff_proof_never_leaks_into_invalidated_binding() {
+        let owned = tempfile::tempdir().unwrap();
+        let config = test_config(&owned.path().canonicalize().unwrap());
+        let capture = Capture {
+            ui_ready_diagnostic: ui_ready_diagnostic(&handoff_evaluation(), SOURCE),
+            ..Default::default()
+        };
+        assert!(
+            proof_value(&config, Some(1), &capture, true, "complete", None, 1)
+                .get("uiReadyDiagnostic")
+                .is_some()
+        );
+        assert!(proof_value(
+            &config,
+            Some(1),
+            &capture,
+            false,
+            "binding",
+            Some("navigation-changed"),
+            1
+        )
+        .get("uiReadyDiagnostic")
+        .is_none());
     }
     #[test]
     fn sdk_cdp_callback_is_bounded_before_copy_and_strict_utf16_json() {

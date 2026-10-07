@@ -1,0 +1,19 @@
+{
+  "compiledInputsUnchanged": true,
+  "changedRunnerOnlyInputs": [
+    {
+      "path": "tauri/scripts/native-perf-sdk-journey.mjs",
+      "buildFreezeSha256": "ef85cd7eab225a3676ffdb916f51750611911c68c50e3a96a2c005a56b6869e1",
+      "measurementSha256": "f9353db4a25d328fbb5427182669c953f6a83a612ba944aebed972d9de31bbe3",
+      "embeddedInBinary": false
+    },
+    {
+      "path": "tauri/scripts/native-perf-sdk-journey.test.mjs",
+      "buildFreezeSha256": "dfbe55c597c5ddba5ca77e8954c190a9cb6289bd0d0f9b6f1a4765511fd1c787",
+      "measurementSha256": "db4155eefc46bd64d86643430880500b43e338588bb9ca1e23a206e5e3701627",
+      "embeddedInBinary": false
+    }
+  ],
+  "validation": "node-full-schema-final.log",
+  "interpretation": "Node runner/test only; all embedded Rust/JS, dependencies and configs match Release freeze"
+}

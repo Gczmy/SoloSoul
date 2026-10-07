@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1099",
+  "baseCommit": "7549c54a8cd5ce0a545959a66e6dcb78a1be8590",
+  "createdAt": "2026-10-06T08:42:30.379368+00:00",
+  "scope": "frontend account/page ownership of password, PIN and biometric unlock attempts",
+  "sourceSha256": {
+    "tauri/src/stores/authStore.ts": "57ef45f4a63a7c68c7703564409c5d2b268e6f1dde0a3771c0d8e0574d4d97a3",
+    "tauri/src/pages/auth/useLoginUnlockFlows.tsx": "adbbff6ac0bd635671fada1b5834aae0e7bf2d63ebbdcac29bf4cf0954a2384f",
+    "tauri/src/pages/auth/useLoginUnlockFlows.lifecycle.test.tsx": "ef4278911783ca2fb78530aefe2afd9f7e437f21969dc9bc6822ff26af90a25e"
+  },
+  "initialRed": {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/pages/auth/useLoginUnlockFlows.lifecycle.test.tsx"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 35.3965106010437
+  },
+  "navigationRed": {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/pages/auth/useLoginUnlockFlows.lifecycle.test.tsx",
+      "-t",
+      "successful navigation|safety|retained after"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 3.9029974937438965
+  },
+  "targeted": {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/pages/auth/useLoginUnlockFlows.lifecycle.test.tsx",
+      "src/pages/auth/useLoginUnlockFlows.test.tsx",
+      "src/stores/authStore.race.test.ts",
+      "src/stores/authStore.test.ts",
+      "src/pages/auth/useLoginPage.accountSwitch.test.tsx"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 32.517420291900635
+  },
+  "checks": {
+    "typescript": {
+      "command": ["node", "node_modules/typescript/bin/tsc", "--noEmit"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 20.8815495967865
+    },
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src",
+        "--ext",
+        ".ts,.tsx"
+      ],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 34.837730884552
+    },
+    "frontend-full": {
+      "command": ["npm.cmd", "run", "test"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 180.6842987537384
+    },
+    "format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/stores/authStore.ts",
+        "src/pages/auth/useLoginUnlockFlows.tsx",
+        "src/pages/auth/useLoginUnlockFlows.lifecycle.test.tsx"
+      ],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 0.480180025100708
+    },
+    "markdown": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 2.0948667526245117
+    },
+    "markdown-final": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 1.6406042575836182
+    }
+  },
+  "vitest": {
+    "filesPassed": 258,
+    "testsPassed": 2311,
+    "lifecycleCases": 50,
+    "failed": 0
+  },
+  "node": {
+    "passed": 215,
+    "failed": 0,
+    "existingSkipped": 1
+  },
+  "existingLintWarnings": 1,
+  "preservedFailures": [
+    "Initial two PIN/biometric late-success failures (exit 1)",
+    "Four test assertions incorrectly assumed the unlock clock would remain unchanged after a legitimate new password login; corrected to snapshot the current clock before old settlement (exit 1 preserved)",
+    "Five lifecycle-boundary failures in the additional six-case selection (exit 1): successful navigation cancelled safety refresh, late refresh result/error after lock, old password callback clearing the new error, old-account callback sending unlock",
+    "Finalization helper initially expected # summary markers; actual Node log used ℹ, exact-count parser corrected without source changes."
+  ],
+  "draftChecks": "The earlier full frontend pass is archived as draft; final results above bind the final three source hashes.",
+  "boundaries": [
+    "Does not cancel already-issued native authentication commands or close OS authentication prompts",
+    "Hook mocks do not verify native credentials, keychain or hardware authentication",
+    "Does not establish the root cause of the previous native home timeout",
+    "Rust, CLI and native material inputs unchanged"
+  ],
+  "rawEvidenceIndex": "rf1099-unlock-lifecycle-2026-10-06/index.json"
+}

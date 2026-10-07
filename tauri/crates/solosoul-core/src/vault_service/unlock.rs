@@ -2,6 +2,8 @@
 //! 密钥派生、解锁/锁定、改密/重加密、会话密钥管理。
 use super::*;
 use crate::import_activity::{begin_owned_root_maintenance, RootMaintenanceGuard};
+#[cfg(feature = "native-perf")]
+use crate::native_perf_unlock::{complete as perf_complete, stage as perf_stage, UnlockStage};
 use crate::pin::PinManager;
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_crypto::secure::secure_compare;
@@ -15,6 +17,8 @@ impl super::VaultService {
         account_id: &str,
         password: &str,
     ) -> Result<DerivedMasterKey, String> {
+        #[cfg(feature = "native-perf")]
+        let config_stage = perf_stage(UnlockStage::MasterConfig);
         // P135: 带孤儿 .tmp/.bak 恢复的读取（配合原子写）。
         let content = self
             .read_config_with_recovery(account_id)
@@ -32,9 +36,15 @@ impl super::VaultService {
             .try_into()
             .map_err(|_| "Invalid salt length".to_string())?;
 
+        #[cfg(feature = "native-perf")]
+        perf_complete(config_stage);
+        #[cfg(feature = "native-perf")]
+        let kdf_stage = perf_stage(UnlockStage::Kdf);
         let kdf_config = config.kdf_config();
         let master_key = derive_key(password, &salt_arr, &kdf_config)
             .map_err(|_| "Key derivation failed".to_string())?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(kdf_stage);
 
         let mk: [u8; 32] = master_key
             .as_slice()
@@ -332,9 +342,15 @@ impl super::VaultService {
         // R-4① 方案 2：解锁入口先恢复未完成的 reencrypt→config 交换。
         // 常态（无 pending 文件）零开销；有 pending 时 promote/discard 后
         // 再走正常解锁路径（config 已恢复一致，verify 与数据密钥对齐）。
+        #[cfg(feature = "native-perf")]
+        let recovery_stage = perf_stage(UnlockStage::Recovery);
         self.recover_pending_reencrypt(account_id, password)?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(recovery_stage);
 
         // P032：主密码失败限流——锁定预检放在昂贵 KDF 之前。
+        #[cfg(feature = "native-perf")]
+        let precheck_stage = perf_stage(UnlockStage::Precheck);
         let pre_config = self.read_account_config(account_id)?;
         if let Some(ref until) = pre_config.password_locked_until {
             if let Ok(until_time) = chrono::DateTime::parse_from_rfc3339(until) {
@@ -344,8 +360,12 @@ impl super::VaultService {
             }
         }
 
+        #[cfg(feature = "native-perf")]
+        perf_complete(precheck_stage);
         let (config, salt_arr, mk, master_key) =
             self.load_config_and_derive_master_key(account_id, password)?;
+        #[cfg(feature = "native-perf")]
+        let verify_stage = perf_stage(UnlockStage::Verify);
         // Backward compat: crypto_version < 3 uses old Argon2id verify hash
         let computed_hash =
             Self::compute_verify_hash(&config, &mk, &salt_arr, master_key.as_slice())?;
@@ -356,6 +376,10 @@ impl super::VaultService {
             return Err("Invalid password".to_string());
         }
 
+        #[cfg(feature = "native-perf")]
+        perf_complete(verify_stage);
+        #[cfg(feature = "native-perf")]
+        let accountwritecall_stage = perf_stage(UnlockStage::AccountWriteCall);
         // P032：验证成功归零失败计数/锁定（有残留时才写，避免每次登录多余 IO）。
         self.clear_password_failures(account_id, &config);
 
@@ -367,6 +391,8 @@ impl super::VaultService {
             }
         }
         self.save_accounts().ok();
+        #[cfg(feature = "native-perf")]
+        perf_complete(accountwritecall_stage);
 
         // P003: 已有账户若使用低于生产档的 KDF 参数（开发档 8MiB/2iter 或平衡档
         // 16MiB/3iter），在 release 构建下解锁成功后透明升级到生产参数并重加密
@@ -375,13 +401,20 @@ impl super::VaultService {
             && !cfg!(debug_assertions)
             && config.kdf_config() != KdfConfig::production()
         {
-            match self.unlock_with_kdf_upgrade_under_maintenance(
+            #[cfg(feature = "native-perf")]
+            let upgrade_stage = perf_stage(UnlockStage::KdfUpgrade);
+            let upgrade_result = self.unlock_with_kdf_upgrade_under_maintenance(
                 account_id,
                 password,
                 &master_key,
                 session_generation,
                 maintenance,
-            ) {
+            );
+            #[cfg(feature = "native-perf")]
+            if upgrade_result.is_ok() {
+                perf_complete(upgrade_stage);
+            }
+            match upgrade_result {
                 // 保留旧钥解锁以完成导入；不能把强制换钥变成无法恢复任务的登录障碍。
                 Err(error)
                     if matches!(
@@ -402,6 +435,8 @@ impl super::VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "Argon2id output must be 32 bytes".to_string())?;
+        #[cfg(feature = "native-perf")]
+        let vaultopen_stage = perf_stage(UnlockStage::VaultOpen);
         // Open vault with data key
         let account_dir_path = self
             .fs
@@ -412,14 +447,24 @@ impl super::VaultService {
         let vault = VaultStore::open_owned(vault_config, self.root_owner())
             .map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
+        #[cfg(feature = "native-perf")]
+        perf_complete(vaultopen_stage);
+        #[cfg(feature = "native-perf")]
+        let sessionpublish_stage = perf_stage(UnlockStage::SessionPublish);
         self.publish_session(account_id, master_key_arr, vault_arc, session_generation)?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(sessionpublish_stage);
 
+        #[cfg(feature = "native-perf")]
+        let pinresetcall_stage = perf_stage(UnlockStage::PinResetCall);
         // 用户已通过主密码验证身份，重置 PIN 锁定状态。
         let pin_manager = PinManager::new(self.base_path().clone());
         if let Err(e) = pin_manager.reset_attempts(account_id) {
             tracing::warn!("Failed to reset PIN attempts after unlock: {}", e);
         }
 
+        #[cfg(feature = "native-perf")]
+        perf_complete(pinresetcall_stage);
         Ok(())
     }
 

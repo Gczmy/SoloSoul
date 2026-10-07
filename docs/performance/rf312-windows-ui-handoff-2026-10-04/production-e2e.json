@@ -1,0 +1,12 @@
+{
+  "name": "production-e2e",
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "--config",
+    "playwright.production.config.ts"
+  ],
+  "exit": 1,
+  "seconds": 107.25759010016918
+}

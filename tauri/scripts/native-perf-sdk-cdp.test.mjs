@@ -64,6 +64,17 @@ function proof() {
     expectedOrigin: 'http://tauri.localhost',
     browserPid: browser.pid,
     success: true,
+    uiReadyDiagnostic: {
+      schemaVersion: 1,
+      boundary: 'startup-handoff',
+      outcome: 'handoff',
+      initialUiRootPresent: false,
+      initialHandoffMarked: false,
+      finalUiRootPresent: true,
+      finalHandoffMarked: true,
+      initialStartup: { state: 'loading', phase: 'preferences', reason: 'none' },
+      finalStartup: { state: 'ready', phase: 'accounts', reason: 'none' },
+    },
     stage: 'complete',
     reason: null,
     calls: ['Page.getFrameTree', 'Runtime.evaluate'],
@@ -482,4 +493,29 @@ test('SDK proof lookup must recheck time after the async filesystem query and re
     );
     assert.equal(readings.length, 0);
   });
+});
+
+test('RF312 proof rejects missing, premature, timed-out or private handoff metadata', () => {
+  for (const [key, changed] of [
+    ['schemaVersion', 2],
+    ['boundary', 'private-boundary'],
+    ['outcome', 'timeout'],
+    ['outcome', 'startup-error'],
+    ['initialUiRootPresent', 'private-flag'],
+    ['finalUiRootPresent', false],
+    ['finalHandoffMarked', false],
+    ['extra', 'private-extra'],
+    ['initialStartup', { state: 'loading', phase: 'private-phase', reason: 'none' }],
+    ['finalStartup', { state: 'ready', phase: 'accounts', reason: 'private-reason' }],
+  ]) {
+    const value = proof();
+    value.uiReadyDiagnostic[key] = changed;
+    assert.throws(
+      () => checkSdkProof(value, owned, identities, 44001, 1000),
+      (error) => !error.message.includes('private') && /UI handoff/.test(error.message),
+    );
+  }
+  const accepted = checkSdkProof(proof(), owned, identities, 44001, 1000);
+  assert.deepEqual(accepted.uiReadyDiagnostic, proof().uiReadyDiagnostic);
+  assert.equal(accepted.performanceSample, false);
 });

@@ -1,0 +1,2303 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-auth-attribution-raw-synthetic-only",
+  "files": [
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\archive-auth-evidence-before-file-filter.py",
+      "archive": "raw/archive-auth-evidence-before-file-filter.py.gz",
+      "bytes": 3122,
+      "sha256": "50a3ea0fcbb5e1d9510d7ad41368e8c238bfea9820eb99efb66c35a7b092977c",
+      "archiveBytes": 1308,
+      "archiveSha256": "015eeb88cd5b1b391fa0346c5acfd334d6a4d513661ce35d625657c570d08bea"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\archive-auth-evidence.py",
+      "archive": "raw/archive-auth-evidence.py.gz",
+      "bytes": 3538,
+      "sha256": "3a526585160124e4a8b45e75f560a27333e5d146def2a89093b284e4996c0d94",
+      "archiveBytes": 1431,
+      "archiveSha256": "9dd0259f9dd7279d82db2e1284131be5c566b67eb2f8b41c09105c8ea2047d05"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\archive-file-filter-correction.json",
+      "archive": "raw/archive-file-filter-correction.json.gz",
+      "bytes": 397,
+      "sha256": "36ca69141e297703e937f09a4aad00e25d6dd7183179bdb36174a362594f28d8",
+      "archiveBytes": 290,
+      "archiveSha256": "681d7caf2c10c8910acc2be6d78172e8fad5eeab8f92ff9298278a50a1b5cb19"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-attribution-notes.md",
+      "archive": "raw/auth-attribution-notes.md.gz",
+      "bytes": 5340,
+      "sha256": "73aec7e09c6980491f6806681a48bf6faa8ff5f1d696749f493ec73e9b6b0b53",
+      "archiveBytes": 3190,
+      "archiveSha256": "9cdeb1766402c51b7bed72be245773c557175f6e6eed4c7d6df600eedf495952"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-clippy.live.json",
+      "archive": "raw/auth-cli-clippy.live.json.gz",
+      "bytes": 191,
+      "sha256": "dfb59a847b8ff8fb4c8aff0bafedcc4718d47697953343902f3e3c5a49246208",
+      "archiveBytes": 169,
+      "archiveSha256": "d8bffa99dac17e456f1a89b6cda88ad7a68b50290708bdb38b9cae6760d197e2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-clippy.receipt.json",
+      "archive": "raw/auth-cli-clippy.receipt.json.gz",
+      "bytes": 390,
+      "sha256": "a1f336367026d9e5f08b0036c0f3ef32a407ac071e38ee9a94149c9c33c32c9d",
+      "archiveBytes": 309,
+      "archiveSha256": "480d7ba320586d312c1a7454238e75e78085412ae1cf844c37458cc3ad58c223"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-clippy.stderr.log",
+      "archive": "raw/auth-cli-clippy.stderr.log.gz",
+      "bytes": 425,
+      "sha256": "b44741f773c40d8c32d2f7ff9c252fdb01ad7702d445ca8b5a00e2b20db8ea9c",
+      "archiveBytes": 196,
+      "archiveSha256": "d48a745a3f53bc0825395c2218fa54eb080da969523e0f393216c2eec04db300"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-clippy.stdout.log",
+      "archive": "raw/auth-cli-clippy.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-fmt.live.json",
+      "archive": "raw/auth-cli-fmt.live.json.gz",
+      "bytes": 164,
+      "sha256": "51361c915b22e04440a5d51ab377967e5da86cce0e93914da9cc0e7b8452a408",
+      "archiveBytes": 152,
+      "archiveSha256": "07261273801002eeac76cb0edada22d5eb75df937cb671c82c949848b161d50d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-fmt.receipt.json",
+      "archive": "raw/auth-cli-fmt.receipt.json.gz",
+      "bytes": 363,
+      "sha256": "7b5991aa11973065627d91b715319ebeeee68075f7f658a0f6cd8b80432ea154",
+      "archiveBytes": 297,
+      "archiveSha256": "557480ffef696236e9798d09d070adf45aa60e1e8a8b31d2aa54650441bb4ffc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-fmt.stderr.log",
+      "archive": "raw/auth-cli-fmt.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-fmt.stdout.log",
+      "archive": "raw/auth-cli-fmt.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-tests.live.json",
+      "archive": "raw/auth-cli-tests.live.json.gz",
+      "bytes": 180,
+      "sha256": "7101383f5b7cbf5cd4992c80308fe4a20cbd271bfeea265d673162e902ffc3ed",
+      "archiveBytes": 163,
+      "archiveSha256": "ae8e585a21c367e900f3a211d2c818dd8c4abcc09d2a5804f20cbd8af3c78c98"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-tests.receipt.json",
+      "archive": "raw/auth-cli-tests.receipt.json.gz",
+      "bytes": 379,
+      "sha256": "aaf79c176679cdbc3a624aafc477f6341b512e882449cd28ad7cef25e9a4a67b",
+      "archiveBytes": 305,
+      "archiveSha256": "cd59e5c8cdeeeb256f8a67fcdae22b96a72989129c7fe5cd989459cc502ce90e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-tests.stderr.log",
+      "archive": "raw/auth-cli-tests.stderr.log.gz",
+      "bytes": 62583,
+      "sha256": "17652436b8206dca13a79318faf08489f18a8fdf6d73e9e0fa70ba523440becd",
+      "archiveBytes": 7331,
+      "archiveSha256": "e369e538d7fbe70c8a3e0ae126502ee74c52a1992d2519d3a748f97a8f880da8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-cli-tests.stdout.log",
+      "archive": "raw/auth-cli-tests.stdout.log.gz",
+      "bytes": 290364,
+      "sha256": "95bdcf51aa55744e35698e2ff9d356b50be64b781e4322d3cfacc76b986c2fd6",
+      "archiveBytes": 18425,
+      "archiveSha256": "71560c8adb964c0a3cd71ff4636077344d62b7c8fa5e79abda3cc1e650c6113c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-pdfium.live.json",
+      "archive": "raw/auth-core-pdfium.live.json.gz",
+      "bytes": 132,
+      "sha256": "28edf75dfb2d0d1cbf8a6cfaad8e20c96566cb35f62e924ffddd1501e6fd0c45",
+      "archiveBytes": 133,
+      "archiveSha256": "8de6172e85f6f58e81598931ea1e94efbb94b1cafe4c819780e512d707eabb9b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-pdfium.receipt.json",
+      "archive": "raw/auth-core-pdfium.receipt.json.gz",
+      "bytes": 332,
+      "sha256": "aab3b8840bdc81e9dac191edde7d86b31b9d7da83ca32204d43df3f335459fe8",
+      "archiveBytes": 276,
+      "archiveSha256": "4cc092b9d7acc1902a2afb374144b33636e55279e8ae078c72ee77e96d2c1e49"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-pdfium.stderr.log",
+      "archive": "raw/auth-core-pdfium.stderr.log.gz",
+      "bytes": 252,
+      "sha256": "2d44b60cd4e480831f6ed0983bf09b65f5077af2ec1239890a719cc4cc6b6079",
+      "archiveBytes": 209,
+      "archiveSha256": "fa281aadd7ea655c623624cd82c3f1cc5499e40d6aba7a8fb217929daeb737a6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-pdfium.stdout.log",
+      "archive": "raw/auth-core-pdfium.stdout.log.gz",
+      "bytes": 245460,
+      "sha256": "6c7f485dffac3724e25692b42ea844c93987157c8d02d6df796867c7e5fc7fe2",
+      "archiveBytes": 20563,
+      "archiveSha256": "50c97b7427ae8b0d987a90f2f5e616555d84b94eb3dbef3c9de955020801c81c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-tests.live.json",
+      "archive": "raw/auth-core-tests.live.json.gz",
+      "bytes": 195,
+      "sha256": "e7eb00bee3fd7ee063db7bc0624d6fef523e7da0cc8ff6952e9ca17065329852",
+      "archiveBytes": 160,
+      "archiveSha256": "439ca332d4f99ff075f7a3e32d5d4e423fd3ccb9d90a951f79cf992b3bae62f4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-tests.receipt.json",
+      "archive": "raw/auth-core-tests.receipt.json.gz",
+      "bytes": 248,
+      "sha256": "a087d274f298629af2ebb72c53da2a02bb3cf913d5b91a4bd7a92e3eac67d213",
+      "archiveBytes": 198,
+      "archiveSha256": "6f99dfa0c00532d938bcfb8e9f176f515f842d124b0062e117f8f6055e3701ce"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-tests.stderr.log",
+      "archive": "raw/auth-core-tests.stderr.log.gz",
+      "bytes": 621,
+      "sha256": "9dbe2bc8c0f93cb3d7c9511664a21ab56e865e196ad2a3163bf0fea1ad7e4933",
+      "archiveBytes": 404,
+      "archiveSha256": "f27cc96193abaaba735d307cacb4e0389f9012dca3e749e3e60b7ecfa1080cb6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-core-tests.stdout.log",
+      "archive": "raw/auth-core-tests.stdout.log.gz",
+      "bytes": 1586,
+      "sha256": "9e09c116767813dc9055542c2fbef09fc2f80ae43a79e558fa0ebd24f885efca",
+      "archiveBytes": 366,
+      "archiveSha256": "7a3dbc1ee649c6e82f523b4a26d14af0c2a3b560bf6a2cbbb607aa9bc8c2a5aa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-clippy-final.live.json",
+      "archive": "raw/auth-default-clippy-final.live.json.gz",
+      "bytes": 158,
+      "sha256": "f108dae3c982d0c696cb2c84c946d1913ecddbe4b19a84b5a2842a419094cfca",
+      "archiveBytes": 147,
+      "archiveSha256": "ec3d2eedb54695c16e623111ba08fe787276b7a1bb236b81cad825c6b1402022"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-clippy-final.receipt.json",
+      "archive": "raw/auth-default-clippy-final.receipt.json.gz",
+      "bytes": 357,
+      "sha256": "a3b81cc4c8ceba4400502c26bc6de45715f49373819acc218a6bdb4d7b987667",
+      "archiveBytes": 292,
+      "archiveSha256": "6dca43c172460bee6ae50fc453722fb278c670af4c58cb6255d3e52097adb2e1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-clippy-final.stderr.log",
+      "archive": "raw/auth-default-clippy-final.stderr.log.gz",
+      "bytes": 424,
+      "sha256": "485c6a3d76d41dfa9568b78c8b8ab7597579fb87fba606b4291b0d1efb1278aa",
+      "archiveBytes": 192,
+      "archiveSha256": "7cb47f3d77e371a9fc49e75759952737e22d408c4e0da1cddd8cf87b4c6d5f41"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-clippy-final.stdout.log",
+      "archive": "raw/auth-default-clippy-final.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests-pdfium.live.json",
+      "archive": "raw/auth-default-tests-pdfium.live.json.gz",
+      "bytes": 146,
+      "sha256": "1766358a7af01fab73d3f2db6f41190b960555bf186c484de868cd03d2b4ebba",
+      "archiveBytes": 142,
+      "archiveSha256": "d3a4107334f487831ec5e23c8dc8820abb82ed7b108f5857fe2115ff7c737e88"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests-pdfium.receipt.json",
+      "archive": "raw/auth-default-tests-pdfium.receipt.json.gz",
+      "bytes": 345,
+      "sha256": "22e3c8328839b0ba71ccc4e27c9615b5574092b6a411d9da974536e316b3c115",
+      "archiveBytes": 283,
+      "archiveSha256": "56347a45eee552eb6b47dc7a776af1c69785fa88da1746e067318aaf4fb47aee"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests-pdfium.stderr.log",
+      "archive": "raw/auth-default-tests-pdfium.stderr.log.gz",
+      "bytes": 79351,
+      "sha256": "6f588d8c8fbd18a1b7c1f67011dc344e96e18525e055bb2d1e984593e2afd2bf",
+      "archiveBytes": 9980,
+      "archiveSha256": "32750b50fb5440c3a551da8c2f99882d919150bf1902d87aa131c1b196f32231"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests-pdfium.stdout.log",
+      "archive": "raw/auth-default-tests-pdfium.stdout.log.gz",
+      "bytes": 684324,
+      "sha256": "ec26259f25efdce57cc7afda6d92bf3e9c83a23c4c0fbb64c7d201399e5a3e33",
+      "archiveBytes": 66854,
+      "archiveSha256": "0f9dc936483d50b4486b12a594522df4b0a87224dce317741e29c1f80771c036"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests.live.json",
+      "archive": "raw/auth-default-tests.live.json.gz",
+      "bytes": 146,
+      "sha256": "873c2389333c5bd048c00be0b705d7c0b233f4b97937aa5863e234dfaa4878c1",
+      "archiveBytes": 141,
+      "archiveSha256": "d0e9faf6cba925816b355040afa9e8873baba46ef8b87c9d74288fea10f33dd3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests.receipt.json",
+      "archive": "raw/auth-default-tests.receipt.json.gz",
+      "bytes": 201,
+      "sha256": "8b2e67975eabcc80a929e914191033fe54d34ae5dd4b2bc3e5d744432a09c469",
+      "archiveBytes": 177,
+      "archiveSha256": "b3106656396d4bdba1f94fc57ff4bbb53243a0d8a7bc4e391e45034b0882cf73"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests.stderr.log",
+      "archive": "raw/auth-default-tests.stderr.log.gz",
+      "bytes": 182599,
+      "sha256": "53148f49f6f0ace8b388ade376de58e7df1d5d00f98148d372f9c061579d259c",
+      "archiveBytes": 12298,
+      "archiveSha256": "168c34a070e346308a5b2cb02865923f9b3dd0650986b1cd1e625aaf2d866f88"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-default-tests.stdout.log",
+      "archive": "raw/auth-default-tests.stdout.log.gz",
+      "bytes": 694623,
+      "sha256": "039224ee7aca211498d1d1b4f889bb122e418e4728c3785b102b568411d452ad",
+      "archiveBytes": 68188,
+      "archiveSha256": "fb373e89a371816fdd181e815a6835399cbd5fbf63d5220c30ba3442eb189f91"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-env-rejection.live.json",
+      "archive": "raw/auth-env-rejection.live.json.gz",
+      "bytes": 371,
+      "sha256": "1a6b8a75a7ef44832d623c7a67a4b35325c3928dd6a20a5a5b3a4da5ff1f8a34",
+      "archiveBytes": 232,
+      "archiveSha256": "29a654cba73e9c42924c2d3f2f8bcded32c2455c5d9d5d18442e22db364a3af3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-env-rejection.receipt.json",
+      "archive": "raw/auth-env-rejection.receipt.json.gz",
+      "bytes": 570,
+      "sha256": "1c408a532f8bbdb155a47ddfbd8151a916b3785f59411825b0fba743d001cbb3",
+      "archiveBytes": 357,
+      "archiveSha256": "02816372e481095e72ac179441eed1bc24bd128780b1e476970f297db7fd99bc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-env-rejection.stderr.log",
+      "archive": "raw/auth-env-rejection.stderr.log.gz",
+      "bytes": 80,
+      "sha256": "5dcca8e3b3a564444af4b2c209917dc44d649415f44b3e7182d08bbf3063f567",
+      "archiveBytes": 90,
+      "archiveSha256": "feff7fa6aa9e0324c65f8c9834858e4274ebc4afac1b21e0e986e4d7471293f7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-env-rejection.stdout.log",
+      "archive": "raw/auth-env-rejection.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-fmt-check-final.live.json",
+      "archive": "raw/auth-final-fmt-check-final.live.json.gz",
+      "bytes": 124,
+      "sha256": "200736f47c23095ec2e1e780f0de9719020cb3835eb791af6243a57060e85d4e",
+      "archiveBytes": 125,
+      "archiveSha256": "5d253d2aa636301842b8f93fb63cf64b4a61d47a2feb6d5c909b73ac54c3f9c1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-fmt-check-final.receipt.json",
+      "archive": "raw/auth-final-fmt-check-final.receipt.json.gz",
+      "bytes": 323,
+      "sha256": "8c2821bd319486aabc977e9792528ff2eafd0fb2440d0567a9c9bbb55a85b1ee",
+      "archiveBytes": 271,
+      "archiveSha256": "3ef5fffd958453893a39cffaf106b750ec00cbbf4e1a0e234f0ab7604b6335da"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-fmt-check-final.stderr.log",
+      "archive": "raw/auth-final-fmt-check-final.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-fmt-check-final.stdout.log",
+      "archive": "raw/auth-final-fmt-check-final.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-js-format.live.json",
+      "archive": "raw/auth-final-js-format.live.json.gz",
+      "bytes": 477,
+      "sha256": "e651118c1f996a2153d77f446d75229dde28253f5b893185d1d33387dd5e55a7",
+      "archiveBytes": 246,
+      "archiveSha256": "0e9c2dc0a53776202856d4798c7c5a4ad71f3b1f77c8cfa731ba3debf5d96b00"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-js-format.receipt.json",
+      "archive": "raw/auth-final-js-format.receipt.json.gz",
+      "bytes": 530,
+      "sha256": "db82178742ceef605ce4bdc9eae4cbdd9d79998f94acb09b361e1e8209fc0000",
+      "archiveBytes": 280,
+      "archiveSha256": "7b921e7e01cc86dea4780dc7ebc70f92b4453ea9fb984505efc0801ac5ccbc9c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-js-format.stderr.log",
+      "archive": "raw/auth-final-js-format.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-final-js-format.stdout.log",
+      "archive": "raw/auth-final-js-format.stdout.log.gz",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "archiveBytes": 82,
+      "archiveSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node-alone.live.json",
+      "archive": "raw/auth-full-node-alone.live.json.gz",
+      "bytes": 109,
+      "sha256": "21431d19dafc2f95a10750bf9e5fc78ae76486b86aafa4d3673e24a5857938d9",
+      "archiveBytes": 120,
+      "archiveSha256": "3fa027442a2a16c2dd9a514192ebc61daa6a7c96adda2a045b4ecd661fdbcba6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node-alone.receipt.json",
+      "archive": "raw/auth-full-node-alone.receipt.json.gz",
+      "bytes": 309,
+      "sha256": "ae1278d83cd4d7e6161e6880a12a3adb8150be9f376355b0306eafcc7c20b3da",
+      "archiveBytes": 267,
+      "archiveSha256": "eba0492164e8eb021cd49477719e986d3cfb4a6263e0d6ca2846c41ad6b3fea2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node-alone.stderr.log",
+      "archive": "raw/auth-full-node-alone.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node-alone.stdout.log",
+      "archive": "raw/auth-full-node-alone.stdout.log.gz",
+      "bytes": 21544,
+      "sha256": "8747a549611bcc5a9ac62f9d05af5d030a999cb9dc8c65ef12f0622271856366",
+      "archiveBytes": 8823,
+      "archiveSha256": "3cc30bb0bcda840defc94b8f6122dd6154d75862332444dc44dd76120fd1b3bb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node.live.json",
+      "archive": "raw/auth-full-node.live.json.gz",
+      "bytes": 109,
+      "sha256": "b3ce3899e2e92044a2c2885a41febedde32222be1524af891dc00395fde998ca",
+      "archiveBytes": 116,
+      "archiveSha256": "6a64507ea965021f8d91d499775c6e657d377bfaa32607c6de22a47603cade1c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node.receipt.json",
+      "archive": "raw/auth-full-node.receipt.json.gz",
+      "bytes": 162,
+      "sha256": "0f0bd2d2afc7790cf533acd4b3c91c7ed302beb5ecc973aa14a56f95870aa93d",
+      "archiveBytes": 156,
+      "archiveSha256": "01dd4b6dc1376b0914a1f58adae7c4a107f8eee172806bac04aaeeaf0aacd7e0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node.stderr.log",
+      "archive": "raw/auth-full-node.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-node.stdout.log",
+      "archive": "raw/auth-full-node.stdout.log.gz",
+      "bytes": 22486,
+      "sha256": "8a1797a6572fb6cafe04500e301d813135fe1b4738d4c94704dc478cbe43d60a",
+      "archiveBytes": 9178,
+      "archiveSha256": "d90e2778f850e30edc559c86c3f1ddc3f584f4b1dbe9787b999f96b93f7c3f54"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-vitest.live.json",
+      "archive": "raw/auth-full-vitest.live.json.gz",
+      "bytes": 120,
+      "sha256": "95553316be3d4097c2d85827b702e9593810bc18d08db8d038e9926498a37179",
+      "archiveBytes": 123,
+      "archiveSha256": "e14f188d611a7860f8386c4f80e08a26dda5a092f1bda44a7afe5c8ed7dd0293"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-vitest.receipt.json",
+      "archive": "raw/auth-full-vitest.receipt.json.gz",
+      "bytes": 319,
+      "sha256": "696e7ab675a084a0755791a6f9e436de68d5678932df675edf11459e4ab41c85",
+      "archiveBytes": 269,
+      "archiveSha256": "0a59ba27e28235a6f87094b5317a2a97fc7055293d3009c6c0aa2ce663f8d4d6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-vitest.stderr.log",
+      "archive": "raw/auth-full-vitest.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-full-vitest.stdout.log",
+      "archive": "raw/auth-full-vitest.stdout.log.gz",
+      "bytes": 607,
+      "sha256": "dad1fefdd7260f025f1624fedaa802ee4c72e2af412f8cae550132baa89bc006",
+      "archiveBytes": 509,
+      "archiveSha256": "533649aed7716f2359eec168cd9f2ee663e93de6ae6e0656f58766da0f5de915"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-js-format.live.json",
+      "archive": "raw/auth-js-format.live.json.gz",
+      "bytes": 477,
+      "sha256": "4cb4c43c8791d49db496d582cb574648eb01efabd8764fde4c4333ae9afd94fa",
+      "archiveBytes": 246,
+      "archiveSha256": "ddc89aa2889c03684d0ddcd485a55ccd7d10ef1c418dd57ac42ea2a7ee1851cc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-js-format.receipt.json",
+      "archive": "raw/auth-js-format.receipt.json.gz",
+      "bytes": 530,
+      "sha256": "0b9a8ff7ac179e0e9ae03bd5eac446222de6c45fa1167abf7e399e643dbfa371",
+      "archiveBytes": 279,
+      "archiveSha256": "ff890b92520595ac9c467ccbc3b5e8431b6298c551bd912be7fa5289e813b9d7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-js-format.stderr.log",
+      "archive": "raw/auth-js-format.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-js-format.stdout.log",
+      "archive": "raw/auth-js-format.stdout.log.gz",
+      "bytes": 386,
+      "sha256": "502a8ffb515e51e38c0bf3f7caf2fbbf5b20bb74198cf797250a42fff7ce6cf3",
+      "archiveBytes": 187,
+      "archiveSha256": "4a031b0d588d4de3d61a2ec90666a5b97d322809132399121129798fc21d0c69"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-lint.live.json",
+      "archive": "raw/auth-lint.live.json.gz",
+      "bytes": 144,
+      "sha256": "4418b6ff29137c57b6f70900d3d207141e11dfba46e44e26c0bb4cfc765d9b1b",
+      "archiveBytes": 141,
+      "archiveSha256": "9f23d86f8dc33895b379239247d64845ddb3c031df2a0856b39e6a6622601dba"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-lint.receipt.json",
+      "archive": "raw/auth-lint.receipt.json.gz",
+      "bytes": 196,
+      "sha256": "51c790085b39e198dee851f3968761a2aec8dfaf0086eb77add05be07ec888b9",
+      "archiveBytes": 175,
+      "archiveSha256": "54b5fdec1eaf64b6d1b177f6d45cdb89e17120443c0bfad01888b5b2f6d78496"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-lint.stderr.log",
+      "archive": "raw/auth-lint.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-lint.stdout.log",
+      "archive": "raw/auth-lint.stdout.log.gz",
+      "bytes": 222,
+      "sha256": "8adafb303995011573be7e26d4a61c7fe77e00f366b56a9f6fa3c464c0456361",
+      "archiveBytes": 202,
+      "archiveSha256": "e3ccfc0b0c8bd33816d157c4a8deb0f7432ed17e975abbe7060d530049f9134d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-clippy.live.json",
+      "archive": "raw/auth-native-clippy.live.json.gz",
+      "bytes": 187,
+      "sha256": "5acc293028cdbd2e6fc0524ca1dcdbe1e12bcffea18b9adc184039739c2b6621",
+      "archiveBytes": 164,
+      "archiveSha256": "5353f22e9601d8a16a209e1d0d042603c9a656829de47a29a677edb50728a66d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-clippy.receipt.json",
+      "archive": "raw/auth-native-clippy.receipt.json.gz",
+      "bytes": 239,
+      "sha256": "d03f757c5147e0c3d90668431c7090bda625d619df92ce9aa200fb9728b3fe7c",
+      "archiveBytes": 196,
+      "archiveSha256": "cdf7a51b30639c55de7a3d7afe483fdace3198bdbb813231e65724951a58942e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-clippy.stderr.log",
+      "archive": "raw/auth-native-clippy.stderr.log.gz",
+      "bytes": 424,
+      "sha256": "fb3a765b02c2ae8dbb4b601cb0f9bac502489c1888ce01124245af8ba0d83aee",
+      "archiveBytes": 191,
+      "archiveSha256": "01dee06e7268010e594d3f0cfd3ab29588350ca5aaa381849bff7d975a74ed98"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-clippy.stdout.log",
+      "archive": "raw/auth-native-clippy.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-tests.live.json",
+      "archive": "raw/auth-native-tests.live.json.gz",
+      "bytes": 172,
+      "sha256": "19bb294f25ee3d8222dad369f3e3b0a74dbbbaa4bb91e3f58840885f582d336b",
+      "archiveBytes": 153,
+      "archiveSha256": "551460837a1c5a623f5097442da4d58b7684448351cc8bf2a36f47bacbb53d9c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-tests.receipt.json",
+      "archive": "raw/auth-native-tests.receipt.json.gz",
+      "bytes": 224,
+      "sha256": "71edb89c8e8d0e6594959e366ce2623d3a1a32ee81da6737f00e71db5b5a48e4",
+      "archiveBytes": 186,
+      "archiveSha256": "2931b5ef54a6d02baf81316eeee38a549251ddbb7239a5bce87ca2fa642893a3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-tests.stderr.log",
+      "archive": "raw/auth-native-tests.stderr.log.gz",
+      "bytes": 510,
+      "sha256": "aae054e0f81d2f5afb8024190c3dc2e08cd25acf21697675cb36a6d638acde2b",
+      "archiveBytes": 242,
+      "archiveSha256": "e7fff7f98050242b636e674e3787f7afd28d23f58bcb3517160b1bb50934ecb2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native-tests.stdout.log",
+      "archive": "raw/auth-native-tests.stdout.log.gz",
+      "bytes": 36458,
+      "sha256": "ca6425a45cc2f4f8b791e6dc9776c187c818a150b67cdc253cf03d8bde0987ff",
+      "archiveBytes": 3907,
+      "archiveSha256": "4837945edfffc0c46f2f9890b6b68bd3d5155efad28843e4261fd169a48c6e48"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-clean-env.live.json",
+      "archive": "raw/auth-native100-clean-env.live.json.gz",
+      "bytes": 472,
+      "sha256": "ec34edd2c5b56a28e1407e6707abb9775c509201d997a493e0b53234d8e051be",
+      "archiveBytes": 265,
+      "archiveSha256": "f2a6ca4cb50460e7e703f792a5a837621ae4809f0cc075d689e8546aa9b5328b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-clean-env.receipt.json",
+      "archive": "raw/auth-native100-clean-env.receipt.json.gz",
+      "bytes": 595,
+      "sha256": "55046cad2e0ef7e1dc6cd9ba40bbb28b58b9923c0bae77c8ba49b2eb7b060c7d",
+      "archiveBytes": 360,
+      "archiveSha256": "de32ab361cd67cec9e2c746e16928531f500c8331212ae5089c2e53c64e1d55f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-clean-env.stderr.log",
+      "archive": "raw/auth-native100-clean-env.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-clean-env.stdout.log",
+      "archive": "raw/auth-native100-clean-env.stdout.log.gz",
+      "bytes": 392,
+      "sha256": "3b982d23002940bdd58399d2a4dfcd6a449576ecc9660f044ee98f105ac4ff80",
+      "archiveBytes": 191,
+      "archiveSha256": "9a21a37e36b3e48b3143dd3d828e7895db52c205418fb77f1dc6b43a80d5a4dc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-final.live.json",
+      "archive": "raw/auth-native100-final.live.json.gz",
+      "bytes": 468,
+      "sha256": "90618e3022549d5fc6423459baebb75124c680fb0ea0f8f8b7897b8f31e7fbeb",
+      "archiveBytes": 262,
+      "archiveSha256": "165fe7b6260f8143f4071b1515a5ae0a12a65331d2f153e67834f0fa6d070f44"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-final.receipt.json",
+      "archive": "raw/auth-native100-final.receipt.json.gz",
+      "bytes": 667,
+      "sha256": "00028a010e99242df054d9eae09917ef021efac7632bfb5e03da1347c9208bdf",
+      "archiveBytes": 391,
+      "archiveSha256": "bd4812ded848d4acb5d9fa5fa5c8c648b6f689e5af4f35dae7d8d0683b715e73"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-final.stderr.log",
+      "archive": "raw/auth-native100-final.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100-final.stdout.log",
+      "archive": "raw/auth-native100-final.stdout.log.gz",
+      "bytes": 334,
+      "sha256": "f563139078aeed5053d01de1d1e549a59dbf240b81ee20fe0b06408d7dd5a59b",
+      "archiveBytes": 182,
+      "archiveSha256": "0c63255f214b1523280f0a6db5a094b2dd4bb8497fa5e83770a0d2b7b3a3c267"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100.live.json",
+      "archive": "raw/auth-native100.live.json.gz",
+      "bytes": 462,
+      "sha256": "6c201878e7a929cb231afd1fb2b5efd7d9bc00bed4cb6e42385034e033e738db",
+      "archiveBytes": 257,
+      "archiveSha256": "a61600943a166c925d2d204a1df94c71198fce68e44e08cf36e75143befc92af"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100.receipt.json",
+      "archive": "raw/auth-native100.receipt.json.gz",
+      "bytes": 662,
+      "sha256": "a6ae7d36c16e19c513c0b3fd4a1de81208255d0191604e77a58f11719240ee75",
+      "archiveBytes": 384,
+      "archiveSha256": "b02ea701ea7d7b73f7f1ea8e6f8e6a31160aab4d958b36f04c1c9a9c6c3d3db2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100.stderr.log",
+      "archive": "raw/auth-native100.stderr.log.gz",
+      "bytes": 33,
+      "sha256": "96541dcf9c5442059069a27f33a22bf9ded63a2da50e87f12af6af37b1608dae",
+      "archiveBytes": 53,
+      "archiveSha256": "d548d63aafdafb481a98bca55864fb246d8d19bf93f8773320730cd7ec8c3ec2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native100.stdout.log",
+      "archive": "raw/auth-native100.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native5000-clean-env.live.json",
+      "archive": "raw/auth-native5000-clean-env.live.json.gz",
+      "bytes": 474,
+      "sha256": "f1cb9744d23072761dea5048f10130a4f6bba239374e58bf00b1b5966fdb3aba",
+      "archiveBytes": 266,
+      "archiveSha256": "1c83c113fae5d92d5d3a2f0b3fbe4a4389ecf1144d11f1261c8d381f8d0f6811"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native5000-clean-env.receipt.json",
+      "archive": "raw/auth-native5000-clean-env.receipt.json.gz",
+      "bytes": 598,
+      "sha256": "8ddfdfc7d770cc2fff1180746ed5f665da1225f59d61a106137b44410f73ffc8",
+      "archiveBytes": 361,
+      "archiveSha256": "ffe7df08fc17c5a8c4bdf569c683db760909919fabedd8eb9d0229e7f959def6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native5000-clean-env.stderr.log",
+      "archive": "raw/auth-native5000-clean-env.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-native5000-clean-env.stdout.log",
+      "archive": "raw/auth-native5000-clean-env.stdout.log.gz",
+      "bytes": 394,
+      "sha256": "fd70f5b0bdf50d745be143384f9f777b8320b64b3e568a24f5470ac1f247a0d9",
+      "archiveBytes": 191,
+      "archiveSha256": "81274576f1c91968297b2d57d28e2fe54dc9a8c32c08119fa1288e385b75e075"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-pdfium-pe.live.json",
+      "archive": "raw/auth-pdfium-pe.live.json.gz",
+      "bytes": 160,
+      "sha256": "1879515c5d2b9638e83a84227432f338264999f9bd6bcf8cd0b409ec0c006cd4",
+      "archiveBytes": 155,
+      "archiveSha256": "fa8606280725fcd76351b60e425c07fb3da6d7d2905fe0b423dc689e0a1384db"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-pdfium-pe.receipt.json",
+      "archive": "raw/auth-pdfium-pe.receipt.json.gz",
+      "bytes": 360,
+      "sha256": "b38664d8035b41ab67cf2d7c2fccd9b2bf4fc771b24ce7e0b4be4adf05990c5b",
+      "archiveBytes": 289,
+      "archiveSha256": "f05080f12578c71caff9b95d749f8cf93676d2e7ea9e3d1d8809f77159d50741"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-pdfium-pe.stderr.log",
+      "archive": "raw/auth-pdfium-pe.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-pdfium-pe.stdout.log",
+      "archive": "raw/auth-pdfium-pe.stdout.log.gz",
+      "bytes": 116,
+      "sha256": "67cca47f55f54fcd42ef41452a72ed2f5f45009f994a91b9332ac375f583af2c",
+      "archiveBytes": 125,
+      "archiveSha256": "99eed5a61303c5d2c5c4a7da261509240760847bcaa985764ba39355eba23d65"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-rust-format.live.json",
+      "archive": "raw/auth-rust-format.live.json.gz",
+      "bytes": 107,
+      "sha256": "2ae702ae29c2e55053d8854522f98868452978a27e8a261cb9ac780650b64f0f",
+      "archiveBytes": 114,
+      "archiveSha256": "369ebf2db4306ec9a7b9c0331ea227a187b0cb2272bd066fdd8dccf5d36dc5df"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-rust-format.receipt.json",
+      "archive": "raw/auth-rust-format.receipt.json.gz",
+      "bytes": 160,
+      "sha256": "79950419db3f59919754b78499cc4b4f687d41798525f1b8363f60548a806066",
+      "archiveBytes": 153,
+      "archiveSha256": "e16ea951e59d0a78f560b6280404b35bbedcee18c5c22923717f4e9ecd319a52"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-rust-format.stderr.log",
+      "archive": "raw/auth-rust-format.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-rust-format.stdout.log",
+      "archive": "raw/auth-rust-format.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-format.live.json",
+      "archive": "raw/auth-sdk-mode-format.live.json.gz",
+      "bytes": 225,
+      "sha256": "ce311c61636ae435bffe44f9b56469023ddaa7f769a0b8f7f53c775431119d5d",
+      "archiveBytes": 170,
+      "archiveSha256": "27b474f4c72cfad03bc4e328f71a8fb449079cd4e698f455daad395c65331cf2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-format.receipt.json",
+      "archive": "raw/auth-sdk-mode-format.receipt.json.gz",
+      "bytes": 425,
+      "sha256": "865f8f2e9685f5e46a51cf861d5ea1a645e8c1794c9bf53f99e906ca6e623fbe",
+      "archiveBytes": 317,
+      "archiveSha256": "e19dcded63b04190e7b2de265f801d63329e64a1521ae70837c29a199583bcff"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-format.stderr.log",
+      "archive": "raw/auth-sdk-mode-format.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-format.stdout.log",
+      "archive": "raw/auth-sdk-mode-format.stdout.log.gz",
+      "bytes": 122,
+      "sha256": "d9cd7c66a47800264f74ebf81a6bfc9bde1bb106b8a43910e532b6e755932a1a",
+      "archiveBytes": 92,
+      "archiveSha256": "2d9d4ce1f81acc741c2425346c1a416ce3e42b7b33c9a692642dc06ea213512f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-full-node.live.json",
+      "archive": "raw/auth-sdk-mode-full-node.live.json.gz",
+      "bytes": 109,
+      "sha256": "8204999b125a33043c8c2dc8b9577fef8dccf96a69f58d46463c521f27a64001",
+      "archiveBytes": 117,
+      "archiveSha256": "c5f7688dd23f3698091af1073886b80365d6865d8a2373575faff7ae1426a85c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-full-node.receipt.json",
+      "archive": "raw/auth-sdk-mode-full-node.receipt.json.gz",
+      "bytes": 308,
+      "sha256": "953e6c3ec29b63716c37462c05297ad66aaa37889442bc9184d6b150059a8c27",
+      "archiveBytes": 267,
+      "archiveSha256": "5c3f2eb0b9514e2f702dd194a03abe577d7dadc4ebfac584020196b8a50a456e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-full-node.stderr.log",
+      "archive": "raw/auth-sdk-mode-full-node.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-full-node.stdout.log",
+      "archive": "raw/auth-sdk-mode-full-node.stdout.log.gz",
+      "bytes": 21782,
+      "sha256": "6329712e811d14c27ad5134547af5a036589c823a58e26a8bf3e7af2bc609764",
+      "archiveBytes": 8970,
+      "archiveSha256": "6eb758220d3a7e9885023ce7dd96712095e0d0466d7ce624a9afde269d5c1279"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-red.live.json",
+      "archive": "raw/auth-sdk-mode-red.live.json.gz",
+      "bytes": 138,
+      "sha256": "8941c59c956f9c47397155c6f0a9d801b5e1120188643b729936dca0b8638583",
+      "archiveBytes": 141,
+      "archiveSha256": "4b53a3b4465d7186a3b31a9d801193c2330b7b7aa6b3f641b210e009c8a49f13"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-red.receipt.json",
+      "archive": "raw/auth-sdk-mode-red.receipt.json.gz",
+      "bytes": 338,
+      "sha256": "09631f85642b6dbe6b9efa65b2685ea58a96b210e2f426600a02ba1343972ec9",
+      "archiveBytes": 286,
+      "archiveSha256": "4bc6601a2b54bb2a42a3ecb167b4271f80f5cc1434a3ab4d8aee5c4ff337f225"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-red.stderr.log",
+      "archive": "raw/auth-sdk-mode-red.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-red.stdout.log",
+      "archive": "raw/auth-sdk-mode-red.stdout.log.gz",
+      "bytes": 1758,
+      "sha256": "75e3a7a7adeb9ddee942e54f063f016c32c7c6cb3eed5599fdf58c5f0e6c106c",
+      "archiveBytes": 763,
+      "archiveSha256": "bc8497b4fdad03f4a01179ecb14dc7afc2fd4353a125548ac196d9d430e9d688"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-target.live.json",
+      "archive": "raw/auth-sdk-mode-target.live.json.gz",
+      "bytes": 190,
+      "sha256": "6c487ad8fe2464c3ebf8277fad93bb2063349d45527daa52efb8af4e27b0f7c5",
+      "archiveBytes": 166,
+      "archiveSha256": "ed7763873d09b84dcfd1e3735762ad41f5f5dc8222f3eaa572491fe9f28817b9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-target.receipt.json",
+      "archive": "raw/auth-sdk-mode-target.receipt.json.gz",
+      "bytes": 390,
+      "sha256": "a62f9a38dbd67c9823e379d27c6771dcc211221c303db1366b7bc90be8aa0923",
+      "archiveBytes": 310,
+      "archiveSha256": "195fa153526bbdc8baa44120cffc41a0979136853e5d4b4f32c897e1e1600ee9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-target.stderr.log",
+      "archive": "raw/auth-sdk-mode-target.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-sdk-mode-target.stdout.log",
+      "archive": "raw/auth-sdk-mode-target.stdout.log.gz",
+      "bytes": 2245,
+      "sha256": "e5333e95d856a2b0f60be2b0a09b596e80b1a594d52862ff3276b5a206731257",
+      "archiveBytes": 1144,
+      "archiveSha256": "5eb76f0dc7f44677d8899d47ac399643bb237b2edf9ee1434f68616eb0c57cc3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-store-tests.live.json",
+      "archive": "raw/auth-store-tests.live.json.gz",
+      "bytes": 151,
+      "sha256": "f7900bca65ac7e4a48c0d4ebfc8361c63ab7933ed71468560d0a6bcf5ad891f3",
+      "archiveBytes": 142,
+      "archiveSha256": "b2b5a0d4ea89ca5091744a3c4b1666cdfcebd1516012cffe363270c846e76377"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-store-tests.receipt.json",
+      "archive": "raw/auth-store-tests.receipt.json.gz",
+      "bytes": 203,
+      "sha256": "45ecf1254bfe3943b2ea21e33fca8f8845d9c393b0fce7219cb411839f008d72",
+      "archiveBytes": 179,
+      "archiveSha256": "05abb0393d81c5d6c1e6599c6fd1b1742cedc6a5cc13aa5231aae621f3e40250"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-store-tests.stderr.log",
+      "archive": "raw/auth-store-tests.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-store-tests.stdout.log",
+      "archive": "raw/auth-store-tests.stdout.log.gz",
+      "bytes": 223,
+      "sha256": "3bc02e8672a60c976265f5b2993cad596e102f77511e1e696349c1f61349ca50",
+      "archiveBytes": 185,
+      "archiveSha256": "335cf22818fa0d27253b911696e21e04788178d20364892fd67776a3818baf5e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-target-node.live.json",
+      "archive": "raw/auth-target-node.live.json.gz",
+      "bytes": 190,
+      "sha256": "244cb31388b249ed445e086029e941523189ee5f06b8072898463909049f6501",
+      "archiveBytes": 166,
+      "archiveSha256": "bebb67e520fd7cba9bd0a93daab28e8b8b41c2b4111bf5a4e91e48188794b817"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-target-node.receipt.json",
+      "archive": "raw/auth-target-node.receipt.json.gz",
+      "bytes": 244,
+      "sha256": "0747a42451ed0fefac6ad7a6cbafcb4f33cae8ff65e27d4c26abb5c3f964f17d",
+      "archiveBytes": 205,
+      "archiveSha256": "b57357bfa7946563f1287679278fd917b5dff9d6588d0a02e7923e5063b0fcb8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-target-node.stderr.log",
+      "archive": "raw/auth-target-node.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-target-node.stdout.log",
+      "archive": "raw/auth-target-node.stdout.log.gz",
+      "bytes": 2004,
+      "sha256": "15bd14e03eec7d297e5ed2b838a1dff1fd25e40a8b26b165e72e9c51928a35f5",
+      "archiveBytes": 976,
+      "archiveSha256": "7353f157f3c0aa2017ef15498c87018af239ca09b9dbbf6073e93ecc32063283"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-types.live.json",
+      "archive": "raw/auth-types.live.json.gz",
+      "bytes": 125,
+      "sha256": "a86d7d8057d7995e7fa301bda0778176291aa7da488c77a78d9fcc21c9d9703a",
+      "archiveBytes": 132,
+      "archiveSha256": "706bb1cc48afd1e9d20234dbea665d412e5dfb582edc2766b019b55ebe515124"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-types.receipt.json",
+      "archive": "raw/auth-types.receipt.json.gz",
+      "bytes": 178,
+      "sha256": "c9ee27bd78a4020dc1845979911c124356509f029b075559676124880b8dd590",
+      "archiveBytes": 167,
+      "archiveSha256": "468f186bb7ed99768c1467298342f76c318600be0e8d894a30a83f422138f217"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-types.stderr.log",
+      "archive": "raw/auth-types.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-types.stdout.log",
+      "archive": "raw/auth-types.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-vite-build.live.json",
+      "archive": "raw/auth-vite-build.live.json.gz",
+      "bytes": 121,
+      "sha256": "d664980637099674ada41b7b65ed100eb60eec98a5ae8ab77b636ad8b74228da",
+      "archiveBytes": 126,
+      "archiveSha256": "d3aac7de169625fb7c68381e8718ba4799b31ace5525031065b153491bf676d9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-vite-build.receipt.json",
+      "archive": "raw/auth-vite-build.receipt.json.gz",
+      "bytes": 321,
+      "sha256": "912dab83553dca7b02c27d08157dfa1ae87a8558708174003fe97542ab340947",
+      "archiveBytes": 270,
+      "archiveSha256": "d4d578de5534f94cc73a4946470af3e23cef6edb3adde318995006ab4361da1f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-vite-build.stderr.log",
+      "archive": "raw/auth-vite-build.stderr.log.gz",
+      "bytes": 2247,
+      "sha256": "763fe4a5b9a000996368b50634deabe5f003401eb04f5cd4360bf4c19a6dada7",
+      "archiveBytes": 880,
+      "archiveSha256": "b4538ca7986676730db6882b8888a9dab5f572cf0aa1f88cd91169d4661be593"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth-vite-build.stdout.log",
+      "archive": "raw/auth-vite-build.stdout.log.gz",
+      "bytes": 3076,
+      "sha256": "0d112ece84599aea34961f4fca39b5669de992a6c2f817e8ed4161a7e4415e37",
+      "archiveBytes": 1042,
+      "archiveSha256": "11b791052ee73a9f12ae404bf48a004473a6ccdfb0964d03e5de9808863cdd4d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\native-perf-auth-attribution-results.json",
+      "archive": "raw/auth100-clean-env/native-perf-auth-attribution-results.json.gz",
+      "bytes": 59134,
+      "sha256": "7bca45528e17b2bf7a614c0209229478cd5e31547cb648061a168abed68e3b55",
+      "archiveBytes": 5825,
+      "archiveSha256": "f54ceb2d96af256abd5cad1c4ac3d17910d876eea4f96337d1abf628efa0809b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\native-perf-sdk-journey-results.json",
+      "archive": "raw/auth100-clean-env/native-perf-sdk-journey-results.json.gz",
+      "bytes": 340591,
+      "sha256": "7c53d633c01728d6d8a69d64b2fd8bf2955fd31c6904a6a0ed56fa85f63c9e51",
+      "archiveBytes": 27125,
+      "archiveSha256": "2d41d9d62fce752c54d57e7f2b3f837de8e50a8317c61bff7c7b9b5408473ede"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-auth-attribution.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-auth-attribution.json.gz",
+      "bytes": 15346,
+      "sha256": "3400f1661efcef2958ddda4af211508364b82bc061d5ad860b4d464ba1233582",
+      "archiveBytes": 1959,
+      "archiveSha256": "445ccdb2f193ae44edc71cffc9f316d38e50d2a5b446e49f223207dd6b3cd8eb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-consumed.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-consumed.json.gz",
+      "bytes": 277,
+      "sha256": "261cfebc13ca6c4c1c3f92c14d7f49ed41bb1e28d853b6d9715363c193414b17",
+      "archiveBytes": 230,
+      "archiveSha256": "68e7fa9ab02423563f632e726141d44b927f6d155c8428cdda3931afa72a2858"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-owned.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-owned.json.gz",
+      "bytes": 3402,
+      "sha256": "2d5080b8f5b0c0d63421a78248778ff43e084106a2fa89b63739fbf63eea631a",
+      "archiveBytes": 1093,
+      "archiveSha256": "e511c08c65b6ae389d146dd8bfa241fbdf91645ead9a6094801183a96cc13627"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "7aa705071d58b773f561ef4f17cddf0eb187512b305eb6297eaf422e3066560b",
+      "archiveBytes": 151,
+      "archiveSha256": "e9ced13310014a8621ff44e23e80bda361fcbf4bffe5dafb81b48e735b26ddec"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 588,
+      "sha256": "dbac2418a009f3d24ac5ebf0d2886efa63fe45c65bfe047422c175ce358b733d",
+      "archiveBytes": 407,
+      "archiveSha256": "99a25b7f8fef3ef64fb86cce1b306ad8f1a23a58e0475e2ca13365b42a94f7c1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 369,
+      "sha256": "578c3c484871701b709df1f7de3884201b77650794071d00ceef434d73a620ef",
+      "archiveBytes": 287,
+      "archiveSha256": "f3e7b714d93d877eff266528b9714ad251592443d7283d30284ac97dc8dd3943"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 65393,
+      "sha256": "5661fab453c71bcfb2639764724c98576770323f0d4e70249b50086697cbbd31",
+      "archiveBytes": 4990,
+      "archiveSha256": "bf85a9ccb3c0f98c38bedb3e6c22a2a9a8bff65a51c68afc0491c95605517e29"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "5d30fc14cba7e208058424cec356e73635e09efc219081c51f1f4c94a27ee119",
+      "archiveBytes": 405,
+      "archiveSha256": "2bf6c523af7c582d03f100147691d586fa082ab48f10be78889a327879c81b86"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1183,
+      "sha256": "bd628ddbac55ede49decb0ce5436fa2236a8313632a0529bedde9a781d5c2eed",
+      "archiveBytes": 503,
+      "archiveSha256": "1826dc28645be682095188e52696d5bcffd30afda0b1b36a5608ac5e1fc7d157"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 706,
+      "sha256": "0bd86784589ff641afdf05ed9ce75c07171188568e0cfe1999986d006cb070ea",
+      "archiveBytes": 367,
+      "archiveSha256": "a01481c9bd0efefc19c9b721e8a21b71ad0d8aa94b0338ff4973a73e7c5f5ecd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 321,
+      "sha256": "fc5b7d2366fbf538dc702cbd1ff5e8407f8f6c4369d5fd55ae7799aacef0af2b",
+      "archiveBytes": 216,
+      "archiveSha256": "22089d024f8217ee41310abb90528063872824b10282b60b0b37fb21956d71be"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 602,
+      "sha256": "d4ad7501a4fc09b2d7587381f0e41e5a9c54fbddf94c5fb7892d1d0d5597552f",
+      "archiveBytes": 325,
+      "archiveSha256": "81f110b22e089e9370396701f2c6effb746332363007043a08d26f6d1b181002"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "raw/auth100-clean-env/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1190,
+      "sha256": "2d0ed6e9399c4afb3a49dc2637e441932e7cc752a52717def33c9f1d66d42bc0",
+      "archiveBytes": 502,
+      "archiveSha256": "d8211bc06c611e5a31be2cbbb8310a9a906cbf29b1444d1dbab427514443553a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001\\preserved-app-logs\\app.log",
+      "archive": "raw/auth100-clean-env/sample-001/preserved-app-logs/app.log.gz",
+      "bytes": 2566,
+      "sha256": "7780c2b8f9e5955a470bbcd7ed9decc575d5ab49b118bf318a5a256c715a64b8",
+      "archiveBytes": 832,
+      "archiveSha256": "739545cc4d94aa1477cbd592e8782eb6653297fe30a4edabdba5d2c4b25981cf"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-001.json",
+      "archive": "raw/auth100-clean-env/sample-001.json.gz",
+      "bytes": 97571,
+      "sha256": "875aafe5fae6d8f2c35bd02a4d107bb7201c3e679e7edab54ce76d7df1016b5c",
+      "archiveBytes": 9390,
+      "archiveSha256": "bcbecd256517b15985e45a8d37fa0b7d9a1893e4ec4573a1a3d11657e64cb39b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-auth-attribution.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-auth-attribution.json.gz",
+      "bytes": 15270,
+      "sha256": "381f07b70e6dce7a1f713e27c788093a343017c140afafa697c7f392b4d6bd6c",
+      "archiveBytes": 1946,
+      "archiveSha256": "b55a22929488b804a01fec08f03043db043594f498a0ff017527b44cbaa7b457"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-consumed.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-consumed.json.gz",
+      "bytes": 277,
+      "sha256": "d4bf0752a394c8d857b080bd8bd650af5a401582c9c6e929608ddabeda074d47",
+      "archiveBytes": 230,
+      "archiveSha256": "ff2066ea69e61fcfbbaec19061dca7d4edc434a2683607c03847dfb81d26ec57"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-owned.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-owned.json.gz",
+      "bytes": 3402,
+      "sha256": "c8c3a5fbbf78bf1189b7c254ecdccdfe2ce205e23e5703a4e7fe98c9f20c0b84",
+      "archiveBytes": 1092,
+      "archiveSha256": "2cfb170721e996e607b67068bcdb6031f6c10b46c838741c99dc7b476d69768c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "741cbc9abacea52bcace461e4b70a9ce213b0f2f2b709098fa5ffb8e52f1a79d",
+      "archiveBytes": 152,
+      "archiveSha256": "d73a8c091ea2cb18d8b4f72f92e34923efb5ea0feb8c843ebe3345f83e9f3a9b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 588,
+      "sha256": "7e53a399362367e82c9460dad92b829d7cbf08b1af3340a1f082db5d5b41fff3",
+      "archiveBytes": 408,
+      "archiveSha256": "0676e1fd1873147afdd5be3261d80d0143ce799da4711b34422eb7f755f906e8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 369,
+      "sha256": "5d8025614313c6687181aad78453dac0004ded4d2027050be22dc04b02c52bf5",
+      "archiveBytes": 286,
+      "archiveSha256": "c117573884b5c30f1b069fd2ed9ad65e7966f95d5321decdbf27389f4e8e348a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 66018,
+      "sha256": "e697a79ff8f8ff0672b49165992bf79a04d64332adc35fc9d252d7a84004a4c4",
+      "archiveBytes": 5042,
+      "archiveSha256": "b93cbd2eb8acce8914a38988c105dd47f9e8f81d9bdfe461bf5e2624a8eb9956"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "f6a35b07a1b461765590b95a7cb8eea57afe5d6df63d703d552d613838a227b4",
+      "archiveBytes": 405,
+      "archiveSha256": "46aa6e5600d1cc17aa6bffd11ef6d5cb28b12e2af299b6350e4c3a4b92702bb8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 763,
+      "sha256": "eb59fa95a9d84b2fe62027bff16d6f87f338bdc6874b00e21dc6a31fe2edd119",
+      "archiveBytes": 383,
+      "archiveSha256": "9ac9e818bf70e96ee5714b1fe430dab6731265c7839de169df306a0351a7f37c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 1155,
+      "sha256": "a0b5b40cdabead5fd65e54ba1e7674e04e4a3169ef7bd7bb7a8ce459b0241a0c",
+      "archiveBytes": 491,
+      "archiveSha256": "68c84ef36f3f12328befb7ab9d230003fc366b7465019b71995eac798e5385b7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 320,
+      "sha256": "3d660f19ee91f00f1a16211d82a2e94f40ce7caf828dd924cfb45647ce3438fc",
+      "archiveBytes": 213,
+      "archiveSha256": "fd9ae2ddc1317b1e4274b5a64875e5b01592d57b71100a8c23fa59caf3e29b1c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 612,
+      "sha256": "273b32d19ba87dd7f880e6ede61819734781f81dcc892abce5837815d8b34486",
+      "archiveBytes": 332,
+      "archiveSha256": "d44c23b509180dba6de01370212627e32a66b729d3ba914772a9b6fb968764d7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "raw/auth100-clean-env/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1323,
+      "sha256": "d527b89318680095d519d9830a827c24e56752751be14805922d969df47fc417",
+      "archiveBytes": 538,
+      "archiveSha256": "8b1961c0514fd5e46376aaaf6b19914382d3f09ec00ae61b8dfe48cca1fd3cfd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002\\preserved-app-logs\\app.log",
+      "archive": "raw/auth100-clean-env/sample-002/preserved-app-logs/app.log.gz",
+      "bytes": 2566,
+      "sha256": "11fe7addd0ab6673683e72ba6095a68ec1053a9f04fccf4a2f02d55baa41020a",
+      "archiveBytes": 833,
+      "archiveSha256": "2676f6019c2de352e0d46a16125de9528dc8d722b04601bcbff12aa253776b3d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-002.json",
+      "archive": "raw/auth100-clean-env/sample-002.json.gz",
+      "bytes": 98422,
+      "sha256": "20af0a7bf3cbf3da050a2ad69c93e1570019595d01aa3e50f28cc9c3d5376d26",
+      "archiveBytes": 9468,
+      "archiveSha256": "337005c3a870a61fefe8f5448b139d75acec9ef03a8375c815373e2525214237"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-auth-attribution.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-auth-attribution.json.gz",
+      "bytes": 15237,
+      "sha256": "d9d07b8d1f7f4fd35a61935cf5e0fe1e9c6e1220418184744c92b2a8b815e5de",
+      "archiveBytes": 1936,
+      "archiveSha256": "e8f6363ef657287c0e67d30e437db5c972a14f82bbc212456a6d3367545f0f23"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-consumed.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-consumed.json.gz",
+      "bytes": 277,
+      "sha256": "34303fb2a79f946a6284cdd6a15b39d470290aa3691f36fffb535278624c8ca3",
+      "archiveBytes": 229,
+      "archiveSha256": "50f71f1a9715179a0ed15ec2383948ae8e03b9d519b0717faadc313207846f1c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-owned.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-owned.json.gz",
+      "bytes": 3402,
+      "sha256": "03e218f297740ac270e10079a0ba535e07244d29ddf168b907cb22c132affe05",
+      "archiveBytes": 1093,
+      "archiveSha256": "5cbb712d39c79af2e2169f1864a622c954c64ae65fdd0019502ab190fd5f580b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "3c15ce37bcd0ef5d1f32ba316924d07af67432c7727c0f240168efdfcdc16932",
+      "archiveBytes": 151,
+      "archiveSha256": "137986abf73dec0479e7d1655adc16fc36717377b9c3a6bda69162a751c53e14"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 588,
+      "sha256": "9081cb3e45d93e386fcc908663df66fe884b0f6627bb0fa3e92c079f88b2c3b2",
+      "archiveBytes": 406,
+      "archiveSha256": "982a685e2d07de94dd018aa859c59abcb2a56c843c59e1d06ab1bb4571192540"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 369,
+      "sha256": "a96374fffff48058a1a8ac82646307ded18ef3ce8b510f109be67ea2e276345f",
+      "archiveBytes": 287,
+      "archiveSha256": "48f763f9dd89bfe84443ec92a5dd6afae66cf32c9dc6a02151050045d98e2d06"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 65097,
+      "sha256": "622832f8a905a4915efb1ebd7438362003f00b24f9271d0be3668d76ca81aa72",
+      "archiveBytes": 4928,
+      "archiveSha256": "beac7e50279dedd5e8d7b7708570865054df599dcf661c061c9771a66a8712b6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 804,
+      "sha256": "8761e0031ba9f767c7dd056d050180ba345148c998a40a0d86d651dfd0fde003",
+      "archiveBytes": 392,
+      "archiveSha256": "5c96062fa81a4751f7ce9acdc3b8357170c4981f83fe93ea9fd3645c3207e344"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1159,
+      "sha256": "67640d3a772116bebc9895eac460cf141e39e9cdcb71a0eb2978c7ed202af3dd",
+      "archiveBytes": 489,
+      "archiveSha256": "9571503cee7c13958d0cea7510ca172da116b5d0122d4f1dd6271ddddfaec198"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 693,
+      "sha256": "8cb9d7ed5f357c5be329e03585accfca6cc448ab2bc7ea32d1da703f24c5dc51",
+      "archiveBytes": 364,
+      "archiveSha256": "f68039189167b89300d675c18010ac2251f782f3c5d1837ef47089c120060a17"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 319,
+      "sha256": "7d4adaded730a35fbf97f3a2fdf2ff35f6b4e53304846513f64966e937648517",
+      "archiveBytes": 209,
+      "archiveSha256": "3f2d91b47808373d3f1fc4de39fb2da79a8aa170b169d60c2caf258dd24a59cd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 601,
+      "sha256": "8a72d13bbc3533783f3c98dd361d144d4129437cd786035cb1f62c7297607bae",
+      "archiveBytes": 323,
+      "archiveSha256": "039abcac0031839a2a5e38ed0e5866515a6d8bf57a6f0bdc4decb620918eef5b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "raw/auth100-clean-env/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1188,
+      "sha256": "410a784e10031ddce8e1e2f138ff9d499cc7cc245f5f06c6ff0d4d004c9e30ee",
+      "archiveBytes": 499,
+      "archiveSha256": "4659d762f98d4481bcbdbea28598593638ba15b82abf6954c5e98082f69e8d43"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003\\preserved-app-logs\\app.log",
+      "archive": "raw/auth100-clean-env/sample-003/preserved-app-logs/app.log.gz",
+      "bytes": 2566,
+      "sha256": "098a9b2a0f89a05c639185b1bff50af7963d318b8df6227a59906f2a963421be",
+      "archiveBytes": 826,
+      "archiveSha256": "199de71f47a6d53e00c4abfcf536b6235a8651a4cef8d18f8062d07a15b1b300"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env\\sample-003.json",
+      "archive": "raw/auth100-clean-env/sample-003.json.gz",
+      "bytes": 97235,
+      "sha256": "b0200120f985cb00f6041e64b8e63bd935b2ff5ed8856673d55e6cef89c36f01",
+      "archiveBytes": 9299,
+      "archiveSha256": "22ec27ba0b52014044c2189c06ba21ad936d6b578a7440912c69fd9567ba67c6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env-actual-auth-review.json",
+      "archive": "raw/auth100-clean-env-actual-auth-review.json.gz",
+      "bytes": 28372,
+      "sha256": "e57ca3a99da7e80668b373cca86a52a6fb645a90cd1575b17fd11cf63a20bb0d",
+      "archiveBytes": 3556,
+      "archiveSha256": "439c2fc649b72889685f0a9e46a537037b5e0be9dd94f2b375851d52e4dab151"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env-cache-cleanup.json",
+      "archive": "raw/auth100-clean-env-cache-cleanup.json.gz",
+      "bytes": 10529,
+      "sha256": "f8bfab7b48521a14da5cf48afe68291404b8e420e46c2f1a6d389eac02162cea",
+      "archiveBytes": 1229,
+      "archiveSha256": "d5c4b2d37a2f842cd64786fd7f3203b953374dd924ff43df9dc40e588150b26b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env-identity-scope.json",
+      "archive": "raw/auth100-clean-env-identity-scope.json.gz",
+      "bytes": 3246,
+      "sha256": "71b2a8791f489c4e318c611f424f5ea5c7e39f559e4920a37999e4216342c9cf",
+      "archiveBytes": 490,
+      "archiveSha256": "94bb5222113e4c375730b46cf878b345309b6aaf19fce331a5c12d80d364e684"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env-post-cache-review.json",
+      "archive": "raw/auth100-clean-env-post-cache-review.json.gz",
+      "bytes": 464,
+      "sha256": "0d5459b9e0f105e3db7e11ec5ee5ac5981e3885ac62397a3549b3171505d277e",
+      "archiveBytes": 284,
+      "archiveSha256": "5c5e8c7557f42850d9537c804c51ad5f2e8ad49077c119b614a5e41deec6d295"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-clean-env-pre-cache-vault-freeze.json",
+      "archive": "raw/auth100-clean-env-pre-cache-vault-freeze.json.gz",
+      "bytes": 13592,
+      "sha256": "783fe5d5ea4e57adb49c81c77e103a893fc45d7b670f1eaf8d7a1ffe5a00d53c",
+      "archiveBytes": 3325,
+      "archiveSha256": "0d97d2afebafdfd501296f1d4096a7d70f45f440ada84b722025ae6ff80bf2ea"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final\\native-perf-auth-attribution-results.json",
+      "archive": "raw/auth100-final/native-perf-auth-attribution-results.json.gz",
+      "bytes": 1189,
+      "sha256": "89085e52011dd0c30f94e15a7cdd33c0693b5f9335a38489fcce3809ab516fef",
+      "archiveBytes": 622,
+      "archiveSha256": "ebb6532c8bedd777ecfaabd3d7a220b485c56dc60909a5ba7d43aeb9a79127fb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final\\native-perf-sdk-journey-results.json",
+      "archive": "raw/auth100-final/native-perf-sdk-journey-results.json.gz",
+      "bytes": 9788,
+      "sha256": "93bd25b23cd4a8f300581bcf1ef7d8dd28bfcfa94a2574253551cd2b1dcc217c",
+      "archiveBytes": 2505,
+      "archiveSha256": "ecb5ff1d534cbd5df058d7140b31f7fa53f4cc56d86c6bd84ebf3b3bdaef08d6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final\\sample-001\\native-perf-owned.json",
+      "archive": "raw/auth100-final/sample-001/native-perf-owned.json.gz",
+      "bytes": 3382,
+      "sha256": "5fad37e64a4edbb3cc0b880239e5630a47c62525f3034229456d18a3bccad87a",
+      "archiveBytes": 1086,
+      "archiveSha256": "af26a59cf1702a8e8ffba66b39897447f694f1245d08a1569485b33eabdb2b58"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final\\sample-001\\native-perf-ready.json",
+      "archive": "raw/auth100-final/sample-001/native-perf-ready.json.gz",
+      "bytes": 322,
+      "sha256": "e48fe8651b6a092047e419f06d102a9a060d421f2bfa35a1c2fb3d739eb62cab",
+      "archiveBytes": 261,
+      "archiveSha256": "17c1892ba67ed540965e58b5e22e4519c0a07fdf382dbff876b38679a8408551"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final\\sample-001.json",
+      "archive": "raw/auth100-final/sample-001.json.gz",
+      "bytes": 4386,
+      "sha256": "c7a631804a9999eeacb011a24489d7197250e8c36f3aa0f4e06cb8b74277ce66",
+      "archiveBytes": 1432,
+      "archiveSha256": "7324aaa39e45c9b077a19c7d442ab472e02874467bdff9dcd47bcc5ad73aa9a4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final-cache-cleanup.json",
+      "archive": "raw/auth100-final-cache-cleanup.json.gz",
+      "bytes": 1929,
+      "sha256": "e45131aa5a50dc743b125e2dc2a44e9a73a09297ea01c0a34d354610454891d8",
+      "archiveBytes": 544,
+      "archiveSha256": "e1bfb9b372188adc1ad7f8d5681cde400a332663fa478dcdbca28b6357b4c907"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final-failure-identity-scope.json",
+      "archive": "raw/auth100-final-failure-identity-scope.json.gz",
+      "bytes": 188,
+      "sha256": "cd67dd6260d2c42c8173df2d75db94ed12a718d207bae86b88f07d2cc74fcf8f",
+      "archiveBytes": 175,
+      "archiveSha256": "6933a1428b0bfd62e7542f780475e5e17bd7b56689e320225d56159e830af016"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final-failure-post-cache-review.json",
+      "archive": "raw/auth100-final-failure-post-cache-review.json.gz",
+      "bytes": 260,
+      "sha256": "42f42f0aad7dd105a78c244908f6b9de12856d01c0c4f71ab7f9f36137e286b2",
+      "archiveBytes": 198,
+      "archiveSha256": "ebcd186a01636d0f78913f1051925f2551c13d8d795b0332a02cffb161070130"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth100-final-failure-pre-cache-review.json",
+      "archive": "raw/auth100-final-failure-pre-cache-review.json.gz",
+      "bytes": 2716,
+      "sha256": "bf2efc9751bf7a203ff3665c6cf6d3f376de555ff496c678a5cbdf84497f5a3e",
+      "archiveBytes": 1037,
+      "archiveSha256": "68667235ea1e5608441790cd3963df29491b2488fc25f9593f20f20efb547fbd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\native-perf-auth-attribution-results.json",
+      "archive": "raw/auth5000-clean-env/native-perf-auth-attribution-results.json.gz",
+      "bytes": 59629,
+      "sha256": "fcf171f37e39f403304b6248cd409b28dd7b6f272e501485421fc2411859fd6e",
+      "archiveBytes": 5785,
+      "archiveSha256": "7fd10d1888281bf92557c9d83999296e1ea9dcc6c884ac3d480379b076041d37"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\native-perf-sdk-journey-results.json",
+      "archive": "raw/auth5000-clean-env/native-perf-sdk-journey-results.json.gz",
+      "bytes": 343475,
+      "sha256": "92afe0f9bbdae1f3390e8a97680e564f837dbe28e7c024b11e7e93112e1b469d",
+      "archiveBytes": 27249,
+      "archiveSha256": "0d2c4af621ed022fb332d5b2fc8fa3a4481b3c8b0f5e6f49a6a7f57a489752d6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-auth-attribution.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-auth-attribution.json.gz",
+      "bytes": 15271,
+      "sha256": "9ad261434f5f64cd7e0ff951cd2b16a1028f3b224f3a027983e9650e2f517c16",
+      "archiveBytes": 1954,
+      "archiveSha256": "eddd52ad4e83abd9225e0f91368ecaa28b5a096f6ec040d862e683bc1ae45de0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-consumed.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-consumed.json.gz",
+      "bytes": 278,
+      "sha256": "dd9c7bac2aac442d1b574e6f89efd97086eeb029898be9401c2acb4efd159669",
+      "archiveBytes": 230,
+      "archiveSha256": "bef75c8f46985e76a945f46778a15a007ffe58805ef687ee616f314f5bad63de"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-owned.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-owned.json.gz",
+      "bytes": 3418,
+      "sha256": "6b2f04064051d834f3dab7dd2ce00eda4723ca956d156fec80c7beabaca92217",
+      "archiveBytes": 1094,
+      "archiveSha256": "3fc2c8bf83ed53d30314b828e7a720c4582e5457d7bb1e3189c029ca205515db"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "028035fcd6d275164dafe5b9cad19ebb315fece490c9dc2620f08f2b837615d2",
+      "archiveBytes": 152,
+      "archiveSha256": "5afb192b1e198850eabda4c460ba451274016112f8f831dcf10c54e078ed655f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 589,
+      "sha256": "7457d180af51ea1aa571bd6b949e1446a4985358f4c4cba40275afbe2d315f8b",
+      "archiveBytes": 408,
+      "archiveSha256": "35a5db5907ace3d2ac0c4f665e4dfbfc5b49322f81c81f492b336f612cec4d20"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 371,
+      "sha256": "b7820f59111573689714719d40809d394e3d6c50bb29ee3620e5be4addfe20a2",
+      "archiveBytes": 289,
+      "archiveSha256": "b9ac5d68f9815b02709a9472d0f98266fde074ea8e25cb77069f26b556600968"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 65922,
+      "sha256": "a10e20d19a1e7312cbeec53897b5d80feb8218a3846f9aa2239ad0dbb0ae0dc7",
+      "archiveBytes": 5006,
+      "archiveSha256": "dbff5aa75258df3ddbacd4bf4de2ca1bf895b30c033effe96d65959fb14a51ce"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "7ef17b93de722692ba38abf5b731f9c216fe609dee4794e872d796dd0e9f4fdd",
+      "archiveBytes": 405,
+      "archiveSha256": "48972679bc3dd31f42bebbcafe5ed61ebf0919efee415211ec712d123581a20b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1160,
+      "sha256": "c98893f3cd681dd459ab034271a3e25b643332e863766c12471a3d372ab8cac7",
+      "archiveBytes": 492,
+      "archiveSha256": "92bb66f5f5a9475d294144c336c26c1e0b617f9fc1c9fcd9d8dc521415380ef4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 682,
+      "sha256": "de6f35980d70375c9053d929818a69a0843797963596dc5d37b0913d3b380b3f",
+      "archiveBytes": 358,
+      "archiveSha256": "2eeaa26519b9da1124c94296a432fdc880f97ab26b05bce4beca258e5d04f544"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 463,
+      "sha256": "e98341b06f503094f527da1103254b32d6a8ea673778adf8f6ca0ba43a1b6b36",
+      "archiveBytes": 259,
+      "archiveSha256": "744c4a6bedc77249f491f50f71e1b34a8d1eb4d6f43bd72c7c503685886e0b9c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 612,
+      "sha256": "7b0f4ce0d617600f6952deadc197f4f6747eff6a1eb538fae0dedfa35b6ad9e7",
+      "archiveBytes": 331,
+      "archiveSha256": "c0624dcef4f721a0bf806e8eac547e42bcbb00af4c4164241c4f73ebea993b17"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "raw/auth5000-clean-env/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1211,
+      "sha256": "9e77ca8d5078f227dab001572c62cf0db48a080edc80027809a34bb7272c5055",
+      "archiveBytes": 518,
+      "archiveSha256": "6a3f9ded725a5937f9d2723fd99882456bdbeb550461f8f6df613a714d639cb7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001\\preserved-app-logs\\app.log",
+      "archive": "raw/auth5000-clean-env/sample-001/preserved-app-logs/app.log.gz",
+      "bytes": 2567,
+      "sha256": "a2e9e976864b90b5520243ff3f34c8ec72a846ad6fc6712428fc63ce47333168",
+      "archiveBytes": 835,
+      "archiveSha256": "e98cd9207d5fc17ac5bdd78fc8bb8b8da016b81e07cace0bd1f3538cc5e902fc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-001.json",
+      "archive": "raw/auth5000-clean-env/sample-001.json.gz",
+      "bytes": 98404,
+      "sha256": "8f838c311774c6e3c2347bdfdb6b88179186685b1e173ae1c96031b495806a1a",
+      "archiveBytes": 9395,
+      "archiveSha256": "16507efd55fb3424702fb935eb52311c0c78f8c398d832ba8b8584b6c0b7ba5b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-auth-attribution.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-auth-attribution.json.gz",
+      "bytes": 15253,
+      "sha256": "f2f6fa4a28e02b74897dc5251eef0475ea6b3da9014e15f188edfe1a9373aa9a",
+      "archiveBytes": 1926,
+      "archiveSha256": "5d6e65e4002bce6bdec37bcea68b2ab51cba7b93886947c82f9c406b55be963b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-consumed.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-consumed.json.gz",
+      "bytes": 278,
+      "sha256": "69b6a4c34b1fc6fba69d4002b8235b27766b09e8c2a9819471f1c2a8408f2c73",
+      "archiveBytes": 231,
+      "archiveSha256": "2bad53b5ef654618e0cb6f352755d619f2e6e906ccba2618d43546edd706efd2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-owned.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-owned.json.gz",
+      "bytes": 3418,
+      "sha256": "5bacb1515debc7bdd28b64edd189a7bf6b4aef40c0b685aacfa95553e9d1fae5",
+      "archiveBytes": 1095,
+      "archiveSha256": "d1f1e13c2ef24174fe41d414b3a8a189afd736c1fba823328c586a6e977541d2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 163,
+      "sha256": "1b767d503c2bccc0d42226e14a59d98d5b7bce21ff10ac429d3fa27e1abb6114",
+      "archiveBytes": 152,
+      "archiveSha256": "63758c80bd168c1a310095e121a89bb7cf42c93c8d3e83ae1601ae4b6c4a030c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 588,
+      "sha256": "3e949f6f6701a98bd095fa598b3eb9d93ed73bcaba723619bc65e5411c5bab3b",
+      "archiveBytes": 408,
+      "archiveSha256": "fd537d810f5b5eb915bf67c4dd226c503cd1a925147f34cb51b7103f75eb41fd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 371,
+      "sha256": "c0fea5982c49c0ad73332a5b73da8dfde55146b2d06c305858cf0009a6d54868",
+      "archiveBytes": 289,
+      "archiveSha256": "c3de398e9cb843d28af167ebf49def5825e7fb1959e544df474f52ccfef1e8e4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 65840,
+      "sha256": "f787f4ecd170c4f70d9eb2341980b7730c4a8f4687228c62124edba4fa0e0c47",
+      "archiveBytes": 4996,
+      "archiveSha256": "e3ffc2426221c66cc76c4c118e0ab4a75ffbb006aaa904b50fb4b7e3cd4cdf23"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "76cfd38868c7c9551fb4b02065750505f81f77b7886368d0a4e9b6b59986be62",
+      "archiveBytes": 406,
+      "archiveSha256": "2e8746231b3650a9840a8bcd9b517d49b32c659bb026762692ecf0d2346690b2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1172,
+      "sha256": "0799825710c6d5c4ee1bdce9089a4a62477331044f1c9b610c8e30675e2be3ac",
+      "archiveBytes": 496,
+      "archiveSha256": "b47c967692ca0bcc9e12a2eed5ae5797623d2c7848ad78fd7ac9981806dfa14b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 615,
+      "sha256": "7bb99ae07bd1ad95ae8169c0ece3108f654bc561f634d248f0b568c66b8da165",
+      "archiveBytes": 333,
+      "archiveSha256": "544e614ff553d2c046bf5829d722073fae8b3a98a0d2d8ee8f8ef0b5ee23a550"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 319,
+      "sha256": "5ed51772069e70d91f690dcdd2bd2a3adfab3d2e553136338ea07f206086493e",
+      "archiveBytes": 208,
+      "archiveSha256": "0dc32efedf75430e6b6c92e8c63c62c9e34674309f9221f98dcec19f74152053"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 755,
+      "sha256": "f6af7a1eeb1847d2cc9781291371b5c3d973280817a80855545f0d662bd0f0b4",
+      "archiveBytes": 368,
+      "archiveSha256": "d5720d01f49544f09210a3d6b759a386cdf3f0281801fa5568984b8488109e79"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "raw/auth5000-clean-env/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1220,
+      "sha256": "23861a7f8df090c604498822541f8174e50b6c758954e86ed58e2520bdcd4d2c",
+      "archiveBytes": 520,
+      "archiveSha256": "5763db4c6dfbb10cf9831e9530352b65f8034ad8978fb1f34e0c41011caf8b33"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002\\preserved-app-logs\\app.log",
+      "archive": "raw/auth5000-clean-env/sample-002/preserved-app-logs/app.log.gz",
+      "bytes": 2567,
+      "sha256": "a7381c03c998c98bc7ae2829c2c5e5c84ef6edd3b7bebe9e13b413e55e2398a6",
+      "archiveBytes": 840,
+      "archiveSha256": "e515fb6a6baf409ffbe1c508f0d871d1678c2fc5e86ea7e8a015d0d632951d14"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-002.json",
+      "archive": "raw/auth5000-clean-env/sample-002.json.gz",
+      "bytes": 98251,
+      "sha256": "acf9a9060d47d549e7aca00314e59c7a34481ad4dd7e1a42c4f694a832a7d299",
+      "archiveBytes": 9394,
+      "archiveSha256": "170e4c5b3c98d2bafcd786b8420fbc412419662e02ef69eff0b9d8434f518aaf"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-auth-attribution.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-auth-attribution.json.gz",
+      "bytes": 15265,
+      "sha256": "584db62ef72e863644531b86c2a758ded37157deca29964e60debe0a9d2cdebf",
+      "archiveBytes": 1936,
+      "archiveSha256": "fbd59186d084ba92813790b552ec4c53d01a6bfd8c49ae6bb702bb11eb3c957f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-consumed.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-consumed.json.gz",
+      "bytes": 278,
+      "sha256": "670ba4df09855b3e737546ca465ddbeb5d8330f83bf468e20e23b1a3fcbb8334",
+      "archiveBytes": 232,
+      "archiveSha256": "8b45c872bc6bff4a900aee5f25ba3fb8bfcff14777d83b8b4c1e54b0e923b41c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-owned.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-owned.json.gz",
+      "bytes": 3418,
+      "sha256": "ee7578fb893e25558cd9b29a38815d332b862f444e35c773e1feffcc68e4911e",
+      "archiveBytes": 1093,
+      "archiveSha256": "ca6137604029f436632cb3d36d60f0ad32790439c36a528f2c7df3a2ccc40174"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "7dd3fd9d2d4c7c09f6baec98f2ed4bc148c48a9a910fb3f6bd631a99575846ce",
+      "archiveBytes": 152,
+      "archiveSha256": "18b606d49ae7721f5c7249cd35c872fb5019771e56ad82dbeb8586e4e2def2db"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 589,
+      "sha256": "f271c2306f1e6b26f8e32bc9896677791c9527a5e12c6877737a89382d14a61d",
+      "archiveBytes": 407,
+      "archiveSha256": "3c5966ade0923ec4ce2a83a3ca3ab454edb8eb7057cebb3906e68ceb0a8e4ce2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 371,
+      "sha256": "68f7fcef056096a2030b329f1a0a72b054eccb4083dbad28c46b5aed58ee5f55",
+      "archiveBytes": 288,
+      "archiveSha256": "4716656934c7ec72cbd400c1837a5f9704d8708e6a7fa17a73affde233d53d3f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 66589,
+      "sha256": "7455ed195422552d6a397c58eb90ab355741b09e648949b998bdffe5fe47b8c1",
+      "archiveBytes": 5101,
+      "archiveSha256": "f02f471d75bdd4df19035dd25739a4b45e6461b5bb251c7087cdd47d74fdeec8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "044dce4a461a04a839c991dbfd533c1ec04df0e8e204370289ae9c29f72d518b",
+      "archiveBytes": 405,
+      "archiveSha256": "2b9b7e0f4e72b18514743b472911b1f673d7f507f9571cc99f05b34863678ea9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1255,
+      "sha256": "9563409b6c060321ad9b3f78fe72cc44cb5aa7e3553b3736025363b7d3299569",
+      "archiveBytes": 510,
+      "archiveSha256": "eef9b2cf0152f0bba7218d21dd79e0a458178d587ee6cfa633e2636e7f10a448"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 624,
+      "sha256": "85a226ce22ec36154c14fd5e8342ba16e54b84513fde0c2551afe36074a8950b",
+      "archiveBytes": 339,
+      "archiveSha256": "b5f94bc14b382fda963ffdbc033c83cd1c9a888f5901aa6c13ddb3b48fa9d99e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 310,
+      "sha256": "a032d3d07ba8622871313335d2718274d5d5c39cfad06016baf98036354ee65b",
+      "archiveBytes": 205,
+      "archiveSha256": "4e051ac93448beb2d397bc2cf8fa70dbbf61c9ccab3dea2ab5b0c292b69a1378"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 613,
+      "sha256": "bebabcf24c65261a29c7cc0f6e1eb27ecbecad14c48dcb719286b9a912575bed",
+      "archiveBytes": 332,
+      "archiveSha256": "982023a3401f8569bdd5f6a133bd616b6302dd8af7207e21bf4e51c80cb0811f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "raw/auth5000-clean-env/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1324,
+      "sha256": "72d99eed5df3cfbb0a189ca7cea8536266959bb3384298a0b198856f8d50e59e",
+      "archiveBytes": 538,
+      "archiveSha256": "3fa7505d2e2c455a9953342357925d9d3f5c453b346e78c9b6672f99db15f5bd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003\\preserved-app-logs\\app.log",
+      "archive": "raw/auth5000-clean-env/sample-003/preserved-app-logs/app.log.gz",
+      "bytes": 2567,
+      "sha256": "1e99c8b3f98e91c6ab7bcd192ce8ebb19368a4a24578b043f98c45ba1584726f",
+      "archiveBytes": 843,
+      "archiveSha256": "9a067e7fcb92dd933939255d95ca8a34455d0a25eca6f93cab778ff9feadbedf"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env\\sample-003.json",
+      "archive": "raw/auth5000-clean-env/sample-003.json.gz",
+      "bytes": 99106,
+      "sha256": "3511d4a2785a3e11788127f99c95f2290081fd9477e9c8926afd2f14e522964a",
+      "archiveBytes": 9505,
+      "archiveSha256": "fe4b7f24e09683676f63580e171ed5689f140b76cc272d95e6fc71d64b2d2603"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env-actual-auth-review.json",
+      "archive": "raw/auth5000-clean-env-actual-auth-review.json.gz",
+      "bytes": 28721,
+      "sha256": "44dbe681df4dc5e3d7afb50ac49db6fc79997bbe8d52fa614a030dbb25b9a3b6",
+      "archiveBytes": 3570,
+      "archiveSha256": "31f1f67a13f805cc32e49e634fb14d37b6d2516297ced517c04a67b4bbf92907"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env-cache-cleanup.json",
+      "archive": "raw/auth5000-clean-env-cache-cleanup.json.gz",
+      "bytes": 10530,
+      "sha256": "9e040c39e077768a883790e9d46eb6cd49355ad75ecc3153e8b3cf2176518211",
+      "archiveBytes": 1196,
+      "archiveSha256": "e9f879572a364cac843fe878da03a8320a6ee4e19a0ffbcbc8ba882765012a1e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env-identity-scope.json",
+      "archive": "raw/auth5000-clean-env-identity-scope.json.gz",
+      "bytes": 3242,
+      "sha256": "3f4cf54d79bfa16f454f420032d77a1ef4374962de9e437d59180965b2b9b512",
+      "archiveBytes": 489,
+      "archiveSha256": "68cbc2544ee8d77f7de8437ca3d08378568eb627ad53d1444c83367e27f02cd7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env-post-cache-review.json",
+      "archive": "raw/auth5000-clean-env-post-cache-review.json.gz",
+      "bytes": 464,
+      "sha256": "88274b03d4c5e4200f7851589e6e5445a2fa1765172578583a8b580c3d56fcc7",
+      "archiveBytes": 283,
+      "archiveSha256": "685879d5ee2cfe50e245e1b48d35db7769c4faaad002d78886cdea2a56a80dcb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\auth5000-clean-env-pre-cache-vault-freeze.json",
+      "archive": "raw/auth5000-clean-env-pre-cache-vault-freeze.json.gz",
+      "bytes": 13609,
+      "sha256": "7f1718d58aa90f7349a7ec1f6bdab41640972c3c2566bfea90f280334657b568",
+      "archiveBytes": 3339,
+      "archiveSha256": "e0f71b4a66e80a2bcffe3ca8327e1dfb47c47822a7d185eb4d1a301a79fac701"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\baseline.json",
+      "archive": "raw/baseline.json.gz",
+      "bytes": 1823,
+      "sha256": "4ae3463494c8eaee38961276580c149633ed0311291b8a6a399b1821c8ab3816",
+      "archiveBytes": 1033,
+      "archiveSha256": "fce3203311eeb30825426dbb13ca065b797d3661cbc5f8b9c4f76c29de93fa28"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\build-auth-release-preflight-failed.py",
+      "archive": "raw/build-auth-release-preflight-failed.py.gz",
+      "bytes": 5738,
+      "sha256": "feb5559c1ec0130b55bb5d2a19eebdd2117e52cc8d64f0f4398b45f7240474ae",
+      "archiveBytes": 2296,
+      "archiveSha256": "23fec909a31c28a49d0a453c5ef81c397b05b176983fcb595aa791a8df06c609"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\build-auth-release.py",
+      "archive": "raw/build-auth-release.py.gz",
+      "bytes": 5994,
+      "sha256": "324077545349108204a14de6e76a2116561e65915416e572ad4661e595ca703e",
+      "archiveBytes": 2372,
+      "archiveSha256": "554f613b95f0a14acee9beafa9a606ea7d141185cd3ced0a2859fa782d274a0f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\build-checkpoint.json",
+      "archive": "raw/build-checkpoint.json.gz",
+      "bytes": 521,
+      "sha256": "2bc72c115ca05106e36598cb3e1f539f122d216226c685ea2129742b29fe269d",
+      "archiveBytes": 348,
+      "archiveSha256": "4df5227f6843b8deafb28b4edfbc733a45e5f910bdcb93c0012b4dd39461402a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\check-chain.py",
+      "archive": "raw/check-chain.py.gz",
+      "bytes": 1461,
+      "sha256": "1a2bdf4805e2fef13cf159784a7332424504173ad55901671dc1b62b7741bc2b",
+      "archiveBytes": 589,
+      "archiveSha256": "7134eac6a37a69e44da53e23f61de0f9e0864039f3eb3f451af43b7329981e67"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\cleanup-auth-caches.ps1",
+      "archive": "raw/cleanup-auth-caches.ps1.gz",
+      "bytes": 10643,
+      "sha256": "d972319edf9b550410a85de11fa09a24dfc9a503c5871340555284d3f2674679",
+      "archiveBytes": 3526,
+      "archiveSha256": "033655f8fcb1f58b32c55d3cbee30df5e8c8dc90bd59dc3223cf7970625965d3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\cleanup-failed-auth-caches.ps1",
+      "archive": "raw/cleanup-failed-auth-caches.ps1.gz",
+      "bytes": 10238,
+      "sha256": "d7298e51ccf6984acd847cee82b822aa47427ed2d9b65b1bcabcdced8e662dbc",
+      "archiveBytes": 3432,
+      "archiveSha256": "90cb0d2614856650e0ae1c3bdec5d95d3caffde0523861ea5b52bda6c7f81dd9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\current-sources\\tauri\\scripts\\native-perf-auth-attribution.mjs",
+      "archive": "raw/current-sources/tauri/scripts/native-perf-auth-attribution.mjs.gz",
+      "bytes": 4690,
+      "sha256": "a9407b2af360c2f54b2ba7e0788cdaebc9d49a8403ef65713ecfec8586478122",
+      "archiveBytes": 1942,
+      "archiveSha256": "be437703b5828a6d6e34cef3fdb9a47576b8756163ec228eb9637fd4cd9779ba"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\current-sources\\tauri\\scripts\\native-perf-auth-attribution.test.mjs",
+      "archive": "raw/current-sources/tauri/scripts/native-perf-auth-attribution.test.mjs.gz",
+      "bytes": 7290,
+      "sha256": "30ff7b4a7aacabc9f09d3119728fcb7945be43edfa67a98f3492b5b007783562",
+      "archiveBytes": 2110,
+      "archiveSha256": "4c2983e83adb58c30e0ee39ca7899514cd750728c68ffed29fdbf683f57c4774"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\default-env-review.json",
+      "archive": "raw/default-env-review.json.gz",
+      "bytes": 624,
+      "sha256": "657368398b71cf434e4e42d1f2f79f33d6a2913ab398fd912f69fb483ff27ceb",
+      "archiveBytes": 441,
+      "archiveSha256": "f31aa98e15d4ed6b00c4f38108e443a1425e5f3951d41d26c35e4687f97bb832"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\finalize-auth-docs.py",
+      "archive": "raw/finalize-auth-docs.py.gz",
+      "bytes": 11691,
+      "sha256": "2f60c0a1fdb818e103b8f9f186d7767f0aba3abe7a1de52889db7f4f8ffb4130",
+      "archiveBytes": 5515,
+      "archiveSha256": "936b15fd6d70282dafbf4b6a7be634962db84b35d7fdb5f9ef2c373a216bbae2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\finish-checks.py",
+      "archive": "raw/finish-checks.py.gz",
+      "bytes": 844,
+      "sha256": "8b2c1661a1a622da8b32ca3dc827899d52e2a7aa1699917f5cf53928a8aff19c",
+      "archiveBytes": 430,
+      "archiveSha256": "e6fceffa24d597297554551e4b7c17c9fa617e048fa00b5ac3569f61a85f39c3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\frontend-freeze.json",
+      "archive": "raw/frontend-freeze.json.gz",
+      "bytes": 4301,
+      "sha256": "1e1a6d7eb67a5214e401125adee4214344e8cb5e3ea9b23fab3a8fd53dea7b51",
+      "archiveBytes": 2151,
+      "archiveSha256": "c22782f317070cee211b8d250eb9ed879655584e8f14b6b9991aa7cbe5db250b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\implementation-review.json",
+      "archive": "raw/implementation-review.json.gz",
+      "bytes": 1302,
+      "sha256": "2348fea9f51f2c9f8140c17631c8cfb363c74c2af5ec7a4cedb0875bc42baf25",
+      "archiveBytes": 738,
+      "archiveSha256": "43b0c2611ea0a5ad78ac06ede1524c1b6ec89dfd6e438a1108f2ac02d9663e18"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\measurement-source-freeze.json",
+      "archive": "raw/measurement-source-freeze.json.gz",
+      "bytes": 159624,
+      "sha256": "1a6e0a06ed7f91ced7bec62509945452e5c305caf469f728dd2bec57db7950fa",
+      "archiveBytes": 64711,
+      "archiveSha256": "607df7a911816039725268fb3f2520b2b4ec1edad163b18a489c4e1628b117ab"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\native-driver-mode-failure.json",
+      "archive": "raw/native-driver-mode-failure.json.gz",
+      "bytes": 488,
+      "sha256": "5c9564b8c91ec518399401d949d7f7a0bb7375f2a597fb0ebeaf96e5435337a6",
+      "archiveBytes": 315,
+      "archiveSha256": "c71d45da27f97557107fdb8ba1c95b19592eef3ad20942674c8fbc853dd6bddf"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\native-perf-auth-attribution-mode-failed.mjs",
+      "archive": "raw/native-perf-auth-attribution-mode-failed.mjs.gz",
+      "bytes": 4589,
+      "sha256": "a74685d6459fb3cffaeb8134bcd46c60989243775b65f33b9c4c8efa28419dea",
+      "archiveBytes": 1924,
+      "archiveSha256": "968674fe6a17a0026b7ce8428a323e48c97ea73753aaca2a7f06fc862f043daa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\native-perf-auth-attribution-sdk-red.mjs",
+      "archive": "raw/native-perf-auth-attribution-sdk-red.mjs.gz",
+      "bytes": 4687,
+      "sha256": "3383ba4f37cb6c77f82ca1ad647fca8a694b99aa80e0a11743fa3c4359837f6a",
+      "archiveBytes": 1939,
+      "archiveSha256": "ed603790a6620a28933e468604dd77b2ce7c2780d7bd1f27a53a553c5e5117b0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\native-perf-auth-attribution-sdk-red.test.mjs",
+      "archive": "raw/native-perf-auth-attribution-sdk-red.test.mjs.gz",
+      "bytes": 7290,
+      "sha256": "30ff7b4a7aacabc9f09d3119728fcb7945be43edfa67a98f3492b5b007783562",
+      "archiveBytes": 2110,
+      "archiveSha256": "4c2983e83adb58c30e0ee39ca7899514cd750728c68ffed29fdbf683f57c4774"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\observer-red.receipt.json",
+      "archive": "raw/observer-red.receipt.json.gz",
+      "bytes": 266,
+      "sha256": "d2fb2c7e201abb3bc43abf6f0de771363ee27fe1efc869f1f9c7b5a870a1eb5c",
+      "archiveBytes": 212,
+      "archiveSha256": "44360764db672e8a88e851feefa97d4d742007b7ca5af89bbd6394a63358979c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\observer-red.stderr.log",
+      "archive": "raw/observer-red.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\observer-red.stdout.log",
+      "archive": "raw/observer-red.stdout.log.gz",
+      "bytes": 1513,
+      "sha256": "660b14e2ec6f108012f59e3126e72354d76eee8a6bc7d91d7f2bedce49786e94",
+      "archiveBytes": 577,
+      "archiveSha256": "30ae7306c25ee7c33728f9e66c1faa14276d1093198688aa99e0b205a2827ec8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\observer-tests-before.mjs",
+      "archive": "raw/observer-tests-before.mjs.gz",
+      "bytes": 6838,
+      "sha256": "83dd0988c46faa713d45a27ff4d0317fe2fe3190b234d155813fcc0ac64a79e5",
+      "archiveBytes": 2111,
+      "archiveSha256": "d5850771981dfa5720be759024c70ea046dd716b24a6fa6eeffe7e92160bdd5b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\observer-tests-red.mjs",
+      "archive": "raw/observer-tests-red.mjs.gz",
+      "bytes": 9555,
+      "sha256": "eb26d99f15a3ac3bf88ad0d784228d8c1aa2d465e8208b8bc32e255f2b852ec2",
+      "archiveBytes": 2758,
+      "archiveSha256": "0099f4a645e2bd329c330bf7cfe30550e98ee8f585389e03b081ca1bfe1c5cd4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\previous-build-freeze.json",
+      "archive": "raw/previous-build-freeze.json.gz",
+      "bytes": 1737,
+      "sha256": "11ad6fb887e321af07a5d8a140a92604a0ede7479873b88ecb7c3bccce4f3f83",
+      "archiveBytes": 630,
+      "archiveSha256": "52409c1af6bf481eccf5617a667f91bbbc1faa00d9dbbb8e7f66a4496dd07bc2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\public-source-freeze.json",
+      "archive": "raw/public-source-freeze.json.gz",
+      "bytes": 34512,
+      "sha256": "919965976c9579bdb9337d05342852ced57206bce0a7baf8d8b331018022a30e",
+      "archiveBytes": 7587,
+      "archiveSha256": "0c9247765f73153008eb5292d34dd3bcb010b4eddf119c5744febd8db7ffbf87"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\release-build.live.json",
+      "archive": "raw/release-build.live.json.gz",
+      "bytes": 242,
+      "sha256": "6bb1f6eef59dcbf05525df3d237cc4de5c0586912bdfe65b9abd69f2dabce020",
+      "archiveBytes": 171,
+      "archiveSha256": "b03881331867417eb0b90c9cb2bb7536b638d949284ec1cd0e222f9fbdf4f939"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\release-build.receipt.json",
+      "archive": "raw/release-build.receipt.json.gz",
+      "bytes": 300,
+      "sha256": "63bf7be9485d770a8fdba94174ecf81b952c27061146ae9a65522a0d4a74aa45",
+      "archiveBytes": 205,
+      "archiveSha256": "949f4e2fdab96cbfeea738203f4509160e90f994bb256b027b2a44d7bfe7aaf3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\release-build.stderr.log",
+      "archive": "raw/release-build.stderr.log.gz",
+      "bytes": 963,
+      "sha256": "77cc3eed55b676dbef2bef22a5db52c32e609c8448b53fb00fdb63830c506915",
+      "archiveBytes": 393,
+      "archiveSha256": "9f2d04098143cc9bd469c90603ba686e60c698bca88a8eef79806b941d1ac2ee"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\release-build.stdout.log",
+      "archive": "raw/release-build.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\release-preflight-failure.json",
+      "archive": "raw/release-preflight-failure.json.gz",
+      "bytes": 1667,
+      "sha256": "5fd8a4429029335a206fa89c6eb1d2ded16d015b71bc1b9aac6833f346b69bab",
+      "archiveBytes": 767,
+      "archiveSha256": "03c55619af28cdd752d6dfb0c3c1f02853117d08b51f9e3ecf1487e79d8fa326"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\required-checks.json",
+      "archive": "raw/required-checks.json.gz",
+      "bytes": 9209,
+      "sha256": "edc58ad22e91ae40a77b2c833f25c4ca7c832e1e20ff8bd8780ecb99b5642104",
+      "archiveBytes": 1944,
+      "archiveSha256": "07984d9d142c6dbc78e3a4d324680cb87cd4a9a8e39b699390ff802a143a4afe"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\resource-freeze.json",
+      "archive": "raw/resource-freeze.json.gz",
+      "bytes": 47318,
+      "sha256": "05f5431155839289b8e9b895a7a6bc2aed45f71b9f29826403d7e79d3e425ee7",
+      "archiveBytes": 6658,
+      "archiveSha256": "61a6b8b4734a527ab6cab26be5f301000f0eaa2936ffce93141894c1ddd1e6a4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\review-actual-auth.py",
+      "archive": "raw/review-actual-auth.py.gz",
+      "bytes": 10174,
+      "sha256": "7c2f95ebe8b150dd8416250d24a05b0410bdb570c541099be2b1d8aecda00a18",
+      "archiveBytes": 3685,
+      "archiveSha256": "f42aa66159626218e670bfa0e49fc232801d7adefd197bdb1bc4aefc3d0a78aa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\review-failed-auth.py",
+      "archive": "raw/review-failed-auth.py.gz",
+      "bytes": 4148,
+      "sha256": "9db07394b2b3557adb3f1f275cbf7e89aeddafbe85791b3de1a05e1f5c39b2c7",
+      "archiveBytes": 1697,
+      "archiveSha256": "2de246a917349ac78cfccdf2a4bc9a841f29e88b67254584ccbeaf1e61b520c8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\review-post-cache-auth.py",
+      "archive": "raw/review-post-cache-auth.py.gz",
+      "bytes": 2986,
+      "sha256": "f932d08014f87eb64bb5f9687386f772bba2803202f2c2065bc2c00eb6029136",
+      "archiveBytes": 1164,
+      "archiveSha256": "2c5fc1563b9b042a149f836f494e1b7c34efe4668a3adb407f8fa3a082722949"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\run-auth-groups.py",
+      "archive": "raw/run-auth-groups.py.gz",
+      "bytes": 1619,
+      "sha256": "a2d7eccae0e21a01e38afed1b0ad8dcca73535f8173713513092d1e6d01cc47d",
+      "archiveBytes": 751,
+      "archiveSha256": "9e4cdafd9d566ec1b56fd2dec0a455ebb96e7ec8d01cc25ed5dbd81c1f2d56bc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\run-check-before-native-env-fix.py",
+      "archive": "raw/run-check-before-native-env-fix.py.gz",
+      "bytes": 1425,
+      "sha256": "0970c278c4623d1f464f875924f90ffc7494fa67a5107f0356359f511146de38",
+      "archiveBytes": 682,
+      "archiveSha256": "89eac364769e29d6cf090bfb0f2d0696089286d7a3a11288a59d9102f528cd7a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\run-check.py",
+      "archive": "raw/run-check.py.gz",
+      "bytes": 1567,
+      "sha256": "31cdd78438bf80dd9ac10d7c59a18ceca752b42de9d9fd3d45a8efec33446aa8",
+      "archiveBytes": 755,
+      "archiveSha256": "c4d87e899056f5fc5527c0ad42cf937af98cd755df401b0ac2f5af513ef961ce"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\rust-recheck.py",
+      "archive": "raw/rust-recheck.py.gz",
+      "bytes": 755,
+      "sha256": "c25346cc08cfa82cd0b19845b9f48cd817c777f9e11d322a7a9c8e699fb8877e",
+      "archiveBytes": 419,
+      "archiveSha256": "c68b625748778f332752a07eee8695d96bf2dff548660e993de6b463034a61ac"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\source-freeze.json",
+      "archive": "raw/source-freeze.json.gz",
+      "bytes": 164048,
+      "sha256": "6d8051b08098653f3ab6b6f21ff3d4a6af6588d37f92688258236d7b26447ae4",
+      "archiveBytes": 66730,
+      "archiveSha256": "9768f95602b34fe35e100c919067387af0313434cc7c16d9d51fbc80e0225899"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-attribution-20261005\\verify_auth_freezes.py",
+      "archive": "raw/verify_auth_freezes.py.gz",
+      "bytes": 1084,
+      "sha256": "4450fbfd0da1d3fc1ccad024f7c4e62e0bb29eb7aaa7054c0769b87d302783cc",
+      "archiveBytes": 501,
+      "archiveSha256": "51208634a7f4a2b29887e81cdaa04827db65ca9ae7f889d8245e4cdfa73ea29e"
+    }
+  ]
+}

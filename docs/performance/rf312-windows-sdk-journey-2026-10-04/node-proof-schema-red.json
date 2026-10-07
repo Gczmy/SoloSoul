@@ -1,0 +1,4 @@
+{
+  "exit": 1,
+  "expectation": "new nested binding and final probe rejection regressions fail before correction"
+}

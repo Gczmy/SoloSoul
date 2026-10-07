@@ -32,10 +32,14 @@ export async function mountApplication(): Promise<void> {
   void import('@/lib/loginAvailabilityPreflight')
     .then((m) => m.preflightForLastAccount())
     .catch((err) => logger.warn('[main] Login availability preflight failed:', err));
+  window.__SOLOSOUL_STARTUP__?.phase('i18n');
   await initI18n();
+  window.__SOLOSOUL_STARTUP__?.phase('platform');
   await initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
+  window.__SOLOSOUL_STARTUP__?.phase('capabilities');
   await getPlatformCapabilities();
   prepareThemeController();
+  window.__SOLOSOUL_STARTUP__?.phase('preferences');
   await useSettingsStore.getState().loadUiPreferences();
   document.documentElement.dataset.userReduceMotion = String(
     useSettingsStore.getState().settings.reduceMotion,

@@ -167,6 +167,40 @@ function validatedSource(value) {
   return value;
 }
 const token = (value) => typeof value === 'string' && /^[a-zA-Z0-9_.:-]{1,180}$/.test(value);
+function validatedUiReady(value) {
+  const state = value?.uiReadyDiagnostic;
+  const startup = (sample) =>
+    sample &&
+    Object.keys(sample).length === 3 &&
+    ['loading', 'error', 'ready', 'unavailable'].includes(sample.state) &&
+    [
+      'application',
+      'i18n',
+      'platform',
+      'capabilities',
+      'preferences',
+      'accounts',
+      'unavailable',
+    ].includes(sample.phase) &&
+    ['none', 'timeout', 'initialization-failed', 'backend-unavailable', 'unavailable'].includes(
+      sample.reason,
+    );
+  if (
+    !state ||
+    Object.keys(state).length !== 9 ||
+    state.schemaVersion !== 1 ||
+    state.boundary !== 'startup-handoff' ||
+    state.outcome !== 'handoff' ||
+    typeof state.initialUiRootPresent !== 'boolean' ||
+    typeof state.initialHandoffMarked !== 'boolean' ||
+    state.finalUiRootPresent !== true ||
+    state.finalHandoffMarked !== true ||
+    !startup(state.initialStartup) ||
+    !startup(state.finalStartup)
+  )
+    throw new Error('SDK proof lacks its bounded actual UI handoff diagnostic');
+  return JSON.parse(JSON.stringify(state));
+}
 export function checkSdkProof(value, owned, identities, port, arrivedAfterSpawnMs) {
   if (
     !Array.isArray(identities) ||
@@ -227,6 +261,7 @@ export function checkSdkProof(value, owned, identities, port, arrivedAfterSpawnM
     observer.commands.some((item) => item.atMs < observer.installedAtMs)
   )
     throw new Error('SDK observer does not match this complete single document/run/timeOrigin');
+  const uiReadyDiagnostic = validatedUiReady(value);
   return {
     ...checkSdkRequested(
       { ...value, scope: 'windows-native-sdk-cdp-requested' },
@@ -235,6 +270,7 @@ export function checkSdkProof(value, owned, identities, port, arrivedAfterSpawnM
       port,
     ),
     scope: 'windows-native-sdk-cdp-diagnostic',
+    uiReadyDiagnostic,
     expectedOrigin: EXPECTED_ORIGIN,
     browserPid: identities[1].pid,
     success: true,

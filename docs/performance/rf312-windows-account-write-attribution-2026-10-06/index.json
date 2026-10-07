@@ -1,0 +1,1767 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-account-write-raw-synthetic-only",
+  "files": [
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache100.live.json",
+      "archive": "raw/account-cache100.live.json.gz",
+      "bytes": 434,
+      "sha256": "bb03604a67a6386a0cb2dc7645dce90af0d32e220bbb6c49f150333e2204e994",
+      "archiveBytes": 268,
+      "archiveSha256": "5921e203fe2d42470409a381037614570b726bb7954f223371a265f33c48f049"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache100.receipt.json",
+      "archive": "raw/account-cache100.receipt.json.gz",
+      "bytes": 633,
+      "sha256": "2f1f51d8cdb5ed937b940ca85e366020fa08fd144d84ee5f31e5ac9f962823d8",
+      "archiveBytes": 391,
+      "archiveSha256": "d28470e17d8f0e4ddfe1b91c8b206c2f2fd6122625dc9a30f5e7774b4d73391c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache100.stderr.log",
+      "archive": "raw/account-cache100.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache100.stdout.log",
+      "archive": "raw/account-cache100.stdout.log.gz",
+      "bytes": 77,
+      "sha256": "1a67f5cdcb355385fdc1d4f63e763f40f4fbb4b051d5bd909c1171b72ee436aa",
+      "archiveBytes": 89,
+      "archiveSha256": "1bda8f56bbe530809f2d06f677396b7ee10426b69944b0a703b0072dd9712495"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache5000.live.json",
+      "archive": "raw/account-cache5000.live.json.gz",
+      "bytes": 435,
+      "sha256": "0ab8d62394f742d9c452eb232a9da65bdaec7e45895257f62b664b1b7f8499f8",
+      "archiveBytes": 270,
+      "archiveSha256": "0100c0dc19b34efa4a53a1bdaf653dfc32b02ef191ef23de49a19da0b09e959c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache5000.receipt.json",
+      "archive": "raw/account-cache5000.receipt.json.gz",
+      "bytes": 635,
+      "sha256": "0b3fb9bcb98dae98c0d66f994a6abf27e4398637e939129ed36d1248012f013f",
+      "archiveBytes": 395,
+      "archiveSha256": "1ce85bbdf4ffae7b500058508717f3b19cc72a6e72b1e1c4225fd4d420d1c68a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache5000.stderr.log",
+      "archive": "raw/account-cache5000.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cache5000.stdout.log",
+      "archive": "raw/account-cache5000.stdout.log.gz",
+      "bytes": 77,
+      "sha256": "1a67f5cdcb355385fdc1d4f63e763f40f4fbb4b051d5bd909c1171b72ee436aa",
+      "archiveBytes": 89,
+      "archiveSha256": "1bda8f56bbe530809f2d06f677396b7ee10426b69944b0a703b0072dd9712495"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cleanup-syntax.live.json",
+      "archive": "raw/account-cleanup-syntax.live.json.gz",
+      "bytes": 236,
+      "sha256": "68975ccf5f59eab77b04cf4a53c875b308d5799cc6664459b12476aadffb1a16",
+      "archiveBytes": 212,
+      "archiveSha256": "52266bb7f3fca766c61fe5655d51f48bee995941118e14c28a1813f409d50b26"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cleanup-syntax.receipt.json",
+      "archive": "raw/account-cleanup-syntax.receipt.json.gz",
+      "bytes": 436,
+      "sha256": "2b8f73355a033fb4f5da39c9a52981d7cf8da54fdac9de09595fe176a43459e4",
+      "archiveBytes": 336,
+      "archiveSha256": "16a149ae11146339711e9e44d4b34eab18020991979a0bf2c112e70fef4956cc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cleanup-syntax.stderr.log",
+      "archive": "raw/account-cleanup-syntax.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cleanup-syntax.stdout.log",
+      "archive": "raw/account-cleanup-syntax.stdout.log.gz",
+      "bytes": 60,
+      "sha256": "cb7894be99674a22e3769e1e0f584246068c12863d87c01e3ef6a4bba4c8a128",
+      "archiveBytes": 73,
+      "archiveSha256": "d69129e0eee95aece101b7215c3e6c213dec252c29076f4bc6f35b17124823b4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-clippy.live.json",
+      "archive": "raw/account-cli-clippy.live.json.gz",
+      "bytes": 192,
+      "sha256": "202da876ecf4ee10f0456ca480c9d80e5bce69c3d022a4a45313f6f0b89d24dd",
+      "archiveBytes": 170,
+      "archiveSha256": "a3763056373a3c46aff7ff603e9d64ed000bbc6112837882bee388bb520fab7f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-clippy.receipt.json",
+      "archive": "raw/account-cli-clippy.receipt.json.gz",
+      "bytes": 391,
+      "sha256": "202465af63a01aab4d8ea0e2d65ad9ac9cb71ffe9654622e9835c6fdf6edafc9",
+      "archiveBytes": 310,
+      "archiveSha256": "8e2233ebacbf21ad86c723434318ad0229e0e68eeebfebc04f415424b1655e80"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-clippy.stderr.log",
+      "archive": "raw/account-cli-clippy.stderr.log.gz",
+      "bytes": 425,
+      "sha256": "dbfa8000947981de128b5cb8cb4d91ddbf52925a0c1809f9d4ae5625d43069f3",
+      "archiveBytes": 196,
+      "archiveSha256": "219ba37db8b8a050c9f2e20a0018df994084b4ebfe6df68d9663090f17fd62f9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-clippy.stdout.log",
+      "archive": "raw/account-cli-clippy.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-fmt.live.json",
+      "archive": "raw/account-cli-fmt.live.json.gz",
+      "bytes": 164,
+      "sha256": "76b7b0c19127901a85154ab9916442238337845132dcee27e23305fd655d8cce",
+      "archiveBytes": 152,
+      "archiveSha256": "b3d31b77a6120fab6e08c01dcea674eafe47d43b8d87b18794c8be9b4abf2fcc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-fmt.receipt.json",
+      "archive": "raw/account-cli-fmt.receipt.json.gz",
+      "bytes": 363,
+      "sha256": "50fb684dc2191f41f047914e76170dad0d0057c5b94125678a16135d4d0c036d",
+      "archiveBytes": 297,
+      "archiveSha256": "705621363c1a890a606c6b97929cf98c145564eb2862553444fa912069a2443a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-fmt.stderr.log",
+      "archive": "raw/account-cli-fmt.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-fmt.stdout.log",
+      "archive": "raw/account-cli-fmt.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-tests.live.json",
+      "archive": "raw/account-cli-tests.live.json.gz",
+      "bytes": 180,
+      "sha256": "37e14ef62dcbc2e8f27840addc77826a510f9aa3fa35e5006b9b885411d85cbe",
+      "archiveBytes": 163,
+      "archiveSha256": "cfb5b719f6c38b1438f453cd9604d6b71e2b80f1b82d6cab0ce487039916722c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-tests.receipt.json",
+      "archive": "raw/account-cli-tests.receipt.json.gz",
+      "bytes": 379,
+      "sha256": "182b6fdc5c61e4ecd4d0d49a2d9e612d213622be71cdaf2162f1b18b164bb7e3",
+      "archiveBytes": 303,
+      "archiveSha256": "483b1409a54bbb3f184ea64cbfc0fea5b514e5e6ad7ec02718481394529d3a20"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-tests.stderr.log",
+      "archive": "raw/account-cli-tests.stderr.log.gz",
+      "bytes": 62731,
+      "sha256": "2063322630ea213b875d5950dd5bb8022bb56ee6411db813e7868afc0060b5a0",
+      "archiveBytes": 7414,
+      "archiveSha256": "6bbf80771be35ddefa03a85031fa1dbfceb1a00a206457c13a063c591695af6b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-cli-tests.stdout.log",
+      "archive": "raw/account-cli-tests.stdout.log.gz",
+      "bytes": 290233,
+      "sha256": "e58a6d15f6a5c165f9a542c5a563db531e1bdbea8e3333c35de5cca5efaee3aa",
+      "archiveBytes": 18366,
+      "archiveSha256": "7ae6dbce1990d68419b27fbeadf9fce48b72b83aa3f7187a2547be3cfba87ab5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-feature.live.json",
+      "archive": "raw/account-core-feature.live.json.gz",
+      "bytes": 183,
+      "sha256": "255bb7deea23a3fac04c12e34e60eede8f0566485a6f5cccf867dd9e119e1ff9",
+      "archiveBytes": 159,
+      "archiveSha256": "ecee18bf8d5fd461d641c73c2e6d51fbdfe543ef3934cab4cadc630b2c759581"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-feature.receipt.json",
+      "archive": "raw/account-core-feature.receipt.json.gz",
+      "bytes": 382,
+      "sha256": "f4f24e57e9add805bbac3ae8d3bd6efc46f7afcbae6759a7048123f03e748b8b",
+      "archiveBytes": 300,
+      "archiveSha256": "fad798c5774d522d59f0d0296928151bb3ac4c62273cd88188d7b8a3d1771d96"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-feature.stderr.log",
+      "archive": "raw/account-core-feature.stderr.log.gz",
+      "bytes": 252,
+      "sha256": "139c4b0de5deb40ae7b5f219790b7be8e71db708a11904ab6e9e3439485deade",
+      "archiveBytes": 210,
+      "archiveSha256": "9ab4a3529874f70ae7b3adf7b21425d7cb31c2b8637b56635872944b39a20f67"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-feature.stdout.log",
+      "archive": "raw/account-core-feature.stdout.log.gz",
+      "bytes": 1473,
+      "sha256": "221f61433d198d2a120c544162446eaafbb04482f51bb5396f3d134eac35944e",
+      "archiveBytes": 344,
+      "archiveSha256": "386915ddb2ebedc97ea755dca4202dec9b08f89167f8dbf0f8b43f7661d86ed4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-red.live.json",
+      "archive": "raw/account-core-red.live.json.gz",
+      "bytes": 183,
+      "sha256": "85089221204098feee703686e042b21e4de42434552582dc44aac44bb621a281",
+      "archiveBytes": 158,
+      "archiveSha256": "a8053d0a4e8f70dec8a0734eb67c88bb0e616936f11ef3eac91fb208b6ee9c12"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-red.receipt.json",
+      "archive": "raw/account-core-red.receipt.json.gz",
+      "bytes": 384,
+      "sha256": "708df51545a239437f2bd0df8023530d850d6a9f686b724be48dea31935ebba3",
+      "archiveBytes": 303,
+      "archiveSha256": "cd2a538f3296e62d3010bd18c926cf338404b747bf05c2b608a609ed119eaf39"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-red.stderr.log",
+      "archive": "raw/account-core-red.stderr.log.gz",
+      "bytes": 311,
+      "sha256": "172470f902ed74cb91cff73e25d85706b6b14df217a8685dc9275bc77c8ac79e",
+      "archiveBytes": 238,
+      "archiveSha256": "98999a485754c3b3b02e83eed0f0f0b3c7adee4fac8fb61e595169553824448e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-core-red.stdout.log",
+      "archive": "raw/account-core-red.stdout.log.gz",
+      "bytes": 1695,
+      "sha256": "e668db643bf7ccffcccb9de2ac48a80527512e433fe284328691562be8f2781c",
+      "archiveBytes": 485,
+      "archiveSha256": "25ed78e0505bff705a5f11ca759f41c21c083dbcbe998105eec707958a858b67"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-js-format.live.json",
+      "archive": "raw/account-js-format.live.json.gz",
+      "bytes": 222,
+      "sha256": "01c5c8adf5ce45123a26dfc569a430e54119fce8fc66cadbe8c74899c9d08442",
+      "archiveBytes": 175,
+      "archiveSha256": "9ad20fc34c24e39c6837b97cfbf46cf8bd746d66b2a64c43c6045e20d097f6b7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-js-format.receipt.json",
+      "archive": "raw/account-js-format.receipt.json.gz",
+      "bytes": 423,
+      "sha256": "2a27df1ba1b6c270264f7b8ea014f0ee2469a06aa825c112a61736ab7929fd48",
+      "archiveBytes": 321,
+      "archiveSha256": "3bc5db7e44ab8b4c9054b94d67e97a5337680c1dae6d6c089cdb8712d6c9386d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-js-format.stderr.log",
+      "archive": "raw/account-js-format.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-js-format.stdout.log",
+      "archive": "raw/account-js-format.stdout.log.gz",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "archiveBytes": 82,
+      "archiveSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.live.json",
+      "archive": "raw/account-native-media-isolated.live.json.gz",
+      "bytes": 201,
+      "sha256": "ecfa07753d2a65df3915c21b8f4b9f913c2887d036582c2ef5fd15c2469e3ee6",
+      "archiveBytes": 169,
+      "archiveSha256": "99232ef27c6cb67e547c1a6c3ea886112104aaa1f0ded9b66e34d46b22b3ccb8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.receipt.json",
+      "archive": "raw/account-native-media-isolated.receipt.json.gz",
+      "bytes": 401,
+      "sha256": "3eff9063e3e8451864b2ca2f64ff7c265eb5f055975529abed7cd578e7012910",
+      "archiveBytes": 309,
+      "archiveSha256": "e05ec8cbaa1610a3456ac7d9a24317d330c25e95093e6cb94553871103c12448"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.stderr.log",
+      "archive": "raw/account-native-media-isolated.stderr.log.gz",
+      "bytes": 233,
+      "sha256": "21683cdc2103111fd7812a74398a1b47c9ef5f60259a5b8f1eb49ffdb5264cb7",
+      "archiveBytes": 200,
+      "archiveSha256": "30543b4aa8a190d6da641afa9bcda4df9d0ed545fbcf3836ad453816ebee251c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.stdout.log",
+      "archive": "raw/account-native-media-isolated.stdout.log.gz",
+      "bytes": 13774,
+      "sha256": "e2033c1727cb53391b0907abd1888f132615fe649f79149aa3e8bd25b4ff25db",
+      "archiveBytes": 874,
+      "archiveSha256": "ea3f1b1034b7e5bef6e6261ba63542aaa4cbb780d909b57df0eef12f4a8f6de4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.live.json",
+      "archive": "raw/account-native-tests.live.json.gz",
+      "bytes": 172,
+      "sha256": "f06d4b9fd8789ab5b776ef4f48b94da55e4c656ed81775f99eeb313d6090f2f5",
+      "archiveBytes": 151,
+      "archiveSha256": "827dd839617c991ff6cc0884aa6812d8f1ec9c8c3e11cd9776d86281a13e3009"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.receipt.json",
+      "archive": "raw/account-native-tests.receipt.json.gz",
+      "bytes": 373,
+      "sha256": "19b6631352e680b33c459ea2db124d1cc67944e540f8a5cccc03c75a40eb0655",
+      "archiveBytes": 295,
+      "archiveSha256": "f1d31d70e95b662f9f5e5057bc0fff8af25a50a8bd5a06d7365323aad012d265"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.stderr.log",
+      "archive": "raw/account-native-tests.stderr.log.gz",
+      "bytes": 565,
+      "sha256": "7d9f29b9d93063036f2e12fb00c50e6e0154f5fe9b86dc8434c05df8878a4ca3",
+      "archiveBytes": 273,
+      "archiveSha256": "dac0d8a3e72f878a4565e7d16e87c2abdc24fd2a67c46e31790aab16d4be0457"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.stdout.log",
+      "archive": "raw/account-native-tests.stdout.log.gz",
+      "bytes": 30946,
+      "sha256": "57d041489a5483730697345da1fe12ae6d8c75700ca163d72aec48a456657029",
+      "archiveBytes": 3986,
+      "archiveSha256": "f49ad05e9235d63d47fb65b4386aecc5fd2e65e3d9761fda1c1ea63c791fda6d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native100.live.json",
+      "archive": "raw/account-native100.live.json.gz",
+      "bytes": 459,
+      "sha256": "1fd85e0d1658b76ac6518f849751a42e09cc0be67b149e2e4aba14f69e9584aa",
+      "archiveBytes": 263,
+      "archiveSha256": "a272cec5be7f8069453ddd032e93f996aae1ed141f17238400e614c9f068d9b2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native100.receipt.json",
+      "archive": "raw/account-native100.receipt.json.gz",
+      "bytes": 582,
+      "sha256": "0b6687b7f6292757bc99cad569b13ebdb883ccb5e6f5af63522379e326db0cda",
+      "archiveBytes": 356,
+      "archiveSha256": "3268cced280a294c68ed1538850a09d1977bb95b39cb1b2a0139e26dec19c139"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native100.stderr.log",
+      "archive": "raw/account-native100.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native100.stdout.log",
+      "archive": "raw/account-native100.stdout.log.gz",
+      "bytes": 372,
+      "sha256": "683bfa6e5e50a99b1e5589799b2e34a6a349c1dee5f619db617892c89e089d61",
+      "archiveBytes": 191,
+      "archiveSha256": "4b47ee69f0c1945db25040257b2d7c54bba9f9b7dde9beeea25c0ee0da5a554b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native5000.live.json",
+      "archive": "raw/account-native5000.live.json.gz",
+      "bytes": 461,
+      "sha256": "c6175fbedb7224d42aaad5624c278a2456d4896207dd4ee6740a1cd178c54973",
+      "archiveBytes": 262,
+      "archiveSha256": "471156038944c57306cafa5a14d145cf4c103c759fdbe6b89c9b131caa9c571d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native5000.receipt.json",
+      "archive": "raw/account-native5000.receipt.json.gz",
+      "bytes": 584,
+      "sha256": "806a0d016285715695c57e7eb5c574659a278946a36e682592b251ae2b2dbbc8",
+      "archiveBytes": 358,
+      "archiveSha256": "2ae25abf453f2de5d44aa290e55c9ff334deecb9ff75a06596035dc48532a9a9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native5000.stderr.log",
+      "archive": "raw/account-native5000.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native5000.stdout.log",
+      "archive": "raw/account-native5000.stdout.log.gz",
+      "bytes": 374,
+      "sha256": "f507e8eb81e82958c86631cd9ca88df3b67bcd3207675a6aaaee2ef0646ee0c3",
+      "archiveBytes": 192,
+      "archiveSha256": "ea66f51cd30b50867f16371338e5c9ada5e41e8187ed07481804235c46b4452c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-full.live.json",
+      "archive": "raw/account-node-full.live.json.gz",
+      "bytes": 109,
+      "sha256": "f8ba89b14d606d44ce4de5500c59f1d413126e686bb755982b5d1de6b931d71a",
+      "archiveBytes": 116,
+      "archiveSha256": "1ec05c2e2ba736867d32f30eeaca488438528cf400d954fcc6c76ca7614ab9f0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-full.receipt.json",
+      "archive": "raw/account-node-full.receipt.json.gz",
+      "bytes": 309,
+      "sha256": "e878898d2ffc18b0f1e669d84f0bbad1d8e7b012aa90b1512ea0280d0ba4d001",
+      "archiveBytes": 266,
+      "archiveSha256": "bb0ecba322c9c52ae8660aa0cedb15be04b80234c03eb5d158c9344b5d409076"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-full.stderr.log",
+      "archive": "raw/account-node-full.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-full.stdout.log",
+      "archive": "raw/account-node-full.stdout.log.gz",
+      "bytes": 21909,
+      "sha256": "04c44cd9ac3fca4fe413bdb428f756c51f0e069bd49a4c2d1531709b1bc245ba",
+      "archiveBytes": 8984,
+      "archiveSha256": "2c99f697d3e0afec31c53422979c048dd446781bc598f8252ddf42cda597ea11"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-red.live.json",
+      "archive": "raw/account-node-red.live.json.gz",
+      "bytes": 138,
+      "sha256": "652c305917483de326a59195bbaf8e9997a0d290470101b9765adc24be7bc5fd",
+      "archiveBytes": 141,
+      "archiveSha256": "e4b7f9b297fb7175da51e4a877e7495e08be286de4368843d3ad7bf967da941b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-red.receipt.json",
+      "archive": "raw/account-node-red.receipt.json.gz",
+      "bytes": 338,
+      "sha256": "983e1975f25224d1e8bd789b6fb58cd6e550de1f4504cac771746753e85834cd",
+      "archiveBytes": 287,
+      "archiveSha256": "a2b8621f8abc1ae2baacbae6a16a2c4cba2eceb9ae6fbe77e2925ea2329274ca"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-red.stderr.log",
+      "archive": "raw/account-node-red.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-red.stdout.log",
+      "archive": "raw/account-node-red.stdout.log.gz",
+      "bytes": 2172,
+      "sha256": "96974360dce0d71d6d17a37217949b4e2bfcc8bc7711713eddcfcfa556208b23",
+      "archiveBytes": 916,
+      "archiveSha256": "36e652ab8b76c3c522430fae9485e2be284ac769d9fbb4b95fb8545b18f4da62"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-target.live.json",
+      "archive": "raw/account-node-target.live.json.gz",
+      "bytes": 138,
+      "sha256": "41064cbb61f4cb0a3936e113e65077cc79865ae28dfd932e1c19dd501c04b468",
+      "archiveBytes": 140,
+      "archiveSha256": "f74c52761f6a95592cc46e0b6d75e8451323e465551923bfb349f5175a01d865"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-target.receipt.json",
+      "archive": "raw/account-node-target.receipt.json.gz",
+      "bytes": 337,
+      "sha256": "c21ba746fa292ef202c5f0b06d5c8d84c86c71c4d375ad62bf31a08fc7f2637f",
+      "archiveBytes": 285,
+      "archiveSha256": "216d63a9eafb28eaebfb9a318a271589d7645111a834243d1fd1e6e881c62977"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-target.stderr.log",
+      "archive": "raw/account-node-target.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-node-target.stdout.log",
+      "archive": "raw/account-node-target.stdout.log.gz",
+      "bytes": 1058,
+      "sha256": "870bbe992b6ad103a6637dbee0109543d91df0b4064bb0281496a1a539113c18",
+      "archiveBytes": 625,
+      "archiveSha256": "1055b50eaa990945994bc0eacb360d69ef1c7c4c56bf57b0d560079438f0dc1e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-pdfium-pe.live.json",
+      "archive": "raw/account-pdfium-pe.live.json.gz",
+      "bytes": 160,
+      "sha256": "0ce18d30a7413219b14d77e9ded3977263a02700e90882102765eb291190be24",
+      "archiveBytes": 154,
+      "archiveSha256": "6c9e32adcb4093341d58c763507539821103537f98a01cd8d72ee0109328bcff"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-pdfium-pe.receipt.json",
+      "archive": "raw/account-pdfium-pe.receipt.json.gz",
+      "bytes": 360,
+      "sha256": "ec5e4727da3fe55cacc1fa4fe22d910a0afacfca21636de51db71d122a539212",
+      "archiveBytes": 287,
+      "archiveSha256": "73d47fa2b00cb3abe6a3109864143551fc084997f837fcf6fc60f0676611c638"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-pdfium-pe.stderr.log",
+      "archive": "raw/account-pdfium-pe.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-pdfium-pe.stdout.log",
+      "archive": "raw/account-pdfium-pe.stdout.log.gz",
+      "bytes": 116,
+      "sha256": "67cca47f55f54fcd42ef41452a72ed2f5f45009f994a91b9332ac375f583af2c",
+      "archiveBytes": 125,
+      "archiveSha256": "99eed5a61303c5d2c5c4a7da261509240760847bcaa985764ba39355eba23d65"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-rust-fmt.live.json",
+      "archive": "raw/account-rust-fmt.live.json.gz",
+      "bytes": 124,
+      "sha256": "efe60a21153e6e311ca1123fadfa0871a99d14f950362e0f72e14165939b42be",
+      "archiveBytes": 122,
+      "archiveSha256": "ae7a68ea2b3ae0a599dff03d5fd01663d59473d67dbfeb7ea73f8de600e31b05"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-rust-fmt.receipt.json",
+      "archive": "raw/account-rust-fmt.receipt.json.gz",
+      "bytes": 324,
+      "sha256": "4f9eac15ed685a536f78e6235c0b61e8792609ae417288f4f961895fe4f697e7",
+      "archiveBytes": 270,
+      "archiveSha256": "e91e85a146b1735e61e52a685b6841f9747237b5d4c7e108858164b20f16803a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-rust-fmt.stderr.log",
+      "archive": "raw/account-rust-fmt.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-rust-fmt.stdout.log",
+      "archive": "raw/account-rust-fmt.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\native-perf-auth-attribution-results.json",
+      "archive": "raw/account100/native-perf-auth-attribution-results.json.gz",
+      "bytes": 68591,
+      "sha256": "efabeef5614c92d9a5bd147a038798dfd0d174ee1428ba70d0ea158f99d79b01",
+      "archiveBytes": 6586,
+      "archiveSha256": "8ce8ae3527e806b137365e2a854bdfef94201649981d52b145b8d9999986dffd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\native-perf-sdk-journey-results.json",
+      "archive": "raw/account100/native-perf-sdk-journey-results.json.gz",
+      "bytes": 338692,
+      "sha256": "06226bbdcf7764ddeb64fd6403ae06ab59c3e919cf62a73ebb46c532b4847d9b",
+      "archiveBytes": 26967,
+      "archiveSha256": "77c15dd5fe38bfff0f1f30640087c5ae868e4ced6ecc8599c8a6140d36a077ba"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-auth-attribution.json",
+      "archive": "raw/account100/sample-001/native-perf-auth-attribution.json.gz",
+      "bytes": 17208,
+      "sha256": "9d50841fc75b07eecd9bcf0c4d61747ae9232fab207d71e35289b10f1a99263a",
+      "archiveBytes": 2127,
+      "archiveSha256": "3dd4af2e3dea21280f8a0154dfdd4ea103332d67ac734916e1ca88a79c04c1c8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-consumed.json",
+      "archive": "raw/account100/sample-001/native-perf-consumed.json.gz",
+      "bytes": 267,
+      "sha256": "17faa39e0e073ab9c4962c7ab20dab95bc77507c81d8e42324e70be47c70ca47",
+      "archiveBytes": 221,
+      "archiveSha256": "d36e1d71ee0a7932b09eb499b5385531e74d0da2630bd98a79c720378a9dc85e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-owned.json",
+      "archive": "raw/account100/sample-001/native-perf-owned.json.gz",
+      "bytes": 3352,
+      "sha256": "97196d461dd696b6d99563e1b6ebe29ee053b4d165569c8e4a46a4eed6553f64",
+      "archiveBytes": 1085,
+      "archiveSha256": "d02ac3b3a6abf4cea8b7a8db02c746c788ad873012c89ce2eb38c28acbf8a923"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "1058111f8c2a999d66ad8e1ba724e891578c4752023f7d21d7098616a8e163a6",
+      "archiveBytes": 152,
+      "archiveSha256": "a5ae2158ea58ebfd350875a105b10926dd865cca1784aa7dcdbd3c83a433c5ab"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 578,
+      "sha256": "ab978e00099154c133a3bf7d500ca74ed9ad5712cbe2f465dac92a28f3729db0",
+      "archiveBytes": 399,
+      "archiveSha256": "7707a522f300694ce554b0f013f7d61197b8a8801c533ac9215d3184f551325e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 359,
+      "sha256": "e8c2d82a41b1304b0e5032dcf647462f3c42d18b465bc04b4fbd403079d38889",
+      "archiveBytes": 277,
+      "archiveSha256": "125594341a05200ccd7d505c94a7dfea0a4b09e947186cee5e4063f01836cb42"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 65381,
+      "sha256": "e37e9e6008462fda4ee54974dde1c3d8269362463b7537d43d1dba7d6407b0c8",
+      "archiveBytes": 4931,
+      "archiveSha256": "800dc9cbf0667864314baea1108d42a9eb5d6bc8fdfe26819d3ea34b6d1237d2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 805,
+      "sha256": "16c5fdda1b86b52f674b53c698b99c4ec6f8a4c639c91721ba69b7e1e9464a0f",
+      "archiveBytes": 393,
+      "archiveSha256": "98ad39beb53ccdccc8b4924aed3e01e666ce7905b533d335235df10d62895aef"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1148,
+      "sha256": "abbf6ab3aa8e97e36c4b1bbad585998004f62f1af327dc539f9014b47111602a",
+      "archiveBytes": 480,
+      "archiveSha256": "5729db88c8193b047a34a0c4d42ea827a1b823a30e7c27232c302fba2345a90b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 693,
+      "sha256": "aeb213fc07b904f6697d13afd0611728162a18160bc425541c04158c640de01d",
+      "archiveBytes": 359,
+      "archiveSha256": "c85ccbd523245d322cd7196322ac92667c584474b0106131a2e2e5468c66809f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 330,
+      "sha256": "e3e4d408477ae072f01c7100216cee19236a9d48cbb74954d1ba64e352d39ce4",
+      "archiveBytes": 214,
+      "archiveSha256": "a07d6e11adc2292f519ed3b4fe72c369d209e4c911ee726e81994500d5cf5589"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 622,
+      "sha256": "2de91cc526f6ddef661abc60a54343e0faec88c9e9d0314b11a6086ccb596323",
+      "archiveBytes": 333,
+      "archiveSha256": "de8bc2159221fdc4312cfc183d73b5ea7c66b27660c5ba00d90b8f690960caa0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "raw/account100/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1211,
+      "sha256": "e6d4f2fcdae4821b96d8bf61f19f44b35d4204e38cc4ed1a79efadc9dc73489b",
+      "archiveBytes": 518,
+      "archiveSha256": "ec725be314ae65ceff034b985770294f6c2140cec15468087e535770c0c78080"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001\\preserved-app-logs\\app.log",
+      "archive": "raw/account100/sample-001/preserved-app-logs/app.log.gz",
+      "bytes": 2553,
+      "sha256": "37a7216e2b785839635bd8f992edd5260dc957461ef1f43918d89e08f21e8ba0",
+      "archiveBytes": 825,
+      "archiveSha256": "23e610eca20031c208fa89a18f603963873c8936ba8227d440f2007923d580f3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-001.json",
+      "archive": "raw/account100/sample-001.json.gz",
+      "bytes": 97395,
+      "sha256": "6c4f6df48c04d2c8904b8ea8e109fd0e910baed503f9c09522a3594ca129563b",
+      "archiveBytes": 9310,
+      "archiveSha256": "e52418220b37aaf0e4390644447fd172d66c699bb48621f73af96e9a1527b7f9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-auth-attribution.json",
+      "archive": "raw/account100/sample-002/native-perf-auth-attribution.json.gz",
+      "bytes": 17125,
+      "sha256": "4df9968423508478a43027b7c07d789f695a1bafd38b5c44894e217b1031256c",
+      "archiveBytes": 2126,
+      "archiveSha256": "acd01da8939fed926352016e69f6e2cb2b4a2486e5422506513bd5707ad4d239"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-consumed.json",
+      "archive": "raw/account100/sample-002/native-perf-consumed.json.gz",
+      "bytes": 267,
+      "sha256": "bbb428ff2ffb35595eb668b6eaa086769b39fefc3b8eec292e73e63a6f2eb98c",
+      "archiveBytes": 220,
+      "archiveSha256": "b254a8f49740578dccfeaebd9fa098710e3b2ce7f2c5f501f9c66be1dbe8521a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-owned.json",
+      "archive": "raw/account100/sample-002/native-perf-owned.json.gz",
+      "bytes": 3352,
+      "sha256": "34d65ed8d2ef88bd5cf1e25013e559c80d4b121949c4bb5ad0516d98d8958c25",
+      "archiveBytes": 1083,
+      "archiveSha256": "e6294103056902f16cbce9bb6213cd37eba39aea95c7d934d7fcccac98fbecdc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "dd4166eedc6fc4514fb32bc6d5acb9d6a35c8e7874c6ffebb6ed4b838ef47568",
+      "archiveBytes": 150,
+      "archiveSha256": "55b5bca9f2424ab807c91c75040250cf2d8793bf62330e9811a27c34e23cec2d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 578,
+      "sha256": "dd76bfbcd170f7d0b2361465ddbc760ee072ccb4a7f5498132e4a5a490c451e0",
+      "archiveBytes": 397,
+      "archiveSha256": "73e6e9dd05267751bb5366fd1ece9c3f6ff3c4db68eec151519929fe155cc1a3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 359,
+      "sha256": "9819e5884e098d7515e7ee061a08657767a89488a8e345c7ed4ac96cc36958f0",
+      "archiveBytes": 276,
+      "archiveSha256": "b4441032e74cf6651f462c891089c0f2eadc97278987e759f93e7166b88d6dae"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 65021,
+      "sha256": "c397c239b048f6cdde2cdbee0dba17419cc8c7fe0ec91207fc73045e6a9d8a64",
+      "archiveBytes": 4960,
+      "archiveSha256": "9d0be2e74b11f7dbf74d53d1f0b6c1a08da99bc9e5bc6f5476571c4de8d964c1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "65021dda72a7d415fa993c01e0950e93592f757cf67e4e6bf362d32d041ebd5a",
+      "archiveBytes": 407,
+      "archiveSha256": "c9c73200123ab1cc01afa96da50abf1999aef17d4faec66ba1375245f58ecef1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1309,
+      "sha256": "295b82db458740b0e12bdf60208d82595947999183ab852d136389b2860a35c0",
+      "archiveBytes": 526,
+      "archiveSha256": "b3a33ca4097b461b58f0a39a11bff24801baf29a93220b9c9fd10fb8b636528d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 570,
+      "sha256": "5e2688a76bf1fedbab0f069d72504d886f095a466f0cfc7dd7ca031c8ecd7e11",
+      "archiveBytes": 312,
+      "archiveSha256": "5632e52534ad9440ea0f20934b209643d1d5b9872b49d859e72d622814ac9f83"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 329,
+      "sha256": "fae8743ddc66ebe3ea31ffab46c3b1b00c30d85c0cc251eed191e18f12463a82",
+      "archiveBytes": 213,
+      "archiveSha256": "987f0b064942ed52dbc65334474790d0ddc75afc86d7c995296d8be85beca50d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 611,
+      "sha256": "96b5eec0867b8a62807cdf103fd633026e33c37eb0dffba680653589559fa262",
+      "archiveBytes": 323,
+      "archiveSha256": "96ee40181525c2632be8f04c35432f47a6fe0e0ebc8aaf512bd263f8715ea7f6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "raw/account100/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1211,
+      "sha256": "b451bf7bd995e8686d0a32a3537a63bbc97aa937e406ce9888bef0b021d65d23",
+      "archiveBytes": 518,
+      "archiveSha256": "f88e713aa30c026a9f577c5f2ffe1ed78a533b91de2b199e58e642dc1f4be915"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002\\preserved-app-logs\\app.log",
+      "archive": "raw/account100/sample-002/preserved-app-logs/app.log.gz",
+      "bytes": 2553,
+      "sha256": "eec3e99640e13ed40b95db1613beb3334d37f84f55f330dcde81107a44536683",
+      "archiveBytes": 818,
+      "archiveSha256": "a63a0616990eff757165d4e7b50c7ea2184ef373c7ce1ffb8ea5321e744a7f8a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-002.json",
+      "archive": "raw/account100/sample-002.json.gz",
+      "bytes": 97077,
+      "sha256": "5b08014da339e43ca11b9d2caef217a72ea39237ab780afaf731dab125e2799e",
+      "archiveBytes": 9336,
+      "archiveSha256": "c95b7235ccb952b2e57386fadeee4df8a2cd5c950f291bb6cdb8296b449f7ac1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-auth-attribution.json",
+      "archive": "raw/account100/sample-003/native-perf-auth-attribution.json.gz",
+      "bytes": 17182,
+      "sha256": "86eda25ecda231850460528e7d0e077e60c741a0cb8aecdcdc87bd051d223c24",
+      "archiveBytes": 2139,
+      "archiveSha256": "b4ad66b4b8eb290c5d362351ee5cc7cba2bb66600fe09ba89f2ddd3165315231"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-consumed.json",
+      "archive": "raw/account100/sample-003/native-perf-consumed.json.gz",
+      "bytes": 267,
+      "sha256": "aecff8f7e5af98d2f4f93c9ae8014a732122152d606ffda9091e2f4fc2a565c3",
+      "archiveBytes": 221,
+      "archiveSha256": "97a59ae22d9df199524b8114eebd805bbd5744dcdd199916b87999423a5dc54f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-owned.json",
+      "archive": "raw/account100/sample-003/native-perf-owned.json.gz",
+      "bytes": 3352,
+      "sha256": "338bfd63e193af077781da726fab5b245e030bbb0a3e7baa482c4fd3a75c6f99",
+      "archiveBytes": 1081,
+      "archiveSha256": "c30cd40fb4e4d1e63341beae4203428469d6ac32edda1c6967d4faa1a1430215"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "e13739aa5e31447cf7287c391ef5681afbde2ffd9d863e09a8ff65a9b6abfb93",
+      "archiveBytes": 152,
+      "archiveSha256": "15600df01e3fac62f715201442e7287f7ace8070ea1d8ab71d9571fd39b16405"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 578,
+      "sha256": "34f6b56901ae481fd75e56167dba5137ca86e379eaba2d2a1860e7e1ee140d32",
+      "archiveBytes": 398,
+      "archiveSha256": "c925563f4468d4f028bf973a347620af4b5e984da373d9d8268ad70fb9ae2819"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 359,
+      "sha256": "cb932e1f9fcffa9786931d21006bd1e9655db23437fa48a25a6c60c8ce1246b9",
+      "archiveBytes": 276,
+      "archiveSha256": "3f3562573bf3249997a6b38871a2bf87331e321b1da2300006f627c1347f5cbb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 64851,
+      "sha256": "67e06bad1fb6a9ba17047b2fb6eca3cd30c42f77041827228aa68f2882d4f741",
+      "archiveBytes": 4941,
+      "archiveSha256": "0f600d3125274b6b695cb033694f2fd7e0eb01a4f8596674f45616df368c6915"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "194bec9efa9c787b4110f002c126572278d019de27bb10ee9ab499afc61b3835",
+      "archiveBytes": 405,
+      "archiveSha256": "4bf3a99b759bbfbf9e7c1e09667d69afce2c3dd904b49c05974e6f062397bd1b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1319,
+      "sha256": "6085a5783258a914eb308fffe8c82614ce9b95543fbf205de105ac469aca1e62",
+      "archiveBytes": 526,
+      "archiveSha256": "013cec7b091359dd8bf245e137b08952aefbc4bc95642fa1a4fe41a5a62f785b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 579,
+      "sha256": "5da9e4f7bd3bf2a1839c913b3cdef5c81a772f2d0a163332890042be8ad5801a",
+      "archiveBytes": 321,
+      "archiveSha256": "8f44dcbd049b5d4411c0c39de362317ad0be929991d3c7c1b84ae2166700e2a1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 327,
+      "sha256": "f05811dbd71d265b2ad4c45ddf18f3a89557726cbf6006ba07e125852a51dbae",
+      "archiveBytes": 214,
+      "archiveSha256": "f955e2f11bbebcba8a92c1c14586a161582bfacdca2d7ec1443943bde25a2253"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 611,
+      "sha256": "a0ad27a7da0342f35f36d338b2155197857e0f99550f328308f3a73b84230bc5",
+      "archiveBytes": 333,
+      "archiveSha256": "cb9e46af8ccc9b6f90ddc06dcff984133cb7e8449cdf5d9c30bbe4ecf1e8cf6d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "raw/account100/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1211,
+      "sha256": "72dbbaecef4e08292c72c5e8e2af653c03b2b09141eb5f93ac062dfa7c4a989b",
+      "archiveBytes": 516,
+      "archiveSha256": "279cd6a603e439e2d5348ec2d48af6ea01f093667fa182a86b2bd511c63ad3f6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003\\preserved-app-logs\\app.log",
+      "archive": "raw/account100/sample-003/preserved-app-logs/app.log.gz",
+      "bytes": 2553,
+      "sha256": "f30486aa111d0ceb00c3dfa65aa63da3392edadd12f4536031c6288b05de1345",
+      "archiveBytes": 817,
+      "archiveSha256": "b219142b2eea97fbcea8ec039947fb92c11ccbb631e0d3c2618d831747bba8be"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100\\sample-003.json",
+      "archive": "raw/account100/sample-003.json.gz",
+      "bytes": 96921,
+      "sha256": "308b6fc81fceaa662b942ec2dc8f371e38b31f3a554be2a140d116c4a5e8f5fa",
+      "archiveBytes": 9342,
+      "archiveSha256": "11ccf031a13c3006714125bf508bf2bcdc3ae01a068087f072f756652fcf18d5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100-actual-auth-review.json",
+      "archive": "raw/account100-actual-auth-review.json.gz",
+      "bytes": 41981,
+      "sha256": "df5a35aab83c978e14b5b65f07b478d132561287ec442ed2a63a88362d6b400d",
+      "archiveBytes": 4674,
+      "archiveSha256": "c643d67b9b11cc25f2b8d6f93d7b98041864578c73da9b50eb6324c4618515d1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100-cache-cleanup.json",
+      "archive": "raw/account100-cache-cleanup.json.gz",
+      "bytes": 10164,
+      "sha256": "10567beb5c35e1e337c0d80bf0b0f2f7c9b1b2f05f708040ce173585b4d48514",
+      "archiveBytes": 1186,
+      "archiveSha256": "5ae463525f1281a29d97e1978d5e204bc3a42517b5d4178123b7050b7a203a28"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100-identity-scope.json",
+      "archive": "raw/account100-identity-scope.json.gz",
+      "bytes": 3239,
+      "sha256": "676d32c878d0dbd96d483099cb665dd5e36f07af38babf5ed00f3bc0fce80a8e",
+      "archiveBytes": 490,
+      "archiveSha256": "63852fadf86d7f9e09588fd5b66fdf4b3f1cfae1ee36d8212168f354646cab04"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100-post-cache-review.json",
+      "archive": "raw/account100-post-cache-review.json.gz",
+      "bytes": 464,
+      "sha256": "a244955a830ded0bc426e8aadb24db67f91c92b792d4b88f20c968a0ad456488",
+      "archiveBytes": 286,
+      "archiveSha256": "34a57bd25b8bb35ab96b96d51c74af25812624a9ebc09d02c5a46c5cf8edc153"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account100-pre-cache-vault-freeze.json",
+      "archive": "raw/account100-pre-cache-vault-freeze.json.gz",
+      "bytes": 13542,
+      "sha256": "cbbbeaf1cab0e5013acbb6d4b3d1267f5ad379afba4f7f6499c4b0787181c76d",
+      "archiveBytes": 3309,
+      "archiveSha256": "5292c0410eba2bfc97c7a719f0691d42e6b9591d1db92991ee46ea6b6daaa6be"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\native-perf-auth-attribution-results.json",
+      "archive": "raw/account5000/native-perf-auth-attribution-results.json.gz",
+      "bytes": 68477,
+      "sha256": "eb8f2b91ce07d95fb180d942e7188dc5843456969c312eef5851f750d84f7d51",
+      "archiveBytes": 6587,
+      "archiveSha256": "87a101d6854afa99c825e2757924b90b5deb8eecbb277e2ff86357ff264234ac"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\native-perf-sdk-journey-results.json",
+      "archive": "raw/account5000/native-perf-sdk-journey-results.json.gz",
+      "bytes": 337737,
+      "sha256": "06a5e404f61e9eff5aeb35ce6a6145e39088ac97beebe0c01ec2e622309abfa1",
+      "archiveBytes": 26963,
+      "archiveSha256": "32b20b857b0ff24eb0fb5c3f21501307d8dc72881ae5b1e7fd11926902741d1c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-auth-attribution.json",
+      "archive": "raw/account5000/sample-001/native-perf-auth-attribution.json.gz",
+      "bytes": 17133,
+      "sha256": "80fcba912763ac588ac094ba99d5fa5f1c23ae425e35f905d3558ec2017f9b1f",
+      "archiveBytes": 2117,
+      "archiveSha256": "8ea5ed2b34ec16f7564667f0da75edce7232a089406d0fce617d48b828e95fa3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-consumed.json",
+      "archive": "raw/account5000/sample-001/native-perf-consumed.json.gz",
+      "bytes": 268,
+      "sha256": "67a7018ced4bc089c2bd0f62bb8aeac90d209738af236f43cb962493b0611f8b",
+      "archiveBytes": 222,
+      "archiveSha256": "aa20d35f6b2d78b7557795613aff9fd3a4f663fbbc6797d0c2b022080f356f16"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-owned.json",
+      "archive": "raw/account5000/sample-001/native-perf-owned.json.gz",
+      "bytes": 3368,
+      "sha256": "08155dacca926eff4669e6b55d30664f30b7f336c825050ad652bbd07a5f0ff2",
+      "archiveBytes": 1084,
+      "archiveSha256": "6ee81694891771fee1dfc0e5ecfd5f7b700f424ea01f01dcb64dabb79aa76a2a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "351186410d42a6d492f24cbc0c1550abb11cb124f966af672a54115fffd0fe2a",
+      "archiveBytes": 152,
+      "archiveSha256": "5b2c5be9fdd1ae9a5d5f22be45dfa5aa175e488685d42f48d47cd4c1bd7e2e1c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 579,
+      "sha256": "4aa53b7b836fb85f60b5366ff879a5cdbe3b5ed513bd6c944f373f1e852128e7",
+      "archiveBytes": 401,
+      "archiveSha256": "4880ed3ed11b4b1a4373df06d3f2ada92e461850875048047daf87831fabb66d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 361,
+      "sha256": "0455faea3e24b5d6d89d825f7a14624232060778f5ed79ba56b6e80220c86ed4",
+      "archiveBytes": 279,
+      "archiveSha256": "803d6e57e74703f8854090fc055406e8316586e8ca941ea43ccf1a2921f92d7d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 64220,
+      "sha256": "02417575d9d8a5d4dc9057ad8c8cb737100807ddb2ed2a9b5efc98882ce4b6b6",
+      "archiveBytes": 4915,
+      "archiveSha256": "7fb666d79d8aac3ca03f388bc0bea3321935aae95130b9a0b126fc8bfce3ca24"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "ca598812b716cc4f92b48b763964c4bbc987aef7a031b39fad2069359b768584",
+      "archiveBytes": 405,
+      "archiveSha256": "0364ac5eb0eade72e66da380ad268179b64bb0eefe8d890ba67256a297ccf0e8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1253,
+      "sha256": "3f3448b79eb294ebe8d96af02733e6293cd8a11c0544681703e1654b7bee1450",
+      "archiveBytes": 515,
+      "archiveSha256": "2df9cdc27624a60afa083b0a1a8641862e1bf7cfd4f270d00096bc45281e45d3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 541,
+      "sha256": "910ca1c8623b5e399b2d1385ed48bb2db008af41e0b411cdb86bf462eb07169c",
+      "archiveBytes": 305,
+      "archiveSha256": "7b81310f99c410041b6bb573d9e87cd2aad92c6013869aea50053591532d5fc8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 321,
+      "sha256": "90e80db0ac94ca31160b122dcb60b7d216a7a001d985410580f0199170a6aa1b",
+      "archiveBytes": 210,
+      "archiveSha256": "6ada9e60f3c6233d31500afe1f501007d816cb1497236be511590be32e877e0d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 746,
+      "sha256": "2bf2c4d458763d9ec3e778e9063d924a35a6439eb845f6022e6d327c47ec357b",
+      "archiveBytes": 360,
+      "archiveSha256": "46e4f3bf7b1712bf2cc83cc1b4b787ef24096dec18b42d67700fc4da5a6ec6d3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\native-perf-sdk-phase-06.json",
+      "archive": "raw/account5000/sample-001/native-perf-sdk-phase-06.json.gz",
+      "bytes": 872,
+      "sha256": "394b253a076afd756d1ff0ce1fe95e9eb7f670e6622591559ae92ceefb005afd",
+      "archiveBytes": 408,
+      "archiveSha256": "db9a9ab60ed3b27afa402fc45850d7d63353a5a4d29a59e8f79d9219e59e81be"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001\\preserved-app-logs\\app.log",
+      "archive": "raw/account5000/sample-001/preserved-app-logs/app.log.gz",
+      "bytes": 2554,
+      "sha256": "0f9cc08d6fd5814d6db14867886165f16e0756e8af1dc906af27881543b4162a",
+      "archiveBytes": 823,
+      "archiveSha256": "102d3e3c8bcc08012b0115f0d5da429d74fb4fb871776947cb765d4a9cd6fd10"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-001.json",
+      "archive": "raw/account5000/sample-001.json.gz",
+      "bytes": 95991,
+      "sha256": "6585b57dcca1fcb3056c4766385b946fe012372e3a7a8877beeb862b7431c49b",
+      "archiveBytes": 9299,
+      "archiveSha256": "a1f00842bef4b442f07139a40d74d833ce2a2c6267ad203c26797422972f7489"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-auth-attribution.json",
+      "archive": "raw/account5000/sample-002/native-perf-auth-attribution.json.gz",
+      "bytes": 17194,
+      "sha256": "0fdc659e4b094e5833559d0b9a8a0f92cb40cd9e89300d99643acbbd459a2c50",
+      "archiveBytes": 2134,
+      "archiveSha256": "69d2bed93b8fb06d3ed3b7e2d9c3395d444548d7ce1dd411e1bca7152d66c2a3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-consumed.json",
+      "archive": "raw/account5000/sample-002/native-perf-consumed.json.gz",
+      "bytes": 268,
+      "sha256": "de3d20ce0ace67545baca19ac0206b71907ead36b2abfeafac077b5b690e4f9d",
+      "archiveBytes": 222,
+      "archiveSha256": "614e3e6c82b1536aab784e03b286db3aec74b31c53f297fe47ad9fb5e278a3ec"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-owned.json",
+      "archive": "raw/account5000/sample-002/native-perf-owned.json.gz",
+      "bytes": 3368,
+      "sha256": "b60edd7a1d7c4f9ba5895dd73dfc147db63eda9545844f967b767081c4aa2692",
+      "archiveBytes": 1086,
+      "archiveSha256": "302956684df8aa20004432f60b9b407e4ee06b0020f1277c08c11b04bcd7c0d9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "b0337f47da9dd7d335b94661bdb89546f2cfd7e64424c4195eec7efcad616cc3",
+      "archiveBytes": 152,
+      "archiveSha256": "6263f350c48aabcba138e99ae7b5925a8c1e7199a2531a668ba020f9d73dabc4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 579,
+      "sha256": "f65d3d499ba2d1e7979b4a70d58a76b315ce38014ac8ea2ab2933fbda6b9f195",
+      "archiveBytes": 401,
+      "archiveSha256": "0290971903f1c93a8981cece749d39fc6297fad2f46534114ea2e28533cbb79d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 361,
+      "sha256": "2df1c6ee3263aec64364bcd8fdfc53c7574fa1ff758c8298d2cb5f1f2f2c55bc",
+      "archiveBytes": 280,
+      "archiveSha256": "5662487b14c87484a4b7f14fc24a7865959d067905ddc244c0a8ce213d331270"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 65095,
+      "sha256": "d3dd0392bcd0b536639c3b01e641a3a398a74b67d300d5e23694d8c37d845866",
+      "archiveBytes": 4962,
+      "archiveSha256": "1569ee0ea992542ae81a0944137bc5f82a43d21a2ec10742f415cbc355767749"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "4fca99b5f9e4feb92e0ac5eee8a3a18f71e34361a755c2db60236483e779141c",
+      "archiveBytes": 405,
+      "archiveSha256": "38f3e6f25926006caff66af7a81ae7c9c2211270a716932ca4575c38cc8d1738"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1320,
+      "sha256": "3bdc440c74bdf5392d4ec034e7d7c3afeb2372c566ce3eda024488576fa7ea25",
+      "archiveBytes": 532,
+      "archiveSha256": "9a7dc008de4e1e62783106cdf2fc24ce44b2a5bb9df74641917ace53e204a444"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 576,
+      "sha256": "fc88a6274172d61e381856b7d2b70fc2e3402e560cbd8b16242ea21d2f856d21",
+      "archiveBytes": 316,
+      "archiveSha256": "0953e15c8d59e6283ed0ce03300c57bb8c06f0acecd58a75c4fdba4cd1fd7b41"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 318,
+      "sha256": "c3c9b97ca6bde51bb6c5b14b5489a3a8112a16917cbfd311462769c52641679b",
+      "archiveBytes": 212,
+      "archiveSha256": "76ab92aea3ad0bd4e02e6bf73b7e776e0df06b9f71b70ecb853c735d55957712"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 610,
+      "sha256": "77ab641e78472f05e9c0a1a00bd933f775a12661bdf21b3ecdbbf1b7a14d2575",
+      "archiveBytes": 330,
+      "archiveSha256": "f71329ea2ca230c28f12fb2aca729c4dff0dcd6fd1d9a2c2bfc54672cf2e1c79"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\native-perf-sdk-phase-06.json",
+      "archive": "raw/account5000/sample-002/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1210,
+      "sha256": "2b257effb01d5a3fc303c89896ae303f45d594af94709cfee16a3f8329049d88",
+      "archiveBytes": 518,
+      "archiveSha256": "8abb5952d49b9b943f0a9ffafb4fc1697f0de9933570494a713382ab897e6e3a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002\\preserved-app-logs\\app.log",
+      "archive": "raw/account5000/sample-002/preserved-app-logs/app.log.gz",
+      "bytes": 2554,
+      "sha256": "cd7442824f8b91da75c4be7fe6ab501ef7f28b0f5a173a6502b10ec4b228daf0",
+      "archiveBytes": 825,
+      "archiveSha256": "58c04c55f030671ed07b7434154b8d9cdcec4e1affaf3c32e3762b878f0f4202"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-002.json",
+      "archive": "raw/account5000/sample-002.json.gz",
+      "bytes": 97169,
+      "sha256": "8283dc3535a65939ccde4e22be0c74286648d4d2be1b85750792a5a9a981cb85",
+      "archiveBytes": 9321,
+      "archiveSha256": "c0507c55b61df504251f3a7208e6d550f1c5a8f0f9b5747b0dff9d6d80e87197"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-auth-attribution.json",
+      "archive": "raw/account5000/sample-003/native-perf-auth-attribution.json.gz",
+      "bytes": 17204,
+      "sha256": "04fcb65f2a61325a7294ef298bf3535dd46b0bfd7f6e6a73787da5b7370ce1a1",
+      "archiveBytes": 2141,
+      "archiveSha256": "6e5cb2bfc3b1d69c44344be01ae2c86dc2d371ee56b8a9ecaa95e7c131311123"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-consumed.json",
+      "archive": "raw/account5000/sample-003/native-perf-consumed.json.gz",
+      "bytes": 268,
+      "sha256": "0fabdaf3a2a4bce447244503bcdf926542d17a5334e03673afe4450ff2bd7ecd",
+      "archiveBytes": 223,
+      "archiveSha256": "e69c85086c8175117173a7229460e1da194cab406eecc4b6ddd1c265928b2571"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-owned.json",
+      "archive": "raw/account5000/sample-003/native-perf-owned.json.gz",
+      "bytes": 3368,
+      "sha256": "21323e099ab44c25650fbda20953c0b068aae12e59f572520bead3a115b57992",
+      "archiveBytes": 1085,
+      "archiveSha256": "18fee25c2090eb821443fa25a5490b187e42fa936f74da005879a291ab7f3511"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "09a6154c972865752b3809ac66db3fa39b2b4fa9b8ed52ebedc28104c264f6e4",
+      "archiveBytes": 152,
+      "archiveSha256": "395ace6908b5d33559d4e0906c0d0ce33763ffe26501c7e32872f283eabece76"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 579,
+      "sha256": "0134fa64d6dcaf03485b8fdce515b99f4753a66484dd7b46766dc786589536b8",
+      "archiveBytes": 400,
+      "archiveSha256": "a59308be872e0018029057cf23695543ce277bb29b7063a72df9e78c900dfe2d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 361,
+      "sha256": "a2eafad8fe22c170c178d781bdba69d1781396c6f15c008c3b1c1513c24ea6e4",
+      "archiveBytes": 278,
+      "archiveSha256": "dbd8dce859e587642d2140c2af77890bcc36113e9d77a313db0caa150412cc2f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 65363,
+      "sha256": "4912085144a2caddf14adff2e2ab62f4d068c1cb5b42cf67ecc92866fc676a57",
+      "archiveBytes": 4988,
+      "archiveSha256": "5b6492f0df0e04f751aaaa5793997ebca051b69527b3e10150117906dfd8ede3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 827,
+      "sha256": "f3e7c72723d5f9c65ac25e85237798f6fc57d25e45e27d14559b2fa9a6e65565",
+      "archiveBytes": 411,
+      "archiveSha256": "3b283e567615cabbd9db07f585cbc2db67a2a8f45f81a5ea568e8ec3673a1007"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1316,
+      "sha256": "bf39751bf4b0b3b7d4a08c06b7d56ffe0d513260b8298c19ba8043eb0cf6c968",
+      "archiveBytes": 529,
+      "archiveSha256": "27eaa3b3e4caaf9af734d7ef20d72f19241fd99b16baa11ae9ae1269d23dbe9e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 566,
+      "sha256": "dcef1a52deedc839671d913ba941e47dfebbe4a846fcf21ee63122b1bdf8a8e3",
+      "archiveBytes": 309,
+      "archiveSha256": "753765ad9e3e626cfc3cd6657bab2a78d8c3907693fd938ededa0286b356fec4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 330,
+      "sha256": "13da2f4cd7bb7ec943807c758c427f849c5e3bd6097c2dd9ff459d3e3a96b614",
+      "archiveBytes": 214,
+      "archiveSha256": "63f08989b7b7a9438602d5cf24a33a8306d87ebfaf1f3e7ce8c60deec54f2c87"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 602,
+      "sha256": "7e63865a1083c197c4b8e49aebaf6d69ef980abdda3d51c2c52cb7205f126ad1",
+      "archiveBytes": 326,
+      "archiveSha256": "dfca82405f565a82d02b591e336f1feb55138edcec40adc3f1b0fefbe7ecec04"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\native-perf-sdk-phase-06.json",
+      "archive": "raw/account5000/sample-003/native-perf-sdk-phase-06.json.gz",
+      "bytes": 1190,
+      "sha256": "7292efe316300ec7607b367333c78196f4bf6f99098a9fada3165f9ebcdfc540",
+      "archiveBytes": 502,
+      "archiveSha256": "4281003e19aecfa42731150ec9357998a8a28ac7d9afdbc8f57b79cb80e93238"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003\\preserved-app-logs\\app.log",
+      "archive": "raw/account5000/sample-003/preserved-app-logs/app.log.gz",
+      "bytes": 2554,
+      "sha256": "89ca2e2a7ddaa935faf6c0a7a87b3a8ab8d13589e382fed0c242899d55eb8d42",
+      "archiveBytes": 822,
+      "archiveSha256": "cd0b89c4f22da584d49dcd6db780553913cdd3251637674738c4e431059ac1d3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000\\sample-003.json",
+      "archive": "raw/account5000/sample-003.json.gz",
+      "bytes": 97427,
+      "sha256": "ce3686d59a5c55b6914d6e73e2531486156d2232967e5b2ee6b9a4b19d9af96b",
+      "archiveBytes": 9364,
+      "archiveSha256": "aa6f4e4bcd124c5596ae6913bc0cb4c83940c54d8e3b7f516e64a38c4f012ca3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000-actual-auth-review.json",
+      "archive": "raw/account5000-actual-auth-review.json.gz",
+      "bytes": 41654,
+      "sha256": "cc1490da694601a43f1c5d7afa1c30a42c3919df4282fb3cf31e570710bf43eb",
+      "archiveBytes": 4676,
+      "archiveSha256": "33c3bc9bd93ac8eb407b0541ad9a8022d1a5dccdb40b02a8e50c1a5e8ccf98e4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000-cache-cleanup.json",
+      "archive": "raw/account5000-cache-cleanup.json.gz",
+      "bytes": 10198,
+      "sha256": "d9d27d76d4b7765ac424f5f3780c91cac4edd2453947dd3481a1ee327a938664",
+      "archiveBytes": 1186,
+      "archiveSha256": "be737442effcec18a6f8dfd816eb8d097aade8d4c7a860457614deed8d9ade17"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000-identity-scope.json",
+      "archive": "raw/account5000-identity-scope.json.gz",
+      "bytes": 3240,
+      "sha256": "48ab7824c15cb088e02d8b74c09268954ddfd63904e5778e8dc398d6cd629914",
+      "archiveBytes": 493,
+      "archiveSha256": "5ad2cbfe090aa99298a64ab292cf4705adca5999307fbe0cc3032846edeb657a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000-post-cache-review.json",
+      "archive": "raw/account5000-post-cache-review.json.gz",
+      "bytes": 464,
+      "sha256": "ce3767eac7768d2b1fc1b14afdb251512e0591dd1a8dcc44ee6e26ff992d95e8",
+      "archiveBytes": 287,
+      "archiveSha256": "664b102ff8eab62a1608686bfec35c4ff9512e101b6bf71131e912d4ad0b7f61"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account5000-pre-cache-vault-freeze.json",
+      "archive": "raw/account5000-pre-cache-vault-freeze.json.gz",
+      "bytes": 13560,
+      "sha256": "e65aa82b6e8ab7cf949a6535e3b58aa3d1429026398e8c6098620100d78e38e5",
+      "archiveBytes": 3326,
+      "archiveSha256": "11d2aa00ba5e8950e0cb1af190d05a8eb246ee3f4a517243dd3904151a0bca26"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\archive-account-evidence.py",
+      "archive": "raw/archive-account-evidence.py.gz",
+      "bytes": 4180,
+      "sha256": "37e05fa5bc79bb5bfa361a60785e5c9d21dd4a5f861af9a8679f534e85ae97b4",
+      "archiveBytes": 1856,
+      "archiveSha256": "4383381735d976b47c3e1db7f1c34ab61935ed5f242a8844b20f74f7ee9d2caa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\auth-doc-before-account-stage.md",
+      "archive": "raw/auth-doc-before-account-stage.md.gz",
+      "bytes": 8210,
+      "sha256": "09955b44952212b2e678ccea3ad00b228ed1f52bf25bf607c4ccd55fab3bec70",
+      "archiveBytes": 4502,
+      "archiveSha256": "fa5ef6472af30cc9257825b21a954e9b318869b5c3cc029511a8263a7ab3f01d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\baseline-doc-before-account-stage.md",
+      "archive": "raw/baseline-doc-before-account-stage.md.gz",
+      "bytes": 82610,
+      "sha256": "f2becb1402c3ee3e3be50c20a57b22299154775ed011d817fc1ea46a89b5d6bb",
+      "archiveBytes": 33688,
+      "archiveSha256": "0a40306ac150cdd237019ebe8d51321e950e8d1648a1ad57037ba4bd46520b23"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\baseline-sources\\tauri\\crates\\solosoul-core\\src\\native_perf_unlock.rs",
+      "archive": "raw/baseline-sources/tauri/crates/solosoul-core/src/native_perf_unlock.rs.gz",
+      "bytes": 5203,
+      "sha256": "e9b33effa82b8622107d866d4306e34c3b638e12872696d6af3540960110f481",
+      "archiveBytes": 1863,
+      "archiveSha256": "01cafbfde40c8f667f62df09d9efb4f099a82471bcda34b1faab2ac91c8e87c5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\baseline-sources\\tauri\\crates\\solosoul-core\\src\\vault_service\\account.rs",
+      "archive": "raw/baseline-sources/tauri/crates/solosoul-core/src/vault_service/account.rs.gz",
+      "bytes": 22504,
+      "sha256": "08822c9128ec14d5368ddae67daf73697fcca2140dafcb828f2b21a7345315e4",
+      "archiveBytes": 6255,
+      "archiveSha256": "79283a35e6fcbaf54f91433dbbddeb4200c9a340460df65b9944ec50983f1d18"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\baseline-sources\\tauri\\scripts\\native-perf-auth-attribution.test.mjs",
+      "archive": "raw/baseline-sources/tauri/scripts/native-perf-auth-attribution.test.mjs.gz",
+      "bytes": 7290,
+      "sha256": "30ff7b4a7aacabc9f09d3119728fcb7945be43edfa67a98f3492b5b007783562",
+      "archiveBytes": 2110,
+      "archiveSha256": "4c2983e83adb58c30e0ee39ca7899514cd750728c68ffed29fdbf683f57c4774"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\baseline-sources\\tauri\\scripts\\native-perf-auth-contract.mjs",
+      "archive": "raw/baseline-sources/tauri/scripts/native-perf-auth-contract.mjs.gz",
+      "bytes": 10474,
+      "sha256": "d98664b41fe073c9d0b7fc8a83482ace499e973c027fc47cf459b86952d05f1b",
+      "archiveBytes": 3165,
+      "archiveSha256": "626d5f6bc1275e0ede4c399e78a1b43cc04a0135f04dc0ac0e4544770b4f6bfe"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\baseline-sources\\tauri\\src-tauri\\src\\native_perf\\auth_contract.rs",
+      "archive": "raw/baseline-sources/tauri/src-tauri/src/native_perf/auth_contract.rs.gz",
+      "bytes": 10855,
+      "sha256": "eb1f5265fedc3b1a016e490be55bb799a1c6c5c83252699474ae881c0e285760",
+      "archiveBytes": 2797,
+      "archiveSha256": "713b18185a3a355cce69baaed459c1241d166d3244161a35263de1abe41e0323"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\before-sources.json",
+      "archive": "raw/before-sources.json.gz",
+      "bytes": 709,
+      "sha256": "5724d09f95590c3bb351d616335aaddd5c4041aa636a11ce703a820a6284a1e3",
+      "archiveBytes": 422,
+      "archiveSha256": "cd9a10a86580e864c0e666c338cdd4c4c40e02514538d97fee5e99e0902ed61a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\build-account-release.py",
+      "archive": "raw/build-account-release.py.gz",
+      "bytes": 4849,
+      "sha256": "dbae518aa22b06c8743382c59130a8ed1b82d6b74658c15bad9cbcf655768962",
+      "archiveBytes": 1888,
+      "archiveSha256": "415791ec95c89e5b5de112cfcd4b4df60fbd3ae190324afe72c1daf884b9b725"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\build-checkpoint.json",
+      "archive": "raw/build-checkpoint.json.gz",
+      "bytes": 645,
+      "sha256": "b0aa5d108ed5f01fd53c3bccbf68498cb97abe6838f08c9ca342c5ffc66a31e7",
+      "archiveBytes": 390,
+      "archiveSha256": "32df50c267bb81f880cffc8602cc729705b6b3a3e0ac3dcc259639464beece91"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\check-account-write.py",
+      "archive": "raw/check-account-write.py.gz",
+      "bytes": 2359,
+      "sha256": "ab1a8cc3fbef71165f3e7e199e05195556e7cf68cdd8c1fdb0d5cb68aee03d44",
+      "archiveBytes": 934,
+      "archiveSha256": "9b248ce35c685fc0b1a818284047212a18f8494f54a63595b30aecb3b9f23775"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\check-cleanup-syntax.ps1",
+      "archive": "raw/check-cleanup-syntax.ps1.gz",
+      "bytes": 513,
+      "sha256": "3b58bc42dba28fb5b72770564a06fff9b13617b132199073d18b6593f6e4bff2",
+      "archiveBytes": 324,
+      "archiveSha256": "0b5a2d2f96485ff77dc71df346d531612ac526d73f213c9dc16c0af97a376a7a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\cleanup-account-caches.ps1",
+      "archive": "raw/cleanup-account-caches.ps1.gz",
+      "bytes": 10623,
+      "sha256": "e638e0e9d128d89794f9756b827a3aa72d8123afae51a9a7876a2cda45b1b094",
+      "archiveBytes": 3525,
+      "archiveSha256": "32dee44a649151db83a9e71d0bf9e5cac5314e236fb0505c532b575156549a87"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\cleanup-helper-authoring-failure.json",
+      "archive": "raw/cleanup-helper-authoring-failure.json.gz",
+      "bytes": 449,
+      "sha256": "f9f9b4e18131ea660a7feffd92481af133f97ed7048b23948a9357748b3ecae7",
+      "archiveBytes": 326,
+      "archiveSha256": "3fe0387466ecec35a00999211d25a06d7c73ee187ac8070e37bb476886d4bbeb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\cleanup-helper-provenance.json",
+      "archive": "raw/cleanup-helper-provenance.json.gz",
+      "bytes": 1541,
+      "sha256": "8d08a65ad1947b7df4378d51809df89b8ab7c1b33dbc3238874e250a994f08ca",
+      "archiveBytes": 598,
+      "archiveSha256": "9659d2159d478045eafc7b2829b5fd22a68a8729ff856f3920bbfba5dccb5e19"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\current-sources\\tauri\\crates\\solosoul-core\\src\\native_perf_unlock.rs",
+      "archive": "raw/current-sources/tauri/crates/solosoul-core/src/native_perf_unlock.rs.gz",
+      "bytes": 6429,
+      "sha256": "66e559e5343a798e70506cee19a41f71e45a7bc55a299f35f599385d09d28742",
+      "archiveBytes": 2099,
+      "archiveSha256": "8cba69fb9a9fa42a034ec39eff4d5468c962b404450470e47482ef125ce8537d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\current-sources\\tauri\\crates\\solosoul-core\\src\\vault_service\\account.rs",
+      "archive": "raw/current-sources/tauri/crates/solosoul-core/src/vault_service/account.rs.gz",
+      "bytes": 23658,
+      "sha256": "1db46614bd02a59b69e877ad8942f75e05d0f7eb190b1caa444da3977e491ddb",
+      "archiveBytes": 6460,
+      "archiveSha256": "2537ed59f70eea335173566050c53285a87a425575abc478eb1cacef5543f2fe"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\current-sources\\tauri\\scripts\\native-perf-auth-attribution.test.mjs",
+      "archive": "raw/current-sources/tauri/scripts/native-perf-auth-attribution.test.mjs.gz",
+      "bytes": 8638,
+      "sha256": "1f15486c66d7779283baef2635b3dc49ccc19764a11e3d8c8c3c264d5c1d7888",
+      "archiveBytes": 2389,
+      "archiveSha256": "fa7802adeeeaa1557851809f75aa5098aa92f418cc5fdc93adb85b079b47005f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\current-sources\\tauri\\scripts\\native-perf-auth-contract.mjs",
+      "archive": "raw/current-sources/tauri/scripts/native-perf-auth-contract.mjs.gz",
+      "bytes": 11696,
+      "sha256": "f2898ffe69b7e727aef2cc53671ce7afa8ebcaf0cfd17556d75dbcac37c40480",
+      "archiveBytes": 3422,
+      "archiveSha256": "8b15badfd0e88c04b51bde13ffbc9f351d931611fd11fa5517296c2405876863"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\current-sources\\tauri\\src-tauri\\src\\native_perf\\auth_contract.rs",
+      "archive": "raw/current-sources/tauri/src-tauri/src/native_perf/auth_contract.rs.gz",
+      "bytes": 13261,
+      "sha256": "ed7e86eb88b00f68708c61469f5ea1a8e3e031e500bbf28cef88de3f3e03a6cc",
+      "archiveBytes": 3271,
+      "archiveSha256": "7ca6767dfc2a607eebfe7b0f5e59b6d170738a09eeb2b203d4f793143a958f84"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\document-helper-authoring-failure.json",
+      "archive": "raw/document-helper-authoring-failure.json.gz",
+      "bytes": 318,
+      "sha256": "612e1abd93b4f80cafa58c7f212883764a74cc7cf5bf4d5879ccd012dadcc7e9",
+      "archiveBytes": 234,
+      "archiveSha256": "679a61e4f30bcb7845940ee2aab11698c293d1e442bfe82ce8c297b14b62026e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\finalize-account-docs.py",
+      "archive": "raw/finalize-account-docs.py.gz",
+      "bytes": 15804,
+      "sha256": "9cdc163065b7f3d057c5ee4f450f7ff552b1132fa0c78fa4b6141ef9bd8a76ca",
+      "archiveBytes": 6714,
+      "archiveSha256": "c1f22bc627fa57c9cb8dcec6b760f92bd705239f2027280c727e60322bc16539"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\frontend-freeze.json",
+      "archive": "raw/frontend-freeze.json.gz",
+      "bytes": 4374,
+      "sha256": "936c4bd50f10b6b51ab7a7921e34bdc7b60f4b09d2f2e02fb2f40529e9c8af6d",
+      "archiveBytes": 2203,
+      "archiveSha256": "cc6e1e9002dd9ef42676f1594eaa31d09cdd6d292a2617a19cd985d691af56a7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\git-preservation-before-account-stage.json",
+      "archive": "raw/git-preservation-before-account-stage.json.gz",
+      "bytes": 652,
+      "sha256": "8334354cf692836402462eb8d1a72f8cb2b6fdb92669bdeba0769e199d0e7a83",
+      "archiveBytes": 372,
+      "archiveSha256": "09e0509578f62f682890d1bb9cd43a607c826478085cad11254cc697eb21a33d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\previous-build-freeze.json",
+      "archive": "raw/previous-build-freeze.json.gz",
+      "bytes": 1910,
+      "sha256": "a47cbd94c768d18e5c5a35f69a01793fdcc80b79b80c199f7c6fbd4149f21b1a",
+      "archiveBytes": 687,
+      "archiveSha256": "e0e879e1b449ee123b15490b37763bbe6d3133bdd08775af5998d2622ab5b982"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\public-source-freeze.json",
+      "archive": "raw/public-source-freeze.json.gz",
+      "bytes": 34512,
+      "sha256": "acd89fb15a8b774c592d5070170122f6d7d21b6342123892990a3a46098ef946",
+      "archiveBytes": 7587,
+      "archiveSha256": "dd68a6609f6f8c10170862b74d3208391d855485c2b7d0b40376b1bc88836f7e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\release-build.live.json",
+      "archive": "raw/release-build.live.json.gz",
+      "bytes": 235,
+      "sha256": "0982da25215fd26d9b95e3902619b6a1829186f103c637017e39c2f984d21cfb",
+      "archiveBytes": 163,
+      "archiveSha256": "84a9fb15920b13ae24b0c06ea0358c7cbe4eec5eb0e3c853604fba21444399eb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\release-build.receipt.json",
+      "archive": "raw/release-build.receipt.json.gz",
+      "bytes": 292,
+      "sha256": "5ff77c97f66db97073d716ccfafa2c99997f6257825e177de27367323ac9acbd",
+      "archiveBytes": 198,
+      "archiveSha256": "bf526904b4d57c15537c941cd8b2c3ae9ff07b879539dbe61166b98c442f0c2a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\release-build.stderr.log",
+      "archive": "raw/release-build.stderr.log.gz",
+      "bytes": 963,
+      "sha256": "3d6a30387f7de020827b351cda2368790299e58839b0adee8440dd01f2cfcfbc",
+      "archiveBytes": 393,
+      "archiveSha256": "36a038a8bd9c6a2b468f4a4bf03c2747589475db8143296da20ac4ff3fcefaf6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\release-build.stdout.log",
+      "archive": "raw/release-build.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\report-before-account-stage.md",
+      "archive": "raw/report-before-account-stage.md.gz",
+      "bytes": 1035122,
+      "sha256": "13b7f2d2985d9c801a5770da26ce48ff6c5bf1b1586903455a2a028747f279ff",
+      "archiveBytes": 344178,
+      "archiveSha256": "2eab2d5e865fbfb37aaaea92f7fd262842ca97873c09502c5d59b1f1d998d7e0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\required-checks.json",
+      "archive": "raw/required-checks.json.gz",
+      "bytes": 8310,
+      "sha256": "aa381faf972b4ebb26d380034a0f1167ca045e7675589c8eef1cff06e7c78853",
+      "archiveBytes": 1559,
+      "archiveSha256": "6347a349eb966f3359045a11689a1d70b18401b6f2a1bf3ac476b9c073946882"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\resource-freeze.json",
+      "archive": "raw/resource-freeze.json.gz",
+      "bytes": 47694,
+      "sha256": "ac730bf50b4a6d38fa4a31d20886e0b46091f912b8620d6e55cedc3854e6a4c2",
+      "archiveBytes": 6664,
+      "archiveSha256": "d190f2813936cd732471118df744d8d4953d158f249ee00ff8fc6786627a2a81"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\resume-account-checks.py",
+      "archive": "raw/resume-account-checks.py.gz",
+      "bytes": 2800,
+      "sha256": "5a76ecb7acbb525eebf3129df40e977965edba48e5ff3a6552d18df5551f61df",
+      "archiveBytes": 1272,
+      "archiveSha256": "37740f3e7a0c4fc8e9946f73f31c459c93bcb88fe7a6b6e7b9e05a6e3e9bb299"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\review-account-auth.py",
+      "archive": "raw/review-account-auth.py.gz",
+      "bytes": 11491,
+      "sha256": "595ac28247334edbc97cb0153730713543b60a5a404e80cb768b5bd8fc4194b7",
+      "archiveBytes": 4044,
+      "archiveSha256": "e6dc77898ee3e752b7ac30847a1e0e8bb357860b1cb6eedb8637258baaedb626"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\review-post-cache-account.py",
+      "archive": "raw/review-post-cache-account.py.gz",
+      "bytes": 2972,
+      "sha256": "15ab56277dfb84f38ecbae81c4d800bed5841132c7ccb39c6a78aa1de844c759",
+      "archiveBytes": 1159,
+      "archiveSha256": "81f0cecda576f97611cf0fa5f471480a07799cadcadcc94991e7072d1121bcb9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\run-account-groups.py",
+      "archive": "raw/run-account-groups.py.gz",
+      "bytes": 1599,
+      "sha256": "f8e3a16ed65811ed9e6d55483a7bc841e9a37cab1bc64b4a3c2b11359025b553",
+      "archiveBytes": 741,
+      "archiveSha256": "3cc01ba709a4c050770612045c3d25ed72127ee6f6d5d76cf8b609904c087e59"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\run-check.py",
+      "archive": "raw/run-check.py.gz",
+      "bytes": 1570,
+      "sha256": "66bcd33dc004033a56ebf116baab36759d86727468903f8d3a381c39055f01ce",
+      "archiveBytes": 761,
+      "archiveSha256": "61b3e9d8e989e22622a74b9ea600b403837275aa83d9f16b95a8ec3bdc56793a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\source-freeze.json",
+      "archive": "raw/source-freeze.json.gz",
+      "bytes": 160285,
+      "sha256": "f3ce18ae7cc830c98ca6c4257ef51462d63a00329272d69d226f92779a7a5a66",
+      "archiveBytes": 64923,
+      "archiveSha256": "29b5aba3b85f47e15f88abf97a31b5cfb711aa35d031025afb143bb3e36e6f34"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\stage-account-task.py",
+      "archive": "raw/stage-account-task.py.gz",
+      "bytes": 2885,
+      "sha256": "68d5a8255176183d948658b978b2ae64792fdf321450f91b03007cf7ffe7e055",
+      "archiveBytes": 1281,
+      "archiveSha256": "8556875c1081fa83249cd00937789094e13399ab721202d7110df2c80258b045"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\unaffected-default-and-frontend.json",
+      "archive": "raw/unaffected-default-and-frontend.json.gz",
+      "bytes": 474,
+      "sha256": "bac92fee8a809ccf8df7b80c8b7ad5e4b3cbe24f130ab5d944c32342a6d7c056",
+      "archiveBytes": 310,
+      "archiveSha256": "c54e601b4767a1b037d046f2c32558c63e838aee0fe3430878ab4f1530a1dd26"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\verify-account-docs.py",
+      "archive": "raw/verify-account-docs.py.gz",
+      "bytes": 6723,
+      "sha256": "0d6d5cbfe71ea2dd341e9f85a6c4a36b5a745d19fc844d5d5ee4f3758a08d18f",
+      "archiveBytes": 2751,
+      "archiveSha256": "703d940762c662aa43f27bd7a14352c3724956e1510893f0955d633d916934e8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\verify_auth_freezes.py",
+      "archive": "raw/verify_auth_freezes.py.gz",
+      "bytes": 1084,
+      "sha256": "4450fbfd0da1d3fc1ccad024f7c4e62e0bb29eb7aaa7054c0769b87d302783cc",
+      "archiveBytes": 501,
+      "archiveSha256": "51208634a7f4a2b29887e81cdaa04827db65ca9ae7f889d8245e4cdfa73ea29e"
+    }
+  ]
+}

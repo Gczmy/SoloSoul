@@ -1,0 +1,816 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1095",
+  "at": "2026-10-05T21:11:36.227874+00:00",
+  "scope": "Byte-exact raw query attribution, red/green tests, strict default samples, source/resource freezes and owned cleanup; no login/OCR inputs authorized",
+  "entries": [
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\actual-query-attribution.json",
+      "path": "raw/actual-query-attribution.json.gz",
+      "originalBytes": 26250,
+      "originalSha256": "d844557b9664810a286deee14b5e67a1362f272bae55475bd31e47f9e01a1de6",
+      "archiveBytes": 4125,
+      "archiveSha256": "4bec6c7b4102a8c88242c520854425ad8339fe9c3841bfb58a2787e0bdf0e301"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\baseline.json",
+      "path": "raw/baseline.json.gz",
+      "originalBytes": 931,
+      "originalSha256": "3fe39b61cb1678f200ae06573fb8b108fdd6099d2f2824802379ac113d0bc526",
+      "archiveBytes": 594,
+      "archiveSha256": "d56d85d4f69ba9d5cbdf928ddca51c5a229b47d92f0a47fb961f9e40877c42ed"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\cleanup-host-guard-failure.json",
+      "path": "raw/cleanup-host-guard-failure.json.gz",
+      "originalBytes": 456,
+      "originalSha256": "9b6447f699e77fbc0327dcda64dc80c79f20360c791b750569f180d3d4b0fb40",
+      "archiveBytes": 309,
+      "archiveSha256": "f84336c3e68e7cef20deb3c44f2b9cca255cd9c2e411960643c5688c1481575b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\cleanup-query-caches-before-host-check.ps1",
+      "path": "raw/cleanup-query-caches-before-host-check.ps1.gz",
+      "originalBytes": 8604,
+      "originalSha256": "ca0ed989fb0e2ae43dd6b7dce20003307ecbcbaae47094a37af80906dd6dfa7c",
+      "archiveBytes": 3008,
+      "archiveSha256": "15b005a9aa80dfd0505642c7e5d2e374864b6549dc0410fe8232765d70cdbeee"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\cleanup-query-caches.ps1",
+      "path": "raw/cleanup-query-caches.ps1.gz",
+      "originalBytes": 8627,
+      "originalSha256": "bfe583183bf6596ae002ca446215f3426e454cdd2d610ff0d69450e51a626e00",
+      "archiveBytes": 3024,
+      "archiveSha256": "ebdbcdba718db681909de7596ae3fe1fdf2f45af36d2680e3d460849b4b61887"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\format.stderr.log",
+      "path": "raw/format.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\format.stdout.log",
+      "path": "raw/format.stdout.log.gz",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "archiveBytes": 82,
+      "archiveSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-actual-query-attribution.json",
+      "path": "raw/implemented-actual-query-attribution.json.gz",
+      "originalBytes": 24267,
+      "originalSha256": "4ec593d8e6604bc7ebb6b0e869d0beb936f3b1c5b45975ae4609dcae50a90e08",
+      "archiveBytes": 4003,
+      "archiveSha256": "7b7042a69da76c1e818f1360173471f076ab77164da428ec8b16e080abfd43d5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-default-sample-1.json",
+      "path": "raw/implemented-default-sample-1.json.gz",
+      "originalBytes": 3370,
+      "originalSha256": "2fa30c947f246fa82efc3d1965172c4389e3a772e1be00d58708192f3aafce32",
+      "archiveBytes": 752,
+      "archiveSha256": "6f064d67ade406ae151b3ee3066b6ed2125a8b20d354abc844a345a781af2fb4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-default-sample-2.json",
+      "path": "raw/implemented-default-sample-2.json.gz",
+      "originalBytes": 3371,
+      "originalSha256": "2ec9bb3a6f61768b48101089f60253e33693126a052de872aa82442097687914",
+      "archiveBytes": 756,
+      "archiveSha256": "33cc430662cf898c47f34cdc48dfc4048fb0b120049f1b7068891e7153c65dec"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-initial-owned-seed.json",
+      "path": "raw/implemented-initial-owned-seed.json.gz",
+      "originalBytes": 3132,
+      "originalSha256": "7c4b09bc1cb2dcb17f5c333c3921840af22b34cfa4d47ef6fa6a44300a4493e2",
+      "archiveBytes": 739,
+      "archiveSha256": "44bedbcbfa5a8120ec2ac459f3b4e13594064d781d5a9fe8971aa69ae023cdaa"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-probe.live.json",
+      "path": "raw/implemented-probe.live.json.gz",
+      "originalBytes": 216,
+      "originalSha256": "797be80cd29cbc9b13de6a92e3305929b7f98246aca7124f34b5a1613d2dd80f",
+      "archiveBytes": 191,
+      "archiveSha256": "9f59c63c13c16c065f01531467d30d9ce8794e33cb757660fd2323f8642b6c8d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-probe.receipt.json",
+      "path": "raw/implemented-probe.receipt.json.gz",
+      "originalBytes": 276,
+      "originalSha256": "dc9356f8add6f5442c39cd89b0bd2c48ed4a3c5f6097405ad7ceab019bf9808f",
+      "archiveBytes": 229,
+      "archiveSha256": "a408b8ad7a2ddcc9db03422d03584af5267134842e30448fee1420cd4f593c52"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-probe.stderr.log",
+      "path": "raw/implemented-probe.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-probe.stdout.log",
+      "path": "raw/implemented-probe.stdout.log.gz",
+      "originalBytes": 2071,
+      "originalSha256": "73c35ca07532d50f28b5bddb4772375597df4cc04155a8ab6eb037f18d06033e",
+      "archiveBytes": 580,
+      "archiveSha256": "c3151a90f3c05ffb60584ebfb9a6c7d492a85d762e50695835bed82466aff337"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-trial-1-implemented.json",
+      "path": "raw/implemented-trial-1-implemented.json.gz",
+      "originalBytes": 1436,
+      "originalSha256": "8c4f7ccfead421fda437e883a31241d8bc1307ef4f2a80ee7963528cd0654a13",
+      "archiveBytes": 473,
+      "archiveSha256": "4d8e5c54475ed1d852bb06dd9366756acaf9caef44f8b5f188e3dd2145f2434f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\implemented-trial-2-implemented.json",
+      "path": "raw/implemented-trial-2-implemented.json.gz",
+      "originalBytes": 1439,
+      "originalSha256": "a7209c3029b3550275f408ed257bad272a1bdc3cedee746093d22b4446e01a90",
+      "archiveBytes": 469,
+      "archiveSha256": "91953c745b15f1251f510b46d094e137f577c48df96ab1a134ce52d662575d25"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\initial-owned-seed.json",
+      "path": "raw/initial-owned-seed.json.gz",
+      "originalBytes": 3134,
+      "originalSha256": "75760b6c05eb8983e794c86005931d62e203bea9dc7b9f35ab381da0272980ff",
+      "archiveBytes": 736,
+      "archiveSha256": "6b99db346ea7d995f31a02ebd5747d4938b3774b941095b5fb97bef26070118f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\legacy-native-perf-run.mjs",
+      "path": "raw/legacy-native-perf-run.mjs.gz",
+      "originalBytes": 61422,
+      "originalSha256": "85993dd93ee133cab547247a5adee28fce8437a3336b066d9f2463985e35c7be",
+      "archiveBytes": 17896,
+      "archiveSha256": "8da450bcf85f5ccd240018065b9d3aa7cf6eb8f88dee52fd4b3e2b6502845d77"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\node-all.receipt.json",
+      "path": "raw/node-all.receipt.json.gz",
+      "originalBytes": 203,
+      "originalSha256": "cf7a56c1e15c3d5b5ecfeaa1ea1750afd38dc68ac69d1bb0b2d2ce0d63643ae8",
+      "archiveBytes": 174,
+      "archiveSha256": "fdb94512e8896a9e56cd20d539c2eaddf7f105c1c17bab67db223871e1261df2"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\node-all.stderr.log",
+      "path": "raw/node-all.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\node-all.stdout.log",
+      "path": "raw/node-all.stdout.log.gz",
+      "originalBytes": 20469,
+      "originalSha256": "fb46294c61483925cb3996774aa258e128e4e10fb2555cc47c2997a85f56a4a6",
+      "archiveBytes": 8457,
+      "archiveSha256": "61c845ea9d0c698f41caa7a0a173abe76bc86919b4d7f62a0e0f588bdef769af"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\post-cache-review.json",
+      "path": "raw/post-cache-review.json.gz",
+      "originalBytes": 8437,
+      "originalSha256": "e30d2dec8e43389f29d34abcd3af2d9422c73f94de7466137ceca5ef17a85206",
+      "archiveBytes": 1222,
+      "archiveSha256": "b6effcfffa323679b21f290dd16ffda0d181f512c5b4da973b907f5d080b7e8d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-implemented-query.mjs",
+      "path": "raw/probe-implemented-query.mjs.gz",
+      "originalBytes": 7716,
+      "originalSha256": "2b87ca3967b38c67d1c20833810b4384d18e34f79d933542d6325d27b09717be",
+      "archiveBytes": 3029,
+      "archiveSha256": "72e43fbf84973dd67246af06578dcff5eb59bf87c56b14d6da7fb93083161ad9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-query-stages.mjs",
+      "path": "raw/probe-query-stages.mjs.gz",
+      "originalBytes": 7886,
+      "originalSha256": "8cb897e9e03b31e2c2884ba4945fce67c0b8ff7be223245c37d815145bfc18c7",
+      "archiveBytes": 3103,
+      "archiveSha256": "c79625e52768c61c0f60e337298c7420601baa15f63e297fe38b8521f6a6bb66"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe.live.json",
+      "path": "raw/probe.live.json.gz",
+      "originalBytes": 183,
+      "originalSha256": "e1f3cfcd5e92400ec77b105260178c45a83dea76d4ed0d32ab324ddf211b7d3f",
+      "archiveBytes": 173,
+      "archiveSha256": "96e6d4f900784d997d8dbff74db42ee4f579897faf46b8d3a3801eefb9b11cf0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe.receipt.json",
+      "path": "raw/probe.receipt.json.gz",
+      "originalBytes": 261,
+      "originalSha256": "9c76107ef02c2da42c80cecc085db1c5d85d78287c712f6cf161e4f30fc94b39",
+      "archiveBytes": 223,
+      "archiveSha256": "60a0680b6865494dbe108710fc00df14356990be9b7bbc24d4dec1b9bcba19c9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe.stderr.log",
+      "path": "raw/probe.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe.stdout.log",
+      "path": "raw/probe.stdout.log.gz",
+      "originalBytes": 7805,
+      "originalSha256": "bf71809095c5ce731106f826c5781c1f0fdff0b582c4782a4308041d4c8b65af",
+      "archiveBytes": 1134,
+      "archiveSha256": "a67c883c279d489725e86520ba80e98ccb3f23db88a25adfc8b1dc13bd8040ca"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\query-cache-cleanup.json",
+      "path": "raw/query-cache-cleanup.json.gz",
+      "originalBytes": 7527,
+      "originalSha256": "525a2a48972aec8deaa9120bea99ec291785914890d7bc992b1af41898378a91",
+      "archiveBytes": 1068,
+      "archiveSha256": "5dfd0694daabe288615bed22214aba6f6d8d4850f72a4153312dee32ee1ab252"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\query-identity-scope.json",
+      "path": "raw/query-identity-scope.json.gz",
+      "originalBytes": 2757,
+      "originalSha256": "262b8b6eb91238f2b1af39591905cfe8d1b8c47f3fdfe40710a5c0651dbf3bc3",
+      "archiveBytes": 587,
+      "archiveSha256": "919eaa78fcdac985a3c98cec964baec656f4a0abcb05621a1db4bd0fdd3e5a8c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\red-format.stderr.log",
+      "path": "raw/red-format.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\red-format.stdout.log",
+      "path": "raw/red-format.stdout.log.gz",
+      "originalBytes": 42,
+      "originalSha256": "ae3af2b9d78c54d9e9f11a8d135419702636c4535e90b6bc5ad1e7428531d7d4",
+      "archiveBytes": 62,
+      "archiveSha256": "0e201c1fd5506417984e733588ad2c72ff8b79a2f4d9b42455c156cd869b7e7b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\red-native-perf-memory.test.mjs",
+      "path": "raw/red-native-perf-memory.test.mjs.gz",
+      "originalBytes": 25257,
+      "originalSha256": "040dac00bb8e02570b9a502e82440dc28f0888e5be53fde655df3a6383673563",
+      "archiveBytes": 6155,
+      "archiveSha256": "8b47292e5c817c8dda420e76fd2709d99b586688e638317f240b6ad43ccc2688"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\resource-review.json",
+      "path": "raw/resource-review.json.gz",
+      "originalBytes": 204,
+      "originalSha256": "e5daa070ab9f6580724f67b07870e90cf5a270423dae39b5a983914e585186fd",
+      "archiveBytes": 187,
+      "archiveSha256": "8167c053bdfc5b89adfce3a6a186314336dd4fb118e35499818925a969e902c9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-green.receipt.json",
+      "path": "raw/rf1095-green.receipt.json.gz",
+      "originalBytes": 283,
+      "originalSha256": "40c2534179b7b10533a083d644535927a94a6fdb9e7ff9458ed35a9a739372bb",
+      "archiveBytes": 222,
+      "archiveSha256": "e552a0bba96bca691f88c1ef6ee6cec15278b9bdc9c15480814cab968224fadb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-green.stderr.log",
+      "path": "raw/rf1095-green.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-green.stdout.log",
+      "path": "raw/rf1095-green.stdout.log.gz",
+      "originalBytes": 231,
+      "originalSha256": "fcd69412c8218860971869c30d0959f7099cc344ef7a29c7273a3b9d21c49b75",
+      "archiveBytes": 191,
+      "archiveSha256": "039254a3f09347a99f089ffa65640917880ae14a39cec01f0bfa3e7df0235d6a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-red.receipt.json",
+      "path": "raw/rf1095-red.receipt.json.gz",
+      "originalBytes": 355,
+      "originalSha256": "711f016f3c5b871384000d6d4ab56fc03eca491384799ffe9580da855e66917b",
+      "archiveBytes": 271,
+      "archiveSha256": "70add2bced2ab559f1ef05677837c591103ec5263b6ebc98ba78ea46d42d1b86"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-red.stderr.log",
+      "path": "raw/rf1095-red.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-red.stdout.log",
+      "path": "raw/rf1095-red.stdout.log.gz",
+      "originalBytes": 993,
+      "originalSha256": "da69a8f1965789a2521fb1f11fe2dd40d9dc7cc48d4555b98997d0a441e396fd",
+      "archiveBytes": 534,
+      "archiveSha256": "7c6b3856d24626c0a3b47f1c5096282df28b5ed6278c2771c48ae3d76b334d5e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\rf1095-source-freeze.json",
+      "path": "raw/rf1095-source-freeze.json.gz",
+      "originalBytes": 359,
+      "originalSha256": "f4818cc146d457df978de2e65df3fff245656dc95bd40880c2e7cd8c9bee37bd",
+      "archiveBytes": 260,
+      "archiveSha256": "849a2d4c8ab1eba75b50c6aee2ef4993f568980eafae0a6deed47dc0e01cd423"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\runtime-source-freeze.json",
+      "path": "raw/runtime-source-freeze.json.gz",
+      "originalBytes": 57754,
+      "originalSha256": "f4d3dd7d4ed6c500e20884c9ba80102affdc47a1e35ccd2eeda470084d6fe615",
+      "archiveBytes": 23348,
+      "archiveSha256": "69a2e6c62492068883d188429e82709dcd98ba89a26fa144c96fb92609c70845"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-implemented.ps1",
+      "path": "raw/trial-1-implemented.ps1.gz",
+      "originalBytes": 12205,
+      "originalSha256": "a95aed0e7b6ab36b43c875bff6feafe5f6b8508286823479bf45d8c604a52611",
+      "archiveBytes": 3972,
+      "archiveSha256": "f4c15c5b9518067080f0bf81f9466fe364a53240a9c98b51539cc2a58c3ed2c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-implemented.stderr.log",
+      "path": "raw/trial-1-implemented.stderr.log.gz",
+      "originalBytes": 1456,
+      "originalSha256": "d95ede9d1ae5430c572bf6a3766014784542b0e3acb3c629c628d3b383104fd6",
+      "archiveBytes": 575,
+      "archiveSha256": "76df34f27b126ce85f20e484446deca3a6a1bf6a3df41ec9dc72c910b514e639"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-implemented.stdout.log",
+      "path": "raw/trial-1-implemented.stdout.log.gz",
+      "originalBytes": 3094,
+      "originalSha256": "a6025e44dbdc1b2ced1425102a1e4b32f86e61569224479cf22b9247eede5261",
+      "archiveBytes": 735,
+      "archiveSha256": "5a60437937d2d1e6fd5057b62e614bfed411c3bdf3b92fa047f52b7dac31a455"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-legacy.json",
+      "path": "raw/trial-1-legacy.json.gz",
+      "originalBytes": 4353,
+      "originalSha256": "489df10c53fe2de10898651dfceebbc2e1b2d14a5ed45a44b0bb8970d68db2f5",
+      "archiveBytes": 661,
+      "archiveSha256": "d7908e2442bd0fda73877be2073989aad6cf39ae33195edd17cf3cd9201bfa3f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-legacy.ps1",
+      "path": "raw/trial-1-legacy.ps1.gz",
+      "originalBytes": 12454,
+      "originalSha256": "75f6f5d7a5217e65dd018586c20bef204b44bba08691653a1d226b928915db14",
+      "archiveBytes": 3994,
+      "archiveSha256": "730fa89340d35e386ce8610b7ab9e9843720a7c2baf9f68a6eb08aae05a46662"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-legacy.stderr.log",
+      "path": "raw/trial-1-legacy.stderr.log.gz",
+      "originalBytes": 3642,
+      "originalSha256": "c2d9c0556bec569deafd061f2c3042d80c47e7017593b2e3585c214d57cc18de",
+      "archiveBytes": 783,
+      "archiveSha256": "ec8a7623b073206bec12efe07dec296322802d2fa139e29d9b1a95b8395a5eb5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-1-legacy.stdout.log",
+      "path": "raw/trial-1-legacy.stdout.log.gz",
+      "originalBytes": 3093,
+      "originalSha256": "51d01e85fa782f7522bdc5ed1e7d6702dc5cb9da9d9507433abf27362451f9bd",
+      "archiveBytes": 737,
+      "archiveSha256": "ecb238c6f93ce6db7577948e3088751c68e42ad20c874c9ec7c8b64cbe1aa5ae"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-candidate.json",
+      "path": "raw/trial-2-candidate.json.gz",
+      "originalBytes": 1417,
+      "originalSha256": "3952739136a36585dc3783c5c77619fa5806e986a523e8e6f2b6d1ed2718ef56",
+      "archiveBytes": 463,
+      "archiveSha256": "b30e65c501332a43f1304f4517d2d2049f570cc821fb27a7ca7f8c4115fec895"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-candidate.ps1",
+      "path": "raw/trial-2-candidate.ps1.gz",
+      "originalBytes": 12420,
+      "originalSha256": "c03327863e5953b6be0af7a36342045e00ed55bd356a751472a695c2bdfdd8a3",
+      "archiveBytes": 3991,
+      "archiveSha256": "b13ea93ffe40103b9ca44113c9d84d05dd85d022da2089a06022eded0e0595f5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-candidate.stderr.log",
+      "path": "raw/trial-2-candidate.stderr.log.gz",
+      "originalBytes": 1438,
+      "originalSha256": "4c77a21ffedcbd8676506d4751edd26b4786fc38308311e27f06d7fc323cbd72",
+      "archiveBytes": 569,
+      "archiveSha256": "5b7f56f7d7bd7fad6cb91d0e401e7f3b2669e8b8ed66f7aabdf0ced4ed6f37cd"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-candidate.stdout.log",
+      "path": "raw/trial-2-candidate.stdout.log.gz",
+      "originalBytes": 2811,
+      "originalSha256": "da96152b029a074d0a94260ed66fa0b66c655daa75d3462ce5be62cea147dd8a",
+      "archiveBytes": 715,
+      "archiveSha256": "69ecde94b5b13b02a0d9b04f9b94685e9745fc36f68af03c0b0d12feede125b3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-implemented.ps1",
+      "path": "raw/trial-2-implemented.ps1.gz",
+      "originalBytes": 12205,
+      "originalSha256": "a95aed0e7b6ab36b43c875bff6feafe5f6b8508286823479bf45d8c604a52611",
+      "archiveBytes": 3972,
+      "archiveSha256": "f4c15c5b9518067080f0bf81f9466fe364a53240a9c98b51539cc2a58c3ed2c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-implemented.stderr.log",
+      "path": "raw/trial-2-implemented.stderr.log.gz",
+      "originalBytes": 1469,
+      "originalSha256": "133e5c3d4209a4ccb77fdf3e34d61059e29215bc28704eaaa7f5a81335d7214a",
+      "archiveBytes": 573,
+      "archiveSha256": "8ef2da78cb81bae2f426885d84c305fb30a4fe75201cbf8f76a0dae004d329c1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-2-implemented.stdout.log",
+      "path": "raw/trial-2-implemented.stdout.log.gz",
+      "originalBytes": 2812,
+      "originalSha256": "b453c8a1799928e50d44844ff8dab2424891792383eac32bf181fe5485904ae2",
+      "archiveBytes": 707,
+      "archiveSha256": "f41d618d3551b0ec9c049db664886ea74cb3e3b8af31c73ca459c3810301a298"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-3-legacy.json",
+      "path": "raw/trial-3-legacy.json.gz",
+      "originalBytes": 3935,
+      "originalSha256": "91b14d48b1b79204fcbd509824cb2acc7cbfbb88c0c01d8932dab05c8ea1fbdf",
+      "archiveBytes": 642,
+      "archiveSha256": "a7c044e370e1200d8e7b0ad11951339a6144385c75fdbdacf6d70e2745b790c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-3-legacy.ps1",
+      "path": "raw/trial-3-legacy.ps1.gz",
+      "originalBytes": 12454,
+      "originalSha256": "75f6f5d7a5217e65dd018586c20bef204b44bba08691653a1d226b928915db14",
+      "archiveBytes": 3994,
+      "archiveSha256": "730fa89340d35e386ce8610b7ab9e9843720a7c2baf9f68a6eb08aae05a46662"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-3-legacy.stderr.log",
+      "path": "raw/trial-3-legacy.stderr.log.gz",
+      "originalBytes": 3325,
+      "originalSha256": "6e77731d74551336dfdac0965d54c8a682a95b06de985917eef079aa8693ad51",
+      "archiveBytes": 752,
+      "archiveSha256": "082f3a26013694dbea6d240c3e289e083c6735691487c50d46f4cff942775ef0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-3-legacy.stdout.log",
+      "path": "raw/trial-3-legacy.stdout.log.gz",
+      "originalBytes": 2813,
+      "originalSha256": "1875a88d1e8b33310058dbe1007f95a50c97f1893c20ba4255f51ae3db55b0e1",
+      "archiveBytes": 715,
+      "archiveSha256": "1691e0f44bc45bff448cd459575b9365d3d764b0da0f08e5f2bdae0266676b7c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-4-candidate.json",
+      "path": "raw/trial-4-candidate.json.gz",
+      "originalBytes": 1424,
+      "originalSha256": "53387601141c5f23a04cb167ab95640857e41092db6c6305c9b5c5c4720435d6",
+      "archiveBytes": 467,
+      "archiveSha256": "ecf7ce5f8e25309f81d341b7889fad02b68df97698bfce818506fe78a3105c1b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-4-candidate.ps1",
+      "path": "raw/trial-4-candidate.ps1.gz",
+      "originalBytes": 12420,
+      "originalSha256": "c03327863e5953b6be0af7a36342045e00ed55bd356a751472a695c2bdfdd8a3",
+      "archiveBytes": 3991,
+      "archiveSha256": "b13ea93ffe40103b9ca44113c9d84d05dd85d022da2089a06022eded0e0595f5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-4-candidate.stderr.log",
+      "path": "raw/trial-4-candidate.stderr.log.gz",
+      "originalBytes": 1447,
+      "originalSha256": "aed024faf956104c23dd7a1addf24acbe1015bb1e7264c9abe76526e13c096b2",
+      "archiveBytes": 571,
+      "archiveSha256": "03598df5291ad58f77b992b51d0b0dc6903acae8376fc3d7c387f1620f4e4b48"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\trial-4-candidate.stdout.log",
+      "path": "raw/trial-4-candidate.stdout.log.gz",
+      "originalBytes": 2816,
+      "originalSha256": "260f0e16f19a66b5b77879174c7aac1368ad92dcf0370bd3fb3f4bd969d2de11",
+      "archiveBytes": 718,
+      "archiveSha256": "baad194b0cffd0bc09b2615ee8fc36b478d5659cf9684062950372f8d8f71b29"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\native-perf-consumed.json",
+      "path": "raw/probe-001/native-perf-consumed.json.gz",
+      "originalBytes": 251,
+      "originalSha256": "14ac8b9171a2dfd4cbee8389bafe39662072aa3cfa0c4e06ac7d7e380188d18a",
+      "archiveBytes": 214,
+      "archiveSha256": "10d11201bf0e332b38396b9b0a50dee478bdebde9ed33ebfe5efdb977dfd5400"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\native-perf-owned.json",
+      "path": "raw/probe-001/native-perf-owned.json.gz",
+      "originalBytes": 7684,
+      "originalSha256": "b8760bfdc050c7c7530cc936418d09df26d2151be5340ea3a90f14b6689518e9",
+      "archiveBytes": 1886,
+      "archiveSha256": "3843a872b7be10a17f3bdb59bd245744f83c337b69c12cfc2b0ba48109725448"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\native-perf-sdk-journey-bound.json",
+      "path": "raw/probe-001/native-perf-sdk-journey-bound.json.gz",
+      "originalBytes": 562,
+      "originalSha256": "613bca36b6759a1ee471dc119093273e6b5877b8a8394da5aff09d4540682a98",
+      "archiveBytes": 391,
+      "archiveSha256": "a334e2aeadfa23faab912ee12641e7aa05da63999d8947f5888be5c710d5522e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\native-perf-sdk-journey-requested.json",
+      "path": "raw/probe-001/native-perf-sdk-journey-requested.json.gz",
+      "originalBytes": 345,
+      "originalSha256": "c230b3e01ba29cc4affd8cf78c60375323f487744bf4de5255287d35658b9145",
+      "archiveBytes": 272,
+      "archiveSha256": "7df5baabf632685e4c79c33b23e379dbad493ac225c8119843bf8a8024a56a0f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\native-perf-sdk-journey.json",
+      "path": "raw/probe-001/native-perf-sdk-journey.json.gz",
+      "originalBytes": 6711,
+      "originalSha256": "706114e8af40489bd1b5f3a799a52a747904ccf5ea75bd5e884014b17dc2c32e",
+      "archiveBytes": 1542,
+      "archiveSha256": "f4c245b86d006b314875271e21406afaec6f440497f35c9c9b6b68890a6cd3db"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\native-perf-sdk-phase-01.json",
+      "path": "raw/probe-001/native-perf-sdk-phase-01.json.gz",
+      "originalBytes": 818,
+      "originalSha256": "76ddcbf75b653de671569fbcf4af4226e812a708a735152c51ec27f27d7840f1",
+      "archiveBytes": 405,
+      "archiveSha256": "3066d554b6e325fe30a0d0aa5f821b7feb7e412d616718a39b13460a969de9ef"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\vault-before-cache-cleanup.json",
+      "path": "raw/probe-001/vault-before-cache-cleanup.json.gz",
+      "originalBytes": 1283,
+      "originalSha256": "1936202db8d2c10158a8d6107357f4a05ea467ea3d208f6072f6387e24d692bc",
+      "archiveBytes": 726,
+      "archiveSha256": "81909d63b1bb7d10feea231c6a8fc0b359583ab80825201ff79f90a5e1f66ac1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\preserved-app-logs\\app.log",
+      "path": "raw/probe-001/preserved-app-logs/app.log.gz",
+      "originalBytes": 1360,
+      "originalSha256": "3ecbb2d9692d7f492e680beefea66cadfb24ed8a61f5a00d39469750b5199243",
+      "archiveBytes": 645,
+      "archiveSha256": "fd609d5cb7688e205a78a52e707cd14d0336d122adc1070aae34a8d682c5510a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\preserved-public-input\\ocr_test.png",
+      "path": "raw/probe-001/preserved-public-input/ocr_test.png.gz",
+      "originalBytes": 6274,
+      "originalSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+      "archiveBytes": 3159,
+      "archiveSha256": "3f630a750f186a7ecf6ede12504c9c5faac1493170261bddf68f29239c01c0ac"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\native-perf-consumed.json",
+      "path": "raw/probe-002/native-perf-consumed.json.gz",
+      "originalBytes": 251,
+      "originalSha256": "3052af3142c529ae2f1d593e77124988e2394842b7adb44a6b3b560a20d6d273",
+      "archiveBytes": 215,
+      "archiveSha256": "df54c46d5ebd28ef3e6b54beb5161ac466ebe095b2131a8e217998f2a1fd4294"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\native-perf-owned.json",
+      "path": "raw/probe-002/native-perf-owned.json.gz",
+      "originalBytes": 7684,
+      "originalSha256": "141c7f9b3671e33ab93924f046acda8f49044203c9df750477a0cc5d84ce0b2d",
+      "archiveBytes": 1885,
+      "archiveSha256": "b88168909f6098630940a069d9d72fbe2fde38bb709e26c0f70f78a9ed59b99d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\native-perf-sdk-journey-bound.json",
+      "path": "raw/probe-002/native-perf-sdk-journey-bound.json.gz",
+      "originalBytes": 562,
+      "originalSha256": "db06e2b99379a25e273d53dd59edafcfaa8b31443d21f84f095b4b69a94fa976",
+      "archiveBytes": 390,
+      "archiveSha256": "37a7e10e851b550a574405d02548e2d6ca8f1dd79469464e9a9e0bcbc1927bf7"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\native-perf-sdk-journey-requested.json",
+      "path": "raw/probe-002/native-perf-sdk-journey-requested.json.gz",
+      "originalBytes": 345,
+      "originalSha256": "f31dc4ab7c48bc4cbbf29110770957777a5be20836ca30caf029a3999193c8ea",
+      "archiveBytes": 274,
+      "archiveSha256": "e087ce4de160115ceb85f1902378350935e5497921d92f6c142d57a6f42815da"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\native-perf-sdk-journey.json",
+      "path": "raw/probe-002/native-perf-sdk-journey.json.gz",
+      "originalBytes": 6746,
+      "originalSha256": "ed18be6fc85d6d47d1b81d036d387275a0cade817f58ea16d6d6ed4c958dba7f",
+      "archiveBytes": 1550,
+      "archiveSha256": "ac49da28c3065177a38007a2ce8d3974937736066c207e72e0f7399f5e9455dc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\native-perf-sdk-phase-01.json",
+      "path": "raw/probe-002/native-perf-sdk-phase-01.json.gz",
+      "originalBytes": 818,
+      "originalSha256": "7551489c5fb3bd6c134ef757693aaa887d44c573b261d79835d169abb1a26165",
+      "archiveBytes": 406,
+      "archiveSha256": "e539fdf643659ed2f328db1efee7e5d20d9efe6d62aa036a9b771f6f80399151"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\vault-before-cache-cleanup.json",
+      "path": "raw/probe-002/vault-before-cache-cleanup.json.gz",
+      "originalBytes": 1283,
+      "originalSha256": "df3e0157fae897d785a7459647d9468a97a5fa76e572196b7e48ebb66c119cfb",
+      "archiveBytes": 724,
+      "archiveSha256": "993d48beca71ae4916f3fd54852cafd0ab5d9a53c1ca7d3f13d6e87817f3ad2a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\preserved-app-logs\\app.log",
+      "path": "raw/probe-002/preserved-app-logs/app.log.gz",
+      "originalBytes": 1360,
+      "originalSha256": "15c30f9088b07f54b1feab57b9f7fad55ba4ea5113044bab3c9720e40c9166df",
+      "archiveBytes": 645,
+      "archiveSha256": "6b3693556e66528561daca4a758fbeacf1ad5b6f40c2fc5536b7a2abf4de4049"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\preserved-public-input\\ocr_test.png",
+      "path": "raw/probe-002/preserved-public-input/ocr_test.png.gz",
+      "originalBytes": 6274,
+      "originalSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+      "archiveBytes": 3159,
+      "archiveSha256": "3f630a750f186a7ecf6ede12504c9c5faac1493170261bddf68f29239c01c0ac"
+    },
+    {
+      "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-run.mjs",
+      "path": "sources/tauri/scripts/native-perf-run.mjs.gz",
+      "originalBytes": 61173,
+      "originalSha256": "e541faa58c3b99a075506f82ccc248ff3ce833964a0258947c635b9cad748cb9",
+      "archiveBytes": 17863,
+      "archiveSha256": "81b86e66e655a232d3521ee2bde4849760d3e6f99548bdff1715692a44e541cf"
+    },
+    {
+      "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-memory.test.mjs",
+      "path": "sources/tauri/scripts/native-perf-memory.test.mjs.gz",
+      "originalBytes": 25257,
+      "originalSha256": "040dac00bb8e02570b9a502e82440dc28f0888e5be53fde655df3a6383673563",
+      "archiveBytes": 6155,
+      "archiveSha256": "8b47292e5c817c8dda420e76fd2709d99b586688e638317f240b6ad43ccc2688"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\diff-check.receipt.json",
+      "path": "raw/diff-check.receipt.json.gz",
+      "originalBytes": 279,
+      "originalSha256": "de4f18ba8980d038d542f0db70633ac72ddf91e9807068a2d11537775e1a8146",
+      "archiveBytes": 216,
+      "archiveSha256": "e1f5b3faf28d1ee6f16ef03fe5a0e5d64c5d3ce457baf323def33fea24bc9126"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\diff-check.stderr.log",
+      "path": "raw/diff-check.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\diff-check.stdout.log",
+      "path": "raw/diff-check.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\doc-boundary.receipt.json",
+      "path": "raw/doc-boundary.receipt.json.gz",
+      "originalBytes": 216,
+      "originalSha256": "b579d09f027091e9ccd475fecf832140bcc1a70316667c4f1674ae3a4ba098df",
+      "archiveBytes": 187,
+      "archiveSha256": "b699e3cc1dd8145df3704358885698e356b40ea30c39db37f899ab9952bff0b0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\doc-boundary.stderr.log",
+      "path": "raw/doc-boundary.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\doc-boundary.stdout.log",
+      "path": "raw/doc-boundary.stdout.log.gz",
+      "originalBytes": 93,
+      "originalSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "archiveBytes": 110,
+      "archiveSha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-doc-review.json",
+      "path": "raw/final-doc-review.json.gz",
+      "originalBytes": 689,
+      "originalSha256": "cc6f0a0e28791f189f0dc3508f92116e49bdc07c70d260e0ccff76d566b8cf4b",
+      "archiveBytes": 412,
+      "archiveSha256": "86552f337c207ed15d807aa620db5c7aacc9b35984e397b32ade708031d36c78"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-format-corrected.receipt.json",
+      "path": "raw/final-format-corrected.receipt.json.gz",
+      "originalBytes": 440,
+      "originalSha256": "d3b1655adfe8f77780302cc5fd4283c484b163be982d3c68767686f1a517d9a1",
+      "archiveBytes": 260,
+      "archiveSha256": "4ed80d8ba483446eeb60d34a21d4240d0f148d515099a88a688eaf3a914b0c94"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-format-corrected.stderr.log",
+      "path": "raw/final-format-corrected.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-format-corrected.stdout.log",
+      "path": "raw/final-format-corrected.stdout.log.gz",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "archiveBytes": 82,
+      "archiveSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-format.receipt.json",
+      "path": "raw/final-format.receipt.json.gz",
+      "originalBytes": 456,
+      "originalSha256": "50d9f4d979c902ea1811f8ec74c0c7205d0766a2a48ccc1702eab47106074fc2",
+      "archiveBytes": 268,
+      "archiveSha256": "45c14e1dd60297016e742988fbed678968b95878443ffeca07f8a0fb30ee8aba"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-format.stderr.log",
+      "path": "raw/final-format.stderr.log.gz",
+      "originalBytes": 221,
+      "originalSha256": "4b7346e9cfa4890f778f281ba01ef06a14edb8410baee97d2fb22ff52e8db297",
+      "archiveBytes": 149,
+      "archiveSha256": "9e9ab7ff7fe2ba3ad3dc7daed31e996866237f7ed6e1ce084376b4341b3c247c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\final-format.stdout.log",
+      "path": "raw/final-format.stdout.log.gz",
+      "originalBytes": 23,
+      "originalSha256": "ebe82dad128d5e5d8936334ceac09492f3c60bd9e0b4a16cc7fd7075513b33de",
+      "archiveBytes": 41,
+      "archiveSha256": "e2feb428c4397c3ec024bf940a7b81a5e61469ac25d8cff2823015552f6771cc"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\json-format-fix.receipt.json",
+      "path": "raw/json-format-fix.receipt.json.gz",
+      "originalBytes": 360,
+      "originalSha256": "2122d0dffbcbfbd2054d3ac4af4bc5673d8eaa8f8b4732903e877aae5ced3989",
+      "archiveBytes": 227,
+      "archiveSha256": "d4b8f2d97883cb50865b68effd489ee53220296b728abcd3838242730cabc5c4"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\json-format-fix.stderr.log",
+      "path": "raw/json-format-fix.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\json-format-fix.stdout.log",
+      "path": "raw/json-format-fix.stdout.log.gz",
+      "originalBytes": 140,
+      "originalSha256": "9639d027b2f85902f79009ec5d852edf5d9961dbabe98e790713061f28ef73cb",
+      "archiveBytes": 100,
+      "archiveSha256": "25d375dbdaee0b018f8d8f96dd7ba4787130740e66cb2f3b73c7ff1058845810"
+    }
+  ]
+}

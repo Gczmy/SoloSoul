@@ -1,0 +1,4885 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "phase": "Windows public PDF bounded structural and child-frame diagnostic",
+  "at": "2026-10-05T15:13:09.200460+00:00",
+  "baselineHead": "749f1b254dfa98b6f0348b5f7246e65b1bf5004b",
+  "stageAccepted": true,
+  "wholeTaskComplete": false,
+  "diagnosticOnly": true,
+  "renderVerified": false,
+  "performanceMetrics": null,
+  "build": {
+    "at": "2026-10-05T15:01:40.395740+00:00",
+    "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\bin\\solo_soul.exe",
+    "bytes": 102593024,
+    "sha256": "1035877c42f6f65437159519de5d360255dbe942b79094532ee2462a22f73d8f",
+    "frozenInputsUnchanged": 448,
+    "resourcesUnchanged": 94,
+    "markers": [
+      "--native-perf-media-prepare",
+      "windows-native-sdk-media-journey-requested",
+      "windows-native-sdk-pdf-diagnostic-requested",
+      "windows-native-sdk-pdf-target-diagnostic-requested",
+      "windows-native-sdk-pdf-component-diagnostic-requested",
+      "windows-native-sdk-pdf-structure-diagnostic-requested",
+      "windows-native-sdk-startup-requested"
+    ],
+    "previousPdfBuildsPreserved": true
+  },
+  "release": {
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--bin",
+      "solo_soul"
+    ],
+    "pid": 26276,
+    "exitCode": 0,
+    "elapsedSeconds": 1036.663406610489,
+    "finishedAt": "2026-10-05T15:01:21.558952+00:00"
+  },
+  "run": {
+    "command": [
+      "node",
+      "scripts/native-perf-pdf-diagnostic.mjs",
+      "--exe",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\bin\\solo_soul.exe",
+      "--fixture",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+      "--output",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100",
+      "--samples",
+      "3"
+    ],
+    "pid": 42612,
+    "exitCode": 0,
+    "elapsedSeconds": 154.23726797103882,
+    "finishedAt": "2026-10-05T15:10:04.910164+00:00"
+  },
+  "checks": {
+    "depth-js-format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "scripts/native-perf-pdf-structure-contract.mjs",
+        "scripts/native-perf-pdf.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.668825626373291,
+      "finishedAt": "2026-10-05T14:37:35.907928+00:00"
+    },
+    "final-structure-diff-check": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 8832,
+      "exitCode": 0,
+      "elapsedSeconds": 0.18776416778564453,
+      "finishedAt": "2026-10-05T14:40:19.348199+00:00"
+    },
+    "final-structure-fmt-check": {
+      "command": ["cargo", "+1.99.0", "fmt", "--all", "--", "--check"],
+      "pid": 30892,
+      "exitCode": 0,
+      "elapsedSeconds": 4.403082609176636,
+      "finishedAt": "2026-10-05T14:39:45.397608+00:00"
+    },
+    "final-structure-fmt-write": {
+      "command": ["cargo", "+1.99.0", "fmt", "--all"],
+      "pid": 42192,
+      "exitCode": 0,
+      "elapsedSeconds": 4.397116422653198,
+      "finishedAt": "2026-10-05T14:35:02.326832+00:00"
+    },
+    "final-structure-js-format-check": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/native-perf-sdk-journey.mjs",
+        "scripts/native-perf-pdf-contract.mjs",
+        "scripts/native-perf-pdf-structure-contract.mjs",
+        "scripts/native-perf-pdf-diagnostic.mjs",
+        "scripts/native-perf-pdf.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "src-tauri/src/native_perf/sdk_pdf_dom.js",
+        "src-tauri/src/native_perf/sdk_pdf_viewer.js"
+      ],
+      "pid": 21280,
+      "exitCode": 0,
+      "elapsedSeconds": 0.6318814754486084,
+      "finishedAt": "2026-10-05T14:40:19.158746+00:00"
+    },
+    "final-structure-js-format-write": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "scripts/native-perf-sdk-journey.mjs",
+        "scripts/native-perf-pdf-contract.mjs",
+        "scripts/native-perf-pdf-structure-contract.mjs",
+        "scripts/native-perf-pdf-diagnostic.mjs",
+        "scripts/native-perf-pdf.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "src-tauri/src/native_perf/sdk_pdf_dom.js",
+        "src-tauri/src/native_perf/sdk_pdf_viewer.js"
+      ],
+      "pid": 9340,
+      "exitCode": 0,
+      "elapsedSeconds": 0.8439121246337891,
+      "finishedAt": "2026-10-05T14:35:03.173649+00:00"
+    },
+    "final-structure-native-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 40456,
+      "exitCode": 0,
+      "elapsedSeconds": 35.713388204574585,
+      "finishedAt": "2026-10-05T14:39:40.993447+00:00"
+    },
+    "final-structure-native-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf",
+        "--",
+        "--test-threads=1"
+      ],
+      "pid": 30300,
+      "exitCode": 0,
+      "elapsedSeconds": 242.09793782234192,
+      "finishedAt": "2026-10-05T14:39:05.272937+00:00"
+    },
+    "final-structure-node-tests": {
+      "command": ["node", "scripts/run-node-tests.mjs"],
+      "pid": 28860,
+      "exitCode": 0,
+      "elapsedSeconds": 33.12720799446106,
+      "finishedAt": "2026-10-05T14:40:18.525703+00:00"
+    }
+  },
+  "checkTotals": {
+    "nativePassed": 84,
+    "nativeFailed": 0,
+    "nodeTotal": 192,
+    "nodePassed": 191,
+    "nodeFailed": 0,
+    "nodeExistingSymlinkPermissionSkip": 1
+  },
+  "legacyProofReview": {
+    "at": "2026-10-05T14:37:36.848Z",
+    "scope": "Actual archived v1, v2 and v3 native proofs checked by current v4-aware offline contract",
+    "accepted": [
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-20261005/samples100-final/native-perf-sdk-journey-results.json",
+        "index": 1,
+        "schemaVersion": 1,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-20261005/samples100-final/native-perf-sdk-journey-results.json",
+        "index": 2,
+        "schemaVersion": 1,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-20261005/samples100-final/native-perf-sdk-journey-results.json",
+        "index": 3,
+        "schemaVersion": 1,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-targets-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 1,
+        "schemaVersion": 2,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-targets-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 2,
+        "schemaVersion": 2,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-targets-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 3,
+        "schemaVersion": 2,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-component-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 1,
+        "schemaVersion": 3,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-component-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 2,
+        "schemaVersion": 3,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-component-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 3,
+        "schemaVersion": 3,
+        "renderVerified": false,
+        "performanceMetrics": null
+      }
+    ]
+  },
+  "actualReview": {
+    "at": "2026-10-05T15:11:28.892980+00:00",
+    "success": true,
+    "sourceUnchanged": true,
+    "publicFilesUnchanged": 171,
+    "frozenInputsUnchanged": 448,
+    "resourcesUnchanged": 94,
+    "oldPdfBuildsPreserved": true,
+    "ownedAttachmentCiphertextsUnchanged": [
+      {
+        "index": 1,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+            "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+            "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+            "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+            "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+            "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+            "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+            "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+            "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+            "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+            "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+            "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+            "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+          }
+        ]
+      }
+    ],
+    "diagnosticOnly": true,
+    "renderVerified": false,
+    "performanceMetrics": null,
+    "summary": [],
+    "samples": [
+      {
+        "index": 1,
+        "success": true,
+        "reason": null,
+        "targetDiagnostic": {
+          "autoAttachCleaned": true,
+          "candidates": [
+            {
+              "frame": {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  },
+                  {
+                    "id": "12FA3E8D951E4F5FA3BD41EB59B1C567",
+                    "loaderId": "4813319AB7B374BC308C99A33FD2C058",
+                    "parentId": "90DD73E8927AF827807C00F6888CD243",
+                    "urlClass": "blank"
+                  }
+                ]
+              },
+              "observedAtMs": 12547.6299,
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899805.4,
+                "viewerPresent": false
+              },
+              "targetId": "90DD73E8927AF827807C00F6888CD243"
+            },
+            {
+              "frame": {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                    "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                    "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 12849.035300000001,
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 21,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899919.2,
+                "viewerPresent": false
+              },
+              "targetId": "0A8A4880D26C973A8807BBFB3CF640EA"
+            },
+            {
+              "frame": {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 12852.2507,
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899805.4,
+                "viewerPresent": false
+              },
+              "targetId": "90DD73E8927AF827807C00F6888CD243"
+            },
+            {
+              "frame": {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                    "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                    "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 13664.4396,
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 1,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": ["edge-toast-notification"],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 1,
+                  "scannedElements": 159,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899919.2,
+                "viewerPresent": false
+              },
+              "targetId": "0A8A4880D26C973A8807BBFB3CF640EA"
+            },
+            {
+              "frame": {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 13667.0059,
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899805.4,
+                "viewerPresent": false
+              },
+              "targetId": "90DD73E8927AF827807C00F6888CD243"
+            },
+            {
+              "frame": {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                    "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                    "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 15452.7886,
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 1,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": ["edge-toast-notification"],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 1,
+                  "scannedElements": 159,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899919.2,
+                "viewerPresent": false
+              },
+              "targetId": "0A8A4880D26C973A8807BBFB3CF640EA"
+            },
+            {
+              "frame": {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "90DD73E8927AF827807C00F6888CD243",
+                    "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 15456.492600000001,
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212899805.4,
+                "viewerPresent": false
+              },
+              "targetId": "90DD73E8927AF827807C00F6888CD243"
+            }
+          ],
+          "componentAttachment": {
+            "beforeSnapshotIndex": 1,
+            "browserContextVerified": true,
+            "detachMode": "explicit-reply",
+            "detached": true,
+            "parentVerified": true,
+            "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+            "target": {
+              "attached": false,
+              "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+              "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+              "openerId": null,
+              "parentFrameId": null,
+              "parentId": "41297DFD0C035FEC11650BE62895B925",
+              "type": "webview",
+              "urlClass": "component-extension"
+            }
+          },
+          "eventCount": 5,
+          "mainTarget": {
+            "attached": true,
+            "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+            "id": "41297DFD0C035FEC11650BE62895B925",
+            "openerId": null,
+            "parentFrameId": null,
+            "parentId": null,
+            "type": "page",
+            "urlClass": "application"
+          },
+          "relatedSessions": [
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+              "target": {
+                "attached": true,
+                "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "openerId": null,
+                "parentFrameId": null,
+                "parentId": "41297DFD0C035FEC11650BE62895B925",
+                "type": "webview",
+                "urlClass": "component-extension"
+              }
+            },
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+              "target": {
+                "attached": true,
+                "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "openerId": null,
+                "parentFrameId": "41297DFD0C035FEC11650BE62895B925",
+                "parentId": "41297DFD0C035FEC11650BE62895B925",
+                "type": "iframe",
+                "urlClass": "owned-pdf"
+              }
+            }
+          ],
+          "schemaVersion": 3,
+          "scope": "windows-native-sdk-pdf-related-targets",
+          "sessionCalls": [
+            {
+              "method": "Runtime.enable",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Runtime.enable",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B"
+            }
+          ],
+          "snapshots": [
+            {
+              "mainVerified": true,
+              "snapshotIndex": 0,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "41297DFD0C035FEC11650BE62895B925",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "90DD73E8927AF827807C00F6888CD243",
+                  "openerId": null,
+                  "parentFrameId": "41297DFD0C035FEC11650BE62895B925",
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 1,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "41297DFD0C035FEC11650BE62895B925",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "90DD73E8927AF827807C00F6888CD243",
+                  "openerId": null,
+                  "parentFrameId": "41297DFD0C035FEC11650BE62895B925",
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": false,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "515D1DA4B12907947ABC9864DB1647F8",
+                  "openerId": null,
+                  "parentFrameId": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "parentId": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 2,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "41297DFD0C035FEC11650BE62895B925",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "90DD73E8927AF827807C00F6888CD243",
+                  "openerId": null,
+                  "parentFrameId": "41297DFD0C035FEC11650BE62895B925",
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "515D1DA4B12907947ABC9864DB1647F8",
+                  "openerId": null,
+                  "parentFrameId": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "parentId": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 3,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "41297DFD0C035FEC11650BE62895B925",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "90DD73E8927AF827807C00F6888CD243",
+                  "openerId": null,
+                  "parentFrameId": "41297DFD0C035FEC11650BE62895B925",
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "41297DFD0C035FEC11650BE62895B925",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+                  "id": "515D1DA4B12907947ABC9864DB1647F8",
+                  "openerId": null,
+                  "parentFrameId": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "parentId": "0A8A4880D26C973A8807BBFB3CF640EA",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            }
+          ],
+          "watcherCleaned": true
+        }
+      },
+      {
+        "index": 2,
+        "success": true,
+        "reason": null,
+        "targetDiagnostic": {
+          "autoAttachCleaned": true,
+          "candidates": [
+            {
+              "frame": {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "ECDC00F19B55A8070F99189916441AD1",
+                    "loaderId": "6A064F33D4EC680159301829865D25E4",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  },
+                  {
+                    "id": "52F6D860C677C53EA25C5614D8149202",
+                    "loaderId": "2405C3DD905C2FF8A9E9C595C5CA951A",
+                    "parentId": "ECDC00F19B55A8070F99189916441AD1",
+                    "urlClass": "other"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "ECDC00F19B55A8070F99189916441AD1",
+                    "loaderId": "6A064F33D4EC680159301829865D25E4",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  },
+                  {
+                    "id": "52F6D860C677C53EA25C5614D8149202",
+                    "loaderId": "2405C3DD905C2FF8A9E9C595C5CA951A",
+                    "parentId": "ECDC00F19B55A8070F99189916441AD1",
+                    "urlClass": "other"
+                  }
+                ]
+              },
+              "observedAtMs": 10142.2734,
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 19,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212947762.4,
+                "viewerPresent": false
+              },
+              "targetId": "ECDC00F19B55A8070F99189916441AD1"
+            },
+            {
+              "frame": {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "70D476260B66034ED35FCD78033DFF52",
+                    "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "70D476260B66034ED35FCD78033DFF52",
+                    "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 10148.2686,
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212947527.6,
+                "viewerPresent": false
+              },
+              "targetId": "70D476260B66034ED35FCD78033DFF52"
+            },
+            {
+              "frame": {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "ECDC00F19B55A8070F99189916441AD1",
+                    "loaderId": "6A064F33D4EC680159301829865D25E4",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "ECDC00F19B55A8070F99189916441AD1",
+                    "loaderId": "6A064F33D4EC680159301829865D25E4",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 10934.7819,
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 1,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": ["edge-toast-notification"],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 1,
+                  "scannedElements": 159,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212947762.4,
+                "viewerPresent": false
+              },
+              "targetId": "ECDC00F19B55A8070F99189916441AD1"
+            },
+            {
+              "frame": {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "70D476260B66034ED35FCD78033DFF52",
+                    "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "70D476260B66034ED35FCD78033DFF52",
+                    "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 10936.8324,
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212947527.6,
+                "viewerPresent": false
+              },
+              "targetId": "70D476260B66034ED35FCD78033DFF52"
+            },
+            {
+              "frame": {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "ECDC00F19B55A8070F99189916441AD1",
+                    "loaderId": "6A064F33D4EC680159301829865D25E4",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "ECDC00F19B55A8070F99189916441AD1",
+                    "loaderId": "6A064F33D4EC680159301829865D25E4",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 12731.2896,
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 1,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": ["edge-toast-notification"],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 1,
+                  "scannedElements": 159,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212947762.4,
+                "viewerPresent": false
+              },
+              "targetId": "ECDC00F19B55A8070F99189916441AD1"
+            },
+            {
+              "frame": {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "70D476260B66034ED35FCD78033DFF52",
+                    "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "70D476260B66034ED35FCD78033DFF52",
+                    "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 12733.8276,
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212947527.6,
+                "viewerPresent": false
+              },
+              "targetId": "70D476260B66034ED35FCD78033DFF52"
+            }
+          ],
+          "componentAttachment": {
+            "beforeSnapshotIndex": 1,
+            "browserContextVerified": true,
+            "detachMode": "explicit-reply",
+            "detached": true,
+            "parentVerified": true,
+            "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+            "target": {
+              "attached": false,
+              "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+              "id": "ECDC00F19B55A8070F99189916441AD1",
+              "openerId": null,
+              "parentFrameId": null,
+              "parentId": "13ECE366F736323E823350CB570C58FC",
+              "type": "webview",
+              "urlClass": "component-extension"
+            }
+          },
+          "eventCount": 5,
+          "mainTarget": {
+            "attached": true,
+            "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+            "id": "13ECE366F736323E823350CB570C58FC",
+            "openerId": null,
+            "parentFrameId": null,
+            "parentId": null,
+            "type": "page",
+            "urlClass": "application"
+          },
+          "relatedSessions": [
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+              "target": {
+                "attached": true,
+                "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "openerId": null,
+                "parentFrameId": null,
+                "parentId": "13ECE366F736323E823350CB570C58FC",
+                "type": "webview",
+                "urlClass": "component-extension"
+              }
+            },
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+              "target": {
+                "attached": true,
+                "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "openerId": null,
+                "parentFrameId": "13ECE366F736323E823350CB570C58FC",
+                "parentId": "13ECE366F736323E823350CB570C58FC",
+                "type": "iframe",
+                "urlClass": "owned-pdf"
+              }
+            }
+          ],
+          "schemaVersion": 3,
+          "scope": "windows-native-sdk-pdf-related-targets",
+          "sessionCalls": [
+            {
+              "method": "Runtime.enable",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Runtime.enable",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F"
+            }
+          ],
+          "snapshots": [
+            {
+              "mainVerified": true,
+              "snapshotIndex": 0,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "13ECE366F736323E823350CB570C58FC",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 1,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "13ECE366F736323E823350CB570C58FC",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "70D476260B66034ED35FCD78033DFF52",
+                  "openerId": null,
+                  "parentFrameId": "13ECE366F736323E823350CB570C58FC",
+                  "parentId": "13ECE366F736323E823350CB570C58FC",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": false,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "ECDC00F19B55A8070F99189916441AD1",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "13ECE366F736323E823350CB570C58FC",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 2,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "13ECE366F736323E823350CB570C58FC",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "70D476260B66034ED35FCD78033DFF52",
+                  "openerId": null,
+                  "parentFrameId": "13ECE366F736323E823350CB570C58FC",
+                  "parentId": "13ECE366F736323E823350CB570C58FC",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "ECDC00F19B55A8070F99189916441AD1",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "13ECE366F736323E823350CB570C58FC",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "52F6D860C677C53EA25C5614D8149202",
+                  "openerId": null,
+                  "parentFrameId": "ECDC00F19B55A8070F99189916441AD1",
+                  "parentId": "ECDC00F19B55A8070F99189916441AD1",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 3,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "13ECE366F736323E823350CB570C58FC",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "70D476260B66034ED35FCD78033DFF52",
+                  "openerId": null,
+                  "parentFrameId": "13ECE366F736323E823350CB570C58FC",
+                  "parentId": "13ECE366F736323E823350CB570C58FC",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "ECDC00F19B55A8070F99189916441AD1",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "13ECE366F736323E823350CB570C58FC",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+                  "id": "52F6D860C677C53EA25C5614D8149202",
+                  "openerId": null,
+                  "parentFrameId": "ECDC00F19B55A8070F99189916441AD1",
+                  "parentId": "ECDC00F19B55A8070F99189916441AD1",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            }
+          ],
+          "watcherCleaned": true
+        }
+      },
+      {
+        "index": 3,
+        "success": true,
+        "reason": null,
+        "targetDiagnostic": {
+          "autoAttachCleaned": true,
+          "candidates": [
+            {
+              "frame": {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 10681.8238,
+              "sessionId": "B504C95844328E1677C819442B91176B",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 0,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "loading",
+                  "embeds": [],
+                  "openShadowRoots": 0,
+                  "scannedElements": 15,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990830.4,
+                "viewerPresent": false
+              },
+              "targetId": "B9975B6277A000196022CAC7CDDD480D"
+            },
+            {
+              "frame": {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 10686.9224,
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990722,
+                "viewerPresent": false
+              },
+              "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+            },
+            {
+              "frame": {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 11145.4921,
+              "sessionId": "B504C95844328E1677C819442B91176B",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 21,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990830.4,
+                "viewerPresent": false
+              },
+              "targetId": "B9975B6277A000196022CAC7CDDD480D"
+            },
+            {
+              "frame": {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 11148.5518,
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990722,
+                "viewerPresent": false
+              },
+              "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+            },
+            {
+              "frame": {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 11924.5597,
+              "sessionId": "B504C95844328E1677C819442B91176B",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 1,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": ["edge-toast-notification"],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 1,
+                  "scannedElements": 159,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990830.4,
+                "viewerPresent": false
+              },
+              "targetId": "B9975B6277A000196022CAC7CDDD480D"
+            },
+            {
+              "frame": {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 11926.821499999998,
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990722,
+                "viewerPresent": false
+              },
+              "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+            },
+            {
+              "frame": {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "urlClass": "component-extension"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "B9975B6277A000196022CAC7CDDD480D",
+                    "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                    "parentId": null,
+                    "urlClass": "component-extension"
+                  }
+                ]
+              },
+              "observedAtMs": 13704.8691,
+              "sessionId": "B504C95844328E1677C819442B91176B",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 1,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": ["edge-toast-notification"],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 604,
+                      "kind": "embed",
+                      "sourceClass": "component-extension",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 1,
+                  "scannedElements": 159,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990830.4,
+                "viewerPresent": false
+              },
+              "targetId": "B9975B6277A000196022CAC7CDDD480D"
+            },
+            {
+              "frame": {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "urlClass": "owned-pdf"
+              },
+              "frameTrees": {
+                "after": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ],
+                "before": [
+                  {
+                    "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                    "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                    "parentId": null,
+                    "urlClass": "owned-pdf"
+                  }
+                ]
+              },
+              "observedAtMs": 13707.165099999998,
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 2,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "structure": {
+                  "canvases": [],
+                  "counts": {
+                    "canvas": 0,
+                    "customElements": 0,
+                    "embed": 1,
+                    "iframe": 0,
+                    "object": 0,
+                    "pdfViewer": 0
+                  },
+                  "customTags": [],
+                  "documentReadyState": "complete",
+                  "embeds": [
+                    {
+                      "height": 645,
+                      "kind": "embed",
+                      "sourceClass": "blank",
+                      "visible": true,
+                      "width": 980
+                    }
+                  ],
+                  "openShadowRoots": 0,
+                  "scannedElements": 4,
+                  "schemaVersion": 1,
+                  "scope": "windows-native-sdk-pdf-structure",
+                  "truncated": false,
+                  "visibilityState": "visible"
+                },
+                "timeOriginMs": 1791212990722,
+                "viewerPresent": false
+              },
+              "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+            }
+          ],
+          "componentAttachment": {
+            "beforeSnapshotIndex": 0,
+            "browserContextVerified": true,
+            "detachMode": "explicit-reply",
+            "detached": true,
+            "parentVerified": true,
+            "sessionId": "B504C95844328E1677C819442B91176B",
+            "target": {
+              "attached": false,
+              "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+              "id": "B9975B6277A000196022CAC7CDDD480D",
+              "openerId": null,
+              "parentFrameId": null,
+              "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+              "type": "webview",
+              "urlClass": "component-extension"
+            }
+          },
+          "eventCount": 5,
+          "mainTarget": {
+            "attached": true,
+            "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+            "id": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+            "openerId": null,
+            "parentFrameId": null,
+            "parentId": null,
+            "type": "page",
+            "urlClass": "application"
+          },
+          "relatedSessions": [
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+              "target": {
+                "attached": true,
+                "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "openerId": null,
+                "parentFrameId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                "type": "iframe",
+                "urlClass": "owned-pdf"
+              }
+            },
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "B504C95844328E1677C819442B91176B",
+              "target": {
+                "attached": true,
+                "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "openerId": null,
+                "parentFrameId": null,
+                "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                "type": "webview",
+                "urlClass": "component-extension"
+              }
+            }
+          ],
+          "schemaVersion": 3,
+          "scope": "windows-native-sdk-pdf-related-targets",
+          "sessionCalls": [
+            {
+              "method": "Runtime.enable",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Runtime.enable",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B504C95844328E1677C819442B91176B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB"
+            }
+          ],
+          "snapshots": [
+            {
+              "mainVerified": true,
+              "snapshotIndex": 0,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                  "openerId": null,
+                  "parentFrameId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": false,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "B9975B6277A000196022CAC7CDDD480D",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 1,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                  "openerId": null,
+                  "parentFrameId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "B9975B6277A000196022CAC7CDDD480D",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "CC08E5FAE68A4E0DEB842FBB944E5FB8",
+                  "openerId": null,
+                  "parentFrameId": "B9975B6277A000196022CAC7CDDD480D",
+                  "parentId": "B9975B6277A000196022CAC7CDDD480D",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 2,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                  "openerId": null,
+                  "parentFrameId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "B9975B6277A000196022CAC7CDDD480D",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "CC08E5FAE68A4E0DEB842FBB944E5FB8",
+                  "openerId": null,
+                  "parentFrameId": "B9975B6277A000196022CAC7CDDD480D",
+                  "parentId": "B9975B6277A000196022CAC7CDDD480D",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 3,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                  "openerId": null,
+                  "parentFrameId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "B9975B6277A000196022CAC7CDDD480D",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+                  "id": "CC08E5FAE68A4E0DEB842FBB944E5FB8",
+                  "openerId": null,
+                  "parentFrameId": "B9975B6277A000196022CAC7CDDD480D",
+                  "parentId": "B9975B6277A000196022CAC7CDDD480D",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            }
+          ],
+          "watcherCleaned": true
+        }
+      }
+    ]
+  },
+  "samples": [
+    {
+      "index": 1,
+      "sdkCalls": 103,
+      "sessionCalls": 30,
+      "openingStartedAtMs": 12404.7053,
+      "wholeDiagnosticElapsedMs": 15667.800299999999,
+      "componentAttachment": {
+        "beforeSnapshotIndex": 1,
+        "browserContextVerified": true,
+        "detachMode": "explicit-reply",
+        "detached": true,
+        "parentVerified": true,
+        "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+        "target": {
+          "attached": false,
+          "browserContextId": "3168E90B3E9916C257EC9104F95E956D",
+          "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+          "openerId": null,
+          "parentFrameId": null,
+          "parentId": "41297DFD0C035FEC11650BE62895B925",
+          "type": "webview",
+          "urlClass": "component-extension"
+        }
+      },
+      "componentCandidates": [
+        {
+          "frame": {
+            "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+            "loaderId": "9FC92F529018DFD138BC6547768786AB",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 12849.035300000001,
+          "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 21,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899919.2,
+            "viewerPresent": false
+          },
+          "targetId": "0A8A4880D26C973A8807BBFB3CF640EA"
+        },
+        {
+          "frame": {
+            "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+            "loaderId": "9FC92F529018DFD138BC6547768786AB",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 13664.4396,
+          "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 1,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": ["edge-toast-notification"],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 1,
+              "scannedElements": 159,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899919.2,
+            "viewerPresent": false
+          },
+          "targetId": "0A8A4880D26C973A8807BBFB3CF640EA"
+        },
+        {
+          "frame": {
+            "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+            "loaderId": "9FC92F529018DFD138BC6547768786AB",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "0A8A4880D26C973A8807BBFB3CF640EA",
+                "loaderId": "9FC92F529018DFD138BC6547768786AB",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 15452.7886,
+          "sessionId": "2780D99D5E340C07BF5A87B3D84BF9F4",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 1,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": ["edge-toast-notification"],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 1,
+              "scannedElements": 159,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899919.2,
+            "viewerPresent": false
+          },
+          "targetId": "0A8A4880D26C973A8807BBFB3CF640EA"
+        }
+      ],
+      "otherCandidates": [
+        {
+          "frame": {
+            "id": "90DD73E8927AF827807C00F6888CD243",
+            "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              },
+              {
+                "id": "12FA3E8D951E4F5FA3BD41EB59B1C567",
+                "loaderId": "4813319AB7B374BC308C99A33FD2C058",
+                "parentId": "90DD73E8927AF827807C00F6888CD243",
+                "urlClass": "blank"
+              }
+            ]
+          },
+          "observedAtMs": 12547.6299,
+          "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899805.4,
+            "viewerPresent": false
+          },
+          "targetId": "90DD73E8927AF827807C00F6888CD243"
+        },
+        {
+          "frame": {
+            "id": "90DD73E8927AF827807C00F6888CD243",
+            "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 12852.2507,
+          "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899805.4,
+            "viewerPresent": false
+          },
+          "targetId": "90DD73E8927AF827807C00F6888CD243"
+        },
+        {
+          "frame": {
+            "id": "90DD73E8927AF827807C00F6888CD243",
+            "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 13667.0059,
+          "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899805.4,
+            "viewerPresent": false
+          },
+          "targetId": "90DD73E8927AF827807C00F6888CD243"
+        },
+        {
+          "frame": {
+            "id": "90DD73E8927AF827807C00F6888CD243",
+            "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "90DD73E8927AF827807C00F6888CD243",
+                "loaderId": "58ED5ABC07942FF93E665C87746BB760",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 15456.492600000001,
+          "sessionId": "F3C4DFD687C9B8CF262FDEDC006C935B",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212899805.4,
+            "viewerPresent": false
+          },
+          "targetId": "90DD73E8927AF827807C00F6888CD243"
+        }
+      ],
+      "targetCounts": [2, 4, 4, 4],
+      "eventCount": 5,
+      "mainVerifiedAfterClose": true,
+      "autoAttachCleaned": true,
+      "watcherCleaned": true,
+      "contextWatchCleaned": true,
+      "screenshot": {
+        "bytes": 34024,
+        "fileName": "native-perf-sdk-pdf-screenshot.png",
+        "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+        "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      }
+    },
+    {
+      "index": 2,
+      "sdkCalls": 99,
+      "sessionCalls": 26,
+      "openingStartedAtMs": 9724.5822,
+      "wholeDiagnosticElapsedMs": 12946.112299999999,
+      "componentAttachment": {
+        "beforeSnapshotIndex": 1,
+        "browserContextVerified": true,
+        "detachMode": "explicit-reply",
+        "detached": true,
+        "parentVerified": true,
+        "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+        "target": {
+          "attached": false,
+          "browserContextId": "FB35F99A7948CCD78E5CB1B3108C34AB",
+          "id": "ECDC00F19B55A8070F99189916441AD1",
+          "openerId": null,
+          "parentFrameId": null,
+          "parentId": "13ECE366F736323E823350CB570C58FC",
+          "type": "webview",
+          "urlClass": "component-extension"
+        }
+      },
+      "componentCandidates": [
+        {
+          "frame": {
+            "id": "ECDC00F19B55A8070F99189916441AD1",
+            "loaderId": "6A064F33D4EC680159301829865D25E4",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "parentId": null,
+                "urlClass": "component-extension"
+              },
+              {
+                "id": "52F6D860C677C53EA25C5614D8149202",
+                "loaderId": "2405C3DD905C2FF8A9E9C595C5CA951A",
+                "parentId": "ECDC00F19B55A8070F99189916441AD1",
+                "urlClass": "other"
+              }
+            ],
+            "before": [
+              {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "parentId": null,
+                "urlClass": "component-extension"
+              },
+              {
+                "id": "52F6D860C677C53EA25C5614D8149202",
+                "loaderId": "2405C3DD905C2FF8A9E9C595C5CA951A",
+                "parentId": "ECDC00F19B55A8070F99189916441AD1",
+                "urlClass": "other"
+              }
+            ]
+          },
+          "observedAtMs": 10142.2734,
+          "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 19,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212947762.4,
+            "viewerPresent": false
+          },
+          "targetId": "ECDC00F19B55A8070F99189916441AD1"
+        },
+        {
+          "frame": {
+            "id": "ECDC00F19B55A8070F99189916441AD1",
+            "loaderId": "6A064F33D4EC680159301829865D25E4",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 10934.7819,
+          "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 1,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": ["edge-toast-notification"],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 1,
+              "scannedElements": 159,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212947762.4,
+            "viewerPresent": false
+          },
+          "targetId": "ECDC00F19B55A8070F99189916441AD1"
+        },
+        {
+          "frame": {
+            "id": "ECDC00F19B55A8070F99189916441AD1",
+            "loaderId": "6A064F33D4EC680159301829865D25E4",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "ECDC00F19B55A8070F99189916441AD1",
+                "loaderId": "6A064F33D4EC680159301829865D25E4",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 12731.2896,
+          "sessionId": "09C641E894B7EF1AE7083D3A3822A0E8",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 1,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": ["edge-toast-notification"],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 1,
+              "scannedElements": 159,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212947762.4,
+            "viewerPresent": false
+          },
+          "targetId": "ECDC00F19B55A8070F99189916441AD1"
+        }
+      ],
+      "otherCandidates": [
+        {
+          "frame": {
+            "id": "70D476260B66034ED35FCD78033DFF52",
+            "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 10148.2686,
+          "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212947527.6,
+            "viewerPresent": false
+          },
+          "targetId": "70D476260B66034ED35FCD78033DFF52"
+        },
+        {
+          "frame": {
+            "id": "70D476260B66034ED35FCD78033DFF52",
+            "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 10936.8324,
+          "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212947527.6,
+            "viewerPresent": false
+          },
+          "targetId": "70D476260B66034ED35FCD78033DFF52"
+        },
+        {
+          "frame": {
+            "id": "70D476260B66034ED35FCD78033DFF52",
+            "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "70D476260B66034ED35FCD78033DFF52",
+                "loaderId": "2DD8AFCF93460A898ADD9F0D7138639F",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 12733.8276,
+          "sessionId": "A3D254FB3CF652B9ABFD3137169C2F0F",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212947527.6,
+            "viewerPresent": false
+          },
+          "targetId": "70D476260B66034ED35FCD78033DFF52"
+        }
+      ],
+      "targetCounts": [1, 3, 4, 4],
+      "eventCount": 5,
+      "mainVerifiedAfterClose": true,
+      "autoAttachCleaned": true,
+      "watcherCleaned": true,
+      "contextWatchCleaned": true,
+      "screenshot": {
+        "bytes": 34024,
+        "fileName": "native-perf-sdk-pdf-screenshot.png",
+        "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+        "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      }
+    },
+    {
+      "index": 3,
+      "sdkCalls": 107,
+      "sessionCalls": 34,
+      "openingStartedAtMs": 10460.9033,
+      "wholeDiagnosticElapsedMs": 13905.248,
+      "componentAttachment": {
+        "beforeSnapshotIndex": 0,
+        "browserContextVerified": true,
+        "detachMode": "explicit-reply",
+        "detached": true,
+        "parentVerified": true,
+        "sessionId": "B504C95844328E1677C819442B91176B",
+        "target": {
+          "attached": false,
+          "browserContextId": "D07FA2506663A92860FB5ADF4609BD07",
+          "id": "B9975B6277A000196022CAC7CDDD480D",
+          "openerId": null,
+          "parentFrameId": null,
+          "parentId": "A9E2CA53D4C3070E835DE894CFC1C7D2",
+          "type": "webview",
+          "urlClass": "component-extension"
+        }
+      },
+      "componentCandidates": [
+        {
+          "frame": {
+            "id": "B9975B6277A000196022CAC7CDDD480D",
+            "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 10681.8238,
+          "sessionId": "B504C95844328E1677C819442B91176B",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 0,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "loading",
+              "embeds": [],
+              "openShadowRoots": 0,
+              "scannedElements": 15,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990830.4,
+            "viewerPresent": false
+          },
+          "targetId": "B9975B6277A000196022CAC7CDDD480D"
+        },
+        {
+          "frame": {
+            "id": "B9975B6277A000196022CAC7CDDD480D",
+            "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 11145.4921,
+          "sessionId": "B504C95844328E1677C819442B91176B",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 21,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990830.4,
+            "viewerPresent": false
+          },
+          "targetId": "B9975B6277A000196022CAC7CDDD480D"
+        },
+        {
+          "frame": {
+            "id": "B9975B6277A000196022CAC7CDDD480D",
+            "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 11924.5597,
+          "sessionId": "B504C95844328E1677C819442B91176B",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 1,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": ["edge-toast-notification"],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 1,
+              "scannedElements": 159,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990830.4,
+            "viewerPresent": false
+          },
+          "targetId": "B9975B6277A000196022CAC7CDDD480D"
+        },
+        {
+          "frame": {
+            "id": "B9975B6277A000196022CAC7CDDD480D",
+            "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+            "urlClass": "component-extension"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ],
+            "before": [
+              {
+                "id": "B9975B6277A000196022CAC7CDDD480D",
+                "loaderId": "7620F254C6781E9A3FE06C9023843A4A",
+                "parentId": null,
+                "urlClass": "component-extension"
+              }
+            ]
+          },
+          "observedAtMs": 13704.8691,
+          "sessionId": "B504C95844328E1677C819442B91176B",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 1,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": ["edge-toast-notification"],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 604,
+                  "kind": "embed",
+                  "sourceClass": "component-extension",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 1,
+              "scannedElements": 159,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990830.4,
+            "viewerPresent": false
+          },
+          "targetId": "B9975B6277A000196022CAC7CDDD480D"
+        }
+      ],
+      "otherCandidates": [
+        {
+          "frame": {
+            "id": "10C71DAAF9533E71B1411FE53041C6CE",
+            "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 10686.9224,
+          "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990722,
+            "viewerPresent": false
+          },
+          "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+        },
+        {
+          "frame": {
+            "id": "10C71DAAF9533E71B1411FE53041C6CE",
+            "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 11148.5518,
+          "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990722,
+            "viewerPresent": false
+          },
+          "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+        },
+        {
+          "frame": {
+            "id": "10C71DAAF9533E71B1411FE53041C6CE",
+            "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 11926.821499999998,
+          "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990722,
+            "viewerPresent": false
+          },
+          "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+        },
+        {
+          "frame": {
+            "id": "10C71DAAF9533E71B1411FE53041C6CE",
+            "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+            "urlClass": "owned-pdf"
+          },
+          "frameTrees": {
+            "after": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ],
+            "before": [
+              {
+                "id": "10C71DAAF9533E71B1411FE53041C6CE",
+                "loaderId": "6D38EC3BD2CD66E3E832A2E60A693B56",
+                "parentId": null,
+                "urlClass": "owned-pdf"
+              }
+            ]
+          },
+          "observedAtMs": 13707.165099999998,
+          "sessionId": "772A9CC8D4EA6C19EB46572CC24F1ECB",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 2,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "structure": {
+              "canvases": [],
+              "counts": {
+                "canvas": 0,
+                "customElements": 0,
+                "embed": 1,
+                "iframe": 0,
+                "object": 0,
+                "pdfViewer": 0
+              },
+              "customTags": [],
+              "documentReadyState": "complete",
+              "embeds": [
+                {
+                  "height": 645,
+                  "kind": "embed",
+                  "sourceClass": "blank",
+                  "visible": true,
+                  "width": 980
+                }
+              ],
+              "openShadowRoots": 0,
+              "scannedElements": 4,
+              "schemaVersion": 1,
+              "scope": "windows-native-sdk-pdf-structure",
+              "truncated": false,
+              "visibilityState": "visible"
+            },
+            "timeOriginMs": 1791212990722,
+            "viewerPresent": false
+          },
+          "targetId": "10C71DAAF9533E71B1411FE53041C6CE"
+        }
+      ],
+      "targetCounts": [3, 4, 4, 4],
+      "eventCount": 5,
+      "mainVerifiedAfterClose": true,
+      "autoAttachCleaned": true,
+      "watcherCleaned": true,
+      "contextWatchCleaned": true,
+      "screenshot": {
+        "bytes": 34024,
+        "fileName": "native-perf-sdk-pdf-screenshot.png",
+        "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+        "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      }
+    }
+  ],
+  "cleanup": {
+    "at": "2026-10-05T15:11:46.2342250Z",
+    "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005",
+    "roots": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003"
+    ],
+    "verifiedIdentities": [
+      {
+        "pid": 35332,
+        "creationMs": 1791212883495,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 43488,
+        "creationMs": 1791212885291,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 35632,
+        "creationMs": 1791212885425,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 22888,
+        "creationMs": 1791212886170,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 42392,
+        "creationMs": 1791212885964,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 3784,
+        "creationMs": 1791212885962,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 39312,
+        "creationMs": 1791212887483,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 14676,
+        "creationMs": 1791212887481,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 5944,
+        "creationMs": 1791212886006,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 41540,
+        "creationMs": 1791212899809,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 15524,
+        "creationMs": 1791212934776,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 15820,
+        "creationMs": 1791212936311,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 29996,
+        "creationMs": 1791212937271,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 14472,
+        "creationMs": 1791212937888,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 22376,
+        "creationMs": 1791212936365,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 40340,
+        "creationMs": 1791212936905,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 41712,
+        "creationMs": 1791212937890,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 36936,
+        "creationMs": 1791212936915,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 33824,
+        "creationMs": 1791212936954,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 34332,
+        "creationMs": 1791212947610,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 26620,
+        "creationMs": 1791212977304,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 25236,
+        "creationMs": 1791212979098,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 2436,
+        "creationMs": 1791212979497,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 41964,
+        "creationMs": 1791212979500,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 23220,
+        "creationMs": 1791212980312,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 31888,
+        "creationMs": 1791212980315,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 6456,
+        "creationMs": 1791212979659,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 30068,
+        "creationMs": 1791212979148,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 42664,
+        "creationMs": 1791212979539,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 32652,
+        "creationMs": 1791212990726,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      }
+    ],
+    "removedCachePaths": [
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.a413b03828dc4e3c8a81035531f3de66",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.eb9fa950d96d4f078d73b7e308f4f2ec",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.f826a1f550064e55a6e2dd99a75d40fa",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.a413b03828dc4e3c8a81035531f3de66",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.eb9fa950d96d4f078d73b7e308f4f2ec",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.f826a1f550064e55a6e2dd99a75d40fa",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\webview"
+    ],
+    "unlinkedCacheEntries": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      }
+    ],
+    "preserved": [
+      "Vault",
+      "all proofs and reports",
+      "all EXEs and resources",
+      "source fixtures"
+    ],
+    "processesTerminated": 0,
+    "complete": true
+  },
+  "rawArchive": "rf312-windows-pdf-structure-2026-10-05/index.json",
+  "nextAction": "Implement bounded first-page pixel readiness against the verified public reference, with fixed dimensions and owned PID/document/frame/loader/source guards; repeat native measurements and record capture overhead. A complete component DOM or visible embed does not prove PDF rendering.",
+  "remaining": [
+    "PDF readiness and repeated performance",
+    "OCR native picker and first inference",
+    "intermittent home timeout",
+    "KDF/storage/React/SDK attribution",
+    "Windows system sleep",
+    "multi-platform native performance",
+    "RF-121 Windows composition/recovery"
+  ],
+  "taskCounts": {
+    "total": 283,
+    "closed": 274,
+    "waiting": 3,
+    "pending": 6
+  },
+  "pushPerformed": false,
+  "offlinePixelFeasibility": {
+    "at": "2026-10-05T14:47:42.326353+00:00",
+    "scope": "Offline feasibility only; no new native readiness/performance claim",
+    "reference": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+    "referencePngSha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+    "publicPdfSha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe",
+    "viewport": {
+      "width": 1028,
+      "height": 749
+    },
+    "region": {
+      "x": 180,
+      "y": 225,
+      "width": 430,
+      "height": 36
+    },
+    "darkMaskRule": "alpha>=240 and RGB channels<=64, one byte per pixel row-major",
+    "darkMaskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+    "darkPixels": 530,
+    "textBounds": {
+      "left": 195,
+      "top": 240,
+      "right": 521,
+      "bottom": 253
+    },
+    "blankRejected": true,
+    "onePixelShiftRejected": true,
+    "PartialRegionRejected": true,
+    "matchingPriorNativeScreenshots": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-targets-20261005\\samples100\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-targets-20261005\\samples100\\sample-002\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-targets-20261005\\samples100\\sample-003\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\native-perf-sdk-pdf-screenshot.png",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\native-perf-sdk-pdf-screenshot.png"
+    ],
+    "defaultImageDependencyAlreadyPresent": true,
+    "renderVerified": false,
+    "performanceMetrics": null,
+    "next": "If actual structure exposes no suitable loading signal, evaluate bounded native screenshot checks of this public first-page region, enforcing dimensions, owned source/target and frame/loader identity; repeat and record capture overhead."
+  },
+  "implementationCorrection": {
+    "at": "2026-10-05T14:34:38.178720+00:00",
+    "initialFormatExitCode": 1,
+    "cause": "Rust field-name strings had single quotes; changed to double quotes",
+    "reviewCorrection": "Restore unchanged DOM v1 contract; apply schema v2 only to candidate validator",
+    "domValidatorByteEquivalentToHead": true,
+    "domSha256": "7f30567cf905e671cd3b28d54fb7f82afec61c8006ac921efd404d7178ae7f5a",
+    "initialFailurePreserved": true,
+    "firstReviewReadFailure": "cp1252 UnicodeDecodeError on Git Chinese source; verified again with explicit UTF-8"
+  },
+  "observationReview": {
+    "at": "2026-10-05T15:16:33.265123+00:00",
+    "componentObservations": 10,
+    "documentComplete": 9,
+    "documentLoading": 1,
+    "completeObservationsEmbedVisible": 9,
+    "viewerOrCanvasObserved": false,
+    "allComponentFrameTreesStable": true,
+    "transientChildClasses": [[], [], [], ["other"], [], [], [], [], [], []],
+    "firstUniformAssumptionCheck": "Assertion failed: sample 3 snapshot 0 still loading with embed count zero. Real transition retained; validator unchanged.",
+    "performanceMetrics": null
+  },
+  "postCleanupReview": {
+    "at": "2026-10-05T15:16:40.024215+00:00",
+    "attachmentCiphertextsUnchangedAfterCleanup": 12,
+    "frozenInputsUnchanged": 448,
+    "passed": true
+  },
+  "currentScreenshotsAlsoMatchPriorReference": true,
+  "totalNativeReferenceScreenshots": 12,
+  "documentChecks": {
+    "doc-format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "../docs/performance/RF-312-native-pdf-diagnostic.md",
+        "../docs/performance/rf312-windows-pdf-structure-2026-10-05.json"
+      ],
+      "pid": 34580,
+      "exitCode": 0,
+      "elapsedSeconds": 0.925490140914917,
+      "finishedAt": "2026-10-05T15:23:53.106475+00:00"
+    },
+    "doc-boundary": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "pid": 43048,
+      "exitCode": 0,
+      "elapsedSeconds": 14.800601243972778,
+      "finishedAt": "2026-10-05T15:24:07.908605+00:00"
+    },
+    "doc-diff": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 27944,
+      "exitCode": 0,
+      "elapsedSeconds": 0.3685953617095947,
+      "finishedAt": "2026-10-05T15:24:08.278352+00:00"
+    }
+  },
+  "finalVerification": {
+    "at": "2026-10-05T15:26:15.472768+00:00",
+    "archivesByteExact": 128,
+    "localLinksVerified": 230,
+    "counts": {
+      "total": 283,
+      "closed": 274,
+      "waiting": 3,
+      "pending": 6
+    },
+    "frozenInputsUnchanged": 448,
+    "stashAndSubmodulePreserved": true,
+    "scope": "RF-312 structure diagnostic; full task remains open",
+    "pushPerformed": false
+  },
+  "scopeReview": {
+    "at": "2026-10-05T15:25:57.041661+00:00",
+    "originalDomValidatorByteEquivalentToHead": true,
+    "domSha256": "4ea11d1860e0a7a08bcc60c486b2f3e24fe8feff2e6ec1573fdefc47b24ddfec",
+    "firstReviewAttempt": "ValueError: script expected pub(super) fn dom_value; actual declaration is fn dom_value. Corrected verification selector; production source unchanged."
+  },
+  "finalEvidenceUpdateCorrection": "Initial metadata update tried object assignment on existing rawArchive string; TypeError occurred before writing files or staging. Retained string archive reference and added final verification separately."
+}

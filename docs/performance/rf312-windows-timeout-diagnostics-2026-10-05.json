@@ -1,0 +1,2092 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "date": "2026-10-05",
+  "baseCommit": "bc0245e888c92ea1ecf3a5a0e7f88552324c67ea",
+  "branch": "codex/rf312-timeout-diagnostics",
+  "status": "bounded timeout diagnostics implemented and unit-tested; two native success groups passed; intermittent original timeout not reproduced or resolved",
+  "codeScope": "non-default Windows native-perf SDK journey only; success proof remains exact 20 fields; no production frontend changes",
+  "timeoutRules": {
+    "primitives": [
+      "focused",
+      "visibility",
+      "viewportWidth",
+      "viewportHeight",
+      "homeVisible",
+      "passwordVisible",
+      "submitVisible",
+      "submitDisabled"
+    ],
+    "sameRunOriginFrameLoaderTimeOriginRequired": true,
+    "sharedObserverPayloadAndClockValidation": true,
+    "boundedProbeBytes": 262144,
+    "viewportMaximum": 16384,
+    "readinessTimeoutMs": 45000,
+    "credentialsRead": false,
+    "domClicks": false,
+    "extraInputOnFailure": false,
+    "businessIpcInvokedByHarness": false,
+    "timeoutRemainsFailure": true
+  },
+  "exe": {
+    "at": "2026-10-05T02:48:42.816535+00:00",
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\bin\\solo_soul.exe",
+    "bytes": 101873152,
+    "sha256": "b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88",
+    "sourceFreezeUnchanged": true,
+    "buildReceipt": {
+      "finished": "2026-10-05T02:48:10.1823217Z",
+      "exitCode": 0,
+      "started": "2026-10-05T02:31:00.1960207Z",
+      "command": "npx tauri build --config src-tauri/tauri.native-perf.conf.json --features native-perf --no-bundle --ci"
+    },
+    "previousExePreserved": true
+  },
+  "measurementSourceFreeze": {
+    "at": "2026-10-05T02:31:39.091080+00:00",
+    "files": [
+      {
+        "path": "tauri/Cargo.lock",
+        "bytes": 244517,
+        "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      {
+        "path": "tauri/scripts/native-perf-memory.mjs",
+        "bytes": 10601,
+        "sha256": "959ad8fbb30a23057f578241a2961af40e41bb464a11b9271824574da25d0157"
+      },
+      {
+        "path": "tauri/scripts/native-perf-memory.test.mjs",
+        "bytes": 24796,
+        "sha256": "52c44887404b9eca0de8d8382d234c8d0c4abb906e27200d29e5029fdc8df615"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.mjs",
+        "bytes": 61104,
+        "sha256": "76b1ea30e8bcc7f6414ac3d01c5cb44288bdf8ddec28a0ebf5b039ca6d76dc39"
+      },
+      {
+        "path": "tauri/scripts/native-perf-sdk-journey.mjs",
+        "bytes": 21275,
+        "sha256": "a8ed918cbe468d8920ec9448f13c91181c292dc987dea04e468383e0152b2420"
+      },
+      {
+        "path": "tauri/scripts/native-perf-sdk-journey.test.mjs",
+        "bytes": 11047,
+        "sha256": "7ee0ed82db53f145a7ddcdd04cf0b882f0308aac30bf259072c97fc7353fb10c"
+      },
+      {
+        "path": "tauri/scripts/run-node-tests.mjs",
+        "bytes": 1401,
+        "sha256": "8b97f1691a9e7c4c99ab10e2c8387616fab20228a2ae9afe92de566ec76a6980"
+      },
+      {
+        "path": "tauri/src-tauri/Cargo.toml",
+        "bytes": 4807,
+        "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf.rs",
+        "bytes": 28184,
+        "sha256": "a7827b5bc1c6af95e52ca662d11b3e3adb2a399e5733875d7f8bab90d12e7c12"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.js",
+        "bytes": 6023,
+        "sha256": "0fb71df82382c67f114e4ea8e9439b74195b2d9834d9a13510cf6813d913b30a"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.rs",
+        "bytes": 42541,
+        "sha256": "7d8e01b71eee07edf0f65beced0cb62b533c9fa47ac0a49cbcff155fbdbaa2dc"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.conf.json",
+        "bytes": 3270,
+        "sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.native-perf.conf.json",
+        "bytes": 318,
+        "sha256": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810"
+      }
+    ]
+  },
+  "hardware": {
+    "at": "2026-10-05T02:40:31.2172493Z",
+    "cpu": {
+      "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+      "NumberOfCores": 8,
+      "NumberOfLogicalProcessors": 8
+    },
+    "memory": {
+      "TotalPhysicalMemory": 16951218176
+    },
+    "os": {
+      "Caption": "Microsoft Windows 11 Enterprise LTSC",
+      "Version": "10.0.26100",
+      "BuildNumber": "26100"
+    },
+    "video": {
+      "Name": "Intel(R) UHD Graphics 630",
+      "DriverVersion": "31.0.101.2135",
+      "CurrentHorizontalResolution": 1024,
+      "CurrentVerticalResolution": 768,
+      "CurrentRefreshRate": 60
+    },
+    "osSettingsChanged": false
+  },
+  "measurements": {
+    "at": "2026-10-05T02:57:26.345397+00:00",
+    "groups": [
+      {
+        "group": "sdk-timeout-100",
+        "requestedIntervalMs": 2000,
+        "success": true,
+        "sourceUnchanged": true,
+        "samples": [
+          {
+            "index": 1,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 11,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 2,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 9,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 3,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 9,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 4,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 12,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 5,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 11,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          }
+        ],
+        "totalPoints": 52,
+        "validPoints": 52,
+        "queryMedianMs": 1055.8174,
+        "queryMaximumMs": 2003.915399999998,
+        "maxActualStartIntervalMs": 2064,
+        "memorySummary": {
+          "samplesRequested": 5,
+          "successfulSamples": 5,
+          "medianObservedMaximumWorkingSetBytes": 638676992,
+          "p95ObservedMaximumWorkingSetBytes": 682344448
+        },
+        "summary": [
+          {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 1977.0781,
+            "p95Ms": 2361.287
+          },
+          {
+            "name": "password-unlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2193.0624000000003,
+            "p95Ms": 2227.673
+          },
+          {
+            "name": "workspace",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 403.0335,
+            "p95Ms": 554.4981
+          },
+          {
+            "name": "search-needle",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 439.68620000000004,
+            "p95Ms": 477.5154
+          },
+          {
+            "name": "application-lock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 148.8322,
+            "p95Ms": 162.13469999999998
+          },
+          {
+            "name": "password-reunlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2297.1031000000003,
+            "p95Ms": 5267.4997
+          }
+        ]
+      },
+      {
+        "group": "sdk-timeout-100-fast",
+        "requestedIntervalMs": 1000,
+        "success": true,
+        "sourceUnchanged": true,
+        "samples": [
+          {
+            "index": 1,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 14,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 2,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 17,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 3,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 15,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 4,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 15,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          },
+          {
+            "index": 5,
+            "success": true,
+            "uiSuccess": true,
+            "reason": null,
+            "failedStep": null,
+            "phaseCount": 6,
+            "proofFieldCount": 20,
+            "callCount": 59,
+            "memoryComplete": true,
+            "memoryPoints": 18,
+            "diagnosticPresent": false,
+            "state": null,
+            "inputTrust": {
+              "pointer": 10,
+              "text": 3,
+              "untrusted": 0
+            },
+            "timedOutProbe": null
+          }
+        ],
+        "totalPoints": 79,
+        "validPoints": 79,
+        "queryMedianMs": 1018.8710999999967,
+        "queryMaximumMs": 1519.5866000000005,
+        "maxActualStartIntervalMs": 1522,
+        "memorySummary": {
+          "samplesRequested": 5,
+          "successfulSamples": 5,
+          "medianObservedMaximumWorkingSetBytes": 632750080,
+          "p95ObservedMaximumWorkingSetBytes": 634343424
+        },
+        "summary": [
+          {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 1511.2704999999999,
+            "p95Ms": 1634.4639000000002
+          },
+          {
+            "name": "password-unlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 1899.3674999999998,
+            "p95Ms": 2409.0528
+          },
+          {
+            "name": "workspace",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 413.1934,
+            "p95Ms": 494.6479
+          },
+          {
+            "name": "search-needle",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 463.84049999999996,
+            "p95Ms": 471.2007
+          },
+          {
+            "name": "application-lock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 143.2371,
+            "p95Ms": 148.237
+          },
+          {
+            "name": "password-reunlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2534.3889,
+            "p95Ms": 5314.4983999999995
+          }
+        ]
+      }
+    ],
+    "diagnosticObservedInNativeFailure": false,
+    "interpretation": "both predefined groups passed; no spontaneous timeout observed; original intermittent cause unresolved; normal proof remains exact 20 fields"
+  },
+  "checks": {
+    "nativeRust": {
+      "passed": 46,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 779,
+      "receipt": {
+        "exitCode": 0,
+        "finished": "2026-10-05T02:26:11.0964638Z",
+        "started": "2026-10-05T02:22:21.7963278Z",
+        "command": "cargo test --locked -p solo_soul --features native-perf --lib native_perf:: -- --test-threads=1"
+      }
+    },
+    "nodeTargeted": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": {
+        "at": "2026-10-05T02:24:57.1310790Z",
+        "exitCode": 0,
+        "command": "node --test scripts/native-perf-sdk-journey.test.mjs"
+      }
+    },
+    "nodeFull": {
+      "total": 158,
+      "passed": 157,
+      "failed": 0,
+      "skipped": 1,
+      "receipt": {
+        "command": "node scripts/run-node-tests.mjs",
+        "exitCode": 0,
+        "finished": "2026-10-05T02:27:10.9752990Z",
+        "started": "2026-10-05T02:26:47.4542435Z"
+      }
+    },
+    "clippy": {
+      "finished": "2026-10-05T02:31:00.1531869Z",
+      "exitCode": 0,
+      "started": "2026-10-05T02:28:34.4737403Z",
+      "command": "cargo clippy --locked -p solo_soul --features native-perf --all-targets -- -D warnings"
+    },
+    "formatSyntax": {
+      "rustFmt": 0,
+      "at": "2026-10-05T02:27:02.2425595Z",
+      "prettier": 0,
+      "nodeSyntax": 0
+    },
+    "release": {
+      "finished": "2026-10-05T02:48:10.1823217Z",
+      "exitCode": 0,
+      "started": "2026-10-05T02:31:00.1960207Z",
+      "command": "npx tauri build --config src-tauri/tauri.native-perf.conf.json --features native-perf --no-bundle --ci"
+    },
+    "markdownBoundary": {
+      "started": "2026-10-05T03:03:26.8213093Z",
+      "finished": "2026-10-05T03:03:34.0193110Z",
+      "exitCode": 0,
+      "command": "node scripts/check-markdown-chunk-boundary.mjs",
+      "initialRestrictedAttempt": "EPERM writing vite temporary config in recovered C drive repository; rerun with appropriate workspace write permissions"
+    },
+    "doc": {
+      "taskRows": 283,
+      "closed": 272,
+      "waiting": 5,
+      "pending": 6,
+      "newLinksVerified": true,
+      "fencesControlCharactersChecked": true,
+      "rawArchivesByteVerified": 179
+    }
+  },
+  "finalProcessCheck": {
+    "at": "2026-10-05T02:57:28.0793562Z",
+    "queryProperties": ["ProcessId", "CreationDate", "Name"],
+    "identityDefinition": "PID + CreationDate Unix milliseconds + executable basename",
+    "noneOwnedLive": true,
+    "checks": [
+      {
+        "pid": 31368,
+        "creationMs": 1791168561792,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 24596,
+        "creationMs": 1791168562241,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19344,
+        "creationMs": 1791168563082,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 9500,
+        "creationMs": 1791168562906,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 15160,
+        "creationMs": 1791168563782,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 28572,
+        "creationMs": 1791168562905,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 28540,
+        "creationMs": 1791168562948,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 29008,
+        "creationMs": 1791168562366,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16104,
+        "creationMs": 1791168563784,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 24404,
+        "creationMs": 1791168572217,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 6456,
+        "creationMs": 1791168572232,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 13948,
+        "creationMs": 1791168575692,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 37312,
+        "creationMs": 1791168575703,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 42488,
+        "creationMs": 1791168591762,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22768,
+        "creationMs": 1791168592070,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26576,
+        "creationMs": 1791168592440,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32460,
+        "creationMs": 1791168593039,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 14296,
+        "creationMs": 1791168592603,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19308,
+        "creationMs": 1791168592104,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19492,
+        "creationMs": 1791168593038,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26380,
+        "creationMs": 1791168592624,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 13420,
+        "creationMs": 1791168592621,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20852,
+        "creationMs": 1791168602136,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18148,
+        "creationMs": 1791168602146,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 1224,
+        "creationMs": 1791168615680,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19976,
+        "creationMs": 1791168616004,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 11760,
+        "creationMs": 1791168617075,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 30732,
+        "creationMs": 1791168616368,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16252,
+        "creationMs": 1791168617076,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 12724,
+        "creationMs": 1791168616421,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 29468,
+        "creationMs": 1791168616543,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 42268,
+        "creationMs": 1791168616384,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40972,
+        "creationMs": 1791168616038,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19136,
+        "creationMs": 1791168624810,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 29272,
+        "creationMs": 1791168624829,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18024,
+        "creationMs": 1791168640035,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19716,
+        "creationMs": 1791168640519,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26744,
+        "creationMs": 1791168641820,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 33212,
+        "creationMs": 1791168641821,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22212,
+        "creationMs": 1791168640919,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 24948,
+        "creationMs": 1791168641092,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 30300,
+        "creationMs": 1791168640919,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40820,
+        "creationMs": 1791168640555,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17308,
+        "creationMs": 1791168640972,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 11036,
+        "creationMs": 1791168653940,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7144,
+        "creationMs": 1791168653955,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 38252,
+        "creationMs": 1791168669298,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22996,
+        "creationMs": 1791168669534,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 35876,
+        "creationMs": 1791168671473,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17176,
+        "creationMs": 1791168669570,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16392,
+        "creationMs": 1791168669977,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18956,
+        "creationMs": 1791168669930,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": true
+      },
+      {
+        "pid": 15504,
+        "creationMs": 1791168669926,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 8472,
+        "creationMs": 1791168671471,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20804,
+        "creationMs": 1791168670068,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 21512,
+        "creationMs": 1791168678529,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22400,
+        "creationMs": 1791168678548,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 41436,
+        "creationMs": 1791168679482,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32392,
+        "creationMs": 1791168679499,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 28100,
+        "creationMs": 1791168681890,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 12928,
+        "creationMs": 1791168681901,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20380,
+        "creationMs": 1791168839956,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 8660,
+        "creationMs": 1791168840431,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 38392,
+        "creationMs": 1791168841403,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 27284,
+        "creationMs": 1791168840809,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 10440,
+        "creationMs": 1791168840968,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16320,
+        "creationMs": 1791168841404,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40612,
+        "creationMs": 1791168840471,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 35596,
+        "creationMs": 1791168840812,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18676,
+        "creationMs": 1791168840852,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 1956,
+        "creationMs": 1791168847745,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 30964,
+        "creationMs": 1791168847758,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7464,
+        "creationMs": 1791168848672,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 4120,
+        "creationMs": 1791168848699,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18196,
+        "creationMs": 1791168851171,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19032,
+        "creationMs": 1791168851181,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 38932,
+        "creationMs": 1791168867203,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 25168,
+        "creationMs": 1791168867373,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18944,
+        "creationMs": 1791168867904,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 6464,
+        "creationMs": 1791168867792,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 34988,
+        "creationMs": 1791168867757,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 31360,
+        "creationMs": 1791168868361,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 31632,
+        "creationMs": 1791168867758,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 39316,
+        "creationMs": 1791168867411,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 25256,
+        "creationMs": 1791168868360,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 3784,
+        "creationMs": 1791168874923,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 12624,
+        "creationMs": 1791168874935,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 9176,
+        "creationMs": 1791168875856,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 2436,
+        "creationMs": 1791168875873,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 11388,
+        "creationMs": 1791168878289,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 34516,
+        "creationMs": 1791168878302,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16868,
+        "creationMs": 1791168879348,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32872,
+        "creationMs": 1791168879360,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40652,
+        "creationMs": 1791168896578,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20156,
+        "creationMs": 1791168896885,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18148,
+        "creationMs": 1791168897420,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 42320,
+        "creationMs": 1791168897298,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 2100,
+        "creationMs": 1791168897845,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32192,
+        "creationMs": 1791168897847,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 11132,
+        "creationMs": 1791168896920,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 5300,
+        "creationMs": 1791168897259,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40404,
+        "creationMs": 1791168897260,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16148,
+        "creationMs": 1791168904078,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 10480,
+        "creationMs": 1791168904093,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18500,
+        "creationMs": 1791168904995,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 41840,
+        "creationMs": 1791168905015,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17760,
+        "creationMs": 1791168907337,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 33236,
+        "creationMs": 1791168907347,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7380,
+        "creationMs": 1791168908347,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 33556,
+        "creationMs": 1791168908359,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 34352,
+        "creationMs": 1791168923546,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 25784,
+        "creationMs": 1791168923960,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 15148,
+        "creationMs": 1791168923997,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20808,
+        "creationMs": 1791168924883,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32168,
+        "creationMs": 1791168924492,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 13152,
+        "creationMs": 1791168924375,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17656,
+        "creationMs": 1791168924337,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 39432,
+        "creationMs": 1791168924334,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 42728,
+        "creationMs": 1791168924884,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40616,
+        "creationMs": 1791168931606,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40364,
+        "creationMs": 1791168931619,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 23752,
+        "creationMs": 1791168932497,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 34612,
+        "creationMs": 1791168932514,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 9872,
+        "creationMs": 1791168934926,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 37448,
+        "creationMs": 1791168934940,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 38884,
+        "creationMs": 1791168935889,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 29948,
+        "creationMs": 1791168935900,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 41632,
+        "creationMs": 1791168950581,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32456,
+        "creationMs": 1791168950961,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 6232,
+        "creationMs": 1791168951532,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20056,
+        "creationMs": 1791168951349,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 12336,
+        "creationMs": 1791168950996,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17996,
+        "creationMs": 1791168951344,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 27088,
+        "creationMs": 1791168951387,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 10800,
+        "creationMs": 1791168951947,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 39680,
+        "creationMs": 1791168951946,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17536,
+        "creationMs": 1791168958833,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 15432,
+        "creationMs": 1791168958849,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 8376,
+        "creationMs": 1791168959769,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 34104,
+        "creationMs": 1791168959799,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40360,
+        "creationMs": 1791168963726,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 27832,
+        "creationMs": 1791168963747,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      }
+    ],
+    "extraProcessesTerminated": 0
+  },
+  "cleanup": {
+    "at": "2026-10-05T02:57:33.1432052Z",
+    "targets": [
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-001\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-001\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-001\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-001\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-001\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-001\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.8478fceb195f462eb2c25c8febdf0538",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.8478fceb195f462eb2c25c8febdf0538",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-002\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-002\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-002\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-002\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-002\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-002\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.084aa348da124ed2a053ccf7a191e8ca",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.084aa348da124ed2a053ccf7a191e8ca",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-003\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-003\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-003\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-003\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-003\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-003\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.0e9335c40b7e497ca114f24113f082a1",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.0e9335c40b7e497ca114f24113f082a1",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-004\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-004\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-004\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-004\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-004\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-004\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.16c996e9b4ba44e4aee6287099f9d123",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.16c996e9b4ba44e4aee6287099f9d123",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-005\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-005\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-005\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-005\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-005\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\sample-005\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.922d2756f4b84cd784e30620e2595c1c",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.922d2756f4b84cd784e30620e2595c1c",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.b9ffcf1e08ec4fe08c32cc29b3c8ca60",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.b9ffcf1e08ec4fe08c32cc29b3c8ca60",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.0d0bc73dc3af4ab5ad42fb0e76325096",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.0d0bc73dc3af4ab5ad42fb0e76325096",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.30b72190755d4e5aa1a99ecafc5b086f",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.30b72190755d4e5aa1a99ecafc5b086f",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.a38f014adad4444480a57a0673692115",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.a38f014adad4444480a57a0673692115",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.d01aa6a105ac4fada9905cf224f17acd",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.d01aa6a105ac4fada9905cf224f17acd",
+        "removed": true
+      }
+    ],
+    "unlinked": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-004\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100-fast\\sample-005\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      }
+    ],
+    "preserved": [
+      "vault",
+      "native markers",
+      "raw sample reports",
+      "public fixtures",
+      "reusable binary/resources"
+    ]
+  },
+  "preservationFinal": {
+    "at": "2026-10-05T03:00:35.656583+00:00",
+    "baselineTrackedFiles": 4047,
+    "unrelatedRawSha256Matches": 4042,
+    "expectedChangedTrackedPaths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/performance/RF-312-windows-native-app-baseline.md",
+      "tauri/scripts/native-perf-sdk-journey.test.mjs",
+      "tauri/src-tauri/src/native_perf/sdk_journey.js",
+      "tauri/src-tauri/src/native_perf/sdk_journey.rs"
+    ],
+    "publicFixtureFilesUnchanged": 14,
+    "publicResourcesUnchanged": 94,
+    "previousExeUnchanged": true,
+    "stashUnchanged": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90 On main: preserve-local-changes-before-github-push-2026-10-02",
+    "submoduleUnchanged": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921 SoloSoul_plugin_market (expiry-guardian-v1.0.0-123-gf55fc4b)",
+    "submoduleClean": true,
+    "sourceFreezeUnchanged": true
+  },
+  "rawArchive": {
+    "index": "rf312-windows-timeout-diagnostics-2026-10-05/index.json",
+    "encoding": "gzip retains original raw bytes, BOM and CRLF; metadata LF"
+  },
+  "limitations": [
+    "No native timeout occurred in either predefined group, so live failure-diagnostic capture is not demonstrated; Rust validation and actual JS VM timeout path are tested.",
+    "Prior failed samples remain in previous archives; neither the 1000ms group nor success subsets replace 2000ms task acceptance.",
+    "Prior 5000-object group uses an older EXE; same-new-EXE 5000-object check remains before RF-1092/RF-1093 closure.",
+    "1000ms target does not guarantee 1000ms actual sample spacing; observed query median remains about 1019ms.",
+    "Original intermittent home timeout remains unresolved in RF-312; no production login fix or root-cause claim.",
+    "RF-112/RF-121 external native gates and RF-122 through RF-127 dependencies unchanged."
+  ],
+  "push": false,
+  "preservationPrecommit": {
+    "at": "2026-10-05T03:04:35.645992+00:00",
+    "afterMarkdownCheck": true,
+    "unrelatedFilesUnchanged": 4042,
+    "sourceFreezeUnchanged": true,
+    "publicFixturesUnchanged": 14,
+    "previousExeUnchanged": true
+  }
+}

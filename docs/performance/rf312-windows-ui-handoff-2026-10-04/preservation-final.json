@@ -1,0 +1,25 @@
+{
+  "baselineTrackedFiles": 2745,
+  "changedTrackedPaths": [
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "docs/performance/RF-312-windows-native-app-baseline.md",
+    "tauri/e2e/production-startup.spec.ts",
+    "tauri/public/startup.js",
+    "tauri/scripts/native-perf-sdk-cdp.mjs",
+    "tauri/scripts/native-perf-sdk-cdp.test.mjs",
+    "tauri/scripts/native-perf-ui-root.node.test.mjs",
+    "tauri/scripts/run-node-tests.mjs",
+    "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+    "tauri/src/bootstrapApp.tsx",
+    "tauri/src/lib/startupScreen.test.ts",
+    "tauri/src/lib/startupScreen.ts"
+  ],
+  "unexpectedTrackedChanges": [],
+  "stashUnchanged": true,
+  "protectedStash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "submoduleUnchanged": true,
+  "submoduleHead": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+  "selectedFinalFreezeMatches": true,
+  "publicSourceFilesUnchanged": 7,
+  "defaultRustGateScope": "sdk_cdp module excluded unless native-perf Windows; default cfg unchanged"
+}

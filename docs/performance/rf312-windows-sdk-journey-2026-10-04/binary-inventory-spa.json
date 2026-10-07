@@ -1,0 +1,11 @@
+{
+  "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+  "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\bin-spa\\solo_soul.exe",
+  "bytes": 101859328,
+  "sha256": "25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef",
+  "release": {
+    "exitCode": 0,
+    "elapsedMs": 1058538.2657,
+    "completedAt": "2026-10-04T23:19:34.8132517+01:00"
+  }
+}

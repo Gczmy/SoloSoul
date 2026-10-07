@@ -10,6 +10,14 @@ test('生产包完成启动并正常渲染 Markdown', async ({ page }) => {
       readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
       `
     localStorage.setItem('i18nextLng', 'en-US');
+    window.__STARTUP_HANDOFFS__ = [];
+    window.addEventListener('solosoul:startup-handoff', () => {
+      window.__STARTUP_HANDOFFS__.push({
+        rootHasChildren: Boolean(document.getElementById('root')?.hasChildNodes()),
+        marked: performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length > 0,
+        startup: window.__SOLOSOUL_STARTUP__?.diagnostic(),
+      });
+    });
     window.__E2E_MOCKS__ = {
       vault_check_directory: () => true,
       ocr_get_model_status: () => ({ installed: true, bundled: true }),
@@ -35,6 +43,14 @@ test('生产包完成启动并正常渲染 Markdown', async ({ page }) => {
     /^\/assets\/.+\.js$/,
   );
   await expect(page.locator('#startup-screen')).toHaveCount(0);
+  // 真实生产入口完成 React 提交后的交接，StrictMode 不得重复发出通知。
+  expect(await page.evaluate('window.__STARTUP_HANDOFFS__')).toEqual([
+    {
+      rootHasChildren: true,
+      marked: true,
+      startup: { schemaVersion: 1, state: 'ready', phase: 'accounts', reason: 'none' },
+    },
+  ]);
   const sidebar = page.locator('#desktop-navigation');
   await expect(sidebar).toBeVisible();
   await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();

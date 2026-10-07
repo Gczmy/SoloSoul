@@ -1,0 +1,17 @@
+[
+  {
+    "name": "markdown-boundary",
+    "exit": 0,
+    "seconds": 9.213113
+  },
+  {
+    "name": "latest-node-format",
+    "exit": 0,
+    "seconds": 0.4628033
+  },
+  {
+    "name": "diff-check",
+    "exit": 0,
+    "seconds": 0.1988929
+  }
+]

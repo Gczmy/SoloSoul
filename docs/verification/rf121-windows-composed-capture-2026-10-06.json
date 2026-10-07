@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "scope": "windows-actual-owned-composed-window-capture-feasibility",
+  "at": "2026-10-06T07:34:11.656713+00:00",
+  "sourceHead": "0b45c83924cef614c4e149392cd95993aca94a0a",
+  "captureMechanismVerified": true,
+  "fullRf121Accepted": false,
+  "productionSourceAndDependenciesChanged": false,
+  "performanceMetrics": null,
+  "fixture": "fixed-public-100-object-Vault",
+  "actualGuiExeSha256": "e4e10a3c263378bf614e8f651a833aa597ff04083933340f16fd369ac7f2a035",
+  "helperExeSha256": "1ed72e30daff91f4d013faef2e3b912b480cf1fa24ca05058b348604adf1eb49",
+  "helperSourceSha256": "2f3a32a877f744f2200af2f4db83c9b1bf99cb4cbea8ad916cedf531ead7f4ae",
+  "nativeDriverGroups": [
+    {
+      "stage": "ss-rf121-composed-window-round2-20261006",
+      "wholeSamples": 3,
+      "driverExitCode": 0,
+      "captureExitCode": 1,
+      "performanceAccepted": false
+    },
+    {
+      "stage": "ss-rf121-composed-window-round3-20261006",
+      "wholeSamples": 3,
+      "driverExitCode": 0,
+      "captureExitCode": 1,
+      "performanceAccepted": false
+    },
+    {
+      "stage": "ss-rf121-composed-window-round4-20261006",
+      "wholeSamples": 3,
+      "driverExitCode": 0,
+      "captureExitCode": 1,
+      "performanceAccepted": false
+    },
+    {
+      "stage": "ss-rf121-composed-window-round5-20261006",
+      "wholeSamples": 3,
+      "driverExitCode": 0,
+      "captureExitCode": 0,
+      "performanceAccepted": false
+    }
+  ],
+  "actualFrame": {
+    "applicationMaterialAccepted": false,
+    "bytes": 3217720,
+    "captureMethod": "Windows.Graphics.Capture.CreateForWindow",
+    "clientOriginScreen": [
+      8,
+      31
+    ],
+    "clientRect": [
+      0,
+      0,
+      1028,
+      749
+    ],
+    "creationMs": 1791271335150,
+    "dwmExtendedFrameBounds": [
+      7,
+      0,
+      1037,
+      781
+    ],
+    "dwmSystemBackdropType": 2,
+    "frameClockScope": "Windows-QPC",
+    "frameSystemRelativeTime100ns": 52140877055627,
+    "height": 781,
+    "heldProcessAndWindowIdentityVerifiedBeforeAndAfter": true,
+    "hwnd": 126226760,
+    "otherWindowsCaptured": 0,
+    "ownedWindowCount": 8,
+    "pid": 35828,
+    "pixelFile": "rf121-wgc-light-visible.bgra",
+    "pixelFormat": "BGRA8-premultiplied",
+    "runId": "b13c060049cd4f1c9c5d01b39e2f5730",
+    "schemaVersion": 1,
+    "scope": "rf121-owned-window-wgc-frame",
+    "selectedWindowExStyle": 262416,
+    "selectedWindowStyle": 349110272,
+    "selectionRule": "unique-visible-uncloaked-root-owner-caption-sysmenu-resizable-appwindow-positive-client",
+    "tag": "light-visible",
+    "visibleOwnedWindowCount": 2,
+    "width": 1030,
+    "windowRect": [
+      0,
+      0,
+      1044,
+      788
+    ]
+  },
+  "pngConversion": {
+    "width": 1030,
+    "height": 781,
+    "bgraSha256": "8862c87b8eeffc6e9e5d81c07f273b64550a933defaf20f40235586124fe1910",
+    "pngSha256": "45ebf57af7dd41fe35d60f799140678cee42fdfaad16e1d93be000efe5444572",
+    "alphaHistogram": {
+      "0": 40,
+      "17": 4,
+      "18": 4,
+      "46": 8,
+      "50": 8,
+      "71": 8,
+      "74": 4,
+      "92": 8,
+      "93": 3,
+      "100": 4,
+      "102": 3558,
+      "106": 1,
+      "120": 3,
+      "124": 1,
+      "125": 1,
+      "129": 3,
+      "149": 1,
+      "152": 7,
+      "179": 1,
+      "183": 5,
+      "185": 2,
+      "218": 3,
+      "219": 5,
+      "227": 2,
+      "228": 5,
+      "229": 1,
+      "255": 800740
+    },
+    "partialAlphaUnpremultipliedPixels": 3650,
+    "scope": "format-conversion-of-single-owned-window-frame-original-bgra-retained",
+    "nativeMaterialAccepted": false,
+    "themeLabelVerified": false,
+    "pillowAvailable": false,
+    "conversionUsesPythonStandardLibrary": true,
+    "partialAlphaConversionMayRound": true
+  },
+  "visualInspection": {
+    "method": "view_image",
+    "visibleComponents": [
+      "native title bar and caption buttons",
+      "actual Sidebar",
+      "actual content AppBar",
+      "actual Home Card/CardGrid"
+    ],
+    "observedScene": "Home",
+    "workspaceMarkerOnlyTriggeredCaptureNotFrameSceneProof": true,
+    "foregroundStatusRecorded": false,
+    "domThemeAndPaletteRecorded": false
+  },
+  "checks": [
+    {
+      "at": "2026-10-06T07:21:01.823534+00:00",
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-wgc-feasibility-20261006\\Cargo.toml"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.0893673999235034
+    },
+    {
+      "at": "2026-10-06T07:21:11.893549+00:00",
+      "name": "tests",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-wgc-feasibility-20261006\\Cargo.toml",
+        "--bin",
+        "rf121-wgc-owned-window"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 10.06991480011493
+    },
+    {
+      "at": "2026-10-06T07:21:16.817515+00:00",
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-wgc-feasibility-20261006\\Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.922718900255859
+    },
+    {
+      "at": "2026-10-06T07:21:20.683438+00:00",
+      "name": "build",
+      "command": [
+        "cargo",
+        "build",
+        "--offline",
+        "--manifest-path",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-wgc-feasibility-20261006\\Cargo.toml",
+        "--bin",
+        "rf121-wgc-owned-window"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.8658333998173475
+    }
+  ],
+  "helperTests": {
+    "passed": 4,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cleanup": {
+    "identities": 108,
+    "caches": 96,
+    "links": 12,
+    "logs": 12,
+    "preservedFiles": 175,
+    "vaultFilesAfterCleanup": 108,
+    "rootEvidenceFilesComparedBeforeAndAfter": 175,
+    "vaultHashesComparedBeforeAndAfter": false
+  },
+  "cacheCleanupProcessesTerminated": 0,
+  "rawIndex": "rf121-windows-composed-capture-2026-10-06/index.json",
+  "screenshot": "rf121-windows-composed-capture-2026-10-06/owned-home.png",
+  "rawEntriesDecodedAndVerified": 366,
+  "remaining": [
+    "explicit DOM/native theme and palette identity",
+    "foreground/active state",
+    "dark/collapsed/resized/restored actual-window matrix",
+    "transient black-frame series",
+    "isolated accessibility and remaining platform matrix"
+  ],
+  "priorFailuresPreserved": [
+    "initial temporary helper compile import failure",
+    "sample count preflight failure; no GUI",
+    "round2 unique-visible selection failure",
+    "round3 two visible owned windows selection failure",
+    "round4 HRESULT(0) first-frame retrieval failure",
+    "nullable-edit authoring assertion; no source write"
+  ],
+  "pushed": false,
+  "vaultPreservationScopeCorrection": "Earlier cleanup wrapper field mentioned Vault but freeze actually contained only root evidence. Protected Vault is excluded from delete targets; after-only hashes now recorded."
+}

@@ -1,0 +1,13 @@
+{
+  "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+  "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\bin\\solo_soul.exe",
+  "bytes": 101855744,
+  "sha256": "495e0186fdac411f35628b31d95e323c26a50fd1727eadbb0de1c32bedfe04f6",
+  "release": {
+    "name": "sdk-journey-release",
+    "exit": 0,
+    "seconds": 1168.8379882,
+    "startedAt": "2026-10-04T21:23:25.9023465Z",
+    "finishedAt": "2026-10-04T21:42:54.7585872Z"
+  }
+}

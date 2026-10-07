@@ -1,6 +1,6 @@
 # RF-312 Windows 原生应用采样（2026-09-30）
 
-本记录定义并执行真实 Tauri Release 与 WebView2 界面采样，只使用 [RF-312 合成 Vault](RF-312-native-vault-baseline.md)。`native-perf` 是非默认 Windows feature；默认构建的入口、数据目录和路由加载保持原行为。当前尚无成功GUI样本，CDP连接仍被拒绝；Windows阶段不足以关闭 RF-312：OCR、附件预览、系统睡眠恢复及 macOS/Android 尚未取得同口径数据。
+本记录定义并执行真实 Tauri Release 与 WebView2 界面采样，只使用 [RF-312 合成 Vault](RF-312-native-vault-baseline.md)。`native-perf` 是非默认 Windows feature；默认构建的入口、数据目录和路由加载保持原行为。2026-10-04已取得100/5000对象各五次成功SDK真实UI性能行程；旧TCP CDP连接仍被拒绝；Windows阶段不足以关闭 RF-312：OCR、附件预览、系统睡眠恢复及 macOS/Android 尚未取得同口径数据。
 
 ## 隔离入口
 
@@ -245,3 +245,265 @@ SDK协议请求单列 `sdkProtocolCalls`，不计入Tauri invoke。单次observe
 一次 fresh 100对象诊断exit1，WebView2 154.0.4258.48；SDK回调取得，仍是 `document-ui-root-absent`，新增分类 **root-empty-before-react-mount**：rootExists=true/rootHasChildren=false/reactMountMarked=false/startupScreenPresent=true/startupState=loading。采样时根容器存在，挂载调用点标记未出现，启动层未记录错误；不能扩张为以后正常挂载或“产品初始化失败”的结论。原生elapsed7ms/spawn后2329ms观察proof只作边界计时，document/observer/timeOrigin为空，performanceMetrics=null，完整SDK次数和成功读取后身份验证仍未接纳。
 
 下一步需要明确在真实React内容提交后产生的有界UI就绪诊断边界，保留本次早期观测，不以任意等待/重试冒充性能样本。未改变生产启动代码或全路由加载策略。原runner清理完整，fresh CIM确认9个记录PID和owned应用/WebView进程不存在；原始proof存档后，核对manifest、绝对父路径与reparse边界，仅清理3个本轮owned目录。公开源7文件、旧失败、依赖与stash保持。[本轮完整证据](rf312-windows-ui-root-2026-10-03.json)保存全部检查、格式首败、原生失败和清理。RF-312仍[!]，本项独立提交后转RF-121 Windows辅助功能补证。
+
+
+## 真实 UI 交接后的文档绑定（2026-10-04）
+
+React 的挂载调用点不能代替提交后的内容。复用 `useSessionLifecycle` 已有的账户状态确认与双 `requestAnimationFrame` 交接：`solosoul:startup-dismissed` 后发出固定 `solosoul:startup-handoff` 事件，不改变原交接时长。启动层增加只读 `diagnostic()`，仅返回 schemaVersion 与白名单 phase/state/reason；新增 i18n/platform/capabilities 阶段，不读取 DOM 文本、input、偏好、账户或原始错误。
+
+首版在旧文档绑定后，通过一次 `Runtime.evaluate` 的 Promise 等待真实交接（[`awaitPromise`](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate)）；原有身份守卫严格拒绝了启动期间的 `source-changed`，exit1。失败结果不含迟到的 UI 状态。结合 BrowserRouter 认证重定向代码与修正轮最终 `/login` 绑定，这支持初始化导航与采样时机竞争的判断；首轮没有保存被拒绝的目的 URL，不能单凭它确定导航目的。
+
+修正后仅在显式 SDK 诊断模式安装一次固定控制脚本：注册交接/错误监听后立即检查，防止交接早于安装；8秒渲染器定时器只报告超时，不宣告成功。固定内部事件携带4个受限字段，不读业务 IPC body；Native 的一次性监听、原20秒总预算和原子门闩避免迟到通知/超时并发开启重复采样。真实交接后才获取主 WebView 并安装原身份守卫，仍恰好调用 `Page.getFrameTree`、`Runtime.evaluate` 各一次。控制通知只决定开始时机；成功仍要求原 source/frame/loader/browser/timeOrigin/observer 条件，以及新 UI 交接条件全部成立。等待开始后再次导航仍拒绝。此控制流不进入默认构建或普通 benchmark；SDK requested/proof 标记仍令 benchmark 拒绝该轮。
+
+`uiReadyDiagnostic` 严格限定9个键，嵌套阶段各3键；Rust 与 Node 均拒绝额外键、未知私有值、缺失标记和提前就绪。一次 evaluate 保留其初始/最终固定结构。最终采样开始于交接之后，所以两端观察均已就绪；先前空根与本轮 source-changed 原始失败单独保留，不能把这些观察拼成一次性能样本。
+
+```powershell
+node scripts/native-perf-sdk-cdp.mjs --exe <new-owned-bin>/solo_soul.exe --fixture <public-fixture>/vault100 --output <new-owned-output>
+node scripts/run-node-tests.mjs
+cargo test --locked -p solo_soul --features native-perf --lib native_perf:: -- --test-threads=1
+```
+
+最终 Node **134 passed / 0 failed / 1既有符号链接权限skip**；原生 **36 passed / 0 failed / 0 ignored**，严格 all-target Clippy、1.99 fmt及定向格式通过。本轮前端 **256文件/2241 Vitest**、TypeScript/ESLint通过；门闩续改未修改这些前端源码。完整默认R **25组/1858 passed/0 failed/3原有ignored**、严格workspace/all-target Clippy通过，PDFium路径仅提供给测试子进程；续改仅在非默认模块内，默认R沿用同轮结果。生产WEB首轮缺Playwright headless shell导致1 passed/25启动失败；按已有配置复用Chrome后26 passed，包括生产交接只发一次的断言。Node24、Rust1.96测试/Clippy/Release与1.99格式版本分别记录，不称未执行的远端CI。
+
+两版非默认Release均exit0；首版总23m38s，修正版总15m11s、Rust14m18s。最终EXE SHA `5d79a67c8a4f502faa9fcfc4ab23d1a60036936beeafdd6a9d27080beb836e5c`；22份关键源码/配置/依赖冻结、94公开资源和运行库逐份核验。每版只进行一次新的合成100对象诊断：首版source-changed保留；修正版runner **exit0**，WebView2 **154.0.4258.53**，当前`/login`主文档、零子frame与原frame/loader/browser/timeOrigin身份检查全部接纳，outcome=handoff、根内容和交接标记均为true，启动阶段accounts/ready/none。
+
+原生elapsed344ms包含交接门闩；spawn后2971ms观察到proof与runner总35.74s均不能当作启动性能。`performanceMetrics=null`，没有GUI性能样本、中位数或尾部指标。两轮公开源均保持、runner清理完整，独立fresh CIM各确认9个记录PID及owned应用/WebView均不存在。RF-312仍[!]：Windows真实UI行程、重复100/5000对象采样、OCR/预览/锁定睡眠恢复及多平台数据待完成；RF-121至127的材质前置不解除。源码、实际失败、全部检查和收尾记录见[本轮结构化证据](rf312-windows-ui-handoff-2026-10-04.json)。
+
+归档目录以独立 `.gitattributes` 保留字节与SHA；CRLF原件另存 `.json.gz`，配套LF JSON视图。首次暂存检查对原CRLF报尾随空白的失败与修正均保留，严格检查规则保持。清理首轮在INetCache junction处停止、未删除数据；确认两个链接仅指向各自owned根内的IE缓存后单独解除链接，重新检查无reparse并清理6个本轮数据/cache根和被替代候选。最新候选保留供后续诊断，公开源、旧轮证据及stash保持。清理首败与修正过程均归档。
+
+
+## Windows SDK 真实 UI 重复采样（2026-10-04）
+
+本阶段首次取得成功的 Windows GUI 性能行程：公开 100/5000 对象各 **5/5 成功、0 失败**，共 60 个阶段。独立于旧 TCP sampler，新入口 `--native-perf-journey sdk-input` 只在非默认 `native-perf` Windows 构建可用。原两次只读 SDK 诊断的调用、查询参数限制与预算保持原约束；没有修改生产 UI、默认路径或路由加载策略。
+
+程序由当前源码以 Release、thin LTO/opt-level=3/codegen-units=1 构建；EXE SHA256 为 `25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef`，101,859,328 字节（实际长度以结构化清单为准）。同级 DirectML 及 94 份公开资源逐项 SHA 核验。硬件为 i7-9700（8 核）、16GB RAM、UHD630（驱动 31.0.101.2135）、Windows 11 Enterprise LTSC 10.0.26100、1024×768/60Hz 显示器；实际 WebView2 为 154.0.4258.53，未替换默认 Runtime。显示器分辨率不等于窗口 CSS viewport；本轮未采集后者。
+
+每次重新 prepare 新的 owned root/profile/UDF，五次顺序运行；OS 文件缓存未清空，不称完全冷盘启动。登录可见并完成既有两帧交接后，先绑定唯一主 frame、loader、origin/timeOrigin、browser PID 和 observer runId；Node 核验真实进程身份、UDF 路径/文件系统与 consumed 标记后才发布输入授权。输入使用 SDK `Input.dispatchMouseEvent`/`Input.insertText`，不调用 DOM click、不写表单 value、不直接调用业务 IPC。十个样本均观察到 **10 次可信 pointer、3 次可信 input、0 次不可信事件、59 次固定协议调用**。
+
+允许的 SPA URL 仅 `/`、`/login`、`/workspace`、`/workspace?section=identity`、`/search`；每个探针仍核验原 main frame/loader/时钟，完整导航、额外 frame、进程失败、超时、observer 前缀变化或额外字段即拒绝。Native 最长 300s/128 calls、单回调 50s、可见条件探针 45s；Node bound 65s/proof 310s。按钮必须唯一、可见、启用、位于 viewport 并通过命中测试。只记录公开状态、坐标和 IPC 命令名，不读取密码或对象内容。
+
+| 阶段 | 100 对象：中位 / p95（ms） | 5000 对象：中位 / p95（ms） |
+| --- | --- | --- |
+| 启动至登录就绪 | 1624.9 / 1993.3 | 2262.3 / 7639.2 |
+| 主密码解锁至首页 | 2261.6 / 5591.0 | 4844.5 / 5993.4 |
+| 工作区 Clear 至首屏 50 卡片 | 419.3 / 536.3 | 1093.6 / 1186.7 |
+| needle 搜索至结果卡片 | 451.5 / 457.7 | 528.4 / 543.7 |
+| 应用锁定至登录 | 121.0 / 152.2 | 122.2 / 151.7 |
+| 再次主密码解锁至首页 | 3001.0 / 4005.5 | 3719.9 / 5813.8 |
+
+启动从原生 runtime 配置阶段开始，结束于登录可见、两帧及 SDK 绑定；不含 OS spawn、fixture prepare/preflight。动作计时含真实输入、终态两帧与 SDK 核验开销，不能当作纯渲染耗时。工作区先通过 Identity 再 Clear 到全局首屏 50 卡片；搜索从搜索页输入框可见后计时，needle 在 100 对象中命中 5 张、5000 对象首屏 50 张。p95 使用 nearest-rank，n=5 时为最大值，尾部指标尚不稳定；包含 5000 启动 7639.2ms 在内的离群值均保留。
+
+| 补充指标 | 100 对象 | 5000 对象 |
+| --- | --- | --- |
+| 全行程 IPC 次数：中位 / 最大 | 548 / 549 | 552 / 553 |
+| 输入前 owned 工作集之和中位（MiB） | 561.5 | 564.8 |
+| 行程后 owned 工作集之和中位（MiB） | 600.9 | 694.2 |
+
+内存仅在输入前、行程后取样，工作集求和可能重复计算共享页；不是峰值或进程树独占内存。完整 IPC 含未列入六阶段计时的 Home→Search 导航与后台事件，不能把六段 IPC 相加当作全量。阶段/全程命令计数、各进程读数和采集时刻均保留。
+
+复跑沿用前文合成 Vault 生成、Release 构建与相邻资源布局，进入 `tauri/` 后使用新输出目录：
+
+```powershell
+node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault100' --output 'C:\TEMP\rf312\sdk-100' --samples 5
+node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault5000' --output 'C:\TEMP\rf312\sdk-5000' --samples 5
+```
+
+所有目录替换为自己创建的绝对隔离目录；`--help` 仅返回用法，旧 EXE、真实 Vault、已有/被消费 root 和未核验浏览器输入均拒绝。退出码 0 要求五个完整成功样本、源 SHA 未变且 owned 清理完整；失败/中断/清理不完整不计入汇总。实际 source fixtures 共 14 文件、用户 stash 和 submodule 未变。
+
+保留的失败：旧 TCP runner 请求三次但首样本连接拒绝，按原 `cleanupIntegrity=false/unverifiedDescendants=true` 停止，指标 null；fresh CIM 另证八记录 PID/owned 命令行不存在，不篡改原清理状态。初版 SDK 候选五次均走通密码解锁、在 `clear` 拒绝 `frame-tree-mismatch`，原因是 Identity 使用实际 `?section=identity` 而旧诊断禁止查询。改用独立固定 URL 白名单；旧五次的局部阶段不进入统计。新增嵌套绑定/最终探针拒绝回归先失败再修正，全部原始失败/检查日志与 EXE 绑定保留。
+
+本轮 native-perf Rust **43 passed/0 failed/0 ignored**、严格 all-target Clippy、Rust fmt、完整 Node **142 项：141 passed/0 failed/1 Windows symlink 权限跳过**均通过；TypeScript/Vite 在两次 Release beforeBuild 实际通过。没有把前轮 Vitest/default Rust/production E2E 当作本轮新验收。两组 runner 均完整清理，fresh CIM 分别确认 43/45 个记录 PID 与 owned 应用/WebView 进程不在运行；没有结束额外进程。
+
+当前决策：5000 对象的工作区/解锁中位数较高，需分离 KDF、存储读取、React 与 SDK 时间才能确定主因。IPC 中 listen/unlisten 占比较高；[WorkspaceObjectCard](../../tauri/src/pages/workspace/WorkspaceObjectCard.tsx) 每卡片调用 [useDragToAttach](../../tauri/src/hooks/useDragToAttach.ts)，后者逐卡片注册窗口拖拽订阅，作为共享订阅的后续剖析候选。现有五次样本未证明这些订阅主导延迟，暂不新增瓶颈修复 ID，也不据此改全路由加载或分页策略。
+
+[本轮完整结构化证据](rf312-windows-sdk-journey-2026-10-04.json)链接原始报告、逐样本 native markers/proofs、构建/检查/保全/清理和 SHA；CRLF 原件压缩保留，LF JSON 仅为阅读视图。RF-312 仍为 `[!]`：首次 OCR/附件预览、系统睡眠、同 profile 进程热启动、内存峰值及 macOS/Android 同口径样本待续；当前应用锁定/再次解锁不能替代这些场景，RF-121至127前置不解除。
+
+
+## Windows owned 进程树内存持续采样（2026-10-05）
+
+新增显式 `--memory-interval-ms 1000..10000`，不传参数时沿用两点采样。该模式从应用进程启动开始串行查询，到最后一个 UI 检查完成后停止并等待在途查询，再做清理。周期采样和输入前/行程后检查使用同一队列，不重叠、不追补积压采样。每个读数保留开始/结束时刻、查询耗时、进程身份、工作集与 UDF 校验。缺读数、身份变更、未知活后代、目录不符、样本超限或清理失败的样本不进入统计；不回写历史失败为成功。
+
+复用上一节 Release EXE，SHA-256 `25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef`；仅修改 Node 测量工具，未重编译原生应用。Rust、嵌入 JS、配置与依赖输入 SHA 保持。设备仍为 i7-9700/16GB/UHD630、Windows 11 Enterprise LTSC 26100、WebView2 154.0.4258.53，显示器 1024×768/60Hz；未将显示分辨率当作 CSS viewport。公开 100/5000 对象、生产 KDF、每次新 root/profile/UDF 和固定六阶段口径保持，目标间隔 2000ms，两组各 5/5 完整成功。
+
+| 指标 | 100 对象 | 5000 对象 |
+| --- | --- | --- |
+| 采样最大工作集中位 / p95（MiB） | 606.6 / 655.9 | 681.4 / 682.7 |
+| 有效读数 / 全部读数 | 52 / 52 | 53 / 53 |
+| 每样本读数 | 13, 9, 10, 10, 10 | 13, 10, 10, 10, 10 |
+| 查询耗时中位 / 最大（ms） | 1709.1 / 13173.6 | 1818.9 / 3852.9 |
+| 实际 start-to-start 最大间隔（ms） | 13175 | 3860 |
+| 已确认退出的后代观察次数 | 20 | 18 |
+
+**这里的最大值只是在有效查询窗口中观察到的 owned 工作集之和，不是系统真实连续峰值或进程树独占内存。** 共享页可能重复计入，读数逐进程取得，查询窗口不是原子快照；100 组一次查询约 13.2s，不能声称始终每 2s 取得一次读数。查询耗时是工具壁钟成本，不证明应用受到相同幅度的减速。n=5 的 nearest-rank p95 等于最大值。单进程、短生命周期子进程及整个查询间隙内的峰值仍可能漏采。
+
+| 开启采样的 UI 阶段 | 100 对象：中位 / p95（ms） | 5000 对象：中位 / p95（ms） |
+| --- | --- | --- |
+| 启动至登录就绪 | 1608.3 / 2211.9 | 1502.1 / 1871.6 |
+| 主密码解锁至首页 | 2256.3 / 2581.1 | 2427.8 / 2869.0 |
+| 工作区 Clear 至首屏 50 卡片 | 465.7 / 511.0 | 900.3 / 980.0 |
+| needle 搜索至结果卡片 | 436.0 / 453.4 | 506.2 / 543.1 |
+| 应用锁定至登录 | 139.9 / 335.1 | 127.2 / 166.4 |
+| 再次主密码解锁至首页 | 3830.2 / 6379.6 | 2275.4 / 5407.2 |
+
+上述时延含 SDK 和采样开销，未进行受控交叉 A/B，不据此宣称比上一节更快或更慢。十个样本均为 59 次固定 SDK 调用、10 pointer/3 input/0 untrusted；完整 IPC 次数及原始阶段分布在证据中，不新增已确认的业务瓶颈 ID。
+
+首版 100 对象请求五次、五次 UI 成功，但短生命周期 `icacls.exe`/`conhost.exe` 在 CIM 发现后退出，内存读数缺失，全部拒绝。显式连续采样增加一次固定 fresh CIM 复核：只有后代 PID 已不存在，才作为退出事件单列，不伪造零内存，也不接受还活着但不可核验的进程。默认查询和清理保持严格。第二候选请求五次、仅执行一次：启动身份字段缺失使归属检查不完整，末尾周期查询又超时，原 cleanupIntegrity=false 保留并停止批次。
+
+对启动缺字段候选增加至多一次即时身份复核，要求当前父 PID/创建时间仍符合；已消失但身份不全的候选不承接活孤儿归属。最终两组没有触发该复核分支，其正反例由真实 PowerShell 脚本隔离回归验证，不能据此声称每次现场缺字段均会恢复。38 次已确认退出后代观察保留在最终有效读数中。
+
+复跑沿用上节 Release 构建和 fixture 准备步骤，输出必须新建：
+
+```powershell
+node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault100' --output 'C:\TEMP\rf312\memory-100' --samples 5 --memory-interval-ms 2000
+node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault5000' --output 'C:\TEMP\rf312\memory-5000' --samples 5 --memory-interval-ms 2000
+```
+
+完整 Node 检查 154 项：153 passed/0 failed/1 既有 Windows 文件 symlink 权限跳过；Prettier、DOC 边界和 diff 检查通过。本次 Node 工具变化未重跑未受影响的 Rust、Vitest 或 production E2E，不把历史结果记作新验收。14 个公开源文件、3,329 文件基线中的非本项源码、用户 stash 和子模块保持。fresh CIM 按 PID/创建时间/可执行名核对 213 个记录身份及 owned 目录，未发现匹配活进程；未结束额外进程，不把该复查改写为第二候选原清理通过。仅清理 128 个已核对的 private cache，16 个链接只解除链接且未遍历目标，保留 Vault/markers/reports 和可复用 EXE/资源。
+
+[本轮结构化证据](rf312-windows-memory-series-2026-10-05.json)和[逐字节原始档案索引](rf312-windows-memory-series-2026-10-05/index.json)包含两个原失败批次、两个最终批次、每点读数、进程/目录身份、源码冻结、检查与清理；gzip 保存原 BOM/CRLF，不用规范化 JSON 替代原件。RF-312 继续 `[!]`，累计 272/281：同 profile 进程热启动、公开 OCR/附件预览、系统睡眠及多端数据仍缺。查询耗时已足以影响采样分辨率，可继续优化 owned-only 查询并记录同口径前后数据；业务延迟的 KDF/存储/React/SDK 归因继续待做。
+
+
+## 2026-10-05 · RF-1092 owned CIM批量查询阶段（100对象未通过整组验收）
+
+只在显式memory-series中将已验证WebView PID构成整数过滤，一次读取命令行；逐行身份、唯一browser和精确UDF仍验证，默认采样与清理保持。Windows实际PowerShell回归证明默认3次、批量1次查询且不读取foreign命令行。沿用同一EXE（SHA `25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef`）、公开100/5000源、2秒目标间隔及既有新root/profile流程，未改生产Rust/前端/依赖。
+
+| 批次（执行顺序） | UI成功 / 内存完整 | 有效读数 / 全部 | 查询中位 / 最大（ms） | 整组验收 |
+| --- | --- | --- | --- | --- |
+| 100初组 | 4/5 / 4/5 | 77/77 | 1094.6 / 3366.2 | 拒绝，sample-003再次解锁后home超时 |
+| 5000 | 5/5 / 5/5 | 55/55 | 1127.1 / 2860.0 | 通过 |
+| 100确认 | 4/5 / 4/5 | 67/67 | 978.0 / 2269.2 | 拒绝，sample-003首次解锁后home超时 |
+| 100重复 | 5/5 / 4/5 | 55/56 | 1160.1 / 6281.3 | 拒绝，sample-001短命icacls空内存属性 |
+
+5000组相对之前同机器冻结基线1818.9ms的查询中位下降38.0%，最大由3852.9ms变为2860.0ms。三组100数据仅诊断查询成本，acceptedPerformanceMetrics=null；未丢弃失败后拼成5个成功样本。SDK超时报告只保留先前成功探针，不能从其事件数推断最终点击/登录状态，需要补受限失败诊断。icacls空属性不抛异常使catch内退出确认漏跑，登记[RF-1093](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-1093)。查询仍非原子、采样最大值非系统连续峰值；这不是业务延迟优化或受控交叉A/B。
+
+完整Node155项：154通过、0失败、1既有Windows文件symlink权限跳过；源/EXE冻结保持，Rust/Vitest/production E2E未重跑。216记录身份fresh CIM均无owned活进程；仅删除160精确核验缓存，20链接解除且不遍历目标，保留公开源、Vault/markers/reports、EXE和94资源。报告RF-1092继续待验证，不能据此关闭RF-312。
+
+[结构化证据](rf1092-owned-cim-batching-2026-10-05.json)与[原始档案索引](rf1092-owned-cim-batching-2026-10-05/index.json)保存四个完整批次、所有失败、原生marker/每点读数、检查/冻结和收尾。复跑命令沿用上一节，输出必须另建，不能复用consumed root。当前建议先执行RF-1093，再完善SDK失败诊断并复验100组；之后推进同profile受控进程热启动、公开OCR/预览及KDF/存储/React/SDK归因。外部原生材质/辅助功能矩阵与macOS隔离恢复仍独立等待。
+
+
+## 2026-10-05 · RF-1093 空内存属性退出核验阶段
+
+仅显式memory-series的缺失workingSet/privateBytes属性与读取异常共用一次fresh CIM缺席确认；仅已验证后代PID不存在才记录退出，数值保持null。活PID、复用/身份变化或查询失败仍拒绝；根进程和默认采样/清理保持。没有增加Process.Refresh调用。真实PS13场景通过，完整Node156项为155通过/0失败/1既有symlink权限跳过。
+
+| 指标 | 100对象 | 5000对象 |
+| --- | --- | --- |
+| UI成功 / 内存完整 | 4/5 / 4/5 | 5/5 / 5/5 |
+| 有效读数 / 全部 | 72/72 | 59/59 |
+| 查询中位 / 最大（ms） | 1002.8 / 2460.9 | 1290.5 / 9006.1 |
+| 已确认退出后代观察次数 | 8 | 8 |
+| 整组验收 | 拒绝，sample-003再次解锁后home超时 | 通过 |
+
+同一EXE、公开源、2秒间隔均冻结；所有131点有效，100的after-journey覆盖仍因UI未完成而不完整，整组acceptedPerformanceMetrics=null。不得从有效读数推断整行程已通过。5000一次查询约9秒，仍是非原子采样工作集，非连续真实峰值；非受控A/B、不宣称业务加速。
+
+[证据](rf1093-null-memory-2026-10-05.json)与[原始索引](rf1093-null-memory-2026-10-05/index.json)包含全部样本、源码/EXE冻结、检查与清理。fresh CIM114身份无owned活进程；仅删除80核验缓存，10链接解除且不遍历目标；公开源、94资源及EXE、Vault/markers/reports保留。RF-1092/1093均等待100整组验收，RF-312继续未完成。下一本地工作是保留身份/主frame校验后的超时诊断及有限焦点/可见性状态，定位SDK/UI失败；正常成功判定、超时和业务IPC规则保持，再推进热启动与OCR/预览等缺失场景。
+
+## 2026-10-05 · SDK受限超时诊断（两组原生失败未复现）
+
+新诊断EXE SHA `b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88`；13个源码/配置/runner输入冻结。成功格式20字段、59调用和原输入/时钟/来源规则保持。只有timeout可附加8个有限状态：焦点、可见性、视口、首页/密码/提交可见和提交disabled；与成功探针共用payload/observer校验，再核验主frame和loader。它不读取字段值、不发额外输入，失败仍失败。
+
+| 公开100对象组 | 行程 | 有效内存读数 | 查询中位 | 查询最大 | 最大实际起点间距 |
+| --- | --- | --- | --- | --- | --- |
+| 2000ms目标 | 5/5 | 52/52 | 1055.82ms | 2003.92ms | 2064ms |
+| 1000ms目标受控对照 | 5/5 | 79/79 | 1018.87ms | 1519.59ms | 1522ms |
+
+对照计划预先限定只改间隔、固定5次，未改变点击/密码/超时/进程归属规则。两组都未出现timeout；Rust3个诊断校验测试和实际JS VM超时回归通过，但不能声称原生失败现场路径已观测，原超时原因仍未确定。1000ms不是RF-1092/1093的2000ms验收替代，也不保证查询起点每秒一次。保留此前失败，不筛选成功子集。
+
+46个native Rust测试、9个定向Node、完整Node157 pass/0 fail/1原skip、严格Clippy/格式/语法/Release通过。142个记录进程身份复核已退出，首组与最终私有缓存清理原件保留；14个公开源与94资源保持。全部[证据](rf312-windows-timeout-diagnostics-2026-10-05.json)及[逐字节索引](rf312-windows-timeout-diagnostics-2026-10-05/index.json)可复核。后续用此新EXE补5000对象2000ms组，分别回验RF-1092/1093；RF-312热启动、OCR/附件预览和归因仍有本地可执行工作。
+
+## 2026-10-05 · RF-1092同EXE原生整组验收完成
+
+使用SDK诊断新EXE `b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88`，100/5000对象各5/5、2000ms目标，共115/115有效点。100组来自前节已提交原件，5000组为本轮新执行；13个输入SHA不变。原查询次数回归与最新完整Node157 pass/0 fail/1原skip保持适用，代码不变、不重复未受影响检查。查询中位1055.82/1203.63ms，5000最大5868.52ms，仍不保证2秒实际间距。
+
+[完整同构建证据](rf1092-native-acceptance-2026-10-05.json)及[新组原件](rf1092-native-acceptance-2026-10-05/index.json)保留全部读数、身份/资源/SHA与清理。没有用1000ms对照或成功子集替代验收，也没有删除旧失败。RF-1092可以关闭；RF-1093另项复核，原偶发home超时仍归RF-312，未宣称原因已修复。后续本地热启动/OCR/预览和性能归因继续。
+
+## 2026-10-05 · RF-1093空属性退出验收完成
+
+[独立RF-1093证据](rf1093-native-acceptance-2026-10-05.json)核对原13个真实PowerShell场景及相同源码SHA、最新完整Node结果和同EXE100/5000各5次2000ms整组。115/115点有效；20条确认退出观察只含身份/确认字段、非root且不在存活集合，内存/CPU数值省略，原PowerShell回归验证内部置null，没有零替代。原失败组和最新原件全部保留，没有移除进程身份、查询失败或根进程拒绝规则。
+
+RF-1092与RF-1093分别独立验收提交；RF-312原偶发home超时仍未解决。下一本地场景为同profile受控进程热启动（需要新的明确启动授权/身份契约，不能清除consumed marker重用旧证明）、公开OCR/附件预览及KDF/存储/React/SDK性能归因。外部平台与材质前置保持。
+
+
+## 2026-10-05 · RF-312同profile受控进程启动Windows阶段
+
+使用同一Release EXE `3d9461e92d87412bd85b522342d895e439a40fabc8a0f2da739ba9c9bcbf8316`，100/5000对象各5对，累计20次成功原生启动。每对首次使用新私有profile，随后确认该应用及WebView进程退出，在保留Vault、WebView与profile目录的情况下再次启动；EXE和identifier保持，第二次使用独立runId、PID、端口、主frame、loader及timeOrigin。旧consumed保留，重启票据独立且只消费一次。全部输入均为只读，未读取或写入密码。
+
+| 对象数 | 样本量 | 新profile中位 / p95（ms） | 同profile重启中位 / p95（ms） |
+|---|---|---|---|
+| 100 | 5 对 | 1705.05 / 3690.51 | 1360.44 / 1487.43 |
+| 5000 | 5 对 | 1510.34 / 2397.44 | 1545.30 / 2022.05 |
+
+计时从原生runtime配置到可见、启用的主密码登录表单、两帧及SDK绑定，不包括OS spawn、准备/预检，包含SDK开销；不是纯渲染时间，也不是OS冷启动。没有清空OS缓存。每组n=5，nearest-rank p95为最大值；5000对象两类中位数接近，不能推断同profile必然更快或据此启动产品优化。工作集是登录就绪后驱动核验前后快照，不是启动峰值；本组没有执行密码解锁、OCR、预览或睡眠。
+
+首次EXE被离线标记门禁拒绝，未启动GUI；第二版首个原生样本在重启预检失败，整组0接受、metrics为null。原因是正常更新器保存了公开`updateSources`缓存，而旧契约要求UI文件原始字节不变。仅热启动分支允许该生产者缓存：固定八项偏好保持，缓存字段/时间/地址来自编译配置及允许候选，停止回执和票据绑定首次退出后的实际UI文件SHA；其余Vault/config/accounts/marker必须逐字节保持。旧首次启动预检仍严格。所有失败、旧EXE和原始证明均保留，没有重置profile、删除consumed或筛选成功子集。
+
+复跑沿用本文件的公开fixture准备和打包资源复制步骤，构建与命令如下；每个output必须新建，脚本内部负责两次启动及核验：
+
+```powershell
+cargo build --locked --release -p solo_soul --features native-perf
+node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault100' --output 'C:\TEMP\rf312\warm-100' --samples 5
+node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault5000' --output 'C:\TEMP\rf312\warm-5000' --samples 5
+```
+
+51项native Rust测试、固定Node入口166通过/0失败/1既有权限跳过、严格Clippy、格式及Release构建通过。74个构建输入不变，14个公开源、11份Vault的不可变文件、282份资源副本及四版EXE核对通过，stash和子模块保持。fresh CIM复核188个记录身份退出；首次清理遇到私有`Content.IE5`联接，在删除前拒绝，原错误与脚本保留；最终精确解除11个私有联接并删除88个缓存目录，不遍历联接目标，保留Vault和所有证明。
+
+[完整结构化证据](rf312-windows-warm-start-2026-10-05.json)与[逐字节原始索引](rf312-windows-warm-start-2026-10-05/index.json)保存207份gzip原件，包括全部失败/成功、源码冻结、检查、构建和清理。RF-312整体仍未完成：下一本地项是公开OCR/附件预览原生测量和KDF/存储/React/SDK归因；原偶发home超时原因仍未确定。系统睡眠、多端性能以及RF-112/121外部原生验收和RF-122～127前置保持未完成。独立本地提交，不推送，goal继续active。
+
+## 2026-10-05 · Windows 图片与文本附件预览
+
+独立媒体行程已完成：100/5000 对象各 5/5、90 阶段，图片中位数 167.8/167.0 ms，文本 187.1/172.2 ms。每次真实 SDK 滚轮、解码/精确文本与两帧、实际读取 IPC、同文档/frame 和 owned 清理均核验；59/56 个内存采样点完整。首版五份屏幕外点击拒绝及全部空指标保留，没有用成功子集替代整组。详细口径、构建、全部分布与证据见[媒体预览基线](RF-312-native-media-preview.md)。
+
+这是独立 schema2 媒体数据集与九阶段范围，不与既有 v1 六阶段或同 profile 启动组混合。RF-312 仍待 PDF、OCR、归因、多端及睡眠验收；原 home 超时原因未知。
+
+
+## 2026-10-05 · 固定公开 PDF 能力诊断
+
+独立非默认入口已完成 100 对象三次实际诊断，真实打开/关闭 PDF、59 次 SDK 调用、主文档身份及清理均核验。三张相同截图可见 PDF 正文与两页指示；主 session 的四次 frame 快照没有子 frame，上下文事件仅包含应用主页面，因此自动 PDF 就绪与性能仍未验收。首次因 GUI 正常写入账户/UI 偏好导致的三次误拒绝及旧构建保留，路径绑定已前移到严格 consume 校验之后。
+
+详细构建、检查、原始失败/成功、截图摘要与清理见[PDF 能力诊断](RF-312-native-pdf-diagnostic.md)。后续调查有界 related target/session，再进行 PDF 性能、OCR 和归因；不把人工截图或主文档就绪当作 PDF 性能，RF-312 与其他原生材质前置保持未完成。
+
+
+## 2026-10-05 · Windows PDF 相关目标/session
+
+新 v2 诊断的三个 owned 副本均通过，每次 87 次 SDK 调用、17 次子 session 调用；实际 PDF iframe 中未观察到 viewer API。目标列表显示主目标关联的组件 webview，但自动附加未提供它的 session，下一步验证关联并受控附加。75 项原生回归与严格 Clippy 通过，Node 184 passed / 0 failed / 1 既有权限跳过；全部冻结、实际证明、截图和清理见 [PDF 诊断](RF-312-native-pdf-diagnostic.md)。PDF 就绪与性能仍未验收，不合并旧/新构建样本；RF-312、其他原生验收与材质前置保持。
+
+
+### 2026-10-05 · PDF 组件 session 诊断
+
+三份实际 owned 组件附加诊断通过，11 份组件探针均确认文档一致，但没有观察到既定 viewer 加载 API。Native 打开起点、观察时刻、显式解除、GUI 关闭和订阅清理已记录；PDF 自动就绪和重复性能仍未验收。检查为 80 项原生回归、严格 Clippy 与 187 项 Node 通过（1 项既有权限跳过），完整口径见 [PDF 诊断](RF-312-native-pdf-diagnostic.md)、[结构化证据](rf312-windows-pdf-component-2026-10-05.json)和[原件索引](rf312-windows-pdf-component-2026-10-05/index.json)。下一步从实际组件结构和 owned PDF 子 frame 建立可靠就绪观察，再继续 OCR 与归因；RF-312 保持未完成。
+
+
+### 2026-10-05 · PDF 实际结构诊断
+
+三份 fresh owned 结构诊断通过，10份组件候选记录 loading→complete 变化及可见embed；没有读到PDF viewer/canvas/加载状态。所有前后frame树稳定，未知子来源只分类。十二份原生公开截图一致，正文区域像素匹配仅完成离线可行性检查；下一步在固定素材、视口和源文档身份下实际验证首屏可见门禁并记录截图开销。84项原生回归、严格Clippy和191项Node通过（1项既有权限跳过），完整口径见[PDF诊断](RF-312-native-pdf-diagnostic.md)、[结构化结果](rf312-windows-pdf-structure-2026-10-05.json)与[原件索引](rf312-windows-pdf-structure-2026-10-05/index.json)。PDF性能、OCR、归因、睡眠及多端缺口保持。
+
+
+## 2026-10-05 固定公开 PDF 首屏文字可见验收
+
+100/5000对象各三次完整原生行程通过，固定公开PDF正文区域经连续稳定截图和独立PNG解码核验。前面三轮失败组完整保留；第三轮虽三份原生证明通过，因事后进程快照超时整组仍判失败，此后用同一EXE完整重跑，未使用成功子集或延长预算。
+
+[首屏口径、观测分布及限制](RF-312-native-pdf-first-page.md)、[结构化验收](rf312-windows-pdf-first-page-2026-10-05.json)与[完整原始证据](rf312-windows-pdf-first-page-2026-10-05/index.json)可复核。结果不覆盖其他页/任意PDF、OCR、系统睡眠或多端；RF-312继续待验证，下一阶段为实际OCR和性能归因，偶发首页及采样超时仍保留待查。独立本地提交，不推送。
+
+
+## 2026-10-05 · RF-1095 普通采样复用批量查询
+
+此前批量查询限定 memory-series，普通 sample 仍逐个读取已核验 WebView 后代。现将两者收敛到同一整数 PID 过滤查询，每行仍重新核对 birth/EXE、唯一 browser 和精确 UDF；全进程查询仍不读取 CommandLine，默认内存规则与 15000ms 预算保持。
+
+同一公开合成 GUI 的四次交替只读对照中，旧路径命令行查询次数为 8/7，临时候选为 1/1；四次身份/UDF 均通过，没有复现超时。实施后另一 fresh root 的两次严格默认采样约 954.8/914.8ms，身份、UDF 和内存均有效；另两次带阶段记录的查询约 1342.2/893.3ms，总 CIM 查询两次，其中仅一次读取已核验 PID 的命令行。该小样本包含 PowerShell/驱动开销，不构成新的性能分布，也不能证明此前 15 秒超时的完整根因已解决。
+
+实际 PowerShell 5.1 回归覆盖两种动作各七场景：正常、birth/EXE 变化、重复 browser、错误 UDF、重复/缺失明细；全部保持拒绝边界与 foreign 命令行排除。红测为 3≠1，修复后通过；完整 Node 204 passed / 0 failed / 1 既有符号链接权限 skip，脚本格式通过。生产 Rust/前端未改，不把旧 F/R/WEB 结果当作新运行。
+
+两个诊断没有输入授权、登录或扫描。strict owned 退出后，fresh CIM 验证 18 条 PID/birth 身份退出，并确认六个无存量 birth 的辅助 PID 不在运行；只清理 16 个精确缓存路径和两个已核验链接，22 个 Vault 文件与两份公开图片、日志副本保持。缓存工具第一次由 PowerShell 5.1 在链接信息为空时拒绝，未删除；使用已核验的 PowerShell 7.6.5 和相同路径/链接校验后完成。原生清理由 runner 终止自有进程，缓存工具未终止额外进程。
+
+[结构化证据](rf1095-ordinary-owned-cim-2026-10-05.json)与[逐字节原件](rf1095-ordinary-owned-cim-2026-10-05/index.json)包含全部对照、红绿测、严格默认读数、冻结与清理。RF-1095 独立提交；RF-312 仍待 5000 整组 OCR、原首页超时及阶段归因，旧失败保持，RF-112/121 和 RF-122～127 前置不解除。
+
+
+## 2026-10-06 · 认证阶段原生观测
+
+100/5000各三个完整六阶段样本、每次两条finished认证流通过。响应头、前端真实await、同步状态写入和后端阶段分开记录；原Promise/隐私/身份/预算规则保持。带观测器的数据仅作归因，performanceMetrics=null，不替代旧无观测器基线。
+
+十二次账户写入调用1803.06～5258.70ms、KDF127.61～198.92ms；写入内部的原子写/权限设置尚待拆分。两类时钟不相减、嵌套时长不相加、同步set不等于React绘制，未证明旧首页超时根因。[完整口径](RF-312-native-auth-attribution.md)、[结构化验收](rf312-windows-auth-attribution-2026-10-06.json)和[所有原件](rf312-windows-auth-attribution-2026-10-06/index.json)保留成功与失败、红绿回归、冻结和清理。RF-312下一本地项为账户写入和Windows RF-121完整窗口合成；首页超时/睡眠/多端及其他任务前置保持。独立本地提交，不推送。
+
+
+## 2026-10-06 · 账户清单写入内部归因补证
+
+五个固定子阶段的两档完整样本、独立时钟复算及失败/检查/保全原件已归档，见[当前归因记录](RF-312-native-account-write-attribution.md)。该记录补充本阶段，不覆盖旧失败或替代无观测器基线；首页超时根因、受控优化效果、睡眠、多端与材质前置仍未关闭。

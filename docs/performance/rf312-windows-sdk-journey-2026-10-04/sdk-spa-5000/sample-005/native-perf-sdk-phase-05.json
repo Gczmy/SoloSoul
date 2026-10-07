@@ -1,0 +1,28 @@
+{
+  "durationMs": 151.7287,
+  "fromAtMs": 17265.800000190735,
+  "inputTrust": {
+    "pointer": 8,
+    "text": 2,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 15,
+    "commands": {
+      "biometric_check_availability": 1,
+      "check_has_account": 1,
+      "desktop_prepare_update": 1,
+      "dismiss_lock_mask": 1,
+      "lock": 1,
+      "plugin:event|listen": 1,
+      "plugin:event|unlisten": 5,
+      "set_status_bar_style": 2,
+      "set_titlebar_color": 1,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "application-lock",
+  "success": true,
+  "toAtMs": 17421.900000572205
+}

@@ -307,10 +307,10 @@ fn filter_low_confidence_chars(text: &str, confidences: &[f64], threshold: f64) 
         .collect()
 }
 
-/// OCR-B 字符集校正（MRZ 上下文）。
+/// 仅 MRZ 识别链路使用的既有 OCR-B 混淆校正。
 ///
 /// 修正规则：
-/// - O → 0（O 不是有效 MRZ 字符，仅用 0）
+/// - O → 0（保留既有 MRZ 启发式规则；普通文字不使用）
 /// - l → 1（小写 l 在 MRZ 中视为 1）
 /// - 连续 3+ 个 C 或 E → 对应量的 <（PP-OCRv6 常将 MRZ 填充符 `<` 识别为 C/E）
 ///
@@ -360,16 +360,27 @@ fn correct_ocr_b_mrz(text: &str) -> String {
     result
 }
 
-/// 增强型 CTC 解码：解码 + 置信度过滤 + OCR-B 校正。
+/// 通用 CTC 解码：仅过滤低置信度字符，保留原始字母和重复 C/E。
 pub(crate) fn ctc_decode_enhanced(
     pred: &ndarray::ArrayView2<f32>,
     char_list: &[String],
     confidence_threshold: f64,
 ) -> (String, f64) {
-    let (mut text, char_confs, avg) = ctc_decode_detailed(pred, char_list);
-    text = filter_low_confidence_chars(&text, &char_confs, confidence_threshold);
-    text = correct_ocr_b_mrz(&text);
-    (text, avg)
+    let (text, char_confs, avg) = ctc_decode_detailed(pred, char_list);
+    (
+        filter_low_confidence_chars(&text, &char_confs, confidence_threshold),
+        avg,
+    )
+}
+
+/// MRZ 单行识别保留原有的置信度过滤和 OCR-B 校正行为。
+pub(crate) fn ctc_decode_mrz(
+    pred: &ndarray::ArrayView2<f32>,
+    char_list: &[String],
+    confidence_threshold: f64,
+) -> (String, f64) {
+    let (text, avg) = ctc_decode_enhanced(pred, char_list, confidence_threshold);
+    (correct_ocr_b_mrz(&text), avg)
 }
 
 /// 构建最终的 `OcrResult`。
@@ -428,6 +439,45 @@ mod tests {
         let (text, conf) = ctc_decode(&pred.view(), &char_list);
         assert_eq!(text, "abc");
         assert_eq!(conf, 1.0);
+    }
+
+    fn ctc_input(text: &str) -> (Array2<f32>, Vec<String>) {
+        let chars: Vec<_> = text
+            .chars()
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect();
+        let mut pred = Array2::zeros([text.chars().count() * 2, chars.len() + 1]);
+        for (i, ch) in text.chars().enumerate() {
+            pred[[i * 2, chars.iter().position(|c| *c == ch).unwrap() + 1]] = 1.0;
+            pred[[i * 2 + 1, 0]] = 1.0;
+        }
+        (pred, chars.into_iter().map(|c| c.to_string()).collect())
+    }
+    #[test]
+    fn general_decode_preserves_letters_and_repeated_ce() {
+        let expected = "Hello SoloSoul OCR CCCE";
+        let (pred, chars) = ctc_input(expected);
+        let (actual, confidence) = ctc_decode_enhanced(&pred.view(), &chars, 0.5);
+        assert_eq!(actual, expected);
+        assert_eq!(confidence, 1.0);
+    }
+
+    #[test]
+    fn general_decode_keeps_confidence_filter_and_average() {
+        let (mut pred, chars) = ctc_input("l");
+        pred[[0, 1]] = 0.25;
+        let (actual, confidence) = ctc_decode_enhanced(&pred.view(), &chars, 0.5);
+        assert_eq!(actual, "?");
+        assert_eq!(confidence, 0.25);
+    }
+
+    #[test]
+    fn mrz_decode_retains_existing_ocr_b_corrections() {
+        let (pred, chars) = ctc_input("Ol CCCE CHN");
+        let (actual, confidence) = ctc_decode_mrz(&pred.view(), &chars, 0.1);
+        assert_eq!(actual, "01 <<<< CHN");
+        assert_eq!(confidence, 1.0);
     }
 
     #[test]

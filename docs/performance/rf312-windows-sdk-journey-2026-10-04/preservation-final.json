@@ -1,0 +1,27 @@
+{
+  "baselineTrackedFiles": 2835,
+  "baselineManifestSha256": "3602dc1957d2a0c543f85c98570190c5d849db40ad0bc87c93b19dcc4d2c56ef",
+  "changedTrackedPaths": [
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "docs/performance/RF-312-windows-native-app-baseline.md",
+    "tauri/scripts/native-perf-run.mjs",
+    "tauri/scripts/native-perf-run.test.mjs",
+    "tauri/scripts/run-node-tests.mjs",
+    "tauri/src-tauri/src/lib.rs",
+    "tauri/src-tauri/src/native_perf.rs",
+    "tauri/src-tauri/src/native_perf/preflight_tests.rs",
+    "tauri/src-tauri/src/native_perf/sdk_cdp.rs"
+  ],
+  "unexpectedTrackedChanges": [],
+  "publicSourceFilesUnchanged": 14,
+  "publicSourceFileSetUnchanged": true,
+  "selectedFinalFreezeMatches": true,
+  "releaseResourcesMatch": true,
+  "resourceCount": 94,
+  "candidateMatches": true,
+  "stashUnchanged": true,
+  "protectedStash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "submoduleUnchanged": true,
+  "submoduleHead": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+  "oldDRecoveryPathNotOperated": true
+}

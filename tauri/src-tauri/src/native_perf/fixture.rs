@@ -36,6 +36,58 @@ pub(super) struct Proof {
     files: Vec<FileProof>,
 }
 
+// 本方法只消费 consume 已严格验过的证明，不在GUI写入之后重读封闭文件摘要。
+impl Proof {
+    // 准备阶段已解密核验公开素材；GUI阶段只保留其物理密文摘要，不能拿明文摘要验磁盘文件。
+    pub(super) fn pdf_ciphertext_sha256(&self, vault: &Path) -> Result<String, String> {
+        let path = self.pdf_resource_path(vault)?;
+        let relative = path
+            .strip_prefix(vault)
+            .map_err(|_| "PDF resource left owned vault")?;
+        let matches: Vec<_> = self
+            .files
+            .iter()
+            .filter(|f| f.relative_path == relative)
+            .collect();
+        if matches.len() != 1
+            || matches[0].sha256.len() != 64
+            || !matches[0]
+                .sha256
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        {
+            return Err("PDF ciphertext digest requires exactly one checked file proof".into());
+        }
+        Ok(matches[0].sha256.clone())
+    }
+    pub(super) fn pdf_resource_path(&self, vault: &Path) -> Result<PathBuf, String> {
+        let marker = &self.marker;
+        if marker["schemaVersion"] != 2
+            || marker["scope"] != "synthetic-native-media-vault-fixture"
+            || marker["publicAssets"][1]["fileName"] != "text_only.pdf"
+            || marker["publicAssets"][1]["sha256"]
+                != "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+        {
+            return Err("PDF resource requires the checked public media proof".into());
+        }
+        let descriptor = &marker["attachments"][1];
+        let relative = descriptor["relativePath"]
+            .as_str()
+            .ok_or("missing public PDF path")?;
+        let id = descriptor["id"]
+            .as_str()
+            .ok_or("missing public PDF attachment ID")?;
+        if id
+            .strip_prefix("att_")
+            .is_none_or(|v| uuid::Uuid::parse_str(v).is_err())
+            || relative != format!("attachments/obj_perf_00000000/{id}/text_only.pdf")
+        {
+            return Err("PDF path differs from its fixed public resource".into());
+        }
+        Ok(vault.join(relative))
+    }
+}
+
 fn ui_preferences() -> Value {
     json!({
         "theme": "light", "accentColor": "ocean", "customAccentHex": "",
@@ -66,7 +118,55 @@ fn marker(count: usize, build_profile: &str) -> Value {
     })
 }
 
+// 启动后只承认正常更新器写入的公开缓存；固定的八项外观/引导偏好仍逐项相等。
+fn check_startup_preferences(value: &Value) -> Result<(), String> {
+    let mut actual = value.clone();
+    let cache = actual
+        .as_object_mut()
+        .ok_or("invalid startup UI preferences")?
+        .remove("updateSources");
+    if actual != ui_preferences() {
+        return Err("startup changed fixed UI preferences".into());
+    }
+    let Some(cache) = cache else {
+        return Ok(());
+    };
+    let sources = crate::commands::update::native_perf_cache_candidates()?;
+    if !cache.as_object().is_some_and(|m| {
+        m.len() == 3
+            && ["manifest", "release", "lastChannel"]
+                .iter()
+                .all(|key| m.contains_key(*key))
+    }) || !["manifest", "release"].contains(&cache["lastChannel"].as_str().unwrap_or(""))
+        || cache[cache["lastChannel"].as_str().unwrap()].is_null()
+    {
+        return Err("invalid startup update-source cache".into());
+    }
+    for channel in ["manifest", "release"] {
+        let slot = &cache[channel];
+        if slot.is_null() {
+            continue;
+        }
+        if slot.as_object().map(|m| m.len()) != Some(2)
+            || slot["url"].as_str().is_none()
+            || !sources[channel]
+                .as_array()
+                .is_some_and(|urls| urls.contains(&slot["url"]))
+            || !slot["probedAt"]
+                .as_i64()
+                .is_some_and(|at| at > 0 && at <= chrono::Utc::now().timestamp())
+        {
+            return Err("startup update-source cache is not an allowed bounded source".into());
+        }
+    }
+    Ok(())
+}
+
 pub(super) fn check_contract(base: &Path) -> Result<Contract, String> {
+    check_contract_mode(base, false)
+}
+
+fn check_contract_mode(base: &Path, startup: bool) -> Result<Contract, String> {
     require_regular(base, true)?;
     let value = read_json(&base.join(MARKER))?;
     let count = value["objectCount"]
@@ -108,9 +208,14 @@ pub(super) fn check_contract(base: &Path) -> Result<Contract, String> {
     if accounts.as_array().map(Vec::len) != Some(1)
         || accounts[0]["id"] != account_id
         || accounts[0]["name"] != ACCOUNT_NAME
-        || read_json(&base.join("ui_preferences.json"))? != ui_preferences()
     {
         return Err("native-perf fixture account catalog/UI preferences mismatch".into());
+    }
+    let preferences = read_json(&base.join("ui_preferences.json"))?;
+    if startup {
+        check_startup_preferences(&preferences)?;
+    } else if preferences != ui_preferences() {
+        return Err("native-perf fixture UI preferences mismatch".into());
     }
     let files = closed_files(base, &account_id)?;
     Ok(Contract {
@@ -262,15 +367,100 @@ pub(super) fn verify_copy(base: &Path, contract: &Contract) -> Result<Proof, Str
 }
 
 pub(super) fn check_proof(base: &Path, proof: &Proof, contract: &Contract) -> Result<(), String> {
+    check_proof_mode(base, proof, contract, false)
+}
+
+pub(super) fn check_startup_proof(base: &Path, proof: &Proof) -> Result<(), String> {
+    let contract = check_contract_mode(base, true)?;
+    check_proof_mode(base, proof, &contract, true)
+}
+
+fn check_proof_mode(
+    base: &Path,
+    proof: &Proof,
+    contract: &Contract,
+    startup: bool,
+) -> Result<(), String> {
+    let current = file_proofs(base, &contract.account_id)?;
+    let files_match = proof.files.len() == current.len()
+        && proof.files.iter().zip(&current).all(|(original, actual)| {
+            original.relative_path == actual.relative_path
+                && (original.sha256 == actual.sha256
+                    || (startup && actual.relative_path == Path::new("ui_preferences.json")))
+        });
     if proof.account_id != contract.account_id
         || proof.object_count != contract.count
         || proof.search_matches != contract.count.div_ceil(20)
         || proof.marker != contract.marker
-        || proof.files != file_proofs(base, &contract.account_id)?
+        || !files_match
     {
         return Err(
             "prepared synthetic fixture differs from the independently verified copy".into(),
         );
+    }
+    Ok(())
+}
+
+pub(super) fn check_media_contract(base: &Path) -> Result<Contract, String> {
+    let marker = super::media_fixture::marker(base)?;
+    let count = marker["baseFixture"]["objectCount"]
+        .as_u64()
+        .ok_or("media count missing")? as usize;
+    let mut files: Vec<PathBuf> = marker["closedFiles"]
+        .as_array()
+        .ok_or("media files missing")?
+        .iter()
+        .map(|f| {
+            f["relativePath"]
+                .as_str()
+                .map(PathBuf::from)
+                .ok_or("media path missing")
+        })
+        .collect::<Result<_, _>>()?;
+    files.push(PathBuf::from("rf312-media-fixture.json"));
+    files.sort();
+    Ok(Contract {
+        count,
+        account_id: format!("acc_rf312_{count}"),
+        marker,
+        files,
+    })
+}
+pub(super) fn verify_media_copy(base: &Path, source: &Contract) -> Result<Proof, String> {
+    let own = check_media_contract(base)?;
+    for key in ["baseFixture", "publicAssets", "attachments"] {
+        if own.marker[key] != source.marker[key] {
+            return Err("owned media contract differs from source".into());
+        }
+    }
+    let files = own
+        .files
+        .iter()
+        .map(|relative_path| {
+            Ok(FileProof {
+                relative_path: relative_path.clone(),
+                sha256: sha256_file(&base.join(relative_path))?,
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    Ok(Proof {
+        account_id: own.account_id,
+        object_count: own.count,
+        search_matches: own.count.div_ceil(20),
+        marker: own.marker,
+        files,
+    })
+}
+pub(super) fn check_media_proof(base: &Path, proof: &Proof) -> Result<(), String> {
+    let c = check_media_contract(base)?;
+    let actual = verify_media_copy(base, &c)?;
+    if proof.account_id != actual.account_id
+        || proof.object_count != actual.object_count
+        || proof.search_matches != actual.search_matches
+        || proof.marker != actual.marker
+        || proof.files != actual.files
+    {
+        return Err("owned media bytes differ from prepared proof".into());
     }
     Ok(())
 }
@@ -318,4 +508,117 @@ pub(super) fn write_test_fixture(base: &Path) {
     drop(service);
     super::write_new_json(&base.join("ui_preferences.json"), &ui_preferences()).unwrap();
     super::write_new_json(&base.join(MARKER), &marker(100, "debug")).unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn startup_cache_preserves_preferences_and_rejects_unknown_sources_and_fields() {
+        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        let sources = crate::commands::update::native_perf_cache_candidates().unwrap();
+        let url = sources["manifest"][0].clone();
+        let mut valid = ui_preferences();
+        valid["updateSources"] = json!({"manifest":{"url":url,"probedAt":chrono::Utc::now().timestamp()},"release":null,"lastChannel":"manifest"});
+        assert!(check_startup_preferences(&ui_preferences()).is_ok());
+        assert!(check_startup_preferences(&valid).is_ok());
+        let mut bad = valid.clone();
+        bad["theme"] = json!("dark");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["manifest"]["url"] = json!("https://unapproved.invalid/latest.json");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["manifest"]["probedAt"] = json!(chrono::Utc::now().timestamp() + 3600);
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["manifest"]["private"] = json!("sentinel");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]
+            .as_object_mut()
+            .unwrap()
+            .remove("release");
+        bad["updateSources"]["private"] = Value::Null;
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["lastChannel"] = json!("release");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid;
+        bad["unknown"] = Value::Null;
+        assert!(check_startup_preferences(&bad).is_err());
+    }
+}
+
+#[cfg(test)]
+mod pdf_binding_tests {
+    use super::*;
+    fn proof() -> Proof {
+        let id = "att_00000000-0000-0000-0000-000000000001";
+        Proof {
+            account_id: "acc_rf312_100".into(),
+            object_count: 100,
+            search_matches: 5,
+            files: vec![],
+            marker: json!({"schemaVersion":2,"scope":"synthetic-native-media-vault-fixture","publicAssets":[{}, {"fileName":"text_only.pdf","sha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"}],"attachments":[{}, {"id":id,"relativePath":format!("attachments/obj_perf_00000000/{id}/text_only.pdf")}]}),
+        }
+    }
+    #[test]
+    fn pdf_ciphertext_digest_is_bound_to_exact_prechecked_file_not_plaintext_asset() {
+        let vault = Path::new("C:/owned/vault");
+        let mut v = proof();
+        assert!(v.pdf_ciphertext_sha256(vault).is_err());
+        let relative = v
+            .pdf_resource_path(vault)
+            .unwrap()
+            .strip_prefix(vault)
+            .unwrap()
+            .to_path_buf();
+        let digest = "b".repeat(64);
+        v.files.push(FileProof {
+            relative_path: relative.clone(),
+            sha256: digest.clone(),
+        });
+        assert_eq!(v.pdf_ciphertext_sha256(vault).unwrap(), digest);
+        assert_ne!(
+            v.pdf_ciphertext_sha256(vault).unwrap(),
+            v.marker["publicAssets"][1]["sha256"]
+        );
+        v.files.push(FileProof {
+            relative_path: relative,
+            sha256: digest,
+        });
+        assert!(v.pdf_ciphertext_sha256(vault).is_err());
+    }
+    #[test]
+    fn prelaunch_pdf_binding_survives_legitimate_mutable_file_changes_without_revalidation() {
+        let temp = tempfile::tempdir().unwrap();
+        let vault = temp.path().join("vault");
+        fs::create_dir(&vault).unwrap();
+        let source = proof();
+        let expected = source.pdf_resource_path(&vault).unwrap();
+        fs::write(
+            vault.join("ui_preferences.json"),
+            "GUI changed preferences after input",
+        )
+        .unwrap();
+        fs::write(
+            vault.join("config.json"),
+            "GUI wrote account state after unlock",
+        )
+        .unwrap();
+        assert_eq!(source.pdf_resource_path(&vault).unwrap(), expected);
+        assert!(expected.starts_with(&vault));
+    }
+    #[test]
+    fn prelaunch_pdf_binding_rejects_different_resource_digest_uuid_and_traversal() {
+        let vault = Path::new("C:/owned/vault");
+        for (key,value) in [("relativePath",json!("../private.pdf")),("id",json!("att_../../private")),("relativePath",json!("attachments/obj_perf_00000000/att_00000000-0000-0000-0000-000000000001/scanned.pdf"))] {let mut v=proof();v.marker["attachments"][1][key]=value;assert!(v.pdf_resource_path(vault).is_err());}
+        let mut bad = proof();
+        bad.marker["publicAssets"][1]["sha256"] = json!("private");
+        assert!(bad.pdf_resource_path(vault).is_err());
+        let mut legacy = proof();
+        legacy.marker["schemaVersion"] = json!(1);
+        assert!(legacy.pdf_resource_path(vault).is_err());
+    }
 }

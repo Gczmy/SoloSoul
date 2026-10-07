@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 use solosoul_crypto::kdf::KdfConfig;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 /// P032：主密码失败计数读-改-写的原子化互斥锁（镜像 pin.rs 的 PIN_OP_LOCK 模式，
 /// 保证并发解锁时失败计数不丢更新）。
@@ -39,6 +41,10 @@ use zeroize::{Zeroize, Zeroizing};
 // ── Platform‑specific private file/directory permissions ──────────
 // Unix: chmod 0700/0600
 // Windows: icacls — remove inheritance, grant Full‑Control to current user only
+
+// RF-1097：GUI 权限子进程不创建控制台，保留参数、标准流与退出状态检查。
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[cfg(unix)]
 fn set_private_dir(path: &Path) -> Result<(), String> {
@@ -80,16 +86,46 @@ fn sanitize_windows_username(username: &str) -> Result<String, String> {
 #[cfg(windows)]
 fn set_private_dir(path: &Path) -> Result<(), String> {
     let path_str = path.to_string_lossy();
-    let username = std::env::var("USERNAME")
-        .map_err(|_| "USERNAME environment variable not found".to_string())?;
-    let username = sanitize_windows_username(&username)?;
+    let username = std::env::var("USERNAME").map_err(|_| {
+        #[cfg(feature = "native-perf")]
+        crate::native_perf_unlock::permission(
+            crate::native_perf_unlock::PermissionTarget::Directory,
+            crate::native_perf_unlock::PermissionOutcome::UsernameUnavailable,
+        );
+        "USERNAME environment variable not found".to_string()
+    })?;
+    let username = sanitize_windows_username(&username).inspect_err(|_| {
+        #[cfg(feature = "native-perf")]
+        crate::native_perf_unlock::permission(
+            crate::native_perf_unlock::PermissionTarget::Directory,
+            crate::native_perf_unlock::PermissionOutcome::InvalidUsername,
+        );
+    })?;
     let status = std::process::Command::new("icacls")
+        .creation_flags(CREATE_NO_WINDOW)
         .arg(path_str.as_ref())
         .arg("/inheritance:r")
         .arg("/grant")
         .arg(format!("{username}:(OI)(CI)F"))
         .status()
-        .map_err(|e| format!("icacls failed to start: {e}"))?;
+        .map_err(|e| {
+            #[cfg(feature = "native-perf")]
+            crate::native_perf_unlock::permission(
+                crate::native_perf_unlock::PermissionTarget::Directory,
+                crate::native_perf_unlock::PermissionOutcome::SpawnError {
+                    os_error: e.raw_os_error(),
+                },
+            );
+            format!("icacls failed to start: {e}")
+        })?;
+    #[cfg(feature = "native-perf")]
+    crate::native_perf_unlock::permission(
+        crate::native_perf_unlock::PermissionTarget::Directory,
+        crate::native_perf_unlock::PermissionOutcome::Exited {
+            code: status.code(),
+            success: status.success(),
+        },
+    );
     if !status.success() {
         return Err(format!(
             "icacls returned exit code {:?} when setting permissions on {path_str}",
@@ -102,16 +138,46 @@ fn set_private_dir(path: &Path) -> Result<(), String> {
 #[cfg(windows)]
 fn set_private_file(path: &Path) -> Result<(), String> {
     let path_str = path.to_string_lossy();
-    let username = std::env::var("USERNAME")
-        .map_err(|_| "USERNAME environment variable not found".to_string())?;
-    let username = sanitize_windows_username(&username)?;
+    let username = std::env::var("USERNAME").map_err(|_| {
+        #[cfg(feature = "native-perf")]
+        crate::native_perf_unlock::permission(
+            crate::native_perf_unlock::PermissionTarget::File,
+            crate::native_perf_unlock::PermissionOutcome::UsernameUnavailable,
+        );
+        "USERNAME environment variable not found".to_string()
+    })?;
+    let username = sanitize_windows_username(&username).inspect_err(|_| {
+        #[cfg(feature = "native-perf")]
+        crate::native_perf_unlock::permission(
+            crate::native_perf_unlock::PermissionTarget::File,
+            crate::native_perf_unlock::PermissionOutcome::InvalidUsername,
+        );
+    })?;
     let status = std::process::Command::new("icacls")
+        .creation_flags(CREATE_NO_WINDOW)
         .arg(path_str.as_ref())
         .arg("/inheritance:r")
         .arg("/grant")
         .arg(format!("{username}:F"))
         .status()
-        .map_err(|e| format!("icacls failed to start: {e}"))?;
+        .map_err(|e| {
+            #[cfg(feature = "native-perf")]
+            crate::native_perf_unlock::permission(
+                crate::native_perf_unlock::PermissionTarget::File,
+                crate::native_perf_unlock::PermissionOutcome::SpawnError {
+                    os_error: e.raw_os_error(),
+                },
+            );
+            format!("icacls failed to start: {e}")
+        })?;
+    #[cfg(feature = "native-perf")]
+    crate::native_perf_unlock::permission(
+        crate::native_perf_unlock::PermissionTarget::File,
+        crate::native_perf_unlock::PermissionOutcome::Exited {
+            code: status.code(),
+            success: status.success(),
+        },
+    );
     if !status.success() {
         return Err(format!(
             "icacls returned exit code {:?} when setting permissions on {path_str}",
@@ -483,3 +549,39 @@ pub use session::VaultSession;
 #[cfg(test)]
 mod tests;
 mod unlock;
+
+#[cfg(all(test, windows, feature = "native-perf"))]
+mod permission_outcome_tests {
+    use super::*;
+    use crate::native_perf_unlock::{
+        self, PermissionOutcome, PermissionTarget, UnlockObserver, UnlockStage,
+    };
+    #[derive(Default)]
+    struct Recorder(Mutex<Vec<(PermissionTarget, PermissionOutcome)>>);
+    impl UnlockObserver for Recorder {
+        fn begin(&self, _stage: UnlockStage) -> Option<u32> {
+            None
+        }
+        fn end(&self, _token: u32, _completed: bool) {}
+        fn permission(&self, target: PermissionTarget, outcome: PermissionOutcome) {
+            self.0.lock().unwrap().push((target, outcome));
+        }
+    }
+    #[test]
+    fn real_missing_file_keeps_failure_and_reports_only_typed_exit_status() {
+        let directory = tempfile::tempdir().unwrap();
+        let missing = directory.path().join("public-missing-permission-target");
+        let recorder = Arc::new(Recorder::default());
+        let scope = native_perf_unlock::observe(recorder.clone());
+        let error = set_private_file(&missing).expect_err("Missing target must fail");
+        drop(scope);
+        assert!(error.starts_with("icacls returned exit code "));
+        let outcomes = recorder.0.lock().unwrap();
+        assert_eq!(outcomes.len(), 1);
+        assert_eq!(outcomes[0].0, PermissionTarget::File);
+        assert!(
+            matches!(outcomes[0].1, PermissionOutcome::Exited { code: Some(code), success: false } if code != 0)
+        );
+        assert!(!missing.exists());
+    }
+}

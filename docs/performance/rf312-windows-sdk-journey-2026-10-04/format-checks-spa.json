@@ -1,0 +1,12 @@
+[
+  {
+    "name": "rust-fmt-final",
+    "exit": 0,
+    "seconds": 11.393132
+  },
+  {
+    "name": "node-format-final",
+    "exit": 0,
+    "seconds": 0.8069522
+  }
+]

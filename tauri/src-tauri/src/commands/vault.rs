@@ -64,19 +64,49 @@ pub async fn change_password(
 pub async fn vault_list_accounts(
     state: State<'_, AppState>,
 ) -> Result<Vec<AccountSummary>, String> {
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_attempt = crate::native_perf::auth_trace::begin_accounts();
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf = perf_attempt.as_ref().map(|attempt| attempt.handle());
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_queue = perf.as_ref().and_then(|trace| trace.span("blocking-queue"));
     let vault_service = state.vault_service.clone();
-    tokio::task::spawn_blocking(move || {
+    let result = tokio::task::spawn_blocking(move || {
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        crate::native_perf::auth_trace::complete(perf_queue);
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        let perf_read = perf
+            .as_ref()
+            .and_then(|trace| trace.span("worker-vault-read"));
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock is poisoned".to_string())?;
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        {
+            crate::native_perf::auth_trace::complete(perf_read);
+            if let Some(trace) = &perf {
+                trace.verify_root(svc.root_owner().root());
+            }
+        }
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        let perf_list = perf.as_ref().and_then(|trace| trace.span("accounts-list"));
         let accounts = svc.list_accounts();
         if accounts.is_empty() {
             return Err("Vault account cache is empty".to_string());
         }
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        crate::native_perf::auth_trace::complete(perf_list);
         Ok(accounts)
     })
     .await
-    .map_err(|e| format!("vault_list_accounts task failed: {}", e))?
+    .map_err(|e| format!("vault_list_accounts task failed: {}", e))?;
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    if result.is_ok() {
+        if let Some(attempt) = perf_attempt {
+            attempt.complete();
+        }
+    }
+    result
 }
 
 #[tauri::command]

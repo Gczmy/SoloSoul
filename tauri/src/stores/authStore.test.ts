@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useAuthStore } from './authStore';
 
 // Mock the IPC invoke function
@@ -161,5 +161,103 @@ describe('authStore', () => {
       useAuthStore.getState().clearError();
       expect(useAuthStore.getState().error).toBeNull();
     });
+  });
+});
+
+describe('native authentication checkpoints', () => {
+  const checkpoints: Array<[number, string]> = [];
+  const host = window as typeof window & { __SOLOSOUL_NATIVE_PERF__?: unknown };
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.mocked(invoke).mockReset();
+    checkpoints.length = 0;
+    useAuthStore.setState({
+      isAuthenticated: false,
+      isLoading: false,
+      currentAccount: null,
+      accounts: [],
+      error: null,
+    });
+    host.__SOLOSOUL_NATIVE_PERF__ = {
+      beginAuthFlow: () => 1,
+      markAuthFlow: (id: number, stage: string) => checkpoints.push([id, stage]),
+      authSnapshot: () => ({}),
+    };
+  });
+  afterEach(() => {
+    delete host.__SOLOSOUL_NATIVE_PERF__;
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+  it('records the two actual awaits and the state transition without forwarding authentication data', async () => {
+    let finishLogin!: () => void;
+    let finishAccounts!: (value: Array<{ id: string; name: string }>) => void;
+    const login = new Promise<void>((done) => {
+      finishLogin = done;
+    });
+    const accounts = new Promise<Array<{ id: string; name: string }>>((done) => {
+      finishAccounts = done;
+    });
+    vi.mocked(invoke).mockImplementation(
+      (cmd) => (cmd === 'login' ? login : accounts) as ReturnType<typeof invoke>,
+    );
+    const pending = useAuthStore
+      .getState()
+      .login('account-do-not-record', 'password-do-not-record');
+    expect(checkpoints).toEqual([[1, 'login-await-start']]);
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    finishLogin();
+    await vi.waitFor(() => expect(checkpoints.at(-1)).toEqual([1, 'accounts-await-start']));
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    finishAccounts([{ id: 'account-do-not-record', name: 'Name' }]);
+    await pending;
+    expect(checkpoints.map((x) => x[1])).toEqual([
+      'login-await-start',
+      'login-await-ok',
+      'accounts-await-start',
+      'accounts-await-ok',
+      'state-set-start',
+      'state-set-done',
+      'finished',
+    ]);
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(JSON.stringify(checkpoints)).not.toContain('do-not-record');
+  });
+  it('records a failed login without recording the error and guards throwing bridge accessors', async () => {
+    vi.mocked(invoke).mockRejectedValue(Error('private-password-error'));
+    await useAuthStore.getState().login('account', 'password');
+    expect(checkpoints.map((x) => x[1])).toEqual([
+      'login-await-start',
+      'login-await-error',
+      'failed',
+    ]);
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(JSON.stringify(checkpoints)).not.toContain('private-password-error');
+    host.__SOLOSOUL_NATIVE_PERF__ = Object.defineProperty({}, 'beginAuthFlow', {
+      get: () => {
+        throw Error('observer-getter');
+      },
+    });
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await useAuthStore.getState().login('account', 'password');
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+  });
+  it('keeps refresh failure as a successful login and observer errors cannot reject login', async () => {
+    vi.mocked(invoke).mockImplementation(async (cmd) => {
+      if (cmd === 'vault_list_accounts') throw Error('private-error');
+    });
+    await useAuthStore.getState().login('account', 'password');
+    expect(checkpoints.map((x) => x[1])).toContain('accounts-await-error');
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    host.__SOLOSOUL_NATIVE_PERF__ = {
+      beginAuthFlow: () => {
+        throw Error('observer-error');
+      },
+      markAuthFlow: () => {},
+      authSnapshot: () => ({}),
+    };
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await useAuthStore.getState().login('account', 'password');
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 });

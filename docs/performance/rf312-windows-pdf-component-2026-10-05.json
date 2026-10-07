@@ -1,0 +1,2898 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "phase": "Windows public PDF bounded manual component session and viewer-state diagnostic",
+  "at": "2026-10-05T13:58:24.105317+00:00",
+  "baselineHead": "a093e73235936415eb5b81daeb89c67a7005c986",
+  "stageAccepted": true,
+  "wholeTaskComplete": false,
+  "diagnosticOnly": true,
+  "renderVerified": false,
+  "performanceMetrics": null,
+  "build": {
+    "at": "2026-10-05T13:52:38.286403+00:00",
+    "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\bin\\solo_soul.exe",
+    "bytes": 102569984,
+    "sha256": "61333412d672dc61dcb2ea98c0cb492c66fab67b3d3f135092a7c2337f13b6b7",
+    "frozenInputsUnchanged": 446,
+    "resourcesUnchanged": 94,
+    "markers": [
+      "--native-perf-media-prepare",
+      "windows-native-sdk-media-journey-requested",
+      "windows-native-sdk-pdf-diagnostic-requested",
+      "windows-native-sdk-pdf-target-diagnostic-requested",
+      "windows-native-sdk-pdf-component-diagnostic-requested",
+      "windows-native-sdk-startup-requested"
+    ],
+    "previousPdfBuildsPreserved": true
+  },
+  "release": {
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--bin",
+      "solo_soul"
+    ],
+    "pid": 11796,
+    "exitCode": 0,
+    "elapsedSeconds": 994.7874209880829,
+    "finishedAt": "2026-10-05T13:52:26.609563+00:00"
+  },
+  "run": {
+    "command": [
+      "node",
+      "scripts/native-perf-pdf-diagnostic.mjs",
+      "--exe",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\bin\\solo_soul.exe",
+      "--fixture",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+      "--output",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100",
+      "--samples",
+      "3"
+    ],
+    "pid": 25816,
+    "exitCode": 0,
+    "elapsedSeconds": 194.30378031730652,
+    "finishedAt": "2026-10-05T13:57:16.763157+00:00"
+  },
+  "checks": {
+    "component-diff-check": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 26596,
+      "exitCode": 0,
+      "elapsedSeconds": 0.20492768287658691,
+      "finishedAt": "2026-10-05T13:34:57.022199+00:00"
+    },
+    "component-fmt-check": {
+      "command": ["cargo", "+1.99.0", "fmt", "--all", "--", "--check"],
+      "pid": 18780,
+      "exitCode": 0,
+      "elapsedSeconds": 8.439201354980469,
+      "finishedAt": "2026-10-05T13:34:22.573702+00:00"
+    },
+    "component-fmt-write": {
+      "command": ["cargo", "+1.99.0", "fmt", "--all"],
+      "pid": 39408,
+      "exitCode": 0,
+      "elapsedSeconds": 10.769582986831665,
+      "finishedAt": "2026-10-05T13:28:45.004036+00:00"
+    },
+    "component-js-format-check": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/native-perf-sdk-journey.mjs",
+        "scripts/native-perf-pdf-contract.mjs",
+        "scripts/native-perf-pdf-diagnostic.mjs",
+        "scripts/native-perf-pdf.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "src-tauri/src/native_perf/sdk_pdf_dom.js",
+        "src-tauri/src/native_perf/sdk_pdf_viewer.js"
+      ],
+      "pid": 41268,
+      "exitCode": 0,
+      "elapsedSeconds": 0.5838062763214111,
+      "finishedAt": "2026-10-05T13:34:56.815535+00:00"
+    },
+    "component-js-format-write": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "scripts/native-perf-sdk-journey.mjs",
+        "scripts/native-perf-pdf-contract.mjs",
+        "scripts/native-perf-pdf-diagnostic.mjs",
+        "scripts/native-perf-pdf.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "src-tauri/src/native_perf/sdk_pdf_dom.js",
+        "src-tauri/src/native_perf/sdk_pdf_viewer.js"
+      ],
+      "pid": 16408,
+      "exitCode": 0,
+      "elapsedSeconds": 0.958472728729248,
+      "finishedAt": "2026-10-05T13:28:45.963602+00:00"
+    },
+    "component-native-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 38216,
+      "exitCode": 0,
+      "elapsedSeconds": 84.17850184440613,
+      "finishedAt": "2026-10-05T13:34:14.133684+00:00"
+    },
+    "component-native-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf",
+        "--",
+        "--test-threads=1"
+      ],
+      "pid": 33664,
+      "exitCode": 0,
+      "elapsedSeconds": 243.9823338985443,
+      "finishedAt": "2026-10-05T13:32:49.946779+00:00"
+    },
+    "component-node-tests": {
+      "command": ["node", "scripts/run-node-tests.mjs"],
+      "pid": 10756,
+      "exitCode": 0,
+      "elapsedSeconds": 33.65261769294739,
+      "finishedAt": "2026-10-05T13:34:56.230693+00:00"
+    },
+    "targeted-pdf-node": {
+      "command": ["node", "--test", "scripts/native-perf-pdf.test.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 0.3709843158721924,
+      "finishedAt": "2026-10-05T13:34:10.009418+00:00"
+    }
+  },
+  "checkTotals": {
+    "nativePassed": 80,
+    "nativeFailed": 0,
+    "nodeTotal": 188,
+    "nodePassed": 187,
+    "nodeFailed": 0,
+    "nodeExistingSymlinkPermissionSkip": 1
+  },
+  "legacyProofReview": {
+    "at": "2026-10-05T13:46:24.212Z",
+    "scope": "Actual archived v1 and v2 native proofs checked by current v3-aware offline contract",
+    "accepted": [
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-20261005/samples100-final/native-perf-sdk-journey-results.json",
+        "index": 1,
+        "schemaVersion": 1,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-20261005/samples100-final/native-perf-sdk-journey-results.json",
+        "index": 2,
+        "schemaVersion": 1,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-20261005/samples100-final/native-perf-sdk-journey-results.json",
+        "index": 3,
+        "schemaVersion": 1,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-targets-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 1,
+        "schemaVersion": 2,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-targets-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 2,
+        "schemaVersion": 2,
+        "renderVerified": false,
+        "performanceMetrics": null
+      },
+      {
+        "report": "C:/Users/40299571/AppData/Local/Temp/ss-rf312-pdf-targets-20261005/samples100/native-perf-sdk-journey-results.json",
+        "index": 3,
+        "schemaVersion": 2,
+        "renderVerified": false,
+        "performanceMetrics": null
+      }
+    ]
+  },
+  "actualReview": {
+    "at": "2026-10-05T13:57:36.858859+00:00",
+    "success": true,
+    "sourceUnchanged": true,
+    "publicFilesUnchanged": 171,
+    "frozenInputsUnchanged": 446,
+    "resourcesUnchanged": 94,
+    "oldPdfBuildsPreserved": true,
+    "ownedAttachmentCiphertextsUnchanged": [
+      {
+        "index": 1,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+            "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+            "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+            "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+            "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+            "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+            "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+            "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+            "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+            "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+            "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+            "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+            "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+          }
+        ]
+      }
+    ],
+    "diagnosticOnly": true,
+    "renderVerified": false,
+    "performanceMetrics": null,
+    "summary": [],
+    "samples": [
+      {
+        "index": 1,
+        "success": true,
+        "reason": null,
+        "targetDiagnostic": {
+          "autoAttachCleaned": true,
+          "candidates": [
+            {
+              "frame": {
+                "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                "loaderId": "8621A4FC447FA87249A405A4B4F624AA",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 38240.616,
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208518947.4,
+                "viewerPresent": false
+              },
+              "targetId": "39F6318F7BBE34530044E11F4FA1FEB7"
+            },
+            {
+              "frame": {
+                "id": "87E1964E70FBBFE5241F982941C886C0",
+                "loaderId": "6061F56229E2A76BE20E56303B123E92",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 38243.4817,
+              "sessionId": "AF47097365433C98A795F853304C1CFA",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208518733.6,
+                "viewerPresent": false
+              },
+              "targetId": "87E1964E70FBBFE5241F982941C886C0"
+            },
+            {
+              "frame": {
+                "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                "loaderId": "8621A4FC447FA87249A405A4B4F624AA",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 39035.7557,
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208518947.4,
+                "viewerPresent": false
+              },
+              "targetId": "39F6318F7BBE34530044E11F4FA1FEB7"
+            },
+            {
+              "frame": {
+                "id": "87E1964E70FBBFE5241F982941C886C0",
+                "loaderId": "6061F56229E2A76BE20E56303B123E92",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 39038.2469,
+              "sessionId": "AF47097365433C98A795F853304C1CFA",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208518733.6,
+                "viewerPresent": false
+              },
+              "targetId": "87E1964E70FBBFE5241F982941C886C0"
+            },
+            {
+              "frame": {
+                "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                "loaderId": "8621A4FC447FA87249A405A4B4F624AA",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 40827.2491,
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208518947.4,
+                "viewerPresent": false
+              },
+              "targetId": "39F6318F7BBE34530044E11F4FA1FEB7"
+            },
+            {
+              "frame": {
+                "id": "87E1964E70FBBFE5241F982941C886C0",
+                "loaderId": "6061F56229E2A76BE20E56303B123E92",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 40829.293900000004,
+              "sessionId": "AF47097365433C98A795F853304C1CFA",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208518733.6,
+                "viewerPresent": false
+              },
+              "targetId": "87E1964E70FBBFE5241F982941C886C0"
+            }
+          ],
+          "componentAttachment": {
+            "beforeSnapshotIndex": 1,
+            "browserContextVerified": true,
+            "detachMode": "explicit-reply",
+            "detached": true,
+            "parentVerified": true,
+            "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+            "target": {
+              "attached": false,
+              "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+              "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+              "openerId": null,
+              "parentFrameId": null,
+              "parentId": "991BCD313C161EFB6705655728533A7A",
+              "type": "webview",
+              "urlClass": "component-extension"
+            }
+          },
+          "eventCount": 5,
+          "mainTarget": {
+            "attached": true,
+            "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+            "id": "991BCD313C161EFB6705655728533A7A",
+            "openerId": null,
+            "parentFrameId": null,
+            "parentId": null,
+            "type": "page",
+            "urlClass": "application"
+          },
+          "relatedSessions": [
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+              "target": {
+                "attached": true,
+                "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                "openerId": null,
+                "parentFrameId": null,
+                "parentId": "991BCD313C161EFB6705655728533A7A",
+                "type": "webview",
+                "urlClass": "component-extension"
+              }
+            },
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "AF47097365433C98A795F853304C1CFA",
+              "target": {
+                "attached": true,
+                "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                "id": "87E1964E70FBBFE5241F982941C886C0",
+                "openerId": null,
+                "parentFrameId": "991BCD313C161EFB6705655728533A7A",
+                "parentId": "991BCD313C161EFB6705655728533A7A",
+                "type": "iframe",
+                "urlClass": "owned-pdf"
+              }
+            }
+          ],
+          "schemaVersion": 2,
+          "scope": "windows-native-sdk-pdf-related-targets",
+          "sessionCalls": [
+            {
+              "method": "Runtime.enable",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Runtime.enable",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "AF47097365433C98A795F853304C1CFA"
+            }
+          ],
+          "snapshots": [
+            {
+              "mainVerified": true,
+              "snapshotIndex": 0,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "991BCD313C161EFB6705655728533A7A",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 1,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "991BCD313C161EFB6705655728533A7A",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "87E1964E70FBBFE5241F982941C886C0",
+                  "openerId": null,
+                  "parentFrameId": "991BCD313C161EFB6705655728533A7A",
+                  "parentId": "991BCD313C161EFB6705655728533A7A",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": false,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "991BCD313C161EFB6705655728533A7A",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 2,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "991BCD313C161EFB6705655728533A7A",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "87E1964E70FBBFE5241F982941C886C0",
+                  "openerId": null,
+                  "parentFrameId": "991BCD313C161EFB6705655728533A7A",
+                  "parentId": "991BCD313C161EFB6705655728533A7A",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "991BCD313C161EFB6705655728533A7A",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "E670C9A649F19F45529695004A074233",
+                  "openerId": null,
+                  "parentFrameId": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "parentId": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 3,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "991BCD313C161EFB6705655728533A7A",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "87E1964E70FBBFE5241F982941C886C0",
+                  "openerId": null,
+                  "parentFrameId": "991BCD313C161EFB6705655728533A7A",
+                  "parentId": "991BCD313C161EFB6705655728533A7A",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "991BCD313C161EFB6705655728533A7A",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+                  "id": "E670C9A649F19F45529695004A074233",
+                  "openerId": null,
+                  "parentFrameId": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "parentId": "39F6318F7BBE34530044E11F4FA1FEB7",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            }
+          ],
+          "watcherCleaned": true
+        }
+      },
+      {
+        "index": 2,
+        "success": true,
+        "reason": null,
+        "targetDiagnostic": {
+          "autoAttachCleaned": true,
+          "candidates": [
+            {
+              "frame": {
+                "id": "FDA2415B4AF55E1D016B36C022275860",
+                "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 10807.6756,
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578906.2,
+                "viewerPresent": false
+              },
+              "targetId": "FDA2415B4AF55E1D016B36C022275860"
+            },
+            {
+              "frame": {
+                "id": "2913DC9B35B5517BFE90B72022F58905",
+                "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 10819.782099999999,
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578800.5,
+                "viewerPresent": false
+              },
+              "targetId": "2913DC9B35B5517BFE90B72022F58905"
+            },
+            {
+              "frame": {
+                "id": "FDA2415B4AF55E1D016B36C022275860",
+                "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 11164.0021,
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578906.2,
+                "viewerPresent": false
+              },
+              "targetId": "FDA2415B4AF55E1D016B36C022275860"
+            },
+            {
+              "frame": {
+                "id": "2913DC9B35B5517BFE90B72022F58905",
+                "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 11167.4243,
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578800.5,
+                "viewerPresent": false
+              },
+              "targetId": "2913DC9B35B5517BFE90B72022F58905"
+            },
+            {
+              "frame": {
+                "id": "FDA2415B4AF55E1D016B36C022275860",
+                "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 11947.854,
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578906.2,
+                "viewerPresent": false
+              },
+              "targetId": "FDA2415B4AF55E1D016B36C022275860"
+            },
+            {
+              "frame": {
+                "id": "2913DC9B35B5517BFE90B72022F58905",
+                "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 11950.4091,
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578800.5,
+                "viewerPresent": false
+              },
+              "targetId": "2913DC9B35B5517BFE90B72022F58905"
+            },
+            {
+              "frame": {
+                "id": "FDA2415B4AF55E1D016B36C022275860",
+                "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 13748.089800000002,
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578906.2,
+                "viewerPresent": false
+              },
+              "targetId": "FDA2415B4AF55E1D016B36C022275860"
+            },
+            {
+              "frame": {
+                "id": "2913DC9B35B5517BFE90B72022F58905",
+                "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 13750.4172,
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208578800.5,
+                "viewerPresent": false
+              },
+              "targetId": "2913DC9B35B5517BFE90B72022F58905"
+            }
+          ],
+          "componentAttachment": {
+            "beforeSnapshotIndex": 0,
+            "browserContextVerified": true,
+            "detachMode": "explicit-reply",
+            "detached": true,
+            "parentVerified": true,
+            "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+            "target": {
+              "attached": false,
+              "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+              "id": "FDA2415B4AF55E1D016B36C022275860",
+              "openerId": null,
+              "parentFrameId": null,
+              "parentId": "A73017A45A60586C394C849A164F28C7",
+              "type": "webview",
+              "urlClass": "component-extension"
+            }
+          },
+          "eventCount": 5,
+          "mainTarget": {
+            "attached": true,
+            "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+            "id": "A73017A45A60586C394C849A164F28C7",
+            "openerId": null,
+            "parentFrameId": null,
+            "parentId": null,
+            "type": "page",
+            "urlClass": "application"
+          },
+          "relatedSessions": [
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+              "target": {
+                "attached": true,
+                "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                "id": "2913DC9B35B5517BFE90B72022F58905",
+                "openerId": null,
+                "parentFrameId": "A73017A45A60586C394C849A164F28C7",
+                "parentId": "A73017A45A60586C394C849A164F28C7",
+                "type": "iframe",
+                "urlClass": "owned-pdf"
+              }
+            },
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+              "target": {
+                "attached": true,
+                "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                "id": "FDA2415B4AF55E1D016B36C022275860",
+                "openerId": null,
+                "parentFrameId": null,
+                "parentId": "A73017A45A60586C394C849A164F28C7",
+                "type": "webview",
+                "urlClass": "component-extension"
+              }
+            }
+          ],
+          "schemaVersion": 2,
+          "scope": "windows-native-sdk-pdf-related-targets",
+          "sessionCalls": [
+            {
+              "method": "Runtime.enable",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Runtime.enable",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "2C6025F3E84A44185776435C8FA2A4E1"
+            }
+          ],
+          "snapshots": [
+            {
+              "mainVerified": true,
+              "snapshotIndex": 0,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A73017A45A60586C394C849A164F28C7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "2913DC9B35B5517BFE90B72022F58905",
+                  "openerId": null,
+                  "parentFrameId": "A73017A45A60586C394C849A164F28C7",
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": false,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "FDA2415B4AF55E1D016B36C022275860",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 1,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A73017A45A60586C394C849A164F28C7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "2913DC9B35B5517BFE90B72022F58905",
+                  "openerId": null,
+                  "parentFrameId": "A73017A45A60586C394C849A164F28C7",
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "FDA2415B4AF55E1D016B36C022275860",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A7B81CAB5EA4161B2DE421F5A5954CEB",
+                  "openerId": null,
+                  "parentFrameId": "FDA2415B4AF55E1D016B36C022275860",
+                  "parentId": "FDA2415B4AF55E1D016B36C022275860",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 2,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A73017A45A60586C394C849A164F28C7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "2913DC9B35B5517BFE90B72022F58905",
+                  "openerId": null,
+                  "parentFrameId": "A73017A45A60586C394C849A164F28C7",
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "FDA2415B4AF55E1D016B36C022275860",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A7B81CAB5EA4161B2DE421F5A5954CEB",
+                  "openerId": null,
+                  "parentFrameId": "FDA2415B4AF55E1D016B36C022275860",
+                  "parentId": "FDA2415B4AF55E1D016B36C022275860",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 3,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A73017A45A60586C394C849A164F28C7",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "2913DC9B35B5517BFE90B72022F58905",
+                  "openerId": null,
+                  "parentFrameId": "A73017A45A60586C394C849A164F28C7",
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "FDA2415B4AF55E1D016B36C022275860",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "A73017A45A60586C394C849A164F28C7",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+                  "id": "A7B81CAB5EA4161B2DE421F5A5954CEB",
+                  "openerId": null,
+                  "parentFrameId": "FDA2415B4AF55E1D016B36C022275860",
+                  "parentId": "FDA2415B4AF55E1D016B36C022275860",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            }
+          ],
+          "watcherCleaned": true
+        }
+      },
+      {
+        "index": 3,
+        "success": true,
+        "reason": null,
+        "targetDiagnostic": {
+          "autoAttachCleaned": true,
+          "candidates": [
+            {
+              "frame": {
+                "id": "6EFD1CD1836D014117470151E93219A8",
+                "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 9715.885999999999,
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624400.8,
+                "viewerPresent": false
+              },
+              "targetId": "6EFD1CD1836D014117470151E93219A8"
+            },
+            {
+              "frame": {
+                "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                "loaderId": "68917648E3161A5C3267498AD3910C6B",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 9720.9724,
+              "sessionId": "DCB5975D18EC448A873443AB1F872792",
+              "snapshotIndex": 0,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624301.1,
+                "viewerPresent": false
+              },
+              "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+            },
+            {
+              "frame": {
+                "id": "6EFD1CD1836D014117470151E93219A8",
+                "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 10213.9116,
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624400.8,
+                "viewerPresent": false
+              },
+              "targetId": "6EFD1CD1836D014117470151E93219A8"
+            },
+            {
+              "frame": {
+                "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                "loaderId": "68917648E3161A5C3267498AD3910C6B",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 10220.63,
+              "sessionId": "DCB5975D18EC448A873443AB1F872792",
+              "snapshotIndex": 1,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624301.1,
+                "viewerPresent": false
+              },
+              "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+            },
+            {
+              "frame": {
+                "id": "6EFD1CD1836D014117470151E93219A8",
+                "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 11000.1155,
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624400.8,
+                "viewerPresent": false
+              },
+              "targetId": "6EFD1CD1836D014117470151E93219A8"
+            },
+            {
+              "frame": {
+                "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                "loaderId": "68917648E3161A5C3267498AD3910C6B",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 11002.3084,
+              "sessionId": "DCB5975D18EC448A873443AB1F872792",
+              "snapshotIndex": 2,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624301.1,
+                "viewerPresent": false
+              },
+              "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+            },
+            {
+              "frame": {
+                "id": "6EFD1CD1836D014117470151E93219A8",
+                "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+                "urlClass": "component-extension"
+              },
+              "observedAtMs": 12803.8878,
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624400.8,
+                "viewerPresent": false
+              },
+              "targetId": "6EFD1CD1836D014117470151E93219A8"
+            },
+            {
+              "frame": {
+                "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                "loaderId": "68917648E3161A5C3267498AD3910C6B",
+                "urlClass": "owned-pdf"
+              },
+              "observedAtMs": 12805.7582,
+              "sessionId": "DCB5975D18EC448A873443AB1F872792",
+              "snapshotIndex": 3,
+              "state": {
+                "documentDimensionsPresent": false,
+                "documentMatches": true,
+                "loadSucceeded": null,
+                "loadSucceededMethodPresent": false,
+                "pageCount": null,
+                "paintedFrames": 0,
+                "schemaVersion": 1,
+                "scope": "windows-native-sdk-pdf-viewer-candidate",
+                "timeOriginMs": 1791208624301.1,
+                "viewerPresent": false
+              },
+              "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+            }
+          ],
+          "componentAttachment": {
+            "beforeSnapshotIndex": 0,
+            "browserContextVerified": true,
+            "detachMode": "explicit-reply",
+            "detached": true,
+            "parentVerified": true,
+            "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+            "target": {
+              "attached": false,
+              "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+              "id": "6EFD1CD1836D014117470151E93219A8",
+              "openerId": null,
+              "parentFrameId": null,
+              "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+              "type": "webview",
+              "urlClass": "component-extension"
+            }
+          },
+          "eventCount": 5,
+          "mainTarget": {
+            "attached": true,
+            "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+            "id": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+            "openerId": null,
+            "parentFrameId": null,
+            "parentId": null,
+            "type": "page",
+            "urlClass": "application"
+          },
+          "relatedSessions": [
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+              "target": {
+                "attached": true,
+                "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                "id": "6EFD1CD1836D014117470151E93219A8",
+                "openerId": null,
+                "parentFrameId": null,
+                "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                "type": "webview",
+                "urlClass": "component-extension"
+              }
+            },
+            {
+              "active": false,
+              "enabled": true,
+              "parentSessionId": "",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792",
+              "target": {
+                "attached": true,
+                "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                "openerId": null,
+                "parentFrameId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                "type": "iframe",
+                "urlClass": "owned-pdf"
+              }
+            }
+          ],
+          "schemaVersion": 2,
+          "scope": "windows-native-sdk-pdf-related-targets",
+          "sessionCalls": [
+            {
+              "method": "Runtime.enable",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Runtime.enable",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "4C651724944771B9B2BE0379C2F67ABB"
+            },
+            {
+              "method": "Target.getTargetInfo",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Runtime.evaluate",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            },
+            {
+              "method": "Page.getFrameTree",
+              "sessionId": "DCB5975D18EC448A873443AB1F872792"
+            }
+          ],
+          "snapshots": [
+            {
+              "mainVerified": true,
+              "snapshotIndex": 0,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                  "openerId": null,
+                  "parentFrameId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": false,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "6EFD1CD1836D014117470151E93219A8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 1,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                  "openerId": null,
+                  "parentFrameId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "6EFD1CD1836D014117470151E93219A8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "67549B557B2447BD2A9FC27EAF11FC87",
+                  "openerId": null,
+                  "parentFrameId": "6EFD1CD1836D014117470151E93219A8",
+                  "parentId": "6EFD1CD1836D014117470151E93219A8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 2,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                  "openerId": null,
+                  "parentFrameId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "6EFD1CD1836D014117470151E93219A8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "67549B557B2447BD2A9FC27EAF11FC87",
+                  "openerId": null,
+                  "parentFrameId": "6EFD1CD1836D014117470151E93219A8",
+                  "parentId": "6EFD1CD1836D014117470151E93219A8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            },
+            {
+              "mainVerified": true,
+              "snapshotIndex": 3,
+              "targets": [
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": null,
+                  "type": "page",
+                  "urlClass": "application"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+                  "openerId": null,
+                  "parentFrameId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "6EFD1CD1836D014117470151E93219A8",
+                  "openerId": null,
+                  "parentFrameId": null,
+                  "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+                  "type": "webview",
+                  "urlClass": "component-extension"
+                },
+                {
+                  "attached": true,
+                  "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+                  "id": "67549B557B2447BD2A9FC27EAF11FC87",
+                  "openerId": null,
+                  "parentFrameId": "6EFD1CD1836D014117470151E93219A8",
+                  "parentId": "6EFD1CD1836D014117470151E93219A8",
+                  "type": "iframe",
+                  "urlClass": "owned-pdf"
+                }
+              ]
+            }
+          ],
+          "watcherCleaned": true
+        }
+      }
+    ]
+  },
+  "samples": [
+    {
+      "index": 1,
+      "sdkCalls": 99,
+      "sessionCalls": 26,
+      "openingStartedAtMs": 37818.9177,
+      "wholeDiagnosticElapsedMs": 41047.443199999994,
+      "componentAttachment": {
+        "beforeSnapshotIndex": 1,
+        "browserContextVerified": true,
+        "detachMode": "explicit-reply",
+        "detached": true,
+        "parentVerified": true,
+        "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+        "target": {
+          "attached": false,
+          "browserContextId": "1252F3636E121286073C33CB60C0BF71",
+          "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+          "openerId": null,
+          "parentFrameId": null,
+          "parentId": "991BCD313C161EFB6705655728533A7A",
+          "type": "webview",
+          "urlClass": "component-extension"
+        }
+      },
+      "componentCandidates": [
+        {
+          "frame": {
+            "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+            "loaderId": "8621A4FC447FA87249A405A4B4F624AA",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 38240.616,
+          "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208518947.4,
+            "viewerPresent": false
+          },
+          "targetId": "39F6318F7BBE34530044E11F4FA1FEB7"
+        },
+        {
+          "frame": {
+            "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+            "loaderId": "8621A4FC447FA87249A405A4B4F624AA",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 39035.7557,
+          "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208518947.4,
+            "viewerPresent": false
+          },
+          "targetId": "39F6318F7BBE34530044E11F4FA1FEB7"
+        },
+        {
+          "frame": {
+            "id": "39F6318F7BBE34530044E11F4FA1FEB7",
+            "loaderId": "8621A4FC447FA87249A405A4B4F624AA",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 40827.2491,
+          "sessionId": "AD22EF7A641B7C8CB27DCEBA24519B2E",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208518947.4,
+            "viewerPresent": false
+          },
+          "targetId": "39F6318F7BBE34530044E11F4FA1FEB7"
+        }
+      ],
+      "otherCandidates": [
+        {
+          "frame": {
+            "id": "87E1964E70FBBFE5241F982941C886C0",
+            "loaderId": "6061F56229E2A76BE20E56303B123E92",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 38243.4817,
+          "sessionId": "AF47097365433C98A795F853304C1CFA",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208518733.6,
+            "viewerPresent": false
+          },
+          "targetId": "87E1964E70FBBFE5241F982941C886C0"
+        },
+        {
+          "frame": {
+            "id": "87E1964E70FBBFE5241F982941C886C0",
+            "loaderId": "6061F56229E2A76BE20E56303B123E92",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 39038.2469,
+          "sessionId": "AF47097365433C98A795F853304C1CFA",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208518733.6,
+            "viewerPresent": false
+          },
+          "targetId": "87E1964E70FBBFE5241F982941C886C0"
+        },
+        {
+          "frame": {
+            "id": "87E1964E70FBBFE5241F982941C886C0",
+            "loaderId": "6061F56229E2A76BE20E56303B123E92",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 40829.293900000004,
+          "sessionId": "AF47097365433C98A795F853304C1CFA",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208518733.6,
+            "viewerPresent": false
+          },
+          "targetId": "87E1964E70FBBFE5241F982941C886C0"
+        }
+      ],
+      "targetCounts": [1, 3, 4, 4],
+      "eventCount": 5,
+      "mainVerifiedAfterClose": true,
+      "autoAttachCleaned": true,
+      "watcherCleaned": true,
+      "contextWatchCleaned": true,
+      "screenshot": {
+        "bytes": 34024,
+        "fileName": "native-perf-sdk-pdf-screenshot.png",
+        "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+        "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      }
+    },
+    {
+      "index": 2,
+      "sdkCalls": 107,
+      "sessionCalls": 34,
+      "openingStartedAtMs": 10586.0841,
+      "wholeDiagnosticElapsedMs": 13963.3247,
+      "componentAttachment": {
+        "beforeSnapshotIndex": 0,
+        "browserContextVerified": true,
+        "detachMode": "explicit-reply",
+        "detached": true,
+        "parentVerified": true,
+        "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+        "target": {
+          "attached": false,
+          "browserContextId": "284B59854E72BA6202C672A0DE18E056",
+          "id": "FDA2415B4AF55E1D016B36C022275860",
+          "openerId": null,
+          "parentFrameId": null,
+          "parentId": "A73017A45A60586C394C849A164F28C7",
+          "type": "webview",
+          "urlClass": "component-extension"
+        }
+      },
+      "componentCandidates": [
+        {
+          "frame": {
+            "id": "FDA2415B4AF55E1D016B36C022275860",
+            "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 10807.6756,
+          "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578906.2,
+            "viewerPresent": false
+          },
+          "targetId": "FDA2415B4AF55E1D016B36C022275860"
+        },
+        {
+          "frame": {
+            "id": "FDA2415B4AF55E1D016B36C022275860",
+            "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 11164.0021,
+          "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578906.2,
+            "viewerPresent": false
+          },
+          "targetId": "FDA2415B4AF55E1D016B36C022275860"
+        },
+        {
+          "frame": {
+            "id": "FDA2415B4AF55E1D016B36C022275860",
+            "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 11947.854,
+          "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578906.2,
+            "viewerPresent": false
+          },
+          "targetId": "FDA2415B4AF55E1D016B36C022275860"
+        },
+        {
+          "frame": {
+            "id": "FDA2415B4AF55E1D016B36C022275860",
+            "loaderId": "7F995C367F2D44D6277B0BF1743F563A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 13748.089800000002,
+          "sessionId": "B80CEDCFECB39474F5A55C87B6A3AB2B",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578906.2,
+            "viewerPresent": false
+          },
+          "targetId": "FDA2415B4AF55E1D016B36C022275860"
+        }
+      ],
+      "otherCandidates": [
+        {
+          "frame": {
+            "id": "2913DC9B35B5517BFE90B72022F58905",
+            "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 10819.782099999999,
+          "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578800.5,
+            "viewerPresent": false
+          },
+          "targetId": "2913DC9B35B5517BFE90B72022F58905"
+        },
+        {
+          "frame": {
+            "id": "2913DC9B35B5517BFE90B72022F58905",
+            "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 11167.4243,
+          "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578800.5,
+            "viewerPresent": false
+          },
+          "targetId": "2913DC9B35B5517BFE90B72022F58905"
+        },
+        {
+          "frame": {
+            "id": "2913DC9B35B5517BFE90B72022F58905",
+            "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 11950.4091,
+          "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578800.5,
+            "viewerPresent": false
+          },
+          "targetId": "2913DC9B35B5517BFE90B72022F58905"
+        },
+        {
+          "frame": {
+            "id": "2913DC9B35B5517BFE90B72022F58905",
+            "loaderId": "4F1C9729BC2AF89FDC3A7BE396C54E84",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 13750.4172,
+          "sessionId": "2C6025F3E84A44185776435C8FA2A4E1",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208578800.5,
+            "viewerPresent": false
+          },
+          "targetId": "2913DC9B35B5517BFE90B72022F58905"
+        }
+      ],
+      "targetCounts": [3, 4, 4, 4],
+      "eventCount": 5,
+      "mainVerifiedAfterClose": true,
+      "autoAttachCleaned": true,
+      "watcherCleaned": true,
+      "contextWatchCleaned": true,
+      "screenshot": {
+        "bytes": 34024,
+        "fileName": "native-perf-sdk-pdf-screenshot.png",
+        "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+        "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      }
+    },
+    {
+      "index": 3,
+      "sdkCalls": 107,
+      "sessionCalls": 34,
+      "openingStartedAtMs": 9516.9543,
+      "wholeDiagnosticElapsedMs": 13021.0719,
+      "componentAttachment": {
+        "beforeSnapshotIndex": 0,
+        "browserContextVerified": true,
+        "detachMode": "explicit-reply",
+        "detached": true,
+        "parentVerified": true,
+        "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+        "target": {
+          "attached": false,
+          "browserContextId": "ED03C8F1DCE70099F34C6B16E8486361",
+          "id": "6EFD1CD1836D014117470151E93219A8",
+          "openerId": null,
+          "parentFrameId": null,
+          "parentId": "DDE2581FE1A979BD0AFEFE2BE77AF3C8",
+          "type": "webview",
+          "urlClass": "component-extension"
+        }
+      },
+      "componentCandidates": [
+        {
+          "frame": {
+            "id": "6EFD1CD1836D014117470151E93219A8",
+            "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 9715.885999999999,
+          "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624400.8,
+            "viewerPresent": false
+          },
+          "targetId": "6EFD1CD1836D014117470151E93219A8"
+        },
+        {
+          "frame": {
+            "id": "6EFD1CD1836D014117470151E93219A8",
+            "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 10213.9116,
+          "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624400.8,
+            "viewerPresent": false
+          },
+          "targetId": "6EFD1CD1836D014117470151E93219A8"
+        },
+        {
+          "frame": {
+            "id": "6EFD1CD1836D014117470151E93219A8",
+            "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 11000.1155,
+          "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624400.8,
+            "viewerPresent": false
+          },
+          "targetId": "6EFD1CD1836D014117470151E93219A8"
+        },
+        {
+          "frame": {
+            "id": "6EFD1CD1836D014117470151E93219A8",
+            "loaderId": "D4328B7AC06FC64D561DFEE8279EB65A",
+            "urlClass": "component-extension"
+          },
+          "observedAtMs": 12803.8878,
+          "sessionId": "4C651724944771B9B2BE0379C2F67ABB",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624400.8,
+            "viewerPresent": false
+          },
+          "targetId": "6EFD1CD1836D014117470151E93219A8"
+        }
+      ],
+      "otherCandidates": [
+        {
+          "frame": {
+            "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+            "loaderId": "68917648E3161A5C3267498AD3910C6B",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 9720.9724,
+          "sessionId": "DCB5975D18EC448A873443AB1F872792",
+          "snapshotIndex": 0,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624301.1,
+            "viewerPresent": false
+          },
+          "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+        },
+        {
+          "frame": {
+            "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+            "loaderId": "68917648E3161A5C3267498AD3910C6B",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 10220.63,
+          "sessionId": "DCB5975D18EC448A873443AB1F872792",
+          "snapshotIndex": 1,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624301.1,
+            "viewerPresent": false
+          },
+          "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+        },
+        {
+          "frame": {
+            "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+            "loaderId": "68917648E3161A5C3267498AD3910C6B",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 11002.3084,
+          "sessionId": "DCB5975D18EC448A873443AB1F872792",
+          "snapshotIndex": 2,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624301.1,
+            "viewerPresent": false
+          },
+          "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+        },
+        {
+          "frame": {
+            "id": "664FEADD7CDDC53EBF3467EAADD863FE",
+            "loaderId": "68917648E3161A5C3267498AD3910C6B",
+            "urlClass": "owned-pdf"
+          },
+          "observedAtMs": 12805.7582,
+          "sessionId": "DCB5975D18EC448A873443AB1F872792",
+          "snapshotIndex": 3,
+          "state": {
+            "documentDimensionsPresent": false,
+            "documentMatches": true,
+            "loadSucceeded": null,
+            "loadSucceededMethodPresent": false,
+            "pageCount": null,
+            "paintedFrames": 0,
+            "schemaVersion": 1,
+            "scope": "windows-native-sdk-pdf-viewer-candidate",
+            "timeOriginMs": 1791208624301.1,
+            "viewerPresent": false
+          },
+          "targetId": "664FEADD7CDDC53EBF3467EAADD863FE"
+        }
+      ],
+      "targetCounts": [3, 4, 4, 4],
+      "eventCount": 5,
+      "mainVerifiedAfterClose": true,
+      "autoAttachCleaned": true,
+      "watcherCleaned": true,
+      "contextWatchCleaned": true,
+      "screenshot": {
+        "bytes": 34024,
+        "fileName": "native-perf-sdk-pdf-screenshot.png",
+        "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+        "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      }
+    }
+  ],
+  "cleanup": {
+    "at": "2026-10-05T13:57:56.4198728Z",
+    "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005",
+    "roots": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003"
+    ],
+    "verifiedIdentities": [
+      {
+        "pid": 43280,
+        "creationMs": 1791208477140,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 15892,
+        "creationMs": 1791208478952,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 39008,
+        "creationMs": 1791208479904,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 15020,
+        "creationMs": 1791208480999,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 23892,
+        "creationMs": 1791208479689,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 42112,
+        "creationMs": 1791208481002,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 11648,
+        "creationMs": 1791208479688,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 12820,
+        "creationMs": 1791208479095,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 20296,
+        "creationMs": 1791208479743,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 15624,
+        "creationMs": 1791208518817,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 8464,
+        "creationMs": 1791208547041,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 20240,
+        "creationMs": 1791208549645,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 10872,
+        "creationMs": 1791208568284,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 14848,
+        "creationMs": 1791208565041,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 33020,
+        "creationMs": 1791208565028,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 36044,
+        "creationMs": 1791208568286,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 30020,
+        "creationMs": 1791208565115,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 5396,
+        "creationMs": 1791208565054,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 13476,
+        "creationMs": 1791208564517,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 25776,
+        "creationMs": 1791208611970,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 43336,
+        "creationMs": 1791208613638,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 41788,
+        "creationMs": 1791208614872,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 34396,
+        "creationMs": 1791208614073,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 1952,
+        "creationMs": 1791208614041,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 35900,
+        "creationMs": 1791208614040,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 36460,
+        "creationMs": 1791208614873,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 36132,
+        "creationMs": 1791208614169,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 21748,
+        "creationMs": 1791208613687,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 37032,
+        "creationMs": 1791208624305,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      }
+    ],
+    "removedCachePaths": [
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.033324f281b44fd096176a9dd44e4bd2",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.126159b6f4e5455c95a002ded2efaca1",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.91cd1cb0bf284e24bf72104e4d51ad9d",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.033324f281b44fd096176a9dd44e4bd2",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.126159b6f4e5455c95a002ded2efaca1",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.91cd1cb0bf284e24bf72104e4d51ad9d",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\webview"
+    ],
+    "unlinkedCacheEntries": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-component-20261005\\samples100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      }
+    ],
+    "preserved": [
+      "Vault",
+      "all proofs and reports",
+      "all EXEs and resources",
+      "source fixtures"
+    ],
+    "processesTerminated": 0,
+    "complete": true
+  },
+  "rawArchive": "rf312-windows-pdf-component-2026-10-05/index.json",
+  "nextAction": "Inspect bounded structural metadata of the actual owned component and its PDF child frame; define and verify a readiness gate from actual supported signals, then repeat PDF performance and continue OCR.",
+  "remaining": [
+    "PDF readiness and repeated performance",
+    "OCR native picker and first inference",
+    "intermittent home timeout",
+    "KDF/storage/React/SDK attribution",
+    "Windows system sleep",
+    "multi-platform native performance",
+    "RF-121 Windows composition/recovery"
+  ],
+  "taskCounts": {
+    "total": 283,
+    "closed": 274,
+    "waiting": 3,
+    "pending": 6
+  },
+  "pushPerformed": false,
+  "postCleanupReview": {
+    "at": "2026-10-05T14:02:58.644147+00:00",
+    "attachmentCiphertextsUnchangedAfterCleanup": 12,
+    "frozenInputsUnchanged": 446,
+    "resourcesUnchanged": 94,
+    "publicSourceUnchanged": 171,
+    "previousUnescalatedRead": "PermissionError reading owned encrypted attachment after cache cleanup; rerun with authorized protected access",
+    "currentReviewPassed": true
+  },
+  "documentationChecks": {
+    "doc-format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "../docs/performance/RF-312-native-pdf-diagnostic.md",
+        "../docs/performance/rf312-windows-pdf-component-2026-10-05.json"
+      ],
+      "pid": 36036,
+      "exitCode": 0,
+      "elapsedSeconds": 0.5190844535827637,
+      "finishedAt": "2026-10-05T14:01:10.758359+00:00"
+    },
+    "doc-boundary": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "pid": 15648,
+      "exitCode": 0,
+      "elapsedSeconds": 10.02397108078003,
+      "finishedAt": "2026-10-05T14:01:20.784382+00:00"
+    },
+    "doc-diff": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 41772,
+      "exitCode": 0,
+      "elapsedSeconds": 0.2427365779876709,
+      "finishedAt": "2026-10-05T14:01:21.028007+00:00"
+    }
+  },
+  "finalVerification": {
+    "at": "2026-10-05T14:03:59.387689+00:00",
+    "archivesByteExact": 115,
+    "localLinksVerified": 224,
+    "counts": {
+      "total": 283,
+      "closed": 274,
+      "waiting": 3,
+      "pending": 6
+    },
+    "frozenInputsUnchanged": 446,
+    "stashAndSubmodulePreserved": true,
+    "scope": "RF-312 component diagnostic; full task remains open",
+    "pushPerformed": false,
+    "nativeHandles": "all terminal"
+  }
+}

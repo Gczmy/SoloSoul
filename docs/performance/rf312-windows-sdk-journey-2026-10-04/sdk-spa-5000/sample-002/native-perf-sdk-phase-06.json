@@ -1,0 +1,35 @@
+{
+  "durationMs": 5813.7942,
+  "fromAtMs": 22220.70000076294,
+  "inputTrust": {
+    "pointer": 10,
+    "text": 3,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 25,
+    "commands": {
+      "attachment_count_stats": 1,
+      "desktop_prepare_update": 1,
+      "get_lock_pending": 1,
+      "login": 1,
+      "plugin:event|listen": 5,
+      "plugin:event|unlisten": 1,
+      "plugin:lock-state|registerListener": 1,
+      "plugin:lock-state|register_listener": 1,
+      "profile_load": 1,
+      "set_status_bar_style": 2,
+      "set_titlebar_color": 1,
+      "sync_get_auto_status": 1,
+      "sync_get_ui_prefs_sync": 1,
+      "ui_update_preference": 4,
+      "user_data_get_preferences": 1,
+      "vault_check_directory": 1,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "password-reunlock",
+  "success": true,
+  "toAtMs": 28039.20000076294
+}

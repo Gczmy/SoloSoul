@@ -1,0 +1,12 @@
+[
+  {
+    "name": "native-rust",
+    "seconds": 244.9362685,
+    "exit": 0
+  },
+  {
+    "name": "native-clippy",
+    "seconds": 75.1228532,
+    "exit": 101
+  }
+]

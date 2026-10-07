@@ -1,0 +1,34 @@
+{
+  "durationMs": 3210.6991,
+  "fromAtMs": 0,
+  "inputTrust": {
+    "pointer": 0,
+    "text": 0,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 33,
+    "commands": {
+      "biometric_check_availability": 2,
+      "check_has_account": 2,
+      "desktop_prepare_update": 1,
+      "dismiss_lock_mask": 1,
+      "get_platform_capabilities": 1,
+      "get_system_locale": 1,
+      "ocr_get_model_status": 1,
+      "ocr_install_bundled_model_with_progress": 1,
+      "pin_check_availability": 1,
+      "plugin:event|listen": 9,
+      "plugin:event|unlisten": 3,
+      "set_status_bar_style": 2,
+      "set_titlebar_color": 3,
+      "show_main_window": 1,
+      "ui_get_preferences": 2,
+      "vault_list_accounts": 2
+    },
+    "reason": null
+  },
+  "name": "startup",
+  "success": true,
+  "toAtMs": 916.3000001907347
+}

@@ -1,0 +1,713 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1100",
+  "baseCommit": "36ceda4bb9eed82f0a3c9a82cd3d2a071fb413ba",
+  "at": "2026-10-06T09:56:01.349254+00:00",
+  "scope": "nondefault PDF first-page verifier exact final auth-snapshot/frame-tree calls",
+  "taskComplete": true,
+  "wholeGoalComplete": false,
+  "sourceSha256": {
+    "tauri/scripts/native-perf-pdf-preview-contract.mjs": "9d5d0b87fd306cc5413f0dbe92d92dcf806f91d925d820e6055cb6eb9eda5d22",
+    "tauri/scripts/native-perf-pdf-preview.test.mjs": "988d0d8dd8a266b389b35a070c95abdd198ef69a0f184b6718bcc4b007036989",
+    "tauri/src-tauri/src/native_perf/sdk_journey.rs": "7efb5fd58f1db3f8b1c6cd19a7a8e97461c089314e303088e8ed290939ce6047"
+  },
+  "nativeBuild": {
+    "exeSha256": "b2f05a723d6af33cbd5ff6f6d307dffda734c7706ec4396083f966fa1010cdab",
+    "bytes": 103582208,
+    "originalBuildReceipt": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "tauri",
+        "--",
+        "build",
+        "--config",
+        "src-tauri/tauri.native-perf.conf.json",
+        "--features",
+        "native-perf",
+        "--no-bundle",
+        "--ci"
+      ],
+      "pid": 23992,
+      "exitCode": 0,
+      "elapsedSeconds": 1463.6095655998215,
+      "pdfiumOverrideRemoved": true,
+      "jobs": 2
+    },
+    "unchangedNativeExeBytes": true,
+    "resources": 94,
+    "currentSourceFreeze": {
+      "baseCommit": "36ceda4bb9eed82f0a3c9a82cd3d2a071fb413ba",
+      "changedScripts": {
+        "tauri/scripts/native-perf-pdf-preview-contract.mjs": "9d5d0b87fd306cc5413f0dbe92d92dcf806f91d925d820e6055cb6eb9eda5d22",
+        "tauri/scripts/native-perf-pdf-preview.test.mjs": "988d0d8dd8a266b389b35a070c95abdd198ef69a0f184b6718bcc4b007036989"
+      },
+      "allOtherTrackedTauriInputsVerified": 1679,
+      "nativeExeSha256": "b2f05a723d6af33cbd5ff6f6d307dffda734c7706ec4396083f966fa1010cdab",
+      "noRustFrontendDependencyChange": true
+    },
+    "earlierRustCliChecksReusedNotRerun": {
+      "task": "RF-312",
+      "unchangedRustInputsVerified": 371,
+      "unchangedCliInputsVerified": 108,
+      "previousRequiredChecksSha256": "4460da98c52d46d0d1f6edac30eb58e18a355b8a586588ae858cab4951a0e7eb",
+      "previousRustSourceFreezeSha256": "2edd71b983370a47f534e553d74809bac5d32e6fab11c59416eff4682927ad9f",
+      "sameNativeFeatures": true,
+      "priorRustCliChecksReusedNotRerun": true,
+      "frontendEvidence": "docs/verification/rf1099-unlock-lifecycle-2026-10-06.json",
+      "frontendEvidenceSha256": "99d1e815b2332fffc94b11d48304bec505a4c01b09d1add8712d33fb1716e8dd",
+      "frontendVitest": {
+        "filesPassed": 258,
+        "testsPassed": 2311,
+        "lifecycleCases": 50,
+        "failed": 0
+      },
+      "nativeReleaseAndRuntimeStillPending": true
+    }
+  },
+  "red": {
+    "command": ["node", "--test", "scripts/native-perf-pdf-preview.test.mjs"],
+    "exitCode": 1,
+    "elapsedSeconds": 0.9178524995222688,
+    "at": "2026-10-06T09:34:42.155177+00:00"
+  },
+  "targeted": {
+    "command": ["node", "--test", "scripts/native-perf-pdf-preview.test.mjs"],
+    "exitCode": 0,
+    "elapsedSeconds": 1.5272677997127175,
+    "at": "2026-10-06T09:37:04.382537+00:00"
+  },
+  "fullNode": {
+    "actualFinal": {
+      "command": ["node", "scripts/run-node-tests.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 37.96482650004327,
+      "sameSourceAndTimeoutBudgets": true,
+      "sandboxPermissions": "require_escalated",
+      "reason": "two observed Windows child-process test timeouts in default sandbox"
+    },
+    "tests": 217,
+    "passed": 216,
+    "failed": 0,
+    "existingPermissionSkipped": 1,
+    "earlierFailuresPreserved": [
+      {
+        "command": ["node", "scripts/run-node-tests.mjs"],
+        "exitCode": 1,
+        "elapsedSeconds": 62.34876669943333,
+        "at": "2026-10-06T09:38:06.734002+00:00"
+      },
+      {
+        "command": ["node", "scripts/run-node-tests.mjs"],
+        "exitCode": 1,
+        "elapsedSeconds": 89.79125380050391,
+        "sameSourceAsFirstRun": true,
+        "nativeGroupsTerminalBeforeRun": true
+      }
+    ],
+    "timeoutBudgetsUnchanged": true,
+    "permissionCausalityNotProvenByUnpairedRepeats": true
+  },
+  "format": {
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "scripts/native-perf-pdf-preview-contract.mjs",
+      "scripts/native-perf-pdf-preview.test.mjs"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 0.5688897995278239,
+    "at": "2026-10-06T09:38:07.303920+00:00"
+  },
+  "originalGroups": [
+    {
+      "group": "auth100",
+      "exitCode": 0,
+      "success": true,
+      "allSamplesPreserved": true,
+      "samples": [
+        {
+          "index": 1,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        },
+        {
+          "index": 2,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        },
+        {
+          "index": 3,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        }
+      ]
+    },
+    {
+      "group": "auth5000",
+      "exitCode": 1,
+      "success": false,
+      "allSamplesPreserved": true,
+      "samples": [
+        {
+          "index": 1,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        },
+        {
+          "index": 2,
+          "success": false,
+          "reason": "probe-timeout",
+          "failedStep": "home",
+          "driverError": "SDK UI journey proof rejected"
+        },
+        {
+          "index": 3,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        }
+      ]
+    },
+    {
+      "group": "pdf100",
+      "exitCode": 1,
+      "success": false,
+      "allSamplesPreserved": true,
+      "samples": [
+        {
+          "index": 1,
+          "success": false,
+          "reason": null,
+          "failedStep": null,
+          "driverError": "PDF screenshot protocol guards or order rejected"
+        },
+        {
+          "index": 2,
+          "success": false,
+          "reason": null,
+          "failedStep": null,
+          "driverError": "PDF screenshot protocol guards or order rejected"
+        },
+        {
+          "index": 3,
+          "success": false,
+          "reason": "probe-timeout",
+          "failedStep": "home",
+          "driverError": "PDF first-page identity or exclusive mode rejected"
+        }
+      ]
+    },
+    {
+      "group": "pdf5000",
+      "exitCode": 1,
+      "success": false,
+      "allSamplesPreserved": true,
+      "samples": [
+        {
+          "index": 1,
+          "success": false,
+          "reason": null,
+          "failedStep": null,
+          "driverError": "PDF screenshot protocol guards or order rejected"
+        },
+        {
+          "index": 2,
+          "success": false,
+          "reason": null,
+          "failedStep": null,
+          "driverError": "PDF screenshot protocol guards or order rejected"
+        },
+        {
+          "index": 3,
+          "success": false,
+          "reason": null,
+          "failedStep": null,
+          "driverError": "PDF screenshot protocol guards or order rejected"
+        }
+      ]
+    }
+  ],
+  "originalPdfStrictReplay": {
+    "rows": [
+      {
+        "group": "pdf100",
+        "index": 1,
+        "nativeSuccess": true,
+        "strictProofAccepted": true,
+        "screenshots": 3,
+        "originalDriverError": "PDF screenshot protocol guards or order rejected",
+        "originalGroupExitUnchanged": true
+      },
+      {
+        "group": "pdf100",
+        "index": 2,
+        "nativeSuccess": true,
+        "strictProofAccepted": true,
+        "screenshots": 3,
+        "originalDriverError": "PDF screenshot protocol guards or order rejected",
+        "originalGroupExitUnchanged": true
+      },
+      {
+        "group": "pdf100",
+        "index": 3,
+        "nativeSuccess": false,
+        "reason": "probe-timeout",
+        "notReclassified": true
+      },
+      {
+        "group": "pdf5000",
+        "index": 1,
+        "nativeSuccess": true,
+        "strictProofAccepted": true,
+        "screenshots": 3,
+        "originalDriverError": "PDF screenshot protocol guards or order rejected",
+        "originalGroupExitUnchanged": true
+      },
+      {
+        "group": "pdf5000",
+        "index": 2,
+        "nativeSuccess": true,
+        "strictProofAccepted": true,
+        "screenshots": 3,
+        "originalDriverError": "PDF screenshot protocol guards or order rejected",
+        "originalGroupExitUnchanged": true
+      },
+      {
+        "group": "pdf5000",
+        "index": 3,
+        "nativeSuccess": true,
+        "strictProofAccepted": true,
+        "screenshots": 3,
+        "originalDriverError": "PDF screenshot protocol guards or order rejected",
+        "originalGroupExitUnchanged": true
+      }
+    ],
+    "originalGroupsStillFailed": true,
+    "performanceMetrics": null
+  },
+  "originalHomeFailures": [
+    {
+      "group": "auth5000",
+      "index": 2,
+      "frontendValid": true,
+      "backendValid": true,
+      "loginOutcome": "interrupted",
+      "stages": [
+        {
+          "endedAtMs": 6732.1482000000005,
+          "name": "root-read",
+          "outcome": "completed",
+          "startedAtMs": 6732.147
+        },
+        {
+          "endedAtMs": 6732.4663,
+          "name": "maintenance-admission",
+          "outcome": "interrupted",
+          "startedAtMs": 6732.1489
+        }
+      ],
+      "kdfNotEntered": true,
+      "actualActiveWorkerNotIdentified": true
+    },
+    {
+      "group": "pdf100",
+      "index": 3,
+      "frontendValid": true,
+      "backendValid": true,
+      "loginOutcome": "interrupted",
+      "stages": [
+        {
+          "endedAtMs": 6170.7421,
+          "name": "root-read",
+          "outcome": "completed",
+          "startedAtMs": 6170.7411
+        },
+        {
+          "endedAtMs": 6170.954,
+          "name": "maintenance-admission",
+          "outcome": "interrupted",
+          "startedAtMs": 6170.743100000001
+        }
+      ],
+      "kdfNotEntered": true,
+      "actualActiveWorkerNotIdentified": true
+    }
+  ],
+  "freshPdfGroups": [
+    {
+      "group": "pdf100",
+      "exitCode": 1,
+      "success": false,
+      "samples": [
+        {
+          "index": 1,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        },
+        {
+          "index": 2,
+          "success": false,
+          "reason": "probe-timeout",
+          "failedStep": "home",
+          "driverError": "PDF first-page identity or exclusive mode rejected"
+        },
+        {
+          "index": 3,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        }
+      ],
+      "summary": [
+        {
+          "name": "firstMatchObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "stableReadyObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "captureOverheadMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "decodeOverheadMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "pollWaitMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        }
+      ],
+      "cleanupComplete": true
+    },
+    {
+      "group": "pdf5000",
+      "exitCode": 0,
+      "success": true,
+      "samples": [
+        {
+          "index": 1,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        },
+        {
+          "index": 2,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        },
+        {
+          "index": 3,
+          "success": true,
+          "reason": null,
+          "failedStep": null,
+          "driverError": null
+        }
+      ],
+      "summary": [
+        {
+          "name": "firstMatchObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 768.3808999999983,
+          "p95Ms": 797.8203999999996
+        },
+        {
+          "name": "stableReadyObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 1246.7327999999989,
+          "p95Ms": 1248.4719999999998
+        },
+        {
+          "name": "captureOverheadMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 454.7404999999999,
+          "p95Ms": 459.2524000000003
+        },
+        {
+          "name": "decodeOverheadMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 8.884500000000116,
+          "p95Ms": 11.894399999999223
+        },
+        {
+          "name": "pollWaitMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 521.8691,
+          "p95Ms": 524.1196
+        }
+      ],
+      "cleanupComplete": true
+    }
+  ],
+  "freshHomeFailure": {
+    "group": "pdf100",
+    "index": 2,
+    "reason": "probe-timeout",
+    "step": "home",
+    "frontendFlows": 0,
+    "backendLoginAttempts": 0,
+    "trustedTextEvents": 0,
+    "sdkInsertTextCalls": 1,
+    "notSameCauseAsMaintenanceAdmissionWithoutEvidence": true,
+    "noPasswordValueRead": true
+  },
+  "resourcePreflightFailure": {
+    "actualExitCode": 1,
+    "stage": "resource preflight before any fresh native group",
+    "missingExpectedResourceFiles": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\ai_chat.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\appearance.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\attachments.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\audit_log.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\backup_restore.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\biometric.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\collections.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\device_sync.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\export_import.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\getting_started.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\llm_config.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\objects.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\plugins.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\search.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\security.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\sensitivity.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\snapshots.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\templates.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\trash.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\en\\workspace.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\index.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\ai_chat.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\appearance.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\attachments.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\audit_log.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\backup_restore.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\biometric.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\collections.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\device_sync.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\export_import.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\getting_started.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\llm_config.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\objects.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\plugins.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\search.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\security.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\sensitivity.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\snapshots.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\templates.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\trash.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\docs\\guides\\zh\\workspace.md",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\models\\pp-ocr-v6-small\\det\\inference.onnx",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\models\\pp-ocr-v6-small\\det\\inference.yml",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\models\\pp-ocr-v6-small\\rec\\inference.onnx",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\models\\pp-ocr-v6-small\\rec\\inference.yml",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\pdfium\\pdfium.dll",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\slotgo\\manifest.json",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\plugins\\slotgo\\plugin.wasm",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\bin\\SoloSoul_plugin_market\\registry.json"
+    ],
+    "expectedResources": 94,
+    "existingResources": 3,
+    "sourceShaVerifiedBeforeCopyFailure": true,
+    "originalGroupsRemainUnchanged": true,
+    "reason": "FileNotFoundError on bin/docs/guides/en/ai_chat.md; cause of missing temporary package files not established"
+  },
+  "cacheCleanup": {
+    "groups": [
+      {
+        "stage": "ss-rf312-auth-refresh-20261006",
+        "group": "auth100",
+        "verifiedRows": 27,
+        "removedCachePaths": 18,
+        "unlinkedPrivateEntries": 0,
+        "missingCachePaths": 6,
+        "receiptSha256": "49df7ca535ceb562491677ca39f2bfd143f3e7e5e92254e4c330c37ca79dc4b3"
+      },
+      {
+        "stage": "ss-rf312-auth-refresh-20261006",
+        "group": "auth5000",
+        "verifiedRows": 27,
+        "removedCachePaths": 18,
+        "unlinkedPrivateEntries": 0,
+        "missingCachePaths": 6,
+        "receiptSha256": "982bc23987b996961b836454d7f3dc73a959ab478044c0870c955fa767ee89cc"
+      },
+      {
+        "stage": "ss-rf312-auth-refresh-20261006",
+        "group": "pdf100",
+        "verifiedRows": 28,
+        "removedCachePaths": 18,
+        "unlinkedPrivateEntries": 0,
+        "missingCachePaths": 6,
+        "receiptSha256": "bdb0132f3ae30c26ac290d91bf93b227bb6faffbd771a0a574f1308e3a72bc02"
+      },
+      {
+        "stage": "ss-rf312-auth-refresh-20261006",
+        "group": "pdf5000",
+        "verifiedRows": 30,
+        "removedCachePaths": 18,
+        "unlinkedPrivateEntries": 0,
+        "missingCachePaths": 6,
+        "receiptSha256": "8ff70fe8095bdb03bd69d9296938b4de43290b1f9b65a53174862340a0cb6836"
+      },
+      {
+        "stage": "ss-rf1100-pdf-call-tail-20261006",
+        "group": "pdf100",
+        "verifiedRows": 29,
+        "removedCachePaths": 24,
+        "unlinkedPrivateEntries": 3,
+        "missingCachePaths": 0,
+        "receiptSha256": "878ac2a06247ef7ab80dc3fefcec9e14df004cd9f480be4a94baf536343c973c"
+      },
+      {
+        "stage": "ss-rf1100-pdf-call-tail-20261006",
+        "group": "pdf5000",
+        "verifiedRows": 29,
+        "removedCachePaths": 24,
+        "unlinkedPrivateEntries": 3,
+        "missingCachePaths": 0,
+        "receiptSha256": "f7432bd2f3d9e1cdbc33c0b8d9d7c09c75dc827f2a6affbb9610071587cc16ed"
+      }
+    ],
+    "verifiedRows": 170,
+    "removedCachePaths": 120,
+    "unlinkedPrivateEntries": 6,
+    "preservation": {
+      "complete": true,
+      "roots": 18,
+      "proofFilesByteUnchanged": 247,
+      "vaultFilesByteUnchanged": 204,
+      "logCopiesVerified": 18,
+      "cacheToolProcessesTerminated": 0
+    }
+  },
+  "temporaryHelperAuthoringFailuresDocumented": true,
+  "ordinaryAuthReviewPdfPathScopeNotRelaxed": true,
+  "notVerified": [
+    "active maintenance worker attribution",
+    "new no-trusted-text failure cause",
+    "RF-112 isolated macOS lock recovery",
+    "RF-121 complete native material matrix",
+    "RF-312 complete baseline and other platforms",
+    "RF-122 through RF-127 prerequisites"
+  ],
+  "documentation": {
+    "actualSuccess": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 8.294646199792624
+    },
+    "defaultSandboxWriteFailurePreserved": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 1,
+      "elapsedSeconds": 3.3999669002369046
+    },
+    "defaultFailureReason": "Vite could not write .vite-temp config outside workspace root (EPERM)",
+    "reportStructure": {
+      "tasks": 290,
+      "closed": 281,
+      "waiting": ["RF-112", "RF-121", "RF-312"],
+      "pending": ["RF-122", "RF-123", "RF-124", "RF-125", "RF-126", "RF-127"],
+      "inProgress": [],
+      "uniqueTaskIndexAndCards": true,
+      "statsMatch": true
+    },
+    "diff": {
+      "command": [
+        "git",
+        "-C",
+        "C:\\Users\\40299571\\SoloSoul",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.17714160028845072
+    }
+  }
+}

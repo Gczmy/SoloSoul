@@ -1,0 +1,205 @@
+{
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "A2EF2F4701CB833DADA9160E87F22917",
+    "mainFrameId": "B72EB5B32F5DF5F3143AA7127FA61784",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/login",
+    "timeOriginMs": 1791136976579.3
+  },
+  "browserPid": 20096,
+  "calls": [
+    "Page.getFrameTree",
+    "Runtime.evaluate"
+  ],
+  "document": {
+    "frameCount": 0,
+    "mainFrame": true,
+    "origin": "http://tauri.localhost",
+    "readyState": "complete",
+    "uiRootPresent": true
+  },
+  "elapsedMs": 344,
+  "expectedOrigin": "http://tauri.localhost",
+  "mode": "sdk-cdp",
+  "observer": {
+    "commands": [
+      {
+        "atMs": 391.8999996185303,
+        "command": "set_titlebar_color"
+      },
+      {
+        "atMs": 525,
+        "command": "get_system_locale"
+      },
+      {
+        "atMs": 525.8999996185303,
+        "command": "show_main_window"
+      },
+      {
+        "atMs": 531.8000001907349,
+        "command": "get_platform_capabilities"
+      },
+      {
+        "atMs": 571.3000001907349,
+        "command": "ui_get_preferences"
+      },
+      {
+        "atMs": 581.1999998092651,
+        "command": "set_status_bar_style"
+      },
+      {
+        "atMs": 581.6999998092651,
+        "command": "set_titlebar_color"
+      },
+      {
+        "atMs": 616.5999994277954,
+        "command": "ocr_get_model_status"
+      },
+      {
+        "atMs": 617.3999996185303,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 618.8999996185303,
+        "command": "check_has_account"
+      },
+      {
+        "atMs": 619.8000001907349,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 620.3999996185303,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 620.8000001907349,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 621.0999994277954,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 622.3000001907349,
+        "command": "set_status_bar_style"
+      },
+      {
+        "atMs": 623.0999994277954,
+        "command": "ui_get_preferences"
+      },
+      {
+        "atMs": 623.5,
+        "command": "vault_list_accounts"
+      },
+      {
+        "atMs": 627.8999996185303,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 629.3999996185303,
+        "command": "desktop_prepare_update"
+      },
+      {
+        "atMs": 632.8000001907349,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 638.5999994277954,
+        "command": "set_titlebar_color"
+      },
+      {
+        "atMs": 644.1999998092651,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 644.5999994277954,
+        "command": "ocr_install_bundled_model_with_progress"
+      },
+      {
+        "atMs": 648,
+        "command": "plugin:event|listen"
+      },
+      {
+        "atMs": 654.0999994277954,
+        "command": "vault_list_accounts"
+      },
+      {
+        "atMs": 654.8000001907349,
+        "command": "dismiss_lock_mask"
+      },
+      {
+        "atMs": 655.1999998092651,
+        "command": "check_has_account"
+      },
+      {
+        "atMs": 655.8000001907349,
+        "command": "biometric_check_availability"
+      },
+      {
+        "atMs": 657.8000001907349,
+        "command": "plugin:event|unlisten"
+      },
+      {
+        "atMs": 677.6999998092651,
+        "command": "plugin:event|unlisten"
+      },
+      {
+        "atMs": 680,
+        "command": "plugin:event|unlisten"
+      },
+      {
+        "atMs": 681.5,
+        "command": "biometric_check_availability"
+      },
+      {
+        "atMs": 682,
+        "command": "pin_check_availability"
+      },
+      {
+        "atMs": 792.0999994277954,
+        "command": "plugin:event|emit"
+      }
+    ],
+    "installedAtMs": 373.69999980926514,
+    "invalidReasons": [],
+    "maxEvents": 16384,
+    "observedCount": 34,
+    "runId": "7590706f6fb44fa7937882de287f5766",
+    "schemaVersion": 1,
+    "scope": "windows-native-tauri-invoke-observer",
+    "timeOriginMs": 1791136976579.3,
+    "total": 34,
+    "valid": true
+  },
+  "performanceSample": false,
+  "pid": 24564,
+  "port": 58101,
+  "reason": null,
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-02\\sample-001",
+  "runId": "7590706f6fb44fa7937882de287f5766",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-cdp-diagnostic",
+  "stage": "complete",
+  "success": true,
+  "uiReadyDiagnostic": {
+    "boundary": "startup-handoff",
+    "finalHandoffMarked": true,
+    "finalStartup": {
+      "phase": "accounts",
+      "reason": "none",
+      "state": "ready"
+    },
+    "finalUiRootPresent": true,
+    "initialHandoffMarked": true,
+    "initialStartup": {
+      "phase": "accounts",
+      "reason": "none",
+      "state": "ready"
+    },
+    "initialUiRootPresent": true,
+    "outcome": "handoff",
+    "schemaVersion": 1
+  },
+  "windowLabel": "main"
+}

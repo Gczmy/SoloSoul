@@ -1,0 +1,2592 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1100",
+  "archive": "raw.tar.gz",
+  "archiveBytes": 1884549,
+  "archiveSha256": "725eb1de34cc69b3e0856a7a52d5d7e7a6573d4a61b026d9eb8fde2e0c0b168d",
+  "memberCount": 429,
+  "allMembersDecodedAndShaVerified": true,
+  "excludes": [
+    "EXE",
+    "DLL",
+    "models",
+    "Vault entity files",
+    "cache trees"
+  ],
+  "members": [
+    {
+      "member": "original-auth-refresh/auth100-cache-cleanup.json",
+      "bytes": 7655,
+      "sha256": "49df7ca535ceb562491677ca39f2bfd143f3e7e5e92254e4c330c37ca79dc4b3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100-cache-cleanup.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100-identity-scope.json",
+      "bytes": 3336,
+      "sha256": "60f50b3b477b57c70fbee368cde513ce7ebfe7a41a374726dbbf3bacf0740669",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100-identity-scope.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100.live.json",
+      "bytes": 504,
+      "sha256": "85a6545efdf20095cb29426c59f6e60c94277bfd8f7a372568f4f0903f18cfef",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100.live.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100.receipt.json",
+      "bytes": 538,
+      "sha256": "c1692744608abd6f34cd4a65f9efe7386bce2dfdb6982d26bb7e47d707a00969",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100.receipt.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100.stderr.log"
+    },
+    {
+      "member": "original-auth-refresh/auth100.stdout.log",
+      "bytes": 364,
+      "sha256": "0d4a9340864df9e977a9a369c1a6512c4036d802f0418c8426a368f194e678ec",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100.stdout.log"
+    },
+    {
+      "member": "original-auth-refresh/auth100/native-perf-auth-attribution-results.json",
+      "bytes": 68466,
+      "sha256": "b5ac692f5262f35f76df3b9470e9489952f1df85f955aaa2d2c0971bb9fbaba7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\native-perf-auth-attribution-results.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/native-perf-sdk-journey-results.json",
+      "bytes": 343326,
+      "sha256": "76e83a777288d16c10214db02d85edcd45abcff3546d34d2319e766a2df0de70",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\native-perf-sdk-journey-results.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001.json",
+      "bytes": 98376,
+      "sha256": "0c666af3fedb517cd734f99c3250ada4f0f13135cdc164a3fd7afe5ec12b85b1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-auth-attribution.json",
+      "bytes": 17144,
+      "sha256": "f573ca9eea665ffe9eb9d15743f808aa5e22514a0f3671c7928c9d22f79a0baf",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "8d5cec4296bcd10a6e8f5bdefdf4144b41802552452f316f1548188ac4512f78",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-owned.json",
+      "bytes": 3332,
+      "sha256": "f7f7c608316d8ea8dd79c485fca523cb2d680d9e9ffa98930419715bfc5cbee6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-permission-commands.json",
+      "bytes": 1011,
+      "sha256": "6dfc9bf507a8c308a03d45252603a265594fbe0fa133602dc2b8120d3b854aae",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "a10d3a6665395b4c94ad55a87341f9511811165fb19c76341938c26fdaa27ab9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "8267a7c4e856cc1265d3c43c953ddc0ef4649cf0264d722fda1f9f055d13586a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 355,
+      "sha256": "65802b5f045f46b47323a78fc85e93c894d9fd2f89c0cdf4495d14b2b26c755d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-journey.json",
+      "bytes": 66143,
+      "sha256": "1ae15bf96dd13efa03897fb46230fc90b5fdae8a77bde4ba8a70778df717dac9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 807,
+      "sha256": "8314c76369bd80d15583ac05348d68c7a50b88a0b7f8777c73200a321dedc17f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 855,
+      "sha256": "add38029e49b81a0d1f992d97b0a7c89fc1238d06286beb8f0c4987d0051af1d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 1072,
+      "sha256": "07746e6fc64d935a9e5011a49d9f254a6902d86124de17a04eceb0aacecd7c77",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 327,
+      "sha256": "9e998684cc8f49b786ed8e5fbc4815640b0da296d1ceffc160159b7b20f53ba3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-phase-05.json",
+      "bytes": 610,
+      "sha256": "e668bca0a4636b273de296c303e7fa6fcc465c4e6e3273e304ab40dbf6502262",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-phase-05.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-001/native-perf-sdk-phase-06.json",
+      "bytes": 1323,
+      "sha256": "2f11b1bf8ded5bb0c5f1618b6c1fd87e27dfa8c4c37f051ee74b314a6e6719ca",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\native-perf-sdk-phase-06.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002.json",
+      "bytes": 98474,
+      "sha256": "69363965a463c351320eea9c14fc09cbce6cf1130374af2dd9ab86b95279768a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-auth-attribution.json",
+      "bytes": 17107,
+      "sha256": "f75116ab3983c3ecbf55df8a4f9fc83f37c202a5a308eb9e2f054ec1ff5d769f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "5b78b7da07590aecbc48881b8a8037f79fb09ba4940a1692e53f250c99f80fe5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-owned.json",
+      "bytes": 3332,
+      "sha256": "95c30200d0bcda53e0efbe1640fc8dab0e3af058276b4cae21c7eaf0757a6fa6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-permission-commands.json",
+      "bytes": 995,
+      "sha256": "3fbb544cd004cb8e62075f0847689bec85b041ea7f7c25a450386fadc6b6082d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "16d5d6ecf7803d876277c02c39a98a573e72d08ed29c92bfa04f4194307c18c6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "4c1934add6547ca6b984ea33078ac67aefa96a921a2fe746840af41df32d8797",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 355,
+      "sha256": "2fc2bcaeefed703b1ad269bb0336c26104fadf7f1c6bdb02bb68f5f9c0e922fc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-journey.json",
+      "bytes": 66310,
+      "sha256": "f14cd84f73f05d8a95f677dea2e600c6b061c9ae3b6d6e015ef25098287b91b8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 817,
+      "sha256": "8b7f7a9fbf50277020f38fbdcc5943b4d33502d81f4a00478b8442fbdccafd18",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 1306,
+      "sha256": "3f0caa0ccb859c4ebeea352034ea8a606730f96482cc1b2edd19f1d65cd6e2e9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 556,
+      "sha256": "847d2532f3d0d715a322f6a24e868178201ba91e7f6c8089664ca1aa9383f997",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 316,
+      "sha256": "35dca4c2b0e8ea3674f936eb29bbce3fb118fafe1384c5fb723f71865359376f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-phase-05.json",
+      "bytes": 585,
+      "sha256": "4f13857afc39ca46ab2b9b5843d58bac6e1da82bb045e84df262df3f87f206fe",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-phase-05.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-002/native-perf-sdk-phase-06.json",
+      "bytes": 1333,
+      "sha256": "0f8c69383dae7fcadd748df50fd1cb1b5effb19053c4811dfee91b84f0bcc6fa",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\native-perf-sdk-phase-06.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003.json",
+      "bytes": 98538,
+      "sha256": "2e6ee025e341e7f8016e6f8f2db83f1f48cbf6523940faeb6b7b67848cfbf87e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-auth-attribution.json",
+      "bytes": 17115,
+      "sha256": "03cd21ed67833c22978a1fa4d99e84a1ecab6015ec29630470b295fe40409ae3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "9a14f1c1e60c8c75e41a3c0011f15c704463eb0ae45f8989a2b4994b11e403b9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-owned.json",
+      "bytes": 3332,
+      "sha256": "3058ec2309118722928991722703eb1973c1e98e02a9e9f077b86ec8b8091500",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-permission-commands.json",
+      "bytes": 1018,
+      "sha256": "7abfb6728096fbfc525a2127403efbb9717dda16ba8ae3aab77eaacba7882a16",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "5a2cd78886a397a0821682108669a52ee4a81ef782604a69ee50afa4afcd7de6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "9a67a363f97fd2a43094f28e92cf11d6a2b922fd4807e0a4eddc10afde56d491",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 355,
+      "sha256": "3974c7b222c8d3625bb7446eef03a9701191f7d38ca245aa8f7f80ebe2f9d33a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-journey.json",
+      "bytes": 66301,
+      "sha256": "1f717ebb54f3a6afb5c60e2941736ba7c5fda15f08bce630ec17e9ecd47b3104",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "6fcc44bbb2360a4deb99e61d5b3fb7196e756b73baea66bd8c8955db4fa754d0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 1306,
+      "sha256": "6ae25aef7fca8fcc7c55739d99a5039c04833d1f5350fb015395795f8bce713f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 567,
+      "sha256": "3f823b1144332c6f6027e681aee6c38441f6890ae2f2cea7ecd6e58e5f3a5d36",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 319,
+      "sha256": "2ac28673768360f1d56dbcf45a52fc729b3cba279c31d7908d11e0eb4bbf9212",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-phase-05.json",
+      "bytes": 621,
+      "sha256": "e92a7c40be5f32da37292a96095e1dbd0cfe9d616816378217b7819fa00bf8c2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-phase-05.json"
+    },
+    {
+      "member": "original-auth-refresh/auth100/sample-003/native-perf-sdk-phase-06.json",
+      "bytes": 1346,
+      "sha256": "4ba50de4423ffdcf4f0133b6f1bac2b17ee7da9865faf074c4976d8cd119ff03",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\native-perf-sdk-phase-06.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000-cache-cleanup.json",
+      "bytes": 7676,
+      "sha256": "982bc23987b996961b836454d7f3dc73a959ab478044c0870c955fa767ee89cc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000-cache-cleanup.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000-identity-scope.json",
+      "bytes": 3336,
+      "sha256": "785453bb57e99d627f031d6a4dfb785f84d7f5327821e4c615a11da19d525536",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000-identity-scope.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000.live.json",
+      "bytes": 507,
+      "sha256": "86976e9e64526a4cb3f922d9bc93a3c7705555e84548e907236115dff7681b32",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000.live.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000.receipt.json",
+      "bytes": 542,
+      "sha256": "bbad7f491a44cd8b2e0906289220946c1cb3caab0a0def60c4b5e1d9ef6beeb0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000.receipt.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000.stderr.log"
+    },
+    {
+      "member": "original-auth-refresh/auth5000.stdout.log",
+      "bytes": 366,
+      "sha256": "deec898d8abd305ae66a21666782649460ec993e62fe27d278874299ab22f5ec",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000.stdout.log"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/native-perf-auth-attribution-results.json",
+      "bytes": 50124,
+      "sha256": "b7f9e68455281562a9401dd2c33186a609bcacaf153aa6a3c5b987e778fbccbf",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\native-perf-auth-attribution-results.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/native-perf-sdk-journey-results.json",
+      "bytes": 257493,
+      "sha256": "5cedccbb5ecd3ba1e764586bf17971943b6b2d408f2cb8b4787bcd9ea139def5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\native-perf-sdk-journey-results.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001.json",
+      "bytes": 97939,
+      "sha256": "813c0fbeb51c9261e583d4d408aabe707af956e43e027235b99ae519c89af688",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-auth-attribution.json",
+      "bytes": 17107,
+      "sha256": "158845689cc978818c84b20061efd9cdc3804b8be65c9a3fa1d7c85331d5d6e6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "0faadeb41cb13e12853ba22c7b05f9cbcb919e7134278c96c88f99b8b70bd7cc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-owned.json",
+      "bytes": 3348,
+      "sha256": "106468509fc859cc187c6c32cc65665cd01f86640db277e5faeee83254ef0b0b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-permission-commands.json",
+      "bytes": 1002,
+      "sha256": "60efc586c019a9448bca6a43659e9407ece48b741fd18d9bf51f2def4f91ec10",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "efd7a3ac597e83061f91600d7f64cea0f2f5da748e01bad37b3076dbed814f75",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "402bb61255ea53595c81a8a4ae1fc71ca493160ebfaf5c3136107677b16eabfc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "1e7f546fc7d299ecae2b4d04da154be4370e65d66d379de3f5710ca52a04c98a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-journey.json",
+      "bytes": 65816,
+      "sha256": "794d064b955036bc5d73e5920bdd2a3f3ff4c2f62007ce9ec71ecfd7778381e1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "cc3e1a80434e6c0a910fc223ec7a5b4a34f19c45deede8044ba4c5fd899715ec",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 1319,
+      "sha256": "d92f4767e461c75278f5c3f7c5f1898b95dd6075a92fa2ff67f01a5a4d847251",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 511,
+      "sha256": "cce4e6a92556a592929df57b02beec0b0795e991c4924fa4ed8b374610b2bb6f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 319,
+      "sha256": "35d6c7d52790e7f651b280bb0e5f399b01013fcb9cffca1996f961f063c123eb",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-phase-05.json",
+      "bytes": 610,
+      "sha256": "b4cdbdd4d62856dbef3837ae6903f8ba5482689707a730fccd32252f5dfedd78",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-phase-05.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-001/native-perf-sdk-phase-06.json",
+      "bytes": 1331,
+      "sha256": "adec8be5d01523b1184610e9556df082a1801540aaf78fdea8c2d8f1e1ef265c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\native-perf-sdk-phase-06.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002.json",
+      "bytes": 24913,
+      "sha256": "4f6f15e01372ea47410e2f4acac1ed51dc64ad92593b942ec9ee5b71f4f2fb1b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-auth-attribution.json",
+      "bytes": 4197,
+      "sha256": "5dbe93d0a3562f330d99cf04d46e955d9bbd67cfc31c7ae5119299411463090b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "34141ab335398515770f04648f328adf70c44e30f657c9fe6a40ec112006a38a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-owned.json",
+      "bytes": 3348,
+      "sha256": "5d68dd67fedde4bfc55b3d964c11b130ca4ea415ed6d96c9d4f07448e15f1fc1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "cf64e52d37e9e30791cdb620400265310b6dff8943625acc6acd7b18ebf5b178",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "cd7be2a129d9b9afb3761e89981e75e9d3f05cc7d0b4cf7c8c7bdc7c0d73622d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "e37c4a8678482f9d973458654b88b9512ddeed79aab9b8439a3d77950ad88861",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "4c9b6de32db84654970e20d0bc9696898cffcddaecc0cc457bcdf248c69cc375",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-sdk-journey.json",
+      "bytes": 12293,
+      "sha256": "ee95d518a50f2fc362663b48830d335269cf6c9448197dc6ace04965f5eb15ec",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 813,
+      "sha256": "5df4950dced27dad63b98f0d9c01f385d0bdd75d7e27dcd175690a43d41bf6c6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003.json",
+      "bytes": 97859,
+      "sha256": "036b1b1c0553c2fb9df48f83288827b6a579793bde7daa0e017ae77a87f0e22f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-auth-attribution.json",
+      "bytes": 17134,
+      "sha256": "ba414d15f4057ed0f9255ea492814cf3f98a8c8e1e621cea45d191c9581d4ab9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "8d2dd673391e6fa7c76c59716dbb6d2857f03eecaecefdc09b24d0f9c0159738",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-owned.json",
+      "bytes": 3348,
+      "sha256": "2b704f0e5179e55648e2e13d2c0e3a07bdc1824e8f19a486e86d0ac232a733b2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-permission-commands.json",
+      "bytes": 1011,
+      "sha256": "6c96b41ca36178d59212290ac90818ac1e1199be4b2a49afb3233b3084222f78",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "a5923f58688e409192f6f887c783e0b24ed5b6da348811d0e36ab368df720f61",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "836a48f127d218eac8b0e393d50acb1326c48e4555a43fa1274f73dd6795ea16",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 357,
+      "sha256": "ac4733ca99fc67d370866e776672ebe6e22dbac48322ca5a906f0216422bde9f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-journey.json",
+      "bytes": 65707,
+      "sha256": "7bc27f1bb289c94fd93dcd4120995da6aad346f44b9d77ca2be5979a3f4e4eee",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "7edf518574d5b630833c00926ba3ec08b5b0ca16315b4f258266bf91065201a9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 867,
+      "sha256": "58ccb65bf720443c98baefcfa556a4c74370af0a46d3d9db855d9f020d5ff12c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 994,
+      "sha256": "d37e6dd8fe803cf46274737016c17906b99fe3b05d4f78216cab880f9a838029",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 326,
+      "sha256": "5a3e75bc7075d3c165fae9e160124035adfb7d6c02c5b7f6082575cfca98b608",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-phase-05.json",
+      "bytes": 619,
+      "sha256": "294cb84a669aa5a412fa7c4dd6b5f135fadb02b857793adadbd0a4221bd7b7a4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-phase-05.json"
+    },
+    {
+      "member": "original-auth-refresh/auth5000/sample-003/native-perf-sdk-phase-06.json",
+      "bytes": 1321,
+      "sha256": "7d41c67c235ef1feb134b31a57365b0b1659c0131e14b506f5894d7987397089",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\native-perf-sdk-phase-06.json"
+    },
+    {
+      "member": "original-auth-refresh/build-checkpoint.json",
+      "bytes": 40511,
+      "sha256": "3abe8db24537e60ccb9e5e9a7c5ff319ce7de71fb2909e354f1216294d4824c8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\build-checkpoint.json"
+    },
+    {
+      "member": "original-auth-refresh/build-observer-parser-failure.json",
+      "bytes": 692,
+      "sha256": "1feb88fc04ab1f089a032a50c1d3987646e46463dd10c638bd0def39f27f2ca4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\build-observer-parser-failure.json"
+    },
+    {
+      "member": "original-auth-refresh/build-release.py",
+      "bytes": 1237,
+      "sha256": "0dccf43a45bcc751ad4c8a24a2e8ced53cf7ce2caa71beb31f9c929361a9bc8b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\build-release.py"
+    },
+    {
+      "member": "original-auth-refresh/checks-reuse-review.json",
+      "bytes": 740,
+      "sha256": "5a742d611def475886b715eefcde3a2d943af605d4704a19faeee2a3e6fc6f39",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\checks-reuse-review.json"
+    },
+    {
+      "member": "original-auth-refresh/current-groups-review.json",
+      "bytes": 122300,
+      "sha256": "4052a319f7a475951dc03498a5738ba8136dff0cd5e5f0a919dbd4ccac3622e3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\current-groups-review.json"
+    },
+    {
+      "member": "original-auth-refresh/current-review.log",
+      "bytes": 1877,
+      "sha256": "bb58d581f9bcd6fc6c1f72adae51831fe572c4d9163da639938b2cf6c23a412e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\current-review.log"
+    },
+    {
+      "member": "original-auth-refresh/current-review.receipt.json",
+      "bytes": 207,
+      "sha256": "2c4a68a9ddef5bbae098eb8a8474d41445520bde0bd63950089066f1a082ef52",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\current-review.receipt.json"
+    },
+    {
+      "member": "original-auth-refresh/group-plan.json",
+      "bytes": 687,
+      "sha256": "c36967facc321e0b49f4919c5d3b18e968f0bc6e6e14f9d203af430e1aacdf8a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\group-plan.json"
+    },
+    {
+      "member": "original-auth-refresh/groups-completed.json",
+      "bytes": 2566,
+      "sha256": "577736f58af56dd023f954f4a55cb89d2bad4df15b877860180652dd3f322eb4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\groups-completed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100-cache-cleanup.json",
+      "bytes": 7768,
+      "sha256": "bdb0132f3ae30c26ac290d91bf93b227bb6faffbd771a0a574f1308e3a72bc02",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100-cache-cleanup.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100-identity-scope.json",
+      "bytes": 3354,
+      "sha256": "27cc6baf3b0203aff03356ea8297f9f41da3aeeffa55d5b9223f5217c25c5155",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100-identity-scope.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100.live.json",
+      "bytes": 483,
+      "sha256": "cdc2530ba7b32e2352ff77144ebc859b93e6bec3f0b5dcb928ce4375afb86cfd",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100.live.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100.receipt.json",
+      "bytes": 516,
+      "sha256": "0ce9cc6192f90c73c173fece4ed0bd8e74b9835a3d44c93cb2727ab6903c62d2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100.receipt.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100.stderr.log"
+    },
+    {
+      "member": "original-auth-refresh/pdf100.stdout.log",
+      "bytes": 210,
+      "sha256": "36c23c0f67406f3eab739b568b1fc0067d6c713134387e1faa9eef04b470c910",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100.stdout.log"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/native-perf-sdk-journey-results.json",
+      "bytes": 239249,
+      "sha256": "92c18841dfa4737520c97e29d66677e9fabeaf8e57e6ca59c654b93d32f59e64",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\native-perf-sdk-journey-results.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001.json",
+      "bytes": 85644,
+      "sha256": "a14ab1d60bfb2319c86315a999a40d45e279340c3901f1ed6ce25c41ef4101b5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-auth-attribution.json",
+      "bytes": 10058,
+      "sha256": "e6b7120408eb5f42ce8310afd5c68689ed899c468638d7e605b44687e3a21af3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-consumed.json",
+      "bytes": 262,
+      "sha256": "33ae0efd1e6943cf68984020bd5ba38882b57f87901b7626da48d57e25af31bc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-owned.json",
+      "bytes": 7726,
+      "sha256": "8ea1bfa5a9845ea7dacd16e39661eef2d6d80da26bf9a664f434d33cc39d69cd",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-permission-commands.json",
+      "bytes": 653,
+      "sha256": "acaceab738c216a1822d9795c28f4b8d0772329d38c17a0e9767f7870f754bc8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "4d936c81a3646ade44b08c134588157016fe152fddcff134fc66d59ff5e4186f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 573,
+      "sha256": "903b9788ae51eaa47cb6fe978a85909a4db0d7edbbd3d567225806b7f0983b02",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "01381ad389c82fd33159b921a95f6e9a7b69c5a2f2f359250dfde2d468c236c6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-journey.json",
+      "bytes": 64298,
+      "sha256": "7cadef77f68bd78cb57337bff8d09ef69458f47870c40b32cf8522a7a0e1d9a9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16439,
+      "sha256": "0a1025002a36f45adbb42ffc8f321ef1481f0234b7c564cab0f4e26a9d9c6ed8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 21462,
+      "sha256": "a27da08c8b264f5b78a40f05f0b18e2ef8bd24eaf372d8eb034ec1f1ee2906fc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34618,
+      "sha256": "c5b9501424e73c4ad069011f138a5f6d7f62e1b0339680362f4111326d0df2e8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "e3f2160b0968cfe6e0661b2a904d274dec574d39ef2b0d32e8409ba9e5e4fdea",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 1318,
+      "sha256": "79abd3a0381bcdde80accfe38e5c6b51bf427ba5b6669e3420a9d9bcc7d1cdf7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 579,
+      "sha256": "906b114d1d68d290117e2ffae0a9f6d4985b75e38e8c147c0d9bf8bace49e26a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 416,
+      "sha256": "66b29b2b4f02b43a75b7ff41ef5aac6297808990a7df76654b3d27c24cbff096",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002.json",
+      "bytes": 85696,
+      "sha256": "dcd8a3041efdd1dca1eab43e6deb0c9b19e23fe1b2f839b30420326f10270796",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-auth-attribution.json",
+      "bytes": 10051,
+      "sha256": "c7e8c6896d24bf19c03f199ff1baa69b6956d8090a96e70dbfa1c945286445da",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-consumed.json",
+      "bytes": 262,
+      "sha256": "7cb698f3d1e241fd6a4d16b041533bc1927564ebd0b167d69ee6bab2fe87d221",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-owned.json",
+      "bytes": 7726,
+      "sha256": "eaa6b7770fcf9d470c2a3dd14a8bb414006c55ea69185171b2523131fc6e118d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "93ebd635058769e94934498b484ef83246b6faa73d0b6e421427cba6fd107b3e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "5cd4d25d34a2093b35dd408fabcc54cc33341afda36ce0072e20e6a1b113b71f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 573,
+      "sha256": "8c01807ae7a41cb0df14d1247d4d6f06fc9df1232a6945cc74d401ab4b987725",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "437fe9c2709b7d60b2663025cf0eb4264ccb53d1634cdd088f1bbd2186147cd3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-journey.json",
+      "bytes": 64280,
+      "sha256": "dc24c8fc8c7c70204617c974bed3921b632e3890ec0643ed6f02608dd0f1ecee",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16439,
+      "sha256": "0a1025002a36f45adbb42ffc8f321ef1481f0234b7c564cab0f4e26a9d9c6ed8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 21939,
+      "sha256": "816179a6c362754921b723b14be1310bfb26cde342582b7a418acb845b419385",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 38648,
+      "sha256": "5f9b474a6a635d13d06df6a8ce63738e0381fe5ab631ac39febe66555caf0aca",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 813,
+      "sha256": "fefd80d3c5fa421d71a80484e85f127ad8c39fcee49f1209a180a4a35c76c2cb",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 852,
+      "sha256": "5b911f688bfbbb21de5b1d376c5c0fb5ca6632a9198513e3763ea334a8a99618",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 1073,
+      "sha256": "e49759c6323a7832a2213dc4732deb2e8593f63c534dd39d12827d9374474966",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 416,
+      "sha256": "f5a42ef5d488203cf19bdff4ee21f1331fb101c2288c4bb6f6c8f6b16fbd3211",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003.json",
+      "bytes": 28934,
+      "sha256": "9d1e349aa2699c40a0824cf569c0ecd629558c9b5950da3e6a17927de1e78899",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-auth-attribution.json",
+      "bytes": 4226,
+      "sha256": "3423982a9b4e6eaa730bfd700f349872298f3ae3dffa383a5484ca493676119c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-consumed.json",
+      "bytes": 262,
+      "sha256": "116ea503455c4b1b9f70e90547bc5100f7035301a6001a9ac9f8bca108aa7814",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-owned.json",
+      "bytes": 7726,
+      "sha256": "1b87a556a9a4e1f0c121f469077ee0e49cd883d452487550f7f6fc8abdd4798c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-permission-commands.json",
+      "bytes": 276,
+      "sha256": "30eb7b489ad9b73881a9467e5d675b621c828767c1e28844b18821ab311cf707",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "3424054582e89fbba6715b885877e9381a2c01b86b285c664b93095de8a6becd",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 573,
+      "sha256": "9d64e066b32dae7091905991dd18c23d5cee02569003fe2b70d14494ed67c38e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "b5d5178928bdcfdd175770f3f05c4f297a08f7e065baa5eb2890e0b315966561",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-sdk-journey.json",
+      "bytes": 11753,
+      "sha256": "6949649bdaf7db938e1e175b81a778e29dfc48c59a7e4c521724e0b5cc6bf1e7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf100/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 813,
+      "sha256": "f346d7138d04a2f2ab0b738f79903f2d45eed273828c9ddbd7f19075a004d0a8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000-cache-cleanup.json",
+      "bytes": 8105,
+      "sha256": "8ff70fe8095bdb03bd69d9296938b4de43290b1f9b65a53174862340a0cb6836",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000-cache-cleanup.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000-identity-scope.json",
+      "bytes": 3376,
+      "sha256": "5b8c056137401f1fb54c362d6245551820bf3bdbe5d310ae6e744328a29c8277",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000-identity-scope.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000.live.json",
+      "bytes": 485,
+      "sha256": "dde7c6e8f78f0e33363521980057431aaec9c32adda2c4b1f3f12a92885bc5da",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000.live.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000.receipt.json",
+      "bytes": 519,
+      "sha256": "b82386ea86e2ae0b5130c36b4965199b0c4c132f8d50690da07257b1d54410d5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000.receipt.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000.stderr.log"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000.stdout.log",
+      "bytes": 211,
+      "sha256": "3dd15e9eb3eaeab2a8f799a7a06f14ec26bdc5b0da31698cea2f4193008e780e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000.stdout.log"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/native-perf-sdk-journey-results.json",
+      "bytes": 304638,
+      "sha256": "eed858f6bcd7d047c355efd6893490a65a262f6f1662c564efac5568358b2c19",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\native-perf-sdk-journey-results.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001.json",
+      "bytes": 85976,
+      "sha256": "be47dc0e028a2ada5fbc3c9bcfe7d922f474cc9a731eed47241ae82c81c6b57c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-auth-attribution.json",
+      "bytes": 10055,
+      "sha256": "f5b14a0723105afa140f672f7fc12b2e00e290784c3783d0dec993ff31408f07",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-consumed.json",
+      "bytes": 262,
+      "sha256": "5349484420d2b056a33bed4cf4e7371730101a3832d7403646950542877670c3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-owned.json",
+      "bytes": 7744,
+      "sha256": "c9e049bcee5718108c851840f53d1b7cf846bc5e4eaea0845ffed1acf957a801",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "f03e48b844a048be3d9de7d44ff62dfe7d7c12a5e9ff059bdbffccf3bf2da383",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "a4e84785749d2f6747edbb6c53380abc4344ac0d9105c13c8941a4ab84f0e428",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 573,
+      "sha256": "443543e517e9a7e2d4a2f3d08afdb6868f98b23359a22ba96365e6577e3da28b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 359,
+      "sha256": "4c8d992a85f9c325f3b8ad5673c45f6d55089d25eb7041b4e08cae93f7d8b6ca",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-journey.json",
+      "bytes": 64545,
+      "sha256": "036e2f9038a2acd4ec21726b22661a972ce9e72af86b748936a58ebb495a7049",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16331,
+      "sha256": "0cefdc1d18d1efbf35d9858aad7119f306c64d2678366dd2b7f8fbfc31d56f84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 31076,
+      "sha256": "af563fc8dc672e4afed57356da76e8dc2389f3059caf4135b531e74d692b9506",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34634,
+      "sha256": "19244077722dd5d72d9dfa0ecb8d3ec34cecd0a8766339fe00e254888d7048d3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "c8a81f1de707618f8b80eca23b7e0ae572f41541a185f289ee240f7f1753172b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 1328,
+      "sha256": "47c4ff7f0af9e628339ca06e5096e8198d32a34379344a797b51d581e0264168",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 579,
+      "sha256": "f808f8965b18cfdb9f668aeda45e7cd0a64abcff9e4f009ba8186b5a69df651d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 427,
+      "sha256": "b325982d8ba55dbd42430682efd84c2d4cd6d48a91561c2075ef7750c0d188a5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002.json",
+      "bytes": 85861,
+      "sha256": "7a0824ed6f7fda77b127cdf5dead1726257754ae68dc3cc4a08b3630dc354984",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-auth-attribution.json",
+      "bytes": 10042,
+      "sha256": "86f6258e3ba6279ce9a368f3a0449996e70298f6d2dbad916bd559f7a48e9fa4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "911d752bbbbab6cb9865ff9efbb218ee4b51b11bd6e3eddbaa65d1949bb85c21",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-owned.json",
+      "bytes": 7744,
+      "sha256": "3a099ae71c1c6efedab3fea191dd08e5dadc8cbac2c26839a7134a1ba54801d0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-permission-commands.json",
+      "bytes": 653,
+      "sha256": "060a92e4b589260fbd46037759b4e55792fe6b35230d1a7431424e38f8203c6c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "9ef423c61726fd0696c87f9d588404d3614d0e7b39e84f1b235cfc0c506bdd4a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "358a2866e9912af7d80ac16cba9f29fa9f876ddff8cc8fe39a184a5818afd76d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 360,
+      "sha256": "412010ccf800a2bcb481de7378e13d099b44701dcc774d04ab3158d3ffdbf556",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-journey.json",
+      "bytes": 64416,
+      "sha256": "ac5ca68559613a63fca46c3de0998cd572d87836404928f7ab19b4d734aefff1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16331,
+      "sha256": "0cefdc1d18d1efbf35d9858aad7119f306c64d2678366dd2b7f8fbfc31d56f84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 31128,
+      "sha256": "20631ba50594c83e9936c41eee896fcc761404dcbf2d2cf619222a44e17c36a3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34024,
+      "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 817,
+      "sha256": "413a42c907a042281509663b1e3e96e30d1c494675c00c0ea89734601cd4ca64",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 1319,
+      "sha256": "6522ced76508b930da34f72c087c5d83303b7682e0e2cf390db984d3df871b91",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 566,
+      "sha256": "bda2f91f02eddc07f77053526283aa62f0b4165039b8e8f0e8e8b3088d1bbc6d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 430,
+      "sha256": "05f82cbf5c2b4c8de33faf07cfcbb64d404cc1665cd3cf63047750ec22e0c7fc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003.json",
+      "bytes": 85446,
+      "sha256": "7219e2fa2243aa3bc460ca0d89757bc76ed7a85e2446b4f43a1f807cbba8a62f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-auth-attribution.json",
+      "bytes": 10121,
+      "sha256": "0e0540e9c25781c22626f380ed35ec0084e33ad3d341a275beed842687e3c434",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "7d6d4d21bbfbc6dec38be26c4f6f7cf0e6fbde96b7bbbe4d5b3123a9820c67ac",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-consumed.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-owned.json",
+      "bytes": 7744,
+      "sha256": "5539fbaf258e80ad1140764f7a1a3123ab76f3c877918f64122e8b8bdf34dfa2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-owned.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-permission-commands.json",
+      "bytes": 636,
+      "sha256": "b905cadbbe4d20caf721f79e0939faf01af56a407de4a91802fd740635f98a9e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "375b6c4ff3ddc415871a1ad5c84b4709bcd1fae33c5b4e5fee9787eb10da715e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "4a396b83fb06aa10690cbb8aaecc9d41701e0c5c0b45603f29bf4f8fc787e689",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 360,
+      "sha256": "e3f4822ce181babb55ff1669586ca118450324ef7279074a92771b03ee92cdac",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-journey.json",
+      "bytes": 64023,
+      "sha256": "c8e5966deba95c3cc7d91df66e381e8dad443cde3c5152d46c0671cafc140820",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16331,
+      "sha256": "0cefdc1d18d1efbf35d9858aad7119f306c64d2678366dd2b7f8fbfc31d56f84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 31076,
+      "sha256": "af563fc8dc672e4afed57356da76e8dc2389f3059caf4135b531e74d692b9506",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34396,
+      "sha256": "366de9c65d7eb58be160aced2d9c0cec7ae37095bc1cfe63577e8f26f125336f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 805,
+      "sha256": "1da203b1159a147a65bb3ed137f67a8550b554a92993eb3c0e68e7336b85f0d3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 842,
+      "sha256": "0449d8a4255def367d0242cef8806fe5691f1666908521a94b05d9b886e52f86",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 1001,
+      "sha256": "c01c850591c23b6541c8b1f02a2e943e80ff1631f82cb0bdaf5f74f955b613b7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "original-auth-refresh/pdf5000/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 416,
+      "sha256": "8349e3cadbc328e718c4c802c50739b20665526a63257130d0736a2137b14bcf",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "original-auth-refresh/release.live.json",
+      "bytes": 290,
+      "sha256": "06b419c4ab074ff9dc5e94b42174ebb77847d2eb3aba4a7f15c6f82c7be6ac6e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\release.live.json"
+    },
+    {
+      "member": "original-auth-refresh/release.receipt.json",
+      "bytes": 352,
+      "sha256": "f8e2f1a1ccbfe1cf197cc82525b3f6928f915bdce0bc5a50c43a86b39b274ada",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\release.receipt.json"
+    },
+    {
+      "member": "original-auth-refresh/release.stderr.log",
+      "bytes": 3256,
+      "sha256": "464623f69dfba2e7c848f74aab1e6134a8c858fb8accca6c6ce95f39230d3038",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\release.stderr.log"
+    },
+    {
+      "member": "original-auth-refresh/release.stdout.log",
+      "bytes": 3351,
+      "sha256": "7a3b8e86a26c4bd0f3225bf737c64db8ef7e19495996ff7932d7b94e32e76ac4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\release.stdout.log"
+    },
+    {
+      "member": "original-auth-refresh/review-current-groups.mjs",
+      "bytes": 3232,
+      "sha256": "90cb159418177c44c60b14eeae0abde4c71782ffd9dbf32299d1690837f2931d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\review-current-groups.mjs"
+    },
+    {
+      "member": "original-auth-refresh/run-current-groups.py",
+      "bytes": 4808,
+      "sha256": "e424297aee3833d98ea6501de88437a0e2ba209462e513b534852dce12c290b7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\run-current-groups.py"
+    },
+    {
+      "member": "original-auth-refresh/source-freeze.json",
+      "bytes": 213135,
+      "sha256": "f3fd9e680a31e32294c06350c8065c90ad68c69105117da3eafaf8f25e082fd3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-auth-refresh-20261006\\source-freeze.json"
+    },
+    {
+      "member": "rf1100/archive-evidence.py",
+      "bytes": 4216,
+      "sha256": "2464a3a4d851111476f4f83e8b931e65485bd26e5768af615023a73014b66937",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\archive-evidence.py"
+    },
+    {
+      "member": "rf1100/baseline.json",
+      "bytes": 213152,
+      "sha256": "f705ce4f6aa405f4b6afd601326fa3a0779392106c379f664f030a174ae4b376",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\baseline.json"
+    },
+    {
+      "member": "rf1100/before/docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "bytes": 1056989,
+      "sha256": "25d80480c138c4ee4d746d9f61d38cc9b9219e4cc1fc730ea6c4781b2fe8e70a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\before\\docs\\REFACTOR_EXECUTION_REPORT_2026-09-25.md"
+    },
+    {
+      "member": "rf1100/before/tauri/scripts/native-perf-pdf-preview-contract.mjs",
+      "bytes": 14654,
+      "sha256": "e8430e2c7b7118bb5d9fac4a1c9627694d4e0e6aa60d326842087c50d87750c4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\before\\tauri\\scripts\\native-perf-pdf-preview-contract.mjs"
+    },
+    {
+      "member": "rf1100/before/tauri/scripts/native-perf-pdf-preview.test.mjs",
+      "bytes": 12744,
+      "sha256": "8af385f706c932df98f118da3a87ed0f66553a0cf7aaab284bb5b477468bfbf9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\before\\tauri\\scripts\\native-perf-pdf-preview.test.mjs"
+    },
+    {
+      "member": "rf1100/cache-driver-preflight-refusal.json",
+      "bytes": 473,
+      "sha256": "59a70bae6897a507b475bc272d489195fd25314ef7f03d9fedf71297623917ec",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\cache-driver-preflight-refusal.json"
+    },
+    {
+      "member": "rf1100/check-driver-authoring-failure.json",
+      "bytes": 274,
+      "sha256": "faf2e290ebf0302ce2063eaab8f58e98b8f9c4fc04ac22061f714d691ffe88f4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\check-driver-authoring-failure.json"
+    },
+    {
+      "member": "rf1100/check-driver-second-failure.json",
+      "bytes": 306,
+      "sha256": "bd301aff599c97f51a40c079199263f5ad4a9483c9fdea35c5a28aa876d8d474",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\check-driver-second-failure.json"
+    },
+    {
+      "member": "rf1100/cleanup-terminal-groups.ps1",
+      "bytes": 9020,
+      "sha256": "baf47fefa27294c296e926ecf125535009361c7da1f91c6082621ff670006ece",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\cleanup-terminal-groups.ps1"
+    },
+    {
+      "member": "rf1100/current-source.json",
+      "bytes": 524,
+      "sha256": "37db485d4a102f49cc07583921b3ceb2867694efde32c3fa7530d3bbcaa4d65b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\current-source.json"
+    },
+    {
+      "member": "rf1100/diff-check.receipt.json",
+      "bytes": 315,
+      "sha256": "c1005da98b9e58eac98c351fa554d6a04c6e8bc0dbf8d4c366efeec197a1706e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\diff-check.receipt.json"
+    },
+    {
+      "member": "rf1100/diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\diff-check.stderr.log"
+    },
+    {
+      "member": "rf1100/diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\diff-check.stdout.log"
+    },
+    {
+      "member": "rf1100/documentation-boundary.receipt.json",
+      "bytes": 148,
+      "sha256": "9ff7cb8f49173638641278a0542c3c96d881876762dc93d97dfdc6e52350d7b6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\documentation-boundary.receipt.json"
+    },
+    {
+      "member": "rf1100/documentation-boundary.stderr.log",
+      "bytes": 1466,
+      "sha256": "9100aa79cca4938f864b3e3118e4c45404470645f02994a3ef9a59c6760962ba",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\documentation-boundary.stderr.log"
+    },
+    {
+      "member": "rf1100/documentation-boundary.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\documentation-boundary.stdout.log"
+    },
+    {
+      "member": "rf1100/documentation-required.receipt.json",
+      "bytes": 147,
+      "sha256": "b7e55fe8128d4abac280e812982b4ce7011222ad0eb8b6ec16a41d2521dfadb8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\documentation-required.receipt.json"
+    },
+    {
+      "member": "rf1100/documentation-required.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\documentation-required.stderr.log"
+    },
+    {
+      "member": "rf1100/documentation-required.stdout.log",
+      "bytes": 93,
+      "sha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\documentation-required.stdout.log"
+    },
+    {
+      "member": "rf1100/final-input-check.json",
+      "bytes": 595,
+      "sha256": "6bfc5effd70fa4fcf0b90ea233918c8e7d227acd195f22dbcaab6511915eea97",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\final-input-check.json"
+    },
+    {
+      "member": "rf1100/format.receipt.json",
+      "bytes": 308,
+      "sha256": "39f2e3aab71c3cd3625238e7cc9260bec3663ee8a4330326114cd9bc7a9729b6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\format.receipt.json"
+    },
+    {
+      "member": "rf1100/format.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\format.stderr.log"
+    },
+    {
+      "member": "rf1100/format.stdout.log",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\format.stdout.log"
+    },
+    {
+      "member": "rf1100/native-completed.json",
+      "bytes": 1290,
+      "sha256": "568dca819a1ee9c0636c4e2e2102f20c61820c17f2a7c52c33dbb7e176b7465a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-completed.json"
+    },
+    {
+      "member": "rf1100/native-node-final.receipt.json",
+      "bytes": 207,
+      "sha256": "0acf65f8d0a3deb2e9d751c59bd19e435e2851d145c6b84a9976dd35f66da805",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-final.receipt.json"
+    },
+    {
+      "member": "rf1100/native-node-final.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-final.stderr.log"
+    },
+    {
+      "member": "rf1100/native-node-final.stdout.log",
+      "bytes": 22930,
+      "sha256": "3a6a7f32bb321444c14866149311af172ce839aa5fc27dd85b09c42fca249370",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-final.stdout.log"
+    },
+    {
+      "member": "rf1100/native-node-full.receipt.json",
+      "bytes": 177,
+      "sha256": "955977845bfc79c1308e7c538a86dc0615cc994ed9576cfab4f038fb871905d4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-full.receipt.json"
+    },
+    {
+      "member": "rf1100/native-node-full.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-full.stderr.log"
+    },
+    {
+      "member": "rf1100/native-node-full.stdout.log",
+      "bytes": 22956,
+      "sha256": "7134fecb847c1a85e098f59a8bad19921655a62a81abf3412dda0aaf5ad66bf8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-full.stdout.log"
+    },
+    {
+      "member": "rf1100/native-node-required.receipt.json",
+      "bytes": 302,
+      "sha256": "830cf81c6b0d2c5a6113a0271cd9561716150352ad77d343a103529b8b96fe91",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-required.receipt.json"
+    },
+    {
+      "member": "rf1100/native-node-required.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-required.stderr.log"
+    },
+    {
+      "member": "rf1100/native-node-required.stdout.log",
+      "bytes": 22010,
+      "sha256": "b4f3befecb8dc6e187bf95114cc2d701569ffe53cd5459715a04faab7e9ef4f6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-node-required.stdout.log"
+    },
+    {
+      "member": "rf1100/native-resource-preflight-failure.json",
+      "bytes": 13526,
+      "sha256": "3390d21dae0a790e48fa31fe049d034d2ae979d5978fea9d03290bbda43e6941",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\native-resource-preflight-failure.json"
+    },
+    {
+      "member": "rf1100/new-document-format.receipt.json",
+      "bytes": 350,
+      "sha256": "87c7a42783cbff397dd38ae1c1f983671a02c02857d92f6d0b0121242e3a2114",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\new-document-format.receipt.json"
+    },
+    {
+      "member": "rf1100/new-document-format.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\new-document-format.stderr.log"
+    },
+    {
+      "member": "rf1100/new-document-format.stdout.log",
+      "bytes": 134,
+      "sha256": "ffe9336edfa8d921b9d74b781b0f317108264a8d9307c853a8e17d230b8a53c7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\new-document-format.stdout.log"
+    },
+    {
+      "member": "rf1100/new-runtime-package.json",
+      "bytes": 37375,
+      "sha256": "4a30a0893bcc200f5f0bd14a8ebad2f4602acaf6a24d4722fdf3119afaf6c919",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\new-runtime-package.json"
+    },
+    {
+      "member": "rf1100/original-replay-v2.json",
+      "bytes": 1568,
+      "sha256": "1eaa794d6222d5aaa50e79520254e754c27fc725762780067efe95f38d414ac4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\original-replay-v2.json"
+    },
+    {
+      "member": "rf1100/original-replay.json",
+      "bytes": 1568,
+      "sha256": "1eaa794d6222d5aaa50e79520254e754c27fc725762780067efe95f38d414ac4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\original-replay.json"
+    },
+    {
+      "member": "rf1100/pdf100-cache-cleanup.json",
+      "bytes": 9217,
+      "sha256": "878ac2a06247ef7ab80dc3fefcec9e14df004cd9f480be4a94baf536343c973c",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100-cache-cleanup.json"
+    },
+    {
+      "member": "rf1100/pdf100-identity-scope.json",
+      "bytes": 3576,
+      "sha256": "ad460606fdf12e96c7f1ffc71f72bd00e3f4a958a739485ffc7a5917b062a54a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100-identity-scope.json"
+    },
+    {
+      "member": "rf1100/pdf100.live.json",
+      "bytes": 496,
+      "sha256": "abc8fc33d0f54bfcf95764fa614e21e6b4ef58e89f0013effd3893e9dd944d2d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100.live.json"
+    },
+    {
+      "member": "rf1100/pdf100.receipt.json",
+      "bytes": 493,
+      "sha256": "28c4ffd874b778bc854b7f75cd723072179487d4788d46595cdb444796057cb3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100.receipt.json"
+    },
+    {
+      "member": "rf1100/pdf100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100.stderr.log"
+    },
+    {
+      "member": "rf1100/pdf100.stdout.log",
+      "bytes": 212,
+      "sha256": "c716d8c215541f737bd06fe958a17151f7d3e4c4e7813f71cfa679a7c891d9f6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100.stdout.log"
+    },
+    {
+      "member": "rf1100/pdf100/native-perf-sdk-journey-results.json",
+      "bytes": 253022,
+      "sha256": "26ed3f7e29c55bbcf682dc3d58ced5ce60418263899cb08d02feb38a9a30c994",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\native-perf-sdk-journey-results.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001.json",
+      "bytes": 91830,
+      "sha256": "b8de314b68f3e786dd7c505e90d3a990bec348d3f2367887163faea6e9fa97d0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-auth-attribution.json",
+      "bytes": 10122,
+      "sha256": "9ec93aa11a7b96f26723c9fda291d68794f8f924b052fb17c7aab5ebdab24b6d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "c40f2bf6ba182746e39f14826f233415380a85b1a3a8d38429d2374ee3150fe0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-consumed.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-owned.json",
+      "bytes": 7736,
+      "sha256": "94020d6394cdca67aac77c05a75897993d8203c53ee2d2ee797e323bc58f57ba",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-owned.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-permission-commands.json",
+      "bytes": 637,
+      "sha256": "7dd9c066eb2fc6c727b2d045a23974d1bc57ee900864013bc1c449b803479ce5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "6fe94cc2ea5b6d4e11042a6ed8ecb065b39076501c581868cf61a636582b8549",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "2a1e887a6a9230af6a887c29dbeb97061835a31c8ef8360d15d078016be32490",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 360,
+      "sha256": "c5fbca65a14a3643ad9e0fec29dc2ee57a39fa826af360f7ff527b014e9b3343",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-journey.json",
+      "bytes": 64438,
+      "sha256": "8fb47cf706587c3a111d170f7d2a17e8ab26a87425073a3b48945bf466a081e0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16331,
+      "sha256": "0cefdc1d18d1efbf35d9858aad7119f306c64d2678366dd2b7f8fbfc31d56f84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 21939,
+      "sha256": "816179a6c362754921b723b14be1310bfb26cde342582b7a418acb845b419385",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 36988,
+      "sha256": "ac4fe64d045cb65375aecaa04bbd121f3c5b15ff0067372cd29fa48821305c7f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "acb4d9f5e76bf24894681f5773a7c2ac4140e32d967b4c41e7d8fdd7d51658f0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 867,
+      "sha256": "d828be0847db8e1f689640a88bce0c9dee0a423c00b28050869ef26677bbb42b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 1083,
+      "sha256": "248226bcf0b8bc35ee90cfd85c4e9697cf2c593bc63f2a9497a1e71d20ea1587",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 419,
+      "sha256": "cf761afee295c00eacc65351fc81cf494bb4d90a97d91ff6eab43ce8f070d964",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002.json",
+      "bytes": 28793,
+      "sha256": "2108eac4b7848db2a59a0a3dfa0ccde6bae9e3519501477abeda7c58aee01132",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-auth-attribution.json",
+      "bytes": 2946,
+      "sha256": "dda24e2a3e5ee21d1d6cff138a5222f7934d04ab6d6d3625c3a7288dbafdf992",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "4ea78bd1e4714f58fe8674e08fe31b9643f8341bc77a9a7e762f94df670a897a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-consumed.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-owned.json",
+      "bytes": 7736,
+      "sha256": "f0065b63d628be54b6aff6fbc05771699a48ccac777bc4cde599cbc8160d72c6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-owned.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-permission-commands.json",
+      "bytes": 276,
+      "sha256": "0b5abf63b6cc6ae33fe11072a685f839f9dfd79974a847a5f5f6b8d3ec8b84fc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "82572ab83613da1d86e658c9c84323a6f1d710822bedab24296f029a28e889c7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "fe00f79770e4925e9ba06b2e4507a57aed1860bd438dbf6fef5d0aff1e485a81",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 360,
+      "sha256": "efdb1370b36811c2363c4bbdd6c55a9951a7f805ae3a66c41226d6df96ea683e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-sdk-journey.json",
+      "bytes": 11594,
+      "sha256": "255abe12b798986aa4b1dfecbdbc582c0904a34ce3d8d84225d6a31e0c41c4dc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "f6d7154e02f916ddc4235a1f6e7ffc0166f08b93150d9c5f7cbd6d75087e372a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003.json",
+      "bytes": 91816,
+      "sha256": "90ef2aba0470276b2ab9c316a5719e43094fd3408b320dade756eede21c49cdb",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-auth-attribution.json",
+      "bytes": 10036,
+      "sha256": "b99c14f074823598bee1fb4fb50c70d1d231f6e3e279ab2e252a600db7acc7d3",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "cb946059591666707b8663a55f56db6ff0f3e474fa160f70ca3735a8d87ae396",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-consumed.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-owned.json",
+      "bytes": 7736,
+      "sha256": "3db1a7538bfcca5b511e7604f042e925fad8f14ab390a106149dcb27127b9761",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-owned.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "4ad3c3f1a4b6a59a0159cb872d4071aa9c6348f78ae234785361d327be74ebce",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "a5fd4b0d1f0c423778fb9dbd4a6b24cc8a38cf63a0a72556e12513b6edaa1e82",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "21259337c356b6c1d243d146c05c8cf32e41118d0a77784aa3bcae9f17e81448",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 360,
+      "sha256": "f89f0ee17cde1bf38cb3f1e84d6a39160b0b82a911aa2ce62040b40211018fb2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-journey.json",
+      "bytes": 64424,
+      "sha256": "60f83071c0c2895995647ab4d543b288aedd763673dcfefe7d96ef2605b6d5ac",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16331,
+      "sha256": "0cefdc1d18d1efbf35d9858aad7119f306c64d2678366dd2b7f8fbfc31d56f84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 21939,
+      "sha256": "816179a6c362754921b723b14be1310bfb26cde342582b7a418acb845b419385",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 38937,
+      "sha256": "9799bdbf18111edbfe7050708e54d560f4dd432f29ce35ccad1bcdc5a88a9eb8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "034b6aa1ba17957118c5a55b20a2accad51aa11bcbaf10ff3b8079001a9cc292",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 1329,
+      "sha256": "70c95891b145b2b5fd98a016797823799992ff5c91784fd51bffd820057d0815",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 590,
+      "sha256": "4b65ccc45be6dd1d13ad8a069940746191a15b3d3aee9d57eac3c97e46493167",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "rf1100/pdf100/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 426,
+      "sha256": "b36dcc4eef2d344fdca9e75944a445d1a8e509106fa837e8db4ebb030d5200c8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "rf1100/pdf5000-cache-cleanup.json",
+      "bytes": 9240,
+      "sha256": "f7432bd2f3d9e1cdbc33c0b8d9d7c09c75dc827f2a6affbb9610071587cc16ed",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000-cache-cleanup.json"
+    },
+    {
+      "member": "rf1100/pdf5000-identity-scope.json",
+      "bytes": 3572,
+      "sha256": "c415d465769fc8babcb487d596df97c34f7db385f34bd7b9a6062ac7c3dedf06",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000-identity-scope.json"
+    },
+    {
+      "member": "rf1100/pdf5000.live.json",
+      "bytes": 498,
+      "sha256": "97be4928c74c05ac29a334b7e40df30e4714ed655394d508fc2f737c6f8445b8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000.live.json"
+    },
+    {
+      "member": "rf1100/pdf5000.receipt.json",
+      "bytes": 494,
+      "sha256": "c046b77bb29c6615e0b24e862c2b226ec696f521565903e6c4d05e05b31762e2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000.receipt.json"
+    },
+    {
+      "member": "rf1100/pdf5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000.stderr.log"
+    },
+    {
+      "member": "rf1100/pdf5000.stdout.log",
+      "bytes": 213,
+      "sha256": "83ce7a6e6427166a520787e0d24affc95f6ebfa09be46d56ac9bcf3b39f8742a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000.stdout.log"
+    },
+    {
+      "member": "rf1100/pdf5000/native-perf-sdk-journey-results.json",
+      "bytes": 324523,
+      "sha256": "d1f1506baad0e182d972faff8192cb13c04cce183463078babc3784e121760ad",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\native-perf-sdk-journey-results.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001.json",
+      "bytes": 91221,
+      "sha256": "b8b310c49c275a2fd832065a1a5b0cb00bf8c06442bf0e0cf2796949b2e15507",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-auth-attribution.json",
+      "bytes": 10012,
+      "sha256": "4ecf7e4d1d6cceb7ce51b8908b92910ce68dd9894fe8f224e401afc33e1f42a4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-consumed.json",
+      "bytes": 265,
+      "sha256": "3fd54a10bf6f9b1000a0983306a3c68d69ad19e6c083d5beab29d49209d746f5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-consumed.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-owned.json",
+      "bytes": 7754,
+      "sha256": "758af43630d09e7c6cde88c4f8238b72590cd03200666bbe25f005583517a789",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-owned.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-permission-commands.json",
+      "bytes": 635,
+      "sha256": "a285a13354e6d7c33d9785eadc30ffcdc4405f1a18bedef5641a8a2c074ecbe4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "99cc75e74392ce0728bbef9b1614e92c120d1de828ca2bea61f454a1f3737fb8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 576,
+      "sha256": "1306816e25f1cf3ca98d80b7b7d82a995061ac1a2553e3a13f42772cc369e091",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "94056e14388a7acaf0e45a5d1631d28a1eaf7dd7d84b42eb2ac0676fae2ebee2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-journey.json",
+      "bytes": 64166,
+      "sha256": "7fc652eb78116aab75957c01803c26e9fcde22351e2041ef8efb9ffcc4a17400",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16460,
+      "sha256": "fd435d103dd583d92bb572b6bfcb9f2037115f8ae4c6c21ae5f6da55eea87444",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 30746,
+      "sha256": "4d4674920eedcca6753ac39e4d4c9dabcb99be29eeee35303c4d0598aac2ba7b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34571,
+      "sha256": "42b682d86786dbe4f4696905a6fd771aad6ef3970f3f7ffef2ca24c882085c4e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 827,
+      "sha256": "a68b3d0fd5effbda6446cf45aa23ef3555a5c20f76d9f7f4405f980301f9ff87",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 1319,
+      "sha256": "765e7f4c5dba83c3e4817756b4b55bd2fdb854c763e941dc73dd128b4ad5dfc1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 511,
+      "sha256": "d9f73d2045e4c146b282487de2f4f79bae736fdeac39bff80ded4f2688ba73fa",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 417,
+      "sha256": "1c5616e557b8ab082288bbcb96a86ee9d99ebd528dbb2ac0d4d86f54a0466be1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002.json",
+      "bytes": 91779,
+      "sha256": "3f9c7d94fc6b20d7a9d39ecb2e599ce6cacf08bf492799dd6bf0cbe0de31d20d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-auth-attribution.json",
+      "bytes": 10109,
+      "sha256": "90a6bfff03e10d7846b4b775beabab16ea10df34ccb7abcd3f755b79e3baa91d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-consumed.json",
+      "bytes": 265,
+      "sha256": "3bea8d9f0f86d848f57cdab606e957885bdd0d11ab41611a8b16ae090b10ea06",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-consumed.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-owned.json",
+      "bytes": 7754,
+      "sha256": "b8d3e96a7c07bc0cb67d4c9913e2dad7e77eef2f0940dfa55d72781e72a89974",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-owned.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-permission-commands.json",
+      "bytes": 637,
+      "sha256": "9e7d6656f11068c2311a29d65aef3e4b4317d74efd49bb19252d7ebb4ccf21f4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "4a8495bf981901dac2c12553e7818082fe22168eb0081f4d23fc82c99653c6d7",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "87585ab79d359cf096f02061803ff19ca055547696e3ed6b8585726951ed0ecf",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "891a081ec64f5a36fd2e01a41ae4fb284174097cc6967d82ea17c2d0700aa564",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-journey.json",
+      "bytes": 64396,
+      "sha256": "cfb4bdb265cbe305f7bb18270b857bd4bcec57a89141b3b2e6f619a22067702a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16439,
+      "sha256": "0a1025002a36f45adbb42ffc8f321ef1481f0234b7c564cab0f4e26a9d9c6ed8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 30729,
+      "sha256": "c2389af52a2c23a9c24054e391fdf32f0bebbd4bbe5659c5deda1e954a258088",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34556,
+      "sha256": "8a5347100e514ec4097f8cf4c859543e449a2a01fb46eba044642023213387b0",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "9737bfc15f3dfc074a88aee9ad2a3e1a978d04c957e386684f9233936c675bbc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 867,
+      "sha256": "c3e9110b3b3f49c2790f058b03343278188e9119084e8be7a0a2c077511db7e2",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 1012,
+      "sha256": "9dc8ce045752898f78eae7ac8a623f791ff9ab85fd8612de6b618aa8a0d6a6c5",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 429,
+      "sha256": "852c327ffa1f7e47700e6f235fb8bd0aeb90f2294aba458aa87b02f5544cda84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003.json",
+      "bytes": 91714,
+      "sha256": "086d7db5a154364f636aa16a7a6de1937d9f6fd90743133d35c53bf66c1e5bff",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-auth-attribution.json",
+      "bytes": 10007,
+      "sha256": "c045d40eb16d7fbfc5492b39c0d4d9c2d1690f669d16098cac0a33418e23d991",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-auth-attribution.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-consumed.json",
+      "bytes": 265,
+      "sha256": "76592cb57b43e02866d689b40b67a1d5f50b79864fb49af1a3da306652e91096",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-consumed.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-owned.json",
+      "bytes": 7754,
+      "sha256": "d2e72b4ae02b5acd7019339b145230fafc0b99e8732429c70c1ef33ce77f8d4b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-owned.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-permission-commands.json",
+      "bytes": 636,
+      "sha256": "69223a0762b961a86ce90b29f04049da6d7378e938bf2bccdb6652405e5e253a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-permission-commands.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "7a404653872fd5a40891142fa56228af3aa17d3d383284b537949dffa8e7e498",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey-authorized.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 576,
+      "sha256": "9a0117ead8f8aec4941f9f6e34dca5102933692d340c57ec8c93584a66e72d88",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey-bound.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "efcacc700f1db83da44c624dcc19a8621bf1a97a7040783e2754e1336277248f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey-requested.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-journey.json",
+      "bytes": 64305,
+      "sha256": "5dd5d674ca5dde9b31428980d2edbc7858de2c494f681315a073ea7b40d75011",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-journey.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 16331,
+      "sha256": "0cefdc1d18d1efbf35d9858aad7119f306c64d2678366dd2b7f8fbfc31d56f84",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-pdf-first-page-01.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 32550,
+      "sha256": "a45fa77c815b87401646007b3b19d13a465b07e7402dd79a9ba9f98acfd98a15",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-pdf-first-page-02.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 34024,
+      "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-pdf-first-page-03.png"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "75d2503ee164eeb0fcfef8917b379407e3e214bc80ada0796827d3f7d885d44e",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-01.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 1328,
+      "sha256": "311b4a3cd36e4dbfcd105924c91be56a276553891a0545283539a75e0b8af133",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-02.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 510,
+      "sha256": "17f80d33122b093367abe836c879d699a97391c87335a3e04b4b235591d62dce",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-03.json"
+    },
+    {
+      "member": "rf1100/pdf5000/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 419,
+      "sha256": "db1da68985cc6b3c18dc6e8a4a6d8e582411775dcdca40a68e689cdaf5bb1a13",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\native-perf-sdk-phase-04.json"
+    },
+    {
+      "member": "rf1100/prepare-cleanup-initial.py",
+      "bytes": 2904,
+      "sha256": "35f2d38b37dbaca8cf5bf0253802af4cc2775bce568f7d9de03589a1a02ffc1f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\prepare-cleanup-initial.py"
+    },
+    {
+      "member": "rf1100/prepare-cleanup.py",
+      "bytes": 3074,
+      "sha256": "74b0eff4d2cd1cf95531b4f204c6a15f6be4fb831b7ae7eec4c223484f8714fb",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\prepare-cleanup.py"
+    },
+    {
+      "member": "rf1100/preservation-after-cache.json",
+      "bytes": 178,
+      "sha256": "a10ec5410e9c6d228a6288479681fa792d78d02d8500059cabcbaa1e80f6eb96",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preservation-after-cache.json"
+    },
+    {
+      "member": "rf1100/preservation-before-cache.json",
+      "bytes": 60759,
+      "sha256": "07d438051803d60e2bc063db97e7283976957811fe7f104a2fd2ff5c5f3dd1bd",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preservation-before-cache.json"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf1100-pdf-call-tail-20261006/pdf100/sample-001/app.log",
+      "bytes": 1861,
+      "sha256": "6f557254d49b034f15344efc793dfceffbb3cc3eb10f48b2a11b15aee9564300",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-001\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf1100-pdf-call-tail-20261006/pdf100/sample-002/app.log",
+      "bytes": 1377,
+      "sha256": "4650eacf3734758b7c9000cc08e623122670a929e5594f35c78091edfbde927b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-002\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf1100-pdf-call-tail-20261006/pdf100/sample-003/app.log",
+      "bytes": 1861,
+      "sha256": "2c1a2ee0dc55c288512aec4643b5b9cad7d005a27a3ed680fc782d0d33cef96a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf1100-pdf-call-tail-20261006\\pdf100\\sample-003\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf1100-pdf-call-tail-20261006/pdf5000/sample-001/app.log",
+      "bytes": 1862,
+      "sha256": "d47fa01b36c3509eb8078412654de95bdd54ce6e8b4647dc80e065804ddd5e21",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-001\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf1100-pdf-call-tail-20261006/pdf5000/sample-002/app.log",
+      "bytes": 1862,
+      "sha256": "ffd12c63da8ccfb1b9f53b67e3ddc234f7dd578dd3b15829ed577ded40a16757",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-002\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf1100-pdf-call-tail-20261006/pdf5000/sample-003/app.log",
+      "bytes": 1862,
+      "sha256": "967a3a2a028a6eca52cd5bd2b07c65fef68c24ae21a9ef0b5957b761938bd774",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf1100-pdf-call-tail-20261006\\pdf5000\\sample-003\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/auth100/sample-001/app.log",
+      "bytes": 2548,
+      "sha256": "06504c966aa672224f8db23f1c9acd96060102eb3ddd402d51317b59445c1e7d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\auth100\\sample-001\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/auth100/sample-002/app.log",
+      "bytes": 2548,
+      "sha256": "18cac333747b89162eeab68be2546efe66fea477dbbc62d5f7f784775f6ab489",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\auth100\\sample-002\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/auth100/sample-003/app.log",
+      "bytes": 2548,
+      "sha256": "a3ced8ba68917c8fe9dffa241344f1b47bb82105da7358d5117d75e58310e090",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\auth100\\sample-003\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/auth5000/sample-001/app.log",
+      "bytes": 2549,
+      "sha256": "4457527694b64737d56094ba28e8ce60d9aab59ce2edbba94db59aca6dbc67f8",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-001\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/auth5000/sample-002/app.log",
+      "bytes": 1821,
+      "sha256": "b806624024e67c02c8a2de453ff6dcc01e581cd7abd3adbca47a290f3837db66",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-002\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/auth5000/sample-003/app.log",
+      "bytes": 2549,
+      "sha256": "eb5610af0947fa7d8fb036673b0c8dbe62808a1e5868f64683fc03dabf18aaf6",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\auth5000\\sample-003\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/pdf100/sample-001/app.log",
+      "bytes": 1857,
+      "sha256": "bada4ad04216f9e5b0c8c1a8be5ae31f607e43d967dddd0f5ce5ec19d924f632",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-001\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/pdf100/sample-002/app.log",
+      "bytes": 2111,
+      "sha256": "397e2780d514db5bd194f062a4740f4f0cade5161b10d72648eaabb7b13d3620",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-002\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/pdf100/sample-003/app.log",
+      "bytes": 1373,
+      "sha256": "b5c26800d14cfea9e33f18843aa374a43336ad93af1a33596b82d64473d53771",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\pdf100\\sample-003\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/pdf5000/sample-001/app.log",
+      "bytes": 1858,
+      "sha256": "f489bab0c5d7e248cab8f2c16c7fe23ca97b426ed5dafbe8e53f03b5f0d5ea7f",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-001\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/pdf5000/sample-002/app.log",
+      "bytes": 1858,
+      "sha256": "ea494b4dea6639d9e0fa849fabbbc2cdd756730bb4c39d3d19b4700a55fcb5e9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-002\\app.log"
+    },
+    {
+      "member": "rf1100/preserved-logs/ss-rf312-auth-refresh-20261006/pdf5000/sample-003/app.log",
+      "bytes": 1858,
+      "sha256": "e56b876096fbf792b6523c2ab41533d49091969c95139246bc1bf84c27e9f102",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\preserved-logs\\ss-rf312-auth-refresh-20261006\\pdf5000\\sample-003\\app.log"
+    },
+    {
+      "member": "rf1100/red.receipt.json",
+      "bytes": 207,
+      "sha256": "5e5d7dcc11825af9b6a286799dad7aa8695057cbfcd213742b774f00c5c70675",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\red.receipt.json"
+    },
+    {
+      "member": "rf1100/red.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\red.stderr.log"
+    },
+    {
+      "member": "rf1100/red.stdout.log",
+      "bytes": 3540,
+      "sha256": "48f7ed8b72b85201847b400522c36d0dfed9b1dc9b9393d10e38d9d004337a41",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\red.stdout.log"
+    },
+    {
+      "member": "rf1100/replay-and-native.py",
+      "bytes": 3122,
+      "sha256": "20583d8a3fa8dd18ff1e362b05fe2cb6ffe28efd438b92e39a3bbdbe7dd4526a",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\replay-and-native.py"
+    },
+    {
+      "member": "rf1100/replay-original-initial.mjs",
+      "bytes": 2000,
+      "sha256": "62fc4b19b7e8af2d9d79bc7e39909856b838a52426f7237673b28b5fafa838ea",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\replay-original-initial.mjs"
+    },
+    {
+      "member": "rf1100/replay-original.mjs",
+      "bytes": 2189,
+      "sha256": "44e629b525b4aa0c619b496c3ebd8c696d81686bc3f24db9ed536775502cb027",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\replay-original.mjs"
+    },
+    {
+      "member": "rf1100/replay.receipt.json",
+      "bytes": 203,
+      "sha256": "2145040c5929d30e745f9c3aeb2aacda31e41d1b91a0cdeea0f60d9dd576e197",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\replay.receipt.json"
+    },
+    {
+      "member": "rf1100/replay.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\replay.stderr.log"
+    },
+    {
+      "member": "rf1100/replay.stdout.log",
+      "bytes": 127,
+      "sha256": "0314a0475d9c3cf59a63728034dff709c966061402fa2153f8d5e12ce3d1d6d4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\replay.stdout.log"
+    },
+    {
+      "member": "rf1100/report-structure-check.json",
+      "bytes": 297,
+      "sha256": "8d268ab003d8d5cbcd4dc34305e61b75c7fe9d23362f47f0928364a7c9259bf4",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\report-structure-check.json"
+    },
+    {
+      "member": "rf1100/run-checks-initial.py",
+      "bytes": 1110,
+      "sha256": "88d25d6e4097c01bbf1e8f1d8c311b190e8934b27669f7a368a5eede82838a2b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\run-checks-initial.py"
+    },
+    {
+      "member": "rf1100/run-checks-second.py",
+      "bytes": 1115,
+      "sha256": "42a535f7f6af01c23d8fdaf9e76e60b4b37098e7df51a09c8735c71497dceb7b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\run-checks-second.py"
+    },
+    {
+      "member": "rf1100/run-checks.py",
+      "bytes": 1057,
+      "sha256": "9b5c0aba1e016c289cb4bfe412ff321ca3bb01febb92326b77df5bcb20aa7546",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\run-checks.py"
+    },
+    {
+      "member": "rf1100/run-cleanup-initial.py",
+      "bytes": 1729,
+      "sha256": "651ea5ab82dc5c5d25f8968d1a0f794cdffedca520b28f35478635d9299f5a5b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\run-cleanup-initial.py"
+    },
+    {
+      "member": "rf1100/run-cleanup.py",
+      "bytes": 1792,
+      "sha256": "bf13c4447d76a2cf3cd919084730f5a3aa1aeaffc4f7dfd019a8120d857bf365",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\run-cleanup.py"
+    },
+    {
+      "member": "rf1100/run-native-v2.py",
+      "bytes": 2335,
+      "sha256": "6eac3d1592b15d4932f74e2a2e4fb8e4d8d977b8129933370ca2215243329f1d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\run-native-v2.py"
+    },
+    {
+      "member": "rf1100/ss-rf1100-pdf-call-tail-20261006-pdf100-cleanup.receipt.json",
+      "bytes": 517,
+      "sha256": "f79b2302882bf0759daa0356ff59740cebdee8a46249cd24efec45e4687dc621",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf1100-pdf-call-tail-20261006-pdf100-cleanup.receipt.json"
+    },
+    {
+      "member": "rf1100/ss-rf1100-pdf-call-tail-20261006-pdf100-cleanup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf1100-pdf-call-tail-20261006-pdf100-cleanup.stderr.log"
+    },
+    {
+      "member": "rf1100/ss-rf1100-pdf-call-tail-20261006-pdf100-cleanup.stdout.log",
+      "bytes": 77,
+      "sha256": "9d7376fb2cfe44ef8bb90d707fc01533f33e2f2ff9328575e314fa0fe78e7baa",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf1100-pdf-call-tail-20261006-pdf100-cleanup.stdout.log"
+    },
+    {
+      "member": "rf1100/ss-rf1100-pdf-call-tail-20261006-pdf5000-cleanup.receipt.json",
+      "bytes": 517,
+      "sha256": "0921a049bd2ddeaaeaeffff20fe64b559359b07e5173af59db160a9f08d7bfed",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf1100-pdf-call-tail-20261006-pdf5000-cleanup.receipt.json"
+    },
+    {
+      "member": "rf1100/ss-rf1100-pdf-call-tail-20261006-pdf5000-cleanup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf1100-pdf-call-tail-20261006-pdf5000-cleanup.stderr.log"
+    },
+    {
+      "member": "rf1100/ss-rf1100-pdf-call-tail-20261006-pdf5000-cleanup.stdout.log",
+      "bytes": 77,
+      "sha256": "9d7376fb2cfe44ef8bb90d707fc01533f33e2f2ff9328575e314fa0fe78e7baa",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf1100-pdf-call-tail-20261006-pdf5000-cleanup.stdout.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-auth100-cleanup.receipt.json",
+      "bytes": 517,
+      "sha256": "a58e981d2e28e7c7bbcc1a6c416416f51b0dde98f8484e7f845495f6b4f2207b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-auth100-cleanup.receipt.json"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-auth100-cleanup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-auth100-cleanup.stderr.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-auth100-cleanup.stdout.log",
+      "bytes": 77,
+      "sha256": "b646f19a3d3c27b33322f215e13620e9435c6bf6b289f2593d703801bcd18c9d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-auth100-cleanup.stdout.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-auth5000-cleanup.receipt.json",
+      "bytes": 518,
+      "sha256": "83eaaf6dfba896dc7dfe5468cf892185c25f80e2874ac969b439b38143c983c1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-auth5000-cleanup.receipt.json"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-auth5000-cleanup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-auth5000-cleanup.stderr.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-auth5000-cleanup.stdout.log",
+      "bytes": 77,
+      "sha256": "b646f19a3d3c27b33322f215e13620e9435c6bf6b289f2593d703801bcd18c9d",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-auth5000-cleanup.stdout.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-pdf100-cleanup.receipt.json",
+      "bytes": 515,
+      "sha256": "1c39f1058f69b169c3382fc357c23eaddcda17a590731dad56e0740fb0d70be1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-pdf100-cleanup.receipt.json"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-pdf100-cleanup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-pdf100-cleanup.stderr.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-pdf100-cleanup.stdout.log",
+      "bytes": 77,
+      "sha256": "aef3979c08cdcced812ee8a3b934febc833655be942a11b19159e6221bbcaee1",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-pdf100-cleanup.stdout.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-pdf5000-cleanup.receipt.json",
+      "bytes": 517,
+      "sha256": "ed1eaf7d3ce5c8b77b11e850189ec4e5c399faea563ad3df40c253fac489105b",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-pdf5000-cleanup.receipt.json"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-pdf5000-cleanup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-pdf5000-cleanup.stderr.log"
+    },
+    {
+      "member": "rf1100/ss-rf312-auth-refresh-20261006-pdf5000-cleanup.stdout.log",
+      "bytes": 77,
+      "sha256": "ed4ca77682a16b9cbce305ffdcb03e84eb6750a814c014fa9f8d9de7f0dc1807",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\ss-rf312-auth-refresh-20261006-pdf5000-cleanup.stdout.log"
+    },
+    {
+      "member": "rf1100/targeted.receipt.json",
+      "bytes": 207,
+      "sha256": "3c18daa7cca352341b86d7e14f71a993fed3477018a16e3636b0292d26aa6631",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\targeted.receipt.json"
+    },
+    {
+      "member": "rf1100/targeted.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\targeted.stderr.log"
+    },
+    {
+      "member": "rf1100/targeted.stdout.log",
+      "bytes": 807,
+      "sha256": "9dc21a7e7e3400a00de950a68fb47174cb917e01f807fc02acd22ddc65a2a4fc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\targeted.stdout.log"
+    },
+    {
+      "member": "rf1100/write-evidence.py",
+      "bytes": 13698,
+      "sha256": "12686d4635aff973573ffbc26d69b8c68bd627084feb1eeccfa5240ccbea9077",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\write-evidence.py"
+    },
+    {
+      "member": "rf1100/commit-preflight/index-initial-crlf.json",
+      "bytes": 147869,
+      "sha256": "79b80a915d696dc8af73d09dabd3c0aa2c2c4d96df8ded5d6022665deafac337",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\commit-preflight\\index-initial-crlf.json"
+    },
+    {
+      "member": "rf1100/commit-preflight/staged-whitespace.receipt.json",
+      "bytes": 506,
+      "sha256": "52a45072d94b74ba06a0833137c754b4dcbfcdcf58487a4d9b1a94ac4dbeabe9",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\commit-preflight\\staged-whitespace.receipt.json"
+    },
+    {
+      "member": "rf1100/commit-preflight/staged-whitespace.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\commit-preflight\\staged-whitespace.stderr.log"
+    },
+    {
+      "member": "rf1100/commit-preflight/staged-whitespace.stdout.log",
+      "bytes": 385586,
+      "sha256": "e346ef916fda830c6033e272053367cebacde3db2389dc7f2fbaea67187034dc",
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1100-pdf-call-tail-20261006\\commit-preflight\\staged-whitespace.stdout.log"
+    }
+  ]
+}

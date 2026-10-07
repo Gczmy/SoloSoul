@@ -1,0 +1,719 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1092",
+  "count": 79,
+  "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005",
+  "entries": [
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\acceptance-plan.json",
+      "relativePath": "acceptance-plan.json",
+      "archivePath": "acceptance-plan.json.gz",
+      "rawBytes": 571,
+      "rawSha256": "1579c370456abde15ced889dd54bcc42337485186fa11a6811a93b98320db148",
+      "gzipBytes": 361,
+      "gzipSha256": "cfd3a87a4d441753def84a507f7352e49d9820163b8f671bdcc17be53fb9c25b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\acceptance-summary.json",
+      "relativePath": "acceptance-summary.json",
+      "archivePath": "acceptance-summary.json.gz",
+      "rawBytes": 5058,
+      "rawSha256": "2aafdefbbb1ec9c5e04d4a84136164fe187242d43948c80937e3ffe01b626861",
+      "gzipBytes": 1222,
+      "gzipSha256": "64bd0a7735e2b37729ac61ea4064ab400aff2122fd87d498a12c52dfb0d5634f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\baseline.json",
+      "relativePath": "baseline.json",
+      "archivePath": "baseline.json.gz",
+      "rawBytes": 839869,
+      "rawSha256": "e786f514c0db019e55b1372d6faea2b691bd982a062a57f89168fb4f4f16416a",
+      "gzipBytes": 211871,
+      "gzipSha256": "8e7b59997345b630a9919b5e54413bfce7afb0b66502d5b5fb17df25d20b85c6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\cleanup-caches.ps1",
+      "relativePath": "cleanup-caches.ps1",
+      "archivePath": "cleanup-caches.ps1.gz",
+      "rawBytes": 3960,
+      "rawSha256": "6d210533666ce1a9a9b534d223f6161bbfaa5cc0e1d3c0ef04b6cea9b4a172f2",
+      "gzipBytes": 1527,
+      "gzipSha256": "4bb63d48acdf0a257acea6b626f31c4c797d1da69f59cb785b735ddb8a98dc1a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\cleanup-helper-provenance.json",
+      "relativePath": "cleanup-helper-provenance.json",
+      "archivePath": "cleanup-helper-provenance.json.gz",
+      "rawBytes": 559,
+      "rawSha256": "3c0300d6be8308e7a90cda99bf2fbe8caafeea60b8af5583089d0deeb9efc032",
+      "gzipBytes": 326,
+      "gzipSha256": "635429dfdd2c537f1ac6583ecfd83e9d7b335fec91942228f2778e30dfed4534"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\cleanup-plan.json",
+      "relativePath": "cleanup-plan.json",
+      "archivePath": "cleanup-plan.json.gz",
+      "rawBytes": 11790,
+      "rawSha256": "755b58be96c2eee7c225f29810bc347757212ea0d17d7a19541d8716ffaf26e1",
+      "gzipBytes": 615,
+      "gzipSha256": "d028b3c66eb44638cad17aa54fa1b24a3f3fd1c7721e8fc0d8cd08227f769b36"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\cleanup-result.json",
+      "relativePath": "cleanup-result.json",
+      "archivePath": "cleanup-result.json.gz",
+      "rawBytes": 9484,
+      "rawSha256": "21f600d64e73ccd26d6c9d713bbf3ac7f1753a66063d8b0772ebe1243b603084",
+      "gzipBytes": 732,
+      "gzipSha256": "f039a1a164b9549f8eba508481e996a0a3f772990bab4dd03c54e7a55404f796"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\final-process-check.json",
+      "relativePath": "final-process-check.json",
+      "archivePath": "final-process-check.json.gz",
+      "rawBytes": 15778,
+      "rawSha256": "e463f9f832ef3a3e22c419d7284fe7cb4a8dd742c731a08391937de01772d686",
+      "gzipBytes": 1013,
+      "gzipSha256": "fda436f12d5659fbeaa7dc4c471b9c06556e300aa2b8379467cc438bf59efc0c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\native-sdk-5000-receipt.json",
+      "relativePath": "native-sdk-5000-receipt.json",
+      "archivePath": "native-sdk-5000-receipt.json.gz",
+      "rawBytes": 297,
+      "rawSha256": "53822c4f9932028beef146e893f1ef84c667872609c65575d5323562d6dd4f71",
+      "gzipBytes": 239,
+      "gzipSha256": "b5fe8cf15de256994bed06ef0b98b1b9ac1561a16b8d07216792ff9ec2157f70"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\native-sdk-5000.log",
+      "relativePath": "native-sdk-5000.log",
+      "archivePath": "native-sdk-5000.log.gz",
+      "rawBytes": 270,
+      "rawSha256": "76037f9960e31970295b74a531249a763965016fea4a751f37de4a6bddb3b348",
+      "gzipBytes": 167,
+      "gzipSha256": "945c58fa4fdbe77ded7ac4ad5ee20d53f08e2ce24bfc738657aaaaa1493d0923"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\owned-identities.json",
+      "relativePath": "owned-identities.json",
+      "archivePath": "owned-identities.json.gz",
+      "rawBytes": 6710,
+      "rawSha256": "ca6aa40c326b485d434d699dbc108c08560ec8299456670e031b2e2d51314fd1",
+      "gzipBytes": 736,
+      "gzipSha256": "9ff29a31a913d4c8836794899c95c0ba941f1994f725ff6f203f8c12752b3b12"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\preservation-final.json",
+      "relativePath": "preservation-final.json",
+      "archivePath": "preservation-final.json.gz",
+      "rawBytes": 263,
+      "rawSha256": "74432d669a4d5854d80e43fbcbc9195e9babf090d695d5ad875c98f246a8fdbb",
+      "gzipBytes": 177,
+      "gzipSha256": "789743a6f7168c1959ca49e7a30a4044166aac32c327f4cafe85e85945c78957"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\verify-processes.ps1",
+      "relativePath": "verify-processes.ps1",
+      "archivePath": "verify-processes.ps1.gz",
+      "rawBytes": 1818,
+      "rawSha256": "fc4105f7ed025bea88badf5f49a0508ad8011fa7514a247ce91abd2dfab16629",
+      "gzipBytes": 916,
+      "gzipSha256": "b905a80c5b43f67b1f119006d19d86d0128d99cfb5787735f99bc109f6bf1d8f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\native-perf-sdk-journey-results.json",
+      "relativePath": "sdk-5000/native-perf-sdk-journey-results.json",
+      "archivePath": "sdk-5000/native-perf-sdk-journey-results.json.gz",
+      "rawBytes": 871835,
+      "rawSha256": "ad1a9bf9e91cc78f0c46bfbc06d492c47c0c8c47826ebefa458d3c15c0095494",
+      "gzipBytes": 62076,
+      "gzipSha256": "64f87e3742a81a313c088afb705c0ea17c1f1150390849983921e2ac24b50aa1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001.json",
+      "relativePath": "sdk-5000/sample-001.json",
+      "archivePath": "sdk-5000/sample-001.json.gz",
+      "rawBytes": 157535,
+      "rawSha256": "73ceae51091481ef1fe0ce622b24fcbf4ba2623c4944dbc1c27d8d4d6501f62a",
+      "gzipBytes": 13070,
+      "gzipSha256": "8a2b2b71e1a603611b5992c465b53705ab4604f0ba330d5f2585cf2e46efe6d3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002.json",
+      "relativePath": "sdk-5000/sample-002.json",
+      "archivePath": "sdk-5000/sample-002.json.gz",
+      "rawBytes": 155107,
+      "rawSha256": "a16c28dde6d4de3004696b20d396a88fd680967bbab649d56e0cab407458b3a4",
+      "gzipBytes": 12980,
+      "gzipSha256": "67ad82b1ab76d7c4043fa4fd601ba201bf0f152d0f361ad5105abaceecbbccd6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003.json",
+      "relativePath": "sdk-5000/sample-003.json",
+      "archivePath": "sdk-5000/sample-003.json.gz",
+      "rawBytes": 149436,
+      "rawSha256": "7f6c7907d0a79c31f9ede9f9e306b5422e1e64cdec9e475421dde3734e0129cf",
+      "gzipBytes": 12675,
+      "gzipSha256": "6e4ed5456ba338a7e19538ddf1bb0e4863fb9d117a3e71a45883ee5d4ea99ecf"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004.json",
+      "relativePath": "sdk-5000/sample-004.json",
+      "archivePath": "sdk-5000/sample-004.json.gz",
+      "rawBytes": 150992,
+      "rawSha256": "d7990dfd1e806d17322294740f1835ca42b7ebba4f8dcc7fccf767292ebcfde5",
+      "gzipBytes": 12773,
+      "gzipSha256": "d45020b32d954bf39f9ce8283f45689d9f28dee08885f64e993bdaad13447a33"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005.json",
+      "relativePath": "sdk-5000/sample-005.json",
+      "archivePath": "sdk-5000/sample-005.json.gz",
+      "rawBytes": 151238,
+      "rawSha256": "54e6d7f0adad10b1526d5d9ba5687d47fa03542d9049aba76e841b5032948572",
+      "gzipBytes": 12732,
+      "gzipSha256": "00f07720d6532af9aca9e8ea70e1c8677a3bef3db713ebf7164c758c0db1b472"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-consumed.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-consumed.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-consumed.json.gz",
+      "rawBytes": 266,
+      "rawSha256": "6387838a222fba0ffaf30cda3862e415248e35ca471de24f220ccc4853984834",
+      "gzipBytes": 221,
+      "gzipSha256": "b3613aa3efcfb5d1dc97c4104f57063428a4dccd9ff169a918af3ab7d118a957"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-owned.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-owned.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-owned.json.gz",
+      "rawBytes": 3358,
+      "rawSha256": "0f8c8d359cbd9c9ad5c2e03496fb24e3f69df6ee7c45ba5a3f5a62a3380455cd",
+      "gzipBytes": 1083,
+      "gzipSha256": "1a7bb5ec8f5cf5692def7629394340fbf4a773189268ec30aeb2b7f559544770"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "rawBytes": 164,
+      "rawSha256": "eccde2e122557bedc7d66348d45600b1732215f29c421e34e4fd3a8fe0e6dd82",
+      "gzipBytes": 152,
+      "gzipSha256": "0ad95982388fdc78d820708e05429ae35182d248ae47340d72054a54703b0689"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-journey-bound.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-journey-bound.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "rawBytes": 577,
+      "rawSha256": "89dd31125600d947defb77cc18c3c08325310aefaeb695607cfcc93f208e783a",
+      "gzipBytes": 399,
+      "gzipSha256": "dac3acdde252171938494fb25bd639b46e68da854b80d11008c51da9be103662"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-journey-requested.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-journey-requested.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "rawBytes": 359,
+      "rawSha256": "830eca0fccf9ffb2ada22f63a6e75a825f6ad83fc5de460d4879f00a4120be4c",
+      "gzipBytes": 278,
+      "gzipSha256": "3d89014e61c1dc9a06c8a09e3ea170713ce50149ff325d340656e8d62b212838"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-journey.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-journey.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-journey.json.gz",
+      "rawBytes": 63985,
+      "rawSha256": "164fce5d8ac31648734f5ee5ef0ae93b7e33f5168023286231f5dde5ae3230d7",
+      "gzipBytes": 4915,
+      "gzipSha256": "a2b6404ac7c6b8a4d5092933117f26ced90b380ceefa7367c7447ef51b8eec8f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-phase-01.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-phase-01.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-phase-01.json.gz",
+      "rawBytes": 818,
+      "rawSha256": "36cc8c2c18544b5685a0353eb0488a8f6329dce2e7da61df6c006cafd5fc0b0b",
+      "gzipBytes": 405,
+      "gzipSha256": "9fd11d625658975a4336a38afc52605ba3c904e41797cb76beed33dadde6e967"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-phase-02.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-phase-02.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-phase-02.json.gz",
+      "rawBytes": 1254,
+      "rawSha256": "d9be6c1ceee75fc6da72f98022ca944e7bc0d7af93cdb9d29432b029ba8fd629",
+      "gzipBytes": 513,
+      "gzipSha256": "9bf491b175ac8847fb0dfed9c60c47f43417ffb9893747e15b188b2d936dffdf"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-phase-03.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-phase-03.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-phase-03.json.gz",
+      "rawBytes": 536,
+      "rawSha256": "2a681d2f43f9bd9004c0671150ab07e268a6318343068a628fe08e2cb633ce60",
+      "gzipBytes": 305,
+      "gzipSha256": "fc77762ed954baa6952473275eec24ddd85586749aa19dbe66b27755af9fd64a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-phase-04.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-phase-04.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-phase-04.json.gz",
+      "rawBytes": 453,
+      "rawSha256": "a18d2c1bd2dc2c9f393a83529da8caa09338280ba77d38ec7676d676e3c0b238",
+      "gzipBytes": 259,
+      "gzipSha256": "25a6bf5644acd29fbace7d58e0ac38342cd62cbf7aff60caa4af7dcc0d0f9ddd"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-phase-05.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-phase-05.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-phase-05.json.gz",
+      "rawBytes": 621,
+      "rawSha256": "936bb8e55e9085a75b6fb090f3a6ce5832309fe89f91bb79354f80716f3db231",
+      "gzipBytes": 326,
+      "gzipSha256": "77c38bbe630059d59b60f8e85db493c42d1d1ed07ff5951de75b669ef6c8bde8"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\native-perf-sdk-phase-06.json",
+      "relativePath": "sdk-5000/sample-001/native-perf-sdk-phase-06.json",
+      "archivePath": "sdk-5000/sample-001/native-perf-sdk-phase-06.json.gz",
+      "rawBytes": 805,
+      "rawSha256": "cce42b7e48840200c3aa74a8fab5d8c6493718721825b46eaa81c875b37fab8a",
+      "gzipBytes": 387,
+      "gzipSha256": "9190009104e7aafba1f7c8abe42fedb4aaf3d7c831373826372dbc7de965cf6b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-consumed.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-consumed.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-consumed.json.gz",
+      "rawBytes": 266,
+      "rawSha256": "5cc229e47ed857e05e676a02143bf63c1ddfcc608faf9557b19e0602f08fca99",
+      "gzipBytes": 221,
+      "gzipSha256": "9e9999aeec6a5b068efa0bec1c39030f2eaf3c79c267a0fc26ba00d6e2e08ac6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-owned.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-owned.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-owned.json.gz",
+      "rawBytes": 3358,
+      "rawSha256": "8fb3b9de2bb5fe39e035beae7f2e5facb8e57a07db8b49eb8e858b8345e4325c",
+      "gzipBytes": 1082,
+      "gzipSha256": "52949e1bc9fe842084a090276b72efb2d04c33d7c97f7798df37c24b9d1219ea"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "rawBytes": 163,
+      "rawSha256": "4cb18b16276666f2cdeaca40eed9e4d8ba3c17dd056850987881e90fffaa3cc9",
+      "gzipBytes": 150,
+      "gzipSha256": "2e0aa9411512df1dcdeca05610944e81f18790f34db2958c065ac2b452e39055"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-journey-bound.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-journey-bound.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "rawBytes": 576,
+      "rawSha256": "ed62d2d97eb2a94194658cba593022f65cce95669536ea8db8b1de800bce581a",
+      "gzipBytes": 397,
+      "gzipSha256": "e60f92ff3dda6cb2cb2db3f27e76305df9c5e745cf06660661770a9b44cb0fa9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-journey-requested.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-journey-requested.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "rawBytes": 359,
+      "rawSha256": "460bacb90a4099fa2a7d42023aebf5e31c88e5a2c07b4a78398dd5ad0acc5122",
+      "gzipBytes": 276,
+      "gzipSha256": "f444ca0cf1229c3aa81d40b830e157a5f01101ac16b189a41fd2e161fedf31d0"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-journey.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-journey.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-journey.json.gz",
+      "rawBytes": 66244,
+      "rawSha256": "74e5cc8b946ac89805f4420792dd3c0b8bb867a08d9920ebf4581bbff1e14477",
+      "gzipBytes": 5027,
+      "gzipSha256": "c07d078ad3c0a2eb4034c28bd53cb3de15bd25a2fe591a5d90eda290e98d0d19"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-phase-01.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-phase-01.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-phase-01.json.gz",
+      "rawBytes": 818,
+      "rawSha256": "f53e7c72894114b0eb45fe36e28796891a5e7a0981faaac493628f27d9ff125c",
+      "gzipBytes": 405,
+      "gzipSha256": "df05d9a2fabf7a048255ca748f364e73c826a7224913feb837fea084ff3acc56"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-phase-02.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-phase-02.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-phase-02.json.gz",
+      "rawBytes": 1216,
+      "rawSha256": "d37c96e52fd84e03b0ff5ace33371a5e1838a18ad54952a26cbf7ae7910e59b4",
+      "gzipBytes": 516,
+      "gzipSha256": "b8ec0c1e293811f3c3437a399eb823df2349197948d153a60c76dfa74fad4506"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-phase-03.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-phase-03.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-phase-03.json.gz",
+      "rawBytes": 602,
+      "rawSha256": "dc9748782ae37a90ad0adffe7af86c048b6d2233692b1da8532291ce17089e82",
+      "gzipBytes": 329,
+      "gzipSha256": "55fe2458092d2f01d3c7bbcb438020b492285aa27fac22aaf3392038e86b8ce5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-phase-04.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-phase-04.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-phase-04.json.gz",
+      "rawBytes": 321,
+      "rawSha256": "24eb218d2ac0f066e4bd9f66c349b89ecb85c2d298545a59a98a2f50d5124846",
+      "gzipBytes": 213,
+      "gzipSha256": "b2be3982fe697f7245241814d6158e3d1ec37550cccbeeb1b2e1f86fe32de3f1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-phase-05.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-phase-05.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-phase-05.json.gz",
+      "rawBytes": 613,
+      "rawSha256": "9d4040ede1170c23c9b3110ad1bb4cc01cd336d378e41511a1058c63dc8ba37b",
+      "gzipBytes": 327,
+      "gzipSha256": "20e176d8ab36cf4a6f7cb0c9066b83feeabdf021eacc2f114fa3c4b908850031"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\native-perf-sdk-phase-06.json",
+      "relativePath": "sdk-5000/sample-002/native-perf-sdk-phase-06.json",
+      "archivePath": "sdk-5000/sample-002/native-perf-sdk-phase-06.json.gz",
+      "rawBytes": 1292,
+      "rawSha256": "b01659f8e83933e55f9baa1ceafe4b52d3dfc503038e61e32ecf9710c9e9c312",
+      "gzipBytes": 530,
+      "gzipSha256": "fa5f8853f71c18c0cf46f290fb8394d53f364eab62602ba83d57ebd03c6d364f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-consumed.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-consumed.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-consumed.json.gz",
+      "rawBytes": 266,
+      "rawSha256": "487cf81b8f4b874736117cb20e18b259097817f4ba633031fab4e40708f996fe",
+      "gzipBytes": 221,
+      "gzipSha256": "ab9862272366e0230e42dc35b7e8ccb469715263ce69fe1234b8f923c632cd52"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-owned.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-owned.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-owned.json.gz",
+      "rawBytes": 3358,
+      "rawSha256": "5aebb99994d1d4f26d7454579b3015e393ac6043d978f10053500f4a3c06f215",
+      "gzipBytes": 1086,
+      "gzipSha256": "e201a1f3e82f41bc6d5702c1cd3484257cbf020f5bf7e4fcc81df6354bdc327b"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "rawBytes": 164,
+      "rawSha256": "30edb6ba07e6d5709aa782de6f88bd0f65b720518055d3339df8764d093aceb4",
+      "gzipBytes": 151,
+      "gzipSha256": "81ae2f52c41d31541a26bb1d7edf97a95af8803d304de2a2c5331f553849d66f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-journey-bound.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-journey-bound.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "rawBytes": 577,
+      "rawSha256": "58692ba3d42c4785bcdca0635d0245aa0430e80e264cbfbefe812a965de8b794",
+      "gzipBytes": 397,
+      "gzipSha256": "5330ff57a91c082405438cccc357667b5225e8fc241e5190dfc08847bcd2ecf6"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-journey-requested.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-journey-requested.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "rawBytes": 359,
+      "rawSha256": "6e790d5691d87c4394a48beb2c333bb746d6bf7ea9dafc106931223bdd33bbcf",
+      "gzipBytes": 279,
+      "gzipSha256": "f36a434dae4402739d703e12161047563d11f327012c7cda68d1b0f24d3dfe00"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-journey.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-journey.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-journey.json.gz",
+      "rawBytes": 65862,
+      "rawSha256": "a25714edbff779eaed16dbcfbc701a2297ad9a842ea18d9b44699412563c350e",
+      "gzipBytes": 5060,
+      "gzipSha256": "040e1dbabec5e90bc4393651355e2b23d17fd896cf420000ac2eb1e4be996650"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-phase-01.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-phase-01.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-phase-01.json.gz",
+      "rawBytes": 813,
+      "rawSha256": "38df090a6ff3456953d48f45adebc987f10fba2a45bcab8ca617f97cffd5a576",
+      "gzipBytes": 398,
+      "gzipSha256": "6bb20b71b4d77a050d42b078701560981e2976e36ca64f37090f083782b7554e"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-phase-02.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-phase-02.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-phase-02.json.gz",
+      "rawBytes": 822,
+      "rawSha256": "d15495b46cd07d85122b23cc578dfb43a9850d865bb7db6ca829f1e2e58c5978",
+      "gzipBytes": 388,
+      "gzipSha256": "80ad657a55bd9fe1349d89206221ef7d001bc2e705e637bb14c79a2522399a8c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-phase-03.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-phase-03.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-phase-03.json.gz",
+      "rawBytes": 1007,
+      "rawSha256": "1b98933dca1c95691bdc4e3357d451ee50873dc38268b6fee113338b9c121256",
+      "gzipBytes": 428,
+      "gzipSha256": "3b4f1db7a5deafcd1f6b22d204e411baa5e2c78309d311856e00668d44644aa1"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-phase-04.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-phase-04.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-phase-04.json.gz",
+      "rawBytes": 462,
+      "rawSha256": "a572773d077db715c558595b7faecf19b8d9880d576f596bc3ccdb41f1e64fe7",
+      "gzipBytes": 262,
+      "gzipSha256": "7dbf4409dfb30b229897e57a4651c1d9884916fba336e14b69ae41dc5d220eaa"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-phase-05.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-phase-05.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-phase-05.json.gz",
+      "rawBytes": 612,
+      "rawSha256": "e50636b62c78ac07cf8c804d01d40a6e7dec59e6afc0dbd434b7525a59941d9b",
+      "gzipBytes": 331,
+      "gzipSha256": "97a3c2fbf714b37721ae318dfb7642463f02a23d830f7702c137fd011dba44a3"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\native-perf-sdk-phase-06.json",
+      "relativePath": "sdk-5000/sample-003/native-perf-sdk-phase-06.json",
+      "archivePath": "sdk-5000/sample-003/native-perf-sdk-phase-06.json.gz",
+      "rawBytes": 1220,
+      "rawSha256": "378579fdd00f94b6ba0ce49781ab9725d37d4043ed171ed7169f871141cdf6f8",
+      "gzipBytes": 519,
+      "gzipSha256": "12c5b0db113508c2c6a0eaa73d83a91247908e5ec5251c619d74de3c37ee2b22"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-consumed.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-consumed.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-consumed.json.gz",
+      "rawBytes": 266,
+      "rawSha256": "e2d97f3d4f4b5e5c1d83d128ed5e4001e5f4ccfe4b36eadc997f2fb3dff67cbe",
+      "gzipBytes": 221,
+      "gzipSha256": "f2a413810e370599867a52c154642edd1b13b74d22387cca4743cb5d6b86f781"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-owned.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-owned.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-owned.json.gz",
+      "rawBytes": 3358,
+      "rawSha256": "c522aa8d35b9453469e1192db62da26091d15812df9a9bb86f20e2e0f532a55e",
+      "gzipBytes": 1084,
+      "gzipSha256": "31de1d4001522e591dddb40ac6eb70a3ff67300669aa503902ab026808121cc9"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-journey-authorized.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-journey-authorized.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-journey-authorized.json.gz",
+      "rawBytes": 164,
+      "rawSha256": "c6e04cb6635b456d46c87ae7496b16e32e0b8e5867e1d8dc281e6228b8a52872",
+      "gzipBytes": 151,
+      "gzipSha256": "3bfd0d5a2702fa024eb6fde19b073c754e53956277e89fe331b7afd2827f6c76"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-journey-bound.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-journey-bound.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-journey-bound.json.gz",
+      "rawBytes": 577,
+      "rawSha256": "9daced00ea07f4f5f3a9d9b8073b404f998af3955586148146bdedd0f73e6457",
+      "gzipBytes": 399,
+      "gzipSha256": "a8980b32e32d66563716dc5d26fbc2f3f4871d152e8d860ba15a90ab48c12197"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-journey-requested.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-journey-requested.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-journey-requested.json.gz",
+      "rawBytes": 359,
+      "rawSha256": "30261eb0662cf3f2b129b383d06bb070f7e0000f7f22abb8bd556158d9cd1bb8",
+      "gzipBytes": 277,
+      "gzipSha256": "79c7d8e6d487e34342b423638b8fb1cdb2c2ab47cdbaccd27e8eed4634a07960"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-journey.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-journey.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-journey.json.gz",
+      "rawBytes": 66359,
+      "rawSha256": "ad7969f850246f682fe8a881b00eca1b2b50029a9e1966b9a26ecf7f7492a8e4",
+      "gzipBytes": 5063,
+      "gzipSha256": "e474b6735eb4446fb64d2b922c6a997a835424d3dfa370532de779bcdba17b54"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-phase-01.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-phase-01.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-phase-01.json.gz",
+      "rawBytes": 818,
+      "rawSha256": "0fef4184cfb3576e13bb50e5e74c57a9a74a9c3dae26cdc86ded68af05845f01",
+      "gzipBytes": 405,
+      "gzipSha256": "4091df84a8d1e402e06eac470f0fa3ff7adc3c2a7fee99479272c7cb860f5c6d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-phase-02.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-phase-02.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-phase-02.json.gz",
+      "rawBytes": 743,
+      "rawSha256": "6d0f043ed4439a02a569325f9a7a1b371b60bf8b3b74b3eb82220739b81fef75",
+      "gzipBytes": 373,
+      "gzipSha256": "ce08d9c8dba04516241ddbc2d0c8b7771584a4766dcacf9849edc256964c7933"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-phase-03.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-phase-03.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-phase-03.json.gz",
+      "rawBytes": 1144,
+      "rawSha256": "cb94d99164b0740a0b53b4b0b4e9b5487cc9b8f19b1a20b063fffe3b253d193b",
+      "gzipBytes": 481,
+      "gzipSha256": "f69f02f01fcdf9824b47d3a178b4ecec2c5d6fa2accafe02038985080d40919a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-phase-04.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-phase-04.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-phase-04.json.gz",
+      "rawBytes": 454,
+      "rawSha256": "bafc8cde3134ed439cd6fc5c9ff958cc63f7a90d9afebf061e122b2bac5c7b47",
+      "gzipBytes": 255,
+      "gzipSha256": "af3be50b2aacd8b4f491a998989d5d572b0ab93b9ced06166799c7af6641386d"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-phase-05.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-phase-05.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-phase-05.json.gz",
+      "rawBytes": 611,
+      "rawSha256": "391bc055766aaa9b603f5dbff5aca35c19ca1922d187195ea2f1c38e8093c379",
+      "gzipBytes": 331,
+      "gzipSha256": "4d37fffc2f1cbde4772d0d8379a76c6dd4cc3d0b1b5b262a3bf42073b0ea3afb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\native-perf-sdk-phase-06.json",
+      "relativePath": "sdk-5000/sample-004/native-perf-sdk-phase-06.json",
+      "archivePath": "sdk-5000/sample-004/native-perf-sdk-phase-06.json.gz",
+      "rawBytes": 1291,
+      "rawSha256": "735a4d05e8a510cb17c543c93678f19002cd04720d76919021baa25eabb4b925",
+      "gzipBytes": 528,
+      "gzipSha256": "94a7d2a20b3ea394f11b47bf6d417757bbdb99732c7ce44e8f75c3dfeb705c15"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-consumed.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-consumed.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-consumed.json.gz",
+      "rawBytes": 266,
+      "rawSha256": "26f83f1210fdd52370f9a0175c331cf5db3a6bd38ac0f2ad08f132e9f472afce",
+      "gzipBytes": 218,
+      "gzipSha256": "81dc4f98bb9ca9addeb47e0da6701d1383756a0543785496693189144eff7e23"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-owned.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-owned.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-owned.json.gz",
+      "rawBytes": 3358,
+      "rawSha256": "dccfdcb18773b4aedfeb6fb13b6ddf9933e3e3a81cbe31f3c8927883ae3d9026",
+      "gzipBytes": 1082,
+      "gzipSha256": "7f3778192cf9fcde4402a4476ff97ce213e7f6e335beaaecbcd75f4888bfb2a5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-journey-authorized.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-journey-authorized.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-journey-authorized.json.gz",
+      "rawBytes": 164,
+      "rawSha256": "05e93c2e4cae772d51dffb7e2ace75b9d5474e957563cf6685762123d3d8b80f",
+      "gzipBytes": 151,
+      "gzipSha256": "90a324a1baec621370fc7f40b96121f9cae65206b189c1e2362c8efa98ec8898"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-journey-bound.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-journey-bound.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-journey-bound.json.gz",
+      "rawBytes": 577,
+      "rawSha256": "06f3b3d5a6563fca3c3a5765a4cef8ff2107ae93348d42c95d5a1a4ac6449289",
+      "gzipBytes": 395,
+      "gzipSha256": "65f044bf220661c5199b9992731e752467ec15382b153266d0a96b985bb1aa9f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-journey-requested.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-journey-requested.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-journey-requested.json.gz",
+      "rawBytes": 359,
+      "rawSha256": "024d888c4ddb567a608b5e2cefab267f533e92e3453b7fbc067db8d1f1f37a7d",
+      "gzipBytes": 276,
+      "gzipSha256": "305b51753b39d2bb525d19d88f3df8b75d783c7e48ed69efcbde1f06c89ce408"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-journey.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-journey.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-journey.json.gz",
+      "rawBytes": 66323,
+      "rawSha256": "ebd5f9a13a0ce3f9c1fe5bd302d96aa20aa86f28d1dc5cfbd171659ed079cb98",
+      "gzipBytes": 5023,
+      "gzipSha256": "689a6ea8069d5ab64f1fa40ebfb25c8a31455d7b5584d7428d64b64d7754faf5"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-phase-01.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-phase-01.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-phase-01.json.gz",
+      "rawBytes": 818,
+      "rawSha256": "5cbef9102ebbce4a5fc5761672e59d97e5e2d6ea485d07c332e537d271f149b9",
+      "gzipBytes": 404,
+      "gzipSha256": "5e0f43f7e19c8539c55c5bf82cd7c3d668a2ed53680cb16a443efee59c62d827"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-phase-02.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-phase-02.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-phase-02.json.gz",
+      "rawBytes": 1308,
+      "rawSha256": "3d196294dc0206b3a1189761ee9888bbd575aa4e47be12030c9bd6f51e84f41e",
+      "gzipBytes": 526,
+      "gzipSha256": "d47186da8c61c1a77b1f7b0804f1c93261b59476d964c6ea8377d764ac9c1ecb"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-phase-03.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-phase-03.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-phase-03.json.gz",
+      "rawBytes": 569,
+      "rawSha256": "adcdf8e1a9fb6a8701a64094dcf98c01c47eee0465ff842bf00a13e6aced2f87",
+      "gzipBytes": 311,
+      "gzipSha256": "2ee8d0bd2c08d707101fb69184197f7e665cef804026e5ea67fa146750618b7f"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-phase-04.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-phase-04.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-phase-04.json.gz",
+      "rawBytes": 320,
+      "rawSha256": "f48147ffff3825efe2f5f079a910b95e196f73ff7a94fb2b12560d9f0790d5a0",
+      "gzipBytes": 214,
+      "gzipSha256": "ec865859c173ee491358c546d6c1526cc2acfe54f6cfa230e8e58ebf4c77813c"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-phase-05.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-phase-05.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-phase-05.json.gz",
+      "rawBytes": 745,
+      "rawSha256": "97a38c1722cc1eabc24c3a656a8e24b8a2255a0cbc9291432c4aaa9248b5c63c",
+      "gzipBytes": 366,
+      "gzipSha256": "1a1be37768b4de606a35eeacfa6c757d64b5a58e5fb9a94d8cf8af640252274a"
+    },
+    {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\native-perf-sdk-phase-06.json",
+      "relativePath": "sdk-5000/sample-005/native-perf-sdk-phase-06.json",
+      "archivePath": "sdk-5000/sample-005/native-perf-sdk-phase-06.json.gz",
+      "rawBytes": 1259,
+      "rawSha256": "55b88479ac82961bbad2767509d47024eff702ff981ce79a02eabe91d35eaddc",
+      "gzipBytes": 521,
+      "gzipSha256": "f5bd69e02b2626e16879b25b9e5566d08dc122a91e961c3210e30d85ddcb9d51"
+    }
+  ]
+}

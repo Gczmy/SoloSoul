@@ -1,0 +1,31 @@
+[
+  {
+    "name": "e2e-format",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "e2e/production-startup.spec.ts"
+    ],
+    "exit": 0,
+    "seconds": 0.4351784000173211,
+    "channel": "chrome",
+    "testInputSha256": "c483382accc58d1b3ac4699c3b8b1b1cf63e929ffc4872f8eba51f730cd12ad0"
+  },
+  {
+    "name": "production-e2e-final",
+    "command": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "--config",
+      "playwright.production.config.ts",
+      "--workers",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 55.074988099746406,
+    "channel": "chrome",
+    "testInputSha256": "c483382accc58d1b3ac4699c3b8b1b1cf63e929ffc4872f8eba51f730cd12ad0"
+  }
+]

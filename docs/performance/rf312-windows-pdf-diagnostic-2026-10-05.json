@@ -1,0 +1,827 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "at": "2026-10-05T11:46:40.011777+00:00",
+  "scope": "optional Windows native-perf public PDF capability diagnosis; not PDF performance acceptance",
+  "status": "diagnostic phase complete; RF-312 and goal remain incomplete",
+  "archiveIndex": "rf312-windows-pdf-diagnostic-2026-10-05/index.json",
+  "headBefore": "85660331bf31d4cd84630728f0677633ce2bafff",
+  "firstBuild": {
+    "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\bin\\solo_soul.exe",
+    "bytes": 102414848,
+    "sha256": "7c03407034b9476aaa5e0a2238a0f3892fff76e3ad257f257f6c4111870af2f5",
+    "frozenInputsUnchanged": true,
+    "resourcesUnchanged": true,
+    "markers": [
+      "--native-perf-media-prepare",
+      "windows-native-sdk-media-journey-requested",
+      "windows-native-sdk-pdf-diagnostic-requested",
+      "windows-native-sdk-startup-requested"
+    ],
+    "oldExePreserved": true
+  },
+  "finalBuild": {
+    "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\bin-final\\solo_soul.exe",
+    "bytes": 102415360,
+    "sha256": "0385cc3bc82db0264cba7f77bdf92c15f988241228f4b56ea68027e7c075180a",
+    "frozenInputsUnchanged": true,
+    "resourcesUnchanged": true,
+    "markers": [
+      "--native-perf-media-prepare",
+      "windows-native-sdk-media-journey-requested",
+      "windows-native-sdk-pdf-diagnostic-requested",
+      "windows-native-sdk-startup-requested"
+    ],
+    "oldExePreserved": true
+  },
+  "firstActualFailures": {
+    "samples": 3,
+    "reasons": [
+      "pdf-media-source-invalid",
+      "pdf-media-source-invalid",
+      "pdf-media-source-invalid"
+    ],
+    "sourceUnchanged": true,
+    "diagnosticOnly": true,
+    "performanceMetrics": null,
+    "changedOwnedClosedFiles": [
+      "accounts.json",
+      "ui_preferences.json"
+    ],
+    "rawAudit": "raw/first-failure-closed-file-audit.json.gz"
+  },
+  "actualDiagnostic": {
+    "at": "2026-10-05T11:34:58.826157+00:00",
+    "groupSuccess": true,
+    "diagnosticOnly": true,
+    "performanceMetrics": null,
+    "sourceUnchanged": true,
+    "screenshotsByteIdentical": true,
+    "visualAssessment": "Viewed sample 1 PNG: real PDF first-page text and 1-of-2 viewer indicator visible; all three PNG bytes identical. This is visual confirmation only, not automated renderer readiness or latency.",
+    "samples": [
+      {
+        "index": 1,
+        "calls": 59,
+        "snapshots": 4,
+        "childFrames": 0,
+        "applicationContexts": 1,
+        "readinessCandidates": 0,
+        "screenshotSha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+        "screenshotBytes": 34024,
+        "mainVerifiedAfterClose": true,
+        "contextWatchCleaned": true,
+        "cleanupComplete": true
+      },
+      {
+        "index": 2,
+        "calls": 59,
+        "snapshots": 4,
+        "childFrames": 0,
+        "applicationContexts": 1,
+        "readinessCandidates": 0,
+        "screenshotSha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+        "screenshotBytes": 34024,
+        "mainVerifiedAfterClose": true,
+        "contextWatchCleaned": true,
+        "cleanupComplete": true
+      },
+      {
+        "index": 3,
+        "calls": 59,
+        "snapshots": 4,
+        "childFrames": 0,
+        "applicationContexts": 1,
+        "readinessCandidates": 0,
+        "screenshotSha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+        "screenshotBytes": 34024,
+        "mainVerifiedAfterClose": true,
+        "contextWatchCleaned": true,
+        "cleanupComplete": true
+      }
+    ],
+    "nextAction": "Discover and bind owned related PDF target/session; top-page frame tree and contexts did not expose the PDF renderer."
+  },
+  "checks": {
+    "final-native-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf",
+        "--",
+        "--test-threads=1"
+      ],
+      "pid": 32140,
+      "exitCode": 0,
+      "elapsedSeconds": 218.29558444023132,
+      "finishedAt": "2026-10-05T11:08:12.623818+00:00"
+    },
+    "final-native-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 19132,
+      "exitCode": 0,
+      "elapsedSeconds": 91.57443976402283,
+      "finishedAt": "2026-10-05T11:09:44.204094+00:00"
+    },
+    "final-fmt-check": {
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "pid": 26500,
+      "exitCode": 0,
+      "elapsedSeconds": 4.047261953353882,
+      "finishedAt": "2026-10-05T11:09:48.255573+00:00"
+    },
+    "final-node-tests": {
+      "command": [
+        "node",
+        "scripts/run-node-tests.mjs"
+      ],
+      "pid": 15252,
+      "exitCode": 0,
+      "elapsedSeconds": 28.619391918182373,
+      "finishedAt": "2026-10-05T11:10:16.875695+00:00"
+    },
+    "final-js-format-check": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/native-perf-sdk-journey.mjs",
+        "scripts/native-perf-pdf-contract.mjs",
+        "scripts/native-perf-pdf-diagnostic.mjs",
+        "scripts/native-perf-pdf.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "src-tauri/src/native_perf/sdk_pdf_dom.js",
+        "src-tauri/src/native_perf/sdk_pdf_viewer.js"
+      ],
+      "pid": 41772,
+      "exitCode": 0,
+      "elapsedSeconds": 0.4823291301727295,
+      "finishedAt": "2026-10-05T11:10:17.358843+00:00"
+    },
+    "final-diff-check": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 41104,
+      "exitCode": 0,
+      "elapsedSeconds": 0.23816227912902832,
+      "finishedAt": "2026-10-05T11:10:17.599654+00:00"
+    },
+    "pdf-doc-format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "../docs/performance/RF-312-native-pdf-diagnostic.md"
+      ],
+      "exitCode": 0,
+      "pid": 20604,
+      "elapsedSeconds": 0.7675151824951172,
+      "finishedAt": "2026-10-05T11:43:29.760082+00:00"
+    },
+    "pdf-doc-boundary": {
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exitCode": 0,
+      "pid": 39756,
+      "elapsedSeconds": 11.040897130966187,
+      "finishedAt": "2026-10-05T11:43:40.803407+00:00"
+    },
+    "pdf-doc-diff": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "pid": 38096,
+      "elapsedSeconds": 0.2812008857727051,
+      "finishedAt": "2026-10-05T11:43:41.085569+00:00"
+    }
+  },
+  "nativeTestCount": {
+    "passed": 70,
+    "failed": 0,
+    "ignored": 0
+  },
+  "nodeTestCount": {
+    "total": 182,
+    "passed": 181,
+    "failed": 0,
+    "existingWindowsSymlinkPermissionSkipped": 1
+  },
+  "clippyFailurePreserved": "raw/bound-native-clippy.stderr.log.gz",
+  "cleanup": {
+    "first": {
+      "at": "2026-10-05T11:10:51.7609080Z",
+      "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005",
+      "roots": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003"
+      ],
+      "verifiedIdentities": [
+        {
+          "pid": 23508,
+          "creationMs": 1791197196725,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 27944,
+          "creationMs": 1791197198289,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 24336,
+          "creationMs": 1791197198410,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 23160,
+          "creationMs": 1791197199128,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 18296,
+          "creationMs": 1791197199504,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 19244,
+          "creationMs": 1791197199108,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 32044,
+          "creationMs": 1791197200337,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 29016,
+          "creationMs": 1791197199293,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 35136,
+          "creationMs": 1791197252672,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 43260,
+          "creationMs": 1791197254924,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 40012,
+          "creationMs": 1791197255395,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 35880,
+          "creationMs": 1791197256253,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 16176,
+          "creationMs": 1791197255523,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 12604,
+          "creationMs": 1791197255350,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 37176,
+          "creationMs": 1791197255352,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 24516,
+          "creationMs": 1791197254974,
+          "executableName": "msedgewebview2.exe",
+          "status": "pid-reused-with-different-creation"
+        },
+        {
+          "pid": 42052,
+          "creationMs": 1791197256254,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 436,
+          "creationMs": 1791197288804,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 14632,
+          "creationMs": 1791197290325,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 19244,
+          "creationMs": 1791197290931,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 23876,
+          "creationMs": 1791197290378,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 43992,
+          "creationMs": 1791197291762,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 14588,
+          "creationMs": 1791197290908,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 14680,
+          "creationMs": 1791197291761,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 9112,
+          "creationMs": 1791197290928,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 21212,
+          "creationMs": 1791197290724,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        }
+      ],
+      "removedCachePaths": [
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.3617b3c488ac49438eee22c337c68363",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.8b799e63dfd948efab34852bd6447ad6",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.bdcc846ba2e34bfc8f9e90bf54a1aaf0",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.3617b3c488ac49438eee22c337c68363",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.8b799e63dfd948efab34852bd6447ad6",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.bdcc846ba2e34bfc8f9e90bf54a1aaf0",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\webview",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\webview",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\webview"
+      ],
+      "unlinkedCacheEntries": [
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        },
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        },
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        }
+      ],
+      "preserved": [
+        "Vault",
+        "all proofs and reports",
+        "all EXEs and resources",
+        "source fixtures"
+      ],
+      "processesTerminated": 0,
+      "complete": true
+    },
+    "final": {
+      "at": "2026-10-05T11:36:43.0263392Z",
+      "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005",
+      "roots": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003"
+      ],
+      "verifiedIdentities": [
+        {
+          "pid": 40664,
+          "creationMs": 1791199774087,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 19484,
+          "creationMs": 1791199775603,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 40528,
+          "creationMs": 1791199775716,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 1936,
+          "creationMs": 1791199776327,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 34204,
+          "creationMs": 1791199776541,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 5452,
+          "creationMs": 1791199776362,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 40248,
+          "creationMs": 1791199778106,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 39312,
+          "creationMs": 1791199778105,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 21748,
+          "creationMs": 1791199776328,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 9624,
+          "creationMs": 1791199815550,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 34764,
+          "creationMs": 1791199816997,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 31480,
+          "creationMs": 1791199819085,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 38380,
+          "creationMs": 1791199817431,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 38344,
+          "creationMs": 1791199817469,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 32324,
+          "creationMs": 1791199817429,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 41328,
+          "creationMs": 1791199819084,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 36808,
+          "creationMs": 1791199817036,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 22084,
+          "creationMs": 1791199817713,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 8328,
+          "creationMs": 1791199855547,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 7376,
+          "creationMs": 1791199856965,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 2680,
+          "creationMs": 1791199857370,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 42832,
+          "creationMs": 1791199857404,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 11824,
+          "creationMs": 1791199857000,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 9100,
+          "creationMs": 1791199857371,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 25180,
+          "creationMs": 1791199857479,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 19072,
+          "creationMs": 1791199858226,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 27564,
+          "creationMs": 1791199858224,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 18056,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 18904,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 36060,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        }
+      ],
+      "removedCachePaths": [
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.1e4885d64d88452fa7828cd0de66e15d",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.6404241b45fd42e88063d604a587437a",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.e97eb8576bf84af79b0685ef064978b3",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.1e4885d64d88452fa7828cd0de66e15d",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.6404241b45fd42e88063d604a587437a",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.e97eb8576bf84af79b0685ef064978b3",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\webview",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\webview",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\webview"
+      ],
+      "unlinkedCacheEntries": [
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        },
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        },
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-20261005\\samples100-final\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        }
+      ],
+      "preserved": [
+        "Vault",
+        "all proofs and reports",
+        "all EXEs and resources",
+        "source fixtures"
+      ],
+      "processesTerminated": 0,
+      "complete": true
+    },
+    "storedIdentitiesFreshlyVerified": 53,
+    "additionalCleanupPidsFreshlyAbsent": 3,
+    "privateCacheDirectoriesRemoved": 48,
+    "linksUnlinkedWithoutTraversal": 6,
+    "processesTerminatedInFinalCleanup": 0
+  },
+  "preservation": {
+    "at": "2026-10-05T11:39:44.066247+00:00",
+    "mediaStageFilesUnchanged": 171,
+    "frozenInputsUnchanged": 444,
+    "resourcesUnchanged": 94,
+    "firstExePreserved": "7c03407034b9476aaa5e0a2238a0f3892fff76e3ad257f257f6c4111870af2f5",
+    "finalExe": "0385cc3bc82db0264cba7f77bdf92c15f988241228f4b56ea68027e7c075180a",
+    "oldMediaExePreserved": "11f374b8d936f43a9c96b6116243c317c0b24b0c8e109d1b0945b8550c5c00f5",
+    "closedOwnedCiphertexts": [
+      {
+        "group": "samples100",
+        "index": 1,
+        "ciphertextsUnchanged": [
+          "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+          "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+          "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+          "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+        ]
+      },
+      {
+        "group": "samples100",
+        "index": 2,
+        "ciphertextsUnchanged": [
+          "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+          "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+          "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+          "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+        ]
+      },
+      {
+        "group": "samples100",
+        "index": 3,
+        "ciphertextsUnchanged": [
+          "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+          "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+          "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+          "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+        ]
+      },
+      {
+        "group": "samples100-final",
+        "index": 1,
+        "ciphertextsUnchanged": [
+          "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+          "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+          "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+          "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+        ]
+      },
+      {
+        "group": "samples100-final",
+        "index": 2,
+        "ciphertextsUnchanged": [
+          "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+          "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+          "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+          "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+        ]
+      },
+      {
+        "group": "samples100-final",
+        "index": 3,
+        "ciphertextsUnchanged": [
+          "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+          "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+          "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+          "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+        ]
+      }
+    ],
+    "allCacheRemovalsVerified": true,
+    "VaultsProofsAndScreenshotsPreserved": true
+  },
+  "compatibility": {
+    "tauri/src-tauri/src/native_perf/sdk_journey.js": "1aed5aaa0bfefbf4cc7ea60268d86da1a783f6c456c6843a9acd4f2fd54ed0fc",
+    "tauri/src-tauri/src/native_perf/observer.js": "d3e0328a134b64ac389236c9dd5bdb4d7cc5e63bdf03e98e4bee7337e8bca337",
+    "tauri/Cargo.toml": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430",
+    "tauri/Cargo.lock": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d",
+    "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+  },
+  "defaultFrontendAndDependenciesUnchanged": true,
+  "taskCounts": {
+    "total": 283,
+    "closed": 274,
+    "waiting": 3,
+    "pending": 6
+  },
+  "notMeasured": [
+    "PDF readiness latency",
+    "OCR first inference",
+    "KDF/storage/React/SDK attribution",
+    "original intermittent home timeout root cause",
+    "system sleep",
+    "remaining platforms"
+  ],
+  "nextLocalAction": "bounded owned related target/session investigation; then automated PDF readiness and OCR native file selection/inference",
+  "goalStatus": "active",
+  "pushPerformed": false
+}

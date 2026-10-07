@@ -568,6 +568,15 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         run_id: "a".repeat(32),
         chromium_log: None,
         sdk_cdp: false,
+        sdk_journey: false,
+        media_journey: false,
+        pdf_diagnostic: false,
+        pdf_preview: false,
+        ocr_journey: false,
+        pdf_resource: None,
+        pdf_ciphertext_sha256: None,
+        startup: None,
+        object_count: 100,
     }
 }
 
@@ -1065,6 +1074,10 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
         parse_args(&valid),
         Ok(Mode::Run {
             sdk_cdp: true,
+            sdk_journey: false,
+            media_journey: false,
+            pdf_diagnostic: false,
+            pdf_preview: false,
             chromium_log: false,
             ordinary_tmp: false,
             copied_runtime: None,
@@ -1105,4 +1118,370 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
     assert_eq!(marker["port"], config.port);
     assert_eq!(marker["windowLabel"], "main");
     assert!(sdk_cdp::claim_request(&config).is_err());
+}
+
+#[test]
+fn sdk_journey_args_are_exclusive_and_never_prepare() {
+    let run = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-input",
+    ]);
+    assert!(matches!(
+        parse_args(&run),
+        Ok(Mode::Run {
+            sdk_journey: true,
+            sdk_cdp: false,
+            chromium_log: false,
+            ..
+        })
+    ));
+    for tail in [
+        args(&["--native-perf-journey", "sdk-input"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-diagnostics", "chromium-log"]),
+        args(&["--native-perf-runtime", "C:/runtime"]),
+    ] {
+        let mut bad = run.clone();
+        bad.extend(tail);
+        assert!(parse_args(&bad).is_err());
+    }
+    assert!(parse_args(&args(&[
+        "--native-perf-prepare",
+        "C:/owned",
+        "--fixture",
+        "C:/fixture",
+        "--native-perf-journey",
+        "sdk-input"
+    ]))
+    .is_err());
+}
+
+#[test]
+fn native_perf_warm_ticket_preserves_fixture_and_legacy_consume_and_is_one_use() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let work = tempfile::tempdir().unwrap();
+    let source = source(work.path());
+    let folders = folders(work.path());
+    let output = work.path().join("warm-test");
+    prepare(&output, &source, &folders).unwrap();
+    let mut config = consume(&output, free_port(), &folders).unwrap();
+    startup::configure_initial(&mut config).unwrap();
+    let owner = checked_manifest(&config.root, &folders).unwrap();
+    // These unit-test process identities are deliberately nonexistent; this is not GUI evidence.
+    let pid = u32::MAX;
+    let browser = u32::MAX - 1;
+    let consumed = json!({"schemaVersion":1,"scope":"windows-native-perf-consumed","root":config.root,"runId":config.run_id,"pid":pid,"port":config.port});
+    fs::write(
+        config.root.join(CONSUMED_FILE),
+        serde_json::to_vec(&consumed).unwrap(),
+    )
+    .unwrap();
+    let observer = json!({"schemaVersion":1,"scope":"windows-native-tauri-invoke-observer","runId":config.run_id,"valid":true,"total":0,"observedCount":0,"invalidReasons":[],"installedAtMs":0,"timeOriginMs":1000,"maxEvents":16384,"commands":[]});
+    let ipc = json!({"attempts":0,"commands":{},"reason":null});
+    let trust = json!({"pointer":0,"text":0,"untrusted":0});
+    let proof = json!({"schemaVersion":1,"scope":"windows-native-sdk-startup","root":config.root,"runId":config.run_id,"pid":pid,"port":config.port,"objectCount":100,"browserPid":browser,"binding":{"source":"http://tauri.localhost/login","mainFrameId":"unit-frame","loaderId":"unit-loader","timeOriginMs":null,"navigationEvents":0,"frameCreatedEvents":0},"timeOriginMs":1000,"inputMethod":"SDK-CDP-read-only","success":true,"reason":null,"failedStep":null,"calls":["Runtime.evaluate","Page.getFrameTree"],"phases":[{"name":"startup","success":true,"durationMs":10,"ipc":ipc,"inputTrust":trust,"fromAtMs":0,"toAtMs":5}],"lastProbe":{"schemaVersion":1,"scope":"windows-native-sdk-ui-probe","runId":config.run_id,"step":"startup","outcome":"ready","href":"http://tauri.localhost/login","origin":"http://tauri.localhost","timeOriginMs":1000,"atMs":5,"rootPresent":true,"frameCount":0,"target":null,"inputTrust":trust,"observer":observer},"ipcAll":ipc,"elapsedMs":1,"unmeasured":startup::unmeasured(1),"startup":config.startup});
+    let proof_path = config.evidence_root().join("native-perf-sdk-journey.json");
+    write_new_json(&proof_path, &proof).unwrap();
+    let hashes = [
+        sha256_file(&config.root.join(CONSUMED_FILE)).unwrap(),
+        sha256_file(&proof_path).unwrap(),
+    ];
+    let preferences_path = config.vault.join("ui_preferences.json");
+    let mut preferences = read_json(&preferences_path).unwrap();
+    let sources = crate::commands::update::native_perf_cache_candidates().unwrap();
+    preferences["updateSources"] = json!({"manifest":{"url":sources["manifest"][0],"probedAt":chrono::Utc::now().timestamp()},"release":null,"lastChannel":"manifest"});
+    let preference_bytes = serde_json::to_vec(&preferences).unwrap();
+    fs::write(&preferences_path, &preference_bytes).unwrap();
+    assert!(checked_manifest(&config.root, &folders).is_err());
+    assert!(checked_startup_manifest(&config.root, &folders).is_ok());
+    // Startup permits the producer-owned cache, never changes to immutable encrypted data.
+    let accounts_path = config.vault.join("accounts.json");
+    let original_accounts = fs::read(&accounts_path).unwrap();
+    let mut modified_accounts = original_accounts.clone();
+    modified_accounts.push(b'\n');
+    fs::write(&accounts_path, modified_accounts).unwrap();
+    assert!(checked_startup_manifest(&config.root, &folders).is_err());
+    fs::write(&accounts_path, original_accounts).unwrap();
+    let exe = std::env::current_exe().unwrap();
+    let stopped = json!({"schemaVersion":1,"scope":"windows-native-sdk-startup-stopped","root":config.root,"ownerRunId":config.run_id,"pid":pid,"browserPid":browser,"ownedSha256":sha256_file(&config.root.join(OWNED_FILE)).unwrap(),"consumedSha256":hashes[0],"proofSha256":hashes[1],"exeSha256":sha256_file(&exe).unwrap(),"uiPreferencesSha256":sha256_file(&config.vault.join("ui_preferences.json")).unwrap(),"identities":[{"pid":pid,"creationMs":1,"executableName":exe.file_name().unwrap().to_str().unwrap()},{"pid":browser,"creationMs":1,"executableName":"msedgewebview2.exe"}]});
+    write_new_json(
+        &config.root.join("native-perf-startup-stopped.json"),
+        &stopped,
+    )
+    .unwrap();
+    assert!(consume(&config.root, free_port(), &folders).is_err());
+    let prepared = startup::prepare_restart(&config.root, &folders).unwrap();
+    assert_ne!(prepared["runId"], config.run_id);
+    assert!(startup::prepare_restart(&config.root, &folders).is_err());
+    // Semantically identical cache with changed bytes must still fail the first-stop checkpoint.
+    let mut changed_preferences = preference_bytes.clone();
+    changed_preferences.push(b'\n');
+    fs::write(&preferences_path, changed_preferences).unwrap();
+    assert!(startup::consume_restart(&config.root, free_port(), &folders).is_err());
+    fs::write(&preferences_path, &preference_bytes).unwrap();
+    let warm = startup::consume_restart(&config.root, free_port(), &folders).unwrap();
+    assert_eq!(warm.vault, config.vault);
+    assert_eq!(warm.webview, config.webview);
+    assert_eq!(warm.identifier, config.identifier);
+    assert_ne!(warm.run_id, config.run_id);
+    assert_eq!(warm.startup.unwrap().owner_run_id, config.run_id);
+    assert!(startup::consume_restart(&config.root, free_port(), &folders).is_err());
+    assert_eq!(
+        sha256_file(&config.root.join(CONSUMED_FILE)).unwrap(),
+        hashes[0]
+    );
+    assert_eq!(sha256_file(&proof_path).unwrap(), hashes[1]);
+    assert_eq!(
+        serde_json::to_value(
+            checked_startup_manifest(&config.root, &folders)
+                .unwrap()
+                .fixture
+        )
+        .unwrap(),
+        serde_json::to_value(owner.fixture).unwrap()
+    );
+}
+
+#[test]
+fn native_perf_media_mode_is_explicit_and_exclusive() {
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-media-prepare",
+            "C:/new",
+            "--fixture",
+            "C:/media"
+        ])),
+        Ok(Mode::MediaPrepare { .. })
+    ));
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            "sdk-media"
+        ])),
+        Ok(Mode::Run {
+            media_journey: true,
+            pdf_diagnostic: false,
+            pdf_preview: false,
+            sdk_journey: true,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-input"]),
+    ] {
+        let mut run = args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            "sdk-media",
+        ]);
+        run.extend(extra);
+        assert!(parse_args(&run).is_err());
+    }
+    assert!(parse_args(&args(&[
+        "--native-perf-media-prepare",
+        "C:/new",
+        "--native-perf-prepare",
+        "C:/other",
+        "--fixture",
+        "C:/media"
+    ]))
+    .is_err());
+}
+#[test]
+fn native_perf_media_preparation_binds_raw_bytes_and_preserves_v1_rejection() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let old = std::env::var_os("SOLOSOUL_SECURE");
+    std::env::set_var("SOLOSOUL_SECURE", "1");
+    let work = tempfile::tempdir().unwrap();
+    let source = work.path().join("source");
+    media_fixture::write_test_fixture(&source);
+    match old {
+        Some(v) => std::env::set_var("SOLOSOUL_SECURE", v),
+        None => std::env::remove_var("SOLOSOUL_SECURE"),
+    };
+    let folders = folders(work.path());
+    let marker_hash = sha256_file(&source.join("rf312-media-fixture.json")).unwrap();
+    let db_hash = sha256_file(&source.join("acc_rf312_100/vault.db")).unwrap();
+    let legacy = work.path().join("legacy-rejected");
+    assert!(prepare(&legacy, &source, &folders).is_err());
+    assert!(!legacy.exists());
+    let output = work.path().join("owned");
+    let value = prepare_mode(&output, &source, &folders, true).unwrap();
+    assert_eq!(value["success"], true);
+    let root = output.canonicalize().unwrap();
+    assert!(checked_manifest(&root, &folders).is_err());
+    let proof = checked_manifest_mode(&root, &folders, false, true).unwrap();
+    assert_eq!(proof.fixture.object_count, 100);
+    let file = root.join("vault/acc_rf312_100/vault.db");
+    let original = fs::read(&file).unwrap();
+    let mut tampered = original.clone();
+    tampered[100] ^= 1;
+    fs::write(&file, &tampered).unwrap();
+    assert!(consume_mode(&root, free_port(), &folders, true).is_err());
+    assert!(!root.join(CONSUMED_FILE).exists());
+    fs::write(&file, original).unwrap();
+    let config = consume_mode(&root, free_port(), &folders, true).unwrap();
+    assert!(config.media_journey);
+    assert!(consume_mode(&root, free_port(), &folders, true).is_err());
+    assert_eq!(
+        sha256_file(&source.join("rf312-media-fixture.json")).unwrap(),
+        marker_hash
+    );
+    assert_eq!(
+        sha256_file(&source.join("acc_rf312_100/vault.db")).unwrap(),
+        db_hash
+    );
+}
+
+#[test]
+fn native_perf_pdf_diagnostic_is_explicit_media_only_and_exclusive() {
+    let base = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-pdf-diagnostic",
+    ]);
+    assert!(matches!(
+        parse_args(&base),
+        Ok(Mode::Run {
+            media_journey: true,
+            pdf_diagnostic: true,
+            pdf_preview: false,
+            sdk_journey: true,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-media"]),
+    ] {
+        let mut input = base.clone();
+        input.extend(extra);
+        assert!(parse_args(&input).is_err());
+    }
+    for mode in ["sdk-media", "sdk-input", "sdk-startup"] {
+        let ordinary = args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            mode,
+        ]);
+        assert!(matches!(
+            parse_args(&ordinary),
+            Ok(Mode::Run {
+                pdf_diagnostic: false,
+                pdf_preview: false,
+                ..
+            })
+        ));
+    }
+}
+
+#[test]
+fn native_perf_pdf_first_page_mode_is_explicit_and_keeps_diagnostic_exclusive() {
+    let base = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-pdf-preview",
+    ]);
+    assert!(matches!(
+        parse_args(&base),
+        Ok(Mode::Run {
+            sdk_journey: true,
+            media_journey: true,
+            pdf_preview: true,
+            pdf_diagnostic: false,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-pdf-diagnostic"]),
+    ] {
+        let mut bad = base.clone();
+        bad.extend(extra);
+        assert!(parse_args(&bad).is_err());
+    }
+}
+
+#[test]
+fn native_perf_first_ocr_is_exclusive_and_never_aliases_preview_or_startup() {
+    let base = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-ocr",
+    ]);
+    assert!(matches!(
+        parse_args(&base),
+        Ok(Mode::Run {
+            sdk_journey: true,
+            media_journey: true,
+            ocr_journey: true,
+            pdf_preview: false,
+            pdf_diagnostic: false,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-media"]),
+        args(&["--native-perf-journey", "sdk-pdf-preview"]),
+    ] {
+        let mut bad = base.clone();
+        bad.extend(extra);
+        assert!(parse_args(&bad).is_err());
+    }
+    for mode in [
+        "sdk-input",
+        "sdk-media",
+        "sdk-pdf-preview",
+        "sdk-pdf-diagnostic",
+        "sdk-startup",
+    ] {
+        let input = args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            mode,
+        ]);
+        assert!(matches!(
+            parse_args(&input),
+            Ok(Mode::Run {
+                ocr_journey: false,
+                ..
+            })
+        ));
+    }
 }

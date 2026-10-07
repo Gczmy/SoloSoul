@@ -4,7 +4,9 @@ use super::control::{OcrCancellation, OCR_CANCELLED};
 use super::model::{
     load_det_postprocess_config, load_recognition_dict, resolve_model_bundle, DetPostProcessConfig,
 };
-use super::postprocess::{build_ocr_result, ctc_decode_enhanced, extract_text_boxes};
+use super::postprocess::{
+    build_ocr_result, ctc_decode_enhanced, ctc_decode_mrz, extract_text_boxes,
+};
 use super::preprocess::{
     load_rgb_image, perspective_crop, preprocess_for_detection, preprocess_for_recognition,
 };
@@ -140,7 +142,7 @@ impl OcrEngine {
                 .into_dimensionality::<ndarray::Ix3>()
                 .map_err(|e| format!("rec output is not 3D: {e}"))?
                 .remove_axis(ndarray::Axis(0));
-            // 使用增强型解码：置信度过滤 + OCR-B 字符校正
+            // 通用文字只过滤低置信度字符，MRZ 校正由单行识别入口单独应用。
             let (text, conf) =
                 ctc_decode_enhanced(&rec_2d.view(), &self.char_list, confidence_threshold);
             texts.push(text);
@@ -177,7 +179,7 @@ impl OcrEngine {
             .into_dimensionality::<ndarray::Ix3>()
             .map_err(|e| format!("rec output is not 3D: {e}"))?
             .remove_axis(ndarray::Axis(0));
-        let (text, conf) = ctc_decode_enhanced(&rec_2d.view(), &self.char_list, 0.1);
+        let (text, conf) = ctc_decode_mrz(&rec_2d.view(), &self.char_list, 0.1);
         cancellation.check()?;
         Ok((text, conf))
     }
@@ -681,10 +683,16 @@ mod tests {
         let result = engine.scan_image(&image_path).unwrap();
 
         assert!(!result.boxes.is_empty(), "Expected at least one text box");
-        let full = result.text.to_lowercase();
-        assert!(
-            full.contains("hello") || full.contains("solosoul") || full.contains("1234567890"),
-            "Expected recognizable text, got: {full}"
+        let full: String = result
+            .text
+            .chars()
+            .filter(char::is_ascii_alphanumeric)
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
+        assert_eq!(
+            full, "helloppocrv6solosoulocr1234567890",
+            "Expected all three public image lines, got: {}",
+            result.text
         );
     }
 }

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AccountInfo } from '@/lib/ipc';
 import { logger } from '@/lib/logger';
+import { beginNativeAuthTrace } from '@/lib/nativePerfAuth';
 
 export const LAST_ACCOUNT_KEY = 'solosoul_last_account_id';
 
@@ -15,6 +16,11 @@ export function saveLastAccountId(accountId: string) {
   }
 }
 
+export interface AuthenticationAttempt {
+  isCurrent: () => boolean;
+  cancel: () => void;
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -25,7 +31,7 @@ interface AuthState {
   backendError: boolean;
 
   checkHasAccount: () => Promise<void>;
-  listAccounts: () => Promise<void>;
+  listAccounts: (attempt?: AuthenticationAttempt) => Promise<void>;
   refreshCurrentAccount: () => Promise<void>;
   bootstrap: (
     name: string,
@@ -33,7 +39,7 @@ interface AuthState {
     locale: string,
     passwordHint?: string,
   ) => Promise<void>;
-  login: (accountId: string, password: string) => Promise<void>;
+  login: (accountId: string, password: string, attempt?: AuthenticationAttempt) => Promise<void>;
   logout: () => Promise<void>;
   /** 锁定 Vault（收敛自 vaultStore.lock）。无论后端调用成功与否都重置认证状态。 */
   lock: () => Promise<void>;
@@ -42,6 +48,23 @@ interface AuthState {
    *  生物识别路径已拉取账户列表，可传入一并更新。 */
   completeUnlock: (account: AccountInfo, accounts?: AccountInfo[]) => void;
   clearError: () => void;
+}
+
+// 各解锁方式和创建账户的异步结果只能提交到发起时的认证代次。
+// lock/logout 即使发生在未认证状态，也必须使正在等待的解锁失效。
+let authGeneration = 0;
+
+/** 页面持有请求身份；只允许当前请求取消自己的 loading，不影响后来的登录。 */
+export function beginAuthenticationAttempt(): AuthenticationAttempt {
+  const generation = ++authGeneration;
+  return {
+    isCurrent: () => generation === authGeneration,
+    cancel: () => {
+      if (generation !== authGeneration) return;
+      authGeneration += 1;
+      useAuthStore.setState({ isLoading: false });
+    },
+  };
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -64,9 +87,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  listAccounts: async () => {
+  listAccounts: async (attempt) => {
+    if (attempt && !attempt.isCurrent()) return;
     try {
       const accounts = await invoke<AccountInfo[]>('vault_list_accounts');
+      if (attempt && !attempt.isCurrent()) return;
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
       set({
@@ -76,6 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         backendError: false,
       });
     } catch (err) {
+      if (attempt && !attempt.isCurrent()) return;
       // Surface the error so the user can report it; vault may be locked.
       set({
         error: String(err),
@@ -99,6 +125,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   bootstrap: async (name, password, locale, passwordHint) => {
+    const generation = ++authGeneration;
     set({ isLoading: true, error: null });
     try {
       const account = await invoke<AccountInfo>('bootstrap', {
@@ -107,6 +134,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         locale,
         passwordHint: passwordHint,
       });
+      if (generation !== authGeneration) return;
       saveLastAccountId(account.id);
       set({
         isAuthenticated: true,
@@ -117,23 +145,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         backendError: false,
       });
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (generation === authGeneration) set({ error: String(err), isLoading: false });
     }
   },
 
-  login: async (accountId, password) => {
+  login: async (accountId, password, attempt = beginAuthenticationAttempt()) => {
+    if (!attempt.isCurrent()) return;
+    const mark = beginNativeAuthTrace();
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('login', { accountId: accountId, password });
+      mark?.('login-await-start');
+      try {
+        await invoke<void>('login', { accountId: accountId, password });
+        mark?.('login-await-ok');
+      } catch (err) {
+        mark?.('login-await-error');
+        throw err;
+      }
+      if (!attempt.isCurrent()) {
+        mark?.('failed');
+        return;
+      }
       // Try to refresh account list, but do not fail authentication if the
       // refresh request errors (e.g. transient backend lock contention).
       let accounts: AccountInfo[] = [];
       try {
+        mark?.('accounts-await-start');
         accounts = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
+        mark?.('accounts-await-ok');
       } catch (err) {
+        mark?.('accounts-await-error');
         // Keep authentication state even if the account-list refresh fails.
         // P227: 登录后的账户列表刷新失败属可接受降级，但留痕便于排查。
-        logger.warn('[authStore] account list refresh after login failed:', err);
+        if (attempt.isCurrent())
+          logger.warn('[authStore] account list refresh after login failed:', err);
+      }
+      if (!attempt.isCurrent()) {
+        mark?.('failed');
+        return;
       }
       const account = accounts.find((a) => a.id === accountId) || {
         id: accountId,
@@ -144,6 +193,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME =
         performance.now();
 
+      mark?.('state-set-start');
       set({
         isAuthenticated: true,
         currentAccount: account,
@@ -151,6 +201,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
 
+      mark?.('state-set-done');
       // 解锁后延迟检查备份提醒，避免启动时立即弹权限/通知
       // P228: accountId 注入，避免静态依赖 notification 形成循环
       const unlockedAccountId = account.id;
@@ -159,17 +210,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .then((m) => m.checkBackupReminder(unlockedAccountId))
           .catch((err) => logger.warn('[authStore] backup reminder check failed:', err));
       }, 2000);
+      mark?.('finished');
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      mark?.('failed');
+      if (attempt.isCurrent()) set({ error: String(err), isLoading: false });
     }
   },
 
   logout: async () => {
+    authGeneration += 1;
     // P014: 状态重置必须无条件执行。先清前端认证状态，再尽力通知后端——
     // 即使后端 invoke 失败（如 Vault 已锁定或后端正在重新初始化），
     // 也不会出现半认证僵尸态（AuthGuard 继续放行受保护路由）。
     set({
       isAuthenticated: false,
+      isLoading: false,
       currentAccount: null,
       accounts: [],
       // hasAccount 保持为 null（未知），由 BootstrapGuard 重新调用
@@ -185,6 +240,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   lock: async () => {
+    authGeneration += 1;
     // P015: 锁定收敛为 authStore action（替代 vaultStore.lock）。
     // 先清前端认证状态，再尽力通知后端。
     // 锁定不改变账户存在性，因此保留 hasAccount/accounts——
@@ -193,6 +249,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     clearRecentSearches();
     set({
       isAuthenticated: false,
+      isLoading: false,
       currentAccount: null,
     });
     try {
@@ -203,6 +260,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   completeUnlock: (account, accounts) => {
+    authGeneration += 1;
     // P015: 统一解锁状态写入路径（PIN/生物识别不再各自直改 setState）。
     // accounts 可选：未提供时保留现有列表，避免 PIN 路径额外拉取。
     set((state) => ({

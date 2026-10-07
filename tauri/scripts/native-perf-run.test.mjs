@@ -726,7 +726,12 @@ test('SDK requested or proof markers exclude benchmark acceptance even with malf
   const dir = await mkdtemp(path.join(await realpath(tmpdir()), 'ss-rf312-sdk-benchmark-'));
   try {
     await rejectDiagnosticBenchmark(dir);
-    for (const name of ['native-perf-sdk-cdp-requested.json', 'native-perf-sdk-cdp.json']) {
+    for (const name of [
+      'native-perf-sdk-cdp-requested.json',
+      'native-perf-sdk-cdp.json',
+      'native-perf-sdk-journey-requested.json',
+      'native-perf-sdk-journey.json',
+    ]) {
       const root = path.join(dir, name);
       await mkdir(root);
       await writeFile(path.join(root, name), '{invalid diagnostic marker');

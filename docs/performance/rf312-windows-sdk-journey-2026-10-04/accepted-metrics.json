@@ -1,0 +1,2312 @@
+[
+  {
+    "name": "sdk-spa-100",
+    "objectCount": 100,
+    "exeSha256": "25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef",
+    "summary": [
+      {
+        "name": "startup",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 1624.8575999999998,
+        "p95Ms": 1993.2836
+      },
+      {
+        "name": "password-unlock",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 2261.5677,
+        "p95Ms": 5591.009599999999
+      },
+      {
+        "name": "workspace",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 419.293,
+        "p95Ms": 536.2709
+      },
+      {
+        "name": "search-needle",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 451.5202,
+        "p95Ms": 457.6907
+      },
+      {
+        "name": "application-lock",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 121.0177,
+        "p95Ms": 152.15290000000002
+      },
+      {
+        "name": "password-reunlock",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 3000.9551,
+        "p95Ms": 4005.4860999999996
+      }
+    ],
+    "trustedInputs": [
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      }
+    ],
+    "protocolCalls": [
+      59,
+      59,
+      59,
+      59,
+      59
+    ],
+    "ipcAll": {
+      "samples": 5,
+      "median": 548,
+      "p95NearestRank": 549,
+      "minimum": 532,
+      "maximum": 549
+    },
+    "ipcBySample": [
+      {
+        "attempts": 549,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 2
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 549,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 2
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 532,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 3
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 1
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 1
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 1
+          },
+          {
+            "command": "backup_list",
+            "attempts": 1
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 1
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 1
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 1
+          },
+          {
+            "command": "template_list",
+            "attempts": 2
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 1
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 1
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 1
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 1
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 1
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 1
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 1
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 548,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 1
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 2
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 533,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 3
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 1
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 1
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 1
+          },
+          {
+            "command": "backup_list",
+            "attempts": 1
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 1
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 1
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 1
+          },
+          {
+            "command": "template_list",
+            "attempts": 2
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 1
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 1
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 1
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 1
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 1
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 1
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      }
+    ],
+    "ipcByPhase": [
+      {
+        "name": "startup",
+        "counts": [
+          33,
+          33,
+          33,
+          33,
+          33
+        ]
+      },
+      {
+        "name": "password-unlock",
+        "counts": [
+          42,
+          38,
+          39,
+          23,
+          37
+        ]
+      },
+      {
+        "name": "workspace",
+        "counts": [
+          66,
+          70,
+          119,
+          85,
+          71
+        ]
+      },
+      {
+        "name": "search-needle",
+        "counts": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "name": "application-lock",
+        "counts": [
+          15,
+          15,
+          15,
+          15,
+          15
+        ]
+      },
+      {
+        "name": "password-reunlock",
+        "counts": [
+          37,
+          37,
+          20,
+          36,
+          21
+        ]
+      }
+    ],
+    "ownedWorkingSetBytesBeforeInput": {
+      "samples": 5,
+      "median": 588742656,
+      "p95NearestRank": 595886080,
+      "minimum": 583655424,
+      "maximum": 595886080
+    },
+    "ownedWorkingSetBytesAfterJourney": {
+      "samples": 5,
+      "median": 630059008,
+      "p95NearestRank": 632926208,
+      "minimum": 626794496,
+      "maximum": 632926208
+    },
+    "processCounts": [
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      }
+    ],
+    "actualRuntimeVersions": [
+      "154.0.4258.53"
+    ],
+    "cleanupComplete": true,
+    "sourceUnchanged": true
+  },
+  {
+    "name": "sdk-spa-5000",
+    "objectCount": 5000,
+    "exeSha256": "25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef",
+    "summary": [
+      {
+        "name": "startup",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 2262.3096,
+        "p95Ms": 7639.1637
+      },
+      {
+        "name": "password-unlock",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 4844.4921,
+        "p95Ms": 5993.3968
+      },
+      {
+        "name": "workspace",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 1093.568,
+        "p95Ms": 1186.7179
+      },
+      {
+        "name": "search-needle",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 528.4031,
+        "p95Ms": 543.7094
+      },
+      {
+        "name": "application-lock",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 122.18270000000001,
+        "p95Ms": 151.7287
+      },
+      {
+        "name": "password-reunlock",
+        "successfulSamples": 5,
+        "requestedSamples": 5,
+        "medianMs": 3719.8635,
+        "p95Ms": 5813.7942
+      }
+    ],
+    "trustedInputs": [
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      }
+    ],
+    "protocolCalls": [
+      59,
+      59,
+      59,
+      59,
+      59
+    ],
+    "ipcAll": {
+      "samples": 5,
+      "median": 552,
+      "p95NearestRank": 553,
+      "minimum": 541,
+      "maximum": 553
+    },
+    "ipcBySample": [
+      {
+        "attempts": 553,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 3
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "user_data_update_preference",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 541,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 3
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 1
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 1
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 1
+          },
+          {
+            "command": "backup_list",
+            "attempts": 2
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 1
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 1
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 1
+          },
+          {
+            "command": "template_list",
+            "attempts": 2
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 1
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 1
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 1
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 1
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 1
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 1
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 11
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "user_data_update_preference",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 552,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 1
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 3
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "user_data_update_preference",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 553,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 2
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 3
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "user_data_update_preference",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      },
+      {
+        "attempts": 552,
+        "commands": [
+          {
+            "command": "set_titlebar_color",
+            "attempts": 7
+          },
+          {
+            "command": "get_system_locale",
+            "attempts": 1
+          },
+          {
+            "command": "show_main_window",
+            "attempts": 1
+          },
+          {
+            "command": "get_platform_capabilities",
+            "attempts": 1
+          },
+          {
+            "command": "ui_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "set_status_bar_style",
+            "attempts": 8
+          },
+          {
+            "command": "ocr_get_model_status",
+            "attempts": 4
+          },
+          {
+            "command": "plugin:event|listen",
+            "attempts": 223
+          },
+          {
+            "command": "check_has_account",
+            "attempts": 3
+          },
+          {
+            "command": "vault_list_accounts",
+            "attempts": 6
+          },
+          {
+            "command": "desktop_prepare_update",
+            "attempts": 4
+          },
+          {
+            "command": "ocr_install_bundled_model_with_progress",
+            "attempts": 1
+          },
+          {
+            "command": "plugin:event|unlisten",
+            "attempts": 213
+          },
+          {
+            "command": "dismiss_lock_mask",
+            "attempts": 2
+          },
+          {
+            "command": "biometric_check_availability",
+            "attempts": 4
+          },
+          {
+            "command": "pin_check_availability",
+            "attempts": 1
+          },
+          {
+            "command": "login",
+            "attempts": 2
+          },
+          {
+            "command": "plugin:lock-state|register_listener",
+            "attempts": 2
+          },
+          {
+            "command": "get_lock_pending",
+            "attempts": 2
+          },
+          {
+            "command": "profile_load",
+            "attempts": 2
+          },
+          {
+            "command": "user_data_get_preferences",
+            "attempts": 3
+          },
+          {
+            "command": "sync_get_auto_status",
+            "attempts": 4
+          },
+          {
+            "command": "sync_get_ui_prefs_sync",
+            "attempts": 4
+          },
+          {
+            "command": "attachment_count_stats",
+            "attempts": 3
+          },
+          {
+            "command": "plugin:lock-state|registerListener",
+            "attempts": 1
+          },
+          {
+            "command": "vault_check_directory",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_get_active_tier",
+            "attempts": 2
+          },
+          {
+            "command": "ocr_list_available_tiers",
+            "attempts": 2
+          },
+          {
+            "command": "get_vault_stats",
+            "attempts": 2
+          },
+          {
+            "command": "backup_list",
+            "attempts": 3
+          },
+          {
+            "command": "export_get_scope_tree",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_config",
+            "attempts": 2
+          },
+          {
+            "command": "llm_get_providers",
+            "attempts": 2
+          },
+          {
+            "command": "template_list",
+            "attempts": 3
+          },
+          {
+            "command": "object_trash_list",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_all",
+            "attempts": 2
+          },
+          {
+            "command": "plugin_list_installed",
+            "attempts": 2
+          },
+          {
+            "command": "sync_get_status",
+            "attempts": 2
+          },
+          {
+            "command": "sync_listen_addr",
+            "attempts": 2
+          },
+          {
+            "command": "sync_list_conflicts",
+            "attempts": 2
+          },
+          {
+            "command": "ui_update_preference",
+            "attempts": 7
+          },
+          {
+            "command": "object_list",
+            "attempts": 3
+          },
+          {
+            "command": "snapshot_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "attachment_count_batch",
+            "attempts": 1
+          },
+          {
+            "command": "search_unified",
+            "attempts": 1
+          },
+          {
+            "command": "user_data_update_preference",
+            "attempts": 1
+          },
+          {
+            "command": "lock",
+            "attempts": 1
+          }
+        ],
+        "reason": null
+      }
+    ],
+    "ipcByPhase": [
+      {
+        "name": "startup",
+        "counts": [
+          33,
+          33,
+          33,
+          33,
+          33
+        ]
+      },
+      {
+        "name": "password-unlock",
+        "counts": [
+          36,
+          37,
+          38,
+          15,
+          23
+        ]
+      },
+      {
+        "name": "workspace",
+        "counts": [
+          19,
+          48,
+          70,
+          40,
+          85
+        ]
+      },
+      {
+        "name": "search-needle",
+        "counts": [
+          5,
+          5,
+          1,
+          1,
+          5
+        ]
+      },
+      {
+        "name": "application-lock",
+        "counts": [
+          15,
+          15,
+          15,
+          15,
+          15
+        ]
+      },
+      {
+        "name": "password-reunlock",
+        "counts": [
+          37,
+          25,
+          36,
+          37,
+          36
+        ]
+      }
+    ],
+    "ownedWorkingSetBytesBeforeInput": {
+      "samples": 5,
+      "median": 592183296,
+      "p95NearestRank": 639139840,
+      "minimum": 585506816,
+      "maximum": 639139840
+    },
+    "ownedWorkingSetBytesAfterJourney": {
+      "samples": 5,
+      "median": 727875584,
+      "p95NearestRank": 772587520,
+      "minimum": 633028608,
+      "maximum": 772587520
+    },
+    "processCounts": [
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      },
+      {
+        "before": 9,
+        "after": 8
+      }
+    ],
+    "actualRuntimeVersions": [
+      "154.0.4258.53"
+    ],
+    "cleanupComplete": true,
+    "sourceUnchanged": true
+  }
+]

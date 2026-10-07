@@ -144,13 +144,21 @@ export async function nativePerfPreflight(exe, chunkSize = 64 * 1024) {
   };
 }
 
-export async function validateInputs(options) {
+export async function validateInputs(options, { media = false } = {}) {
   const exe = await regularPath(options.exe, false);
   if (path.extname(exe).toLowerCase() !== '.exe') throw new Error('--exe must be a Windows .exe');
   const binaryPreflight = await nativePerfPreflight(exe);
   const fixture = await regularPath(options.fixture, true);
-  const markerPath = await regularPath(path.join(fixture, 'rf312-fixture.json'), false);
-  const manifest = validateFixtureManifest(JSON.parse(await readFile(markerPath, 'utf8')));
+  const markerPath = await regularPath(
+    path.join(fixture, media ? 'rf312-media-fixture.json' : 'rf312-fixture.json'),
+    false,
+  );
+  const mediaManifest = media
+    ? await (await import('./native-perf-media-contract.mjs')).readMediaManifest(fixture)
+    : null;
+  const manifest = media
+    ? mediaManifest.baseFixture
+    : validateFixtureManifest(JSON.parse(await readFile(markerPath, 'utf8')));
   await regularPath(path.join(fixture, manifest.accountId), true);
   await regularPath(path.join(fixture, manifest.accountId, 'vault.db'), false);
   await regularPath(path.join(fixture, manifest.accountId, 'config.json'), false);
@@ -168,7 +176,15 @@ export async function validateInputs(options) {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
-  return { ...options, exe, fixture, manifest, markerPath, binaryPreflight };
+  return {
+    ...options,
+    exe,
+    fixture,
+    manifest,
+    markerPath,
+    binaryPreflight,
+    ...(media ? { mediaManifest } : {}),
+  };
 }
 
 export function normalizeWindowsPath(value) {
@@ -408,17 +424,61 @@ if (!$identity -or $identity.executablePath -ine $expectedExe -or [Math]::Abs($i
 }
 $owned = @{$expectedPid=$identity}
 $unverifiedDescendants = $false
+$ownershipRefreshes = @()
+$refreshedMissing = @{}
+$confirmedAbsent = @{}
 do {
   $added = $false
   foreach ($row in $all) {
     $parent = [int]$row.ParentProcessId
     $pidValue = [int]$row.ProcessId
     if ($owned.ContainsKey($pidValue) -or !$owned.ContainsKey($parent)) { continue }
+    if ($confirmedAbsent.ContainsKey($pidValue)) { continue }
     $child = Identity $row
+    if (!$child -and $action -eq 'memory-series') {
+      # startup CIM 行可能先出现 PID，随后才有路径。每个缺字段候选至多复核一次，绝不读取未核验进程内存。
+      if (!$refreshedMissing.ContainsKey($pidValue)) {
+        $refreshedMissing[$pidValue] = $null
+        try {
+          $freshRows = @(Get-CimInstance Win32_Process -Filter ("ProcessId = " + $pidValue) -Property ProcessId,ParentProcessId,CreationDate,ExecutablePath,Name)
+          if ($freshRows.Count -eq 0) {
+            $confirmedAbsent[$pidValue] = $true
+            $ownershipRefreshes += @{pid=$pidValue;parentPid=$parent;status='candidate-confirmed-absent';creationMs=$null}
+          } elseif ($freshRows.Count -eq 1) {
+            $freshChild = Identity $freshRows[0]
+            if ($freshChild -and $freshChild.parentPid -eq $parent -and $freshChild.creationMs -ge $owned[$parent].creationMs) {
+              $refreshedMissing[$pidValue] = $freshChild
+              $ownershipRefreshes += @{pid=$pidValue;parentPid=$parent;status='candidate-fresh-identity-verified';creationMs=$freshChild.creationMs}
+            }
+          }
+        } catch { }
+      }
+      if ($confirmedAbsent.ContainsKey($pidValue)) { continue }
+      $child = $refreshedMissing[$pidValue]
+    }
     if (!$child) { $unverifiedDescendants = $true; continue }
     if ($child -and $child.creationMs -ge $owned[$parent].creationMs) { $owned[$pidValue]=$child; $added=$true }
   }
 } while ($added)
+# 身份未完整记录就消失的候选不能承接活后代归属；沿原发现树有界核对，活孤儿继续拒绝。
+if ($action -eq 'memory-series') {
+  do {
+    $absentAdded = $false
+    foreach ($row in $all) {
+      $pidValue = [int]$row.ProcessId
+      $parent = [int]$row.ParentProcessId
+      if (!$confirmedAbsent.ContainsKey($parent) -or $confirmedAbsent.ContainsKey($pidValue)) { continue }
+      try {
+        $remaining = @(Get-CimInstance Win32_Process -Filter ("ProcessId = " + $pidValue) -Property ProcessId,CreationDate,ExecutablePath)
+        if ($remaining.Count -eq 0) {
+          $confirmedAbsent[$pidValue] = $true
+          $ownershipRefreshes += @{pid=$pidValue;parentPid=$parent;status='candidate-confirmed-absent';creationMs=$null}
+          $absentAdded = $true
+        } else { $unverifiedDescendants = $true }
+      } catch { $unverifiedDescendants = $true }
+    }
+  } while ($absentAdded)
+}
 $browserChecks = @()
 $expectedWebview = [Environment]::GetEnvironmentVariable('SOLOSOUL_NATIVE_PERF_WEBVIEW_ROOT')
 $expectedBrowserData = [Environment]::GetEnvironmentVariable('SOLOSOUL_NATIVE_PERF_BROWSER_DATA_DIRECTORY')
@@ -429,9 +489,18 @@ function NormalizePath($value) {
   return [IO.Path]::GetFullPath($value).TrimEnd('\\').ToLowerInvariant()
 }
 if ($expectedWebview -and $expectedBrowserData) {
-  foreach ($ownedBrowser in $owned.Values | Where-Object { $_.name -ieq 'msedgewebview2.exe' }) {
+  $ownedBrowsers = @($owned.Values | Where-Object { $_.name -ieq 'msedgewebview2.exe' })
+  $browserDetails = @()
+  if ($ownedBrowsers.Count -gt 0) {
+    # 仅对已核验的PID集合读取命令行；不在全进程查询中增加CommandLine，不缓存归属。
+    $ownedFilter = ($ownedBrowsers | ForEach-Object { "ProcessId = " + [int]$_.pid }) -join ' OR '
+    $browserDetails = @(Get-CimInstance Win32_Process -Filter $ownedFilter -Property ProcessId,CreationDate,ExecutablePath,CommandLine)
+  }
+  foreach ($ownedBrowser in $ownedBrowsers) {
     # 仅已验证的自有WebView2后代才读取CommandLine，且不输出原始内容或非受控路径。
-    $details = Get-CimInstance Win32_Process -Filter ("ProcessId = " + $ownedBrowser.pid) -Property ProcessId,CreationDate,ExecutablePath,CommandLine
+    $matchingDetails = @($browserDetails | Where-Object { [int]$_.ProcessId -eq $ownedBrowser.pid })
+    if ($matchingDetails.Count -ne 1) { continue }
+    $details = $matchingDetails[0]
     $detailsIdentity = Identity $details
     if (!$detailsIdentity -or $detailsIdentity.creationMs -ne $ownedBrowser.creationMs -or $detailsIdentity.executablePath -ine $ownedBrowser.executablePath) { continue }
     $command = [string]$details.CommandLine
@@ -449,15 +518,38 @@ $browserDataMatched = !$unverifiedDescendants -and $browserChecks.Count -eq 1 -a
 $processes = @()
 foreach ($row in $owned.Values) {
   $workingSet = $null; $privateBytes = $null; $cpuMs = $null; $reason = $null
+  $memoryStatus = $null; $exitConfirmedAtMs = $null
   try {
     $process = [Diagnostics.Process]::GetProcessById($row.pid)
     $created = ([DateTimeOffset]$process.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds()
     if ($created -ne $row.creationMs) { throw 'Process identity changed' }
     $workingSet = $process.WorkingSet64; $privateBytes=$process.PrivateMemorySize64; $cpuMs=$process.TotalProcessorTime.TotalMilliseconds
-  } catch { $reason = 'Process memory or identity unavailable' }
-  $processes += $row + @{workingSetBytes=$workingSet; privateBytes=$privateBytes; cpuMs=$cpuMs; reason=$reason}
+  } catch {
+    $reason = 'Process memory or identity unavailable'
+  }
+  # 短命进程的内存属性可能为空但不抛异常；仅连续采样将此情况纳入同一次退出核验。
+  if ($action -eq 'memory-series' -and ($reason -or $null -eq $workingSet -or $null -eq $privateBytes)) {
+    if (!$reason) { $reason = 'Process memory reading incomplete' }
+    # 一次固定 fresh CIM 核验仍有 PID 时拒绝；根进程和默认采样不走后代退出确认。
+    if ($row.pid -ne $expectedPid) {
+      try {
+        $remaining = @(Get-CimInstance Win32_Process -Filter ("ProcessId = " + $row.pid) -Property ProcessId,CreationDate,ExecutablePath)
+        if ($remaining.Count -eq 0) {
+          $workingSet = $null; $privateBytes = $null; $cpuMs = $null
+          $memoryStatus = 'confirmed-exited'
+          $exitConfirmedAtMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+          $reason = 'Process exited before memory collection; absence confirmed by fresh CIM'
+        }
+      } catch { }
+    }
+  }
+  $values = @{workingSetBytes=$workingSet; privateBytes=$privateBytes; cpuMs=$cpuMs; reason=$reason}
+  if ($memoryStatus) { $values.memoryStatus=$memoryStatus; $values.exitConfirmedAtMs=$exitConfirmedAtMs }
+  $processes += $row + $values
 }
-@{rootVerified=$true; reason=$null; processes=$processes; browserDataChecks=$browserChecks; userDataDirectoryMatches=$browserDataMatched; unverifiedDescendants=$unverifiedDescendants} | ConvertTo-Json -Depth 5 -Compress
+$result = @{rootVerified=$true; reason=$null; processes=$processes; browserDataChecks=$browserChecks; userDataDirectoryMatches=$browserDataMatched; unverifiedDescendants=$unverifiedDescendants}
+if ($action -eq 'memory-series') { $result.ownershipRefreshes=$ownershipRefreshes }
+$result | ConvertTo-Json -Depth 5 -Compress
 `;
 
 export function verifiedOwnedRows(snapshot, expected) {
@@ -528,6 +620,38 @@ async function processQuery(expected, action = 'sample', known = []) {
   }
 }
 
+// 默认查询仍将缺失读数判失败；只有显式连续采样接受带 fresh-CIM 确认的已退出后代。
+export function partitionMemoryRows(rows, rootPid, confirmedExitMode = false) {
+  const exitedRows = rows.filter(
+    (row) =>
+      confirmedExitMode &&
+      row.pid !== rootPid &&
+      row.memoryStatus === 'confirmed-exited' &&
+      row.workingSetBytes === null &&
+      Number.isFinite(row.exitConfirmedAtMs) &&
+      row.exitConfirmedAtMs >= row.creationMs &&
+      row.exitConfirmedAtMs <= Date.now() &&
+      row.reason === 'Process exited before memory collection; absence confirmed by fresh CIM',
+  );
+  const exited = new Set(exitedRows);
+  const liveRows = rows.filter((row) => !exited.has(row));
+  const complete =
+    liveRows.some((row) => row.pid === rootPid) &&
+    liveRows.every(
+      (row) =>
+        !row.memoryStatus &&
+        row.reason === null &&
+        Number.isFinite(row.workingSetBytes) &&
+        row.workingSetBytes >= 0,
+    );
+  return {
+    complete,
+    liveRows,
+    exitedRows,
+    workingSetBytes: complete ? liveRows.reduce((sum, row) => sum + row.workingSetBytes, 0) : null,
+  };
+}
+
 export class OwnedProcess {
   constructor(child, exe, startedAt, webview) {
     this.child = child;
@@ -535,23 +659,30 @@ export class OwnedProcess {
     this.known = new Map();
     this.unverifiedDescendants = false;
   }
-  async sample() {
+  async sample({ confirmExitedDescendants = false } = {}) {
     const began = performance.now();
     try {
       if (this.child.exitCode !== null || this.child.signalCode)
         throw new Error(
           'Originally spawned root process has exited; no new process identity is accepted',
         );
-      const snapshot = await processQuery(this.expected);
+      if (
+        typeof confirmExitedDescendants !== 'boolean' ||
+        (confirmExitedDescendants && !this.expected.webview)
+      )
+        throw new Error('Confirmed-exit sampling requires an explicit owned WebView tree');
+      const snapshot = await processQuery(
+        this.expected,
+        confirmExitedDescendants ? 'memory-series' : 'sample',
+      );
       if (this.child.exitCode !== null || this.child.signalCode)
         throw new Error('Originally spawned root process exited during sampling');
       const rows = verifiedOwnedRows(snapshot, this.expected);
       if (snapshot.unverifiedDescendants === true) this.unverifiedDescendants = true;
       for (const row of rows) this.known.set(row.pid + ':' + row.creationMs, row);
-      const complete =
-        snapshot.unverifiedDescendants !== true &&
-        rows.length > 0 &&
-        rows.every((row) => Number.isFinite(row.workingSetBytes));
+      const memory = partitionMemoryRows(rows, this.expected.pid, confirmExitedDescendants);
+      const complete = snapshot.unverifiedDescendants !== true && memory.complete;
+      const reportedRows = confirmExitedDescendants ? memory.liveRows : rows;
       const browserDataChecks =
         this.expected.webview && Array.isArray(snapshot.browserDataChecks)
           ? snapshot.browserDataChecks.map((check) => {
@@ -576,15 +707,28 @@ export class OwnedProcess {
       return {
         observedAt: new Date().toISOString(),
         collectionMs: performance.now() - began,
-        workingSetBytes: complete ? rows.reduce((sum, row) => sum + row.workingSetBytes, 0) : null,
+        workingSetBytes: complete ? memory.workingSetBytes : null,
         reason: complete
           ? null
           : (snapshot.reason ?? 'At least one verified process memory reading is unavailable'),
         userDataDirectoryMatches: exactBrowserDirectory && browserDataFilesystem?.valid === true,
         browserDataChecks,
         browserDataFilesystem,
-        processCount: rows.length,
-        processes: rows.map((row) => ({
+        ...(confirmExitedDescendants
+          ? {
+              ownershipRefreshes: snapshot.ownershipRefreshes ?? [],
+              exitedProcesses: memory.exitedRows.map((row) => ({
+                pid: row.pid,
+                parentPid: row.parentPid,
+                creationMs: row.creationMs,
+                executableName: path.win32.basename(row.executablePath),
+                exitConfirmedAtMs: row.exitConfirmedAtMs,
+                reason: row.reason,
+              })),
+            }
+          : {}),
+        processCount: reportedRows.length,
+        processes: reportedRows.map((row) => ({
           pid: row.pid,
           parentPid: row.parentPid,
           creationMs: row.creationMs,
@@ -701,6 +845,8 @@ export async function rejectDiagnosticBenchmark(root) {
     'native-perf-chromium-log.json',
     'native-perf-sdk-cdp-requested.json',
     'native-perf-sdk-cdp.json',
+    'native-perf-sdk-journey-requested.json',
+    'native-perf-sdk-journey.json',
   ]) {
     try {
       await lstat(path.join(root, filename));

@@ -1,0 +1,17 @@
+{
+  "method": "PowerShell7 Remove-Item without Recurse on exact owned junction only",
+  "links": [
+    {
+      "link": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "linkAbsent": true,
+      "targetPreserved": true
+    },
+    {
+      "link": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-02\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-02\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "linkAbsent": true,
+      "targetPreserved": true
+    }
+  ]
+}

@@ -1,0 +1,1876 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "at": "2026-10-05T06:24:37.955691+00:00",
+  "format": "gzip byte-exact originals; original BOM and newlines retained; index and archives use -text",
+  "files": [
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\all-node.log",
+      "relativeOriginal": "all-node.log",
+      "bytes": 14268,
+      "sha256": "bef676bc6237dedf9e851010d74ff50b2e89a798a0d0049bf34f499cf2518c2a",
+      "archive": "raw/all-node.log.gz",
+      "archiveBytes": 5472,
+      "archiveSha256": "909098f9bc5d67fd4971a11e21f275cfac489bafff52d5ce714449cb9f26a160"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\all-scripts-node.log",
+      "relativeOriginal": "all-scripts-node.log",
+      "bytes": 15026,
+      "sha256": "c4749e77727d5b1634bc0f7a085c4274296fec6d12325d58cd18a348b32e173e",
+      "archive": "raw/all-scripts-node.log.gz",
+      "archiveBytes": 5834,
+      "archiveSha256": "f296fafd9025a7ad4e9d32f3a517a9388d9c7fc94890ea0648358d485dc3e9b1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\baseline.json",
+      "relativeOriginal": "baseline.json",
+      "bytes": 816505,
+      "sha256": "9289ca536821afd37b906f7ac22d142d40b03c524aa3ee675c88bb0004af8d5b",
+      "archive": "raw/baseline.json.gz",
+      "archiveBytes": 208777,
+      "archiveSha256": "435b61f095bc4925b63bd7570d66539118c0130583d027a44bbdeaac76dbd483"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\binary-marker-first.json",
+      "relativeOriginal": "binary-marker-first.json",
+      "bytes": 482,
+      "sha256": "b93bca79cec4cc06087cd4e016fb405ca1d0c2d3a542396f0e178ab79c5cb91d",
+      "archive": "raw/binary-marker-first.json.gz",
+      "archiveBytes": 279,
+      "archiveSha256": "bca44eebf484fecb2042e389bd588c409768ccc4c511b2421bf37a5f8845bf81"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\build-checkpoint.json",
+      "relativeOriginal": "build-checkpoint.json",
+      "bytes": 788,
+      "sha256": "36ecebc20a6628451da07bb934e7862ada0e305a329d8144472657261605953b",
+      "archive": "raw/build-checkpoint.json.gz",
+      "archiveBytes": 448,
+      "archiveSha256": "06f66e7bb189c7279339c3759a3aed447d56cd225928b59a9cc74765d9f2622f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\build-markers.json",
+      "relativeOriginal": "build-markers.json",
+      "bytes": 785,
+      "sha256": "ce3adb4ef41212a700e46a20c7072ffc81ef188769fc11415df9705e4725cc10",
+      "archive": "raw/build-markers.json.gz",
+      "archiveBytes": 453,
+      "archiveSha256": "7420236d357e1515a358dff66db1786ce757fd30b973bd61cc1278c807365db7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\build.json",
+      "relativeOriginal": "build.json",
+      "bytes": 713,
+      "sha256": "c664f5b17bd2dea399ad4674cd0a948bb2fe20af28672117311687ba95fef62b",
+      "archive": "raw/build.json.gz",
+      "archiveBytes": 480,
+      "archiveSha256": "1462dac2c8af7d0bdd0f34b9cec8c17238478b82d7a4394ec0a8ac96de58c633"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-checkpoint-final.log",
+      "relativeOriginal": "cleanup-checkpoint-final.log",
+      "bytes": 77,
+      "sha256": "2df4e142c85372309327de8fd398b64ea19d47b90c84f451b89a6780cc241a08",
+      "archive": "raw/cleanup-checkpoint-final.log.gz",
+      "archiveBytes": 84,
+      "archiveSha256": "c187d10defbe2f584486339922507b0738a11bfba58e3cf0bfab751934dc50c8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-checkpoint.json",
+      "relativeOriginal": "cleanup-checkpoint.json",
+      "bytes": 46019,
+      "sha256": "08919895f9282faaa840bab402d9f6dc2cc4d5ac1476670e1edc10d0a6fbc17d",
+      "archive": "raw/cleanup-checkpoint.json.gz",
+      "archiveBytes": 3248,
+      "archiveSha256": "ee1b037a2cae7098cc18153cd6973eb2b8eec917714cd689cae1e65daa53c018"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-checkpoint.log",
+      "relativeOriginal": "cleanup-checkpoint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/cleanup-checkpoint.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-failure-checkpoint.json",
+      "relativeOriginal": "cleanup-failure-checkpoint.json",
+      "bytes": 683,
+      "sha256": "e249af3534a6cf146ade1a890f41c4c237147e339e24b7e1ef2139d86bfe05e4",
+      "archive": "raw/cleanup-failure-checkpoint.json.gz",
+      "archiveBytes": 462,
+      "archiveSha256": "5dcff55e6a55a5b405d11f85b62707793148134ca0da79e49b99d5d96cb28aee"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-owned-checkpoint-first.ps1",
+      "relativeOriginal": "cleanup-owned-checkpoint-first.ps1",
+      "bytes": 9141,
+      "sha256": "84c8b523e849c08e0add35b39802cd22fdf172e3d423f7787651848d708a6e01",
+      "archive": "raw/cleanup-owned-checkpoint-first.ps1.gz",
+      "archiveBytes": 3224,
+      "archiveSha256": "8621ff654a29d81f4bda9816cbe6e300761849ca4da586ad166bcec38a36bf0d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-owned-checkpoint.ps1",
+      "relativeOriginal": "cleanup-owned-checkpoint.ps1",
+      "bytes": 10084,
+      "sha256": "324eef8bc93419b14aac8edf7191c7a3c2e3c3fdede086ecc703faea9cee0822",
+      "archive": "raw/cleanup-owned-checkpoint.ps1.gz",
+      "archiveBytes": 3467,
+      "archiveSha256": "6ca95d141a5b78a741538b8120889b8c17fd7a08adce67723a211fdcdad07aee"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-owned-warm.ps1",
+      "relativeOriginal": "cleanup-owned-warm.ps1",
+      "bytes": 6828,
+      "sha256": "556ad3120467a2ce0e614cb2b67f675b30bb319459f9494e622813dd45119c05",
+      "archive": "raw/cleanup-owned-warm.ps1.gz",
+      "archiveBytes": 2601,
+      "archiveSha256": "3640e5ff966a11f7cf9c71fd1ca423aab8f9dec898cd49a2e817293ea71c6ce9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-reparse-tree-checkpoint.json",
+      "relativeOriginal": "cleanup-reparse-tree-checkpoint.json",
+      "bytes": 7395,
+      "sha256": "cadabeb18aa75adc3ed213ee80238c3a7236d273e6c4b4a046de3a7678e801af",
+      "archive": "raw/cleanup-reparse-tree-checkpoint.json.gz",
+      "archiveBytes": 391,
+      "archiveSha256": "8a457f7a12e037fa1092980c3435c304310d0f2b429c28105ea2ce607a15431d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\cleanup-scope-checkpoint.json",
+      "relativeOriginal": "cleanup-scope-checkpoint.json",
+      "bytes": 5889,
+      "sha256": "5853134670cd1a5e010b5bcf562e99afdab0f6df067cf5cd8e9cb69eb7c86b37",
+      "archive": "raw/cleanup-scope-checkpoint.json.gz",
+      "archiveBytes": 607,
+      "archiveSha256": "6265ef923a621e49faba0f74a6b43da174568efbee915e1eeea700a9e1410594"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\continuation.json",
+      "relativeOriginal": "continuation.json",
+      "bytes": 1751,
+      "sha256": "7ddb6b8a00831bf3231e4d98957f52cd7b5a1c8e1821e084255475ca0b6feb04",
+      "archive": "raw/continuation.json.gz",
+      "archiveBytes": 918,
+      "archiveSha256": "195fdfa601a3dd2931484f804f634a736e28d9393151ee24f3e8ff109f5c9372"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\device.json",
+      "relativeOriginal": "device.json",
+      "bytes": 702,
+      "sha256": "3f4afd5964a4a9cd8bee1248905215f450e7ab1c731602186ad5b23980ecf313",
+      "archive": "raw/device.json.gz",
+      "archiveBytes": 382,
+      "archiveSha256": "8275499dd6706763d7f5d1585b332f5a76f367576392c151764d6c279b098e5d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\first-prime-fixture-check.json",
+      "relativeOriginal": "first-prime-fixture-check.json",
+      "bytes": 1168,
+      "sha256": "f3b9871d62f6fd71a40878fed054a06fff4bdb0865636de855cb258145e5d492",
+      "archive": "raw/first-prime-fixture-check.json.gz",
+      "archiveBytes": 427,
+      "archiveSha256": "39088c42d745fc9204b0b5f90a49c5535dcd678c4254e35777d3e076e610eac1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\implementation-plan.json",
+      "relativeOriginal": "implementation-plan.json",
+      "bytes": 948,
+      "sha256": "f897be08d903a0bab10fb696420b724114d88eb5a1c63c4281898fb4562ca1a4",
+      "archive": "raw/implementation-plan.json.gz",
+      "archiveBytes": 547,
+      "archiveSha256": "a9ecc8f414c5fa289dc1de70760f59809cec1c92217931138d0f2b8f136913ab"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-clippy-checkpoint.log",
+      "relativeOriginal": "native-clippy-checkpoint.log",
+      "bytes": 511,
+      "sha256": "fcba1ad5c50c0b082bc63a6f98fb62699c09caac280da8bd90056ef80c0508fc",
+      "archive": "raw/native-clippy-checkpoint.log.gz",
+      "archiveBytes": 242,
+      "archiveSha256": "fe3aec1bdfd35d334bbbaf3f4dfe9607eba84154435d91de100ff17d1a93c6bb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-clippy-markers.log",
+      "relativeOriginal": "native-clippy-markers.log",
+      "bytes": 149,
+      "sha256": "5a114321b4e5717631e5fc7f7f4cec26e67d5e1335677f4b97d07a4761a26c99",
+      "archive": "raw/native-clippy-markers.log.gz",
+      "archiveBytes": 153,
+      "archiveSha256": "fb5610b880dc8beece03334d5134e2e5779a0596cf3e97c10faf7d88d0f2e386"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-clippy.log",
+      "relativeOriginal": "native-clippy.log",
+      "bytes": 149,
+      "sha256": "e2efeccc8da3ee7eae41aaefac9d5e1f2de0ea46be41964c3dc89d512b091f9c",
+      "archive": "raw/native-clippy.log.gz",
+      "archiveBytes": 153,
+      "archiveSha256": "453f670baa3565649c65fb322863d3dfda78830cce37af7c6885ec912326816b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-rust-checkpoint.log",
+      "relativeOriginal": "native-rust-checkpoint.log",
+      "bytes": 15046,
+      "sha256": "b60878ea65724e41219223f522e5f38e8dbdcf61ff7299123d14eaa93cadceeb",
+      "archive": "raw/native-rust-checkpoint.log.gz",
+      "archiveBytes": 2184,
+      "archiveSha256": "74b9ccf45382c4106b05a73741bae51be00aea7d67103ebe4873eaafebfe6266"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-rust-final.log",
+      "relativeOriginal": "native-rust-final.log",
+      "bytes": 14929,
+      "sha256": "19abb26e1d5cf7d3c0ecef763ac10452f77b73975f7afee4dbdff932a738a169",
+      "archive": "raw/native-rust-final.log.gz",
+      "archiveBytes": 2149,
+      "archiveSha256": "4e4c5e4b7ad8118543d36f55466412d628ae255096d157baa289b507fdcb1ecd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-rust-first.log",
+      "relativeOriginal": "native-rust-first.log",
+      "bytes": 13914,
+      "sha256": "c602de7c809fd84646710a2c06ed8326063b5f1567af67169047c60997606600",
+      "archive": "raw/native-rust-first.log.gz",
+      "archiveBytes": 2079,
+      "archiveSha256": "840c9c7c5ca929bca53daebbb6c5b74ba7a6404e82435dc535ff313572f36cbd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\native-rust-markers.log",
+      "relativeOriginal": "native-rust-markers.log",
+      "bytes": 14929,
+      "sha256": "bbff5f89b0ce0919b2b49113050e2676b02254198d8a728f982066e53ed7d9d7",
+      "archive": "raw/native-rust-markers.log.gz",
+      "archiveBytes": 2149,
+      "archiveSha256": "4d0efbc8341a2ce1dfcdcdb9003b2663c4c215db7afdbe892813e92636c4c003"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\node-checkpoint-final.log",
+      "relativeOriginal": "node-checkpoint-final.log",
+      "bytes": 17019,
+      "sha256": "7b6646c2471ec0d3e54e8f57620353a6417ae080033ec24f0fcc73f196922eb0",
+      "archive": "raw/node-checkpoint-final.log.gz",
+      "archiveBytes": 7221,
+      "archiveSha256": "b044b6c7a5d5986119767b1fe8a97aa37b8daea6fc3bf3555d0226f0436d4eb9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\node-checkpoint.log",
+      "relativeOriginal": "node-checkpoint.log",
+      "bytes": 17023,
+      "sha256": "6b7a98adc7410e5898216e8c320d59960ceae453bbb48a2a2c21a65e7f06c092",
+      "archive": "raw/node-checkpoint.log.gz",
+      "archiveBytes": 7225,
+      "archiveSha256": "71ead62c0a39ca63c9b1434006be91c7d28e205f66f87ffafceb9cedde07ed3b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\node-default-entry.log",
+      "relativeOriginal": "node-default-entry.log",
+      "bytes": 16939,
+      "sha256": "20bfd42262976e440ab3399accdd1bf55e4c58721ba15133f906927763e281d4",
+      "archive": "raw/node-default-entry.log.gz",
+      "archiveBytes": 7208,
+      "archiveSha256": "aa29b642e71953201b5bf84027d7057230036fa1d0b4aea01a3c9fdc723b341f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\ocr-preview-feasibility.json",
+      "relativeOriginal": "ocr-preview-feasibility.json",
+      "bytes": 2568,
+      "sha256": "ecc882cb2518a51fddaaa37312ca0ef98ff283620df4240232cb1c0575c63eb5",
+      "archive": "raw/ocr-preview-feasibility.json.gz",
+      "archiveBytes": 1109,
+      "archiveSha256": "53581d389d5a70163d1763508c0595bde385e20d28b558fe051380f8dc1920fa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\post-cleanup-integrity-checkpoint.json",
+      "relativeOriginal": "post-cleanup-integrity-checkpoint.json",
+      "bytes": 13398,
+      "sha256": "32ea8eb700c1c13523d2a786365572c4adc7f183478162e21eb99b5e1a35de20",
+      "archive": "raw/post-cleanup-integrity-checkpoint.json.gz",
+      "archiveBytes": 2517,
+      "archiveSha256": "9dc4d90201998ea54bcd451d79315a6f87434c85c180bb2d5770ecc0739d4ce8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\post-integrity-auxiliary-failure.json",
+      "relativeOriginal": "post-integrity-auxiliary-failure.json",
+      "bytes": 702,
+      "sha256": "73a38e3432bfd2ad55efa98e4bbd0c315b72e55b54a4e085c0423d084f96f9e2",
+      "archive": "raw/post-integrity-auxiliary-failure.json.gz",
+      "archiveBytes": 420,
+      "archiveSha256": "61259169a13105429f13d9e9dfde7357262249988b0d50a4191d2c866cdd59e0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\prebuild-checkpoint-integrity.json",
+      "relativeOriginal": "prebuild-checkpoint-integrity.json",
+      "bytes": 567,
+      "sha256": "e1fd77f9e15a794d3e1333b946a71d43645315cd302164aba3802f254e724cb0",
+      "archive": "raw/prebuild-checkpoint-integrity.json.gz",
+      "archiveBytes": 252,
+      "archiveSha256": "80b2901e87a4c30557fe914512219b392a7c81f99d3268bdbf141d8b433efa1d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\prebuild-integrity.json",
+      "relativeOriginal": "prebuild-integrity.json",
+      "bytes": 691,
+      "sha256": "9e9139aad7ed711b9babe4bebdf48b8797b91efa5eda90f8dea7e1fc6f34931c",
+      "archive": "raw/prebuild-integrity.json.gz",
+      "archiveBytes": 359,
+      "archiveSha256": "9dfd25d66699a3363d68e2ba87eb0097ca07413d77cf8ba3c9b7025b0aec8d28"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\prerun-exit-checkpoint.json",
+      "relativeOriginal": "prerun-exit-checkpoint.json",
+      "bytes": 310,
+      "sha256": "6b5ad769acbb05e9a620e88e310af193438b613a21f9363c955889f852df67ac",
+      "archive": "raw/prerun-exit-checkpoint.json.gz",
+      "archiveBytes": 233,
+      "archiveSha256": "0c8f62ba32a936bd48de4451d2a2e6773608f6ab4dcee61b2624e9efb1cfc6c2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\release-build-checkpoint.log",
+      "relativeOriginal": "release-build-checkpoint.log",
+      "bytes": 1239,
+      "sha256": "691d64b69e96439dce02368c69f386a1fdc1a7037c7f901a698ed16c71938d2c",
+      "archive": "raw/release-build-checkpoint.log.gz",
+      "archiveBytes": 365,
+      "archiveSha256": "55c1dadf840f6e723a96c085213575b4cec8adeb7381c2e4a42614635f8794dd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\release-build-markers.log",
+      "relativeOriginal": "release-build-markers.log",
+      "bytes": 1239,
+      "sha256": "3f338719bce2d1d473ba59465f7752531da2f025cec0ce734226c9f50d2c427f",
+      "archive": "raw/release-build-markers.log.gz",
+      "archiveBytes": 364,
+      "archiveSha256": "5b2f147714049f430ab1d3b4674293b8019f94f33fa36ed5dd2eff5414974e9a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\release-build.log",
+      "relativeOriginal": "release-build.log",
+      "bytes": 1239,
+      "sha256": "5aa50b1688d4f689e0599eb83fdc804afaa113a1d379b505586b9ffecc8c6f5c",
+      "archive": "raw/release-build.log.gz",
+      "archiveBytes": 364,
+      "archiveSha256": "724d6cce6cf00751b44858f880563a2216adc0e61f94e59be7f9de18d14efac4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\release-command-checkpoint.json",
+      "relativeOriginal": "release-command-checkpoint.json",
+      "bytes": 232,
+      "sha256": "f0c02f507ed2762b7049f422502abf46feded3f8575822e88221b971e26e29d8",
+      "archive": "raw/release-command-checkpoint.json.gz",
+      "archiveBytes": 189,
+      "archiveSha256": "2ed0ed99767417d890a46575eef98af4026e76cf3e94092781308612f97d86e6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\resource-inventory-checkpoint.json",
+      "relativeOriginal": "resource-inventory-checkpoint.json",
+      "bytes": 39223,
+      "sha256": "17f38fef97b4145e9d5dca2678ca7b9c7f4531b578143c681b6d53d9df41cf1b",
+      "archive": "raw/resource-inventory-checkpoint.json.gz",
+      "archiveBytes": 6051,
+      "archiveSha256": "df9471c3908f82790af06594a10a074fb0bebd0ae1fb8575defc003b0d03d58c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\resource-inventory-markers.json",
+      "relativeOriginal": "resource-inventory-markers.json",
+      "bytes": 38189,
+      "sha256": "5d35c3489b5675cb3b06845cd75ef86e6217a47b8afe8e86d7226f1df7186c99",
+      "archive": "raw/resource-inventory-markers.json.gz",
+      "archiveBytes": 6048,
+      "archiveSha256": "0450d3d15e8c98e53e92fc4b6611092ddc53bedac76e5faa35fe55f3cd35f929"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\resource-inventory.json",
+      "relativeOriginal": "resource-inventory.json",
+      "bytes": 37719,
+      "sha256": "86a0176afee513f132167d545b63d5ca7235493d356fc27258db04a81ddf3e4a",
+      "archive": "raw/resource-inventory.json.gz",
+      "archiveBytes": 6047,
+      "archiveSha256": "5e25055c75146afa02904ed3aa523d9578200359101a076c71e51e8684f419cd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\runtime-plan-checkpoint.json",
+      "relativeOriginal": "runtime-plan-checkpoint.json",
+      "bytes": 877,
+      "sha256": "dd33bcee8555c0453545b9a2885b8bf2726a26a058199ced5653b4ba5ffd2b58",
+      "archive": "raw/runtime-plan-checkpoint.json.gz",
+      "archiveBytes": 329,
+      "archiveSha256": "6a378110de3e8098b047af7544f556bd06d6c101d61eadcc192c26bbce47c0f7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\report.json",
+      "relativeOriginal": "samples100/report.json",
+      "bytes": 38128,
+      "sha256": "79436654d3a02d6a9a3c9e261e12550468afe8f6fefe68f1a02d8c211a4346da",
+      "archive": "raw/samples100/report.json.gz",
+      "archiveBytes": 5818,
+      "archiveSha256": "5f20cdf39d05e96c5729abe94fce93b785d8a2ec898cbfddc30b544f247d73f4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\native-perf-consumed.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-consumed.json",
+      "bytes": 258,
+      "sha256": "e04317cfbbb4df8afc9cf3a1b86f63307238667d44ca765fff46a8bc6669edb3",
+      "archive": "raw/samples100/sample-001/native-perf-consumed.json.gz",
+      "archiveBytes": 217,
+      "archiveSha256": "be5c81b0e83d66ef4e92f76d138115035c40266c0645c97dff72d34e4a61c820"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\native-perf-owned.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-owned.json",
+      "bytes": 3307,
+      "sha256": "d5bdad7d517fa058da50de61bdc194a993f5627b851831eb0e5ed74f06018e2f",
+      "archive": "raw/samples100/sample-001/native-perf-owned.json.gz",
+      "archiveBytes": 1079,
+      "archiveSha256": "a09fd5fcb435a01f6388ec65aaf6796e7e2f3f864a3d290bd98275d432c433cc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1650,
+      "sha256": "e372d1a12b60f6c052dfff1a33214986de63dabe46149e5eeb50a643c39004d0",
+      "archive": "raw/samples100/sample-001/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 581,
+      "archiveSha256": "92740252f153af51f2eef3dcdd55845789d1e4ad461bb2b09d50fb8d942eef50"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 569,
+      "sha256": "4dd39dd0ae50466b0adfa02d918abc2bc37e70da199ad1f56b31193ff829c981",
+      "archive": "raw/samples100/sample-001/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 391,
+      "archiveSha256": "9e1b71c5e051a8a6a0582635fde11b55a02adff584d1fb010aa8f09ed9b460cb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 351,
+      "sha256": "32efbeedd8acc09ab34d823b1a52ca107806cc732213c6d92d90d30a3cd3df58",
+      "archive": "raw/samples100/sample-001/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 274,
+      "archiveSha256": "1edd1b8189fb757db7cc04db77f734643e86942af9c4e20d9f203d061adc5b7c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7062,
+      "sha256": "16a2dccafcf5c686da0a237e95b72ba69168d821c89d9d99f6d4f4a8a98dfc3b",
+      "archive": "raw/samples100/sample-001/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1568,
+      "archiveSha256": "28c156e4f94d9be9d1563160ca9a141b07451f51622f49d91edb5bd9ea6cc6a8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "6e8a31cbfe1385ca19051819f76ba964822fc6e1535413596380b8193177b5e6",
+      "archive": "raw/samples100/sample-001/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 406,
+      "archiveSha256": "6f66e0fd1f9faa317ff8f419fcc4f2dd9664b6a04b9b086860d522aee75f1556"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100\\sample-001.json",
+      "relativeOriginal": "samples100/sample-001.json",
+      "bytes": 30120,
+      "sha256": "0ea8ad182bf1aa62c8de18318eb40d0d76da8e2d01d1ad27c3a824daca863798",
+      "archive": "raw/samples100/sample-001.json.gz",
+      "archiveBytes": 4430,
+      "archiveSha256": "041c83cd00b39d7791f46bcbdac51699770680d7e204ea02e0ac15b2c32636c1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\report.json",
+      "relativeOriginal": "samples100-checkpoint/report.json",
+      "bytes": 338427,
+      "sha256": "b610273d31eaf4b22ffb0f0bc008539703f776a6395c9f2f100a59507a28bd43",
+      "archive": "raw/samples100-checkpoint/report.json.gz",
+      "archiveBytes": 29933,
+      "archiveSha256": "db80e16187bc05785de3655b1ed0f1c6552b56e9ec7d61a5302ba7aa3081413a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\native-perf-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/native-perf-consumed.json",
+      "bytes": 269,
+      "sha256": "260a19dbe88d6fd6a64414cece2be93b7e59d0f5edab21c81f4f4c4d429a0a67",
+      "archive": "raw/samples100-checkpoint/sample-001/native-perf-consumed.json.gz",
+      "archiveBytes": 222,
+      "archiveSha256": "801986c8c6a4bc08ade721a0d4265f96790b0ce42651916268e9581f76b56103"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\native-perf-owned.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/native-perf-owned.json",
+      "bytes": 3362,
+      "sha256": "c23320ae8976e42f9c34e1f9734a09e36f8fad94727ba06fa44c935b6a236835",
+      "archive": "raw/samples100-checkpoint/sample-001/native-perf-owned.json.gz",
+      "archiveBytes": 1084,
+      "archiveSha256": "8229d001079feec9a55f19a0b65bbceee8ba18d7937696aedd20bfc348a677bb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/native-perf-startup-restart-consumed.json",
+      "bytes": 694,
+      "sha256": "2f635e0d00cc7fe2fa5af0445877132d92ca1a2eeaaae569455f7b3ef8c482b7",
+      "archive": "raw/samples100-checkpoint/sample-001/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 405,
+      "archiveSha256": "66c64502595dec5412be97cbd777fa92cab2b92edf7f0d65601e90d211fdecff"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/native-perf-startup-restart-ticket.json",
+      "bytes": 2695,
+      "sha256": "5eaa47a66f76e2e8272aa2a6466f53bdbe0c1d343efd966dcda2e7dca30a47e1",
+      "archive": "raw/samples100-checkpoint/sample-001/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 860,
+      "archiveSha256": "6e9b52a18ce91f2c10491cb4b60e4670f6934871eaf1789476953da590cd61c3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1753,
+      "sha256": "70583547b8a5d7a5c45c5067d80fb924dd47c872f02710bda89f6222add7c65f",
+      "archive": "raw/samples100-checkpoint/sample-001/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 642,
+      "archiveSha256": "615599d258c75238be84a74cc608b2a6710e3d4178851c23f536283d8546cced"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "e0c021453442aec8b08a3354ace177ffd70da27884b2839c27795b5391b9da9a",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 401,
+      "archiveSha256": "3eb1ab90646a4dbf20280f31279a00dbc198b9657e5876eed2d38d8926682f23"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "30fcee80ea4186c0f5a0284fe6eed7cdbe9d93427820879597cdf6f074242872",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 281,
+      "archiveSha256": "e9fb6d881522555e70b7c06c6186dfc2cbfd903682f74ef2fd8e684ae66c2c8b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6976,
+      "sha256": "fb8fbf893a384e9cfa3ec7921771eaabc4c86066bd6f0bfb9f640d2ea7f42af3",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1575,
+      "archiveSha256": "cc10f49879342d2ffc05abf739b6a46186e34e864f61b01eeba9b86f364e4ca3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 805,
+      "sha256": "a46a8dd0bc5b758f287556d11d0907ff2423e212dd9e6a6a1fd08a33d595d510",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 392,
+      "archiveSha256": "ce860b00ae94898ad6857ec2f81aab3b9dd67e87ac6b2481a5ebeef45b2c6d4d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "11b64b306a019d694ba55ee3323ff676b49d6b217c4937be6c9d49d99d61f2cc",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 400,
+      "archiveSha256": "b02d054de3c008dfdb5274dd13e999bd9947156ab84bc84d6d43a793cfb53135"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "60cec85751277d106f10bda3a434185a8a6b46343c12fedbe1288234a193aff2",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 281,
+      "archiveSha256": "f714d8c5e0fc84815cec5f2dce0a92a303926c3252fd75796679d6fed67085c5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6138,
+      "sha256": "aced72ed7f7e2058a6f10c684a9ce70c3f8c3a7b2b36c933c195fbe0461d09ae",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1497,
+      "archiveSha256": "413bea4e67684925a6e8941631e18dcc578b173d6e1dd46d6f25d1ae759acc49"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 691,
+      "sha256": "c97b953a4ab2dd8352532d5eadd19002eb7f0f75c74f9f8e57a9851ae8f77076",
+      "archive": "raw/samples100-checkpoint/sample-001/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 351,
+      "archiveSha256": "a43f8ef6d516da0437aa3f292bf514ae15296a1d4e9ef779e7f3dbe44b8069ec"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-001.json",
+      "relativeOriginal": "samples100-checkpoint/sample-001.json",
+      "bytes": 59195,
+      "sha256": "8c9b60078d1bed3f02066099e60cf06e46a3f9d1e3bb34dab2a5e56e44e04ea6",
+      "archive": "raw/samples100-checkpoint/sample-001.json.gz",
+      "archiveBytes": 6835,
+      "archiveSha256": "4a51e20c81359d634bf7890ebccd999b3c34cafd227d0aa30d244d0f72c47b44"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\native-perf-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/native-perf-consumed.json",
+      "bytes": 269,
+      "sha256": "cf2c62087603b00267e0a0be522827fab621e8cb55558e6a7f2ec5404d707748",
+      "archive": "raw/samples100-checkpoint/sample-002/native-perf-consumed.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "1431a7edcb86ae7363d6595f4c8ef5e82f1d51cda1c3c590b7a86278265c8c5a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\native-perf-owned.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/native-perf-owned.json",
+      "bytes": 3362,
+      "sha256": "40c5b6710c2260c631bf5395114dda174a0c347fe7e879544661f5c17f1effc6",
+      "archive": "raw/samples100-checkpoint/sample-002/native-perf-owned.json.gz",
+      "archiveBytes": 1086,
+      "archiveSha256": "5a8979852d0862c00ff437742c37e370b4c00438b59ea3bd7558776d0f727817"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/native-perf-startup-restart-consumed.json",
+      "bytes": 695,
+      "sha256": "9a2e61c4a6a265bd0acd1ad7d44dd41b4d5ba23a5cca85c668a5d7930cedfa99",
+      "archive": "raw/samples100-checkpoint/sample-002/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "11b5da51c0def2358584cdb9c7c740aad395616f1356670a283ab8174c722ce2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/native-perf-startup-restart-ticket.json",
+      "bytes": 2695,
+      "sha256": "b01c32df3599c3e4e9a21d19b93cbf6bef7583a78da427e4cfe2d69ff14dd845",
+      "archive": "raw/samples100-checkpoint/sample-002/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 859,
+      "archiveSha256": "c764284c28c86f82249cae295a744f86cc418f45f0675dd22ef52ca046275023"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/native-perf-startup-stopped.json",
+      "bytes": 1752,
+      "sha256": "7b5fed6739d48930ce294b705442aa16ad869f9e795553e7df79eeff0f4671f1",
+      "archive": "raw/samples100-checkpoint/sample-002/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 641,
+      "archiveSha256": "ab31c3fb0d1d24a284175b143036954f8012999c238c226977dd5d617f352548"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "6d0bb892b5697e0b8b678fca13a15e196e68a1c582c9d415aca124e6f6c61b38",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 400,
+      "archiveSha256": "d9fc406eafa0114cac1e2698943a9b808d295fab08ecd4ead1309c7fd723e16b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "2cef50f9f4a039a342d06b65d964f4bff91d7ddce2b1d76e5cd3d576af17d01d",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 282,
+      "archiveSha256": "7747194eac56cacac5351365d1a8dfb075986291a3441fce252fd8246d47dfbe"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7053,
+      "sha256": "c3d66126f43587a5e689cc9a01a155f7c2a5461122cc33c1932e6bfa4a18c37b",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1597,
+      "archiveSha256": "7d04d0bfe1db0156e65fbf179de36207e1d05cb3e2481ea585d105a50cbb970d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 827,
+      "sha256": "63488130ed61645c205be7ad218743e0042f2cf0a6e949f3aecd0a74406960da",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "d3d2c3a0eede7e74c783ff2c45f52c19181e665baa89f525d60e80f9f56e03f8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "fd6a2a36a45ed72f2db0d9be8d3e7de4b88c8d2b6c8a2f04f33e228b5a955182",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 400,
+      "archiveSha256": "00fa0a561a6572bdb6521d3f6bf95b3736fee3808cbad1760efebac5a8081c23"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "54107f905bc4baccdb0d7361eb59343779a35281e668c7de4e833ad6eb95d66a",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 279,
+      "archiveSha256": "5227209c72aa2bf5db3f4b6b115ddb783767742edb2b1c7eb4c7a05ea8483e73"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6263,
+      "sha256": "3301a9b8211632bd939ee85aaaf7908341b1e9a944ff2e0a7294af4e67f29be5",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1514,
+      "archiveSha256": "ca3df76783e54a5d5f93285296861faec3989b6dedbaff104ea23bae4c3ebca7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 689,
+      "sha256": "14ddd91241ae7ab2715f3ee9b54a95202d72c251abe6a9d925c5f66df7fef969",
+      "archive": "raw/samples100-checkpoint/sample-002/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 351,
+      "archiveSha256": "413c75acc6c360f4e5b2175bd01e1278aa6ba8b61245fc2317538da747050310"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-002.json",
+      "relativeOriginal": "samples100-checkpoint/sample-002.json",
+      "bytes": 59460,
+      "sha256": "54826a0035d50aa617329843a94a1fb56448634d4c993865ab167e66b55cfb65",
+      "archive": "raw/samples100-checkpoint/sample-002.json.gz",
+      "archiveBytes": 6857,
+      "archiveSha256": "de0e206e5a184ac602059cc4e26d8d7f5bd1595570c34a52382f1d7b061a0380"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\native-perf-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/native-perf-consumed.json",
+      "bytes": 268,
+      "sha256": "cbce71d5c443531313b623846949a35ca8007bb6203c2d34ca1549e4970a1c65",
+      "archive": "raw/samples100-checkpoint/sample-003/native-perf-consumed.json.gz",
+      "archiveBytes": 222,
+      "archiveSha256": "4875bf8405be2ca582c60cfc8969caad2fe71db8b6e139c101f3b4f89e534264"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\native-perf-owned.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/native-perf-owned.json",
+      "bytes": 3362,
+      "sha256": "1f6a286e6ee55ddd5187118cb10523994fcba93393030b6b09c8fdd8b64305b2",
+      "archive": "raw/samples100-checkpoint/sample-003/native-perf-owned.json.gz",
+      "archiveBytes": 1085,
+      "archiveSha256": "2498d9fb6271cd26a85e092ab98d0d5f54b9cd81e7b13a91e8bf66b342d5acf0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/native-perf-startup-restart-consumed.json",
+      "bytes": 694,
+      "sha256": "b7c450d1ec76eae79fa94ec3ea385ddb3dfbd81a22ee0dfd36fd3d139f5641c5",
+      "archive": "raw/samples100-checkpoint/sample-003/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 406,
+      "archiveSha256": "6649af2c4b2a50bdf3b5e370a72d5e77d1905869c5136da7fa9019504693885e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/native-perf-startup-restart-ticket.json",
+      "bytes": 2694,
+      "sha256": "03630d3af418bf4c513c5e82e949d1659c0dcbc7c73ae290a520b626337fef30",
+      "archive": "raw/samples100-checkpoint/sample-003/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 861,
+      "archiveSha256": "3dd24e52f8d17410b7f78fd0caa5d1c7e726a4dc6d278552b7bfcfe3df58c556"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/native-perf-startup-stopped.json",
+      "bytes": 1752,
+      "sha256": "d7ba85c69cc052fb01046c10785fbd8e1c7601470c730ef165dcdf50962078b4",
+      "archive": "raw/samples100-checkpoint/sample-003/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 644,
+      "archiveSha256": "4ff5ca4f5b3a9619e045613bea3d3df082a3661d9dd8417fd1a5b5913c4368ad"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 579,
+      "sha256": "f59260ed8f65f9230abfc81e2ca5870bac8d62af9a1fe84c9bddf77eea56c94e",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 399,
+      "archiveSha256": "278ee34d19758c9f1b06dd3f1218f3c5d289aebf004ac29e9119f59eae774ba8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 361,
+      "sha256": "2c5cc5dbad61501485b17f9ae0e476fa8fb92b868e2c773a37f8ad12f0438461",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 280,
+      "archiveSha256": "517f91562f623471ca37b8bb892a89e8e2ce032dabf4c8d836a14c95f3ece559"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6963,
+      "sha256": "22ae0cbf0c535384159ec28bca29d8b705f5f9da965060fe603618ff10ee4acb",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1583,
+      "archiveSha256": "4f036017beafe0bb7be32ad4a58f14d59819a6686b1126a8baf97f6d84717eb4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 804,
+      "sha256": "f52ce0e16c7cac02c1838f7d277354f72acf66b97773a2c46e63270bb73a28ab",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 392,
+      "archiveSha256": "11d902d2bf63712fc010261d8ad211b68e56a88b6977bd3d30140ac8d1764b47"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 578,
+      "sha256": "60ff0188eeb3eea9c2557f3d1e811e6160d4c3614605f2ebd1c7e07b8a8f7453",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 399,
+      "archiveSha256": "890c92f8ed852ca806fdd7dbbdd4507e219970f215de26fa4436523b8b44f614"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 361,
+      "sha256": "2c6f3ec79712fa90140d5905ef10a91c74f277b817776cf85cdf859697b14089",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 279,
+      "archiveSha256": "0ff4b5e8519a5ef30ef117f2450090e5cee799230fc13824c87f74527c54ca28"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6145,
+      "sha256": "9048b9bc97f951f7b17f739b0e06b4bf73aae73949589ee753d431198c2570c5",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1494,
+      "archiveSha256": "361008177a84e83a2ebefa9fbd5c39cd3368bf183b7266bbb0485ca27f0e4690"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "a06bf7c3a7e45033dc0691241b7c98b6b10970f527625065c2bba002faaffad1",
+      "archive": "raw/samples100-checkpoint/sample-003/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 361,
+      "archiveSha256": "4ba518ff00f04003d73352b0a0a9705d1599573e40a70aeaf228f54c6671ac5a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-003.json",
+      "relativeOriginal": "samples100-checkpoint/sample-003.json",
+      "bytes": 59172,
+      "sha256": "95888eb1a3b92ba2ab12722348f516521eff1e894e92390fe48d37c448754b93",
+      "archive": "raw/samples100-checkpoint/sample-003.json.gz",
+      "archiveBytes": 6817,
+      "archiveSha256": "2f853222b3b3b5764ec8bd837238dfbc852730cf360ee9858f85447fc16cbd67"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\native-perf-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/native-perf-consumed.json",
+      "bytes": 269,
+      "sha256": "47c5fd96897764046571463d4820042e6e79bc385c4d078ebae1e6684737c758",
+      "archive": "raw/samples100-checkpoint/sample-004/native-perf-consumed.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "2849fbda47b80acb8ef032d9e0575757ce311bc6553b844b4da1476c238f988d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\native-perf-owned.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/native-perf-owned.json",
+      "bytes": 3362,
+      "sha256": "179d718b31bf1b117316bc8860a387e5af1dbf691a2956dd73e7d937761cc20f",
+      "archive": "raw/samples100-checkpoint/sample-004/native-perf-owned.json.gz",
+      "archiveBytes": 1084,
+      "archiveSha256": "cf818e192ca2dd4ac37c2b052413cf9a231aa2560cb53b9a43c016f4e2a0ea60"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/native-perf-startup-restart-consumed.json",
+      "bytes": 695,
+      "sha256": "78a8f7d398a3790889aa17c0b7d8e1c7caa5d1d609ea8f754e7e3406320b0310",
+      "archive": "raw/samples100-checkpoint/sample-004/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "93baf9a0f8ddcfd77a08d59a891367940067ce6b07a22ca0b49cd6486b1c4c56"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/native-perf-startup-restart-ticket.json",
+      "bytes": 2695,
+      "sha256": "4726fe765ddee8f1dad71da6a4a90e9430e1b77be3577d36af5d689424c6ef50",
+      "archive": "raw/samples100-checkpoint/sample-004/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 860,
+      "archiveSha256": "c8bf4c84b701558f7d88f1f1669f63f5277b957924a469ba40eddc9f6566c56b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/native-perf-startup-stopped.json",
+      "bytes": 1754,
+      "sha256": "fd118d6cda8a6edeb187b81c462faffbd14a6c6df6e83b5dbcd78fbfb2d74f1a",
+      "archive": "raw/samples100-checkpoint/sample-004/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 641,
+      "archiveSha256": "4ad1954da4f93fa1795c377651bb87f92e848c62f58e5b06ae9555cd1cbb2dab"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "2a0f23f6784caeb2c667eff622c69f545d7aad8b936b0f7288cf0c48286f6be3",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 400,
+      "archiveSha256": "8d4fb6f5996365150a7eb5efe59e642a39895369c7d6dd7b8d2bd2b18ef97788"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "19d5093d3b695029ace925627b93966b8108d41c9e3ab2aa579535fab65de36e",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 281,
+      "archiveSha256": "8d3e035993e313e6ada86eb6f609c6af5a99c7cfc43a5708002c2868cf1c06c3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6998,
+      "sha256": "7fc667884f56b3f461460b3a165b2bfdabfe0fcedca1f26edc974cf4ad1b4dc1",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1581,
+      "archiveSha256": "06f11823b4b5d2ebf7b1bb4a5c400da920084728c75b8c0dd29581e9ed736159"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 806,
+      "sha256": "bebf60b067836273d8d8ea2d4a643cf8895ef31c8631049cab09de575b906c01",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 392,
+      "archiveSha256": "9394639c1a9cb2a79b372fcc5576ac6395b0f06dcd7faf7f23956db73e6eff8a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "afaa5e1c01d16b97193537dda235d72148f3cdf2847c82cf4b3d091345a6c589",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 398,
+      "archiveSha256": "b86e57e80677e1ab85c57fd5f52bf32ee68fc31eda412671e16babb351c31c47"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "7da33a4b985bdaabc29e7fca5b5f91713e38940d7aaf745b085a56cbab360579",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 281,
+      "archiveSha256": "84c748432cd82525f9d80718d0f8e952bff880ea074d60dce34ed0cecacfa4a4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6285,
+      "sha256": "bccb4b5746d0a5b0dab45de9fd7f144563fbaabf57bfff4c4c2cf865e400b44b",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1506,
+      "archiveSha256": "eb67fdca023a02edfa2198a49faa9050869699fd694a2ef33e99485271644811"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "3af608395ba8d2c8b50659ebac6c8a665b6a944501985c09413aa7eeacb78ca6",
+      "archive": "raw/samples100-checkpoint/sample-004/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 363,
+      "archiveSha256": "d17e378ed9ae74660902b87ac657f3d933a5e0450bb550471a4da94092bc3d25"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-004.json",
+      "relativeOriginal": "samples100-checkpoint/sample-004.json",
+      "bytes": 59415,
+      "sha256": "f54e4149a09b9a25d1434aa843a3a609b21f415744b9b06413373f74462f3f38",
+      "archive": "raw/samples100-checkpoint/sample-004.json.gz",
+      "archiveBytes": 6848,
+      "archiveSha256": "0fa26150115a31772f1069d30a3f5cd658a176a6340dc648ae0d0c42ea433eef"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\native-perf-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/native-perf-consumed.json",
+      "bytes": 269,
+      "sha256": "e0fb61f3175d355613ad2afe45c4f42aa1733623422258eec397d3513a1b964d",
+      "archive": "raw/samples100-checkpoint/sample-005/native-perf-consumed.json.gz",
+      "archiveBytes": 221,
+      "archiveSha256": "7f61eab3498d5062671c111b0e966b9ce612b01c5254b7d9319401e9d66a2ee3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\native-perf-owned.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/native-perf-owned.json",
+      "bytes": 3362,
+      "sha256": "1d02d737573115936679acd29927a63b278eaac2d9a0bbe0e8073f139f2e6e80",
+      "archive": "raw/samples100-checkpoint/sample-005/native-perf-owned.json.gz",
+      "archiveBytes": 1083,
+      "archiveSha256": "6c66bdb640eba7bed8284b4e44655d1f4f8d6a1cf11fe68d9b9bec63e9e092bd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/native-perf-startup-restart-consumed.json",
+      "bytes": 695,
+      "sha256": "e9a22b07262a09957623ee522bce139ffb8c3c483a9033b9dbdd8d8cc9106ff4",
+      "archive": "raw/samples100-checkpoint/sample-005/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 406,
+      "archiveSha256": "c05f1f14f09a523ec40c139eb37f2566b093b94a016fb63aaf0f41d74807540e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/native-perf-startup-restart-ticket.json",
+      "bytes": 2694,
+      "sha256": "c7c50d3d131460d42d5265aa960ce0f06e44175d40f37f9141d8488c6b95a80f",
+      "archive": "raw/samples100-checkpoint/sample-005/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 857,
+      "archiveSha256": "5a8cd713ecfe5862699bac44602d0cde8ff60d432a37a8c5ded09e721bc96f68"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/native-perf-startup-stopped.json",
+      "bytes": 1752,
+      "sha256": "3900dca12b84f871df96d4eb861ade2ec6188d6909c95cae83f66aba1d95bf48",
+      "archive": "raw/samples100-checkpoint/sample-005/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 636,
+      "archiveSha256": "4a9367cb241f802bf6d153670e0206f11666b07b71cdf25607f04d08a1233e1f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "78be6acce078d9e9394f01b4d31de3da537d3318e51c4e9a046044b01323d252",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 401,
+      "archiveSha256": "6c2c8a50571ac2e8c2781775b0bf5d6a5cb9d116aa8e3c2136a700835ed9e631"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "001af0314f4efd274f8278eac3ba716685469542810a3fdb22defd869ef3c6cc",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 280,
+      "archiveSha256": "ec008a66c5d95ade719764645b126061e32930ec1ec051142905dd02d3b15ba2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7053,
+      "sha256": "81c45f23bbe914c0ad34779f4a4fbbf5f602ac932e49718d6c36742e775e5af0",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1594,
+      "archiveSha256": "9696ba284bc3a580a9c2a84e935ec10d5745924e4101026eec70cac38e636b2b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "130a5923fbf8403d8932e8b5dc1827214b513e9d2492185642ea658990f12240",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 406,
+      "archiveSha256": "3c664d2f518cc2e6ec57d80f721f1f40739178c412df9cf3e952979aee6cc328"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "5c45c250a3b8933abc6f9bab83280410b4ffeec635ffdedaebd7626e34809f57",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 400,
+      "archiveSha256": "07d4b6df55aae4bdf00b75fa44ce595b09aee84a3c855cd87346325f4093a828"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "f59d5abed57a03d984ba2821d89f7b1c53940239d223d8f83db7d2bcff577528",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 280,
+      "archiveSha256": "28477f2928074611d77d6b45858c2a9c9905426937eefc65015d402053abe382"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6272,
+      "sha256": "1348acb9635ffd4bed05036dbcb6b7c25453264799ead8fdc6130b9bbee0100b",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1523,
+      "archiveSha256": "c5d57d81d759c1e20e03b55490f5aaf7ac8973bbaab6fa34774adfafbb33dc73"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 713,
+      "sha256": "55404f9d9ce8d76854a9d81a7d8cdbfda4f5ec6d84e1a1d7a704492f834325b6",
+      "archive": "raw/samples100-checkpoint/sample-005/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 366,
+      "archiveSha256": "4870d20ddc2ad35cfcc81057c5377e860a1d7c8a778e6bf33eecee32063dd7eb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint\\sample-005.json",
+      "relativeOriginal": "samples100-checkpoint/sample-005.json",
+      "bytes": 59444,
+      "sha256": "9a959df6d1189a5b6f3fb9e14778dd849430f9e6d8e433f343d05c064c97d7ec",
+      "archive": "raw/samples100-checkpoint/sample-005.json.gz",
+      "archiveBytes": 6881,
+      "archiveSha256": "e0c303f20792ba070ad94a90a8b32764860ac4cf81df581e7137b442df793b31"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-checkpoint.log",
+      "relativeOriginal": "samples100-checkpoint.log",
+      "bytes": 425,
+      "sha256": "b9fd2f567e18ac3e41d61d8f099da66b9f2bfaa4f502d1da9401537250d57cd4",
+      "archive": "raw/samples100-checkpoint.log.gz",
+      "archiveBytes": 207,
+      "archiveSha256": "bf69e448f2ef754e8120e4975284b500b84ce5594cbe6db8dfc3fbfaf0ed1d9f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100-markers.log",
+      "relativeOriginal": "samples100-markers.log",
+      "bytes": 97,
+      "sha256": "b6017dd215527cceaddee11ac5bb94d4b7c9b6b54eb01410a4acc4b0405d5798",
+      "archive": "raw/samples100-markers.log.gz",
+      "archiveBytes": 106,
+      "archiveSha256": "ade94c62966035f321033085c7a287aa433d511ea551e400cb5aaf1ad5615ac4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples100.log",
+      "relativeOriginal": "samples100.log",
+      "bytes": 169,
+      "sha256": "64c733bbfcaafe6db6148b1ccc366f16eb8b416743d12f593fc36c7747c3580b",
+      "archive": "raw/samples100.log.gz",
+      "archiveBytes": 135,
+      "archiveSha256": "0297075302b2832e2fb4cea16022768407222d0b3dd424145ed9b01afe0558e4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\report.json",
+      "relativeOriginal": "samples5000-checkpoint/report.json",
+      "bytes": 338556,
+      "sha256": "2e68ccbbf0336707c7a322e6058fbba214644d7cbb386cdb76e3e3a1ff36ed57",
+      "archive": "raw/samples5000-checkpoint/report.json.gz",
+      "archiveBytes": 29792,
+      "archiveSha256": "a65cf7dc7f79e5bc10d04a1f629a8eb9bc6a9ced99eb34e0df168011624a1a58"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\native-perf-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/native-perf-consumed.json",
+      "bytes": 270,
+      "sha256": "636464803525267abbf3ff9d67bf50da6f69d6fbd534ce49ebd3222d84fe3ae5",
+      "archive": "raw/samples5000-checkpoint/sample-001/native-perf-consumed.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "7dc88990c44a8cbcbb0c59a80942859bbb775c609b4ffdf7aa75b7808c4df5e5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\native-perf-owned.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/native-perf-owned.json",
+      "bytes": 3378,
+      "sha256": "be92aca75a120d6627b11355194bcf2e11efa86eaff1138cd7a8bb0ac855a461",
+      "archive": "raw/samples5000-checkpoint/sample-001/native-perf-owned.json.gz",
+      "archiveBytes": 1089,
+      "archiveSha256": "b00347dcabb25835dcfa8a5235314341a17245a4454affdf8713e26f01b545ce"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/native-perf-startup-restart-consumed.json",
+      "bytes": 697,
+      "sha256": "44c82e521a2349830cd4fed1e5191468144c3c2be6afb8de910489441d85953a",
+      "archive": "raw/samples5000-checkpoint/sample-001/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "ced9a32567861909ea4f4d1af34bf64f190ad508dcb415f77f55a9437449ca3b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/native-perf-startup-restart-ticket.json",
+      "bytes": 2697,
+      "sha256": "2fb5136635f663ab44b153dc32cd23b548333c32c84a7ac62b19704f4eee74dd",
+      "archive": "raw/samples5000-checkpoint/sample-001/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 863,
+      "archiveSha256": "6a009debba437991fbba8dd1f2ad2069b2fdba789fd5ab6290b8d5b716f5d2c1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1640,
+      "sha256": "338d252e4e20178cafa4ce6f50a5b96ac8e647fb37edfe68b79d9dc401f50bbd",
+      "archive": "raw/samples5000-checkpoint/sample-001/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 631,
+      "archiveSha256": "86b88520463e863b42457d7a0db8d0097a8b455eb34c23980610720eda74a687"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "7b851b00596d00a78cc502f9c0361dd9346dbe4e0b2d2d3c645c7b399c51dcfa",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 402,
+      "archiveSha256": "53638c2af48e16940040a595a8e76f39e4bfd1c842211bd2e60c5182a7e181b8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "98fc7c185873b6baf496e2695f3b4d3f881078dff6279db2ad03d90034ce17ad",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 284,
+      "archiveSha256": "d11811bbe1ba0d2feb9b0287760f241bad96a737532a4baf8054bafbb8f4e60d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7079,
+      "sha256": "02ef37c554bab380e4cae3bd847f06011820fa64628638cc4df859576ca2404e",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1590,
+      "archiveSha256": "b59b2fe1f37c48f66139f990e26761c2e1e9d7a21c1eb96537e5a9db29e25d40"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 817,
+      "sha256": "ba17960a4e0be370568e9d71379a57a7993578e87ad7bb8aed26958167e4acee",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 405,
+      "archiveSha256": "d361d1612d76ad7a732d88b15093f003eec9a2d106a7cea7571b72791da7996e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "cfa71a1f7622a3201a0bed107287bf61583bcbadaf4545ef1ef1b37a57806c1b",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 399,
+      "archiveSha256": "fee07aa9bd7759c1578a0b1689ee7759800036b978f8ef08263af0bdb770506f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "b6d370e98c365327f44b2f43074e408e649a8ee4769cd71b507260080d3a8762",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 281,
+      "archiveSha256": "330c382b9cf5dee09b98ff1c6be1144e3c3ad016184c6973715a8129dd0835b5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6186,
+      "sha256": "786d0847af5a6c4106d672b4aeb7982c5a1bffa08036a9736a5f3a493dc12a89",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1505,
+      "archiveSha256": "79caa01589c6e80aa9e88f858684042a6724a6417c0b29a19b971bae97139ad5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 712,
+      "sha256": "5ce770cdcd9f2c8ea5f35b8e2ea5038ea2461977adf060a2fea24e2bb90b60a3",
+      "archive": "raw/samples5000-checkpoint/sample-001/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 363,
+      "archiveSha256": "0c18a33c0b438d2b21fddd98c23f63c854f3272c575ec5d55ee034b3fd76b1da"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-001.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-001.json",
+      "bytes": 58949,
+      "sha256": "29e7cba5c9076654437fc9a0dd00140facb967560242087a8f99b537e426e21a",
+      "archive": "raw/samples5000-checkpoint/sample-001.json.gz",
+      "archiveBytes": 6727,
+      "archiveSha256": "1bfa3ce84f618a594012e0475ec83d89f05e4931b92c75eac48dfe6a5b58b9d6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\native-perf-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/native-perf-consumed.json",
+      "bytes": 270,
+      "sha256": "60d270fc74389a4de29bf70b4c6fdacf0b9c43b298af1566fbb360b1ad1476d1",
+      "archive": "raw/samples5000-checkpoint/sample-002/native-perf-consumed.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "ab9c19e650d77bfe841f7ccfcddbd3284d5d39f453b46532c9ce313c3233e9b7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\native-perf-owned.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/native-perf-owned.json",
+      "bytes": 3378,
+      "sha256": "e66482abe9eb642ef0cb0d71cb2b88502c85544822d779b0894dd430c4f102c8",
+      "archive": "raw/samples5000-checkpoint/sample-002/native-perf-owned.json.gz",
+      "archiveBytes": 1088,
+      "archiveSha256": "36756e5e7d63f109c72b9590ebf284302e360606cdd6e9474657033d10dbce38"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/native-perf-startup-restart-consumed.json",
+      "bytes": 696,
+      "sha256": "b2323e1ac07998ee2047ee0a1b3193edb400f4c96637ee48d2b8687e17c959b3",
+      "archive": "raw/samples5000-checkpoint/sample-002/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 407,
+      "archiveSha256": "554c3b02ed256a57bd83d1b8ccc0b8481664ef018b9f38641e06a0e35677b319"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/native-perf-startup-restart-ticket.json",
+      "bytes": 2697,
+      "sha256": "94cba9f7e885e3e472654324e9651b6ac55e6a8ec6b47344d71daaded8486fcf",
+      "archive": "raw/samples5000-checkpoint/sample-002/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 860,
+      "archiveSha256": "9f9bd438c14370868c13ad7f1e08f896a610363df48c3f976ca80374f2cf7f1b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/native-perf-startup-stopped.json",
+      "bytes": 1754,
+      "sha256": "38d08db11349999c88394f08028caaf2efa52043f81194cfb24a430154387b99",
+      "archive": "raw/samples5000-checkpoint/sample-002/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 640,
+      "archiveSha256": "54e2a316af1b6691f2eabe16ea6faa94873dec6eb6b149128bc370e6bb1e45a6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "ab5a0efd8b4c1a4fff770026b173ccaf9be29b27a491d25799b56c68cbf4a9eb",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 401,
+      "archiveSha256": "f746415308b3aa267cda532d9c70caeb405ea61fc4a18281d7f51301d38c0ec7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "bf32ba55cbf37e6666519c4ad2982ee6214bec99e80fbd2bdc8cbb31228bfdc7",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 282,
+      "archiveSha256": "3385c76fdd121fa2866a5025f3496ec7fc07885b981d61c1434ba5665e79b40a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7048,
+      "sha256": "4ee0232660183df4a9c17d446778bc7fab922db358ad946ea39a0e20be11fb83",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1589,
+      "archiveSha256": "9806e61aaa3fc9ce8103fc17595161a4161e7d5ea113662a43cfc84d3206b6c6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 827,
+      "sha256": "2c1bde5ce1c32be312541f9285903a50bdcbe6f95f8ea7ed87d55958878bb986",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "c14c9f43cec404ed82fc88e38d5b312b0fd57344ffbc985b3108b0dd0fab1e67"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "c100be7c9b9b749317272f6915135e270963713eaa0790e72d5ceffdc8ac49fc",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 401,
+      "archiveSha256": "2b7439031379f07883bfc91690d1dee6063b0b5c0673f81eb646d1e3bcd8dfe3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "d4cbf118e4ebb6ee83b5babcced94deda3879b2c8763613f2f9398e202a0343f",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 283,
+      "archiveSha256": "f50f4d06b4115df24121f4415eb244d075ef05908cb7d0510d923398da269d12"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6266,
+      "sha256": "bfdffb02f9054134a2c36a9e66f717903c7d25c53b3b743e4923fe2029298885",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1504,
+      "archiveSha256": "e7dae9491f937fb6b37dc2325155c71fb3a8a0d3dcfb82401dae4e5c38ac7912"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "01d89a6037b7335505f0dedc9816f8caae9197e119fbd2f500060cb67877c5ce",
+      "archive": "raw/samples5000-checkpoint/sample-002/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 362,
+      "archiveSha256": "1c6b5deb27483955b815b9c4591e88d1d4309a4d296ac8a17159e7860aabf166"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-002.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-002.json",
+      "bytes": 59502,
+      "sha256": "752f9ca62e7b506be718e8663c2b5c6892093a6b612eb39abe802711f92062c4",
+      "archive": "raw/samples5000-checkpoint/sample-002.json.gz",
+      "archiveBytes": 6830,
+      "archiveSha256": "437271e1fad77a1cb524fcf7bb2a88a377ad04ba448fc0c6e11c0e6369ce50bc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\native-perf-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/native-perf-consumed.json",
+      "bytes": 270,
+      "sha256": "1178463664ffe3905971e6b26741b643f4253fb943be30239eef78069a6510e2",
+      "archive": "raw/samples5000-checkpoint/sample-003/native-perf-consumed.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "98783ad29d74f81b679fa71b9152fa212d04a5a68f49bde2601e897589a55d6c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\native-perf-owned.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/native-perf-owned.json",
+      "bytes": 3378,
+      "sha256": "2a0cc9db4ffdab5099494da178a4c6bfd4c739eefef66f844447f5addc5ebe22",
+      "archive": "raw/samples5000-checkpoint/sample-003/native-perf-owned.json.gz",
+      "archiveBytes": 1087,
+      "archiveSha256": "f4a8eccfe0682f9c4b64a3fd8d8fdd8e259abee456b9d656cbdacb1270233274"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/native-perf-startup-restart-consumed.json",
+      "bytes": 696,
+      "sha256": "4e9678f511667ec94056c28803f8d14a925551ef976932aff23eda1ce1d25529",
+      "archive": "raw/samples5000-checkpoint/sample-003/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "61afb0cc1706891e03227abb25898eb09e86dda92a9f98851606d67581b53ca7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/native-perf-startup-restart-ticket.json",
+      "bytes": 2697,
+      "sha256": "6f5b4018c41edf799d9f7785e0db9c30150280d7f0a70f0584f005c678fad98c",
+      "archive": "raw/samples5000-checkpoint/sample-003/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 859,
+      "archiveSha256": "f1d716667bcb236f70684a26f2870e52ab41ae27386d05891cc5d692bf478694"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/native-perf-startup-stopped.json",
+      "bytes": 1753,
+      "sha256": "153e51df52753877bbcb62180c1ad050d20af1955662a6995cf944c1925bdd3d",
+      "archive": "raw/samples5000-checkpoint/sample-003/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 644,
+      "archiveSha256": "02c01fb7aa4e71bc2a647ba73df3a273d2f023a5dc931a58ba25841dc15d56b6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "fd55016f4887a75ca28290c3b73b1e5419c221ebb7a34f578b7ec25703e14942",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 400,
+      "archiveSha256": "96fe73a290ebd04571f382068ab226909ae2562a6440e066a11cb0fdea380858"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "73495888ca0fc0fa1e9048c4638d27b0996066532602b0c69e9bf8e146cc5ae5",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 283,
+      "archiveSha256": "599298687c1d71f03a13b548cc9cd256199a415c792fa4984b322e6cde735652"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7086,
+      "sha256": "cf4cbd53cde4b85973de51db8dcdde8c920f78e897ce5354840250e1a3aa2681",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1607,
+      "archiveSha256": "b9a8b4be2f383e5246de7136ee951664299fb9b43726cd4268f5e5e7af5ca578"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "b48cdb2917551bb4f3752156a5789b849bb1a246f78b52070bf13cd82d99b2f7",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 405,
+      "archiveSha256": "9fb9bc269731ab4325e3d12593444b43940512da4c4273cb3c904ea6fe8731db"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "bd57889798823fbb09c5b1e5dffef40b680ed15a26fba0e55c2f9f0a1a0f512d",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 401,
+      "archiveSha256": "7b9a4c66e77f82034f2144b8034f310ce6e73d2d617682800e3490ebe2091328"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "188882ffb3324f633f10dba464615d32f65e2f07b3bfff0cd89c61078639a699",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 283,
+      "archiveSha256": "832c7c93a2f09bbf93437ae94d3d3a5226e5b5b61a9dff3e6ee191c8512d2f6d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6289,
+      "sha256": "10e0906010014746fa3fa6182302b546388eb42bc4175d5072e9805cdef85be5",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1533,
+      "archiveSha256": "7dd4f3aa030ee6f7467ebfe4bbc83da9c305a67943b31cd63c556c1e1e8bfb58"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 712,
+      "sha256": "16a474cde3aaa8448611e056607c5344d2d192ad81429e9a521878d3c79ea7c4",
+      "archive": "raw/samples5000-checkpoint/sample-003/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 367,
+      "archiveSha256": "62b88b74b4d5803c853fdeb4080087daecb70d0b28f3836678ac7098c577dce1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-003.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-003.json",
+      "bytes": 59568,
+      "sha256": "f2225f02fd2d4d09114105093cf4aba704ca8420d23ced57bba5d03a1b7e30cd",
+      "archive": "raw/samples5000-checkpoint/sample-003.json.gz",
+      "archiveBytes": 6851,
+      "archiveSha256": "eda8bc22bfa3ddc343c4182687f9249f66470252497c8094be227074e4dcf426"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\native-perf-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/native-perf-consumed.json",
+      "bytes": 270,
+      "sha256": "453a6fb82b8c62f98128447ab11713d4f7f94bc79a6cfba6ab3ba48c81aae70e",
+      "archive": "raw/samples5000-checkpoint/sample-004/native-perf-consumed.json.gz",
+      "archiveBytes": 224,
+      "archiveSha256": "7e1f39fbafcc4a2889fb752cdd2939422ea53989ed36dcc2b30285171314bcde"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\native-perf-owned.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/native-perf-owned.json",
+      "bytes": 3378,
+      "sha256": "35ddfb4488cf818a4a4cd1107a03a8797b4a684f89b785b7a7f41eb49de44678",
+      "archive": "raw/samples5000-checkpoint/sample-004/native-perf-owned.json.gz",
+      "archiveBytes": 1087,
+      "archiveSha256": "429e4796e44f64bdd48ddfb198aa26b7c3bd32a925546e6bd0217f5202ccecb8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/native-perf-startup-restart-consumed.json",
+      "bytes": 697,
+      "sha256": "69c10c5f1772e78ab38a88a5c58453003394fd7cc82d90e1a66f7c8a8ba1b362",
+      "archive": "raw/samples5000-checkpoint/sample-004/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 408,
+      "archiveSha256": "2972382327f8544a29abbeb143551818c2acdf1a732af4efffd7491d348c059a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/native-perf-startup-restart-ticket.json",
+      "bytes": 2697,
+      "sha256": "19831ca05215fbb3572728ba771fecd0ad33070d3f59a01f8b418ed299e5512c",
+      "archive": "raw/samples5000-checkpoint/sample-004/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 865,
+      "archiveSha256": "aa6220d8002229c9473fce36edb4f202aee4caf539dbcb883753597118eb672e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/native-perf-startup-stopped.json",
+      "bytes": 1752,
+      "sha256": "dcedb27bc40d9062e11bf865dc52393cc610cb144b872f5de5ac6f94f2ddadf1",
+      "archive": "raw/samples5000-checkpoint/sample-004/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 641,
+      "archiveSha256": "289dee276df7ec3940b311a0cf52486899361940b3eee7b6feacfa615d08404c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "715c9a1da0ee0242fc5dd7775ce9142accde23d7e68008ef80b8a2bf295309e2",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 401,
+      "archiveSha256": "c2471192d2baff047c62f058d4de6715e3fd90b5827e8f8ee8dfe57b29f74fa7"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "b1721188a7d019478f5eee5c2db4ff89cfd64c2c3f64647c3a98b1b25f77ee5f",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 282,
+      "archiveSha256": "4d2c97b1e0a514a816f4bc2a4783ea20a7626a00398b84af7c8d3e90df5728af"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6992,
+      "sha256": "c7482696a3252ac28aa635f2c6c3261640ed3c31512ee52ee76f8b399b0765b3",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1593,
+      "archiveSha256": "6961c44c3565789536a5426800d61b1f6ace362a15fded9a394c5ec81839668a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "152699b420ef278149d01aaad318ab3fd87c647cd591d9ad0ca02420f48f5ed7",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 406,
+      "archiveSha256": "e4bfd8155a158648382908b78cbf8f045e204b5ed2558cbc67ddacd61f733dca"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "3fa4d969f54f8163fb94493951b32543d2e6d7adede42dda68cb8465283dabea",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 399,
+      "archiveSha256": "3442b855d9f2993497e78ad43346e335a8a7ccf197f4a4173646fbf360626e1c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "2a2fb9369bf699a1d7c6841593d69c81de3db3bb1b462a5d1e4ae1116b7ea41b",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 283,
+      "archiveSha256": "da60f603cecd54bbb6f1abfabbc6f22fb59242e5e6367b2f101c7ba633ffac21"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6130,
+      "sha256": "d6a444cbe01f5701e4afa3f39518fdb1316fc73cdba9b23ff2a59c6213e8569e",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1487,
+      "archiveSha256": "9220c889649fea16194e3dcd51bc756672e94523d6f2464dcdcf729c69381690"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 704,
+      "sha256": "a887edc2472d212afc4fbec5e3d43cf999dbfd552bd8c44747585acf8b2d99a2",
+      "archive": "raw/samples5000-checkpoint/sample-004/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 361,
+      "archiveSha256": "82b3026740e5ea0bf69da2e3648c5a1bad2a23ad5f65d0a30694db01f4c21bcd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-004.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-004.json",
+      "bytes": 59274,
+      "sha256": "2848e64b3a957039d1974d8ee3a5a59b4f702fcc67d7f96e3437efa7aedb2968",
+      "archive": "raw/samples5000-checkpoint/sample-004.json.gz",
+      "archiveBytes": 6834,
+      "archiveSha256": "ef306823f28a38246716add7dbf9efc824af15f8bda89a84a08b06d6e17c3b4b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\native-perf-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/native-perf-consumed.json",
+      "bytes": 270,
+      "sha256": "73f8dbfa694275a3ca266d50c51f93c2eac55f0a7466b77017aef3811bcf468f",
+      "archive": "raw/samples5000-checkpoint/sample-005/native-perf-consumed.json.gz",
+      "archiveBytes": 219,
+      "archiveSha256": "e76642393e1322d521bc793b8a2f547dd6501fd35e71d19677030540b60f13f5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\native-perf-owned.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/native-perf-owned.json",
+      "bytes": 3378,
+      "sha256": "bd5654e2410bceeb0afe1af0de277da986806341d0b0c6b63af6230a904123a5",
+      "archive": "raw/samples5000-checkpoint/sample-005/native-perf-owned.json.gz",
+      "archiveBytes": 1086,
+      "archiveSha256": "bc797a4bc345752c77094d414b581ee70ffc77d0f844e2b34d68c16f92cceebc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\native-perf-startup-restart-consumed.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/native-perf-startup-restart-consumed.json",
+      "bytes": 696,
+      "sha256": "98e8bd8023eeeeb9c378c369d294004b9b77de091147fa8e26cedc3fa3d3dff7",
+      "archive": "raw/samples5000-checkpoint/sample-005/native-perf-startup-restart-consumed.json.gz",
+      "archiveBytes": 404,
+      "archiveSha256": "4d42cef7a5f442296e627cd7445b761e93cfb1472c4cd828b4fe250021c9c0c2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\native-perf-startup-restart-ticket.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/native-perf-startup-restart-ticket.json",
+      "bytes": 2697,
+      "sha256": "d56d3ecfe648acb89e512d2cf96e1aff770c8e08f39eb55f9d95b5aae28b7653",
+      "archive": "raw/samples5000-checkpoint/sample-005/native-perf-startup-restart-ticket.json.gz",
+      "archiveBytes": 860,
+      "archiveSha256": "0cd3c78b86b944c43a5b6cd4170e1e34a29acb35f7642070bc604dc637655991"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\native-perf-startup-stopped.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/native-perf-startup-stopped.json",
+      "bytes": 1755,
+      "sha256": "cd6bec47fde315f57b5f6d3a39e7c781b579539d4fa153cee6cce5be8dffa62f",
+      "archive": "raw/samples5000-checkpoint/sample-005/native-perf-startup-stopped.json.gz",
+      "archiveBytes": 641,
+      "archiveSha256": "17ed4738c1e6caa589d912d4c9936c55bc515ad9cddbd135ca76cc8cf8325cd3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-01\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 581,
+      "sha256": "c6ec221f6348f25be93891eeaf842c896605191ed1cd1fd98b40f1f083d8e8f5",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 399,
+      "archiveSha256": "48919ac65810f029199da9ecf9aef9613af50b7a7c876482e682b96e19ccd1e1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-01\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "1710c594b1b2bc52ae3b6205cece81fffd07a8438743316371c1d46c81d1f3b3",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 281,
+      "archiveSha256": "952b3b4a86dbe56a6e17978e99ebffe88b2cd78eec1e66c5669b001aeedc7f9c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-01\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7074,
+      "sha256": "1add04666c5cd8de48e96bb0dbc6c511443b26342b1c329bac7c8e176e98cdae",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1609,
+      "archiveSha256": "8194a5b7feac7e3bd61670f6e5486e06a6b11c785b505ff5e71db05e345abe39"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-01\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 817,
+      "sha256": "ce180d31b7014a93612935d46b984a0644cadb2ed724c2aec3df833f01326be1",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-01/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 405,
+      "archiveSha256": "7e9550b17d34bfb72aee007810b2c4a063274d2fb9e7c926c5e04706d6c6d06d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-02\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 580,
+      "sha256": "7916d9139569a7ef21ad423e8b3b1ea1649d610cc3fa2fbbb93c09e63dbc3ee8",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 396,
+      "archiveSha256": "0c7e880bd87f9cb9e6ae0139bdd8ae8237ac225bc6434791849eac3ce28ce4b4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-02\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 363,
+      "sha256": "eb9dd3f8c81dede57113224cca8518005002c696a60f3333596617ef76a2e8bb",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 280,
+      "archiveSha256": "bce2852035ab4ee0956da94722cf0a3d021ec1bf1c93e0aa080ac829656d9dd6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-02\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6307,
+      "sha256": "ef0a748db6027ea5272d3c2ef0abd1f9b7b82ef91bbf199fde71c45ca64b8766",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 1515,
+      "archiveSha256": "bf001f94045e496089aa0c0fef346925e2402686e2140d1747454b4af4463376"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005\\startup-02\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 713,
+      "sha256": "986fbd6b6c343bfe312b290ca99fadc906c28511e0ebe123ad66c27d187c36bf",
+      "archive": "raw/samples5000-checkpoint/sample-005/startup-02/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 367,
+      "archiveSha256": "ad405b7bc6683807734285ea206a5f67f6fcd6ea236544dbc152a825ee990f61"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint\\sample-005.json",
+      "relativeOriginal": "samples5000-checkpoint/sample-005.json",
+      "bytes": 59569,
+      "sha256": "1a5521e7acde02f27687d07c218a84d756495344a17d4c97e2533efacc0e89ce",
+      "archive": "raw/samples5000-checkpoint/sample-005.json.gz",
+      "archiveBytes": 6870,
+      "archiveSha256": "abd47132877d9907b2c4f4fe30ead8b5562cbe7f0b56ee0c1fe4210bab656050"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\samples5000-checkpoint.log",
+      "relativeOriginal": "samples5000-checkpoint.log",
+      "bytes": 444,
+      "sha256": "6887342c3d6083c055e4dd172561424f6687966964b6ea2f985bba652e1bd9aa",
+      "archive": "raw/samples5000-checkpoint.log.gz",
+      "archiveBytes": 210,
+      "archiveSha256": "783b41e5d3c0c9f88c67d8b62fa062e91decf1d13f9d4997f17e103c0158e5f1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\source-freeze-checkpoint-final.json",
+      "relativeOriginal": "source-freeze-checkpoint-final.json",
+      "bytes": 13160,
+      "sha256": "ee9002bec84b42700a0b6134fef711a5da5403d2dad157e42414a0cfb4600653",
+      "archive": "raw/source-freeze-checkpoint-final.json.gz",
+      "archiveBytes": 4584,
+      "archiveSha256": "c8b278a68707379ea6727a7e81ef621476887dae0a8b73dabdc31cbd41d04c94"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\source-freeze-checkpoint.json",
+      "relativeOriginal": "source-freeze-checkpoint.json",
+      "bytes": 13392,
+      "sha256": "c7c48fb99d63446eb20a034f885f73c36ea1de428c133bb72b76efb47e237a29",
+      "archive": "raw/source-freeze-checkpoint.json.gz",
+      "archiveBytes": 4775,
+      "archiveSha256": "2cec28b3ae2833c0b6555916bb33d4c880584c6050d20043aa89b5233d43f153"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\source-freeze-markers.json",
+      "relativeOriginal": "source-freeze-markers.json",
+      "bytes": 12645,
+      "sha256": "e2173bdfa12c2ff70c06bd88d46d08d4d7ddfb816596962cffe4cc8c4a0a97db",
+      "archive": "raw/source-freeze-markers.json.gz",
+      "archiveBytes": 4415,
+      "archiveSha256": "aa29b965ee3305994d68153dc4905b913eb56a2c3bd0976e75d41fb52f8b3032"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\source-freeze.json",
+      "relativeOriginal": "source-freeze.json",
+      "bytes": 12199,
+      "sha256": "83071f9a7c37a6e89c59ee92d0455da645a0b67fb2cb3926a87969704b5868f8",
+      "archive": "raw/source-freeze.json.gz",
+      "archiveBytes": 4199,
+      "archiveSha256": "b07705f5505cf10d4ba6af135b2352c1de5531d79fec4f4544c459bfa21a1a90"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\startup-node-first.log",
+      "relativeOriginal": "startup-node-first.log",
+      "bytes": 55,
+      "sha256": "e286de0c06ef062f3f7947afe9214333d6ed3c609f7415561c769e2bb2365f1a",
+      "archive": "raw/startup-node-first.log.gz",
+      "archiveBytes": 75,
+      "archiveSha256": "2e892c1a4b83c19e707b26c6c3df35494ac2f79d37ab3385a5404a0eea5bc046"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\startup-node-second.log",
+      "relativeOriginal": "startup-node-second.log",
+      "bytes": 809,
+      "sha256": "c43a1c450026c869257035da21581c6fb809f247b1f29d8018c48179886851f5",
+      "archive": "raw/startup-node-second.log.gz",
+      "archiveBytes": 480,
+      "archiveSha256": "3d372bde69801c78b2c1edd642de1de722356a29947a24bae04b7004cc8bab15"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\test-entry-freeze.json",
+      "relativeOriginal": "test-entry-freeze.json",
+      "bytes": 405,
+      "sha256": "f3b99bea1863c5dcae9cdff189fe51295599e21d4c88e12ed43b75f37d87284b",
+      "archive": "raw/test-entry-freeze.json.gz",
+      "archiveBytes": 274,
+      "archiveSha256": "80510e343779bbf93e725510771a09e9a83b40e5943891e2883a6b39c25db39f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-warm-20261005\\warm-prepare-diagnostic.log",
+      "relativeOriginal": "warm-prepare-diagnostic.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/warm-prepare-diagnostic.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  ],
+  "cleanupScripts": {
+    "cleanup-owned-warm.ps1": "unused initial draft, never executed",
+    "cleanup-owned-checkpoint-first.ps1": "first rejected cleanup, before deletion",
+    "cleanup-owned-checkpoint.ps1": "final cleanup, explicit private INetCache junction handling"
+  }
+}

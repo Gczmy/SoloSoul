@@ -1,0 +1,28 @@
+{
+  "durationMs": 1186.7179,
+  "fromAtMs": 15665.900000572205,
+  "inputTrust": {
+    "pointer": 4,
+    "text": 1,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 70,
+    "commands": {
+      "attachment_count_batch": 1,
+      "biometric_check_availability": 1,
+      "object_list": 3,
+      "ocr_get_model_status": 3,
+      "plugin:event|listen": 51,
+      "plugin:event|unlisten": 1,
+      "snapshot_count_batch": 1,
+      "template_list": 1,
+      "ui_update_preference": 7,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "workspace",
+  "success": true,
+  "toAtMs": 16782.199999809265
+}
