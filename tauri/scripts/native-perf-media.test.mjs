@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, mkdir, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, realpath, writeFile, mkdir, readFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
@@ -86,7 +86,7 @@ test('media contract accepts only fixed assets, production base and closed canon
   }
 });
 test('media file proof checks actual bytes and bounded marker without writing source', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'rf312-media-node-'));
+  const dir = await mkdtemp(path.join(await realpath(os.tmpdir()), 'rf312-media-node-'));
   try {
     const m = marker();
     for (const f of m.closedFiles) {
@@ -315,7 +315,7 @@ test('media summaries never accept successful subsets, bad phases or incomplete 
   );
 });
 test('media EXE marker gate rejects old input-only builds before launch', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'rf312-media-exe-'));
+  const dir = await mkdtemp(path.join(await realpath(os.tmpdir()), 'rf312-media-exe-'));
   try {
     const file = path.join(dir, 'candidate');
     await writeFile(file, 'windows-native-sdk-ui-journey-requested');

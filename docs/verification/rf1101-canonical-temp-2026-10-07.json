@@ -1,0 +1,28 @@
+{
+  "task": "RF-1101",
+  "status": "macOS修复验证通过，Windows CI待验证",
+  "cause": "临时目录可为别名（macOS /var到/private，Windows runner临时路径可能是短名）；测试未解析真实路径，与严格真实路径守卫冲突。",
+  "scope": "仅两份测试四处临时目录先realpath再mkdtemp；生产身份/文件/字节校验和拒绝断言不变。",
+  "macos": {
+    "red_exit": 1,
+    "green_exit": 0,
+    "node_tests": 217,
+    "passed": 192,
+    "failed": 0,
+    "existing_platform_skips": 25
+  },
+  "windows_before": {
+    "run": 37643234066,
+    "job": 112867229940,
+    "failed_tests": 2
+  },
+  "source_sha256": {
+    "tauri/scripts/native-perf-media.test.mjs": "428099fcbccfc8d641005a90d37ac858f735c4f584d557864ee828225adaf3f3",
+    "tauri/scripts/native-perf-ocr.test.mjs": "737a0f08655674a9bd515ce0799b9e326a4a81e50bbf74752f4ecd0e03d2912d"
+  },
+  "raw_sha256": {
+    "media-ocr-macos-red.log.gz": "ac2dde59088e4704395af55655825a167e00828d2c4c0e06fd3aed864766b830",
+    "node-macos-green.log.gz": "91553f3edd1db94d6bd3bebe5f871f03e5d09ac7561299a8fd04dbbd73df7a12",
+    "windows-node-failure.log.gz": "ca37b903054380eb1d871b20e8b480d8802e110c7077807eeec1a921b0027b37"
+  }
+}

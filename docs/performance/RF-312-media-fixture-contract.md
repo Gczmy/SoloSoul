@@ -39,3 +39,7 @@ $fixtureExe = Join-Path $cargoMetadata.target_directory 'release/examples/perf_b
 OCR 的真实文件选择使用系统对话框；SDK 的 WebView 输入不能直接控制该对话框。需要把对话框输入绑定到本次 owned GUI 进程和公开样例路径，不能注入路由参数、业务 IPC 或替换为浏览器 mock 冒充原生行程。后端 OCR 分段测量可以作为性能归因证据，但不替代完整界面测量。
 
 这些行程、重复样本、内存／IPC 采样及性能归因仍由 RF-312 承接，本数据集验收不关闭 RF-312。
+
+## 测试临时目录的真实路径（RF-1101）
+
+媒体和OCR文件证明测试须在创建目录前解析 `realpath(tmpdir())`，避免macOS别名及Windows短路径与严格真实身份守卫冲突。只修测试输入，生产校验继续拒绝别名、符号链接和被修改的文件；参见[回归证据](../verification/rf1101-canonical-temp-2026-10-07.json)。

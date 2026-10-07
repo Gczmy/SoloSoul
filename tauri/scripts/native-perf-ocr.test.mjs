@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, realpath, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
@@ -241,7 +241,7 @@ test('failed or incomplete full groups suppress all OCR metrics', () => {
   assert.ok(summarizeOcrJourneys(samples, 3, false).every((v) => v.medianMs === null));
 });
 test('public input bytes must match actual selected plaintext PNG; preserved original cannot overwrite', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'ss-ocr-public-'));
+  const root = await mkdtemp(path.join(await realpath(tmpdir()), 'ss-ocr-public-'));
   const file = path.join(root, 'profile', 'Documents', 'ocr_test.png');
   try {
     await mkdir(path.dirname(file), { recursive: true });
@@ -263,7 +263,7 @@ test('public input bytes must match actual selected plaintext PNG; preserved ori
   }
 });
 test('OCR binary preflight rejects previous fixed-PDF build marker alone', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'ss-ocr-marker-')),
+  const root = await mkdtemp(path.join(await realpath(tmpdir()), 'ss-ocr-marker-')),
     file = path.join(root, 'mock.exe');
   try {
     const base = '--native-perf-media-prepare windows-native-sdk-media-journey-requested';
