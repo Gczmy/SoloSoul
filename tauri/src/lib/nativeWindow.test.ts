@@ -1,11 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const invoke = vi.hoisted(() => vi.fn());
+const nativeEvents = vi.hoisted(() => ({
+  listen: vi.fn(),
+  unlisten: vi.fn(),
+  layoutChanged: undefined as (() => void) | undefined,
+}));
 vi.mock('./ipcClient', () => ({ invokeCommand: invoke }));
+vi.mock('@tauri-apps/api/event', () => ({ listen: nativeEvents.listen }));
 
 beforeEach(() => {
   vi.resetModules();
   invoke.mockReset();
+  nativeEvents.listen.mockReset();
+  nativeEvents.unlisten.mockReset();
+  nativeEvents.layoutChanged = undefined;
+  nativeEvents.listen.mockImplementation(async (event: string, callback: () => void) => {
+    if (event === 'native-window-layout-changed') nativeEvents.layoutChanged = callback;
+    return nativeEvents.unlisten;
+  });
   // 模拟旧版本留下的兼容模式选择，验证启动已不再读取它。
   vi.stubGlobal('localStorage', { getItem: vi.fn(() => 'true') });
   document.documentElement.style.setProperty('--startup-background', '#1c1c1e');
@@ -127,6 +140,56 @@ describe('原生窗口启动', () => {
     expect(document.documentElement.style.getPropertyValue('--native-titlebar-height')).toBe(
       '52px',
     );
+  });
+
+  it('退出全屏的resize先返回32pt，原生收尾后无新resize也恢复52pt', async () => {
+    const { syncNativeAppearance, observeNativeWindowLayout } = await import('./nativeWindow');
+    const { useNativeWindowStore } = await import('@/stores/nativeWindowStore');
+    await syncNativeAppearance({ red: 28, green: 28, blue: 30 });
+    invoke.mockResolvedValue({ platform: 'macos', titlebarHeight: 32, trafficLightsRight: 79 });
+    const stop = observeNativeWindowLayout();
+    window.dispatchEvent(new Event('resize'));
+    await vi.waitFor(() => expect(useNativeWindowStore.getState().titlebarHeight).toBe(32));
+    invoke.mockResolvedValue({ platform: 'macos', titlebarHeight: 52, trafficLightsRight: 79 });
+    nativeEvents.layoutChanged?.();
+    await vi.waitFor(() => expect(useNativeWindowStore.getState().titlebarHeight).toBe(52));
+    expect(document.documentElement.style.getPropertyValue('--native-titlebar-height')).toBe(
+      '52px',
+    );
+    expect(invoke.mock.calls.filter(([command]) => command === 'set_titlebar_color')).toHaveLength(
+      1,
+    );
+    stop();
+    expect(nativeEvents.unlisten).toHaveBeenCalledTimes(1);
+    invoke.mockClear();
+    nativeEvents.layoutChanged?.();
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('原生收尾通知早于未完成的临时几何响应时，仍会重新测量最终栏高', async () => {
+    const { syncNativeAppearance, observeNativeWindowLayout } = await import('./nativeWindow');
+    const { useNativeWindowStore } = await import('@/stores/nativeWindowStore');
+    await syncNativeAppearance({ red: 28, green: 28, blue: 30 });
+    let finishLayout!: (value: unknown) => void;
+    invoke.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishLayout = resolve;
+        }),
+    );
+    const stop = observeNativeWindowLayout();
+    await vi.waitFor(() => expect(invoke).toHaveBeenLastCalledWith('get_window_layout'));
+    invoke.mockResolvedValue({ platform: 'macos', titlebarHeight: 52, trafficLightsRight: 79 });
+    nativeEvents.layoutChanged?.();
+    finishLayout({ platform: 'macos', titlebarHeight: 32, trafficLightsRight: 79 });
+    await vi.waitFor(() =>
+      expect(invoke.mock.calls.filter(([command]) => command === 'get_window_layout')).toHaveLength(
+        2,
+      ),
+    );
+    await vi.waitFor(() => expect(useNativeWindowStore.getState().titlebarHeight).toBe(52));
+    stop();
   });
 
   it('恢复窗口只读取几何，卸载后的迟到测量不回写', async () => {

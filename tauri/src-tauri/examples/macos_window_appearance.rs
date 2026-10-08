@@ -5,6 +5,7 @@
 //! --vibrancy 在回归检查后替换为始终活跃的传统毛玻璃，供前后台切换对照。
 //! 玻璃底色 alpha=0.001 用于修复后台恢复闪黑，必须跨主题/尺寸/材质切换保留。
 //! 几何断言只验证恢复后的布局，不证明恢复过程没有瞬间黑帧。
+//! --fullscreen-toolbar-only 只验全屏工具栏/表面与几何，保留默认交通灯命中测试的独立结果。
 //! --card-fixture /tmp/card-surfaces.html 另验生产 Card 的原生 WebView 表面；
 //! HTML 由 scripts/build-card-surface-fixture.mjs 生成，不载入正式应用初始化。
 
@@ -57,6 +58,7 @@ impl tauri::Assets<tauri::Wry> for RegressionAssets {
 async fn snapshot(
     window: &tauri::WebviewWindow,
     material: &str,
+    button_hit_testing: bool,
 ) -> (usize, usize, usize, [usize; 3]) {
     use objc2_app_kit::{NSColor, NSView, NSWindow, NSWindowButton, NSWindowStyleMask};
     use objc2_foundation::NSPoint;
@@ -130,11 +132,11 @@ async fn snapshot(
                     );
                         let frame_view = unsafe { owner.contentView().unwrap().superview() }.unwrap();
                     let hit = frame_view.hitTest(frame_view.convertPoint_fromView(point, None));
-                        assert!(
+                        if button_hit_testing { assert!(
                             hit.as_ref().is_some_and(|hit| hit.isDescendantOf(&button)),
                             "交通灯必须仍可点击: button={button:?}; hit={hit:?}; frame={frame:?}; window={:?}; style={:?}",
                             ns_window.frame(), ns_window.styleMask()
-                        );
+                        ); }
                 }
                 &*button as *const _ as usize
             });
@@ -154,6 +156,24 @@ async fn snapshot(
                 drag as *const NSView as usize,
                 buttons,
             ))
+            .unwrap();
+        })
+        .unwrap();
+    rx.await.unwrap()
+}
+
+#[cfg(target_os = "macos")]
+async fn toolbar_id(window: &tauri::WebviewWindow) -> usize {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    window
+        .with_webview(move |native| {
+            // SAFETY: 回归例程只在主线程读取当前测试窗口的工具栏身份。
+            let window = unsafe { &*native.ns_window().cast::<objc2_app_kit::NSWindow>() };
+            tx.send(
+                window
+                    .toolbar()
+                    .map_or(0, |toolbar| &*toolbar as *const _ as usize),
+            )
             .unwrap();
         })
         .unwrap();
@@ -260,6 +280,7 @@ fn main() {
     let native_only = std::env::args().any(|arg| arg == "--native-only");
     let unthrottled = std::env::args().any(|arg| arg == "--unthrottled");
     let vibrancy = std::env::args().any(|arg| arg == "--vibrancy");
+    let fullscreen_toolbar_only = std::env::args().any(|arg| arg == "--fullscreen-toolbar-only");
     let args: Vec<_> = std::env::args().collect();
     let fixture = args
         .iter()
@@ -302,6 +323,12 @@ fn main() {
             }
             let window = WebviewWindowBuilder::from_config(app, &config)?
                 .build()?;
+            use tauri::Listener;
+            let layout_events = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+            let observed_layout_events = layout_events.clone();
+            window.listen("native-window-layout-changed", move |_| {
+                observed_layout_events.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            });
             let started = Instant::now();
             window.on_window_event(move |event| {
                 if let tauri::WindowEvent::Focused(focused) = event {
@@ -326,41 +353,56 @@ fn main() {
                 }
                 window.show().unwrap();
                 tokio::time::sleep(Duration::from_millis(1200)).await;
-                let original = snapshot(&window, appearance.material).await;
+                let original = snapshot(&window, appearance.material, !fullscreen_toolbar_only).await;
                 // 覆盖首帧后约一秒的重复外观同步，以及浅深色切换。
                 for color in [dark, dark, light, dark] {
                     let appearance = window::set_titlebar_color(window.clone(), color).await.unwrap();
                     tokio::time::sleep(Duration::from_millis(300)).await;
-                    assert_eq!(snapshot(&window, appearance.material).await, original);
+                    assert_eq!(snapshot(&window, appearance.material, !fullscreen_toolbar_only).await, original);
                 }
                 for (width, height) in [(960.0, 640.0), (1200.0, 800.0)] {
                     window.hide().unwrap();
                     window.set_size(tauri::LogicalSize::new(width, height)).unwrap();
                     window.show().unwrap();
                     tokio::time::sleep(Duration::from_millis(1200)).await;
-                    assert_eq!(snapshot(&window, appearance.material).await, original);
+                    assert_eq!(snapshot(&window, appearance.material, !fullscreen_toolbar_only).await, original);
                 }
-                check_titlebar_controls(&window).await;
+                if !fullscreen_toolbar_only {
+                    check_titlebar_controls(&window).await;
+                }
                 let normal_titlebar_height = appearance.titlebar_height;
-                for fullscreen in [true, false] {
+                let normal_toolbar = toolbar_id(&window).await;
+                assert_ne!(normal_toolbar, 0, "窗口模式保留交通灯高度工具栏");
+                for fullscreen in [true, false, true, false] {
+                    let previous_events = layout_events.load(std::sync::atomic::Ordering::Relaxed);
                     window.set_fullscreen(fullscreen).unwrap();
                     tokio::time::sleep(Duration::from_millis(1500)).await;
-                    let appearance = window::set_titlebar_color(window.clone(), dark).await.unwrap();
-                    assert_eq!(snapshot(&window, appearance.material).await, original);
-                    println!("[appearance] fullscreen={fullscreen}; titlebar-height={}; traffic-lights-right={}",
-                        appearance.titlebar_height, appearance.traffic_lights_right);
-                    assert!(appearance.traffic_lights_right >= 0.0 && appearance.traffic_lights_right <= 96.0,
+                    // 全屏后只读几何，不能靠重新同步材质修好布局而掩盖生命周期缺陷。
+                    let layout = window::get_window_layout(window.clone()).await.unwrap();
+                    let current_events = layout_events.load(std::sync::atomic::Ordering::Relaxed);
+                    assert!(current_events > previous_events, "每次全屏切换必须通知所属窗口读取最终几何");
+                    assert_eq!(snapshot(&window, appearance.material, !fullscreen_toolbar_only).await, original);
+                    assert_eq!(toolbar_id(&window).await, if fullscreen { 0 } else { normal_toolbar },
+                        "全屏不能留下遮住网页的空工具栏；退出后恢复同一实例");
+                    println!("[appearance] fullscreen={fullscreen}; titlebar-height={}; traffic-lights-right={}; layout-events={}",
+                        layout.titlebar_height, layout.traffic_lights_right, current_events - previous_events);
+                    assert!(layout.traffic_lights_right >= 0.0 && layout.traffic_lights_right <= 96.0,
                         "全屏工具栏不能把交通灯坐标误换算成屏幕偏移");
                     if fullscreen {
-                        // 加入原生工具栏后，系统可以保留工具栏，也可以按偏好自动隐藏。
-                        assert!(appearance.titlebar_height >= 0.0 && appearance.titlebar_height <= normal_titlebar_height,
+                        assert!(layout.titlebar_height >= 0.0 && layout.titlebar_height <= normal_titlebar_height,
                             "全屏不能叠加额外的标题栏高度");
                     } else {
-                        assert_eq!(appearance.titlebar_height, normal_titlebar_height, "退出全屏后恢复同一栏高");
+                        assert_eq!(layout.titlebar_height, normal_titlebar_height, "退出全屏后恢复同一栏高");
                     }
                 }
-                check_titlebar_controls(&window).await;
-                println!("PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary");
+                if !fullscreen_toolbar_only {
+                    check_titlebar_controls(&window).await;
+                }
+                if fullscreen_toolbar_only {
+                    println!("PASS: focused fullscreen toolbar removal/restoration and stable window surfaces/geometry; legacy native hit assertions not run");
+                } else {
+                    println!("PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary");
+                }
                 if card_fixture {
                     // 表面采样要求前台绘制，后台恢复几何仍由上面的独立场景覆盖。
                     window.set_focus().unwrap();
@@ -415,12 +457,12 @@ fn main() {
                         install_vibrancy(&window).await;
                         window.set_title("SoloSoul — 传统毛玻璃对照（始终活跃）").unwrap();
                         tokio::time::sleep(Duration::from_millis(300)).await;
-                        let comparison = snapshot(&window, "vibrancy").await;
+                        let comparison = snapshot(&window, "vibrancy", !fullscreen_toolbar_only).await;
                         assert_eq!(comparison.0, original.0, "替换材质不得重建 WebView");
                         window.hide().unwrap();
                         window.show().unwrap();
                         tokio::time::sleep(Duration::from_millis(1200)).await;
-                        assert_eq!(snapshot(&window, "vibrancy").await, comparison);
+                        assert_eq!(snapshot(&window, "vibrancy", !fullscreen_toolbar_only).await, comparison);
                         println!("READY: traditional vibrancy (Sidebar, always active); native-only={native_only}. Compare background restoration via Dock and Stage Manager.");
                     }
                 }

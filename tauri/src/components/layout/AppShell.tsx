@@ -44,7 +44,8 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
     : isNarrowViewport
       ? 48
       : isMacOS
-        ? titlebarHeight || 52
+        ? // 全屏切换中的原生32pt临时几何不能压缩网页顶部栏。
+          Math.max(52, titlebarHeight)
         : isWindows
           ? titlebarHeight || 40
           : 48;

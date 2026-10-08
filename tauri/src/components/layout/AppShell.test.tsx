@@ -5,6 +5,7 @@ import { AppShell } from './AppShell';
 import { ShellNotificationsProvider } from './ShellNotifications';
 import { resizeObserverInstances } from '@/test/setup';
 import { useUiStore } from '@/stores/uiStore';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 
 const syncStub = vi.hoisted(() => ({
   incomingPairingRequest: null as { id: string; fingerprint: string } | null,
@@ -67,6 +68,30 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     syncStub.loadStatus.mockReset();
     syncStub.clearIncomingPairingRequest.mockReset();
     useUiStore.setState({ toasts: [], sidebarExpanded: true });
+    useNativeWindowStore.setState({ isMacOS: false, titlebarHeight: 0, trafficLightsRight: 0 });
+  });
+
+  it('macOS全屏切换中的32pt临时栏高不压缩AppBar，正文和编辑状态不重建', () => {
+    useNativeWindowStore.setState({ isMacOS: true, titlebarHeight: 52 });
+    render(
+      <MemoryRouter>
+        <AppShell title="首页">
+          <input aria-label="切换全屏中的编辑" />
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const input = screen.getByLabelText('切换全屏中的编辑');
+    fireEvent.change(input, { target: { value: '保留草稿' } });
+    input.focus();
+    const content = document.querySelector('[data-shell-content]');
+    const shell = content?.closest<HTMLElement>('[style*="--appbar-height"]');
+    for (const titlebarHeight of [0, 32, 52]) {
+      act(() => useNativeWindowStore.setState({ titlebarHeight }));
+      expect(shell?.style.getPropertyValue('--appbar-height')).toBe('52px');
+      expect(document.querySelector('[data-shell-content]')).toBe(content);
+      expect(input).toHaveValue('保留草稿');
+      expect(input).toHaveFocus();
+    }
   });
 
   it('侧栏展开状态变化不重建正文或丢失草稿、焦点和滚动位置', () => {

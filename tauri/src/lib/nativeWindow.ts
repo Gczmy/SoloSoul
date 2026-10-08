@@ -1,6 +1,8 @@
 import { invokeCommand as invoke } from './ipcClient';
 import { withTimeout } from './withTimeout';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
+import { listen } from '@tauri-apps/api/event';
+import { trackAsyncListener } from './asyncListener';
 
 interface WindowLayout {
   platform: 'macos' | 'windows' | 'other';
@@ -87,7 +89,7 @@ export function observeNativeWindowLayout() {
     }
   };
   const update = () => {
-    if (document.documentElement.dataset.desktopPlatform !== 'macos') return;
+    if (stopped || document.documentElement.dataset.desktopPlatform !== 'macos') return;
     if (running) {
       dirty = true;
       return;
@@ -97,12 +99,15 @@ export function observeNativeWindowLayout() {
   };
   window.addEventListener('resize', update);
   window.addEventListener('focus', update);
+  // AppKit 的工具栏恢复可能晚于 resize；原生收尾后再次只读最终几何。
+  const unlisten = trackAsyncListener(listen('native-window-layout-changed', update));
   update();
   return () => {
     stopped = true;
     cancelAnimationFrame(frame);
     window.removeEventListener('resize', update);
     window.removeEventListener('focus', update);
+    unlisten();
   };
 }
 

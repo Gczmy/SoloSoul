@@ -11,7 +11,7 @@ use std::sync::{
     atomic::{AtomicU8, Ordering},
     Mutex,
 };
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 use window_vibrancy::{
     apply_liquid_glass, apply_vibrancy, clear_liquid_glass, clear_vibrancy, LiquidGlassOptions,
     NSVisualEffectMaterial,
@@ -58,7 +58,11 @@ fn apply_window_backing(ns_window: &NSWindow, color: &TitlebarColor, opaque: boo
 
 /// 网页背景覆盖完整窗口；交通灯避让由独立的标题栏高度处理。
 /// 约束只安装一次，不在聚焦或主题同步时改变 WebView 层级。
-fn constrain_webview(ns_window: &NSWindow, webview: &NSView) -> Result<(), String> {
+fn constrain_webview(
+    window: &tauri::WebviewWindow,
+    ns_window: &NSWindow,
+    webview: &NSView,
+) -> Result<(), String> {
     let root = ns_window
         .contentView()
         .ok_or("Window content view unavailable")?;
@@ -84,7 +88,12 @@ fn constrain_webview(ns_window: &NSWindow, webview: &NSView) -> Result<(), Strin
     });
     webview.setTranslatesAutoresizingMaskIntoConstraints(false);
     NSLayoutConstraint::activateConstraints(&NSArray::from_retained_slice(&constraints));
-    titlebar::install(ns_window, &root)?;
+    titlebar::install(
+        ns_window,
+        &root,
+        window.app_handle().clone(),
+        window.label().to_owned(),
+    )?;
     root.layoutSubtreeIfNeeded();
     Ok(())
 }
@@ -136,7 +145,7 @@ pub fn apply(
     let material = match materials.entry(window.label().to_owned()) {
         std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
         std::collections::btree_map::Entry::Vacant(entry) => {
-            constrain_webview(ns_window, content)?;
+            constrain_webview(window, ns_window, content)?;
             entry.insert("solid")
         }
     };

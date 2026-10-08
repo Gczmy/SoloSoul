@@ -1,0 +1,900 @@
+{
+  "recorded_at": "2026-10-08T22:45:03.295566+00:00",
+  "scope": "现有冻结隔离客户端续验；不升级旧包来源，不操作正式账户",
+  "head_at_start": "62ccfbd8af974f5be72b16836ccd1c2ee409eecf",
+  "app": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008-titlebar/SoloSoulFE2Mac.app",
+  "binary_sha256": "26cbfd224ab1c37bef6e0e9f272bba78962b41dbdb5ee818214d36dc4447a038",
+  "source_manifest_original_commit": "75f1c1594504dd6e09af57ff6debd25cccce03fa",
+  "source_manifest_path": "docs/verification/fe2-scroll-region-native-hover-2026-10-08/native-build/after-titlebar-fix/source.json",
+  "source_manifest_sha256": "8bac5843896ca1001224d47c7df6d9a4ef08426d1b25919d7eb1e5167823fe4f",
+  "source_files": 1370,
+  "unchanged_source_files": 1369,
+  "source_differences": [
+    {
+      "path": "tauri/src/components/guide/GuideSearch.test.tsx",
+      "frozen_sha256": "90bdc333fa68d14e355c57a784dc4eacb156404887f9ae4bf83befc2c221a61f",
+      "current_sha256": "a3512c4b0c54bf065ee4da76796d80e89af6e68416d6d70a4f67649884e3c0f7"
+    }
+  ],
+  "runtime_source_changes": 0,
+  "fixture_account": "acc_e50ad3aa16464b74",
+  "startup": {
+    "previous_process_terminal": true,
+    "restarted_via": "mcp__cua_repl cua.getApp exact frozen path",
+    "standard_launchservices_external_sandbox": false,
+    "ui_url_before_unlock": "tauri://localhost/login",
+    "actual_password_unlock": "passed",
+    "formal_account_used": false
+  },
+  "scroll_region": {
+    "light": {
+      "method": "user manual pure mouse movement, no clicks",
+      "question": "正文→侧栏→顶部→正文：正文内变黑，离开后变灰？",
+      "user_answer": "能正确切换，顶部也会变灰",
+      "passed": true
+    },
+    "dark": {
+      "native_theme_selected": "深色 · 暖石深",
+      "native_home_rendered": true,
+      "pure_movement_result": "passed_by_explicit_user_confirmation",
+      "user_answer": "操作完成，深色滚动条切换正常，顶部拖拽正常",
+      "passed": true
+    },
+    "cua_coordinate_click_top_sample": {
+      "observed": "main thumb remained black",
+      "does_not_prove_pure_movement_failure": true
+    }
+  },
+  "native_screenshot_files_exported": false,
+  "native_rgb_measured": false,
+  "note": "截图仅CUA工具输出；纯move验收依据用户明确反馈。系统辅助功能临时切换待用户确认。",
+  "schema_version": 1,
+  "host": {
+    "platform": "macOS",
+    "version": "26.6",
+    "build": "25G72"
+  },
+  "source_binding_reverified": {
+    "passed": true,
+    "source_files": 1370,
+    "unchanged_source_files": 1369,
+    "missing_files": 0,
+    "runtime_source_changes": 0,
+    "binary_sha256_matches": true,
+    "sole_difference": "tauri/src/components/guide/GuideSearch.test.tsx"
+  },
+  "native_observations": [
+    {
+      "case": "light_login",
+      "result": "observed",
+      "scope": "plain compact card directly on light shell; no extra backing plate; screenshot visual only"
+    },
+    {
+      "case": "dark_home",
+      "result": "observed",
+      "scope": "selected in actual appearance settings; neutral light text on dark content; shell visually distinct"
+    },
+    {
+      "case": "dark_tools_expanded",
+      "result": "observed",
+      "scope": "tool menu labels readable; popup above content; final stable screenshot only"
+    },
+    {
+      "case": "dark_search",
+      "result": "observed",
+      "scope": "search opened above content; readable field and categories; Esc closed it"
+    },
+    {
+      "case": "dark_sidebar_collapse",
+      "result": "observed",
+      "scope": "collapse button responded; final collapsed home screenshot; no measured geometry or continuous animation proof"
+    }
+  ],
+  "titlebar_drag": {
+    "result": "passed_by_explicit_user_confirmation",
+    "position_measurement": false,
+    "passed": true,
+    "method": "user actual top blank drag; no agent coordinate measurement",
+    "user_answer": "操作完成，深色滚动条切换正常，顶部拖拽正常"
+  },
+  "tools_scroll_region": {
+    "result": "passed_current_short_light_window_by_user_confirmation",
+    "current_case": "native Bottom tile overflow tool list reaches bottom; user reports all requested checks normal"
+  },
+  "system_accessibility": {
+    "temporary_changes_authorized": false,
+    "permission_question": "pending_user_reply",
+    "changes_executed": false,
+    "documentation": "tauri/native-regression/macos-client/README.md"
+  },
+  "latest_ui_state": {
+    "screen_lock": "user confirmed manually unlocked; native UI access restored",
+    "current_state_authoritatively_observed": true,
+    "last_complete_client_observation": "last tool observation: v4 light windowed home, left sidebar expanded, guides closed; subsequent user confirmed fix successful",
+    "native_test_window": "v4 scoped standalone app quit; frozen full v4 client remains open",
+    "initial_theme_and_navigation_restored": false
+  },
+  "overall": {
+    "task": "FE2-020",
+    "status": "complete",
+    "light_pure_pointer_passed": true,
+    "dark_pure_pointer_passed": true,
+    "full_native_matrix_passed": false,
+    "scope": "FE2-020 current-package light/deep region switching, top leave hover and ordinary drag confirmed; browser nested-axis/modal protection retained; other full macOS native tasks not closed"
+  },
+  "task_counts": {
+    "total": 21,
+    "complete": 15,
+    "in_progress": 0,
+    "pending_validation": 6
+  },
+  "repository_actions": {
+    "product_code_changed": false,
+    "prior_evidence_changed": false,
+    "commit": false,
+    "push": false,
+    "publish": false,
+    "history_rewritten": false
+  },
+  "documentation_checks": {
+    "git_diff_check_exit_code": 0,
+    "changed_markdown_local_links_checked": 90,
+    "missing_local_links": 0,
+    "json_parse_passed": true,
+    "task_counts_consistent": true,
+    "archive_verifier": {
+      "passed": true,
+      "mode": "git_original_commit",
+      "indexed_files": 6297,
+      "retained_files": 83,
+      "replacement_documents": 50,
+      "archived_files": 6214,
+      "current_source_files": 174
+    },
+    "initial_link_check_issue": "A naive regex treated an angle-bracket HTTPS link as a local path. The corrected checker passed; no document link was changed.",
+    "product_test_suite_rerun": false,
+    "scope": "Documentation and evidence integrity only; no upgrade of product or native matrix results.",
+    "current_source_hashes_unchanged": 174,
+    "continuation_script_repair": "First checkpoint edit used a nonexistent top-level key and stopped after writing receipt/README. The actual scroll_region_native_hover_revision key was then updated; final JSON, links, source hashes and diff checks passed."
+  },
+  "resumed_native_session": {
+    "recorded_at": "2026-10-08T22:02:07.321385+00:00",
+    "system_lock_cleared": true,
+    "initial_url": "tauri://localhost/login",
+    "actual_synthetic_password_unlock": "passed",
+    "agent_entered_system_credentials": false,
+    "agent_restarted_app": false,
+    "persisted_theme": "dark",
+    "persisted_navigation": "left_collapsed",
+    "sidebar_expand_button": "passed: actual expanded state and brand text observed",
+    "tools_open_button": "passed: actual expanded tools container with ten entries observed",
+    "dark_tools_stable_view": "observed: readable labels and menu above content; no measured pixels or continuous frames",
+    "top_blank_drag_attempt": {
+      "from": [
+        1200,
+        50
+      ],
+      "to": [
+        1280,
+        150
+      ],
+      "coordinate_source": "preceding native screenshot",
+      "input_call_completed": true,
+      "followup_observation": "small perspective/partial window captures; ordinary stable window recovered after exposed AX Raise action",
+      "window_position_measured": false,
+      "passed": null,
+      "scope": "Attempt is not proof that ordinary window dragging works; manual confirmation requested"
+    },
+    "raise_existing_window": "passed: normal-size home and same AX content observed after exposed Raise action",
+    "pending_manual_question": "Dark pure movement main→tools→top→main and ordinary top blank dragging",
+    "full_restore_lifecycle_passed": false
+  },
+  "preview_continuation": {
+    "scope": "same frozen isolated package; original attachment records retained; no production data or filesystem allowlist change",
+    "old_fixture_failure": {
+      "ui": "old PNG reported preview load failure",
+      "cause": "both original vaultPath values refer to a different old synthetic root",
+      "outside_fixture_read": false,
+      "product_preview_regression_proven": false
+    },
+    "read_only_diagnostic": {
+      "attachment_files": [
+        {
+          "decrypt_passed": true,
+          "file_name": "FE2-resumed-notes.txt",
+          "plaintext_bytes": 66,
+          "png_signature": false
+        },
+        {
+          "decrypt_passed": true,
+          "file_name": "FE2-public-notes.txt",
+          "plaintext_bytes": 64,
+          "png_signature": false
+        },
+        {
+          "decrypt_passed": true,
+          "file_name": "FE2-public-quadrants.png",
+          "plaintext_bytes": 811,
+          "png_signature": true
+        },
+        {
+          "decrypt_passed": true,
+          "file_name": "FE2-resumed-quadrants.png",
+          "plaintext_bytes": 864,
+          "png_signature": true
+        }
+      ],
+      "attachment_references": [
+        {
+          "canonical_inside_if_same_root": null,
+          "exists_if_inside": null,
+          "file_name": "FE2-public-notes.txt",
+          "has_vault_path": true,
+          "metadata_keys": [
+            "createdAt",
+            "fileName",
+            "id",
+            "mimeType",
+            "objectId",
+            "sizeBytes",
+            "srcPath",
+            "vaultPath"
+          ],
+          "path_kind": "absolute",
+          "same_fixture_root_name": false,
+          "stored_fixture_root_name": "solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0",
+          "vault_path_inside_current_fixture": false
+        },
+        {
+          "canonical_inside_if_same_root": null,
+          "exists_if_inside": null,
+          "file_name": "FE2-public-quadrants.png",
+          "has_vault_path": true,
+          "metadata_keys": [
+            "createdAt",
+            "fileName",
+            "id",
+            "mimeType",
+            "objectId",
+            "sizeBytes",
+            "srcPath",
+            "vaultPath"
+          ],
+          "path_kind": "absolute",
+          "same_fixture_root_name": false,
+          "stored_fixture_root_name": "solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0",
+          "vault_path_inside_current_fixture": false
+        },
+        {
+          "canonical_inside_if_same_root": true,
+          "exists_if_inside": true,
+          "file_name": "FE2-resumed-notes.txt",
+          "has_vault_path": true,
+          "metadata_keys": [
+            "createdAt",
+            "fileName",
+            "id",
+            "mimeType",
+            "objectId",
+            "sizeBytes",
+            "srcPath",
+            "vaultPath"
+          ],
+          "path_kind": "absolute",
+          "same_fixture_root_name": true,
+          "stored_fixture_root_name": "solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+          "vault_path_inside_current_fixture": true
+        },
+        {
+          "canonical_inside_if_same_root": true,
+          "exists_if_inside": true,
+          "file_name": "FE2-resumed-quadrants.png",
+          "has_vault_path": true,
+          "metadata_keys": [
+            "createdAt",
+            "fileName",
+            "id",
+            "mimeType",
+            "objectId",
+            "sizeBytes",
+            "srcPath",
+            "vaultPath"
+          ],
+          "path_kind": "absolute",
+          "same_fixture_root_name": true,
+          "stored_fixture_root_name": "solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+          "vault_path_inside_current_fixture": true
+        }
+      ],
+      "live_vault_written": false,
+      "property_decryption_passed": true,
+      "read_only": true
+    },
+    "new_import": {
+      "method": "two separate real macOS OpenPanel selections through production upload UI",
+      "attachment_count": 4,
+      "photo_count": 2,
+      "files": [
+        {
+          "path": "/Users/zzc/Downloads/solosoul-fe2-preview-20261008-df4f3c2d41754781bb54f2336acc30f4/FE2-resumed-quadrants.png",
+          "size": 864,
+          "sha256": "70e384192e076bccd357f716ee8e1c1e9573c08d3c186dfd51b1708c09eb0ef2"
+        },
+        {
+          "path": "/Users/zzc/Downloads/solosoul-fe2-preview-20261008-df4f3c2d41754781bb54f2336acc30f4/FE2-resumed-notes.txt",
+          "size": 66,
+          "sha256": "34f16dac3636182d8b75b96aab9a217b90682e9d841298729a7b929bfd2154de"
+        }
+      ],
+      "source_cleanup": "completed: only two hash-verified agent-created sources and their dedicated directory; imported encrypted Vault copies retained",
+      "database_manually_modified": false
+    },
+    "text_preview": {
+      "file": "FE2-resumed-notes.txt",
+      "public_text_visible": true,
+      "stable_sample_passed": true
+    },
+    "image_preview": {
+      "file": "FE2-resumed-quadrants.png",
+      "quadrants_visible_at_100_percent": true,
+      "bottom_controls_readable": true,
+      "whole_topbar_shared_dark_shell_observed": true,
+      "traffic_lights_verified": false,
+      "zoom_120_ax_value_observed": true,
+      "zoom_120_stable_visual_passed": true,
+      "zoom_120_capture": "small perspective window sample; stable full-size frame not confirmed",
+      "zoom_144_stable_visual_passed": true,
+      "fit_reset_100_passed": true,
+      "verification_scope": "stable native screenshots and AX states; not continuous restoration frames"
+    },
+    "observation_limits": {
+      "subsequent_cua_capture_errors": [
+        "ScreenCaptureKit -3811",
+        "ScreenCaptureKit -3812"
+      ],
+      "capture_recovered": true,
+      "process_termination_proven": false,
+      "app_restarted_due_to_capture_error": false,
+      "continuous_frames_verified": false,
+      "native_png_exported": false,
+      "recovery_method": "same existing native handle re-polled; no application restart",
+      "current_ui_verified": true
+    },
+    "photo_viewer": {
+      "entry": "actual object photo album selecting FE2-resumed-quadrants.png",
+      "photo_count": 2,
+      "new_image_stable_100_passed": true,
+      "new_image_stable_120_passed": true,
+      "fit_reset_100_ax_passed": true,
+      "return_to_album_passed": true,
+      "close_album_attachment_detail_passed": true,
+      "whole_topbar_shared_dark_shell_observed": true,
+      "scope": "new image only; original stale-path fixture and all-photo support not reclassified"
+    },
+    "recovered_at": "2026-10-08T22:19:06.502046+00:00"
+  },
+  "dark_login_reverification": {
+    "actual_lock_button_to_login": true,
+    "plain_compact_card_directly_on_shell_observed": true,
+    "rounded_card_and_surrounding_space_visible": true,
+    "brand_icon_and_name_horizontal": true,
+    "wrong_existing_password_submitted_once": true,
+    "password_error_visible": true,
+    "error_state_stable_sample_observed": true,
+    "long_public_input_characters": 288,
+    "masked_input_does_not_overlap_eye_observed": true,
+    "visible_input_does_not_overlap_eye_observed": true,
+    "password_hidden_again_before_unlock": true,
+    "actual_original_synthetic_password_unlock": true,
+    "home_restored": true,
+    "tools_restored_expanded": true,
+    "credential_changed": false,
+    "formal_account_used": false,
+    "pin_or_biometric_configured": false,
+    "small_height_or_font_scaling_verified": false,
+    "continuous_transition_or_waiting_state_verified": false
+  },
+  "dark_navigation_reverification": {
+    "package": "same frozen second package, no restart or rebuild",
+    "right": {
+      "selected_in_actual_appearance_settings": true,
+      "stable_expanded_shell_observed": true,
+      "actual_collapse_expand_passed": true,
+      "collapsed_and_expanded_tools_stable_views_observed": true,
+      "sidebar_toggle_stable_location_observed": true,
+      "geometry_measured": false
+    },
+    "top": {
+      "selected_in_actual_settings": true,
+      "stable_shell_observed": true,
+      "sidebar_toggle_absent_as_expected": true,
+      "tool_click_and_exposed_ax_expand_kept_collapsed": true,
+      "keyboard_tab_shift_tab_return_expanded_tools": true,
+      "add_page_opened_while_tools_expanded": true,
+      "tools_collapsed_after_add_page_open": true,
+      "icon_list_end_key_scrolled_to_last_categories": true,
+      "panel_did_not_visually_jump_to_repositioned_add_button": true,
+      "panel_coordinates_measured": false,
+      "cancel_closed_without_page_creation": true,
+      "wheel_call_changed_scroll": false
+    },
+    "bottom": {
+      "selected_in_actual_settings": true,
+      "stable_shell_observed": true,
+      "sidebar_toggle_absent_as_expected": true,
+      "tool_click_kept_collapsed": true,
+      "keyboard_tab_shift_tab_return_expanded_tools": true,
+      "add_page_opened_while_tools_expanded": true,
+      "existing_full_width_panel_observed": true,
+      "tools_collapsed_after_add_page_open": true,
+      "icon_list_end_key_scrolled_to_last_categories": true,
+      "panel_stayed_visually_fixed": true,
+      "panel_coordinates_measured": false,
+      "cancel_closed_without_page_creation": true
+    },
+    "restore": {
+      "left_expanded_selected_again": true,
+      "home_restored": true,
+      "tools_expanded_again": true,
+      "theme": "dark",
+      "initial_light_theme_restored": false
+    },
+    "scope": "stable native deep-theme observations and actual keyboard operations only; pointer hover, continuous animation, light-mode positions, narrow-height overflow and traffic lights not closed"
+  },
+  "user_control_observation": {
+    "at": "2026-10-08T22:29:11.636276+00:00",
+    "planned_light_matrix_executed": false,
+    "input_interrupted_by_manual_app_change": true,
+    "same_handle_requeried": true,
+    "observed_sequence": [
+      "identity workspace with attachment overlay",
+      "identity workspace after attachment overlay closed without further agent input"
+    ],
+    "further_agent_ui_input": false,
+    "scope": "window left for manual inspection; does not prove deep pure-pointer, drag, or light matrix pass",
+    "manual_inspection_completed_by_user": true
+  },
+  "light_navigation_reverification": {
+    "package": "same frozen second package; no restart, rebuild or product changes",
+    "right": {
+      "collapsed_shell_observed": true,
+      "collapsed_tools_expanded_and_readable": true,
+      "expanded_navigation_restored": true
+    },
+    "top": {
+      "selected_in_actual_settings": true,
+      "tools_expanded_by_actual_click": true,
+      "add_page_opened_with_tools_expanded": true,
+      "icon_list_end_key_scrolled_to_last_categories": true,
+      "panel_remained_at_opening_area_in_stable_views": true,
+      "tools_collapsed_after_open": false,
+      "cancel_closed_without_page_creation": true
+    },
+    "bottom": {
+      "selected_in_actual_settings": true,
+      "tools_expanded_observed": true,
+      "existing_full_width_panel_observed": true,
+      "icon_list_end_key_scrolled_to_last_categories": true,
+      "panel_remained_at_opening_area_in_stable_views": true,
+      "tools_collapsed_after_open": false,
+      "cancel_closed_without_page_creation": true
+    },
+    "restore": {
+      "theme": "dark",
+      "navigation": "left_expanded",
+      "page": "home",
+      "tools": "collapsed"
+    },
+    "scope": "actual native stable views and keyboard scroll only; no coordinate measurement, continuous animation, short-window overflow or traffic-light material claim. Light horizontal tools stayed expanded during panel interaction, so this sample does not prove collapse-induced anchor movement."
+  },
+  "native_zoom_and_light_login_reverification": {
+    "package": "same frozen second package; binary and 174 source hashes reverified unchanged",
+    "zoom": {
+      "method": "exposed native full-screen button secondary action zoom the window",
+      "actual_larger_stable_view_observed": true,
+      "sidebar_collapse_expand_operated": true,
+      "toggle_location_visually_unchanged": true,
+      "second_zoom_restored_normal_stable_view": true,
+      "full_screen_tested": false,
+      "continuous_frames_captured": false
+    },
+    "light_login": {
+      "actual_appearance_radio_selected": true,
+      "actual_lock_toggle_used": true,
+      "ordinary_compact_card_directly_on_light_shell": true,
+      "full_card_corners_and_brand_horizontal_observed": true,
+      "one_public_wrong_password_submitted": true,
+      "password_error_text_and_border_readable": true,
+      "public_long_input_requested_chars": 288,
+      "exact_field_length_measured": false,
+      "masked_and_visible_content_clipped_before_eye_and_hint_buttons": true,
+      "long_input_not_submitted": true,
+      "original_public_synthetic_password_used": true,
+      "actual_unlock_restored_light_home": true,
+      "credential_changed": false,
+      "pin_biometric_waiting_enlarged_text_not_tested": true
+    },
+    "short_window": {
+      "method": "actual Window > Move & Resize > Bottom menu item",
+      "shorter_native_stable_view_observed": true,
+      "tools_overflow_scrollbar_visible": true,
+      "tool_button_and_tool_container_wheel_calls_no_visible_scroll": true,
+      "tool_wheel_human_confirmation": "passed_by_explicit_user_confirmation",
+      "background_restore_human_confirmation": "passed_by_explicit_user_confirmation",
+      "window_bounds_measured": false
+    },
+    "interruption": {
+      "one_control_interruption": true,
+      "same_handle_reobserved_without_restart": true,
+      "login_error_state_unchanged": true,
+      "later_actual_input_and_unlock_succeeded": true
+    },
+    "scope": "stable native views and actual inputs; no exported native PNG, RGB or geometry measurement, full-screen transition, continuous restoration or performance claim"
+  },
+  "short_tools_and_background_human_confirmation": {
+    "user_answer": "矮窗口工具菜单能否滚到底，以及从后台返回是否闪黑、顶部圆角是否正常。这些都正常",
+    "method": "explicit user manual feedback on current isolated short light window",
+    "tools_can_scroll_to_bottom": true,
+    "background_restore_no_black_flash": true,
+    "top_strip_and_corners_normal": true,
+    "scope": "user confirmation of current short-window manual scenarios; not exported continuous frames or native performance measurement"
+  },
+  "short_login_and_fullscreen_reverification": {
+    "package": "same frozen second package, no restart or rebuild",
+    "short_light_login": {
+      "actual_lock": true,
+      "ordinary_card_all_corners_and_controls_visible": true,
+      "actual_public_synthetic_password_unlock": true,
+      "passed_stable_view": true,
+      "capture_error_then_same_handle_recovery": true
+    },
+    "fullscreen": {
+      "actual_native_full_screen_button_used": true,
+      "entered_fullscreen_stable_home": true,
+      "actual_sidebar_collapse": true,
+      "black_top_strip_with_hidden_appbar_captured": true,
+      "later_same_handle_normal_top_strip_observed": true,
+      "user_control_interruption_during_attempted_tools_input": true,
+      "agent_did_not_complete_that_tools_click": true,
+      "later_body_scrolled_and_tools_collapsed_by_external_control": true,
+      "cause_determined": false,
+      "exit_verified": true,
+      "human_confirmation": "confirmed_bug: 全屏后出现黑色顶栏是bug，需要修复",
+      "exit_verification_method": "same native handle AX returned full-screen/close/minimize buttons; stable windowed screenshot had normal light top strip and rounded content"
+    },
+    "scope": "short light login stable view passed; fullscreen initial view/collapse observed but black overlay and normal later frame retain unresolved cause. Neither fullscreen restoration nor absence of transient flash inferred."
+  },
+  "fullscreen_fix": {
+    "status": "historical v3 candidate; user reported exit height and entry black-strip regressions; superseded by v4",
+    "user_request": "全屏后出现黑色顶栏是bug，需要修复",
+    "change": "successful fullscreen entry detaches the empty native toolbar; exit preparation restores the same instance; exit completion corrects AppKit hidden state with setVisible(true); no Tao delegate replacement or material/WebView reconstruction",
+    "source_sha256": {
+      "tauri/src-tauri/Cargo.toml": "166855e82b0d081d9c054e5d3f86cdaf52acbaa7c711892c10e7a8ec142b34dc",
+      "tauri/src-tauri/src/commands/window/macos_titlebar.rs": "e021ee8248cfdf87f031eb14d10d8caac501cbb5cda4d45e2143a09007b24893",
+      "tauri/src-tauri/examples/macos_window_appearance.rs": "8b49755f88f05b1d6a9c06fdb1d2f4f7a5f031845e584b01a9514ade13c4328e"
+    },
+    "build": {
+      "bundle": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v3/SoloSoulFE2Mac.app",
+      "binary_sha256": "302c1cc3a1c85e86029d178f9b4ac24bfdde4da259c96df30a6aa491fbf28f8d",
+      "passed": true,
+      "source_differences_after_build": [],
+      "protected_original_inputs_unchanged": true,
+      "prior_frozen_artifacts_unchanged": true,
+      "report": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v3/report.json",
+        "sha256": "a55cf3f61e4e0de98ef7c832e6eb8ee22a37d07f2199621efd1306eae1dc1f40",
+        "bytes": 2853
+      }
+    },
+    "checks": {
+      "cargo_fmt_check": "passed",
+      "cargo_clippy_all_targets_macos_ui_regression_D_warnings": "passed",
+      "cargo_window_tests": "15 passed; 776 filtered",
+      "nativeWindow_vitest": "10 passed; frontend unchanged by this Rust fix",
+      "example_build": "passed"
+    },
+    "native_focused": {
+      "command_arguments": [
+        "--fullscreen-toolbar-only",
+        "--manual"
+      ],
+      "passed": true,
+      "round_trips": 2,
+      "fullscreen_titlebar_heights": [
+        0,
+        0
+      ],
+      "restored_titlebar_heights": [
+        52,
+        52
+      ],
+      "restored_traffic_lights_right": [
+        79,
+        79
+      ],
+      "toolbar_removed_in_fullscreen": true,
+      "same_toolbar_instance_restored": true,
+      "webview_material_drag_view_and_button_identities_stable": true,
+      "window_backing_alpha_unchanged": 0.001,
+      "native_hit_assertions_run": false,
+      "log": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v3/native-geometry-focused.log",
+        "sha256": "45b043f70960745ad6a9aa092eddfeccfc4542a8a1620004a6fd6989a2c860b3",
+        "bytes": 1198
+      },
+      "log_before_manual_quit": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v3/native-geometry-focused.log",
+        "sha256": "bca7498e5f12c88f043e0e8cea73d9044b6ebcfccbcd6758df975812444cb0b9",
+        "bytes": 1120,
+        "scope": "log prefix before app quit; focus notifications appended during final native cleanup"
+      }
+    },
+    "preserved_failures": [
+      {
+        "stage": "first candidate default appearance example",
+        "result": "legacy traffic-light descendant hit assertion failed before fullscreen; not counted as a complete native-window pass",
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261008/native-geometry.log",
+          "sha256": "ea9fd9a6fb75af6279d9667486dd0da43e3f700da40a744680c4248dd72d5672",
+          "bytes": 1111
+        }
+      },
+      {
+        "stage": "second candidate focused geometry",
+        "result": "fullscreen height 0, restored height 32 instead of 52; failed; led to explicit toolbar visibility restoration",
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v2/native-geometry-focused.log",
+          "sha256": "7c98ef4c171bece1eed2f5e410448bdec5bb3362001345c1634fd8887d3f1d2c",
+          "bytes": 924
+        }
+      },
+      {
+        "stage": "third candidate initial focused run with legacy controls check",
+        "result": "both fullscreen geometry cycles passed 0/52; subsequent legacy drag hit assertion failed; overall run failed. Scoped mode now explicitly excludes legacy native hit assertions, default mode retains them.",
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v3/native-geometry-focused-first-failed.log",
+          "sha256": "3dfaa1259d72304498115b13187cec240c04b7223ce6b7828d771a436e2528ed",
+          "bytes": 1200
+        }
+      }
+    ],
+    "complete_client": {
+      "first_and_second_candidates_light_fullscreen_collapse_no_black_stable_views": true,
+      "first_candidate_actual_sidebar_expand_and_guide_button_worked": true,
+      "second_candidate_normal_height_32_problem_preserved": true,
+      "final_candidate_actual_public_synthetic_unlock": "initial maintenance busy message; subsequent actual retry succeeded",
+      "final_candidate_light_and_dark_fullscreen_visual": "passed stable native views: actual fullscreen entry, sidebar collapse/expand, guide open/close, fullscreen exit in both light and dark; no extra black strip observed; native traffic lights and aligned top bar restored on exit",
+      "manual_pointer_and_ordinary_drag_recheck": "pending human confirmation on final v3; current dark windowed home is handed off",
+      "launch": "standard LaunchServices; no external run.py sandbox inherited",
+      "formal_data_accessed": false,
+      "credentials_changed": false,
+      "system_preferences_changed": false,
+      "mac_manual_unlock": "user confirmed 已解锁; same client handle continued; fixture had auto-locked, actual existing public synthetic password unlock succeeded"
+    },
+    "scope": "focused toolbar fullscreen lifecycle and native geometry/surface identity passed; final complete-client light/dark stable fullscreen views and actual sidebar/guide interactions passed. Legacy native hit assertions remain independent and failed records preserved; pure-pointer/ordinary-drag recheck pending. Earlier second-package manual scroll/background confirmations stay bound to that earlier binary; no full macOS/mobile matrix closure.",
+    "pending_human_input": "superseded by v4 regression review",
+    "committed": false,
+    "pushed": false,
+    "specification_backfill": {
+      "completed": true,
+      "documents": [
+        "docs/macos-glass-surfaces.md",
+        "docs/macos-glass-restore-investigation.md"
+      ],
+      "scope": "records toolbar lifecycle, native 52pt restoration, stable identity, preserved failures and evidence limits; does not close outstanding native matrix"
+    }
+  },
+  "pending_human_input": null,
+  "goal_continuation_audit": {
+    "previous_goal_turn": "progress: normative material and restore investigation documents backfilled; not a verified process wait",
+    "current_turn": "read-only audit; no new confirmed code defect; no additional native interactions performed while final client is handed to user",
+    "current_native_handle": "same final v3 client AX read succeeded; home, expanded sidebar, windowed, native close/fullscreen/minimize controls present",
+    "blocking_condition": "final v3 human pure-pointer/fullscreen and ordinary-titlebar-drag result remains pending; safe independent scoped code checks and normative backfill complete; remaining macOS full native gates need human/environment access and cannot be represented by browser or scoped geometry passes",
+    "same_blocking_condition_consecutive_goal_turns": 3,
+    "completion_proven": false,
+    "remaining_scope": "macOS FE2-002/003/004/005/007 and mobile FE2-014; macOS first; legacy hit failures and Android API31 strict pixel failure retained",
+    "git_history_changed": false,
+    "product_code_changed_this_turn": false,
+    "subsequent_user_bug_work": "fullscreen regressions fixed in v4; user confirmed successful and authorized commit/push; original blocked audit retained as historical; full FE2 matrix remains open"
+  },
+  "fullscreen_transition_revision": {
+    "status": "v4 fullscreen defects fixed; automated and scoped native checks passed; user confirmed success",
+    "user_regression": [
+      "全屏后退出，顶部栏高度减少不恢复",
+      "打开全屏，顶部会出现黑条随后消失"
+    ],
+    "supersedes": "v3 was not a complete fix; its original source, artifacts and successful scoped observations remain historical evidence",
+    "changes": [
+      "WillEnter removes empty toolbar before fullscreen transition; DidEnter preserves absence",
+      "WillExit keeps toolbar absent during animation; DidExit restores the same visible instance",
+      "next main runloop finalizes windowed toolbar and emits native-window-layout-changed to own window; skips rapid fullscreen re-entry",
+      "frontend measures final geometry on native event, retries if an earlier measurement is in flight, and safely unregisters listener",
+      "wide macOS AppBar uses at least 52px despite native transition values 0/32; native geometry remains actual"
+    ],
+    "source": {
+      "manifest": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/source.json",
+        "bytes": 166246,
+        "sha256": "6934f785592d33524a583cc4dc56b66545ab864c40aad287a686ccb161070acb"
+      },
+      "checked_files": 1370,
+      "differences_after_build_and_native_checks": [],
+      "changed_sources": [
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/Cargo.toml",
+          "bytes": 5244,
+          "sha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/src/commands/window/macos.rs",
+          "bytes": 7581,
+          "sha256": "5cb9e391d1c80b7bfb71ced6119018a616ad21ce70a1e92a6fc043007cb23a1f"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/src/commands/window/macos_titlebar.rs",
+          "bytes": 15703,
+          "sha256": "ad7b308f30b2c06fac5c909ff6e7ffa83173bfc63d0a797b5921ef8f96ad7be2"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/examples/macos_window_appearance.rs",
+          "bytes": 27045,
+          "sha256": "45469e7149ce0d1f2c9275a70801ce16f077ed82a8e7e702198b55ca6c737203"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src/lib/nativeWindow.ts",
+          "bytes": 5218,
+          "sha256": "ad3a103a778a215b05bd7c00a87f126860b39d88d5fd9820964b576e85c42db1"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src/lib/nativeWindow.test.ts",
+          "bytes": 10248,
+          "sha256": "6433852f9246cabdb6a1e1c83c812ea83098440dd5b9d020bd9d82b6e49dac62"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src/components/layout/AppShell.tsx",
+          "bytes": 10091,
+          "sha256": "0da87291529f2892d31113a0edcc4bd2750e4fad9e0c6b7ab1aed5c9e9c7e38b"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src/components/layout/AppShell.test.tsx",
+          "bytes": 8975,
+          "sha256": "8939bd465e8ef5b0e547a3c09d6e380aef0127aec1e0128f96951498a93c0ea6"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-fullscreen-layout.spec.ts",
+          "bytes": 3132,
+          "sha256": "d79591576a1b2d533d06b13ef0ca17dca49d0cc8e3b43bb655af2c73299ae375"
+        }
+      ]
+    },
+    "build": {
+      "report": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/report.json",
+        "bytes": 2855,
+        "sha256": "33b04b6825f953d704c2b1cf6942c014e9f842ac5d2bb13102917d33e10f9a64"
+      },
+      "log": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/build.log",
+        "bytes": 6585,
+        "sha256": "49a1d85b3d5b3653876ceebc0e7bf0dc787414f1e14c8e1f64e4a866d6e02d3a"
+      },
+      "app": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/SoloSoulFE2Mac.app",
+      "binary": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul",
+        "bytes": 114956096,
+        "sha256": "07361e5d0732b4ec83eb450e43839eb64639a37ee7e882dce4be894c0c4d1738"
+      },
+      "isolated_synthetic_root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+      "exit_code": 0,
+      "previous_frozen_bundle_preserved": true
+    },
+    "checks": {
+      "typescript": "passed",
+      "targeted_eslint": "passed",
+      "prettier": "passed",
+      "cargo_fmt": "passed",
+      "strict_all_targets_clippy": "passed",
+      "frontend": {
+        "files": 3,
+        "passed": 26,
+        "scope": "nativeWindow, AppShell, appLifecycle"
+      },
+      "rust_window": {
+        "passed": 15,
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/rust-window-tests.log",
+          "bytes": 1510,
+          "sha256": "c15de4a956ebd17f9713e206afcd8cb3a8925a1cb6cc1e98c95bae7647247302"
+        }
+      },
+      "browser": {
+        "passed": 4,
+        "engines": [
+          "Chromium",
+          "WebKit"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "scope": "production frontend with mocked native transition geometry and final event; not native animation proof"
+      },
+      "native_example_build": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/native-example-build.log",
+        "bytes": 156,
+        "sha256": "2b12b8b1be648de4347efae3b6c2a7bed5e75508262ace0b2a32f8198a4d7deb"
+      },
+      "initial_failures": [
+        "two frontend test assertions initially returned on the initial 52pt instead of awaiting the measurement; corrected synchronization, final 26 passed",
+        "sandbox test-server bind failed EPERM; permitted local-server run first used mismatched IPv6 bind/IPv4 health URL; final explicit TAURI_DEV_HOST=127.0.0.1 run passed"
+      ]
+    },
+    "native_scoped": {
+      "log": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/native-geometry-focused.log",
+        "bytes": 920,
+        "sha256": "8f9d606b1fbf0e55ecdfa51af023a77551297ff0b1bfbdd78347d43e720e00d6"
+      },
+      "frozen_binary": {
+        "path": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/SoloSoulFullscreenToolbar.app/Contents/MacOS/macos_window_appearance",
+        "bytes": 10189856,
+        "sha256": "aeebe0363b7335f4f76fa67d241f1eeebaf442d3cd32fdddbda14f9a1fbab1af"
+      },
+      "fullscreen_heights": [
+        0,
+        0
+      ],
+      "windowed_heights": [
+        52,
+        52
+      ],
+      "windowed_traffic_lights_right": [
+        79,
+        79
+      ],
+      "layout_event_counts_per_transition": [
+        2,
+        1,
+        2,
+        1
+      ],
+      "same_toolbar_webview_glass_drag_view_and_buttons": true,
+      "background_alpha": 0.001,
+      "legacy_native_hit_assertions_run": false
+    },
+    "complete_client": {
+      "verified_running_pid": 46841,
+      "verified_process_binary": "/private/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul",
+      "actual_public_synthetic_unlock": "succeeded first attempt",
+      "dark_fullscreen_round_trips": 2,
+      "light_fullscreen_round_trips": 1,
+      "stable_web_appbar_and_content_top": "unchanged across observed fullscreen/exit views",
+      "windowed_corners": "normal in observed stable views",
+      "actual_dark_sidebar_collapse_expand_and_guide_open_close": "passed after fullscreen round trip",
+      "native_lights": "present after exit; immediate transition capture showed native controls higher than webpage center; later capture badge covers controls, so final center alignment is not certified",
+      "extra_black_strip": "not present in sampled screenshots; user subsequently confirmed fix successful; no instrumented frame-by-frame proof",
+      "current_state": "light windowed home, left sidebar expanded, guides closed",
+      "formal_data_accessed": false,
+      "credentials_changed": false,
+      "system_preferences_changed": false
+    },
+    "pending_human_input": null,
+    "limitations": [
+      "cancelled/failed fullscreen entry not covered",
+      "legacy native hit assertion failures retained",
+      "full FE2 macOS/mobile matrix not closed"
+    ],
+    "committed": false,
+    "pushed": false,
+    "human_acceptance": {
+      "date": "2026-10-09",
+      "user_reply": "修复成功，提交推送",
+      "result": "passed_by_user_confirmation",
+      "scope": "v4 fullscreen entry black-strip and exit top-bar height regressions",
+      "source_manifest_reverified_files": 1370,
+      "source_changes_since_tested_build": [],
+      "commit_and_push_authorized": true,
+      "full_FE2_matrix_closed": false
+    }
+  }
+}
