@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ThemeConfig } from '@/types';
 import { getSchemeById } from './themeSchemes';
+import sharedThemes from '../styles/themes.css?raw';
 
 const { invoke, syncNativeAppearance, platform, listen } = vi.hoisted(() => ({
   invoke: vi.fn(),
@@ -305,33 +306,40 @@ describe('RF110 applyTheme 单次解析与各外观输出一致性', () => {
   });
 
   it.each([
-    ['light', '#F9F9F3', '#4C6846'],
-    ['dark', '#181D1B', '#B9D2A7'],
+    ['light', LIGHT_SCHEME, '#5b8c6f'],
+    ['dark', DARK_SCHEME, '#7aaf8f'],
   ] as const)(
-    'Android %s 保留真实 Material surface 和 forest 强调色',
-    async (mode, surface, accent) => {
+    'Android %s 保留共享方案并从实际 CSS 派生 forest 材质',
+    async (mode, schemeId, accent) => {
       // 重载真实平台缓存；不替换 applyAndroidMaterial 或主题解析算法。
       vi.resetModules();
       platform.mockReturnValue('android');
       await (await import('./platform')).initPlatform();
       const androidApplyTheme = (await import('./theme')).applyTheme;
       mediaTheme(mode === 'dark' ? 'light' : 'dark');
+      const style = document.createElement('style');
+      style.textContent = sharedThemes;
+      document.head.append(style);
+      try {
+        await androidApplyTheme(config({ resolvedSystemTheme: mode, accentColor: 'forest' }));
 
-      await androidApplyTheme(config({ resolvedSystemTheme: mode, accentColor: 'forest' }));
-
-      const root = document.documentElement;
-      expect(root.dataset.platform).toBe('android');
-      expect(root.dataset.theme).toBe(mode);
-      expect(root.dataset.accent).toBe('forest');
-      expect(root.style.getPropertyValue('--bg-base')).toBe(surface);
-      expect(root.style.getPropertyValue('--accent-primary')).toBe(accent);
-      expect(root.style.getPropertyValue('--md-on-primary')).toBe(
-        mode === 'dark' ? '#20351A' : '#FFFFFF',
-      );
-      expect(root.style.getPropertyValue('--shadow-card')).toBe('none');
-      expectStatus(mode);
-      expect(systemCalls()).toHaveLength(0);
-      expect(window.matchMedia).not.toHaveBeenCalled();
+        const root = document.documentElement;
+        expect(root.dataset.platform).toBe('android');
+        expect(root.dataset.theme).toBe(mode);
+        expect(root.dataset.accent).toBe('forest');
+        expect(root.style.getPropertyValue('--bg-base')).toBe(
+          getSchemeById(schemeId)!.variables['--bg-base'],
+        );
+        expect(root.style.getPropertyValue('--accent-primary')).toBe('');
+        expect(getComputedStyle(root).getPropertyValue('--accent-primary').trim()).toBe(accent);
+        expect(root.style.getPropertyValue('--md-on-primary')).toBe('#000000');
+        expect(root.style.getPropertyValue('--shadow-card')).toBe('');
+        expectStatus(mode);
+        expect(systemCalls()).toHaveLength(0);
+        expect(window.matchMedia).not.toHaveBeenCalled();
+      } finally {
+        style.remove();
+      }
     },
   );
 });

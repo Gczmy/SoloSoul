@@ -12,7 +12,7 @@ import { isAndroidSync, isMobilePlatformSync } from './platform';
 import { applyAndroidMaterial } from './androidMaterial';
 import { applyAccentTextColors, customAccentHover } from './accentContrast';
 
-const ACCENT_COLORS: Record<AccentPreset, string> = {
+export const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
   amber: '#C4925C',
   forest: '#5B8C6F',
@@ -122,8 +122,8 @@ export async function applyTheme(config: ThemeConfig, isCurrent: () => boolean =
   root.setAttribute('data-theme', resolvedMode);
   applyAccentColor(accent, config.customAccentHex);
   applyScheme(activeScheme);
-  if (isAndroidSync()) applyAndroidMaterial(accent);
-  else applyAccentTextColors();
+  applyAccentTextColors();
+  if (isAndroidSync()) applyAndroidMaterial();
 
   // Sync native title bar background with the active theme (desktop only)
   void syncTitleBarColor(activeScheme);

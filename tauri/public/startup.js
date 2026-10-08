@@ -14,7 +14,7 @@
     if (!snapshot && prefs.startupTheme && prefs.startupTheme.mode === mode)
       snapshot = prefs.startupTheme;
     if (snapshot) {
-      ['background', 'foreground', 'secondary'].forEach(function (key) {
+      ['background'].forEach(function (key) {
         if (/^#[\da-f]{6}$/i.test(snapshot[key])) {
           root.style.setProperty('--startup-' + key, snapshot[key]);
         }
@@ -23,6 +23,9 @@
   } catch (_) {
     /* 缓存不可用不阻断启动。 */
   }
+  // 首帧也遵守文字边界，不沿用旧主题缓存的暖色/低对比前景。
+  root.style.setProperty('--startup-foreground', mode === 'dark' ? '#ffffff' : '#111111');
+  root.style.setProperty('--startup-secondary', mode === 'dark' ? '#f5f5f5' : '#202020');
   root.dataset.theme = mode;
   root.lang = language;
   var zh = language === 'zh-CN';

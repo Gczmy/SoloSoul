@@ -5,8 +5,9 @@ use objc2::{
     MainThreadOnly,
 };
 use objc2_app_kit::{
-    NSEvent, NSLayoutAttribute, NSLayoutConstraint, NSLayoutRelation, NSTitlebarSeparatorStyle,
-    NSToolbar, NSToolbarDisplayMode, NSView, NSWindow, NSWindowButton, NSWindowToolbarStyle,
+    NSEvent, NSEventType, NSLayoutAttribute, NSLayoutConstraint, NSLayoutRelation,
+    NSTitlebarSeparatorStyle, NSToolbar, NSToolbarDisplayMode, NSView, NSWindow, NSWindowButton,
+    NSWindowToolbarStyle,
 };
 use objc2_foundation::{ns_string, MainThreadMarker, NSArray, NSPoint, NSUserDefaults};
 use std::cell::{Cell, RefCell};
@@ -15,6 +16,16 @@ use std::cell::{Cell, RefCell};
 pub struct TitlebarIvars {
     double_click_origin: Cell<Option<NSPoint>>,
     controls: RefCell<Vec<TitlebarControlRect>>,
+}
+
+fn is_pointer_tracking_event(event_type: NSEventType) -> bool {
+    matches!(
+        event_type,
+        NSEventType::MouseMoved
+            | NSEventType::MouseEntered
+            | NSEventType::MouseExited
+            | NSEventType::CursorUpdate
+    )
 }
 
 define_class!(
@@ -75,6 +86,17 @@ define_class!(
 
 impl TitlebarDragView {
     fn hit_test_impl(&self, point: NSPoint) -> Option<Retained<NSView>> {
+        // WKWebView 的原生跟踪区只处理命中自身视图树的悬停事件。
+        // 空白拖拽带覆盖网页时，纯移动/进出/光标更新必须穿透，才能按真实点位
+        // 更新 CSS :hover；按下、拖动和抬起仍由本视图处理首次拖拽与双击。
+        // currentEvent 是窗口正在分发的真实 NSEvent，不创建事件或调用 WebKit 私有接口。
+        if self
+            .window()
+            .and_then(|window| window.currentEvent())
+            .is_some_and(|event| is_pointer_tracking_event(event.r#type()))
+        {
+            return None;
+        }
         // hitTest 的点位属于父视图；网页原点位于左上角，AppKit 通常位于左下角。
         // 控件区域穿透至 WKWebView，其他空白仍由同一条原生拖拽带处理。
         let root = unsafe { self.superview() }?;
@@ -189,4 +211,44 @@ pub fn install(window: &NSWindow, root: &NSView) -> Result<(), String> {
     });
     NSLayoutConstraint::activateConstraints(&NSArray::from_retained_slice(&constraints));
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_pointer_tracking_event;
+    use objc2_app_kit::NSEventType;
+
+    #[test]
+    fn pointer_tracking_events_pass_through_titlebar() {
+        for event_type in [
+            NSEventType::MouseMoved,
+            NSEventType::MouseEntered,
+            NSEventType::MouseExited,
+            NSEventType::CursorUpdate,
+        ] {
+            assert!(is_pointer_tracking_event(event_type), "{event_type:?}");
+        }
+    }
+
+    #[test]
+    fn mouse_buttons_and_dragging_keep_native_titlebar_target() {
+        // 双击与单击具有相同的 Down/Up 类型；点击次数不参与穿透判定，
+        // 仍由 mouse_down/mouse_up 读取 clickCount 保留原生双击动作。
+        for event_type in [
+            NSEventType::LeftMouseDown,
+            NSEventType::LeftMouseDragged,
+            NSEventType::LeftMouseUp,
+            NSEventType::RightMouseDown,
+            NSEventType::RightMouseDragged,
+            NSEventType::RightMouseUp,
+            NSEventType::OtherMouseDown,
+            NSEventType::OtherMouseDragged,
+            NSEventType::OtherMouseUp,
+            NSEventType::ScrollWheel,
+            NSEventType::KeyDown,
+            NSEventType::KeyUp,
+        ] {
+            assert!(!is_pointer_tracking_event(event_type), "{event_type:?}");
+        }
+    }
 }

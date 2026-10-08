@@ -75,19 +75,13 @@ export function LoginPage() {
   return (
     <div className={styles.loginWrapper}>
       <div className={styles.loginCard} data-login-card>
-        <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />
-        <h1 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
-          {t('auth:login_title')}
-        </h1>
-        <p
-          style={{
-            fontSize: 'var(--text-body-sm)',
-            color: 'var(--text-secondary)',
-            marginBottom: 4,
-          }}
-        >
-          {t('auth:login_subtitle')}
-        </p>
+        <div className={styles.loginBrand} data-login-brand>
+          <ShieldLogo size={ICON_SIZE['5xl']} style={{ flexShrink: 0 }} />
+          <div>
+            <h1>{t('auth:login_title')}</h1>
+            <p>{t('auth:login_subtitle')}</p>
+          </div>
+        </div>
 
         {/* Account selector / name — 始终预留空间，避免切换登录方式时下方内容位移 */}
         <LoginAccountSelector
@@ -129,7 +123,7 @@ export function LoginPage() {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              marginBottom: 16,
+              marginBottom: 'var(--login-method-gap, 16px)',
             }}
           />
         )}

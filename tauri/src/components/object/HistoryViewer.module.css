@@ -1,0 +1,43 @@
+.panel {
+  position: relative;
+  width: 460px;
+  max-width: calc(100vw - 32px);
+  height: min(560px, 80vh);
+  height: min(560px, 80dvh);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 25%);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  scrollbar-gutter: stable;
+}
+.message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 8px;
+  color: var(--text-secondary);
+}
+.loadingIcon {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loadingIcon {
+    animation: none;
+  }
+}

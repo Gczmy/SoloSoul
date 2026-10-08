@@ -1,0 +1,10 @@
+; 本地调试验收的附加保护，不能替代生产 App Sandbox。
+(version 1)
+(allow default)
+(deny file-read* file-write*
+  (subpath (param "FORMAL_VAULT"))
+  (subpath (param "FORMAL_DATA"))
+  (subpath (param "FORMAL_CACHE"))
+  (subpath (param "FORMAL_WEBKIT"))
+  (subpath (param "FORMAL_SAVED_STATE"))
+  (literal (param "FORMAL_PREFERENCES")))

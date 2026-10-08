@@ -11,6 +11,8 @@ test.beforeEach(async ({ page }) => {
       language: 'en-US',
       hasSeenOnboarding: true,
       autoLockTimeoutMinutes: 0,
+      // 浏览器布局场景自行注入提醒；真实限时备份提醒由原生场景验证。
+      backupReminderDays: 0,
     };
     const prefs = () => ({
       ...defaults,
@@ -248,6 +250,116 @@ test('all objects, filters, search, details and contextual creation reuse busine
   await expect(page.getByText('PRIVATE-TEST-VALUE', { exact: true })).toHaveCount(0);
 });
 
+test('Android reminders occupy layout and follow the active sheet without covering actions', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.evaluate(async () => {
+    const source = '/src/stores/uiStore.ts';
+    const { useUiStore } = await import(source);
+    Object.assign(window, { __toastActions: 0 });
+    useUiStore.getState().showToast({
+      message: 'Backup reminder with a long message for a narrow phone',
+      type: 'warning',
+      duration: 60000,
+      action: {
+        label: 'Back Up Now',
+        onClick: () => {
+          (window as any).__toastActions += 1;
+        },
+      },
+    });
+  });
+  const toast = page.locator('[data-toast-container]');
+  await expect(page.locator('[data-shell-notifications] [data-toast-container]')).toBeVisible();
+  const id = await toast.locator('[data-macos-glass="notification"]').getAttribute('class');
+  await page.locator('.android-fab').click();
+  const sheet = page.locator('.android-sheet');
+  await expect(sheet.locator('[data-toast-container]')).toBeVisible();
+  await expect(page.locator('[data-toast-container]')).toHaveCount(1);
+  await expect(page.locator('#root')).toHaveJSProperty('inert', true);
+  const action = sheet.getByRole('button', { name: /New object/ });
+  await expect
+    .poll(() =>
+      sheet.evaluate((node) =>
+        node.getAnimations().every((animation) => animation.playState !== 'running'),
+      ),
+    )
+    .toBe(true);
+  const reminder = (await toast.boundingBox())!;
+  const actionRect = (await action.boundingBox())!;
+  expect(reminder.y + reminder.height).toBeLessThanOrEqual(actionRect.y);
+  await page.screenshot({ path: test.info().outputPath('toast-sheet-320.png') });
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-shell-notifications] [data-toast-container]')).toBeVisible();
+  expect(await toast.locator('[data-macos-glass="notification"]').getAttribute('class')).toBe(id);
+  await page.locator('.android-navigation a[href="/workspace"]').click();
+  await page.getByRole('button', { name: 'Actions for Passport', exact: true }).click();
+  await expect(sheet.locator('[data-toast-container]')).toBeVisible();
+  await expect
+    .poll(() =>
+      sheet.evaluate((node) =>
+        node.getAnimations().every((animation) => animation.playState !== 'running'),
+      ),
+    )
+    .toBe(true);
+  const remove = sheet.getByRole('button', { name: 'Delete', exact: true });
+  await remove.scrollIntoViewIfNeeded();
+  const toastBox = (await toast.boundingBox())!;
+  const deleteBox = (await remove.boundingBox())!;
+  expect(toastBox.y + toastBox.height).toBeLessThanOrEqual(deleteBox.y);
+  expect(
+    await remove.evaluate((node) => {
+      const r = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return node === hit || node.contains(hit);
+    }),
+  ).toBe(true);
+  await page.screenshot({ path: test.info().outputPath('toast-object-menu-320.png') });
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /^Passport/ }).click();
+  const detail = page.getByTestId('object-detail-modal');
+  await expect(detail.locator('[data-toast-container]')).toBeVisible();
+  await detail.getByRole('button', { name: 'Back Up Now', exact: true }).click();
+  expect(await page.evaluate(() => (window as any).__toastActions)).toBe(1);
+  await expect(detail).toBeVisible();
+  await expect(toast).toHaveCount(0);
+});
+
+test('Android editor save stays reachable with a reminder and enlarged text', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.locator('.android-navigation a[href="/workspace"]').click();
+  await page.getByRole('button', { name: /^Passport/ }).click();
+  await page
+    .getByTestId('object-detail-modal')
+    .getByRole('button', { name: 'Edit', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/editor/);
+  await page.evaluate(async () => {
+    document.documentElement.style.fontSize = '20px';
+    const source = '/src/stores/uiStore.ts';
+    const { useUiStore } = await import(source);
+    useUiStore
+      .getState()
+      .showToast({ message: 'Backup reminder', type: 'warning', duration: 60000 });
+  });
+  const save = page.getByRole('button', { name: 'Save', exact: true });
+  await save.scrollIntoViewIfNeeded();
+  const toastRect = (await page.locator('[data-toast-container]').boundingBox())!;
+  const saveRect = (await save.boundingBox())!;
+  expect(toastRect.y + toastRect.height).toBeLessThanOrEqual(saveRect.y);
+  expect(saveRect.y + saveRect.height).toBeLessThanOrEqual(640);
+  expect(
+    await save.evaluate((node) => {
+      const r = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return node === hit || node.contains(hit);
+    }),
+  ).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: test.info().outputPath('toast-editor-320-large-text.png') });
+});
+
 test('appearance persists across reload and a locked vault drops cached names', async ({
   page,
 }) => {
@@ -255,7 +367,7 @@ test('appearance persists across reload and a locked vault drops cached names', 
   await page.getByText('Theme & Appearance', { exact: true }).click();
   await page.getByRole('button', { name: 'Dark', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.getByRole('button', { name: 'Sage', exact: true }).click();
+  await page.getByRole('button', { name: 'Forest', exact: true }).click();
   await page.getByRole('checkbox').check();
   await expect(page.locator('html')).toHaveAttribute('data-user-reduce-motion', 'true');
   await page.reload();
@@ -275,6 +387,293 @@ async function selectGlass(page: import('@playwright/test').Page, label: string)
   await page.getByText('Theme & Appearance', { exact: true }).click();
   await page.getByRole('button', { name: label, exact: true }).click();
 }
+
+test('native safe-area lengths protect chrome, sheets and login without double padding', async ({
+  page,
+}) => {
+  // 浏览器只验证消费原生长度的 CSS；实际 Android 栏、IME 和重载由独立原生场景验证。
+  await expect(page.getByTestId('android-home')).toBeVisible();
+  await page.evaluate(async () => {
+    const source = '/src/stores/uiStore.ts';
+    const { useUiStore } = await import(source);
+    useUiStore.getState().showToast({
+      message: 'Backup reminder must avoid landscape system navigation',
+      type: 'warning',
+      duration: 60000,
+      action: { label: 'Back Up Now', onClick: () => {} },
+    });
+  });
+  await expect(page.locator('[data-shell-notifications] [data-toast-container]')).toBeVisible();
+  for (const width of [320, 390, 844]) {
+    const height = width === 844 ? 390 : 844;
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => {
+      const root = document.documentElement;
+      for (const [edge, value] of Object.entries({ top: 24, right: 32, bottom: 28, left: 20 }))
+        root.style.setProperty(`--android-native-safe-area-${edge}`, `${value}px`);
+    });
+    const controls = page.locator(
+      '.android-appbar-leading, .android-appbar-actions button, .android-navigation a, [data-shell-notifications] button',
+    );
+    const boxes = await controls.evaluateAll((nodes) =>
+      nodes
+        .filter(
+          (node) =>
+            !node.closest('[inert]') &&
+            getComputedStyle(node).visibility !== 'hidden' &&
+            node.getClientRects().length > 0,
+        )
+        .map((node) => {
+          const r = node.getBoundingClientRect();
+          return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+        }),
+    );
+    expect(boxes.length).toBeGreaterThanOrEqual(8);
+    for (const r of boxes) {
+      expect(r.left).toBeGreaterThanOrEqual(20);
+      expect(r.right).toBeLessThanOrEqual(width - 32);
+      expect(r.top).toBeGreaterThanOrEqual(24);
+      expect(r.bottom).toBeLessThanOrEqual(height - 28);
+    }
+    const appbar = (await page.locator('.android-appbar').boundingBox())!;
+    expect(appbar.height).toBe(88);
+    const main = (await page.locator('[data-shell-main]').boundingBox())!;
+    const reminder = (await page.locator('[data-toast-container]').boundingBox())!;
+    expect(reminder.x).toBeCloseTo(main.x + 16 + (width >= 768 ? 0 : 20), 1);
+    await page.screenshot({ path: test.info().outputPath(`safe-home-${width}.png`) });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.android-fab').click();
+  const sheet = page.locator('.android-sheet');
+  await expect(sheet).toBeVisible();
+  await expect
+    .poll(() => sheet.evaluate((e) => e.getAnimations().every((a) => a.playState !== 'running')))
+    .toBe(true);
+  const box = (await sheet.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(20);
+  expect(box.x + box.width).toBeLessThanOrEqual(358);
+  expect(box.y).toBeGreaterThanOrEqual(24);
+  expect(box.y + box.height).toBeLessThanOrEqual(816);
+  await page.screenshot({ path: test.info().outputPath('safe-sheet.png') });
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /Lock Vault/i }).click();
+  await expect(page.locator('[data-login-card]')).toBeVisible();
+  const layout = page.locator('[data-auth-layout]');
+  const loginLayout = (await layout.boundingBox())!;
+  const loginReminder = (await page.locator('[data-toast-container]').boundingBox())!;
+  // 认证壳已避让安全区，通知只保留自己的 16px 留白。
+  expect(loginReminder.x).toBeCloseTo(loginLayout.x + 20 + 16, 1);
+  expect(
+    await layout.evaluate((node) => {
+      const s = getComputedStyle(node);
+      return [s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft];
+    }),
+  ).toEqual(['24px', '32px', '28px', '20px']);
+  await page.screenshot({ path: test.info().outputPath('safe-login.png') });
+  await page.locator('[data-login-method-region="password"] input').focus();
+  await page.setViewportSize({ width: 390, height: 400 });
+  await expect.poll(() => layout.evaluate((e) => e.getBoundingClientRect().height)).toBe(400);
+  await page.locator('[data-login-method-region="password"] input').focus();
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  for (const selector of [
+    '[data-login-method-region="password"] input',
+    '[data-login-password-submit]',
+  ]) {
+    const control = page.locator(selector);
+    const r = (await control.boundingBox())!;
+    expect(r.y).toBeGreaterThanOrEqual(24);
+    expect(r.y + r.height).toBeLessThanOrEqual(372);
+    expect(
+      await control.evaluate((e) => {
+        const box = e.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return e === hit || e.contains(hit);
+      }),
+    ).toBe(true);
+  }
+  await page.screenshot({ path: test.info().outputPath('safe-login-short.png') });
+  // OS 已经排除系统栏时，原生交付 0；不残留上一种布局的留白。
+  await page.evaluate(() => {
+    for (const edge of ['top', 'right', 'bottom', 'left'])
+      document.documentElement.style.setProperty(`--android-native-safe-area-${edge}`, '0px');
+  });
+  expect(await layout.evaluate((node) => getComputedStyle(node).padding)).toBe('0px');
+});
+
+for (const [mode, scheme, accent, glass] of [
+  ['Dark', 'forest-night', '#112233', 'Enhanced glass'],
+  ['Light', 'clean-slate', '#ffee00', 'Local glass'],
+]) {
+  test(`custom ${accent} keeps home actions and tools readable in ${mode}`, async ({ page }) => {
+    await selectGlass(page, glass);
+    await page.getByRole('button', { name: mode, exact: true }).click();
+    await page.getByRole('combobox', { name: mode, exact: true }).selectOption(scheme);
+    await page
+      .getByRole('textbox', { name: 'Custom accent color (hex)', exact: true })
+      .fill(accent);
+    await page
+      .locator('.android-custom-accent')
+      .getByRole('button', { name: 'Save', exact: true })
+      .click();
+    await expect
+      .poll(() =>
+        page
+          .locator('html')
+          .evaluate((root) => getComputedStyle(root).getPropertyValue('--accent-primary').trim()),
+      )
+      .toBe(accent);
+    for (const [path, selector, background] of [
+      ['/', '.android-section-heading .android-text-button', '--bg-base'],
+      ['/tools', '.android-tool > svg', '--bg-elevated'],
+    ]) {
+      await page.locator(`.android-navigation a[href="${path}"]`).click();
+      const controls = page.locator(selector);
+      await expect(controls.first()).toBeVisible();
+      const ratios = await controls.evaluateAll((nodes, token) => {
+        const css = getComputedStyle(document.documentElement);
+        const luminance = (color: string) => {
+          const rgb = color.startsWith('#')
+            ? [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16))
+            : (color.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+          return rgb.reduce((sum, n, i) => {
+            const v = n / 255;
+            return (
+              sum +
+              (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4) *
+                [0.2126, 0.7152, 0.0722][i]
+            );
+          }, 0);
+        };
+        const surface = luminance(css.getPropertyValue(token).trim());
+        return nodes.map((node) => {
+          const ink = luminance(getComputedStyle(node).color);
+          return (Math.max(ink, surface) + 0.05) / (Math.min(ink, surface) + 0.05);
+        });
+      }, background);
+      ratios.forEach((ratio) => expect(ratio).toBeGreaterThanOrEqual(4.5));
+      await page.screenshot({
+        path: test.info().outputPath(`readable-${mode}-${path === '/' ? 'home' : 'tools'}.png`),
+      });
+    }
+  });
+}
+
+test('shared schemes and custom accents reach CSS, artwork and native menu together', async ({
+  page,
+}) => {
+  await selectGlass(page, 'Enhanced glass');
+  for (const { mode, scheme, base, surface, accent } of [
+    {
+      mode: 'Light',
+      scheme: 'clean-slate',
+      base: '#f6f8fa',
+      surface: '#ffffff',
+      accent: '#112233',
+    },
+    {
+      mode: 'Dark',
+      scheme: 'forest-night',
+      base: '#1a211d',
+      surface: '#242d28',
+      accent: '#ffee00',
+    },
+  ]) {
+    await page.getByRole('button', { name: mode, exact: true }).click();
+    await page.getByRole('combobox', { name: mode, exact: true }).selectOption(scheme);
+    await page
+      .getByRole('textbox', { name: 'Custom accent color (hex)', exact: true })
+      .fill(accent);
+    await page
+      .locator('.android-custom-accent')
+      .getByRole('button', { name: 'Save', exact: true })
+      .click();
+    await expect(page.locator('html')).toHaveAttribute('data-accent', 'custom');
+    await expect
+      .poll(() =>
+        page
+          .locator('html')
+          .evaluate((root) => getComputedStyle(root).getPropertyValue('--accent-primary').trim()),
+      )
+      .toBe(accent);
+    await expect
+      .poll(() =>
+        page
+          .locator('html')
+          .evaluate((root) => getComputedStyle(root).getPropertyValue('--bg-base').trim()),
+      )
+      .toBe(base);
+    await page.locator('.android-navigation a[href="/"]').click();
+    const art = page.locator('.android-liquid-artwork');
+    await expect(art).toHaveAttribute('data-liquid-ready', 'true');
+    await expect
+      .poll(() =>
+        art.locator('canvas').evaluate((el) => {
+          const gl = (el as HTMLCanvasElement).getContext('webgl')!;
+          const program = gl.getParameter(gl.CURRENT_PROGRAM)!;
+          const uniform = (name: string) =>
+            '#' +
+            Array.from(gl.getUniform(program, gl.getUniformLocation(program, name)) as Float32Array)
+              .map((channel) =>
+                Math.round(channel * 255)
+                  .toString(16)
+                  .padStart(2, '0'),
+              )
+              .join('');
+          return { accent: uniform('accent'), surface: uniform('container') };
+        }),
+      )
+      .toEqual({ accent, surface });
+    const boxes = await page
+      .locator('.android-overview-copy, .android-liquid-artwork')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const r = node.getBoundingClientRect();
+          return { left: r.left, right: r.right };
+        }),
+      );
+    // 装饰先于正文挂载，但几何位于正文右侧。
+    expect(boxes[1].right).toBeLessThanOrEqual(boxes[0].left);
+    const cards = await page
+      .locator('.android-category > button:first-child')
+      .evaluateAll((nodes) => nodes.map((node) => getComputedStyle(node).backgroundColor));
+    expect(new Set(cards).size).toBe(1);
+    await page.evaluate(() => {
+      const mocks = (window as any).__E2E_MOCKS__;
+      mocks.android_glass_capabilities = () => ({
+        apiLevel: 36,
+        windowBlur: true,
+        webViewVersion: 'test',
+      });
+      mocks.android_show_glass_menu = ({ payload }: any) => {
+        (window as any).__MATERIAL_MENU__ = payload;
+        return { requestId: payload.requestId, action: 'cancel' };
+      };
+    });
+    await page.locator('.android-fab').click();
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const payload = (window as any).__MATERIAL_MENU__;
+          return payload && { background: payload.background, accent: payload.accent };
+        }),
+      )
+      .toEqual({ background: base, accent });
+    await page.screenshot({ path: test.info().outputPath(`aligned-${mode}.png`) });
+    await page.locator('.android-navigation a[href="/settings"]').click();
+    await page.getByText('Theme & Appearance', { exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'Off', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'custom');
+  await page.reload();
+  await login(page);
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'custom');
+  await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'off');
+});
 
 test('glass switches retain navigation geometry, forced colors use solid surfaces', async ({
   page,
@@ -358,6 +757,11 @@ test('liquid artwork recovers context loss, stops when hidden and clears on lock
   await expect(art).toHaveAttribute('data-liquid-ready', 'false');
   await page.evaluate(() => (window as any).__glassContext.restoreContext());
   await expect(art).toHaveAttribute('data-liquid-ready', 'true');
+  expect(
+    await art
+      .locator('canvas')
+      .evaluate((canvas) => (canvas as HTMLCanvasElement).getContext('webgl')!.getError()),
+  ).toBe(0);
   await page.setViewportSize({ width: 390, height: 640 });
   await page.locator('[data-shell-content]').evaluate((el) => (el.scrollTop = el.scrollHeight));
   await page.waitForTimeout(180);
@@ -412,7 +816,7 @@ test('enhanced glass follows Android WebView system theme and ignores desktop th
               gl.getUniform(program, gl.getUniformLocation(program, 'container')) as Float32Array,
             ).map((channel) => Math.round(channel * 255));
             const css = getComputedStyle(document.documentElement)
-              .getPropertyValue('--md-primary-container')
+              .getPropertyValue('--android-liquid-base')
               .trim();
             const expected = [1, 3, 5].map((offset) => parseInt(css.slice(offset, offset + 2), 16));
             return {

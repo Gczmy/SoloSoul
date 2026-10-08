@@ -1,5 +1,15 @@
 /* Material 3 Expressive：仅真实 Android WebView 使用，桌面缩窄窗口不受影响。 */
 :root[data-platform='android'] {
+  --safe-area-top: max(env(safe-area-inset-top, 0px), var(--android-native-safe-area-top, 0px));
+  --safe-area-right: max(
+    env(safe-area-inset-right, 0px),
+    var(--android-native-safe-area-right, 0px)
+  );
+  --safe-area-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    var(--android-native-safe-area-bottom, 0px)
+  );
+  --safe-area-left: max(env(safe-area-inset-left, 0px), var(--android-native-safe-area-left, 0px));
   --select-checkbox-target-size: 48px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -83,17 +93,14 @@
 [data-platform='android'] .interactive-password-field > input {
   min-width: 0;
   min-height: 54px;
-  padding-right: 60px !important;
-}
-[data-platform='android'] .interactive-password-field[data-has-hint] > input {
-  padding-right: 110px !important;
+  padding-right: 8px !important;
 }
 [data-platform='android'] .password-verification-content {
   min-width: 0 !important;
 }
 [data-platform='android'] [data-ui-card] {
   border: 0;
-  border-radius: 24px;
+  border-radius: 20px;
   background: var(--bg-elevated);
   box-shadow: none;
   backdrop-filter: none;
@@ -120,10 +127,15 @@
 [data-platform='android'] [data-ui-button] > svg {
   flex-shrink: 0;
 }
-[data-platform='android'] [data-ui-intent='neutral'],
+[data-platform='android'] [data-ui-intent='neutral'] {
+  --action-surface: var(--bg-inset);
+  --action-ink: var(--text-primary);
+  --action-edge: transparent;
+  backdrop-filter: none;
+}
 [data-platform='android'] [data-ui-intent='quiet'] {
-  --action-surface: var(--md-primary-container);
-  --action-ink: var(--md-on-primary-container);
+  --action-surface: transparent;
+  --action-ink: var(--text-secondary);
   --action-edge: transparent;
   backdrop-filter: none;
 }
@@ -155,7 +167,7 @@
   outline-offset: 3px;
 }
 [data-platform='android'] [data-android-shell] {
-  height: 100dvh;
+  height: var(--viewport-height, 100vh);
   background: var(--bg-base);
 }
 [data-android-shell] [data-shell-main] {
@@ -163,7 +175,7 @@
 }
 [data-android-shell] [data-shell-content] {
   /* AppBar、通知与导航由壳占位，这里只保留正文留白和浮动操作的空间。 */
-  padding: 16px 20px 82px;
+  padding: 16px max(20px, var(--safe-area-right)) 82px max(20px, var(--safe-area-left));
   scrollbar-gutter: auto;
   background: var(--bg-base);
   overflow-x: hidden;
@@ -171,9 +183,8 @@
 .android-appbar {
   position: fixed;
   inset: 0 0 auto;
-  height: calc(64px + env(safe-area-inset-top, 0px));
-  padding: env(safe-area-inset-top, 0px) max(12px, env(safe-area-inset-right, 0px)) 0
-    max(20px, env(safe-area-inset-left, 0px));
+  height: calc(64px + var(--safe-area-top));
+  padding: var(--safe-area-top) max(12px, var(--safe-area-right)) 0 max(20px, var(--safe-area-left));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -230,8 +241,8 @@
 }
 .android-navigation {
   position: fixed;
-  inset: auto max(12px, env(safe-area-inset-right, 0px))
-    calc(6px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  inset: auto max(12px, var(--safe-area-right)) calc(6px + var(--safe-area-bottom))
+    max(12px, var(--safe-area-left));
   z-index: var(--z-sidebar, 90);
   height: 80px;
   padding: 8px 4px;
@@ -239,6 +250,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--bg-elevated);
+  box-shadow: 0 6px 24px rgba(var(--android-theme-foreground-rgb), 0.1);
 }
 .android-nav-item {
   display: flex;
@@ -285,8 +297,8 @@
 }
 .android-fab {
   position: fixed;
-  right: max(20px, env(safe-area-inset-right, 0px));
-  bottom: calc(102px + env(safe-area-inset-bottom, 0px));
+  right: max(20px, var(--safe-area-right));
+  bottom: calc(102px + var(--safe-area-bottom));
   z-index: 85;
   height: 56px;
   padding: 0 20px;
@@ -314,8 +326,9 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-top: max(24px, env(safe-area-inset-top, 0px));
-  padding-bottom: calc(var(--android-keyboard-inset) + env(safe-area-inset-bottom, 0px) + 6px);
+  padding-top: max(24px, var(--safe-area-top));
+  padding-inline: var(--safe-area-left) var(--safe-area-right);
+  padding-bottom: calc(var(--android-keyboard-inset) + var(--safe-area-bottom) + 6px);
 }
 .android-sheet-scrim {
   position: absolute;
@@ -444,6 +457,9 @@
 .android-object-menu-actions > button[data-danger] {
   color: var(--danger);
 }
+[data-platform='android'] .android-attachment-notifications {
+  padding-inline: 12px;
+}
 .android-object-menu-divider {
   width: 100%;
   margin: 8px 0;
@@ -492,7 +508,9 @@
   min-width: 20px;
   padding: 1px 4px;
   border-radius: 8px;
-  background: var(--bg-inset);
+  background: transparent;
+  color: inherit;
+  opacity: 0.8;
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
@@ -503,7 +521,7 @@
 @media (max-width: 767px) {
   .android-object-detail-footer {
     margin-top: 0;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px calc(12px + var(--safe-area-bottom));
   }
 }
 @media (max-width: 359px) {
@@ -535,7 +553,7 @@
 [data-platform='android'] .template-icon-grid {
   grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)) !important;
   gap: 8px !important;
-  max-height: min(40dvh, 320px);
+  max-height: min(calc(var(--viewport-height, 100vh) * 0.4), 320px);
   overflow-y: auto;
   overscroll-behavior: contain;
   align-content: start;
@@ -562,7 +580,7 @@
   padding: 0 12px;
   border-radius: 24px;
   background: transparent;
-  color: var(--accent-primary);
+  color: var(--md-primary-ink);
   font: inherit;
   cursor: pointer;
 }
@@ -587,16 +605,16 @@
 .android-overview {
   position: relative;
   overflow: hidden;
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   padding: 24px;
-  border-radius: 28px 28px 48px 28px;
+  border-radius: 20px;
 }
 .android-overview-copy {
   position: relative;
   z-index: 1;
   width: fit-content;
-  max-width: 66%;
+  max-width: 100%;
   overflow-wrap: anywhere;
 }
 .android-home-intro h2 {
@@ -610,15 +628,15 @@
   line-height: 1.6;
 }
 .android-overview[data-liquid] .android-overview-copy {
-  max-width: 60%;
+  max-width: 58%;
 }
 .android-overview[data-liquid] {
   isolation: isolate;
   min-height: 192px;
-  border-radius: 28px;
-  background: var(--md-primary-container);
+  border-radius: 20px;
+  background: var(--bg-elevated);
 }
-/* 高光只描画容器边缘，文字直接落在平缓色底上，不再垫一块实色卡片。 */
+/* 正文有稳定底色；光学装饰只绘制右侧预留区域，不覆盖名称与数量。 */
 .android-overview[data-liquid]::after {
   content: '';
   position: absolute;
@@ -627,7 +645,7 @@
   border-radius: inherit;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 55%),
-    inset 0 0 0 1px color-mix(in srgb, var(--md-on-primary-container) 10%, transparent);
+    inset 0 0 0 1px rgba(var(--android-theme-foreground-rgb), 0.08);
   pointer-events: none;
 }
 [data-theme='dark'] .android-overview[data-liquid]::after {
@@ -635,7 +653,13 @@
     inset 0 1px 0 rgb(255 255 255 / 18%),
     inset 0 0 0 1px rgb(255 255 255 / 8%);
 }
-.android-liquid-artwork,
+.android-liquid-artwork {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 42%;
+  height: 100%;
+  overflow: hidden;
+}
 .android-liquid-artwork canvas {
   position: absolute;
   inset: 0;
@@ -653,32 +677,32 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, var(--md-primary-container) 30%, transparent 75%),
+    linear-gradient(90deg, var(--android-liquid-base) 5%, transparent 75%),
     radial-gradient(ellipse at 90% 90%, var(--md-tertiary-container), transparent 65%),
     radial-gradient(ellipse at 70% 15%, var(--accent-bg), var(--md-secondary-container));
 }
 .android-liquid-fallback::after {
   content: '';
   position: absolute;
-  left: 78%;
+  left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: min(31%, 112px);
+  width: min(64%, 112px);
   aspect-ratio: 1 / 1.14;
   border-radius: 30%;
   background: linear-gradient(145deg, rgb(255 255 255 / 28%), rgb(255 255 255 / 4%));
   border: 1px solid rgb(255 255 255 / 50%);
   box-shadow:
     inset 1px 1px 2px rgb(255 255 255 / 42%),
-    inset -1px -1px 2px color-mix(in srgb, var(--md-on-primary-container) 12%, transparent),
-    0 8px 18px color-mix(in srgb, var(--md-on-primary-container) 12%, transparent);
+    inset -1px -1px 2px rgba(var(--android-theme-foreground-rgb), 0.12),
+    0 8px 18px rgba(var(--android-theme-foreground-rgb), 0.12);
 }
 .android-liquid-artwork[data-liquid-ready='true'] .android-liquid-fallback {
   display: none;
 }
 .android-liquid-mark {
   position: absolute;
-  left: 78%;
+  left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
   width: 32px;
@@ -730,19 +754,14 @@
   width: 100%;
   padding: 18px;
   border: 0;
-  border-radius: 24px;
+  border-radius: 20px;
   text-align: start;
   background: var(--bg-elevated);
   color: var(--text-primary);
   cursor: pointer;
 }
-.android-category:nth-child(3n + 1) > button:first-child {
-  background: var(--md-secondary-container);
-  color: var(--md-on-secondary-container);
-}
-.android-category:nth-child(3n + 2) > button:first-child {
-  background: var(--md-tertiary-container);
-  color: var(--md-on-tertiary-container);
+.android-category > button:first-child:active {
+  background: var(--bg-active);
 }
 .android-category strong {
   font-size: 0.9375rem;
@@ -852,7 +871,7 @@
   transition: background-color 160ms var(--md-motion);
 }
 .android-tool > svg {
-  color: var(--accent-primary);
+  color: var(--md-primary-ink);
   flex-shrink: 0;
 }
 .android-tool strong {
@@ -953,6 +972,32 @@
   place-items: center;
   color: white;
 }
+.android-scheme-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text-secondary);
+}
+.android-scheme-row select {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  color: var(--text-primary);
+  font: inherit;
+}
+.android-custom-accent {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.android-custom-accent > div {
+  flex: 1;
+  min-width: 0;
+}
 .android-switch-row {
   display: flex;
   align-items: center;
@@ -1044,26 +1089,28 @@
 }
 @media (min-width: 768px) {
   [data-android-shell] [data-shell-main] {
-    margin-left: 88px;
+    margin-left: calc(88px + var(--safe-area-left));
   }
   [data-android-shell] [data-shell-content] {
-    padding: 16px 32px 96px;
+    padding: 16px max(32px, var(--safe-area-right)) 96px 32px;
   }
   .android-appbar {
-    left: 88px;
+    left: calc(88px + var(--safe-area-left));
+    padding-left: 20px;
   }
   .android-navigation {
     inset: 0 auto 0 0;
-    width: 88px;
+    width: calc(88px + var(--safe-area-left));
     height: auto;
     border-radius: 0;
-    padding: calc(80px + env(safe-area-inset-top, 0px)) 4px 24px;
+    padding: calc(80px + var(--safe-area-top)) 4px max(24px, var(--safe-area-bottom))
+      calc(4px + var(--safe-area-left));
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
   .android-fab {
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(24px + var(--safe-area-bottom));
   }
   .android-category-grid,
   .android-tool-grid {
@@ -1081,13 +1128,34 @@
     max-height: calc(100% - 48px);
   }
 }
+/* 横屏平板的轨道保留图标 / 文字与触控区，先收紧间距；极矮窗口可在轨道内滚动。 */
+@media (min-width: 768px) and (max-height: 480px) {
+  .android-navigation {
+    gap: clamp(
+      0px,
+      calc(
+        (
+            var(--viewport-height, 100vh) - var(--safe-area-top) -
+              max(24px, var(--safe-area-bottom)) - 308px
+          ) /
+          3
+      ),
+      16px
+    );
+    overflow-y: auto;
+  }
+  .android-nav-item {
+    min-height: 56px;
+    flex-shrink: 0;
+  }
+}
 @media (max-width: 359px) {
   [data-android-shell] [data-shell-content] {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: max(12px, var(--safe-area-left));
+    padding-right: max(12px, var(--safe-area-right));
   }
   .android-appbar {
-    padding-left: 12px;
+    padding-left: max(12px, var(--safe-area-left));
   }
   .android-appbar-leading {
     gap: 8px;
@@ -1117,13 +1185,18 @@
 
 /* Android 的玻璃只覆盖导航与短时弹层；正文和主窗口色底保持不透明。 */
 :root[data-platform='android'] {
-  --android-glass-fill: rgb(249 250 246 / 76%);
-  --android-glass-edge: rgb(255 255 255 / 80%);
-  --android-glass-blur: 18px;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --android-glass-fill: rgba(var(--android-theme-surface-rgb), 0.9);
+  --android-glass-edge: rgba(var(--android-theme-surface-rgb), 0.65);
+  --android-glass-blur: 16px;
+  --android-login-card-fill: var(--bg-elevated);
+  --android-login-underlay-fill: var(--bg-inset);
+  --android-login-underlay: rgb(var(--android-theme-login-underlay-rgb));
 }
 :root[data-platform='android'][data-theme='dark'] {
-  --android-glass-fill: rgb(29 38 33 / 80%);
-  --android-glass-edge: rgb(180 213 199 / 24%);
+  --android-glass-edge: rgba(var(--android-theme-foreground-rgb), 0.1);
+  --android-login-underlay: rgb(var(--android-theme-login-underlay-rgb));
 }
 .android-material-description {
   color: var(--text-secondary);
@@ -1132,16 +1205,22 @@
   margin: 12px 0;
 }
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-platform='android']:is([data-android-glass='local'], [data-android-glass='enhanced']) {
+    --android-login-card-fill: rgba(var(--android-theme-surface-rgb), 0.8);
+    --android-login-underlay-fill: rgba(var(--android-theme-login-underlay-rgb), 0.9);
+  }
   [data-platform='android']:is([data-android-glass='local'], [data-android-glass='enhanced'])
     .android-glass-surface {
     background: var(--android-glass-fill);
-    -webkit-backdrop-filter: blur(var(--android-glass-blur)) saturate(1.24);
-    backdrop-filter: blur(var(--android-glass-blur)) saturate(1.24);
+    -webkit-backdrop-filter: blur(var(--android-glass-blur)) saturate(1.08);
+    backdrop-filter: blur(var(--android-glass-blur)) saturate(1.08);
     box-shadow:
       inset 0 1px 0 var(--android-glass-edge),
-      inset 0 0 0 1px var(--android-glass-edge);
+      inset 0 0 0 1px var(--android-glass-edge),
+      0 6px 24px rgba(var(--android-theme-foreground-rgb), 0.08);
   }
   .android-sheet {
+    --android-glass-fill: rgba(var(--android-theme-surface-rgb), 0.92);
     --android-glass-blur: 24px;
   }
   /* 直接过滤背景，文字不参与滤镜；滚动弹层的材质始终覆盖整个可见区域。 */
@@ -1156,6 +1235,10 @@
   }
 }
 @media (forced-colors: active), (prefers-reduced-transparency: reduce) {
+  :root[data-platform='android'] {
+    --android-login-card-fill: var(--bg-elevated);
+    --android-login-underlay-fill: var(--bg-inset);
+  }
   [data-platform='android'] .android-glass-surface {
     background: var(--bg-elevated) !important;
     -webkit-backdrop-filter: none !important;

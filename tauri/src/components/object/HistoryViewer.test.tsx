@@ -388,7 +388,7 @@ describe('HistoryViewer', () => {
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
   });
 
-  it('masks internal fields until explicitly revealed', async () => {
+  it('shows internal fields directly without a reveal control', async () => {
     mockInvoke.mockImplementation(async (cmd) => {
       if (cmd === 'snapshot_list') {
         return [
@@ -432,9 +432,8 @@ describe('HistoryViewer', () => {
       expect(screen.getByText('手机')).toBeInTheDocument();
     });
 
-    expect(document.body.innerHTML).not.toContain('13800138000');
-    await act(async () => fireEvent.click(screen.getByText('••••••••')));
     expect(screen.getByText('13800138000')).toBeInTheDocument();
+    expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
   });
 
   it('renders sensitive field as a placeholder without protected text in DOM', async () => {
@@ -704,7 +703,9 @@ describe('RF-107 snapshot protection and identity', () => {
       const verify = vi.fn().mockResolvedValue({ ok: false, method: 'password' });
       const { container, rerender } = render(<HistoryViewer {...props} passwordVerify={verify} />);
       await screen.findByText('Historical name');
-      expect(container.innerHTML.includes('ORIGINAL_VALUE')).toBe(level === 'public');
+      expect(container.innerHTML.includes('ORIGINAL_VALUE')).toBe(
+        level === 'public' || level === 'internal',
+      );
       // 模板删除/改名/重排/更改等级不影响已加载快照。
       rerender(
         <HistoryViewer
@@ -717,7 +718,7 @@ describe('RF-107 snapshot protection and identity', () => {
       );
       expect(screen.getByText('Historical name')).toBeInTheDocument();
       expect(container.innerHTML).not.toContain('RENAMED');
-      if (level !== 'public') {
+      if (level !== 'public' && level !== 'internal') {
         await act(async () => fireEvent.click(screen.getByText('••••••••')));
         expect(container.innerHTML.includes('ORIGINAL_VALUE')).toBe(level !== 'critical');
         expect(verify).toHaveBeenCalledTimes(level === 'critical' ? 1 : 0);
@@ -828,6 +829,51 @@ describe('RF-107 snapshot protection and identity', () => {
     },
   );
 
+  it('prefetches neighbors once and reuses data without preserving reveal authorization', async () => {
+    mockInvoke.mockImplementation(async (cmd, args) => {
+      if (cmd === 'snapshot_list') return [entry('one'), entry('two'), entry('three')];
+      if (cmd === 'snapshot_get_data')
+        return {
+          properties: { field: `VALUE_${(args as { snapshotId: string }).snapshotId}` },
+          propertyLabels: { field: 'internal' },
+        };
+      return null;
+    });
+    const { unmount } = render(<HistoryViewer {...props} />);
+    await screen.findByText('VALUE_one');
+    const loads = () => mockInvoke.mock.calls.filter(([cmd]) => cmd === 'snapshot_get_data');
+    await waitFor(() => expect(loads()).toHaveLength(2));
+    fireEvent.click(screen.getByTitle('Previous'));
+    expect(screen.getByText('VALUE_two')).toBeInTheDocument();
+    await waitFor(() => expect(loads()).toHaveLength(3));
+    fireEvent.click(screen.getByTitle('Next'));
+    expect(screen.getByText('VALUE_one')).toBeInTheDocument();
+    expect(loads()).toHaveLength(3);
+    unmount();
+    render(<HistoryViewer {...props} />);
+    await screen.findByText('VALUE_one');
+    await waitFor(() => expect(loads()).toHaveLength(5));
+  });
+
+  it('failed neighboring prefetch is retryable on navigation', async () => {
+    let attempts = 0;
+    mockInvoke.mockImplementation(async (cmd, args) => {
+      if (cmd === 'snapshot_list') return [entry('one'), entry('two')];
+      if (cmd === 'snapshot_get_data') {
+        const id = (args as { snapshotId: string }).snapshotId;
+        if (id === 'two' && ++attempts === 1) throw new Error('temporary failure');
+        return { properties: { field: `VALUE_${id}` }, propertyLabels: { field: 'internal' } };
+      }
+      return null;
+    });
+    render(<HistoryViewer {...props} />);
+    await screen.findByText('VALUE_one');
+    await waitFor(() => expect(attempts).toBe(1));
+    fireEvent.click(screen.getByTitle('Previous'));
+    await screen.findByText('VALUE_two');
+    expect(attempts).toBe(2);
+  });
+
   it('returning to a revealed snapshot requires revealing again', async () => {
     mockInvoke.mockImplementation(async (cmd, args) => {
       if (cmd === 'snapshot_list') return [entry('one'), entry('two')];
@@ -839,7 +885,7 @@ describe('RF-107 snapshot protection and identity', () => {
                 ? 'FIRST_SECRET'
                 : 'SECOND_SECRET',
           },
-          propertyLabels: { field: 'internal' },
+          propertyLabels: { field: 'sensitive' },
         };
       return null;
     });

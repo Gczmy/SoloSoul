@@ -17,11 +17,11 @@
   --bg-overlay: rgba(31, 28, 24, 0.4); /* stone-900 at 40% */
 
   /* Text */
-  --text-primary: var(--stone-900);
-  --text-secondary: var(--stone-600);
-  --text-tertiary: var(--stone-400);
-  --text-inverse: var(--stone-25);
-  --text-accent: var(--accent-cool);
+  --text-primary: #111111;
+  --text-secondary: #202020;
+  --text-tertiary: #303030;
+  --text-inverse: #ffffff;
+  --text-accent: var(--accent-primary);
   --text-warm: var(--accent-warm);
   --text-error: #c0392b;
   --text-success: #27ae60;
@@ -79,7 +79,7 @@
   --color-info-text: #2c5f8a;
 }
 
-/* ── Dark Theme — Warm & Low-Contrast (inspired by Warp) ─── */
+/* ── Dark Theme — Warm surfaces, neutral high-contrast text ─── */
 [data-theme='dark'] {
   /* Backgrounds — warm deep brown instead of harsh black */
   --bg-base: #1f1c18; /* warm deep brown */
@@ -91,13 +91,13 @@
   --bg-active: #423b33;
   --bg-overlay: rgba(18, 16, 14, 0.65); /* soft dark overlay */
 
-  /* Text — warm off-white, muted for comfort */
-  --text-primary: #ddd8c8; /* warm off-white */
-  --text-secondary: #a69d8a; /* warm muted gray */
-  --text-tertiary: #7a7265; /* soft brown-gray */
-  --text-inverse: var(--stone-900);
-  --text-accent: #a8bfd4; /* softened slate accent */
-  --text-warm: #d4b88a; /* warm clay */
+  /* 文字只随明暗模式切换；主题色板不能改变正文与功能文字。 */
+  --text-primary: #ffffff; /* neutral white */
+  --text-secondary: #f5f5f5; /* neutral secondary */
+  --text-tertiary: #ededed; /* neutral tertiary */
+  --text-inverse: #111111;
+  --text-accent: var(--accent-primary); /* softened slate accent */
+  --text-warm: var(--accent-warm); /* warm clay */
   --text-error: #e07a6e;
   --text-success: #7ec49a;
   --text-warning: #e6c780;
@@ -161,13 +161,13 @@
     --bg-active: #423b33;
     --bg-overlay: rgba(18, 16, 14, 0.65);
 
-    /* Text — warm off-white, muted for comfort */
-    --text-primary: #ddd8c8;
-    --text-secondary: #a69d8a;
-    --text-tertiary: #7a7265;
-    --text-inverse: var(--stone-900);
-    --text-accent: #a8bfd4;
-    --text-warm: #d4b88a;
+    /* 文字只随明暗模式切换；主题色板不能改变正文与功能文字。 */
+    --text-primary: #ffffff;
+    --text-secondary: #f5f5f5;
+    --text-tertiary: #ededed;
+    --text-inverse: #111111;
+    --text-accent: var(--accent-primary);
+    --text-warm: var(--accent-warm);
     --text-error: #e07a6e;
     --text-success: #7ec49a;
     --text-warning: #e6c780;

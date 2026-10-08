@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { syncStatusBarStyle } from '@/lib/theme';
+import { isAndroidSync } from '@/lib/platform';
 import { useOverlayBackGuard } from '@/hooks/useOverlayBackGuard';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 
@@ -126,7 +127,12 @@ export function usePhotoAlbumState({ items, onClose, onItemMetaUpdated }: PhotoA
   }, [items]);
 
   useEffect(() => {
-    void syncStatusBarStyle('dark');
+    const previewTheme = isAndroidSync()
+      ? document.documentElement.dataset.theme === 'dark'
+        ? 'dark'
+        : 'light'
+      : 'dark';
+    void syncStatusBarStyle(previewTheme);
     return () => {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       void syncStatusBarStyle(currentTheme === 'dark' ? 'dark' : 'light');

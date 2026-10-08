@@ -1,7 +1,9 @@
 // P030: SAF 配置文件 IO 与 Vault 初始化辅助从 app_state.rs 拆分（对齐报告指引
 // state/saf_config.rs）。全部以 impl AppState 扩展方法形式迁移——外部调用点
 // （AppState::write_saf_config_to_remote、Self::load_saved_saf_uri 等）零改动。
+#[cfg(not(feature = "macos-ui-regression"))]
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
+#[cfg(not(feature = "macos-ui-regression"))]
 use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
@@ -10,6 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 
 use super::app_state::AppState;
+#[cfg(not(feature = "macos-ui-regression"))]
 use tauri::Manager;
 
 /// `.solosoul_config` 文件名（存放在 SAF 目录根，用于重装后自动发现）。
@@ -202,8 +205,27 @@ impl AppState {
         Ok(svc)
     }
 
+    /// 没有 SAF URI 不等于首次启动：选择 App-private 的账户清单已在真实根。
+    /// 只判断清单是否存在，账户加载和目录排他准入仍由原工厂负责；不扫描、
+    /// 搬迁或解锁账户。没有清单的全新安装继续等待用户选择目录。
+    #[cfg_attr(feature = "macos-ui-regression", allow(dead_code))]
+    pub(super) fn try_init_mobile_without_saf(
+        data_dir: &Path,
+    ) -> Result<VaultService, anyhow::Error> {
+        if data_dir.join("accounts.json").try_exists()? {
+            tracing::info!("[AppState] restoring app-private vault on mobile startup");
+            Self::try_init_local_vault(data_dir)
+        } else {
+            tracing::info!(
+                "[AppState] first launch: using placeholder vault until directory is selected"
+            );
+            Self::placeholder_vault(data_dir)
+        }
+    }
+
     /// 失效 SAF 的缓存降级先取得真实源、目标 owner，再执行合并。
     /// 锁文件保持原身份；任何 journal 继续绑定原缓存，不能迁移。
+    #[cfg_attr(feature = "macos-ui-regression", allow(dead_code))]
     pub(crate) fn try_init_fallback_vault(data_dir: &Path) -> Result<VaultService, anyhow::Error> {
         use solosoul_core::import_activity::{
             begin_owned_root_maintenance, ensure_import_root_movable, has_bound_imports,
@@ -253,6 +275,16 @@ impl AppState {
 
     /// 移动端 VaultService 初始化：优先 SAF 目录（失效则降级本地），
     /// 首次启动使用占位目录；桌面端返回空 VaultService。
+    #[cfg(feature = "macos-ui-regression")]
+    pub(crate) fn init_vault_service(
+        _handle: &tauri::AppHandle,
+    ) -> Result<Arc<RwLock<VaultService>>, anyhow::Error> {
+        let root = crate::macos_ui_regression::root().map_err(anyhow::Error::msg)?;
+        Self::try_init_local_vault(&root.join("vault"))
+            .map(|service| Arc::new(RwLock::new(service)))
+    }
+
+    #[cfg(not(feature = "macos-ui-regression"))]
     pub(crate) fn init_vault_service(
         handle: &tauri::AppHandle,
     ) -> Result<Arc<RwLock<VaultService>>, anyhow::Error> {
@@ -272,12 +304,9 @@ impl AppState {
 
         let saved_uri = Self::load_saved_saf_uri(&data_dir);
         let Some(ref uri) = saved_uri else {
-            // 首次启动：尚未选择目录，使用占位 VaultService，
-            // 等 onboarding 调用 initialize_vault 后再热替换。
-            tracing::info!(
-                "[AppState] first launch: using placeholder vault until directory is selected"
-            );
-            return Ok(Arc::new(RwLock::new(Self::placeholder_vault(&data_dir)?)));
+            return Ok(Arc::new(RwLock::new(Self::try_init_mobile_without_saf(
+                &data_dir,
+            )?)));
         };
         tracing::info!("[AppState] found saved SAF URI: {uri}");
 

@@ -46,9 +46,9 @@ function mockWebGl() {
     uniform1f: vi.fn(),
     uniform3f: vi.fn(),
     drawArrays: vi.fn(),
-    deleteProgram: vi.fn(),
-    deleteBuffer: vi.fn(),
-    deleteShader: vi.fn(),
+    deleteProgram: vi.fn((_handle: unknown) => {}),
+    deleteBuffer: vi.fn((_handle: unknown) => {}),
+    deleteShader: vi.fn((_handle: unknown) => {}),
   };
 }
 
@@ -231,6 +231,17 @@ describe('Android liquid artwork rendering lifecycle', () => {
 
   it('上下文丢失时退回 fallback，恢复后重新建立资源并绘制', () => {
     const { renderer, onAvailability } = start();
+    // 模拟原生 WebView 在新上下文拒绝旧句柄，防止恢复成功只看 DOM 状态。
+    const stale = new Set([
+      ...gl.createProgram.mock.results.map((result) => result.value),
+      ...gl.createBuffer.mock.results.map((result) => result.value),
+      ...gl.createShader.mock.results.map((result) => result.value),
+    ]);
+    for (const remove of [gl.deleteProgram, gl.deleteBuffer, gl.deleteShader]) {
+      remove.mockImplementation((handle) => {
+        if (stale.has(handle)) throw new Error('INVALID_OPERATION: stale context handle');
+      });
+    }
     renderer!.update(appearance);
     const loss = new Event('webglcontextlost', { cancelable: true });
     canvas.dispatchEvent(loss);

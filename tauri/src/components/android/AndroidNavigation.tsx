@@ -99,6 +99,7 @@ function CreateSheet({
       title={t(pageForm ? 'add_page' : 'common:material.new_title')}
       onClose={onClose}
       innerOpen={pageForm}
+      material={pageForm ? 'solid' : 'glass'}
       onBack={() => setPageForm(false)}
       trigger={trigger}
     >

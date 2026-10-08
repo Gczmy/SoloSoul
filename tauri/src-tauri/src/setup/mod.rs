@@ -72,8 +72,13 @@ fn resolve_app_data_dir(
     {
         Ok(crate::native_perf::root()?.join("app-data"))
     }
+    #[cfg(feature = "macos-ui-regression")]
+    {
+        Ok(crate::macos_ui_regression::root()?.join("app-data"))
+    }
     #[cfg(all(
         not(feature = "native-perf"),
+        not(feature = "macos-ui-regression"),
         not(any(target_os = "android", target_os = "ios"))
     ))]
     {

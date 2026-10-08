@@ -1,7 +1,6 @@
 import { ArrowLeft, LockKeyhole, UserRound } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { ToolbarActions } from '@/components/layout/ToolbarActions';
 import { useAuthStore } from '@/stores/authStore';
 import type { ReactNode } from 'react';
@@ -29,7 +28,7 @@ export function AndroidAppBar({
       className="android-appbar android-glass-surface"
     >
       <div className="android-appbar-leading">
-        {onBack && !rootPage ? (
+        {onBack && !rootPage && (
           <button
             type="button"
             className="android-icon-button"
@@ -38,8 +37,6 @@ export function AndroidAppBar({
           >
             <ArrowLeft size={24} />
           </button>
-        ) : (
-          <ShieldLogo size={32} />
         )}
         <h1>{pathname === '/' ? 'SoloSoul' : title}</h1>
       </div>

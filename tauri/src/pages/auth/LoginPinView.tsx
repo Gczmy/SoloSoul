@@ -26,7 +26,8 @@ export function LoginPinView({
       pinInputRef={pinInputRef}
       onPinComplete={onPinComplete}
       onCardClick={() => pinInputRef.current?.focus()}
-      marginBottom={16}
+      marginBottom={8}
+      inlineHeading
     />
   );
 }

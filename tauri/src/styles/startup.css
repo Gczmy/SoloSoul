@@ -2,23 +2,23 @@
 :root {
   color-scheme: light dark;
   --startup-background: #fafaf8;
-  --startup-foreground: #252a2e;
-  --startup-secondary: #67717a;
+  --startup-foreground: #111111;
+  --startup-secondary: #202020;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --startup-background: #1c1c1e;
-    --startup-foreground: #ecedef;
-    --startup-secondary: #adb6c0;
+    --startup-foreground: #ffffff;
+    --startup-secondary: #f5f5f5;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
   --startup-background: #1c1c1e;
-  --startup-foreground: #ecedef;
-  --startup-secondary: #adb6c0;
+  --startup-foreground: #ffffff;
+  --startup-secondary: #f5f5f5;
 }
 
 :root[data-theme='light'] {

@@ -1,4 +1,4 @@
-import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
+import { fieldPresentationPolicy } from '@/lib/fieldPresentationPolicy';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -222,14 +222,18 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     return fieldMap.get(fieldKey);
   };
 
-  const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
-    return resolveFieldSensitivity({
-      fieldId: fieldKey,
-      propertyLabels: obj?.propertyLabels,
-      definition: objFieldDefs?.[fieldKey],
-      template: getFieldProperty(fieldKey),
-    });
-  };
+  const getFieldPolicy = (fieldKey: string) =>
+    fieldPresentationPolicy(
+      {
+        fieldId: fieldKey,
+        propertyLabels: obj?.propertyLabels,
+        definition: objFieldDefs?.[fieldKey],
+        template: getFieldProperty(fieldKey),
+      },
+      'detail',
+    );
+  const getFieldSensitivity = (fieldKey: string): SensitivityLevel =>
+    getFieldPolicy(fieldKey).sensitivity;
   const isFieldDeprecated = (fieldKey: string): boolean => {
     return !!getFieldProperty(fieldKey)?.deprecatedAt;
   };
@@ -323,6 +327,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     // 敏感度/字段解析
     getFieldProperty,
     getFieldSensitivity,
+    getFieldPolicy,
     isFieldDeprecated,
     getFieldName,
     // 揭示/复制

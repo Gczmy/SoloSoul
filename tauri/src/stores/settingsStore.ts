@@ -179,7 +179,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 // | ① zustand store（主态）  | settingsStore.settings                     | loadUiPreferences / loadSettings / updateSetting /  |
 // |                          |                                             | addCustomPage / removeCustomPage / clearOnVaultLock |
 // | ② localStorage 缓存     | ST_UI_PREFS（theme/accent/…）              | writeUiPrefsCache()（唯一写入点，P129 集中化：       |
-// |                          |                                             |  loadUiPreferences Step2 + updateSetting 共用）；   |
+// |                          |                                             |  loadUiPreferences / loadSettings / updateSetting）；|
 // |                          |                                             | i18nextLng 在 updateSetting(language) setItem       |
 // | ③ ui_preferences.json   | 明文文件（登录前即可读，修复登录页主题）    | syncPlaintextPref()（唯一写入点，P129 集中化：      |
 // |  （明文）               |                                             |  loadSettings 循环 + updateSetting UI 键共用）      |
@@ -272,7 +272,11 @@ export async function syncPlaintextPref(
   requestIsCurrent?: () => boolean,
 ): Promise<void> {
   try {
-    await invoke('ui_update_preference', { key, value }, { requestIsCurrent });
+    // Rust 的 value 参数是字符串，再按 JSON 还原布尔值等类型。
+    // 账户偏好与缓存仍保留原类型，仅在明文镜像 IPC 边界编码。
+    const encoded = typeof value === 'string' ? value : JSON.stringify(value);
+    if (typeof encoded !== 'string') throw new TypeError('UI preference is not serializable');
+    await invoke('ui_update_preference', { key, value: encoded }, { requestIsCurrent });
   } catch (e) {
     logger.warn('[settingsStore] Failed to sync UI pref:', key, e);
   }
@@ -518,6 +522,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           : get().legacyCustomPages,
         isLoading: false,
       });
+      // 切换账户也必须刷新首帧缓存；否则冷启动先用上一账户的外观，
+      // 随后才由明文镜像纠正。仍只镜像确认值，不携带正在保存的乐观值。
+      request.assertCurrent();
+      writeUiPrefsCache(confirmedSettings(get().settings));
       // Sync UI prefs to plaintext file so next startup shows correct theme.
       // P129: ③ 副本写入收敛到 syncPlaintextPref（唯一写入点），原 5 段顺序 if 收敛为循环。
       for (const key of PLAINTEXT_PREF_KEYS) {

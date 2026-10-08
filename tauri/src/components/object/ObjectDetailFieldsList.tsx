@@ -11,10 +11,11 @@ import {
 import {
   fieldPresentationPolicy,
   strongestSensitivity,
-  protectedDisplayValue,
+  type FieldPresentationPolicy,
 } from '@/lib/fieldPresentationPolicy';
 import type { ObjectDetailFieldEntry } from './objectDetailUtils';
 import type { PropertyType, TemplateProperty } from '@/types/template';
+import { MASK_PLACEHOLDER } from '@/lib/masking';
 import { ICON_SIZE } from '@/lib/constants';
 import rowStyles from '@/components/ui/FieldRowLayout.module.css';
 import styles from './ObjectDetailModal.module.css';
@@ -34,6 +35,7 @@ interface Props {
   objFieldDefs?: Record<string, { name: string; type: string }>;
   getFieldProperty: (key: string) => TemplateProperty | undefined;
   getFieldSensitivity: (key: string) => SensitivityLevel;
+  getFieldPolicy?: (key: string) => FieldPresentationPolicy;
   isFieldDeprecated: (key: string) => boolean;
   getFieldName: (key: string, label?: string) => string;
   handleRevealField: (id: string, sens: SensitivityLevel, name: string) => Promise<boolean>;
@@ -52,6 +54,7 @@ export function ObjectDetailFieldsList(props: Props) {
     objFieldDefs,
     getFieldProperty,
     getFieldSensitivity,
+    getFieldPolicy,
     isFieldDeprecated,
     getFieldName,
     handleRevealField,
@@ -72,8 +75,12 @@ export function ObjectDetailFieldsList(props: Props) {
       </span>
     </button>
   );
-  const revealControl = (control: ProtectedFieldControl, sens: SensitivityLevel) => {
-    if (sens === 'public') return null;
+  const revealControl = (
+    control: ProtectedFieldControl,
+    sens: SensitivityLevel,
+    concealed: boolean,
+  ) => {
+    if (!concealed) return null;
     if (!control.revealed)
       return (
         <button
@@ -110,26 +117,46 @@ export function ObjectDetailFieldsList(props: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {fields.map((f) => {
-        const parent = fieldPresentationPolicy({
-          fieldId: f.key,
-          definition: { sensitivityLevel: getFieldSensitivity(f.key) },
-        }).sensitivity;
+        const parentPolicy =
+          getFieldPolicy?.(f.key) ??
+          fieldPresentationPolicy(
+            {
+              fieldId: f.key,
+              definition: { sensitivityLevel: getFieldSensitivity(f.key) },
+            },
+            'detail',
+          );
+        const parent = parentPolicy.sensitivity;
         const children =
           f.kind === 'dynamicGroup'
             ? f.children.map((child) => ({
                 ...child,
-                level: fieldPresentationPolicy({
-                  fieldId: child.id ?? child.label,
-                  definition: { sensitivityLevel: child.sensitivityLevel },
-                  parent,
-                }).sensitivity,
+                policy: fieldPresentationPolicy(
+                  {
+                    fieldId: child.id ?? child.label,
+                    definition: { sensitivityLevel: child.sensitivityLevel },
+                    parent,
+                  },
+                  'detail',
+                ),
               }))
             : [];
-        const sens = strongestSensitivity([parent, ...children.map((child) => child.level)]);
-        const policy = fieldPresentationPolicy({
-          fieldId: f.key,
-          definition: { sensitivityLevel: sens },
-        });
+        if (parentPolicy.concealed && parent === 'internal') {
+          for (const child of children) child.policy.concealed = true;
+        }
+        const sens = strongestSensitivity([
+          parent,
+          ...children.map((child) => child.policy.sensitivity),
+        ]);
+        const policy = fieldPresentationPolicy(
+          { fieldId: f.key, definition: { sensitivityLevel: sens } },
+          'detail',
+        );
+        if (
+          sens === 'internal' &&
+          (parentPolicy.concealed || children.some((child) => child.policy.concealed))
+        )
+          policy.concealed = true;
         const fieldId = 'fieldId' in f && f.fieldId ? f.fieldId : `${typeId}.${f.key}`;
         const rawName = getFieldName(f.key, f.label);
         const name =
@@ -190,7 +217,7 @@ export function ObjectDetailFieldsList(props: Props) {
                       data-field-actions-slot
                       className={`${styles.fieldActions} ${rowStyles.actions}`}
                     >
-                      {revealControl(control, sens)}
+                      {revealControl(control, sens, policy.concealed)}
                       {copyButton(control, value, copyKey)}
                     </div>
                   </div>
@@ -244,12 +271,12 @@ export function ObjectDetailFieldsList(props: Props) {
                       className={styles.fieldValue}
                       style={{
                         color:
-                          child.level !== 'public' && !control.revealed
+                          child.policy.concealed && !control.revealed
                             ? 'var(--text-tertiary)'
                             : 'var(--text-primary)',
                       }}
                     >
-                      {protectedDisplayValue(child.value, child.level, control.revealed)}
+                      {child.policy.concealed && !control.revealed ? MASK_PLACEHOLDER : child.value}
                     </div>
                   </div>
                 ))}

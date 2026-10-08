@@ -332,11 +332,27 @@ describe('ObjectDetailModal', () => {
     // 底部操作栏（ObjectDetailFooter 提取后仍正常渲染；t 返回 key）
     expect(screen.getByText('common:history')).toBeInTheDocument();
     expect(screen.getByText('common:attachments')).toBeInTheDocument();
-    // 使用真实共享保护 hook，模板缺失时仍不能把内部字段原值写入 DOM。
+    // 使用真实共享保护 hook，元数据缺失不视为已明确标注的 internal。
     expect(screen.queryByText('张三')).not.toBeInTheDocument();
     expect(screen.queryByText('E12345678')).not.toBeInTheDocument();
     // 删除确认对话框初始不渲染
     expect(screen.queryByText('common:object_delete_confirm_title')).not.toBeInTheDocument();
+  });
+
+  it('明确标注 internal 的字段在详情直接显示，sensitive 仍掩码', () => {
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal
+          object={{
+            ...sampleObj,
+            propertyLabels: { full_name: 'internal', passport_number: 'sensitive' },
+          }}
+          onClose={vi.fn()}
+        />
+      </BrowserRouter>,
+    );
+    expect(screen.getByText('张三')).toBeInTheDocument();
+    expect(screen.queryByText('E12345678')).not.toBeInTheDocument();
   });
 
   it('点击关闭按钮触发 onClose', () => {

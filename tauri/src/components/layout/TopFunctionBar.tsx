@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import styles from './TopFunctionBar.module.css';
-import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { NavButton } from './NavButton';
 import { RenameableNavButton, AddPageButton } from './SideNavigation';
 import { useNavButtonCards } from './navButtonCards';
@@ -227,6 +226,7 @@ export function TopFunctionBar({
   return (
     <header
       className={styles.functionBar}
+      data-desktop-function-bar
       data-tauri-drag-region={isMacOS ? 'false' : 'true'}
       style={{
         height: FUNCTION_BAR_HEIGHT,
@@ -238,10 +238,8 @@ export function TopFunctionBar({
         borderTop: isBottom ? '1px solid var(--navigation-divider, var(--border-subtle))' : 'none',
       }}
     >
-      {/* Left zone: logo + primary pages + custom pages */}
+      {/* 左侧导航：主页面与自定义页面 */}
       <div className={styles.leftZone} data-tauri-drag-region="false">
-        <ShieldLogo size={ICON_SIZE['3xl']} />
-
         <nav className={styles.primaryZone} aria-label={t('home')}>
           {/* HOME — always visible */}
           <NavButton

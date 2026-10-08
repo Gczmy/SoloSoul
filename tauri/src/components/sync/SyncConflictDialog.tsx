@@ -92,13 +92,14 @@ function ProtectedValue({
   onReveal?: (key: string) => void;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation('common');
   if (!protectedField) return <>{children}</>;
   if (isRevealed?.(fieldKey)) return <>{children}</>;
   return (
     <span
       onClick={() => onReveal?.(fieldKey)}
       style={{ cursor: 'pointer', userSelect: 'none' }}
-      title="点击揭示"
+      title={t('click_to_reveal')}
     >
       {MASK_PLACEHOLDER}
     </span>

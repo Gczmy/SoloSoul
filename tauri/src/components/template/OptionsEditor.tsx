@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 
 interface OptionsEditorProps {
@@ -8,6 +9,7 @@ interface OptionsEditorProps {
 }
 
 export function OptionsEditor({ options, onChange, fieldName, fieldType }: OptionsEditorProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState('');
 
@@ -21,7 +23,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
       <button
         type="button"
         onClick={handleOpen}
-        title="编辑选项"
+        title={t('edit_options')}
         style={{
           height: 36,
           padding: '0 10px',

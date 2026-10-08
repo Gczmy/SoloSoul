@@ -51,6 +51,7 @@ export function RenameableNavButton({
         isActive={isActive}
         onClick={onClick}
         position={position}
+        scrollOverflowLabel
       />
       <CustomPageEditPopover
         page={page}

@@ -247,6 +247,12 @@
   --font-display: var(--font-sans);
 }
 
+/* 表单控件默认不继承正文字体；iOS 的系统别名会让按钮中文显示成缺字方框。
+   零特异性只补浏览器默认值，保留组件显式指定的代码字体和其他字体。 */
+:where(:root[data-platform='ios']) :where(button, input, select, textarea) {
+  font-family: var(--font-sans);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -271,6 +277,22 @@ body {
 #root {
   width: 100%;
   height: 100vh;
+}
+
+/* WKWebView 在键盘出现时可滚动 overflow:hidden 的文档根。
+   固定根表面，滚动仅交给页面已有的内容容器；桌面和 Android 不受影响。 */
+html[data-platform='ios'],
+html[data-platform='ios'] body {
+  height: var(--viewport-height, 100vh);
+}
+html[data-platform='ios'] body {
+  position: fixed;
+  top: var(--ios-viewport-offset, 0px);
+  left: 0;
+  right: 0;
+}
+html[data-platform='ios'] #root {
+  height: 100%;
 }
 
 /* AppKit 的提高对比度设置不一定映射成 WebView 的 forced-colors。 */
@@ -299,6 +321,81 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--text-tertiary);
   border-radius: 3px;
+}
+
+/* 桌面滑块直接跟随浏览器原生悬停，不用 JS 鼠标事件/焦点驱动颜色。
+   每个元素重置变量，避免嵌套区域继承父区域的高亮。 */
+html[data-scrollbar-region-mode='hover'],
+html[data-scrollbar-region-mode='hover'] * {
+  --scrollbar-thumb-x: rgb(128 128 128 / 45%);
+  --scrollbar-thumb-y: rgb(128 128 128 / 45%);
+}
+html[data-scrollbar-region-mode='hover']::-webkit-scrollbar-thumb,
+html[data-scrollbar-region-mode='hover'] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-y);
+}
+html[data-scrollbar-region-mode='hover']::-webkit-scrollbar-thumb:horizontal,
+html[data-scrollbar-region-mode='hover'] ::-webkit-scrollbar-thumb:horizontal {
+  background: var(--scrollbar-thumb-x);
+}
+
+/* Safari 15.0–15.3 回退：支持区域内移动高亮；新引擎按最近的同方向区域精确判定。 */
+@supports not selector(:has(*)) {
+  html[data-scrollbar-region-mode='hover'][data-scrollbar-region-x]:hover,
+  html[data-scrollbar-region-mode='hover'] [data-scrollbar-region-x]:hover {
+    --scrollbar-thumb-x: var(--text-primary);
+  }
+  html[data-scrollbar-region-mode='hover'][data-scrollbar-region-y]:hover,
+  html[data-scrollbar-region-mode='hover'] [data-scrollbar-region-y]:hover {
+    --scrollbar-thumb-y: var(--text-primary);
+  }
+}
+@supports selector(:has(*)) {
+  html[data-scrollbar-region-mode='hover'][data-scrollbar-region-x]:hover:not(
+      :has(
+        [data-scrollbar-region-x]:hover,
+        [role='dialog']:hover,
+        [aria-modal='true']:hover,
+        [data-macos-glass-backdrop]:hover
+      )
+    ),
+  html[data-scrollbar-region-mode='hover']
+    [data-scrollbar-region-x]:hover:not(
+      :has(
+        [data-scrollbar-region-x]:hover,
+        [role='dialog']:hover,
+        [aria-modal='true']:hover,
+        [data-macos-glass-backdrop]:hover
+      )
+    ) {
+    --scrollbar-thumb-x: var(--text-primary);
+  }
+  html[data-scrollbar-region-mode='hover'][data-scrollbar-region-y]:hover:not(
+      :has(
+        [data-scrollbar-region-y]:hover,
+        [role='dialog']:hover,
+        [aria-modal='true']:hover,
+        [data-macos-glass-backdrop]:hover
+      )
+    ),
+  html[data-scrollbar-region-mode='hover']
+    [data-scrollbar-region-y]:hover:not(
+      :has(
+        [data-scrollbar-region-y]:hover,
+        [role='dialog']:hover,
+        [aria-modal='true']:hover,
+        [data-macos-glass-backdrop]:hover
+      )
+    ) {
+    --scrollbar-thumb-y: var(--text-primary);
+  }
+}
+/* 直接悬停/拖动系统滑块时始终反馈，兼容滑块不进入内容命中链的 WebView。 */
+html[data-scrollbar-region-mode='hover']::-webkit-scrollbar-thumb:hover,
+html[data-scrollbar-region-mode='hover'] ::-webkit-scrollbar-thumb:hover,
+html[data-scrollbar-region-mode='hover']::-webkit-scrollbar-thumb:active,
+html[data-scrollbar-region-mode='hover'] ::-webkit-scrollbar-thumb:active {
+  background: var(--text-primary);
 }
 
 /* Hide native WebView2/Chromium password reveal button (overlaps custom Eye icon) */

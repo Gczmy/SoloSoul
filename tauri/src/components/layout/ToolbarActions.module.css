@@ -50,7 +50,7 @@
   right: 0;
   width: max-content;
   max-width: min(320px, calc(100vw - 32px));
-  max-height: calc(100dvh - 120px);
+  max-height: calc(var(--viewport-height, 100vh) - 120px);
   overflow: auto;
   padding: 8px;
   border: 1px solid var(--border-subtle);

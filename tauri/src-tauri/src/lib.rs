@@ -12,6 +12,17 @@ pub mod mobile_ocr_plugin;
 compile_error!("native-perf 目前只支持 Windows 原生隔离验收");
 #[cfg(all(feature = "native-perf", target_os = "windows"))]
 mod native_perf;
+#[cfg(all(
+    feature = "macos-ui-regression",
+    any(
+        not(target_os = "macos"),
+        not(debug_assertions),
+        feature = "native-perf"
+    )
+))]
+compile_error!("macos-ui-regression 仅支持 macOS debug，不能与 native-perf 混用");
+#[cfg(all(feature = "macos-ui-regression", target_os = "macos", debug_assertions))]
+mod macos_ui_regression;
 pub mod network_status_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
@@ -381,6 +392,32 @@ fn dispatch_ipc(invoke: tauri::ipc::Invoke<tauri::Wry>) -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(feature = "macos-ui-regression")]
+    let regression = {
+        if std::env::args().any(|arg| arg == "--fe2-macos-prepare") {
+            match macos_ui_regression::prepare() {
+                Ok(root) => println!("{}", root.display()),
+                Err(error) => {
+                    eprintln!("macOS UI regression prepare failed: {error}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        match macos_ui_regression::configure() {
+            Ok(config) => {
+                if std::env::args().any(|arg| arg == "--fe2-macos-preflight") {
+                    println!("PASS: {}", config.identifier);
+                    return;
+                }
+                config
+            }
+            Err(error) => {
+                eprintln!("macOS UI regression preflight failed: {error}");
+                std::process::exit(1);
+            }
+        }
+    };
     // 测试构建必须在创建任何 Tauri 线程/插件前确认合成数据与独立目录。
     #[cfg(feature = "native-perf")]
     let perf = {
@@ -513,7 +550,30 @@ pub fn run() {
             .run(context)
     };
 
-    #[cfg(not(feature = "native-perf"))]
+    #[cfg(feature = "macos-ui-regression")]
+    let result = {
+        let mut context = tauri::generate_context!();
+        if context.config().identifier != macos_ui_regression::BUNDLE_IDENTIFIER {
+            eprintln!("macOS UI regression requires its separate bundle identifier");
+            std::process::exit(1);
+        }
+        context.config_mut().identifier = regression.identifier.clone();
+        let mut window_config = context.config().app.windows[0].clone();
+        context.config_mut().app.windows[0].create = false;
+        window_config.title = "SoloSoul · FE2 macOS 隔离验收".into();
+        builder
+            .setup(move |app| {
+                // 非持久 WKWebsiteDataStore 不读取正式客户端的 localStorage / cookie。
+                tauri::WebviewWindowBuilder::from_config(app, &window_config)?
+                    .incognito(true)
+                    .build()?;
+                setup::setup_app(app)
+            })
+            .invoke_handler(dispatch_ipc)
+            .run(context)
+    };
+
+    #[cfg(not(any(feature = "native-perf", feature = "macos-ui-regression")))]
     let result = builder
         .setup(setup::setup_app)
         .invoke_handler(dispatch_ipc)

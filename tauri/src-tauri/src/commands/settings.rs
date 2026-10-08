@@ -92,7 +92,7 @@ fn remove_with_retry(path: &std::path::Path, retries: u32) -> std::io::Result<()
 /// 在确认新路径已存在后，尝试清理可能残留的旧 UI preferences 文件。
 #[cfg(any(target_os = "android", test))]
 fn lazy_cleanup_old_ui_prefs(old_path: &std::path::Path, new_path: &std::path::Path) {
-    if old_path == new_path {
+    if ui_prefs_same_file(old_path, new_path) {
         return;
     }
     if !new_path.exists() || !old_path.exists() {
@@ -100,6 +100,30 @@ fn lazy_cleanup_old_ui_prefs(old_path: &std::path::Path, new_path: &std::path::P
     }
     if let Err(e) = remove_with_retry(old_path, 3) {
         tracing::debug!("清理旧 UI preferences 失败: {}", e);
+    }
+}
+
+/// Vault 根已规范化，但 Android PathPlugin 的目录可能仍使用系统别名。
+/// 两个字符串不同也可能是同一文件；不能将当前配置当成旧文件删除。
+#[cfg(any(target_os = "android", test))]
+fn ui_prefs_same_file(old_path: &std::path::Path, new_path: &std::path::Path) -> bool {
+    if old_path == new_path {
+        return true;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        match (std::fs::metadata(old_path), std::fs::metadata(new_path)) {
+            (Ok(old), Ok(new)) => old.dev() == new.dev() && old.ino() == new.ino(),
+            _ => false,
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        match (old_path.canonicalize(), new_path.canonicalize()) {
+            (Ok(old), Ok(new)) => old == new,
+            _ => false,
+        }
     }
 }
 
@@ -113,7 +137,7 @@ fn maybe_migrate_ui_prefs(
     old_path: &std::path::Path,
     new_path: &std::path::Path,
 ) -> Result<(), String> {
-    if old_path == new_path {
+    if ui_prefs_same_file(old_path, new_path) {
         return Ok(());
     }
     if let Some(parent) = new_path.parent() {
@@ -157,6 +181,11 @@ pub struct UiPreferences {
     pub accent_color: String,
     #[serde(default)]
     pub custom_accent_hex: String,
+    /// 登录前也必须交付账户缓存的底色方案；旧配置缺失时保留前端缓存/默认值。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_light_theme: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_dark_theme: Option<String>,
     #[serde(default)]
     pub reduce_motion: bool,
     #[serde(default)]
@@ -176,6 +205,8 @@ impl Default for UiPreferences {
             theme: "system".to_string(),
             accent_color: "ocean".to_string(),
             custom_accent_hex: String::new(),
+            default_light_theme: None,
+            default_dark_theme: None,
             language: String::new(),
             has_seen_onboarding: false,
             notification_permission_requested: false,
@@ -194,6 +225,10 @@ pub async fn ui_get_preferences(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    // 读取/迁移与写入共用顺序，避免启动时读到正在覆盖的半份配置。
+    let _file_guard = UI_PREFS_LOCK
+        .lock()
+        .map_err(|_| "UI preferences lock poisoned")?;
     let path = resolve_ui_prefs_path(&app, &svc)?;
     if !path.exists() {
         return Ok(UiPreferences::default());
@@ -963,6 +998,8 @@ mod tests {
             theme: "dark".to_string(),
             accent_color: "custom".to_string(),
             custom_accent_hex: "#777777".to_string(),
+            default_light_theme: Some("clean-slate".to_string()),
+            default_dark_theme: Some("forest-night".to_string()),
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
             notification_permission_requested: false,
@@ -973,6 +1010,8 @@ mod tests {
         assert!(json.contains("\"theme\":\"dark\""));
         assert!(json.contains("\"accentColor\":\"custom\""));
         assert!(json.contains("\"customAccentHex\":\"#777777\""));
+        assert!(json.contains("\"defaultLightTheme\":\"clean-slate\""));
+        assert!(json.contains("\"defaultDarkTheme\":\"forest-night\""));
         assert!(json.contains("\"language\":\"zh-CN\""));
         assert!(json.contains("\"hasSeenOnboarding\":true"));
         assert!(json.contains("\"notificationPermissionRequested\":false"));
@@ -980,6 +1019,8 @@ mod tests {
         assert_eq!(restored.theme, original.theme);
         assert_eq!(restored.accent_color, original.accent_color);
         assert_eq!(restored.custom_accent_hex, original.custom_accent_hex);
+        assert_eq!(restored.default_light_theme, original.default_light_theme);
+        assert_eq!(restored.default_dark_theme, original.default_dark_theme);
         assert_eq!(restored.language, original.language);
         assert!(restored.has_seen_onboarding);
         assert!(restored.reduce_motion);
@@ -992,6 +1033,11 @@ mod tests {
         let restored: UiPreferences = serde_json::from_str(json).unwrap();
         assert!(!restored.reduce_motion);
         assert!(restored.custom_accent_hex.is_empty());
+        assert!(restored.default_light_theme.is_none());
+        assert!(restored.default_dark_theme.is_none());
+        let response = serde_json::to_value(&restored).unwrap();
+        assert!(response.get("defaultLightTheme").is_none());
+        assert!(response.get("defaultDarkTheme").is_none());
         assert_eq!(restored.android_glass, AndroidGlassMode::Local);
         assert!(!restored.has_seen_onboarding);
     }
@@ -1150,6 +1196,8 @@ mod tests {
             theme: "dark".to_string(),
             accent_color: "ocean".to_string(),
             custom_accent_hex: String::new(),
+            default_light_theme: Some("clean-slate".to_string()),
+            default_dark_theme: Some("forest-night".to_string()),
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
             notification_permission_requested: false,
@@ -1163,7 +1211,31 @@ mod tests {
         assert_eq!(prefs.language, "zh-CN");
         assert_eq!(prefs.theme, "dark");
         assert_eq!(prefs.accent_color, "ocean");
+        assert_eq!(prefs.default_light_theme.as_deref(), Some("clean-slate"));
+        assert_eq!(prefs.default_dark_theme.as_deref(), Some("forest-night"));
         assert!(prefs.has_seen_onboarding);
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn fe2_ui_prefs_cleanup_keeps_same_file_through_android_directory_alias() {
+        let dir = TempDir::new().unwrap();
+        let real = dir.path().join("private-data");
+        let alias = dir.path().join("android-data-alias");
+        std::fs::create_dir(&real).unwrap();
+        std::os::unix::fs::symlink(&real, &alias).unwrap();
+        let old = real.join("ui_preferences.json");
+        let new = alias.join("ui_preferences.json");
+        let content =
+            br##"{"theme":"dark","androidGlass":"enhanced","customAccentHex":"#112233"}"##;
+        std::fs::write(&old, content).unwrap();
+
+        lazy_cleanup_old_ui_prefs(&old, &new);
+
+        assert!(new.exists(), "同一真实文件不能作为旧路径残留被删除");
+        assert_eq!(std::fs::read(&new).unwrap(), content);
+        maybe_migrate_ui_prefs(&old, &new).unwrap();
+        assert_eq!(std::fs::read(&old).unwrap(), content);
     }
 
     #[test]
@@ -1176,6 +1248,8 @@ mod tests {
             theme: "dark".to_string(),
             accent_color: "rose".to_string(),
             custom_accent_hex: String::new(),
+            default_light_theme: None,
+            default_dark_theme: None,
             language: "zh-CN".to_string(),
             has_seen_onboarding: false,
             notification_permission_requested: false,

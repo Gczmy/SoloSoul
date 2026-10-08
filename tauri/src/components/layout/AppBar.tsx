@@ -1,4 +1,10 @@
-import { ArrowLeft } from 'lucide-react';
+import {
+  ArrowLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
 import { ToolbarActions } from './ToolbarActions';
@@ -8,6 +14,8 @@ import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
 import { isAndroidSync } from '@/lib/platform';
 import { AndroidAppBar } from '@/components/android/AndroidAppBar';
+import { useUiStore } from '@/stores/uiStore';
+import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 
 interface AppBarProps {
   title: string;
@@ -26,7 +34,21 @@ export function AppBar({
 }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
+  const { t: navT } = useTranslation('navigation');
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
+  const isNarrowViewport = useIsNarrowViewport();
+  const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
+  const toggleSidebarExpanded = useUiStore((s) => s.toggleSidebarExpanded);
+  const macShell = isMacOS && !isNarrowViewport && !isAndroidSync();
+  const hasSidebarToggle = macShell && !isHorizontal;
+  const ToggleIcon =
+    sidebarPosition === 'right'
+      ? sidebarExpanded
+        ? PanelRightClose
+        : PanelRightOpen
+      : sidebarExpanded
+        ? PanelLeftClose
+        : PanelLeftOpen;
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
   const headerRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
@@ -51,10 +73,13 @@ export function AppBar({
       ref={headerRef}
       data-appbar
       data-native-compact={isMacOS || undefined}
+      data-macos-shell={macShell || undefined}
       data-tauri-drag-region={isMacOS ? 'false' : 'deep'}
       style={
         {
           '--appbar-leading-inset': `max(12px, calc(${trafficLightsRight > 0 ? trafficLightsRight + 12 : 0}px - ${contentLeft}))`,
+          '--mac-sidebar-control-left': `${trafficLightsRight + 12}px`,
+          '--mac-page-title-left': `max(${contentLeft}, ${trafficLightsRight + (hasSidebarToggle ? 56 : 12)}px)`,
         } as CSSProperties
       }
       className={[
@@ -66,6 +91,21 @@ export function AppBar({
         .filter(Boolean)
         .join(' ')}
     >
+      {hasSidebarToggle && (
+        <button
+          type="button"
+          className={styles.sidebarToggle}
+          data-titlebar-control
+          data-desktop-control="icon"
+          data-tauri-drag-region="false"
+          aria-label={navT(sidebarExpanded ? 'sidebar_collapse' : 'sidebar_expand')}
+          aria-expanded={sidebarExpanded}
+          aria-controls="desktop-navigation"
+          onClick={toggleSidebarExpanded}
+        >
+          <ToggleIcon size={20} />
+        </button>
+      )}
       <div className={styles.left}>
         {onBack && (
           <button

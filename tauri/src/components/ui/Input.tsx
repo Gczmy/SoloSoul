@@ -1,4 +1,5 @@
 import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import styles from './Input.module.css';
 import { ICON_SIZE } from '@/lib/constants';
@@ -20,9 +21,21 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { label, error, errorTick = 0, reserveErrorSpace = false, prefixIcon, icon, badge, onClear, className, ...props },
+    {
+      label,
+      error,
+      errorTick = 0,
+      reserveErrorSpace = false,
+      prefixIcon,
+      icon,
+      badge,
+      onClear,
+      className,
+      ...props
+    },
     ref,
   ) => {
+    const { t } = useTranslation('common');
     const [shouldShake, setShouldShake] = useState(false);
     const prevErrorRef = useRef(error);
     const prevTickRef = useRef(errorTick);
@@ -76,7 +89,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className={styles.clearBtn}
               onClick={onClear}
               tabIndex={-1}
-              aria-label="Clear"
+              aria-label={t('clear')}
             >
               <X size={ICON_SIZE.sm} />
             </button>

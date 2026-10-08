@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { syncStatusBarStyle } from '@/lib/theme';
 import { useTouchZoom } from '@/hooks/useTouchZoom';
 import { previewItemByMime, type AttachmentItem } from '@/lib/attachmentUtils';
-import { isMobilePlatformSync, isWindowsSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync, isWindowsSync } from '@/lib/platform';
 import { MIN_SCALE, MAX_SCALE, ZOOM_STEP, clampScale, computeFitScale } from '@/lib/photoZoom';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 
@@ -67,8 +67,13 @@ export function useAttachmentPreview({ item }: UseAttachmentPreviewParams) {
       return;
     }
 
-    // 打开预览遮罩时使用深色背景配浅色状态栏图标/文字
-    void syncStatusBarStyle('dark');
+    // Android 预览顶栏与导航安全区沿用应用主题，照片区域仍使用深色底。
+    const previewTheme = isAndroidSync()
+      ? document.documentElement.dataset.theme === 'dark'
+        ? 'dark'
+        : 'light'
+      : 'dark';
+    void syncStatusBarStyle(previewTheme);
 
     const rawKind = previewItemByMime(item);
     // Android/iOS WebView 无法通过 <embed> 直接渲染本地 PDF data URL，

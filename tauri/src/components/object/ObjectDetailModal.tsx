@@ -14,6 +14,7 @@ import { ObjectDetailDeleteDialog } from '@/components/object/ObjectDetailDelete
 import { useOverlayBackGuard } from '@/hooks/useOverlayBackGuard';
 import { isAndroidSync } from '@/lib/platform';
 import styles from './ObjectDetailModal.module.css';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 
 import { useObjectDetailModal, type ObjectDetailModalProps } from './useObjectDetailModal';
 
@@ -56,6 +57,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     // 敏感度/字段解析
     getFieldProperty,
     getFieldSensitivity,
+    getFieldPolicy,
     isFieldDeprecated,
     getFieldName,
     // 揭示/复制
@@ -133,6 +135,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
 
               {/* 可滚动内容区（移动端仅此区域滚动，头尾固定） */}
               <div className={styles.modalBody}>
+                <ToastOutlet priority={4000} />
                 {/* 模板更新提示条 */}
                 {needsSync && onSyncTemplate && (
                   <ObjectDetailTemplateSyncBanner
@@ -173,6 +176,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
                     objFieldDefs={objFieldDefs}
                     getFieldProperty={getFieldProperty}
                     getFieldSensitivity={getFieldSensitivity}
+                    getFieldPolicy={getFieldPolicy}
                     isFieldDeprecated={isFieldDeprecated}
                     getFieldName={getFieldName}
                     handleRevealField={handleRevealField}

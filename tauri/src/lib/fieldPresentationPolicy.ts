@@ -1,4 +1,4 @@
-import { asFieldRecord, resolveFieldSensitivity } from './fieldSensitivity';
+import { asFieldRecord, resolveFieldSensitivity, fieldSensitivityValue } from './fieldSensitivity';
 import { MASK_PLACEHOLDER } from './masking';
 import type { SensitivityLevel } from '@/types/template';
 
@@ -8,13 +8,22 @@ export interface FieldPresentationPolicy {
   requiresVerification: boolean;
 }
 
+/** 详情中的内部字段直接可读；摘要、搜索与回收站仍沿用默认遮罩。 */
+export type FieldPresentationContext = 'summary' | 'detail';
+
 export function fieldPresentationPolicy(
   input: Parameters<typeof resolveFieldSensitivity>[0],
+  context: FieldPresentationContext = 'summary',
 ): FieldPresentationPolicy {
   const sensitivity = resolveFieldSensitivity(input);
+  const source = fieldSensitivityValue(input);
+  const visibleInternal =
+    context === 'detail' &&
+    sensitivity === 'internal' &&
+    (source === 'internal' || (source === undefined && input.parent === 'internal'));
   return {
     sensitivity,
-    concealed: sensitivity !== 'public',
+    concealed: sensitivity !== 'public' && !visibleInternal,
     requiresVerification: sensitivity === 'critical',
   };
 }
@@ -31,8 +40,13 @@ export function protectedDisplayValue(
   value: string,
   sensitivity: SensitivityLevel,
   revealed: boolean,
+  context: FieldPresentationContext = 'summary',
 ): string {
-  return sensitivity === 'public' || revealed ? value : MASK_PLACEHOLDER;
+  return sensitivity === 'public' ||
+    (context === 'detail' && sensitivity === 'internal') ||
+    revealed
+    ? value
+    : MASK_PLACEHOLDER;
 }
 
 /** 动态子组整组操作按后代最高级别授权，父级保护不可被子项降低。 */

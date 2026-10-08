@@ -4,8 +4,8 @@
   height: min(
     560px,
     calc(
-      100vh - var(--native-titlebar-height, 0px) - env(safe-area-inset-top, 0px) -
-        env(safe-area-inset-bottom, 0px) - 32px
+      100vh - var(--native-titlebar-height, 0px) - var(--safe-area-top) - var(--safe-area-bottom) -
+        32px
     )
   );
   z-index: var(--z-nav-popover);

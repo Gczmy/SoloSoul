@@ -6,7 +6,7 @@ import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel, TemplateProperty } from '@/types/template';
 
 // 使用真实 useRevealState（含真实 maskValue 逻辑），验证详情卡片掩码规则：
-// - public 明文；其他等级默认掩码；
+// - public / internal 明文；sensitive / critical 默认掩码；
 // - sensitive / critical：掩码 + 揭示按钮（critical 弹密码）。
 vi.mock('@/lib/ipcClient', () => ({
   invokeCommand: vi.fn().mockResolvedValue(undefined),
@@ -49,16 +49,16 @@ function Harness({
 }
 
 describe('ObjectDetailFieldsList 掩码规则', () => {
-  it('internal 字段：默认掩码并提供揭示按钮', () => {
+  it('internal 字段：直接显示且不提供揭示按钮', () => {
     render(
       <Harness
         fields={[{ kind: 'field' as const, key: 'phone', value: '13800138000' }]}
         sensitivities={{ phone: 'internal' }}
       />,
     );
-    expect(screen.queryByText('13800138000')).not.toBeInTheDocument();
-    expect(screen.getByText('••••••••')).toBeInTheDocument();
-    expect(screen.getByText('common:reveal')).toBeInTheDocument();
+    expect(screen.getByText('13800138000')).toBeInTheDocument();
+    expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
+    expect(screen.queryByText('common:reveal')).not.toBeInTheDocument();
   });
 
   it('public 字段：直接显示明文，无揭示按钮', () => {
@@ -213,7 +213,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
     }
     render(<HarnessInternal />);
     // 未揭示不显示倒计时。
-    expect(screen.queryByText('13800138000')).not.toBeInTheDocument();
+    expect(screen.getByText('13800138000')).toBeInTheDocument();
     expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
   });
 
@@ -239,9 +239,9 @@ describe('动态字段组树状渲染（与历史快照同构）', () => {
 
   it('组头仅显示一次敏感度徽章；子行不重复显示', () => {
     renderGroup({ __dynamic_group__: 'internal' });
-    // internal 子项默认占位。
-    expect(screen.queryByText('hello world')).not.toBeInTheDocument();
-    expect(screen.queryByText('second value')).not.toBeInTheDocument();
+    // internal 子项直接显示。
+    expect(screen.getByText('hello world')).toBeInTheDocument();
+    expect(screen.getByText('second value')).toBeInTheDocument();
     // 子行名称可见
     expect(screen.getByText('备注一')).toBeInTheDocument();
     expect(screen.getByText('备注二')).toBeInTheDocument();

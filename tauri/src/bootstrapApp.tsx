@@ -17,6 +17,7 @@ import './styles/desktop-controls.css';
 import './styles/windows-material.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
+import { installIOSViewport } from '@/lib/iosViewport';
 import { getPlatformCapabilities } from '@/lib/platformCapabilities';
 import { preloadCameraCapability } from '@/lib/cameraCapability';
 import { logger } from '@/lib/logger';
@@ -36,6 +37,7 @@ export async function mountApplication(): Promise<void> {
   await initI18n();
   window.__SOLOSOUL_STARTUP__?.phase('platform');
   await initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
+  installIOSViewport();
   window.__SOLOSOUL_STARTUP__?.phase('capabilities');
   await getPlatformCapabilities();
   prepareThemeController();

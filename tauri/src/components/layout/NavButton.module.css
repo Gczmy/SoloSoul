@@ -75,10 +75,22 @@
   background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
 }
 
+/* 选中态由背景区分，导航文字始终保持中性高对比。 */
+:global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])) .navButton {
+  color: var(--desktop-text-secondary);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .activeButton:hover {
     background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
     color: var(--accent-primary);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']))
+    .navButton:hover {
+    color: var(--desktop-text-primary);
   }
 }
 
@@ -143,4 +155,38 @@
 }
 .expanded .label {
   display: block;
+}
+
+/* 渐隐只作用于名称；固定图标与按钮命中区不进入动画层。 */
+.expanded .scrollingLabel {
+  flex: 1;
+  text-overflow: clip;
+}
+.labelTrack {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+}
+.scrollingLabel[data-overflow='true'] {
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+}
+.scrollingLabel[data-overflow='true'][data-fade='left'] {
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 100%);
+}
+.scrollingLabel[data-overflow='true'][data-fade='both'] {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 10px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+:global(html[data-high-contrast='true']) .scrollingLabel {
+  mask-image: none;
+}
+@media (forced-colors: active) {
+  .scrollingLabel {
+    mask-image: none !important;
+  }
 }

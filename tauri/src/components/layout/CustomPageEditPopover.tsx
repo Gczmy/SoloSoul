@@ -194,6 +194,7 @@ export function CustomPageEditPopover({
     return isOpen ? (
       <AndroidSheet
         title={t('common:material.edit_page', { name: page.name })}
+        material="solid"
         onClose={handleCancel}
       >
         <form

@@ -49,6 +49,7 @@
   "password_mismatch": "两次输入的密码不一致",
   "password_too_short": "密码长度不少于 8 位",
   "accent_color": "主题色",
+  "accent_custom": "自定义强调色（十六进制）",
   "accent_ocean": "海洋蓝",
   "accent_amber": "琥珀金",
   "accent_forest": "森林绿",

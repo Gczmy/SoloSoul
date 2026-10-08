@@ -12,6 +12,19 @@ import '../../src/styles/android.css';
 import '../../src/styles/macos-glass.css';
 import '../../src/styles/windows-material.css';
 import './fixture.css';
+import {
+  startLiquidProbe,
+  readLiquidProbe,
+  loseLiquidProbeContext,
+  pokeReducedLiquidProbe,
+} from './liquidProbe';
+
+Object.assign(window, {
+  __startLiquidProbe: startLiquidProbe,
+  __readLiquidProbe: readLiquidProbe,
+  __loseLiquidProbeContext: loseLiquidProbeContext,
+  __pokeReducedLiquidProbe: pokeReducedLiquidProbe,
+});
 
 declare global {
   interface Window {
@@ -68,7 +81,7 @@ window.__runCardSample = async (theme, appearance, platform = 'macos', sampleId)
   if (platform === 'macos' || platform === 'windows') root.dataset.desktopPlatform = platform;
   else delete root.dataset.desktopPlatform;
   root.dataset.theme = theme;
-  if (platform === 'android') applyAndroidMaterial('ocean');
+  if (platform === 'android') applyAndroidMaterial();
   root.dataset.nativeMaterial = appearance.material;
   root.dataset.reduceMotion = String(appearance.reduceMotion);
   root.dataset.highContrast = String(appearance.highContrast);

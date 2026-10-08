@@ -30,6 +30,7 @@
 
 @media (max-width: 767px) {
   .button {
+    --count-hit-min: 44px;
     min-width: 44px;
     min-height: 44px;
   }
@@ -58,24 +59,18 @@
   outline-offset: 3px;
 }
 
-/* ── Badge ─────────────────────────────────────────────── */
+/* 数量是按钮的辅助信息，不作为悬浮强调色通知徽标。 */
+.button[data-has-count='true'] {
+  width: auto;
+  min-width: max(var(--icon-hit-size), var(--count-hit-min, 0px));
+  padding: 0 8px;
+  gap: 4px;
+}
 .badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-primary);
-  color: var(--accent-primary-text);
+  color: inherit;
+  opacity: 0.8;
   font-size: var(--text-badge);
-  font-weight: 700;
-  border-radius: 9px;
-  padding: 0 5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
-  pointer-events: none;
-  z-index: 1;
-  border: 1px solid var(--bg-elevated);
 }

@@ -23,13 +23,17 @@
   background: var(--windows-navigation-surface, var(--bg-base));
 }
 :global(html[data-desktop-platform='windows'][data-native-material='mica']) .functionBar {
-  background: transparent;
+  background: var(--windows-navigation-tint);
 }
 :global(
     html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])
   )
   .functionBar {
   background: transparent;
+}
+:global(html[data-desktop-platform='macos']) .functionBar {
+  background: transparent;
+  border-color: var(--navigation-divider, transparent);
 }
 
 .leftZone,
@@ -80,6 +84,10 @@
   .horizontalArrowToggle:hover {
     color: var(--accent-primary);
     background: rgba(128, 128, 128, 0.06);
+  }
+  :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']))
+    .horizontalArrowToggle:hover {
+    color: var(--desktop-text-primary);
   }
 }
 

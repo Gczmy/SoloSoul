@@ -96,6 +96,14 @@ tauri/src-tauri/gen/android/app/src/main/jniLibs/
 # Tauri generated schemas (regenerated on build)
 tauri/src-tauri/gen/schemas/
 
+# iOS 打包时自动复制的文档与插件资源
+tauri/src-tauri/gen/apple/assets/
+
+# 本地 Android 系统诊断包与 Python 字节码缓存
+tauri/bugreport-*.zip
+__pycache__/
+*.py[cod]
+
 # Temporary test screenshots and one-off scripts
 tauri/solosoul_*.png
 tauri/auto_create_account.sh

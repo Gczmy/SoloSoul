@@ -107,7 +107,7 @@
 
   .top {
     height: 48px;
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: var(--safe-area-top);
   }
 
   .content {
@@ -120,7 +120,7 @@
     align-items: center;
     height: 56px;
     flex-shrink: 0;
-    padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 8px);
+    padding: 0 24px calc(var(--safe-area-bottom) + 8px);
     background: var(--bg-toolbar);
   }
 }
@@ -135,12 +135,7 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(128, 128, 128, 0.14),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(128, 128, 128, 0.14), transparent);
   animation: shimmer 1.4s ease-in-out infinite;
 }
 

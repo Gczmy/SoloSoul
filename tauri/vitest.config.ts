@@ -7,6 +7,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // 主题测试需读取真实色板；其余组件样式继续使用默认 stub。
+    css: { include: [/styles\/themes\.css/] },
     setupFiles: ['./src/test/setup.ts'],
     passWithNoTests: true,
     exclude: [

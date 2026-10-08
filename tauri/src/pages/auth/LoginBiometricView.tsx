@@ -42,7 +42,7 @@ export function LoginBiometricView({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        marginBottom: 16,
+        marginBottom: 'var(--login-method-gap, 16px)',
       }}
     >
       {/* 系统生物识别临时锁定（失败次数过多）警告条 — 与设置页 BiometricSection 风格一致 */}

@@ -14,12 +14,12 @@ export function LoginQuickLinks({
 
   return (
     <div
+      data-login-quick-links
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 8,
-        marginTop: 16,
+        gap: 6,
       }}
     >
       <button

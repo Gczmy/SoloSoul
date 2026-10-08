@@ -38,9 +38,9 @@ void main(){
   vec2 uv=gl_FragCoord.xy/resolution;
   float aspect=resolution.x/resolution.y;
   // 装饰与盾牌固定在同一中心，触摸只改变光线和折射，不挤占文字区域。
-  vec2 center=vec2(.78,.5);
+  vec2 center=vec2(.5,.5);
   vec2 p=(uv-center)*vec2(aspect,1.);
-  float halfWidth=min(.29,aspect*.155);
+  float halfWidth=min(.29,aspect*.32);
   vec2 size=vec2(halfWidth,halfWidth*1.14);float radius=halfWidth*.6;
   float d=box(p,size,radius);float aa=1.7/resolution.y;
   float mask=1.-smoothstep(-aa,aa,d);float eps=.002;
@@ -194,6 +194,12 @@ export function createAndroidLiquidRenderer(
     event.preventDefault();
     lost = true;
     stop();
+    // 丢失上下文时 GPU 已回收旧对象；恢复后不能向新上下文删除旧句柄。
+    // Android WebView 会为这类 delete 调用报告 INVALID_OPERATION。
+    program = null;
+    buffer = null;
+    shaders = [];
+    uniforms = {};
     onAvailability(false);
   }
   function contextRestored() {

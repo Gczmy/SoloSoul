@@ -1,13 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
 import { AttachmentPreviewOverlay } from './AttachmentPreviewOverlay';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
-import { isWindowsSync } from '@/lib/platform';
+import { isAndroidSync, isWindowsSync } from '@/lib/platform';
 
 // 与既有测试（AttachmentRow/ObjectDetailFieldsList 等）同款：mock 平台判定。
 // 默认非 Windows（macOS/Linux 走原 data URL 路径）；Windows 分支在用例内临时翻转。
 vi.mock('@/lib/platform', () => ({
+  isAndroidSync: vi.fn(() => false),
   isMobilePlatformSync: vi.fn(() => false),
   isWindowsSync: vi.fn(() => false),
 }));
@@ -44,7 +45,32 @@ describe('AttachmentPreviewOverlay', () => {
     // 平台 mock 复位：默认非 Windows（macOS/Linux data URL 路径）
     vi.mocked(isWindowsSync).mockReset();
     vi.mocked(isWindowsSync).mockReturnValue(false);
+    vi.mocked(isAndroidSync).mockReturnValue(false);
   });
+  afterEach(() => delete document.documentElement.dataset.theme);
+
+  it.each(['light', 'dark'] as const)(
+    'Android %s 预览与返回保持主题对应的系统栏图标',
+    async (theme) => {
+      vi.mocked(isAndroidSync).mockReturnValue(true);
+      document.documentElement.dataset.theme = theme;
+      mockInvoke.mockImplementation((command) =>
+        Promise.resolve(
+          command === 'fs_read_file_as_data_url' ? 'data:image/png;base64,abc' : undefined,
+        ),
+      );
+      const { rerender } = render(<AttachmentPreviewOverlay item={makeItem()} onClose={vi.fn()} />);
+      await screen.findByRole('img', { name: 'test.png' });
+      expect(mockInvoke).toHaveBeenCalledWith('set_status_bar_style', {
+        payload: { style: theme },
+      });
+      mockInvoke.mockClear();
+      rerender(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
+      expect(mockInvoke).toHaveBeenCalledWith('set_status_bar_style', {
+        payload: { style: theme },
+      });
+    },
+  );
 
   it('renders nothing when item is null', () => {
     const { container } = render(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);

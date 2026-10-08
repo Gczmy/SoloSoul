@@ -62,6 +62,12 @@ for (const { platform, width, height } of cases) {
     await page.setViewportSize({ width, height });
     await openLogin(page, platform);
     const card = page.locator('[data-login-card]');
+    const brand = card.locator('[data-login-brand]');
+    const logo = (await brand.locator('img').boundingBox())!;
+    const title = (await brand.locator('h1').boundingBox())!;
+    expect(logo.x + logo.width).toBeLessThanOrEqual(title.x);
+    expect(logo.width).toBe(48);
+    expect(title.y).toBeGreaterThanOrEqual(logo.y - 2);
     const heights: number[] = [];
     const methods = [
       { label: 'Master password', region: 'password' },
@@ -87,6 +93,19 @@ for (const { platform, width, height } of cases) {
         const gap = submit!.y - field!.y - field!.height;
         expect(gap, '保留错误行后，密码框与解锁按钮之间仍应紧凑').toBeGreaterThanOrEqual(8);
         expect(gap).toBeLessThanOrEqual(32);
+        const account = (await card.locator('[data-login-account]').boundingBox())!;
+        const links = (await card
+          .locator('[data-login-quick-links] button')
+          .first()
+          .boundingBox())!;
+        expect(
+          field!.y - account.y - account.height,
+          '账户与输入框之间避免大块空白',
+        ).toBeLessThanOrEqual(40);
+        expect(
+          links.y - submit!.y - submit!.height,
+          '解锁与创建账户之间避免叠加留白',
+        ).toBeLessThanOrEqual(36);
       }
 
       if (region === 'pin') {

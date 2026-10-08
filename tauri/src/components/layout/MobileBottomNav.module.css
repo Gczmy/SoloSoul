@@ -2,7 +2,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: env(safe-area-inset-bottom, 0px);
+  bottom: var(--safe-area-bottom);
   height: 56px;
   display: flex;
   align-items: center;
@@ -10,6 +10,10 @@
   background: var(--bg-toolbar);
   border-top: 1px solid var(--border-subtle);
   z-index: 200;
+}
+
+:global(html[data-platform='ios']) .bottomNav {
+  bottom: max(var(--safe-area-bottom), var(--ios-keyboard-inset, 0px));
 }
 
 .navItem {
@@ -95,7 +99,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(56px + var(--safe-area-bottom));
   z-index: 199;
   max-height: 50vh;
   overflow-y: auto;
@@ -103,8 +107,12 @@
   border-top: 1px solid var(--border-subtle);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-  padding: 16px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 12px calc(12px + var(--safe-area-bottom));
   animation: slideUp 0.2s ease-out;
+}
+
+:global(html[data-platform='ios']) .functionPanel {
+  bottom: calc(56px + max(var(--safe-area-bottom), var(--ios-keyboard-inset, 0px)));
 }
 
 @keyframes slideUp {

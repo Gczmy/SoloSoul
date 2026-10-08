@@ -11,7 +11,7 @@ tauri-build = { version = "2", features = [] }
 serde_json = { workspace = true }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
@@ -102,6 +102,10 @@ objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWind
 objc2-foundation = { version = "0.3", default-features = false, features = ["NSString", "NSURL", "NSArray", "NSGeometry", "NSUserDefaults", "objc2-core-foundation"] }
 block2 = { version = "0.6", default-features = false, features = ["std"] }
 
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
+objc2-ui-kit = { version = "0.3", default-features = false, features = ["std", "UIScrollView", "UIView"] }
+
 [target.'cfg(target_os = "windows")'.dependencies]
 window-vibrancy = "0.8.0"
 windows = { version = "0.61.3", features = ["Globalization", "Win32_Foundation", "Win32_Globalization", "Win32_Graphics_Dwm", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell", "Win32_System_WinRT", "Win32_System_Registry", "Win32_UI_Accessibility", "ApplicationModel_DataTransfer", "Storage", "Storage_Streams", "Foundation"] }
@@ -125,6 +129,8 @@ default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 mobile = []
 native-perf = ["tauri/devtools", "dep:webview2-com", "dep:windows-core", "solosoul-core/native-perf"]
+# 仅 macOS debug 的完整客户端隔离验收，不扩展 Windows 性能工具。
+macos-ui-regression = []
 
 [lib]
 name = "solo_soul"

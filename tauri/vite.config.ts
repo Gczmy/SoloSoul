@@ -13,6 +13,9 @@ export default defineConfig({
   },
   clearScreen: false,
   build: {
+    // Android 12 镜像自带 WebView 91；默认 Baseline 会把移动端媒体查询
+    // 压成它不认识的 range 语法。API 缺项另由入口兼容层处理。
+    target: ['chrome91', 'safari15'],
     rolldownOptions: {
       output: {
         // P015-R2: 拆分重共享 chunk，降低首次拉取成本——

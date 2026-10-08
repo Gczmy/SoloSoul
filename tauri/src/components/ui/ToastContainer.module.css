@@ -1,7 +1,7 @@
 .container {
   position: fixed;
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(20px + var(--safe-area-bottom));
+  right: calc(20px + var(--safe-area-right));
   z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
@@ -21,6 +21,39 @@
   animation: slideIn 0.25s ease;
   min-width: min(200px, 100%);
   max-width: min(360px, calc(100vw - 32px));
+}
+.outlet {
+  min-width: 0;
+}
+.outlet:empty {
+  display: none;
+}
+.inline {
+  position: static;
+  padding: 8px 0;
+  width: 100%;
+}
+.inline .toast {
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  flex-wrap: wrap;
+  animation: none;
+}
+.inline .message {
+  min-width: min(160px, 100%);
+  overflow-wrap: anywhere;
+}
+.mobileFallback {
+  top: calc(64px + var(--safe-area-top));
+  bottom: auto;
+  left: max(16px, var(--safe-area-left));
+  right: max(16px, var(--safe-area-right));
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
 }
 @keyframes slideIn {
   from {

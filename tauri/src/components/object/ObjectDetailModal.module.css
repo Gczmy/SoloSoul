@@ -16,9 +16,27 @@
   backdrop-filter: blur(4px);
 }
 
-:global([data-platform='android']) .overlay { backdrop-filter: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-:global([data-platform='android']) .modal { border: 0; border-radius: 28px; padding: 24px; background: var(--bg-elevated); max-height: calc(100dvh - 48px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
-:global([data-platform='android']) .fieldRow { border: 0; border-radius: 16px; background: var(--bg-base); padding: 16px; }
+:global([data-platform='android']) .overlay {
+  backdrop-filter: none;
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+  padding-inline: var(--safe-area-left) var(--safe-area-right);
+}
+:global([data-platform='android']) .modal {
+  border: 0;
+  border-radius: 28px;
+  padding: 24px;
+  background: var(--bg-elevated);
+  max-height: calc(
+    var(--viewport-height, 100vh) - 48px - var(--safe-area-top) - var(--safe-area-bottom)
+  );
+}
+:global([data-platform='android']) .fieldRow {
+  border: 0;
+  border-radius: 16px;
+  background: var(--bg-base);
+  padding: 16px;
+}
 
 .modal {
   background: var(--bg-elevated);
@@ -203,7 +221,7 @@
 
     margin-top: 0;
 
-    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 20px calc(12px + var(--safe-area-bottom));
 
     flex-wrap: nowrap;
 

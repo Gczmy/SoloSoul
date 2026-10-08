@@ -81,5 +81,5 @@ export function useHoverCardPosition(
     };
   }, [isHovered, updateCardPosition]);
 
-  return { cardStyle, isHovered, handleMouseEnter, handleMouseLeave };
+  return { cardStyle, isHovered, handleMouseEnter, handleMouseLeave, updateCardPosition };
 }

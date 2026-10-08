@@ -39,7 +39,7 @@ describe('GuideSearch request ownership', () => {
 
     fireEvent.change(input, { target: { value: 'clear-rf935-query' } });
     await act(async () => vi.advanceTimersByTime(DEBOUNCE_DELAY_MS));
-    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(screen.getByRole('button', { name: 'clear' }));
     await act(async () => {
       pending.get('clear-rf935-query')!([
         { id: 'cleared', title: 'Cleared guide', content: 'Result after clear' },

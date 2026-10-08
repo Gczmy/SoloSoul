@@ -20,6 +20,8 @@ interface PinEntryCardProps {
   onCardClick?: () => void;
   /** 外层容器 marginBottom。 */
   marginBottom?: number;
+  /** 登录页紧凑标题行；密码验证弹窗保留纵向标题。 */
+  inlineHeading?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function PinEntryCard({
   onPinComplete,
   onCardClick,
   marginBottom = 8,
+  inlineHeading = false,
 }: PinEntryCardProps) {
   const { t } = useTranslation(['auth']);
 
@@ -55,24 +58,34 @@ export function PinEntryCard({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 12,
-          padding: '16px 24px 20px',
+          gap: 'var(--login-pin-gap, 12px)',
+          padding: 'var(--login-pin-padding, 16px 24px 20px)',
           borderRadius: 14,
           border: '1px solid var(--border-subtle)',
           background: 'transparent',
           width: '100%',
         }}
       >
-        <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
-        <span
+        <div
           style={{
-            fontSize: 'var(--text-card-title)',
-            fontWeight: 500,
-            color: 'var(--text-primary)',
+            display: 'flex',
+            flexDirection: inlineHeading ? 'row' : 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 'var(--login-pin-gap, 12px)',
           }}
         >
-          {t('auth:pin_enter_title')}
-        </span>
+          <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
+          <span
+            style={{
+              fontSize: 'var(--text-card-title)',
+              fontWeight: 500,
+              color: 'var(--text-primary)',
+            }}
+          >
+            {t('auth:pin_enter_title')}
+          </span>
+        </div>
         <PinInput
           ref={pinInputRef}
           key={pinInputKey}

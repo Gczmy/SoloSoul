@@ -214,6 +214,7 @@ val stageCardSurfaceFixture = tasks.register<Exec>("stageCardSurfaceFixture") {
     inputs.dir(cardFixtureRoot.resolve("src/styles"))
     inputs.files(listOf("src/components/ui/Card.tsx", "src/components/ui/Card.module.css",
         "src/components/ui/CardGrid.tsx", "src/components/ui/CardGrid.module.css", "src/lib/androidMaterial.ts",
+        "src/lib/androidLiquidRenderer.ts", "src/lib/accentContrast.ts", "src/lib/themeSchemes.ts",
         "scripts/build-card-surface-fixture.mjs", "package.json", "package-lock.json").map { cardFixtureRoot.resolve(it) })
     outputs.file(debugCardAsset)
     doFirst { debugCardAsset.parentFile.mkdirs() }

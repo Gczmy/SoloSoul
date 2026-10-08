@@ -46,7 +46,7 @@ export function LoginPasswordView({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        marginBottom: 16,
+        marginBottom: 'var(--login-method-gap, 16px)',
       }}
     >
       <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

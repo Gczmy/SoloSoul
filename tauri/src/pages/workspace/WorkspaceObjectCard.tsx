@@ -277,21 +277,21 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                 Icon={Clock}
                 count={snapshotCount}
                 onClick={() => onHistory(obj)}
-                title="History"
+                title={t('common:history')}
               />
               <BadgeIconButton
                 Icon={Paperclip}
                 count={attachmentCount}
                 onClick={() => onAttachments(obj)}
-                title="Attachments"
+                title={t('common:attachments')}
               />
             </div>
             <div className={styles.actionRow}>
-              <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title="Edit" />
+              <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title={t('common:edit')} />
               <BadgeIconButton
                 Icon={Trash2}
                 onClick={() => onDelete(obj)}
-                title="Move to trash"
+                title={t('common:move_to_trash')}
                 dangerOutline
               />
             </div>
@@ -302,20 +302,20 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               Icon={Clock}
               count={snapshotCount}
               onClick={() => onHistory(obj)}
-              title="History"
+              title={t('common:history')}
             />
             <BadgeIconButton
               Icon={Paperclip}
               count={attachmentCount}
               onClick={() => onAttachments(obj)}
-              title="Attachments"
+              title={t('common:attachments')}
             />
             <div className={styles.actionsDivider} />
-            <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title="Edit" />
+            <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title={t('common:edit')} />
             <BadgeIconButton
               Icon={Trash2}
               onClick={() => onDelete(obj)}
-              title="Move to trash"
+              title={t('common:move_to_trash')}
               dangerOutline
             />
           </div>

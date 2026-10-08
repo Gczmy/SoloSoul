@@ -59,6 +59,7 @@ test('首帧使用上次已解析的配色，不把浏览器语言写成用户�
   await page.route('**/src/main.tsx', (route) => route.abort());
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(245, 244, 240)');
+  await expect(page.locator('.startup-name')).toHaveCSS('color', 'rgb(17, 17, 17)');
   expect(await page.evaluate(() => localStorage.getItem('i18nextLng'))).toBeNull();
 });
 

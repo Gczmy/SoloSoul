@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 interface PinInputProps {
   length: number;
   onComplete: (pin: string) => void;
@@ -22,6 +24,7 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
   ref,
 ) {
   const [value, setValue] = useState('');
+  const { t } = useTranslation('common');
   const inputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef('');
   // 保持 ref 与 state 同步，供全局 keydown 闭包读取最新值
@@ -116,7 +119,7 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
         value={value}
         onChange={handleChange}
         disabled={disabled || verifying}
-        aria-label="PIN 输入"
+        aria-label={t('common:pin_input')}
         style={{
           position: 'absolute',
           top: 0,

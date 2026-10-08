@@ -1,8 +1,8 @@
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { backendErrorLogDetails } from '@/lib/backendErrorWire';
-import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, X, LoaderCircle } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType } from '@/types/template';
@@ -14,6 +14,7 @@ import {
   fieldPresentationIdentity,
   fieldPresentationPolicy,
   strongestSensitivity,
+  type FieldPresentationPolicy,
 } from '@/lib/fieldPresentationPolicy';
 import { asFieldRecord } from '@/lib/fieldSensitivity';
 import { snapshotFieldRecord } from '@/lib/objectViewModel';
@@ -25,7 +26,9 @@ import { useUiStore } from '@/stores/uiStore';
 import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 import rowStyles from '@/components/ui/FieldRowLayout.module.css';
+import styles from './HistoryViewer.module.css';
 import { flattenPropertyEntries, type DynamicChildItem } from '@/lib/propertyFlatten';
 
 import type { SnapshotEntry } from '@/types/history';
@@ -110,7 +113,9 @@ function HistoryField({
   showBadge = true,
   verifyPassword,
   onCriticalAccess,
+  policy: snapshotPolicy,
 }: {
+  policy?: FieldPresentationPolicy;
   accountId?: string;
   objectId: string;
   snapshotId: string;
@@ -127,10 +132,9 @@ function HistoryField({
 }) {
   const { t } = useTranslation(['common']);
   const requests = useHistoryRequests();
-  const policy = fieldPresentationPolicy({
-    fieldId,
-    definition: { sensitivityLevel: sensitivity },
-  });
+  const policy =
+    snapshotPolicy ??
+    fieldPresentationPolicy({ fieldId, definition: { sensitivityLevel: sensitivity } }, 'detail');
   const authorize = async () => {
     const request = requests.begin('verify', accountId);
     if (!request.isCurrent()) return false;
@@ -223,10 +227,10 @@ function HistoryField({
                   style={{
                     cursor: 'pointer',
                     userSelect: 'none',
-                    background: 'var(--bg-subtle, rgba(128,128,128,0.15))',
+                    background: 'transparent',
                     border: 'none',
                     borderRadius: 2,
-                    padding: '0 2px',
+                    padding: 0,
                     color: 'var(--text-primary)',
                     font: 'inherit',
                   }}
@@ -252,7 +256,11 @@ function SnapshotCard({
   total,
   verifyPassword,
   onCriticalAccess,
+  loadSnapshot,
+  cachedSnapshot,
 }: {
+  loadSnapshot: (id: string) => Promise<Record<string, unknown>>;
+  cachedSnapshot: (id: string) => Record<string, unknown> | undefined;
   snap: SnapshotEntry;
   accountId?: string;
   objectId: string;
@@ -261,22 +269,26 @@ function SnapshotCard({
   verifyPassword: Verification;
   onCriticalAccess: CriticalAccess;
 }) {
-  const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
-  const requests = useHistoryRequests();
+  const [snapData, setSnapData] = useState<Record<string, unknown> | null>(
+    () => cachedSnapshot(snap.id) ?? null,
+  );
+  const [failed, setFailed] = useState(false);
   const { t } = useTranslation(['common', 'editor']);
   useEffect(() => {
-    const request = requests.begin('data', accountId);
-    request
-      .invokeTyped('snapshot_get_data', { snapshotId: snap.id })
+    let active = true;
+    loadSnapshot(snap.id)
       .then((data) => {
-        if (request.isCurrent()) setSnapData(snapshotFieldRecord(data));
+        if (active) setSnapData(data);
       })
       .catch((err) => {
-        if (request.isCurrent())
-          logger.warn('[HistoryViewer] snapshot_get_data failed:', backendErrorLogDetails(err));
+        if (!active) return;
+        setFailed(true);
+        logger.warn('[HistoryViewer] snapshot_get_data failed:', backendErrorLogDetails(err));
       });
-    return () => requests.invalidate('data');
-  }, [requests, accountId, snap.id]);
+    return () => {
+      active = false;
+    };
+  }, [loadSnapshot, snap.id]);
 
   const rawProps = asFieldRecord(snapData?.properties);
   const labels = asFieldRecord(snapData?.propertyLabels);
@@ -293,6 +305,19 @@ function SnapshotCard({
   const tags = Array.isArray(snapData?.tags)
     ? snapData.tags.filter((tag): tag is string => typeof tag === 'string')
     : [];
+  if (failed)
+    return (
+      <div role="alert" className={styles.message}>
+        {t('common:history_load_failed')}
+      </div>
+    );
+  if (!snapData)
+    return (
+      <div role="status" className={styles.message}>
+        <LoaderCircle className={styles.loadingIcon} size={20} aria-hidden="true" />
+        {t('common:loading')}
+      </div>
+    );
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -316,11 +341,15 @@ function SnapshotCard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
           {fields.map((field) => {
             const definition = asFieldRecord(fieldDefs?.[field.key]);
-            const sensitivity = fieldPresentationPolicy({
-              fieldId: field.key,
-              propertyLabels: labels,
-              definition,
-            }).sensitivity;
+            const policy = fieldPresentationPolicy(
+              {
+                fieldId: field.key,
+                propertyLabels: labels,
+                definition,
+              },
+              'detail',
+            );
+            const sensitivity = policy.sensitivity;
             const deprecated = !!definition?.deprecatedAt;
             const name = field.label ?? field.key;
             const label =
@@ -334,6 +363,7 @@ function SnapshotCard({
               level: SensitivityLevel,
               type?: PropertyType,
               child = false,
+              presentation = policy,
             ) => (
               <HistoryField
                 key={fieldPresentationIdentity(accountId, objectId, fieldId, [
@@ -349,6 +379,7 @@ function SnapshotCard({
                 label={fieldLabel}
                 value={value}
                 sensitivity={level}
+                policy={presentation}
                 type={type}
                 deprecated={deprecated}
                 child={child}
@@ -359,14 +390,18 @@ function SnapshotCard({
             );
             if (field.kind === 'field')
               return renderField(field.key, label, field.value, sensitivity, field.type);
-            const children = field.children.map((child) => ({
-              ...child,
-              level: fieldPresentationPolicy({
-                fieldId: child.id ?? child.label,
-                definition: { sensitivityLevel: child.sensitivityLevel },
-                parent: sensitivity,
-              }).sensitivity,
-            }));
+            const children = field.children.map((child) => {
+              const childPolicy = fieldPresentationPolicy(
+                {
+                  fieldId: child.id ?? child.label,
+                  definition: { sensitivityLevel: child.sensitivityLevel },
+                  parent: sensitivity,
+                },
+                'detail',
+              );
+              if (policy.concealed && sensitivity === 'internal') childPolicy.concealed = true;
+              return { ...child, level: childPolicy.sensitivity, policy: childPolicy };
+            });
             return (
               <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div
@@ -408,6 +443,7 @@ function SnapshotCard({
                     child.level,
                     child.type as PropertyType,
                     true,
+                    child.policy,
                   ),
                 )}
               </div>
@@ -483,8 +519,43 @@ function HistoryViewerSession({
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
-  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 解密数据仅保留在当前卡片会话内；切对象、切账户、锁定或关闭即失效。
+  const cache = useRef(
+    new Map<
+      string,
+      { data?: Record<string, unknown>; promise: Promise<Record<string, unknown>> }
+    >(),
+  );
+  const loadSnapshot = useCallback(
+    (id: string) => {
+      const cached = cache.current.get(id);
+      if (cached) return cached.promise;
+      const request = requests.begin(`snapshot:${id}`, accountId);
+      const entry: { data?: Record<string, unknown>; promise: Promise<Record<string, unknown>> } = {
+        promise: request
+          .invokeTyped('snapshot_get_data', { snapshotId: id })
+          .then((data) => {
+            const parsed = snapshotFieldRecord(data);
+            if (!parsed) throw new Error('Invalid history snapshot');
+            entry.data = parsed;
+            return parsed;
+          })
+          .catch((err) => {
+            if (cache.current.get(id) === entry) cache.current.delete(id);
+            throw err;
+          }),
+      };
+      cache.current.set(id, entry);
+      while (cache.current.size > 8) cache.current.delete(cache.current.keys().next().value!);
+      return entry.promise;
+    },
+    [requests, accountId],
+  );
+  useLayoutEffect(() => {
+    const sessionCache = cache.current;
+    return () => sessionCache.clear();
+  }, []);
+  const cachedSnapshot = useCallback((id: string) => cache.current.get(id)?.data, []);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const showToast = useUiStore((s) => s.showToast);
@@ -549,32 +620,26 @@ function HistoryViewerSession({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectId, accountId, requests]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    const id = snapshots[currentIdx]?.id;
+    if (!id) return;
+    let active = true;
+    // 当前记录完成后才预读相邻两条，不让预读抢占首次显示。
+    void loadSnapshot(id)
+      .then(() => {
+        if (!active) return;
+        for (const neighbor of [snapshots[currentIdx - 1], snapshots[currentIdx + 1]]) {
+          if (neighbor) void loadSnapshot(neighbor.id).catch(() => {});
+        }
+      })
+      .catch(() => {});
     return () => {
-      if (navTimeoutRef.current) {
-        clearTimeout(navTimeoutRef.current);
-      }
+      active = false;
     };
-  }, []);
+  }, [snapshots, currentIdx, loadSnapshot]);
 
-  const goPrev = () => {
-    if (!animDir && currentIdx < snapshots.length - 1) {
-      setAnimDir('right');
-      navTimeoutRef.current = setTimeout(() => {
-        setCurrentIdx((i) => i + 1);
-        setAnimDir(null);
-      }, 150);
-    }
-  };
-  const goNext = () => {
-    if (!animDir && currentIdx > 0) {
-      setAnimDir('left');
-      navTimeoutRef.current = setTimeout(() => {
-        setCurrentIdx((i) => i - 1);
-        setAnimDir(null);
-      }, 150);
-    }
-  };
+  const goPrev = () => setCurrentIdx((i) => Math.max(0, Math.min(i + 1, snapshots.length - 1)));
+  const goNext = () => setCurrentIdx((i) => Math.max(i - 1, 0));
 
   const snap = snapshots[currentIdx];
   const total = snapshots.length;
@@ -596,132 +661,123 @@ function HistoryViewerSession({
       }}
       onClick={onClose}
     >
-      {!loading && (
+      <div
+        className={styles.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('common:history')}
+        data-history-viewer
+        data-macos-glass="panel"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
         <div
-          data-macos-glass="panel"
-          onClick={(e) => e.stopPropagation()}
           style={{
-            position: 'relative',
-            width: 460,
-            maxHeight: '80vh',
-            overflowY: 'auto',
             display: 'flex',
-            flexDirection: 'column',
-            background: 'var(--bg-elevated)',
-            borderRadius: 16,
-            boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
-            border: '1px solid var(--border-subtle)',
-            animation: 'fadeIn 0.2s ease-out',
-            transform:
-              animDir === 'left'
-                ? 'perspective(1200px) rotateY(-8deg)'
-                : animDir === 'right'
-                  ? 'perspective(1200px) rotateY(8deg)'
-                  : 'perspective(1200px) rotateY(0)',
-            transition: 'transform 0.15s ease',
-            transformOrigin:
-              animDir === 'left' ? 'left center' : animDir === 'right' ? 'right center' : 'center',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+            padding: '14px 18px',
+            borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          {/* Header */}
           <div
             style={{
+              fontSize: 'var(--text-body-sm)',
+              fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '14px 18px',
-              borderBottom: '1px solid var(--border-subtle)',
+              gap: 8,
             }}
           >
-            <div
+            <Clock size={ICON_SIZE.sm} /> {t('common:history')}
+            <span
               style={{
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
+                fontSize: 'var(--text-badge)',
+                color: 'var(--text-tertiary)',
+                fontWeight: 400,
               }}
             >
-              <Clock size={ICON_SIZE.sm} /> {t('common:history')}
-              <span
-                style={{
-                  fontSize: 'var(--text-badge)',
-                  color: 'var(--text-tertiary)',
-                  fontWeight: 400,
-                }}
-              >
-                {loading ? '' : `${currentIdx + 1} / ${total}`}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <BadgeIconButton
-                Icon={ChevronLeft}
-                onClick={goPrev}
-                title={t('common:previous', { defaultValue: 'Previous' })}
-                disabled={isOldest || loading}
-                iconSize={ICON_SIZE.md}
-              />
-              <BadgeIconButton
-                Icon={ChevronRight}
-                onClick={goNext}
-                title={t('common:next', { defaultValue: 'Next' })}
-                disabled={isLatest || loading}
-                iconSize={ICON_SIZE.md}
-              />
-              <BadgeIconButton
-                Icon={X}
-                onClick={onClose}
-                title={t('common:close', { defaultValue: 'Close' })}
-                iconSize={ICON_SIZE.md}
-              />
-            </div>
+              {loading ? '' : `${currentIdx + 1} / ${total}`}
+            </span>
           </div>
-          {/* Content */}
-          <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-            {!snap ? (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: 48,
-                  color: 'var(--text-secondary)',
-                  fontSize: 'var(--text-body)',
-                }}
-              >
-                {t('common:no_history')}
-              </div>
-            ) : animDir ? null : (
-              <SnapshotCard
-                key={snap.id}
-                accountId={accountId}
-                objectId={objectId}
-                snap={snap}
-                index={currentIdx}
-                total={total}
-                verifyPassword={passwordVerify}
-                onCriticalAccess={writeCriticalAccessLog}
-              />
-            )}
-          </div>
-          {/* Footer */}
-          <div
-            style={{
-              padding: '10px 18px',
-              borderTop: '1px solid var(--border-subtle)',
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              textAlign: 'center',
-            }}
-          >
-            {snap &&
-              (() => {
-                const triggerLabel = t(`common:trigger_${snap.triggeredBy}` as const, {
-                  defaultValue: snap.triggeredBy,
-                });
-                return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
-              })()}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <BadgeIconButton
+              Icon={ChevronLeft}
+              onClick={goPrev}
+              title={t('common:previous', { defaultValue: 'Previous' })}
+              disabled={isOldest || loading}
+              iconSize={ICON_SIZE.md}
+            />
+            <BadgeIconButton
+              Icon={ChevronRight}
+              onClick={goNext}
+              title={t('common:next', { defaultValue: 'Next' })}
+              disabled={isLatest || loading}
+              iconSize={ICON_SIZE.md}
+            />
+            <BadgeIconButton
+              Icon={X}
+              onClick={onClose}
+              title={t('common:close', { defaultValue: 'Close' })}
+              iconSize={ICON_SIZE.md}
+            />
           </div>
         </div>
-      )}
+        {/* Content */}
+        <div className={styles.body} data-history-scroll-region>
+          <ToastOutlet priority={zIndex} />
+          {loading ? (
+            <div role="status" className={styles.message}>
+              <LoaderCircle className={styles.loadingIcon} size={20} aria-hidden="true" />
+              {t('common:loading')}
+            </div>
+          ) : !snap ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 48,
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--text-body)',
+              }}
+            >
+              {t('common:no_history')}
+            </div>
+          ) : (
+            <SnapshotCard
+              key={snap.id}
+              accountId={accountId}
+              objectId={objectId}
+              snap={snap}
+              index={currentIdx}
+              total={total}
+              verifyPassword={passwordVerify}
+              onCriticalAccess={writeCriticalAccessLog}
+              loadSnapshot={loadSnapshot}
+              cachedSnapshot={cachedSnapshot}
+            />
+          )}
+        </div>
+        {/* Footer */}
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '10px 18px',
+            borderTop: '1px solid var(--border-subtle)',
+            fontSize: 'var(--text-badge)',
+            color: 'var(--text-tertiary)',
+            textAlign: 'center',
+          }}
+        >
+          {snap &&
+            (() => {
+              const triggerLabel = t(`common:trigger_${snap.triggeredBy}` as const, {
+                defaultValue: snap.triggeredBy,
+              });
+              return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
+            })()}
+        </div>
+      </div>
     </div>
   );
 }

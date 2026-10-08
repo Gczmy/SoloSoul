@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Dialog.module.css';
+import { ToastOutlet } from './ToastOutlet';
 
 interface DialogProps {
   isOpen: boolean;
@@ -68,6 +69,9 @@ export function Dialog({
         }}
       >
         {title && <h2 className={styles.title}>{title}</h2>}
+        <ToastOutlet
+          priority={zIndex ?? (priority === 'auth' ? 8000 : priority === 'important' ? 5000 : 4000)}
+        />
         {children}
       </div>
     </div>,

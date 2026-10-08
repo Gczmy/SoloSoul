@@ -83,12 +83,13 @@ describe('强调色上的文字对比', () => {
     }
   });
 
-  it('切换自定义/预设主题后重新读取最终色，Android 仍使用 Material 配对前景', async () => {
+  it('切换自定义/预设主题后重新读取最终色，Android 使用共享色板的可读前景', async () => {
     const css = document.createElement('style');
     // 通过 CSS 级联模拟预设，验证 JS 在主题切换完成后读取最终色，而非旧的 inline 值。
     css.textContent = `
       [data-accent='ocean'] { --accent-primary: #5b7c99; --accent-hover: #4a6a85; }
       [data-theme='dark'][data-accent='ocean'] { --accent-primary: #7a9ab5; --accent-hover: #8eafc8; }
+      [data-theme='dark'][data-accent='amber'] { --accent-primary: #d4a76a; --accent-hover: #dbb88a; }
     `;
     document.head.append(css);
     const root = document.documentElement;
@@ -109,8 +110,10 @@ describe('强调色上的文字对比', () => {
       expect(root.style.getPropertyValue('--accent-hover-text')).toBe('#000000');
       vi.mocked(isAndroidSync).mockReturnValue(true);
       await applyTheme({ ...config, preset: 'warm-stone-dark', accentColor: 'amber' });
-      expect(root.style.getPropertyValue('--accent-primary-text')).toBe('#382219');
-      expect(root.style.getPropertyValue('--accent-hover-text')).toBe('#382219');
+      expect(root.style.getPropertyValue('--accent-primary-text')).toBe('#000000');
+      expect(root.style.getPropertyValue('--accent-hover-text')).toBe('#000000');
+      expect(root.style.getPropertyValue('--md-on-primary')).toBe('#000000');
+      expect(getComputedStyle(root).getPropertyValue('--accent-primary')).toBe('#d4a76a');
     } finally {
       css.remove();
     }

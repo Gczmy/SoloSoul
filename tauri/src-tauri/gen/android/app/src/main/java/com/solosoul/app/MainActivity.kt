@@ -4,9 +4,14 @@ import android.content.Intent
 import android.content.res.AssetManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Build
 import android.webkit.WebView
+import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.IOException
@@ -16,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 class MainActivity : TauriActivity() {
   private var removeResourceObserver: (() -> Unit)? = null
   private var resourceErrorNotice: Snackbar? = null
+  private var safeArea: AndroidSafeArea? = null
   // 冷启动时 WebView 可能尚未挂树，先把快捷方式 action 暂存到这里，
   // 等 WebView 就绪后通过 tryFlushPendingShortcut 注入前端 sessionStorage。
   private var pendingShortcutAction: String? = null
@@ -40,6 +46,53 @@ class MainActivity : TauriActivity() {
     }
   }
 
+  override fun onWebViewCreate(webView: WebView) {
+    super.onWebViewCreate(webView)
+    safeArea?.dispose()
+    val area = AndroidSafeArea(this, webView)
+    safeArea = area
+    var originalBottomMargin: Int? = null
+    ViewCompat.setOnApplyWindowInsetsListener(webView) { view, insets ->
+      val params = view.layoutParams as? ViewGroup.MarginLayoutParams
+      val parent = view.parent as? android.view.View
+      if (params != null && parent != null && parent.height > 0) {
+        val original = originalBottomMargin ?: params.bottomMargin.also { originalBottomMargin = it }
+        val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        val parentLocation = IntArray(2)
+        parent.getLocationOnScreen(parentLocation)
+        // edge-to-edge 下 adjustResize 未必缩小 WebView，visualViewport 也可能
+        // 仍报告全屏。只避让父容器实际被 IME 覆盖的部分，让 CSS 的固定按钮、
+        // dvh 和可滚动区获得真实高度；父容器已缩小时不重复扣除键盘高度。
+        // WindowMetrics 使用窗口实际边界；不能拿已被 adjustResize 缩小的
+        // rootView.height 再减 IME，否则会重复扣除。旧系统全屏取显示边界，
+        // 多窗口仍交由既有 decorFitsSystemWindows 的系统布局避让。
+        val windowBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+          windowManager.currentWindowMetrics.bounds.bottom
+        else android.util.DisplayMetrics().also {
+          @Suppress("DEPRECATION")
+          windowManager.defaultDisplay.getRealMetrics(it)
+        }.heightPixels
+        val keyboardTop = windowBottom - imeHeight
+        val overlap = if (!isInMultiWindowMode && insets.isVisible(WindowInsetsCompat.Type.ime()))
+          (parentLocation[1] + parent.height - keyboardTop).coerceAtLeast(0)
+        else 0
+        val bottomMargin = maxOf(original, overlap)
+        if (params.bottomMargin != bottomMargin) {
+          params.bottomMargin = bottomMargin
+          view.layoutParams = params
+        }
+      }
+      area.update(insets)
+      // 保留系统栏 / cutout 的原有分发，不消费或修改 insets。
+      insets
+    }
+    webView.addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+      // 初次挂树、旋转和多窗口布局变化后重新按当前父容器计算。
+      ViewCompat.requestApplyInsets(view)
+    }
+    webView.post { ViewCompat.requestApplyInsets(webView) }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     // 小窗/多窗口模式下不启用 edge-to-edge：decorFitsSystemWindows=true 时
     // 系统自动把 WebView 内容排在窗口标题栏（caption bar）之下，
@@ -51,6 +104,42 @@ class MainActivity : TauriActivity() {
     try { AndroidResources.prepare(applicationContext) }
     finally { android.os.Trace.endSection() }
     super.onCreate(savedInstanceState)
+    // TauriActivity 不安装 Wry 返回回调；且 WebView.canGoBack() 在当前
+    // 本地 SPA 中不能反映 pushState 历史。用 Router 的 idx 判断是否可退，
+    // 让前端 popstate 守卫先关闭浮层，根页面才交还 Android 系统。
+    onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+      private var pending = false
+
+      override fun handleOnBackPressed() {
+        if (pending) return
+        val view = findWebView(window.decorView)
+        if (view == null) {
+          systemBack()
+          return
+        }
+        pending = true
+        view.evaluateJavascript("""
+          (() => {
+            const index = window.history.state?.idx;
+            if (Number.isInteger(index) && index > 0) {
+              window.history.back();
+              return true;
+            }
+            return false;
+          })()
+        """.trimIndent()) { handled ->
+          pending = false
+          if (isDestroyed || isFinishing) return@evaluateJavascript
+          if (handled != "true") systemBack()
+        }
+      }
+
+      private fun systemBack() {
+        isEnabled = false
+        try { onBackPressedDispatcher.onBackPressed() }
+        finally { isEnabled = true }
+      }
+    })
     // 启动时根据系统主题同步状态栏图标颜色，避免 WebView 加载前出现黑白不匹配。
     syncStatusBarStyleWithSystemTheme()
     // 将 APK assets 中的只读资源复制到应用私有文件目录，
@@ -91,7 +180,8 @@ class MainActivity : TauriActivity() {
     super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
     // 运行时进出小窗/分屏模式时同步切换 decor 布局模式：
     // 多窗口下由系统把内容排在标题栏之下，回全屏恢复 edge-to-edge 沉浸。
-    WindowCompat.setDecorFitsSystemWindows(window, !isInMultiWindowMode)
+    WindowCompat.setDecorFitsSystemWindows(window, isInMultiWindowMode)
+    findWebView(window.decorView)?.let { ViewCompat.requestApplyInsets(it) }
   }
 
   override fun onResume() {
@@ -125,6 +215,8 @@ class MainActivity : TauriActivity() {
   }
 
   override fun onDestroy() {
+    safeArea?.dispose()
+    safeArea = null
     removeResourceObserver?.invoke()
     removeResourceObserver = null
     resourceErrorNotice?.dismiss()

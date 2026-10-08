@@ -29,6 +29,20 @@ const MOBILE_APP_BAR_HEIGHT = 48;
 const SIDEBAR_POPOVER_HEIGHT = 480;
 const POPOVER_BOTTOM_MARGIN = 16;
 
+function readViewport() {
+  const width = typeof window !== 'undefined' ? window.innerWidth : 0;
+  const height = typeof window !== 'undefined' ? window.innerHeight : 0;
+  const visual = typeof window !== 'undefined' ? window.visualViewport : null;
+  return {
+    width,
+    height,
+    // iOS 软键盘只改变 visualViewport，不一定触发 window.resize。
+    // 只收缩手机弹层的可用区域，不重新取导航按钮锚点。
+    bottomOcclusion:
+      width < 768 && visual ? Math.max(0, height - visual.height - visual.offsetTop) : 0,
+  };
+}
+
 // =============================================================================
 // AddPageButton — "+" button with popover for name + icon selection
 // （P021d 拆分：表单状态 → useAddPageForm，弹层 UI → AddPagePopover）
@@ -57,12 +71,9 @@ export function AddPageButton({
   const isRight = position === 'right';
   const titlebarHeight = useNativeWindowStore((state) => state.titlebarHeight);
   const topReserved = Math.max(TOP_RESERVED_OFFSET, titlebarHeight + 8);
-  const [viewport, setViewport] = useState(() => ({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
-  }));
+  const [viewport, setViewport] = useState(readViewport);
   const { width: viewportWidth, height: viewportHeight } = viewport;
-  const isSmallWindow = viewportHeight < 500;
+  const isSmallWindow = viewportHeight - viewport.bottomOcclusion < 500;
   const [isCreating, setIsCreating] = useState(false);
   const [openingAnchor, setOpeningAnchor] = useState<{
     rect: DOMRect;
@@ -175,16 +186,24 @@ export function AddPageButton({
   useLayoutEffect(() => {
     if (!isCreating) return;
     const updateViewport = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const next = readViewport();
       setViewport((previous) =>
-        previous.width === width && previous.height === height ? previous : { width, height },
+        previous.width === next.width &&
+        previous.height === next.height &&
+        previous.bottomOcclusion === next.bottomOcclusion
+          ? previous
+          : next,
       );
     };
     updateViewport();
+    const visual = window.visualViewport;
     window.addEventListener('resize', updateViewport);
+    visual?.addEventListener('resize', updateViewport);
+    visual?.addEventListener('scroll', updateViewport);
     return () => {
       window.removeEventListener('resize', updateViewport);
+      visual?.removeEventListener('resize', updateViewport);
+      visual?.removeEventListener('scroll', updateViewport);
     };
   }, [isCreating]);
 
@@ -245,7 +264,7 @@ export function AddPageButton({
               rightInset: window.innerWidth - rect.left + 8,
               bottomInset: window.innerHeight - rect.top + 8,
             });
-            setViewport({ width: window.innerWidth, height: window.innerHeight });
+            setViewport(readViewport());
             setIsCreating(true);
             form.setSelectedIconId(DEFAULT_CUSTOM_ICON);
             setTimeout(() => inputRef.current?.focus(), 100);
@@ -282,7 +301,9 @@ export function AddPageButton({
               top: isBottom
                 ? `calc(${MOBILE_APP_BAR_HEIGHT}px + ${SAFE_AREA_TOP} + 8px)`
                 : popoverTop,
-              bottom: isBottom ? (openingAnchor?.bottomInset ?? 56) : 'auto',
+              bottom: isBottom
+                ? Math.max(openingAnchor?.bottomInset ?? 56, viewport.bottomOcclusion + 8)
+                : 'auto',
               display: 'flex',
               flexDirection: 'column',
               gap: 8,

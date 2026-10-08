@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { invoke } from '@tauri-apps/api/core';
-import { appCacheDir, join } from '@tauri-apps/api/path';
+import { appCacheDir, join, tempDir } from '@tauri-apps/api/path';
 import { copyFile, mkdir, remove, stat } from '@tauri-apps/plugin-fs';
 import { stageFileForUpload, stageImportPackage } from './mobileFileTransfer';
+import { getPlatform } from './platform';
+
+vi.mock('./platform', () => ({ getPlatform: vi.fn() }));
 
 vi.mock('@tauri-apps/api/path', () => ({
   appCacheDir: vi.fn(),
+  tempDir: vi.fn(),
   join: vi.fn(),
 }));
 vi.mock('@tauri-apps/plugin-fs', () => ({
@@ -18,6 +22,8 @@ vi.mock('@tauri-apps/plugin-fs', () => ({
 beforeEach(() => {
   vi.mocked(invoke).mockReset();
   vi.mocked(appCacheDir).mockReset().mockResolvedValue('/cache');
+  vi.mocked(tempDir).mockReset().mockResolvedValue('/private/app/tmp');
+  vi.mocked(getPlatform).mockReset().mockResolvedValue('android');
   vi.mocked(join)
     .mockReset()
     .mockImplementation(async (...parts) => parts.join('/'));
@@ -30,6 +36,45 @@ beforeEach(() => {
 });
 
 describe('RF-929 partial mobile stage cleanup', () => {
+  it.each(['android', 'macos', 'windows'] as const)(
+    'preserves cache staging on %s',
+    async (platform) => {
+      vi.mocked(getPlatform).mockResolvedValue(platform);
+      const upload = await stageFileForUpload('file:///Downloads/a.txt');
+      expect(upload.localPath).toMatch(/^\/cache\/solosoul_mobile_stage\//);
+      expect(tempDir).not.toHaveBeenCalled();
+    },
+  );
+
+  it('stages iOS picker files inside the native attachment temporary allowlist', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('ios');
+
+    const upload = await stageFileForUpload('file:///private/app/tmp/Inbox/note.txt');
+    const archive = await stageImportPackage('file:///private/app/tmp/Inbox/export.solosoul');
+
+    expect(upload.localPath).toMatch(/^\/private\/app\/tmp\/solosoul_mobile_stage\//);
+    expect(archive).toMatch(/^\/private\/app\/tmp\/solosoul_mobile_stage\//);
+    expect(copyFile).toHaveBeenCalledWith(
+      'file:///private/app/tmp/Inbox/note.txt',
+      upload.localPath,
+    );
+    expect(appCacheDir).not.toHaveBeenCalled();
+    expect(upload.size).toBe(42);
+  });
+
+  it('cleans an iOS temporary stage if copying fails', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('ios');
+    const error = new Error('copy failed');
+    vi.mocked(copyFile).mockRejectedValueOnce(error);
+
+    await expect(stageFileForUpload('file:///private/app/tmp/Inbox/note.txt')).rejects.toThrow(
+      error,
+    );
+    const stagedPath = vi.mocked(copyFile).mock.calls[0][1];
+    expect(stagedPath).toMatch(/^\/private\/app\/tmp\/solosoul_mobile_stage\//);
+    expect(remove).toHaveBeenCalledExactlyOnceWith(stagedPath);
+  });
+
   it('keeps completed upload and import stages available to their callers', async () => {
     const upload = await stageFileForUpload('file:///Downloads/a.txt');
     const archive = await stageImportPackage('content://provider/archive');

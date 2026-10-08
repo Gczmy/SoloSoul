@@ -6,12 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import styles from './SideNavigation.module.css';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
+import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
 
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
@@ -28,6 +29,7 @@ export function SideNavigation() {
   const { t } = useTranslation('navigation');
   const expanded = useUiStore((s) => s.sidebarExpanded) && !isHorizontal;
   const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
+  const isMacOS = useNativeWindowStore((s) => s.isMacOS);
   const ToggleIcon =
     sidebarPosition === 'right'
       ? expanded
@@ -60,7 +62,7 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: `var(--sidebar-width, ${expanded ? 232 : 96}px)`,
+        width: `var(--sidebar-width, ${expanded ? DESKTOP_SIDEBAR_EXPANDED_WIDTH : 96}px)`,
         height: '100vh',
         flexDirection: 'column',
         borderRight:
@@ -86,22 +88,23 @@ export function SideNavigation() {
         style={navStyle}
         data-expanded={expanded}
       >
-        {!isHorizontal && (
+        {!isHorizontal && (expanded || !isMacOS) && (
           <div className={styles.brandHeader}>
-            <ShieldLogo size={26} />
             {expanded && <span className={styles.brandName}>SoloSoul</span>}
-            <button
-              type="button"
-              className={styles.sidebarToggle}
-              onClick={toggleExpanded}
-              aria-label={toggleLabel}
-              title={toggleLabel}
-              aria-expanded={expanded}
-              aria-controls="desktop-navigation"
-              data-tauri-drag-region="false"
-            >
-              <ToggleIcon size={20} />
-            </button>
+            {!isMacOS && (
+              <button
+                type="button"
+                className={styles.sidebarToggle}
+                onClick={toggleExpanded}
+                aria-label={toggleLabel}
+                title={toggleLabel}
+                aria-expanded={expanded}
+                aria-controls="desktop-navigation"
+                data-tauri-drag-region="false"
+              >
+                <ToggleIcon size={20} />
+              </button>
+            )}
           </div>
         )}
 

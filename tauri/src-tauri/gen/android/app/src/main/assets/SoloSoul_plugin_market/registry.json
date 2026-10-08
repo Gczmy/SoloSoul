@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-07-04T00:56:25Z",
+  "updated_at": "2026-08-22T23:46:21Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -161,6 +161,36 @@
         "en": {
           "name": "Calendar Events",
           "description": "Extract date-related information from the Vault and generate a calendar event preview list."
+        }
+      }
+    },
+    "com.solosoul.official.cloud-packager": {
+      "name": "Cloud Packager Demo",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "e535bba7c7504835a5521b2f09b6d295f50646d15cef83017fd7642427391995",
+          "plugin_api_version": "1.0",
+          "min_app_version": "2.12.3",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.cloud-packager/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.cloud-packager/plugin.wasm",
+          "released_at": "2026-08-22T23:46:21Z"
+        }
+      },
+      "description": "云打包演示插件 — 演示如何将导出包写入用户选择的云盘同步目录（outputDir 参数 + write_output_file）",
+      "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.cloud-packager",
+      "tier": "p2",
+      "category": "productivity",
+      "i18n": {
+        "zh": {
+          "name": "云打包演示",
+          "description": "演示如何将导出包写入用户选择的云盘同步目录"
+        },
+        "en": {
+          "name": "Cloud Packager Demo",
+          "description": "Demo: write export package to user-selected cloud sync folder"
         }
       }
     },

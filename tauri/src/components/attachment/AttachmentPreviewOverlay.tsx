@@ -9,6 +9,7 @@ import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 import { useAttachmentPreview, isUriPath } from './useAttachmentPreview';
 import { PreviewTitlebar } from './PreviewTitlebar';
 import { PreviewWindow } from './PreviewWindow';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
@@ -333,6 +334,7 @@ export function AttachmentPreviewOverlay({
           <X size={ICON_SIZE.lg} />
         </button>
       </PreviewTitlebar>
+      <ToastOutlet priority={7000} className="preview-notifications" />
 
       {/* 描述/标签编辑对话框 */}
       {metaEditOpen && (

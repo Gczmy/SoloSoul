@@ -8,30 +8,33 @@ export function asFieldRecord(value: unknown): Record<string, unknown> | undefin
     : undefined;
 }
 
-/** 显式非法值不能降级到后备来源的 public；父级保护只能加强。 */
-export function resolveFieldSensitivity({
-  fieldId,
-  propertyLabels,
-  definition,
-  template,
-  parent,
-}: {
+export interface FieldSensitivityInput {
   fieldId: string;
   propertyLabels?: Record<string, unknown>;
   definition?: { sensitivityLevel?: unknown };
   template?: { sensitivityLevel?: unknown };
   parent?: SensitivityLevel;
-}): SensitivityLevel {
-  let value: unknown;
-  if (propertyLabels && Object.hasOwn(propertyLabels, fieldId)) {
-    value = propertyLabels[fieldId];
-  } else if (definition && Object.hasOwn(definition, 'sensitivityLevel')) {
-    value = definition.sensitivityLevel;
-  } else {
-    value = template?.sensitivityLevel;
-  }
+}
+
+/** 保留原始来源，避免非法值归一为 internal 后被详情的明文例外误放行。 */
+export function fieldSensitivityValue({
+  fieldId,
+  propertyLabels,
+  definition,
+  template,
+}: FieldSensitivityInput): unknown {
+  if (propertyLabels && Object.hasOwn(propertyLabels, fieldId)) return propertyLabels[fieldId];
+  if (definition && Object.hasOwn(definition, 'sensitivityLevel'))
+    return definition.sensitivityLevel;
+  return template?.sensitivityLevel;
+}
+
+/** 显式非法值不能降级到后备来源的 public；父级保护只能加强。 */
+export function resolveFieldSensitivity(input: FieldSensitivityInput): SensitivityLevel {
+  const value = fieldSensitivityValue(input);
   const level = levels.includes(value as SensitivityLevel)
     ? (value as SensitivityLevel)
     : 'internal';
+  const parent = input.parent;
   return parent && levels.indexOf(parent) > levels.indexOf(level) ? parent : level;
 }

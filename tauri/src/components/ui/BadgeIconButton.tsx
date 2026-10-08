@@ -54,6 +54,7 @@ export const BadgeIconButton = memo(function BadgeIconButton({
       <button
         data-ui-icon-button={dangerOutline ? 'danger-outline' : danger ? 'danger' : 'default'}
         data-ui-icon-intent={intent}
+        data-has-count={hasBadge || undefined}
         type="button"
         onClick={onClick}
         title={title}
@@ -64,12 +65,16 @@ export const BadgeIconButton = memo(function BadgeIconButton({
         style={{ '--icon-symbol-size': `${iconSize}px` } as CSSProperties}
       >
         <Icon size={iconSize} />
+        {hasBadge && (
+          <span
+            className={styles.badge}
+            aria-hidden="true"
+            data-testid={`count-badge-${title.toLowerCase()}`}
+          >
+            {count > 99 ? '99+' : count}
+          </span>
+        )}
       </button>
-      {hasBadge && (
-        <span className={styles.badge} data-testid={`count-badge-${title.toLowerCase()}`}>
-          {count > 99 ? '99+' : count}
-        </span>
-      )}
     </div>
   );
 });

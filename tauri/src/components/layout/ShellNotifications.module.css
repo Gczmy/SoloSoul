@@ -9,3 +9,19 @@
   overscroll-behavior: contain;
   background: var(--shell-content-surface, var(--bg-base));
 }
+.slot > :global([data-toast-outlet]) {
+  padding-inline: 16px;
+}
+
+/* 横屏系统导航栏可能位于左右沿；更新横幅与通知操作共享壳的安全区，
+   不仅让 AppBar / 底部导航避让。桌面及弹层内通知保持各自布局。 */
+:global([data-android-shell]) .slot {
+  padding-inline: var(--safe-area-left) var(--safe-area-right);
+}
+
+@media (min-width: 768px) {
+  :global([data-android-shell]) .slot {
+    /* 平板 main 已避让左侧导航轨道及安全区，不再次占用左侧空间。 */
+    padding-left: 0;
+  }
+}

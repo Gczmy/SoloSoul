@@ -4,7 +4,7 @@ import { login, setupTauriMock } from './fixtures/auth';
 // 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
 test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
 
-async function setupMac(page: Page, theme: 'light' | 'dark') {
+async function setupMac(page: Page, theme: 'light' | 'dark', unlock = true) {
   await setupTauriMock(page);
   await page.addInitScript((theme) => {
     const preferences = {
@@ -64,7 +64,8 @@ async function setupMac(page: Page, theme: 'light' | 'dark') {
     });
     localStorage.setItem('i18nextLng', 'en-US');
   }, theme);
-  await login(page);
+  if (unlock) await login(page);
+  else await page.goto('/login');
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 }
 
@@ -99,6 +100,89 @@ async function expectUnobstructed(surface: Locator) {
 }
 
 for (const theme of ['light', 'dark'] as const) {
+  test(`${theme} 登录普通面板收窄至80%并保留辅助功能回退`, async ({ page }) => {
+    await setupMac(page, theme, false);
+    const card = page.locator('[data-login-card]');
+    await expect(card).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-native-material', 'liquid-glass');
+    const inspect = () =>
+      card.evaluate((element) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const context = canvas.getContext('2d')!;
+        const color = (value: string) => {
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = value;
+          context.fillRect(0, 0, 1, 1);
+          return Array.from(context.getImageData(0, 0, 1, 1).data);
+        };
+        return {
+          shell: color(getComputedStyle(document.body, '::before').backgroundColor),
+          underlay: getComputedStyle(element.parentElement!, '::before').content,
+          wrapperBackground: color(getComputedStyle(element.parentElement!).backgroundColor),
+          card: color(getComputedStyle(element).backgroundColor),
+          blur: getComputedStyle(element, '::before').backdropFilter,
+          contentBlur: getComputedStyle(element).backdropFilter,
+        };
+      });
+    const glass = await inspect();
+    expect(Math.abs(glass.shell[3] - 230)).toBeLessThanOrEqual(1);
+    expect(glass.underlay).toBe('none');
+    expect(glass.wrapperBackground[3]).toBe(0);
+    expect(glass.card[3]).toBe(255);
+    expect((await card.boundingBox())!.width).toBeCloseTo(392 * 0.8, 1);
+    expect(glass.blur).toBe('none');
+    expect(glass.contentBlur).toBe('none');
+    await card.getByPlaceholder('Enter password').fill('synthetic-draft');
+    await page.screenshot({ path: test.info().outputPath('login-solid.png') });
+    for (const fallback of ['solid', 'high-contrast']) {
+      await page.locator('html').evaluate((root, mode) => {
+        root.dataset.nativeMaterial = mode === 'solid' ? 'solid' : 'liquid-glass';
+        root.dataset.highContrast = String(mode === 'high-contrast');
+      }, fallback);
+      const solid = await inspect();
+      expect(solid.shell[3]).toBe(255);
+      expect(solid.card[3]).toBe(255);
+      expect(solid.blur).toBe('none');
+      expect(solid.underlay).toBe('none');
+      await expect(card.getByPlaceholder('Enter password')).toHaveValue('synthetic-draft');
+      await expect(card.locator('button[type="submit"]')).toBeInViewport();
+    }
+    await page.setViewportSize({ width: 500, height: 360 });
+    expect((await card.boundingBox())!.width).toBeCloseTo(360 * 0.8, 1);
+    await card.getByPlaceholder('Enter password').scrollIntoViewIfNeeded();
+    await expect(card.getByPlaceholder('Enter password')).toBeInViewport();
+    await card.locator('button[type="submit"]').scrollIntoViewIfNeeded();
+    await expect(card.locator('button[type="submit"]')).toBeInViewport();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    await page.screenshot({ path: test.info().outputPath('login-narrow.png') });
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.locator('html').evaluate((root) => {
+      root.dataset.nativeMaterial = 'liquid-glass';
+      root.dataset.highContrast = 'false';
+    });
+    const loginShell = (await inspect()).shell;
+    await card.getByPlaceholder('Enter password').fill('any-password');
+    await card.locator('button[type="submit"]').click();
+    await page.waitForURL('/');
+    const unlockedShell = await page.evaluate(() => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = getComputedStyle(document.body, '::before').backgroundColor;
+      ctx.fillRect(0, 0, 1, 1);
+      return Array.from(ctx.getImageData(0, 0, 1, 1).data);
+    });
+    expect(unlockedShell).toEqual(loginShell);
+    await page
+      .locator('#desktop-navigation')
+      .getByRole('button', { name: 'Lock Vault', exact: true })
+      .click();
+    await expect(card).toBeVisible();
+    expect((await inspect()).shell).toEqual(loginShell);
+  });
+
   test(`${theme} AppBar 平面按钮保持原生标题栏尺寸与操作`, async ({ page }) => {
     await setupMac(page, theme);
     const header = page.locator('[data-appbar]');

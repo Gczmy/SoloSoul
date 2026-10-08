@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -7,23 +8,73 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
-import { ANDROID_PALETTES, androidMaterialTokens } from '@/lib/androidMaterial';
+import { ACCENT_COLORS } from '@/lib/theme';
+import { getSchemesByMode } from '@/lib/themeSchemes';
+import { accentTextColor } from '@/lib/accentContrast';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { ANDROID_GLASS_MODES } from '@/lib/androidGlass';
 
 export function AndroidAppearance() {
   const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id) ?? '';
-  const { theme, accentColor, reduceMotion, androidGlass, language } = useSettingsStore(
+  const {
+    theme,
+    accentColor,
+    customAccentHex,
+    defaultLightTheme,
+    defaultDarkTheme,
+    reduceMotion,
+    androidGlass,
+    language,
+  } = useSettingsStore(
     useShallow((s) => ({
       theme: s.settings.theme,
       accentColor: s.settings.accentColor,
+      customAccentHex: s.settings.customAccentHex,
+      defaultLightTheme: s.settings.defaultLightTheme,
+      defaultDarkTheme: s.settings.defaultDarkTheme,
       reduceMotion: s.settings.reduceMotion,
       androidGlass: s.settings.androidGlass,
       language: s.settings.language,
     })),
   );
   const update = useSettingAction();
+  const [custom, setCustom] = useState(customAccentHex || '#5b7c99');
+  const [saving, setSaving] = useState(false);
+  const accentRequest = useRef(0);
+  useEffect(() => {
+    setCustom(customAccentHex || '#5b7c99');
+  }, [customAccentHex, accountId]);
+  useEffect(() => {
+    setSaving(false);
+  }, [accountId]);
+  useEffect(
+    () => () => {
+      accentRequest.current += 1;
+    },
+    [accountId],
+  );
+  const selectAccent = (id: keyof typeof ACCENT_COLORS) => {
+    accentRequest.current += 1;
+    setSaving(false);
+    void update(accountId, 'accentColor', id);
+  };
+  const saveCustom = async () => {
+    const hex = custom.trim();
+    if (!/^#[\da-f]{6}$/i.test(hex)) return;
+    const request = ++accentRequest.current;
+    setSaving(true);
+    try {
+      const result = await update(accountId, 'customAccentHex', hex);
+      if (request !== accentRequest.current || result.status !== 'saved' || !result.isCurrent())
+        return;
+      await update(accountId, 'accentColor', 'custom');
+    } finally {
+      if (request === accentRequest.current) setSaving(false);
+    }
+  };
   return (
     <PageShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>
       <div className="android-page" style={{ maxWidth: 640 }}>
@@ -51,26 +102,81 @@ export function AndroidAppearance() {
           </div>
         </section>
         <section className="android-theme-section">
-          <h2>{t('material.palette')}</h2>
+          <h2>{t('settings:theme_schemes')}</h2>
+          {(['light', 'dark'] as const).map((mode) => (
+            <label key={mode} className="android-scheme-row">
+              <span>{t(`settings:${mode}_themes`)}</span>
+              <select
+                aria-label={t(`settings:${mode}_themes`)}
+                value={mode === 'light' ? defaultLightTheme : defaultDarkTheme}
+                onChange={(event) =>
+                  void update(
+                    accountId,
+                    mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme',
+                    event.target.value,
+                  )
+                }
+              >
+                {getSchemesByMode(mode).map((scheme) => (
+                  <option key={scheme.id} value={scheme.id}>
+                    {t(scheme.nameKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </section>
+        <section className="android-theme-section">
+          <h2>{t('settings:accent_color')}</h2>
           <div className="android-theme-options">
-            {ANDROID_PALETTES.map((id) => (
+            {(['ocean', 'forest', 'amber', 'rose', 'purple'] as const).map((id) => (
               <button
                 type="button"
                 key={id}
                 className="android-theme-option"
                 aria-pressed={accentColor === id}
-                onClick={() => void update(accountId, 'accentColor', id)}
+                onClick={() => selectAccent(id)}
               >
                 <span
                   className="android-theme-swatch"
-                  style={{ background: androidMaterialTokens(false, id)['--accent-primary'] }}
+                  style={{
+                    background: ACCENT_COLORS[id],
+                    color: accentTextColor(ACCENT_COLORS[id])!,
+                  }}
                 >
                   {accentColor === id && <Check size={20} />}
                 </span>
-                <span>{t(`material.palette_${id}`)}</span>
+                <span>{t(`settings:accent_${id}`)}</span>
               </button>
             ))}
           </div>
+          <form
+            className="android-custom-accent"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void saveCustom();
+            }}
+          >
+            <Input
+              label={t('settings:accent_custom')}
+              aria-label={t('settings:accent_custom')}
+              value={custom}
+              onChange={(event) => setCustom(event.target.value)}
+              maxLength={7}
+              pattern="#[0-9a-fA-F]{6}"
+              placeholder="#5b7c99"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+            <Button
+              type="submit"
+              variant="secondary"
+              loading={saving}
+              disabled={!/^#[\da-f]{6}$/i.test(custom.trim())}
+            >
+              {t('save')}
+            </Button>
+          </form>
         </section>
         <section className="android-theme-section">
           <h2>{t('material.glass_title')}</h2>

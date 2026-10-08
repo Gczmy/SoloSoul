@@ -69,7 +69,7 @@ export function SecondaryActionBar({
   const expanded = isHovering || keyboardOpen || isAnyCardOpen;
 
   // 展开和折叠侧栏共用向上浮出的工具菜单，不挤压分类区或移动触发按钮。
-  // 高度以品牌行下沿和工具入口之间的实际空间为准，小窗口才滚动。
+  // 高度以实际导航起点和工具入口之间的空间为准，小窗口才滚动。
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current;
     const nav = wrapper?.closest('nav');
@@ -77,7 +77,10 @@ export function SecondaryActionBar({
     if (!wrapper || !nav || !menu) return;
     const measure = () => {
       const brand = nav.querySelector(`.${styles.brandHeader}`);
-      const top = brand?.getBoundingClientRect().bottom ?? nav.getBoundingClientRect().top;
+      // 折叠后品牌行不再存在，仍需避让侧栏上方的原生交通灯与顶部留白。
+      const contentTop =
+        nav.getBoundingClientRect().top + parseFloat(getComputedStyle(nav).paddingTop || '0');
+      const top = brand?.getBoundingClientRect().bottom ?? contentTop;
       setAvailableHeight(Math.max(0, Math.floor(wrapper.getBoundingClientRect().top - top - 8)));
       // 只裁去被菜单实际覆盖的导航内容，透明表面直接使用窗口底层玻璃。
       nav.style.setProperty('--tools-cover-height', `${menu.getBoundingClientRect().height}px`);

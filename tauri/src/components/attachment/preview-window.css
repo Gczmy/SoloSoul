@@ -1,3 +1,42 @@
+/* Android 提醒占用顶栏下方布局，限制高度并独立滚动，给照片和缩放操作留空间。 */
+html[data-platform='android'] [data-preview-titlebar] {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary);
+  padding-top: calc(10px + var(--safe-area-top)) !important;
+  padding-left: max(14px, var(--safe-area-left)) !important;
+  padding-right: max(14px, var(--safe-area-right)) !important;
+}
+/* 照片查看器的默认前景是白色；主题顶栏需要连同标题、计数和按钮一起切换。 */
+html[data-platform='android'] [data-preview-titlebar] :is(button, span) {
+  color: inherit !important;
+}
+html[data-platform='android'] [data-preview-titlebar] [data-testid='photo-viewer-counter'] {
+  color: var(--text-secondary) !important;
+}
+/* 状态栏和导航栏共用主题图标模式，底部安全区也要有相同明暗的底色。
+   仅覆盖系统栏所在区域，照片、解密文本和缩放工具栏保留原有表面。 */
+html[data-platform='android'] [data-preview-window]::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--safe-area-bottom);
+  z-index: 2;
+  pointer-events: none;
+  background: var(--bg-elevated);
+}
+html[data-platform='android'] [data-preview-zoom-controls] {
+  bottom: calc(24px + var(--safe-area-bottom)) !important;
+  max-width: calc(100% - var(--safe-area-left) - var(--safe-area-right) - 24px);
+}
+html[data-platform='android'] .preview-notifications {
+  width: 100%;
+  flex-shrink: 0;
+  max-height: min(calc(var(--viewport-height, 100vh) * 0.35), 240px);
+  overflow: auto;
+  padding-inline: max(16px, var(--safe-area-left)) max(16px, var(--safe-area-right));
+  background: var(--bg-elevated);
+}
+
 /* macOS 预览由 Portal 放在 body 下：整条顶栏直接透出同一个原生材质。
    原页面（包括 AppBar、侧栏边线和多层附件卡片）在这一行不绘制，
    防止透明预览顶栏透出旧标题/按钮。退出预览后自动恢复，无原生外观重设。 */

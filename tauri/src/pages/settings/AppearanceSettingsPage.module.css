@@ -2,7 +2,9 @@
   display: flex;
   position: relative;
   gap: 24px;
-  height: calc(var(--shell-content-height, 100dvh) - 2 * var(--shell-page-padding, 24px));
+  height: calc(
+    var(--shell-content-height, var(--viewport-height, 100vh)) - 2 * var(--shell-page-padding, 24px)
+  );
   min-height: 240px;
 }
 .settings {

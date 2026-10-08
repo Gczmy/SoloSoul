@@ -2,6 +2,7 @@ import { Images } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMetaEditDialog';
 import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import { AttachmentListItem } from '@/components/object/AttachmentListItem';
@@ -172,7 +173,8 @@ function AttachmentViewerForObject(props: AttachmentViewerProps) {
             />
           )}
           {/* List */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+            <ToastOutlet priority={zIndex} className="android-attachment-notifications" />
             {/* 照片集入口：活跃/回收站视图各有对应数据源的照片集（附件照片集方案 §3.2） */}
             {displayPhotoItems.length > 0 && (
               <button

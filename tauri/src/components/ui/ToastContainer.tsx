@@ -1,7 +1,14 @@
 import { useUiStore } from '@/stores/uiStore';
 import styles from './ToastContainer.module.css';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { isAndroidSync } from '@/lib/platform';
+import { useToastOutletStore } from '@/stores/toastOutletStore';
 
 export function ToastContainer() {
+  const { t } = useTranslation('common');
+  const target = useToastOutletStore((state) => state.target);
+  const android = isAndroidSync();
   // P215: 字段级选择器——仅订阅 toasts/dismissToast，避免 uiStore 任意字段变化重渲染容器。
   const toasts = useUiStore((s) => s.toasts);
   const dismissToast = useUiStore((s) => s.dismissToast);
@@ -15,8 +22,12 @@ export function ToastContainer() {
     dismissToast(toast.id);
   };
 
-  return (
-    <div className={styles.container}>
+  const content = (
+    <div
+      className={`${styles.container} ${android ? (target ? styles.inline : styles.mobileFallback) : ''}`}
+      data-toast-container
+      onClick={(event) => event.stopPropagation()}
+    >
       {toasts.map((toast) => (
         <div
           key={toast.id}
@@ -28,6 +39,7 @@ export function ToastContainer() {
           onKeyDown={
             toast.action
               ? (e: React.KeyboardEvent) => {
+                  if (e.target !== e.currentTarget) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     handleAction(toast);
@@ -49,7 +61,14 @@ export function ToastContainer() {
                 {toast.action.label}
               </button>
             )}
-            <button className={styles.close} onClick={(e) => { e.stopPropagation(); dismissToast(toast.id); }}>
+            <button
+              className={styles.close}
+              aria-label={t('close')}
+              onClick={(e) => {
+                e.stopPropagation();
+                dismissToast(toast.id);
+              }}
+            >
               x
             </button>
           </div>
@@ -57,4 +76,5 @@ export function ToastContainer() {
       ))}
     </div>
   );
+  return android ? createPortal(content, target ?? document.body) : content;
 }

@@ -57,8 +57,8 @@ describe('WorkspaceObjectCard', () => {
       />,
     );
 
-    expect(screen.getAllByTestId('count-badge-history')[0]).toHaveTextContent('3');
-    expect(screen.getAllByTestId('count-badge-attachments')[0]).toHaveTextContent('2');
+    expect(screen.getAllByTestId('count-badge-common:history')[0]).toHaveTextContent('3');
+    expect(screen.getAllByTestId('count-badge-common:attachments')[0]).toHaveTextContent('2');
   });
 
   it('hides badges when counts are zero or undefined', () => {
@@ -77,8 +77,8 @@ describe('WorkspaceObjectCard', () => {
       />,
     );
 
-    expect(screen.queryByTestId('count-badge-history')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('count-badge-attachments')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('count-badge-common:history')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('count-badge-common:attachments')).not.toBeInTheDocument();
 
     rerender(
       <WorkspaceObjectCard
@@ -93,8 +93,8 @@ describe('WorkspaceObjectCard', () => {
       />,
     );
 
-    expect(screen.queryByTestId('count-badge-history')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('count-badge-attachments')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('count-badge-common:history')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('count-badge-common:attachments')).not.toBeInTheDocument();
   });
 
   it('renders field chips from stored properties (incl. date values)', () => {
@@ -165,7 +165,7 @@ describe('WorkspaceObjectCard', () => {
     expect(onClick).toHaveBeenCalledWith(baseObj);
 
     // 点击删除按钮 → onDelete 收到 obj（移动端/桌面端两处按钮任意一个）
-    fireEvent.click(screen.getAllByTitle('Move to trash')[0]);
+    fireEvent.click(screen.getAllByTitle('common:move_to_trash')[0]);
     expect(onDelete).toHaveBeenCalledWith(baseObj);
   });
 });

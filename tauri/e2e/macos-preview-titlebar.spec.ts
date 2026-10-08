@@ -14,6 +14,8 @@ async function setupPreview(page: Page, platform = 'macos', kind = 'text', theme
         language: 'en-US',
         hasSeenOnboarding: true,
         autoLockTimeoutMinutes: 0,
+        // 本文件显式创建待测提醒；隔离自动备份提醒，避免两个通知之间的空隙干扰采样。
+        lastBackupReminderAt: Date.now(),
       };
       const photo = kind === 'image';
       const fileName = photo
@@ -222,6 +224,204 @@ async function expectWholeRowGlass(page: Page) {
   ]) {
     expect(await page.screenshot({ clip: { x, y: 0, width: 8, height: 4 } })).toEqual(reference);
   }
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`Android ${theme} reminders follow file preview, album and photo viewer`, async ({
+    page,
+  }) => {
+    await setupPreview(page, 'android', 'image', theme);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.evaluate(async () => {
+      const source = '/src/stores/uiStore.ts';
+      const { useUiStore } = await import(source);
+      Object.assign(window, { __previewToastActions: 0 });
+      useUiStore.getState().showToast({
+        message: 'Backup reminder stays readable above the photo',
+        type: 'warning',
+        duration: 60000,
+        action: {
+          label: 'Back Up Now',
+          onClick: () => {
+            (window as any).__previewToastActions += 1;
+          },
+        },
+      });
+    });
+    const toast = page.locator('[data-toast-container]');
+    const expectFrontToast = async (overlay: Locator) => {
+      await expect(
+        overlay.locator(':scope > [data-toast-outlet] [data-toast-container]'),
+      ).toBeVisible();
+      await expect(toast).toHaveCount(1);
+      expect(await toast.evaluate((node) => getComputedStyle(node).position)).toBe('static');
+      const header = overlay.locator(':scope > [data-preview-titlebar]');
+      // 浅色照片顶栏不能沿用查看器默认白色前景；核对最终背景与实际可见控件。
+      const contrasts = await header.evaluate((node) => {
+        const rgb = (color: string) =>
+          color
+            .match(/[\d.]+/g)!
+            .slice(0, 3)
+            .map(Number);
+        const luminance = (color: string) =>
+          rgb(color).reduce((sum, channel, index) => {
+            const value = channel / 255;
+            const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+            return sum + linear * [0.2126, 0.7152, 0.0722][index];
+          }, 0);
+        const background = luminance(getComputedStyle(node).backgroundColor);
+        return [...node.querySelectorAll('button, span')]
+          .filter((element) => element.getClientRects().length > 0)
+          .map((element) => {
+            const foreground = luminance(getComputedStyle(element).color);
+            return {
+              label: element.getAttribute('aria-label') || element.textContent,
+              contrast:
+                (Math.max(background, foreground) + 0.05) /
+                (Math.min(background, foreground) + 0.05),
+            };
+          });
+      });
+      expect(contrasts.length).toBeGreaterThanOrEqual(3);
+      for (const value of contrasts)
+        expect(value.contrast, value.label || '').toBeGreaterThanOrEqual(4.5);
+      const headerBox = (await header.boundingBox())!;
+      const toastBox = (await toast.boundingBox())!;
+      expect(toastBox.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height);
+      expect(toastBox.y + toastBox.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+      await expect
+        .poll(() =>
+          toast.evaluate((node) => {
+            const r = node.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+            return {
+              hittable: !!hit && node.contains(hit),
+              hit: hit?.tagName,
+              y: r.y,
+              height: r.height,
+            };
+          }),
+        )
+        .toMatchObject({ hittable: true });
+      expect(await overlay.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+    };
+    await page.getByRole('button', { name: /^Attachment actions:/ }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Preview', exact: true }).click();
+    const preview = page.getByTestId('attachment-preview-overlay');
+    await expectFrontToast(preview);
+    await expectLegibleZoomControls(preview);
+    await preview
+      .locator('[data-preview-titlebar]')
+      .getByRole('button', { name: 'Back', exact: true })
+      .click();
+    await expect(preview).toHaveCount(0);
+    await page.getByRole('button', { name: /Photo Album/ }).click();
+    const album = page.getByTestId('photo-album-overlay');
+    await expectFrontToast(album);
+    await album.getByRole('button', { name: 'Travel photo.png', exact: true }).click();
+    const viewer = page.getByTestId('photo-viewer');
+    await expectFrontToast(viewer);
+    await expectLegibleZoomControls(viewer);
+    await viewer.getByRole('button', { name: 'Edit Attachment Attributes', exact: true }).click();
+    const editor = page
+      .getByRole('dialog')
+      .filter({ has: page.getByLabel('Name', { exact: true }) });
+    await expect(editor.locator('[data-toast-container]')).toBeVisible();
+    await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expectFrontToast(viewer);
+    for (const viewport of [
+      { width: 844, height: 390 },
+      { width: 390, height: 560 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await expectFrontToast(viewer);
+      const region = viewer.locator(':scope > [data-toast-outlet]');
+      const body = viewer.getByTestId('photo-viewer-content');
+      const regionBox = (await region.boundingBox())!;
+      const bodyBox = (await body.boundingBox())!;
+      expect(regionBox.height).toBeLessThanOrEqual(Math.min(viewport.height * 0.35, 240));
+      expect(regionBox.y + regionBox.height).toBeLessThanOrEqual(bodyBox.y);
+      const zoom = viewer.getByRole('button', { name: 'Zoom In', exact: true });
+      expect(
+        await zoom.evaluate((node) => {
+          const r = node.getBoundingClientRect();
+          const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return !!hit && node.contains(hit);
+        }),
+      ).toBe(true);
+    }
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.screenshot({ path: test.info().outputPath(`toast-photo-${theme}-320.png`) });
+    await viewer
+      .locator('[data-preview-titlebar]')
+      .getByRole('button', { name: 'Back to album', exact: true })
+      .click();
+    await expect(viewer).toHaveCount(0);
+    await expectFrontToast(album);
+    await album.getByRole('button', { name: 'Back Up Now', exact: true }).click();
+    expect(await page.evaluate(() => (window as any).__previewToastActions)).toBe(1);
+    await expect(album).toBeVisible();
+    await expect(toast).toHaveCount(0);
+  });
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`Android ${theme} preview controls respect native safe-area lengths`, async ({ page }) => {
+    await setupPreview(page, 'android', 'image', theme);
+    await page.setViewportSize({ width: 320, height: 640 });
+    // CSS 消费检查；这些长度是模拟输入，不作为原生缺口或键盘证据。
+    await page.evaluate(() => {
+      for (const [edge, length] of Object.entries({ top: 24, right: 24, bottom: 28, left: 20 }))
+        document.documentElement.style.setProperty(
+          `--android-native-safe-area-${edge}`,
+          `${length}px`,
+        );
+    });
+    const expectSafeControls = async (overlay: Locator) => {
+      const nodes = overlay.locator(
+        '[data-preview-titlebar] button, [data-preview-zoom-controls] button',
+      );
+      await expect(nodes.first()).toBeVisible();
+      const controls = await nodes.evaluateAll((elements) =>
+        elements.map((e) => {
+          const r = e.getBoundingClientRect();
+          const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return {
+            x: r.x,
+            right: r.right,
+            y: r.y,
+            bottom: r.bottom,
+            hittable: e === hit || e.contains(hit),
+          };
+        }),
+      );
+      expect(controls.length).toBeGreaterThan(0);
+      for (const control of controls) {
+        expect(control.x).toBeGreaterThanOrEqual(20);
+        expect(control.right).toBeLessThanOrEqual(page.viewportSize()!.width - 24);
+        expect(control.y).toBeGreaterThanOrEqual(24);
+        expect(control.bottom).toBeLessThanOrEqual(page.viewportSize()!.height - 28);
+        expect(control.hittable).toBe(true);
+      }
+    };
+    await page.getByRole('button', { name: /^Attachment actions:/ }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Preview', exact: true }).click();
+    const preview = page.getByTestId('attachment-preview-overlay');
+    await expectSafeControls(preview);
+    await preview
+      .locator('[data-preview-titlebar]')
+      .getByRole('button', { name: 'Back', exact: true })
+      .click();
+    await page.getByRole('button', { name: /Photo Album/ }).click();
+    const album = page.getByTestId('photo-album-overlay');
+    await expectSafeControls(album);
+    await album.getByRole('button', { name: 'Travel photo.png', exact: true }).click();
+    const viewer = page.getByTestId('photo-viewer');
+    await expectSafeControls(viewer);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expectSafeControls(viewer);
+    await page.screenshot({ path: test.info().outputPath(`safe-photo-${theme}-landscape.png`) });
+  });
 }
 
 for (const theme of ['light', 'dark']) {

@@ -78,13 +78,18 @@ export function DatePickerCalendar({
   }, [locale]);
 
   return (
-    <div className={styles.popover} data-macos-glass="popover" role="dialog" aria-label="日期选择">
+    <div
+      className={styles.popover}
+      data-macos-glass="popover"
+      role="dialog"
+      aria-label={t('common:date_picker', { defaultValue: '日期选择' })}
+    >
       <div className={styles.header}>
         <button
           type="button"
           className={styles.navButton}
           onClick={onPrevMonth}
-          aria-label="上个月"
+          aria-label={t('common:previous_month', { defaultValue: '上个月' })}
         >
           ‹
         </button>{' '}
@@ -94,7 +99,7 @@ export function DatePickerCalendar({
             onChange={(v) => onYearChange(Number(v))}
             options={yearOptions.map((y) => ({ value: y, label: String(y) }))}
             triggerLabel={String(getYear(viewDate))}
-            ariaLabel="选择年份"
+            ariaLabel={t('common:select_year', { defaultValue: '选择年份' })}
           />
           <DropdownSelect
             value={getMonth(viewDate)}
@@ -104,14 +109,14 @@ export function DatePickerCalendar({
               label: format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale }),
             }))}
             triggerLabel={format(viewDate, 'MMM', { locale })}
-            ariaLabel="选择月份"
+            ariaLabel={t('common:select_month', { defaultValue: '选择月份' })}
           />
         </div>
         <button
           type="button"
           className={styles.navButton}
           onClick={onNextMonth}
-          aria-label="下个月"
+          aria-label={t('common:next_month', { defaultValue: '下个月' })}
         >
           ›
         </button>

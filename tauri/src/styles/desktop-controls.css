@@ -4,6 +4,11 @@
    macOS 普通操作默认平面；玻璃只由导航/浮层外壳承载，不逐个叠到按钮上。
    导航卡片、对象卡片、菜单项和输入框内的小工具保持各自的结构。 */
 html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
+  /* 功能文字只随明暗模式切换，不受暖石等色板的偏色或淡灰影响。 */
+  --desktop-text-primary: #111111;
+  --desktop-text-secondary: #202020;
+  --desktop-text-tertiary: #303030;
+  --desktop-navigation-solid: color-mix(in srgb, var(--bg-base) 92%, black);
   --desktop-control-fill: var(--bg-elevated);
   --desktop-control-edge: var(--border-default);
   --desktop-control-glint: rgb(255 255 255 / 16%);
@@ -12,6 +17,27 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
   --desktop-control-filter: none;
   --desktop-control-radius: 4px;
   --desktop-control-accent-opacity: 100%;
+}
+
+html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])[data-theme='dark'] {
+  --desktop-text-primary: #ffffff;
+  --desktop-text-secondary: #f5f5f5;
+  --desktop-text-tertiary: #ededed;
+  --desktop-navigation-solid: color-mix(in srgb, var(--bg-base) 55%, black);
+}
+
+html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
+  :is(
+    #desktop-navigation,
+    [data-desktop-function-bar],
+    [data-appbar],
+    [data-sidebar-tools],
+    [role='tooltip']
+  ) {
+  --text-primary: var(--desktop-text-primary);
+  --text-secondary: var(--desktop-text-secondary);
+  --text-tertiary: var(--desktop-text-tertiary);
+  color: var(--desktop-text-primary);
 }
 
 html[data-desktop-platform='macos'] {
@@ -69,7 +95,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     )
   ) {
   --control-fill: var(--desktop-control-fill);
-  --control-ink: var(--text-primary);
+  --control-ink: var(--desktop-text-primary);
   --control-edge: var(--desktop-control-edge);
   --control-glint: var(--desktop-control-glint);
   --control-state: transparent;
@@ -187,7 +213,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
         .interactive-accent
       ):where(:not([data-ui-intent='neutral'], [data-ui-intent='quiet'])) {
       --control-fill: transparent;
-      --control-ink: var(--text-secondary);
+      --control-ink: var(--desktop-text-secondary);
       --control-edge: transparent;
     }
 
@@ -199,13 +225,13 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
       ) {
       --control-fill: transparent;
       --control-edge: transparent;
-      --control-ink: var(--text-secondary);
+      --control-ink: var(--desktop-text-secondary);
     }
     &:where([data-desktop-platform='macos'] button):is(
         [data-appbar] button[data-ui-intent='primary'],
         [data-appbar] button[data-desktop-control='primary']
       ) {
-      --control-ink: var(--accent-primary);
+      --control-ink: var(--desktop-text-primary);
     }
     &:is(button):is(
         [data-ui-intent='danger'],
@@ -398,5 +424,14 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']):is(
     --desktop-control-fill: var(--bg-elevated);
     --desktop-control-edge: var(--border-strong);
     --desktop-control-accent-opacity: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
+    --desktop-text-primary: CanvasText;
+    --desktop-text-secondary: CanvasText;
+    --desktop-text-tertiary: CanvasText;
+    --desktop-navigation-solid: Canvas;
   }
 }

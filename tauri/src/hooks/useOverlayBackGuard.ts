@@ -113,7 +113,7 @@ export function useOverlayBackGuard({
       const target = event.state as { idx?: number; solosoulOverlayLayer?: boolean } | null;
       // 残留层由 sweeper 连续跳过，等抵达有效历史条目后再关闭对应浮层。
       if (target?.solosoulOverlayLayer && !ownedMarkers.has(markerId(target) ?? '')) return;
-      const topIndex = markerIndexesRef.current.at(-1);
+      const topIndex = markerIndexesRef.current[markerIndexesRef.current.length - 1];
       // 子菜单/相册返回到本浮层标记时，本层并未被弹出，不能一起关闭。
       // 主动关闭子浮层后的 history.go 清理同样会触发 popstate。
       if (typeof target?.idx === 'number' && topIndex !== undefined && target.idx >= topIndex)

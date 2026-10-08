@@ -1,13 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  format,
-  getMonth,
-  setYear,
-  setMonth,
-  setHours,
-  setMinutes,
-} from 'date-fns';
+import { format, getMonth, setYear, setMonth, setHours, setMinutes } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { X } from 'lucide-react';
 import styles from './DatePicker.module.css';
@@ -28,7 +21,7 @@ import {
 } from './DatePicker.helpers';
 
 export function DatePicker({ value, onChange, includeTime, disabled }: DatePickerProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('common');
   const locale = useMemo(() => (i18n.language.startsWith('zh') ? zhCN : enUS), [i18n.language]);
 
   const [open, setOpen] = useState(false);
@@ -291,7 +284,7 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
                 placeholder={config.placeholder}
                 aria-label={config.label}
                 aria-invalid={invalid || undefined}
-                title="点击后可直接输入数字覆盖"
+                title={t('date_input_hint', { defaultValue: '点击后可直接输入数字覆盖' })}
                 disabled={disabled}
                 onChange={(e) => handleSegmentChange(key, e.target.value)}
                 onKeyDown={(e) => {
@@ -320,8 +313,8 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
             type="button"
             className={[styles.iconButton, styles.clearAction].join(' ')}
             onClick={handleClear}
-            aria-label="清除"
-            title="清除"
+            aria-label={t('clear', { defaultValue: '清除' })}
+            title={t('clear', { defaultValue: '清除' })}
           >
             <X size={ICON_SIZE.sm} />
           </button>

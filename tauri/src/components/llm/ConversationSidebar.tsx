@@ -277,7 +277,7 @@ export function ConversationSidebar({
                   </div>
                   <button
                     onClick={() => onRestore(conv.id)}
-                    title="恢复"
+                    title={t('common:restore')}
                     style={{
                       padding: 3,
                       borderRadius: 4,
@@ -308,7 +308,7 @@ export function ConversationSidebar({
                   ) : (
                     <DeleteButton
                       onClick={() => onRequestPermanentDelete(conv.id)}
-                      title="永久删除"
+                      title={t('common:delete_permanently')}
                       iconOnly
                     />
                   )}

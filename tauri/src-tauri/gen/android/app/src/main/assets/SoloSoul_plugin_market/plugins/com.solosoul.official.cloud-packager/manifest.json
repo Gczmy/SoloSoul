@@ -1,0 +1,42 @@
+{
+  "plugin_id": "com.solosoul.official.cloud-packager",
+  "name": "Cloud Packager Demo",
+  "version": "1.0.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "2.12.3",
+  "max_app_version": "999.999.999",
+  "description": "云打包演示插件 — 演示如何将导出包写入用户选择的云盘同步目录（outputDir 参数 + write_output_file）",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.cloud-packager",
+  "required_fields": [],
+  "optional_fields": [],
+  "contracts": [],
+  "network_policy": {
+    "block_all_outbound": true,
+    "allowed_domains": []
+  },
+  "data_ttl_seconds": 300,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "云打包演示",
+      "description": "演示如何将导出包写入用户选择的云盘同步目录"
+    },
+    "en": {
+      "name": "Cloud Packager Demo",
+      "description": "Demo: write export package to user-selected cloud sync folder"
+    }
+  },
+  "tier": "p2",
+  "category": "productivity",
+  "params": [
+    {
+      "id": "outputDir",
+      "label": "输出目录",
+      "type": "string",
+      "required": true,
+      "description": "导出包保存目录（桌面端建议选择云盘同步文件夹，如 ~/OneDrive/SoloSoul）",
+      "defaultValue": ""
+    }
+  ]
+}

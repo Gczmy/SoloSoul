@@ -166,7 +166,7 @@ test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', asy
     await page.getByRole('button', { name, exact: true }).click();
     await expectThemeBackground(page, scheme, true);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await expect(page.locator('#desktop-navigation')).toHaveCSS(
+    await expect(page.locator('#desktop-navigation')).not.toHaveCSS(
       'background-color',
       'rgba(0, 0, 0, 0)',
     );
@@ -249,6 +249,29 @@ for (const platform of ['android', 'ios'] as const) {
           0,
         );
       }
+    });
+  }
+}
+
+for (const platform of ['android', 'ios'] as const) {
+  for (const schemeId of ['warm-stone', 'warm-stone-dark', 'deep-ocean']) {
+    test(`${platform} ${schemeId} 主内容正文和说明保持中性高对比`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await mockTheme(page, schemeId, 'solid', undefined, platform);
+      await login(page);
+      const dark = getSchemeById(schemeId)!.mode === 'dark';
+      const main = page.getByRole('main');
+      await expect(main.getByRole('heading').first()).toHaveCSS(
+        'color',
+        dark ? 'rgb(255, 255, 255)' : 'rgb(17, 17, 17)',
+      );
+      await expect(main.locator('p').first()).toHaveCSS(
+        'color',
+        dark ? 'rgb(245, 245, 245)' : 'rgb(32, 32, 32)',
+      );
+      await page.screenshot({
+        path: test.info().outputPath(`${platform}-${schemeId}-neutral-content.png`),
+      });
     });
   }
 }

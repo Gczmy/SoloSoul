@@ -87,6 +87,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
         isActive={location.pathname === '/'}
         onClick={() => navigate(primaryItems[0].path)}
         position={sidebarPosition}
+        scrollOverflowLabel
       />
 
       {isHorizontal ? (
@@ -117,6 +118,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
                 isActive={isWorkspaceSectionActive(item.path)}
                 onClick={() => navigate(item.path)}
                 position={sidebarPosition}
+                scrollOverflowLabel
               />
             ))}
             {activeCustomPages.map((page) => (
@@ -150,6 +152,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
               isActive={isWorkspaceSectionActive(item.path)}
               onClick={() => navigate(item.path)}
               position={sidebarPosition}
+              scrollOverflowLabel
             />
           ))}
           {activeCustomPages.map((page) => (

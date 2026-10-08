@@ -33,7 +33,7 @@ export function LoginIconBar({
         display: 'flex',
         gap: 6,
         paddingTop: 12,
-        marginTop: 'auto',
+        marginTop: 12,
         borderTop: '1px solid var(--border-subtle)',
         justifyContent: 'flex-start',
         overflow: 'hidden',

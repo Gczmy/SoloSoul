@@ -32,6 +32,8 @@ export function ProtectedFieldValue(props: Props) {
   const identity = fieldPresentationIdentity(props.accountId, props.objectId, props.fieldId, [
     props.value,
     props.policy.sensitivity,
+    props.policy.concealed,
+    props.policy.requiresVerification,
     props.contentVersion,
   ]);
   return <ProtectedFieldSession key={identity} {...props} />;
@@ -79,7 +81,9 @@ function ProtectedFieldSession({
     return request.isCurrent() ? request : null;
   };
   const control: ProtectedFieldControl = {
-    displayValue: protectedDisplayValue(value, policy.sensitivity, revealed),
+    displayValue: policy.concealed
+      ? protectedDisplayValue(value, policy.sensitivity, revealed)
+      : value,
     revealed,
     remainingMs: state.revealRemainingMs('value'),
     reveal: async () => !!(await access()),

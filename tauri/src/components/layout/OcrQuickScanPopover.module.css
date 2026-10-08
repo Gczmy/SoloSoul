@@ -31,9 +31,7 @@
 @media (max-width: 767px) {
   .card {
     width: calc(100vw - 24px);
-    height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
-    max-height: calc(
-      100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px
-    );
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 24px);
+    max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom) - 24px);
   }
 }

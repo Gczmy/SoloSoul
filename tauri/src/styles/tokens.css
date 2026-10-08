@@ -5,6 +5,12 @@
    ============================================================ */
 
 :root {
+  --viewport-height: 100vh;
+  /* 跨平台内容安全区：默认浏览器环境值，Android 在专属样式内合并原生 Insets。 */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
   /* ── Warm Stone Color Palette ─────────────────────────── */
   /* Base neutrals — warm beige → soft slate */
   --stone-25: #fdfcf9;
@@ -210,4 +216,11 @@
 
   /* Page-level search bars */
   --search-bar-max-width: var(--page-max-width);
+}
+
+/* 不支持动态视口单位的旧 WebView 保留 vh；不能把未知单位放进 var 的默认值。 */
+@supports (height: 100dvh) {
+  :root {
+    --viewport-height: 100dvh;
+  }
 }

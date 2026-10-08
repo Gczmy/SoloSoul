@@ -4,6 +4,17 @@
    原生侧栏、窗口顶栏仍由 NSGlassEffectView / NSVisualEffectView 管理。
    !important 仅用于收敛遗留 inline 材质，不覆盖几何与业务状态。 */
 html[data-desktop-platform='macos'] {
+  /* 登录前后共用同一窗口底色，侧栏和顶栏不另加深色混入。 */
+  --mac-shell-opacity: 90%;
+  --mac-navigation-base: var(--bg-base);
+  --mac-shell-fill: color-mix(
+    in srgb,
+    var(--mac-navigation-base) var(--mac-shell-opacity),
+    transparent
+  );
+  --mac-content-inset: 8px;
+  --mac-content-radius: 16px;
+  --mac-navigation-divider: transparent;
   --mac-glass-fill: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
   --mac-glass-shadow: rgb(31 28 24 / 14%);
   --mac-glass-blur: blur(16px) saturate(1.1);
@@ -50,8 +61,39 @@ html[data-desktop-platform='macos'] {
 }
 
 html[data-desktop-platform='macos'][data-theme='dark'] {
+  /* 深色外壳略微提亮，登录、侧栏和顶栏共用，正文仍为原主题底色。 */
+  --mac-navigation-base: color-mix(in srgb, var(--bg-base) 88%, white);
   --mac-glass-fill: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   --mac-glass-shadow: rgb(0 0 0 / 28%);
+}
+
+/* 外壳着色独立于路由与 Portal：预览裁剪 #root 顶栏时仍保留同一层。
+   isolation 只建立堆叠顺序，不改变 fixed/Portal 的视口定位或原生材质。 */
+html[data-desktop-platform='macos'] body {
+  isolation: isolate;
+}
+html[data-desktop-platform='macos'] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--mac-shell-fill);
+}
+
+html[data-desktop-platform='macos']:is(
+    [data-native-material='solid'],
+    [data-high-contrast='true']
+  ) {
+  --mac-shell-fill: var(--desktop-navigation-solid, var(--bg-base));
+  --navigation-divider: var(--border-subtle);
+  --mac-navigation-divider: var(--border-subtle);
+}
+
+@media (forced-colors: active), (prefers-reduced-transparency: reduce) {
+  html[data-desktop-platform='macos'] {
+    --mac-shell-fill: var(--desktop-navigation-solid, var(--bg-base));
+  }
 }
 
 /* 只有紧凑的导航和操作浮层显式使用一层轻材质；不绘制透镜高光。

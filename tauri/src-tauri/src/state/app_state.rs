@@ -125,7 +125,7 @@ impl AppState {
     /// PluginManager 初始化：多级兜底（临时目录 → 当前目录），最终失败才中止启动。
     /// Android Release 构建使用 panic=abort，AppState::new 返回 Err 会导致 setup
     /// 失败直接闪退，故仅当文件系统级异常（所有目录均不可写）才返回 Err。
-    #[cfg(feature = "native-perf")]
+    #[cfg(any(feature = "native-perf", feature = "macos-ui-regression"))]
     fn init_plugin_manager(
         handle: &tauri::AppHandle,
         native_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
@@ -136,7 +136,7 @@ impl AppState {
             .map_err(Into::into)
     }
 
-    #[cfg(not(feature = "native-perf"))]
+    #[cfg(not(any(feature = "native-perf", feature = "macos-ui-regression")))]
     fn init_plugin_manager(
         handle: &tauri::AppHandle,
         native_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,

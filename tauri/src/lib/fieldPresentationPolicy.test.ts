@@ -20,6 +20,20 @@ describe('field presentation policy', () => {
       );
     },
   );
+  it('only opens internal values in detail context; unknown and missing levels remain concealed', () => {
+    for (const level of ['public', 'internal', 'sensitive', 'critical', 'unknown', undefined]) {
+      const policy = fieldPresentationPolicy(
+        { fieldId: 'f', definition: { sensitivityLevel: level } },
+        'detail',
+      );
+      expect(policy.concealed).toBe(level !== 'public' && level !== 'internal');
+      expect(policy.requiresVerification).toBe(level === 'critical');
+    }
+    expect(protectedDisplayValue('internal value', 'internal', false, 'detail')).toBe(
+      'internal value',
+    );
+    expect(protectedDisplayValue('internal value', 'internal', false)).toBe('••••••••');
+  });
   it('keeps label/definition/template precedence and invalid labels fail closed', () => {
     expect(
       fieldPresentationPolicy({

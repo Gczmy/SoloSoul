@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(target_os = "ios")]
+mod ios;
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "windows")]
@@ -169,6 +171,15 @@ pub fn show_main_window(window: tauri::WebviewWindow) -> Result<(), String> {
 }
 
 pub(crate) fn setup_startup_window(app: &tauri::AppHandle) {
+    #[cfg(target_os = "ios")]
+    {
+        use tauri::Manager;
+        if let Some(window) = app.get_webview_window("main") {
+            if let Err(error) = ios::prepare(&window) {
+                tracing::warn!("[window] iOS viewport preparation failed: {error}");
+            }
+        }
+    }
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
         use tauri::Manager;
@@ -187,7 +198,7 @@ pub(crate) fn setup_startup_window(app: &tauri::AppHandle) {
             }
         });
     }
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "ios")))]
     let _ = app;
 }
 

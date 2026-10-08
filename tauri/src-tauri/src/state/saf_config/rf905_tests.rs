@@ -4,6 +4,62 @@ use std::path::Path;
 use std::process::Command;
 
 const CHILD_ROOT: &str = "SOLOSOUL_RF905_GUI_CHILD_ROOT";
+
+#[test]
+fn fe2_mobile_cold_start_restores_app_private_accounts_but_keeps_them_locked() {
+    let root = tempfile::tempdir().unwrap();
+    let original = AppState::try_init_local_vault(root.path()).unwrap();
+    let account = original
+        .create_account("fe2-cold-synthetic", "synthetic-password", None)
+        .unwrap();
+    drop(original);
+
+    // 实际重建服务，不复用内存账户缓存，也没有 SAF 配置。
+    assert!(AppState::load_saved_saf_uri(root.path()).is_none());
+    let restored = AppState::try_init_mobile_without_saf(root.path()).unwrap();
+    assert_eq!(restored.base_path(), &root.path().canonicalize().unwrap());
+    assert_eq!(restored.list_accounts().len(), 1);
+    assert_eq!(
+        restored.list_accounts()[0].id,
+        account["id"].as_str().unwrap()
+    );
+    assert!(!restored.is_unlocked());
+    assert!(!root.path().join(".uninitialized_vault").exists());
+}
+
+#[test]
+fn fe2_mobile_first_launch_still_uses_placeholder_without_creating_accounts() {
+    let root = tempfile::tempdir().unwrap();
+    // UI 偏好、资源和锁文件均不构成用户已建立账户的证据。
+    std::fs::write(root.path().join("ui_preferences.json"), b"{}").unwrap();
+    std::fs::write(root.path().join(".lock"), b"").unwrap();
+    let service = AppState::try_init_mobile_without_saf(root.path()).unwrap();
+    assert_eq!(
+        service.base_path(),
+        &root
+            .path()
+            .join(".uninitialized_vault")
+            .canonicalize()
+            .unwrap()
+    );
+    assert!(!service.has_any_account());
+    assert!(!root.path().join("accounts.json").exists());
+}
+
+#[test]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn fe2_mobile_restored_root_busy_does_not_fall_back_to_an_empty_placeholder() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(root.path().join("accounts.json"), b"[]").unwrap();
+    let lock = solosoul_core::process_lock::ProcessLock::acquire(root.path()).unwrap();
+    assert!(AppState::try_init_mobile_without_saf(root.path())
+        .err()
+        .unwrap()
+        .to_string()
+        .contains("VAULT_DIRECTORY_BUSY"));
+    assert!(!root.path().join(".uninitialized_vault").exists());
+    drop(lock);
+}
 #[test]
 fn rf905_gui_child_contender() {
     let Ok(path) = std::env::var(CHILD_ROOT) else {

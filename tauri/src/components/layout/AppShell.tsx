@@ -18,6 +18,7 @@ import { isAndroidSync } from '@/lib/platform';
 import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
+import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -75,7 +76,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const sidebarWidth = isAndroid
     ? 88
     : sidebarExpanded
-      ? Math.max(232, collapsedWidth)
+      ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
       : collapsedWidth;
 
   // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
@@ -85,14 +86,14 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       '--sidebar-width': `${sidebarWidth}px`,
       '--shell-chrome-bottom':
         isAndroid || isNarrowViewport
-          ? `calc(${appbarHeight}px + env(safe-area-inset-top, 0px))`
+          ? `calc(${appbarHeight}px + var(--safe-area-top))`
           : `${appbarHeight + (isTop ? FUNCTION_BAR_HEIGHT : 0)}px`,
       '--shell-navigation-bottom': isAndroid
         ? isNarrowViewport
-          ? 'calc(86px + env(safe-area-inset-bottom, 0px))'
-          : 'env(safe-area-inset-bottom, 0px)'
+          ? 'calc(86px + var(--safe-area-bottom))'
+          : 'var(--safe-area-bottom)'
         : isNarrowViewport
-          ? 'calc(56px + env(safe-area-inset-bottom, 0px))'
+          ? 'calc(56px + var(--safe-area-bottom))'
           : `${effectivePosition === 'bottom' ? FUNCTION_BAR_HEIGHT : 0}px`,
       '--shell-page-padding': isNarrowViewport ? '16px' : '24px',
     };
@@ -193,6 +194,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
     <div
       className={styles.appShell}
       data-android-shell={isAndroid || undefined}
+      data-macos-shell={(isMacOS && !isNarrowViewport && !isAndroid) || undefined}
       data-navigation={effectivePosition}
       style={
         {
@@ -231,10 +233,12 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
           paddingBottom: 'var(--shell-navigation-bottom)',
         }}
       >
-        <ShellNotificationSlot />
-        <main ref={contentRef} className={styles.content} data-shell-content>
-          {children}
-        </main>
+        <div className={styles.contentSurface} data-shell-surface>
+          <ShellNotificationSlot />
+          <main ref={contentRef} className={styles.content} data-shell-content>
+            {children}
+          </main>
+        </div>
       </div>
       {/* B 侧入站配对请求全局对话框（任意页面可弹出） */}
       <PairingDialog

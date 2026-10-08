@@ -186,3 +186,67 @@ describe('resolveActiveScheme', () => {
     expect(result).toBe('obsidian-black');
   });
 });
+
+describe('主题边界与文字可读性', () => {
+  it('全部色板在基础、卡片、悬停和选中表面维持中性文字及普通字号对比度', async () => {
+    const { THEME_SCHEMES } = await import('./themeSchemes');
+    const luminance = (hex: string) =>
+      [1, 3, 5]
+        .map((offset) => {
+          const n = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+          return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+        })
+        .reduce((sum, value, i) => sum + value * [0.2126, 0.7152, 0.0722][i], 0);
+    for (const scheme of THEME_SCHEMES) {
+      for (const text of ['--text-primary', '--text-secondary', '--text-tertiary']) {
+        const hex = scheme.variables[text];
+        expect(hex.slice(1, 3), scheme.id).toBe(hex.slice(3, 5));
+        expect(hex.slice(3, 5), scheme.id).toBe(hex.slice(5, 7));
+        for (const surface of [
+          '--bg-base',
+          '--bg-elevated',
+          '--bg-elevated-hover',
+          '--bg-hover',
+          '--bg-active',
+        ]) {
+          const fg = luminance(hex),
+            bg = luminance(scheme.variables[surface]);
+          expect(
+            (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05),
+            `${scheme.id}: ${text} on ${surface}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+      expect(scheme.variables).not.toHaveProperty('--text-accent');
+      expect(scheme.variables).not.toHaveProperty('--text-error');
+    }
+  });
+
+  it('切换与清除色板会清理旧文字偏色，同时保留独立强调色与错误语义', async () => {
+    const { applyScheme, getSchemeById } = await import('./themeSchemes');
+    const root = document.documentElement;
+    const previous = root.getAttribute('style');
+    try {
+      root.style.setProperty('--text-accent', '#8ec9b8');
+      root.style.setProperty('--text-warm', '#b8a88a');
+      root.style.setProperty('--accent-primary', '#6699ff');
+      root.style.setProperty('--text-error', '#e07a6e');
+      for (const id of ['warm-stone-dark', 'deep-ocean', 'warm-stone', 'soft-cream']) {
+        applyScheme(id);
+        expect(root.style.getPropertyValue('--text-primary')).toBe(
+          getSchemeById(id)!.mode === 'dark' ? '#ffffff' : '#111111',
+        );
+      }
+      expect(root.style.getPropertyValue('--text-accent')).toBe('');
+      expect(root.style.getPropertyValue('--text-warm')).toBe('');
+      expect(root.style.getPropertyValue('--accent-primary')).toBe('#6699ff');
+      expect(root.style.getPropertyValue('--text-error')).toBe('#e07a6e');
+      applyScheme(null);
+      expect(root.style.getPropertyValue('--text-primary')).toBe('');
+      expect(root.style.getPropertyValue('--accent-primary')).toBe('#6699ff');
+    } finally {
+      if (previous === null) root.removeAttribute('style');
+      else root.setAttribute('style', previous);
+    }
+  });
+});

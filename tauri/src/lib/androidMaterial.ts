@@ -1,71 +1,171 @@
-import type { AccentPreset } from '@/types';
+import { accentTextColor } from './accentContrast';
+import { getSchemeById } from './themeSchemes';
 
-/** 手动色板，复用现有 accent 偏好；并非 Android 壁纸动态取色。 */
-export const ANDROID_PALETTES = ['ocean', 'forest', 'amber'] as const;
-const palettes = {
-  ocean: {
-    light: ['#405F82', '#FFFFFF', '#D9E7F8', '#223E5E'],
-    dark: ['#AFCBEC', '#153451', '#2C4560', '#D3E5FA'],
-  },
-  forest: {
-    light: ['#4C6846', '#FFFFFF', '#DBE9CC', '#2E482A'],
-    dark: ['#B9D2A7', '#20351A', '#3A5332', '#DEEFD2'],
-  },
-  amber: {
-    light: ['#875449', '#FFFFFF', '#F6DED5', '#653D34'],
-    dark: ['#EDB5A4', '#382219', '#613E32', '#FAE0D2'],
-  },
-  rose: {
-    light: ['#895064', '#FFFFFF', '#FAD9E5', '#6C3549'],
-    dark: ['#F2B3CA', '#501D31', '#6C3549', '#FAD9E5'],
-  },
-  purple: {
-    light: ['#69548A', '#FFFFFF', '#ECDCFF', '#503D70'],
-    dark: ['#D3BBF5', '#392650', '#503D70', '#ECDCFF'],
-  },
-};
+export interface AndroidThemeColors {
+  background: string;
+  surface: string;
+  inset: string;
+  foreground: string;
+  secondary: string;
+  accent: string;
+}
 
-export function androidMaterialTokens(dark: boolean, accent: AccentPreset): Record<string, string> {
-  const palette = palettes[accent === 'custom' ? 'ocean' : accent] ?? palettes.ocean;
-  const [primary, onPrimary, container, onContainer] = palette[dark ? 'dark' : 'light'];
-  const surface = dark ? '#181D1B' : '#F9F9F3';
-  const low = dark ? '#222925' : '#F0F1EA';
-  const high = dark ? '#303934' : '#E7E9E1';
+type Rgb = [number, number, number];
+function channels(value: string): { rgb: Rgb; alpha: number } | null {
+  const hex = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(value.trim())?.[1];
+  if (hex) {
+    const full = hex.length === 3 ? [...hex].map((c) => c + c).join('') : hex;
+    return { rgb: [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16)) as Rgb, alpha: 1 };
+  }
+  const match = /^rgba?\(([^)]+)\)$/.exec(value.trim());
+  if (!match) return null;
+  const values = match[1]
+    .split(/[,\s/]+/)
+    .filter(Boolean)
+    .map(Number);
+  if (values.length < 3 || values.length > 4 || !values.every(Number.isFinite)) return null;
   return {
-    '--bg-base': surface,
-    '--bg-elevated': low,
-    '--bg-toolbar': surface,
-    '--bg-inset': high,
-    '--bg-hover': high,
-    '--bg-active': container,
-    '--bg-elevated-hover': high,
-    '--text-primary': dark ? '#E5E9E0' : '#20251F',
-    '--text-secondary': dark ? '#B6C1B4' : '#626B62',
-    '--text-tertiary': dark ? '#A2AEA3' : '#687269',
-    '--border-subtle': dark ? '#3F4942' : '#D6DCD1',
-    '--border-default': dark ? '#67736A' : '#8A958A',
-    '--accent-primary': primary,
-    '--accent-hover': primary,
-    '--accent-primary-text': onPrimary,
-    '--accent-hover-text': onPrimary,
-    '--accent-bg': container,
-    '--accent-bg-hover': container,
-    '--md-primary-container': container,
-    '--md-on-primary-container': onContainer,
-    '--md-on-primary': onPrimary,
-    '--md-surface-high': high,
-    '--md-secondary-container': dark ? '#394530' : '#E4EACA',
-    '--md-on-secondary-container': dark ? '#DEE8C8' : '#414C2E',
-    '--md-tertiary-container': dark ? '#513E33' : '#F3DFD2',
-    '--md-on-tertiary-container': dark ? '#F4DDCC' : '#735344',
-    '--shadow-card': 'none',
-    '--shadow-card-hover': 'none',
+    rgb: values.slice(0, 3).map((n) => Math.max(0, Math.min(255, n))) as Rgb,
+    alpha: Math.max(0, Math.min(1, values[3] ?? 1)),
   };
 }
 
-export function applyAndroidMaterial(accent: AccentPreset) {
-  const root = document.documentElement;
-  Object.entries(androidMaterialTokens(root.dataset.theme === 'dark', accent)).forEach(
-    ([key, value]) => root.style.setProperty(key, value),
+/** 只解析应用主题的数值颜色，输出不透明 hex，兼容 WebGL 与原生 payload。 */
+export function materialHex(value: string, background = '#000000'): string {
+  const base = channels(background)?.rgb ?? [0, 0, 0];
+  const color = channels(value);
+  const rgb = color ? color.rgb.map((n, i) => n * color.alpha + base[i] * (1 - color.alpha)) : base;
+  return `#${rgb.map((n) => Math.round(n).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function mix(a: string, b: string, amount: number) {
+  const first = channels(a)!.rgb;
+  const second = channels(b)!.rgb;
+  return materialHex(
+    `rgb(${first.map((n, i) => n * (1 - amount) + second[i] * amount).join(',')})`,
   );
+}
+
+/** 无填色操作的强调色文字需要对比中性表面，而不是对比强调色自身。 */
+function accentInk(accent: string, backgrounds: string[], fallback: string) {
+  const luminance = (hex: string) =>
+    channels(hex)!.rgb.reduce((total, channel, index) => {
+      const value = channel / 255;
+      const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      return total + linear * [0.2126, 0.7152, 0.0722][index];
+    }, 0);
+  const surfaces = backgrounds.map(luminance);
+  const readable = (color: string) => {
+    const ink = luminance(color);
+    return surfaces.every(
+      (surface) => (Math.max(ink, surface) + 0.05) / (Math.min(ink, surface) + 0.05) >= 4.5,
+    );
+  };
+  if (readable(accent)) return accent;
+  // 只调整文字明度，保持原强调色填色与账户偏好；取能达标的最小混合量。
+  for (let step = 1; step <= 255; step++) {
+    for (const target of ['#000000', '#ffffff']) {
+      const candidate = mix(accent, target, step / 255);
+      if (readable(candidate)) return candidate;
+    }
+  }
+  return fallback;
+}
+
+/** Material 名称是共享主题的派生别名，不再覆盖桌面的背景、文字或强调色。 */
+export function androidMaterialTokens(colors: AndroidThemeColors): Record<string, string> {
+  const background = materialHex(colors.background);
+  const surface = materialHex(colors.surface, background);
+  const accent = materialHex(colors.accent, background);
+  const container = mix(surface, accent, 0.12);
+  return {
+    '--bg-base': background,
+    '--bg-elevated': surface,
+    '--text-primary': materialHex(colors.foreground, background),
+    '--text-secondary': materialHex(colors.secondary, surface),
+    '--accent-primary': accent,
+    '--md-primary-container': container,
+    '--md-on-primary-container': materialHex(colors.foreground, container),
+    '--md-on-primary': accentTextColor(accent)!,
+    '--md-primary-ink': accentInk(
+      accent,
+      [background, surface],
+      materialHex(colors.foreground, surface),
+    ),
+    '--md-surface-high': materialHex(colors.inset, surface),
+    '--md-secondary-container': mix(surface, accent, 0.06),
+    '--md-on-secondary-container': materialHex(colors.foreground, surface),
+    '--md-tertiary-container': mix(surface, accent, 0.18),
+    '--md-on-tertiary-container': materialHex(colors.foreground, surface),
+    '--android-liquid-base': surface,
+  };
+}
+
+function initialColors(): AndroidThemeColors {
+  const scheme = getSchemeById('warm-stone')!;
+  return {
+    background: scheme.variables['--bg-base'],
+    surface: scheme.variables['--bg-elevated'],
+    inset: scheme.variables['--bg-inset'],
+    foreground: scheme.variables['--text-primary'],
+    secondary: scheme.variables['--text-secondary'],
+    accent: scheme.preview.accent,
+  };
+}
+
+let snapshot = { dark: false, colors: androidMaterialTokens(initialColors()) };
+const listeners = new Set<() => void>();
+export const getAndroidMaterialSnapshot = () => snapshot;
+export function subscribeAndroidMaterial(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/** 同一次主题交付的 DOM 是唯一输入；不再次解析设置或系统模式。 */
+export function readAndroidMaterial() {
+  const root = document.documentElement;
+  const style = getComputedStyle(root);
+  const defaults = initialColors();
+  const read = (key: string, fallback: string) => style.getPropertyValue(key).trim() || fallback;
+  return {
+    dark: root.dataset.theme === 'dark',
+    colors: androidMaterialTokens({
+      background: read('--bg-base', defaults.background),
+      surface: read('--bg-elevated', defaults.surface),
+      inset: read('--bg-inset', defaults.inset),
+      foreground: read('--text-primary', defaults.foreground),
+      secondary: read('--text-secondary', defaults.secondary),
+      accent: read('--accent-primary', defaults.accent),
+    }),
+  };
+}
+
+export function applyAndroidMaterial() {
+  const next = readAndroidMaterial();
+  const root = document.documentElement;
+  Object.entries(next.colors).forEach(([key, value]) => {
+    if (key.startsWith('--md-') || key.startsWith('--android-liquid-'))
+      root.style.setProperty(key, value);
+  });
+  // CSS 不再依赖 color-mix；同一主题快照交付 RGB，alpha 仍由各表面与
+  // 减少透明度媒体查询控制。画布和原生 payload 的 hex 色板保持不变。
+  const foreground = next.colors['--text-primary'];
+  const background = next.colors['--bg-base'];
+  const rgbColors = {
+    surface: next.colors['--bg-elevated'],
+    foreground,
+    accent: next.colors['--accent-primary'],
+    'login-underlay': next.dark
+      ? mix(background, '#000000', 0.1)
+      : mix(background, foreground, 0.85),
+  };
+  Object.entries(rgbColors).forEach(([key, value]) =>
+    root.style.setProperty(`--android-theme-${key}-rgb`, channels(value)!.rgb.join(', ')),
+  );
+  if (JSON.stringify(next) !== JSON.stringify(snapshot)) {
+    snapshot = next;
+    listeners.forEach((listener) => listener());
+  }
 }

@@ -90,3 +90,6 @@ export const SAFE_AREA_BOTTOM = 'env(safe-area-inset-bottom, 0px)';
  * 这样既能保持固定的偏移量（如 72px），又能叠加系统手势条高度。
  */
 export const SAFE_AREA_BOTTOM_OFFSET = 'env(safe-area-inset-bottom, 0px)';
+
+/** 展开导航宽度约为原232px的80%，由布局和导航共用，原生交通灯仍保留下限。 */
+export const DESKTOP_SIDEBAR_EXPANDED_WIDTH = 186;

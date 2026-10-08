@@ -21,7 +21,8 @@ vi.mock('@/lib/i18n', () => ({
   default: { changeLanguage: vi.fn(async () => {}) },
   detectSystemLanguage: () => 'en-US',
 }));
-vi.mock('@/lib/theme', () => ({
+vi.mock('@/lib/theme', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/theme')>()),
   applyTheme: vi.fn(async () => {}),
   getSystemTheme: vi.fn(async () => 'light' as const),
   listenForSystemTheme: vi.fn(async () => () => {}),
@@ -91,6 +92,62 @@ afterEach(() => {
 });
 
 describe('RF111 真实 Store 设置交互', () => {
+  it('Android 自定义颜色保存失败时不启用该颜色', async () => {
+    const write = deferred<void>();
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'user_data_update_preference') return write.promise;
+    });
+    renderPage(<AndroidAppearance />);
+    const input = screen.getByRole('textbox', { name: 'settings:accent_custom' });
+    fireEvent.change(input, { target: { value: '#112233' } });
+    fireEvent.submit(input.closest('form')!);
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    await act(async () => write.reject(new Error('disk full')));
+    expect(writes()).toHaveLength(1);
+    expect(useSettingsStore.getState().settings.accentColor).toBe('ocean');
+    expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('Android 自定义颜色保存期间选择预设，迟到结果不覆盖预设', async () => {
+    const write = deferred<void>();
+    mockInvoke.mockImplementation(async (cmd, args) => {
+      if (cmd !== 'user_data_update_preference') return;
+      const { preferences } = (args as { payload: { preferences: Record<string, unknown> } })
+        .payload;
+      if ('customAccentHex' in preferences) return write.promise;
+    });
+    renderPage(<AndroidAppearance />);
+    const input = screen.getByRole('textbox', { name: 'settings:accent_custom' });
+    fireEvent.change(input, { target: { value: '#112233' } });
+    fireEvent.submit(input.closest('form')!);
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    fireEvent.click(screen.getByRole('button', { name: 'settings:accent_forest' }));
+    await waitFor(() => expect(writes()).toHaveLength(2));
+    await act(async () => write.resolve());
+    expect(writes()).toHaveLength(2);
+    expect(useSettingsStore.getState().settings.accentColor).toBe('forest');
+  });
+
+  it('Android 自定义颜色保存期间切换账户，不交付到新账户', async () => {
+    const write = deferred<void>();
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'user_data_update_preference') return write.promise;
+    });
+    renderPage(<AndroidAppearance />);
+    const input = screen.getByRole('textbox', { name: 'settings:accent_custom' });
+    fireEvent.change(input, { target: { value: '#112233' } });
+    fireEvent.submit(input.closest('form')!);
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    act(() => {
+      useAuthStore.setState({ currentAccount: { id: 'other', name: 'Other' } });
+      useSettingsStore.setState({ settings: { ...defaults, accentColor: 'rose' } });
+    });
+    await act(async () => write.resolve());
+    expect(writes()).toHaveLength(1);
+    expect(useSettingsStore.getState().settings.accentColor).toBe('rose');
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
   it('外观保存失败提示一次、回滚单选值，不应用主题或写成功缓存', async () => {
     const write = deferred<void>();
     mockInvoke.mockImplementation(async (cmd) => {

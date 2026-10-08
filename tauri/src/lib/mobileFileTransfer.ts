@@ -12,7 +12,8 @@
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { copyFile, mkdir, remove, stat } from '@tauri-apps/plugin-fs';
-import { appCacheDir, join } from '@tauri-apps/api/path';
+import { appCacheDir, join, tempDir } from '@tauri-apps/api/path';
+import { getPlatform } from './platform';
 
 const STAGE_DIR = 'solosoul_mobile_stage';
 
@@ -28,8 +29,10 @@ export function isUriPath(path: string): boolean {
 }
 
 async function ensureStageDir(): Promise<string> {
-  const cacheDir = await appCacheDir();
-  const stageDir = await join(cacheDir, STAGE_DIR);
+  // iOS 原生附件命令允许应用临时目录，Library/Caches 不在其源路径白名单内。
+  // 与系统选择器的临时副本使用同一边界，不扩展后端文件访问权限。
+  const baseDir = (await getPlatform()) === 'ios' ? await tempDir() : await appCacheDir();
+  const stageDir = await join(baseDir, STAGE_DIR);
   await mkdir(stageDir, { recursive: true });
   return stageDir;
 }

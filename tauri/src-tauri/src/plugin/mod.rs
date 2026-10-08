@@ -134,8 +134,13 @@ fn plugin_data_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, PluginError
     let data_dir = crate::native_perf::root()
         .map_err(PluginError::StoreError)?
         .join("plugins");
+    #[cfg(feature = "macos-ui-regression")]
+    let data_dir = crate::macos_ui_regression::root()
+        .map_err(PluginError::StoreError)?
+        .join("plugins");
     #[cfg(all(
         not(feature = "native-perf"),
+        not(feature = "macos-ui-regression"),
         not(any(target_os = "android", target_os = "ios"))
     ))]
     let data_dir = PluginStore::data_dir()?;

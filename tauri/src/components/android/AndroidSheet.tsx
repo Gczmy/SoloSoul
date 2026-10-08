@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOverlayBackGuard } from '@/hooks/useOverlayBackGuard';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 
 /** 仅在打开时挂载：沿用安卓返回栈守卫，Portal 避免被内容区裁剪。 */
 export function AndroidSheet({
@@ -13,6 +14,7 @@ export function AndroidSheet({
   onBack = onClose,
   trigger,
   zIndex,
+  material = 'glass',
 }: {
   title: string;
   children: ReactNode;
@@ -22,6 +24,8 @@ export function AndroidSheet({
   trigger?: HTMLElement | null;
   /** 附件等面板内的菜单需要高于宿主覆盖层。 */
   zIndex?: CSSProperties['zIndex'];
+  /** 长表单使用实色，短操作菜单保留局部玻璃。 */
+  material?: 'glass' | 'solid';
 }) {
   const { t } = useTranslation('common');
   const titleId = useId();
@@ -96,7 +100,7 @@ export function AndroidSheet({
       <div className="android-sheet-scrim" onClick={onClose} />
       <div
         ref={panel}
-        className="android-sheet android-glass-surface"
+        className={`android-sheet${material === 'glass' ? ' android-glass-surface' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -114,6 +118,7 @@ export function AndroidSheet({
             <X size={24} />
           </button>
         </header>
+        <ToastOutlet priority={typeof zIndex === 'number' ? zIndex : 4000} />
         {children}
       </div>
     </div>,

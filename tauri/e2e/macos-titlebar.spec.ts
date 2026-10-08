@@ -77,10 +77,13 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     expect(title.x).toBeGreaterThanOrEqual(91);
     await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
     const mainBox = (await page.locator('main').boundingBox())!;
-    expect(mainBox.y).toBe(position === 'top' ? 100 : 52);
+    expect(mainBox.y).toBe(position === 'top' ? 108 : 60);
     await expect(page.locator('main')).toHaveCSS('padding-top', '24px');
-    // 避让移到壳的正常流，正文首行绝对起点维持原来的 76/124px。
-    expect(mainBox.y + 24).toBe(position === 'top' ? 124 : 76);
+    // 顶栏高度不变；新内容面只增加 8px 外沿留白。
+    expect(mainBox.y + 24).toBe(position === 'top' ? 132 : 84);
+    expect(headerBox.x).toBe(0);
+    expect(headerBox.width).toBe(1280);
+    await expect(page.locator('[data-shell-surface]')).toHaveCSS('border-radius', '16px');
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
     await expect(guide).toHaveCSS('font-size', '14px');
     await expectNativeControl(guide);
@@ -102,22 +105,30 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
         sidebar: getComputedStyle(document.querySelector('#desktop-navigation')!).backgroundColor,
       }));
       expect(surfaces.top).toBe('rgba(0, 0, 0, 0)');
-      await expect(page.locator('main').locator('..')).toHaveCSS(
-        'background-image',
-        /linear-gradient/,
+      await expect(page.locator('[data-shell-surface]')).toHaveCSS('background-image', 'none');
+      await expect(page.locator('[data-shell-surface]')).not.toHaveCSS(
+        'background-color',
+        'rgba(0, 0, 0, 0)',
       );
       expect(surfaces.sidebar).toBe('rgba(0, 0, 0, 0)');
       const sidebar = page.locator('#desktop-navigation');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
-      await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+      const toggle = header.getByRole('button', { name: 'Collapse sidebar' });
+      await expectNativeControl(toggle);
+      const toggleBefore = await toggle.boundingBox();
+      await toggle.click();
+      const expandedToggle = header.getByRole('button', { name: 'Expand sidebar' });
+      expect(await expandedToggle.boundingBox()).toEqual(toggleBefore);
+      await expectNativeControl(expandedToggle);
+      await expect(sidebar.getByRole('button', { name: 'Expand sidebar' })).toHaveCount(0);
       await expect(sidebar).toHaveCSS('width', '96px');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
       // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
       const collapsed = (await sidebar.boundingBox())!;
       if (position === 'left') {
         expect(collapsed.x + collapsed.width).toBeGreaterThanOrEqual(79 + 16);
-        expect((await header.boundingBox())!.x).toBe(collapsed.width);
-        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width);
+        expect((await header.boundingBox())!.x).toBe(0);
+        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 8);
       }
       expect((await header.locator('h1').boundingBox())!.x).toBeGreaterThanOrEqual(91);
       await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
@@ -139,7 +150,7 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
   });
 }
 
-test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ page }) => {
+test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ page, baseURL }) => {
   await mockMacOS(page);
   await login(page);
   const sidebar = page.locator('#desktop-navigation');
@@ -163,7 +174,7 @@ test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ pa
   await expect(page).toHaveURL(/\/workspace/);
   await expectNativeControl(create);
   await back.click();
-  await expect(page).toHaveURL('http://localhost:1420/');
+  await expect(page).toHaveURL(new URL('/', baseURL).href);
   await expect(back).toHaveCount(0);
   await expectNativeControl(header.getByRole('button', { name: 'Guide', exact: true }));
 });
@@ -179,7 +190,7 @@ test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ p
       window.dispatchEvent(new Event('resize'));
     }, height);
     await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', `${height}px`);
-    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(52);
+    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(60);
     expect((await page.locator('header').boundingBox())!.height).toBe(52);
     expect((await page.locator('header').boundingBox())!.y).toBe(0);
     await expect(sidebar).toHaveCSS('width', '96px');
@@ -192,8 +203,11 @@ test('macOS 交通灯范围变宽时折叠侧栏和正文同步避让', async ({
   const sidebar = page.locator('#desktop-navigation');
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(sidebar).toHaveCSS('width', '122px');
-  expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(122);
-  expect((await page.locator('main').boundingBox())!.x).toBe(122);
+  expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(0);
+  expect((await page.locator('main').boundingBox())!.x).toBe(130);
+  const toggle = page.getByRole('button', { name: 'Expand sidebar' });
+  expect((await toggle.boundingBox())!.x).toBe(118);
+  await expectNativeControl(toggle);
 });
 
 test('macOS 小窗口登录卡片保留上下留白及完整圆角', async ({ page }) => {

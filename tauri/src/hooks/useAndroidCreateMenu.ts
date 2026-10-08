@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { invokeCommand } from '@/lib/ipcClient';
 import { withTimeout } from '@/lib/withTimeout';
-import { androidMaterialTokens } from '@/lib/androidMaterial';
+import { readAndroidMaterial } from '@/lib/androidMaterial';
 import {
   requestAndroidGlassMenu,
   type AndroidCreateAction,
@@ -99,8 +99,7 @@ export function useAndroidCreateMenu(
         .catch(() => {});
       listener = await withTimeout(registration, 1000);
       if (!current()) return;
-      const dark = document.documentElement.dataset.theme === 'dark';
-      const colors = androidMaterialTokens(dark, useSettingsStore.getState().settings.accentColor);
+      const { dark, colors } = readAndroidMaterial();
       const operation = requestAndroidGlassMenu({
         requestId: crypto.randomUUID(),
         title: t('material.new_title'),

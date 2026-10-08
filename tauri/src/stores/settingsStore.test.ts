@@ -130,13 +130,26 @@ describe('settingsStore', () => {
         theme: 'light',
         accentColor: 'forest',
         language: 'zh-CN',
-        defaultLightTheme: 'warm-stone',
-        defaultDarkTheme: 'warm-stone-dark',
+        defaultLightTheme: 'clean-slate',
+        defaultDarkTheme: 'forest-night',
       });
       await useSettingsStore.getState().loadUiPreferences();
       expect(useSettingsStore.getState().settings.theme).toBe('light');
       expect(useSettingsStore.getState().settings.accentColor).toBe('forest');
       expect(useSettingsStore.getState().settings.language).toBe('zh-CN');
+      expect(applyTheme).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          defaultLightTheme: 'clean-slate',
+          defaultDarkTheme: 'forest-night',
+        }),
+        expect.any(Function),
+      );
+      expect(JSON.parse(localStorageData['solosoul_ui_prefs'])).toEqual(
+        expect.objectContaining({
+          defaultLightTheme: 'clean-slate',
+          defaultDarkTheme: 'forest-night',
+        }),
+      );
       expect(localStorageData['solosoul_ui_prefs']).toContain('light');
     });
 
@@ -148,6 +161,31 @@ describe('settingsStore', () => {
   });
 
   describe('loadSettings', () => {
+    it('账户切换后更新启动缓存，冷启动首帧不沿用上一账户的外观', async () => {
+      localStorageData['solosoul_ui_prefs'] = JSON.stringify({
+        theme: 'light',
+        accentColor: 'custom',
+        customAccentHex: '#ffee00',
+        defaultLightTheme: 'clean-slate',
+        androidGlass: 'local',
+      });
+      const prefs = {
+        theme: 'dark',
+        accentColor: 'custom',
+        customAccentHex: '#112233',
+        defaultDarkTheme: 'forest-night',
+        androidGlass: 'enhanced',
+      };
+      vi.mocked(invoke).mockImplementation(async (command) =>
+        command === 'user_data_get_preferences' ? prefs : undefined,
+      );
+
+      await useSettingsStore.getState().loadSettings('acc-1');
+
+      expect(JSON.parse(localStorageData['solosoul_ui_prefs'])).toEqual(
+        expect.objectContaining(prefs),
+      );
+    });
     it('should load and validate all preference fields', async () => {
       vi.mocked(invoke).mockResolvedValue({
         theme: 'dark',
@@ -239,6 +277,21 @@ describe('settingsStore', () => {
   });
 
   describe('updateSetting', () => {
+    it('减少动态效果保留布尔账户偏好，但登录前镜像按 Rust 字符串契约传输', async () => {
+      vi.mocked(invoke).mockResolvedValue(undefined);
+      for (const reduced of [true, false]) {
+        await useSettingsStore.getState().updateSetting('acc-1', 'reduceMotion', reduced);
+        expect(invoke).toHaveBeenLastCalledWith('ui_update_preference', {
+          key: 'reduceMotion',
+          value: JSON.stringify(reduced),
+        });
+        expect(invoke).toHaveBeenCalledWith('user_data_update_preference', {
+          payload: { accountId: 'acc-1', preferences: { reduceMotion: reduced } },
+        });
+        expect(JSON.parse(localStorageData['solosoul_ui_prefs']).reduceMotion).toBe(reduced);
+      }
+    });
+
     it('修改自定义色后同时更新登录偏好与缓存', async () => {
       vi.mocked(invoke).mockResolvedValue(undefined);
       await useSettingsStore.getState().updateSetting('acc-1', 'customAccentHex', '#777777');

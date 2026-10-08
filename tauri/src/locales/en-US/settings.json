@@ -49,6 +49,7 @@
   "password_mismatch": "Passwords do not match",
   "password_too_short": "Password must be at least 8 characters",
   "accent_color": "Accent Color",
+  "accent_custom": "Custom accent color (hex)",
   "accent_ocean": "Ocean",
   "accent_amber": "Amber",
   "accent_forest": "Forest",

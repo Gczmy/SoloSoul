@@ -34,11 +34,18 @@ async function setupSidebar(
           }),
         },
       });
-      const bridge = (window as any).__TAURI_INTERNALS__;
+      const bridge = (
+        window as typeof window & {
+          __TAURI_INTERNALS__: { invoke: (cmd: string, args: unknown) => Promise<unknown> };
+        }
+      ).__TAURI_INTERNALS__;
       const invoke = bridge.invoke;
       bridge.invoke = async (cmd: string, args: unknown) => {
         const result = await invoke(cmd, args);
-        if (cmd === 'user_data_get_preferences') result.sidebarPosition = position;
+        if (cmd === 'user_data_get_preferences') {
+          if (!result || typeof result !== 'object') throw new Error('Invalid preference fixture');
+          Object.assign(result, { sidebarPosition: position });
+        }
         return result;
       };
       localStorage.setItem('i18nextLng', 'en-US');
@@ -132,7 +139,7 @@ for (const position of ['left', 'right'] as const) {
   test(`${position} 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航`, async ({ page }) => {
     await setupSidebar(page, position);
     const nav = page.locator('#desktop-navigation');
-    await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+    await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
     const tools = nav.getByRole('button', { name: 'Tools', exact: true });
     const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
     const menu = nav.locator('[data-sidebar-tools]');
@@ -156,7 +163,15 @@ for (const position of ['left', 'right'] as const) {
     await page.setViewportSize({ width: 800, height: 600 });
     await tools.hover();
     await expect(menu).toBeVisible();
-    expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(100);
+    const navigationStart = await nav.evaluate((element) => {
+      const brand = element.querySelector('[class*="brandHeader"]');
+      return (
+        brand?.getBoundingClientRect().bottom ??
+        element.getBoundingClientRect().top + parseFloat(getComputedStyle(element).paddingTop)
+      );
+    });
+    expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(navigationStart + 8);
+    expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(52);
     await menu.getByRole('button', { name: 'AI Chat', exact: true }).click();
     const chat = page.locator('[data-ai-quick-chat="open"]');
     await expect(chat).toBeInViewport();
@@ -178,7 +193,7 @@ test('添加页面在折叠侧栏复用导航的提示卡片，展开后不重�
   const nav = page.locator('#desktop-navigation');
   const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
   const identity = nav.getByRole('button', { name: 'Identity', exact: true });
-  await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+  await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
   expect(await buttonAppearance(addPage)).toEqual(await buttonAppearance(identity));
   await identity.hover();
   const tooltip = page.locator('[role="tooltip"]');
@@ -187,7 +202,7 @@ test('添加页面在折叠侧栏复用导航的提示卡片，展开后不重�
   await addPage.hover();
   await expect(tooltip).toHaveText('Add Page');
   await expect(tooltip).toHaveAttribute('class', tooltipClass!);
-  await nav.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
+  await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
   await addPage.hover();
   await expect(tooltip).toHaveCount(0);
 });
@@ -201,7 +216,7 @@ for (const position of ['left', 'right'] as const) {
       await setupSidebar(page, position);
       const nav = page.locator('#desktop-navigation');
       if (collapsed)
-        await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
       const trigger = nav.getByRole('button', { name: 'Add Page', exact: true });
       const triggerBounds = (await trigger.boundingBox())!;
       await trigger.click();
@@ -344,7 +359,7 @@ for (const position of ['left', 'right'] as const) {
       await setupSidebar(page, position);
       const nav = page.locator('#desktop-navigation');
       if (collapsed)
-        await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
       const search = nav.getByRole('button', { name: 'Search', exact: true });
       const input = page.getByPlaceholder('Search objects, profiles...');
@@ -424,7 +439,10 @@ test('小窗口工具列表利用剩余高度，卡片打开期间保持菜单�
   await expect(chat.getByRole('button', { name: 'Close', exact: true })).toBeVisible();
   await chat.hover();
   await expect(tools).toHaveAttribute('aria-expanded', 'true');
-  expect((await chat.boundingBox())!.x).toBeGreaterThanOrEqual(232);
+  const navigationBounds = (await nav.boundingBox())!;
+  expect((await chat.boundingBox())!.x).toBeGreaterThanOrEqual(
+    navigationBounds.x + navigationBounds.width,
+  );
   await chat.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(chat).toHaveCount(0);
   await expect(tools).toHaveAttribute('aria-expanded', 'false');
@@ -538,7 +556,7 @@ for (const platform of ['macos', 'windows']) {
       await setupSidebar(page, 'left', platform);
       const nav = page.locator('#desktop-navigation');
       if (collapsed)
-        await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
       const menu = nav.locator('[data-sidebar-tools]');
       const toggleBounds = await tools.boundingBox();

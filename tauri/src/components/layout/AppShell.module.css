@@ -1,7 +1,7 @@
 .appShell {
   display: flex;
   height: 100vh;
-  height: 100dvh;
+  height: var(--viewport-height, 100vh);
   overflow: hidden;
   background: var(--bg-base);
   /* 移动端禁用双指缩放（继承到子元素） */
@@ -22,6 +22,11 @@
   min-width: 0;
   min-height: 0;
   touch-action: manipulation;
+}
+
+/* 非 macOS 保持原布局；只有桌面 macOS 有独立的内容表面。 */
+.contentSurface {
+  display: contents;
 }
 
 /* 键盘弹出时 .content 是主要滚动容器；overscroll-behavior 防止系统手势误触 */
@@ -56,20 +61,6 @@
 
 :global(html[data-native-material]:not([data-native-material='solid'])) .appShell {
   background: transparent;
-}
-@media (min-width: 768px) {
-  :global(
-      html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])
-    )
-    .appShell
-    .main {
-    background: linear-gradient(
-      to bottom,
-      transparent 0 var(--shell-chrome-bottom),
-      var(--bg-base) var(--shell-chrome-bottom) calc(100% - var(--shell-navigation-bottom)),
-      transparent calc(100% - var(--shell-navigation-bottom))
-    );
-  }
 }
 @media (min-width: 768px) {
   .appShell[data-navigation='left'] .main,
@@ -109,6 +100,45 @@
   }
   :global(html[data-desktop-platform='windows'][data-high-contrast='true']) .content {
     outline: 1px solid var(--text-primary);
+    outline-offset: -1px;
+  }
+}
+
+@media (min-width: 768px) {
+  :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] {
+    /* body 的独立绘制层统一着色；顶栏和侧栏不重复叠加 alpha。 */
+    background: transparent;
+    --navigation-divider: var(--mac-navigation-divider);
+    --shell-content-surface: var(--bg-base);
+  }
+  :global(html[data-desktop-platform='macos'][data-theme='light']) .appShell[data-macos-shell] {
+    /* 浅色正文使用纯白，与沿用登录底色的导航外壳分开。 */
+    --shell-content-surface: #fff;
+  }
+  :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .main {
+    background: transparent;
+  }
+  :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .contentSurface {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    margin: var(--mac-content-inset);
+    background: var(--shell-content-surface);
+    border-radius: var(--mac-content-radius);
+    /* 仅裁剪内容面；Portal 仍挂在外部，不加入 filter/transform 定位祖先。 */
+    overflow: hidden;
+  }
+  :global(html[data-desktop-platform='macos'][data-high-contrast='true']) .contentSurface {
+    outline: 1px solid var(--text-primary);
+    outline-offset: -1px;
+  }
+}
+
+@media (min-width: 768px) and (forced-colors: active) {
+  .appShell[data-macos-shell] .contentSurface {
+    outline: 1px solid CanvasText;
     outline-offset: -1px;
   }
 }

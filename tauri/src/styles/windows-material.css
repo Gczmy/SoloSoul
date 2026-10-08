@@ -3,7 +3,8 @@
    系统标题栏、窗口边框与失焦时的 Mica 回退继续交给 DWM。 */
 html[data-desktop-platform='windows'] {
   --navigation-divider: transparent;
-  --windows-navigation-surface: color-mix(in srgb, var(--bg-base), var(--text-primary) 5%);
+  --windows-navigation-tint: rgb(0 0 0 / 8%);
+  --windows-navigation-surface: var(--desktop-navigation-solid);
   --windows-flyout-fill: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   --windows-flyout-shadow: 0 12px 32px var(--shadow-color-lg), 0 2px 6px var(--shadow-color-sm);
   --windows-card-shadow: 0 1px 3px var(--shadow-color-sm);
@@ -44,6 +45,14 @@ html[data-desktop-platform='windows'] {
   }
 }
 
+html[data-desktop-platform='windows'][data-theme='dark'] {
+  --windows-navigation-tint: rgb(0 0 0 / 45%);
+}
+
+html[data-desktop-platform='windows'][data-high-contrast='true'] {
+  --windows-navigation-tint: var(--windows-navigation-surface);
+}
+
 @supports (backdrop-filter: blur(1px)) {
   html[data-desktop-platform='windows'][data-native-material='mica']:where(
       :not([data-high-contrast='true'])
@@ -64,6 +73,9 @@ html[data-desktop-platform='windows'][data-high-contrast='true'] {
 }
 
 @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  html[data-desktop-platform='windows'] {
+    --windows-navigation-tint: var(--windows-navigation-surface);
+  }
   html[data-desktop-platform='windows'][data-native-material]
     :is([data-macos-glass], [data-ui-card='floating'], [data-macos-glass-backdrop]) {
     -webkit-backdrop-filter: none !important;

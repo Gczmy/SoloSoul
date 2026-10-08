@@ -28,7 +28,7 @@
 @media (max-width: 767px) {
   .card {
     max-height: calc(100vh - 64px);
-    max-height: calc(100dvh - 64px);
+    max-height: calc(var(--viewport-height, 100vh) - 64px);
   }
 }
 .inputRow {

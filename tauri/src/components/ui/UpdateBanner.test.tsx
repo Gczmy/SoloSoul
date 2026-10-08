@@ -3,7 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { UpdateBanner } from './UpdateBanner';
 import { isMobilePlatformSync } from '@/lib/platform';
 
-vi.mock('@/lib/platform', () => ({ isMobilePlatformSync: vi.fn(() => false) }));
+vi.mock('@/lib/platform', () => ({
+  isMobilePlatformSync: vi.fn(() => false),
+  isAndroidSync: vi.fn(() => false),
+}));
 
 // 此文件验证横幅交互；ReleaseNotesMarkdown.test 使用真实 GFM 解析器。
 vi.mock('@/components/ui/ReleaseNotesMarkdown', () => ({

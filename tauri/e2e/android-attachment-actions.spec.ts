@@ -92,6 +92,68 @@ async function openMenu(page: Page, fileName = 'Travel report.pdf') {
   return menu;
 }
 
+test('reminders follow object attachments and history without being trapped below the overlay', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.locator('.android-navigation a[href="/workspace"]').click();
+  await page.getByTestId('workspace-object-card').getByRole('button').first().click();
+  const detail = page.getByTestId('object-detail-modal');
+  await expect(detail).toBeVisible();
+  await page.evaluate(async () => {
+    const source = '/src/stores/uiStore.ts';
+    const { useUiStore } = await import(source);
+    useUiStore.getState().showToast({
+      message: 'Backup reminder in a nested attachment or history panel',
+      type: 'warning',
+      duration: 60000,
+    });
+  });
+  const toast = page.locator('[data-toast-container]');
+  await detail.getByRole('button', { name: 'Attachments (1)', exact: true }).click();
+  const expectFrontToast = async () => {
+    await expect(toast).toHaveCount(1);
+    await expect
+      .poll(() =>
+        toast.evaluate((node) => {
+          const backdrop = node.closest('[data-macos-glass-backdrop]');
+          const panel = node.closest('[data-macos-glass="panel"]');
+          const r = node.getBoundingClientRect();
+          const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return {
+            layer: backdrop && getComputedStyle(backdrop).zIndex,
+            inFlow: getComputedStyle(node).position,
+            hit: !!hit && node.contains(hit),
+            settled: panel?.getAnimations().every((animation) => animation.playState !== 'running'),
+          };
+        }),
+      )
+      .toEqual({ layer: '5100', inFlow: 'static', hit: true, settled: true });
+  };
+  await expectFrontToast();
+  const actions = page.getByRole('button', {
+    name: 'Attachment actions: Travel report.pdf',
+    exact: true,
+  });
+  await actions.scrollIntoViewIfNeeded();
+  await expect(actions).toBeVisible();
+  await actions.click();
+  const menu = page.getByRole('dialog', { name: 'More actions', exact: true });
+  await expect(menu.locator('[data-toast-container]')).toBeVisible();
+  await page.goBack();
+  await expect(menu).toHaveCount(0);
+  await expectFrontToast();
+  await page.goBack();
+  await expect(detail.locator('[data-toast-container]')).toBeVisible();
+  await detail.getByRole('button', { name: 'Actions for Travel documents', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'History', exact: true }).click();
+  await expect(page.getByText(/^Version #1 ·/)).toBeVisible();
+  await expectFrontToast();
+  await page.screenshot({ path: test.info().outputPath('toast-history-320.png') });
+  await page.goBack();
+  await expect(detail.locator('[data-toast-container]')).toBeVisible();
+});
+
 test('Android Back closes object details and preserves the current filtered workspace', async ({
   page,
 }) => {

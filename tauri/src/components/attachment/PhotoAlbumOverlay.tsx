@@ -12,6 +12,7 @@ import { usePhotoAlbumState, tagCountBadge } from './usePhotoAlbumState';
 import type { AlbumGroupMode } from './usePhotoAlbumState';
 import { PreviewTitlebar } from './PreviewTitlebar';
 import { PreviewWindow } from './PreviewWindow';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 
 export type { AlbumGroupMode } from './usePhotoAlbumState';
 
@@ -122,6 +123,9 @@ export function PhotoAlbumOverlay({
           iconSize={ICON_SIZE.md}
         />
       </PreviewTitlebar>
+      {(viewerIndex === null || !viewerItems[viewerIndex]) && (
+        <ToastOutlet priority={7000} className="preview-notifications" />
+      )}
 
       {/* 工具栏：标签筛选 + 排序 + 分组 */}
       {(tagOptions.length > 0 || visibleItems.length > 0) && (
@@ -373,14 +377,21 @@ export function PhotoAlbumOverlay({
                 inset: 0,
                 zIndex: 'var(--z-preview-overlay)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: '#000',
               }}
             >
+              <ToastOutlet priority={7000} className="preview-notifications" />
               <div
                 className="spinner"
-                style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }}
+                style={{
+                  width: 24,
+                  height: 24,
+                  margin: 'auto',
+                  borderTopColor: 'var(--text-secondary)',
+                }}
               />
             </PreviewWindow>
           }

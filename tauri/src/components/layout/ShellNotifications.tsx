@@ -1,5 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import styles from './ShellNotifications.module.css';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 
 const ShellNotificationsContext = createContext<ReactNode>(null);
 
@@ -24,6 +25,7 @@ export function ShellNotificationSlot() {
   return (
     <div className={styles.slot} data-shell-notifications>
       {notifications}
+      <ToastOutlet />
     </div>
   );
 }

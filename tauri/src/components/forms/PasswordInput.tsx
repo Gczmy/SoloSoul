@@ -254,9 +254,11 @@ export function SecurePasswordInput({
           aria-live="polite"
           style={{
             flex: 1,
+            minWidth: 0,
+            width: 0,
             border: 'none',
             outline: 'none',
-            padding: showHintButton ? '10px 72px 10px 32px' : '10px 48px 10px 32px',
+            padding: '10px 8px 10px 32px',
             fontSize: 'var(--text-body)',
             background: 'transparent',
             color: 'var(--text-primary)',
@@ -266,15 +268,13 @@ export function SecurePasswordInput({
           }}
         />
 
-        {/* Button area (absolute positioned on the right) */}
+        {/* 操作区参与布局，长密码只能在输入框自身范围内水平滚动。 */}
         <div
           style={{
-            position: 'absolute',
-            right: 8,
-            top: 0,
-            bottom: 0,
             display: 'flex',
             alignItems: 'center',
+            flexShrink: 0,
+            paddingRight: 8,
             gap: 2,
           }}
         >

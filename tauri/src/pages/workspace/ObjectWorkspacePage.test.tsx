@@ -232,7 +232,7 @@ describe('ObjectWorkspacePage card field display', () => {
       target: { value: 'Mike' },
     });
     await waitFor(() => expect(cardNames()).toEqual(['Mike']));
-    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(screen.getByRole('button', { name: 'clear' }));
     await waitFor(() => expect(cardNames()).toEqual(['Alpha', 'Mike', 'Zulu']));
   });
 
@@ -252,7 +252,7 @@ describe('ObjectWorkspacePage card field display', () => {
       target: { value: 'Item 51' },
     });
     await waitFor(() => expect(screen.getAllByTestId('workspace-object-card')).toHaveLength(1));
-    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(screen.getByRole('button', { name: 'clear' }));
     await waitFor(() => expect(screen.getAllByTestId('workspace-object-card')).toHaveLength(50));
     expect(screen.getByRole('button', { name: '加载更多' })).toBeInTheDocument();
   });
@@ -285,7 +285,7 @@ describe('ObjectWorkspacePage card field display', () => {
     );
     const card = await screen.findByTestId('workspace-object-card');
 
-    fireEvent.click(within(card).getAllByTitle('History')[0]);
+    fireEvent.click(within(card).getAllByTitle('common:history')[0]);
     const history = screen.getByRole('dialog', { name: 'object history' });
     expect(history).toHaveAttribute('data-object-id', 'obj1');
     expect(within(history).getByText('internal')).toBeInTheDocument();
@@ -293,16 +293,16 @@ describe('ObjectWorkspacePage card field display', () => {
     expect(screen.queryByRole('dialog', { name: 'object detail' })).toBeNull();
     fireEvent.click(within(history).getByRole('button', { name: 'Close history' }));
 
-    fireEvent.click(within(card).getAllByTitle('Attachments')[0]);
+    fireEvent.click(within(card).getAllByTitle('common:attachments')[0]);
     const attachments = screen.getByRole('dialog', { name: 'object attachments' });
     expect(attachments).toHaveAttribute('data-object-id', 'obj1');
     fireEvent.click(within(attachments).getByRole('button', { name: 'Close attachments' }));
 
-    fireEvent.click(within(card).getAllByTitle('Edit')[0]);
+    fireEvent.click(within(card).getAllByTitle('common:edit')[0]);
     expect(navigate).toHaveBeenCalledWith('/editor/obj1');
     expect(screen.queryByRole('dialog', { name: 'object detail' })).toBeNull();
 
-    fireEvent.click(within(card).getAllByTitle('Move to trash')[0]);
+    fireEvent.click(within(card).getAllByTitle('common:move_to_trash')[0]);
     const confirm = screen.getByRole('dialog');
     expect(within(confirm).getByRole('button', { name: 'delete' })).toBeInTheDocument();
     fireEvent.click(within(confirm).getByRole('button', { name: 'cancel' }));
@@ -411,7 +411,7 @@ describe('ObjectWorkspacePage card field display', () => {
     );
 
     const card = await screen.findByTestId('workspace-object-card');
-    fireEvent.click(within(card).getAllByTitle('Move to trash')[0]);
+    fireEvent.click(within(card).getAllByTitle('common:move_to_trash')[0]);
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
     expect(attempts).toBe(1);
     expect(screen.getByRole('dialog')).toBeInTheDocument();

@@ -20,6 +20,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { usePhotoViewer, swipeNavigation } from './usePhotoViewer';
 import { PreviewTitlebar } from './PreviewTitlebar';
 import { PreviewWindow } from './PreviewWindow';
+import { ToastOutlet } from '@/components/ui/ToastOutlet';
 export { computeFitScale } from '@/lib/photoZoom';
 export { swipeNavigation } from './usePhotoViewer';
 
@@ -308,6 +309,7 @@ export function PhotoViewerOverlay({
           <X size={ICON_SIZE.md} />
         </button>
       </PreviewTitlebar>
+      <ToastOutlet priority={7000} className="preview-notifications" />
 
       {/* 描述/标签编辑对话框（覆盖查看器） */}
       {metaEditOpen && item && (

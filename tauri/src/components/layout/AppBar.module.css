@@ -18,6 +18,49 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+:global(html[data-platform='ios']) .appBar {
+  top: var(--ios-viewport-offset, 0px);
+}
+
+@media (min-width: 768px) {
+  .appBar[data-macos-shell][data-native-compact='true'] {
+    left: 0;
+    right: 0;
+    padding-left: calc(var(--mac-page-title-left) + 12px);
+    border-bottom: 0;
+    background: transparent;
+  }
+  .appBar[data-macos-shell] .sidebarToggle {
+    position: absolute;
+    left: var(--mac-sidebar-control-left);
+    top: calc((var(--appbar-height, 52px) - 32px) / 2);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .sidebarToggle:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: -2px;
+  }
+  .appBar[data-macos-shell] .sidebarToggle:active {
+    background: var(--state-pressed);
+  }
+}
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  .appBar[data-macos-shell] .sidebarToggle:hover {
+    background: var(--state-hover);
+    color: var(--text-primary);
+  }
+}
+
 /* Horizontal navigation (top/bottom) makes the app bar span the full width. */
 .horizontal {
   left: 0;
@@ -90,8 +133,8 @@
     left: 0;
     right: 0;
     top: 0;
-    padding: env(safe-area-inset-top, 0px) 12px 0;
-    height: calc(48px + env(safe-area-inset-top, 0px));
+    padding: var(--safe-area-top) 12px 0;
+    height: calc(48px + var(--safe-area-top));
     /* Ensure the app bar itself receives touches, not the system status area */
     pointer-events: auto;
     /* 全不透明背景，滑动时内容不会从系统状态栏透出 */
