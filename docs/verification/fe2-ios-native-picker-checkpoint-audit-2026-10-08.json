@@ -1,9 +1,0 @@
-{
-  "recorded_at": 1791449115.943352,
-  "passed": true,
-  "checks": 4123,
-  "current_source_files": 106,
-  "new_public_evidence_files": 503,
-  "mismatches": [],
-  "scope": "Current source hashes and all recursive declared evidence_sha256 maps; historical source maps preserved and receipt excluded from self hashing"
-}

@@ -1,7 +1,0 @@
-{
-  "serial": "emulator-5588",
-  "avd": "SoloSoul_FE2_API31",
-  "api": "31",
-  "boot_completed": "1",
-  "webview": "Current WebView Update Service state\n  Multiprocess enabled: true\n  Current WebView package (name, version): (com.google.android.webview, 91.0.4472.114)\n  Minimum targetSdkVersion: 31\n  Minimum WebView version code: 447211484\n  Number of relros started: 1\n  Number of relros finished: 1\n  WebView package dirty: false\n  Any WebView package installed: true\n  Preferred WebView package (name, version): (com.google.android.webview, 91.0.4472.114)\n  WebView packages:\n    Valid package com.google.android.webview (versionName: 91.0.4472.114, versionCode: 447211484, targetSdkVersion: 31) is  installed/enabled for all users\n    com.google.android.webview.beta is NOT installed.\n    com.google.android.webview.dev is NOT installed.\n    com.google.android.webview.canary is NOT installed.\n    com.google.android.webview.debug is NOT installed.\n    com.android.webview is NOT installed."
-}

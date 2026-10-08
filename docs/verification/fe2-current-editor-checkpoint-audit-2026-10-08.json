@@ -1,5 +1,0 @@
-{
-  "checks": 3421,
-  "mismatches": [],
-  "scope": "current103-source hashes and recursively declared public evidence digests; historical source maps are not compared with current source"
-}

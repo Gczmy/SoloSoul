@@ -1,3 +1,0 @@
-SoloSoul FE2 public preview fixture
-Readable text in light and dark themes.
-No real account information.

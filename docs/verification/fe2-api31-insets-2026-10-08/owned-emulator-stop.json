@@ -1,9 +1,0 @@
-{
-  "recorded_at": "2026-10-08T03:53:57.885796+00:00",
-  "serial": "emulator-5588",
-  "verified_avd": "SoloSoul_FE2_API31",
-  "kill_exit_code": 0,
-  "kill_reply": "OK: killing emulator, bye bye\nOK",
-  "after_all_final_restorations": true,
-  "other_devices_operated": false
-}

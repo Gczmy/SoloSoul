@@ -1,5 +1,0 @@
-
-> solosoul@2.13.2 check:pref-keys
-> node scripts/run-python-check.cjs scripts/check_pref_keys_sync.py
-
-OK: 白名单与前端 AppSettings 完全一致（22 个 key）

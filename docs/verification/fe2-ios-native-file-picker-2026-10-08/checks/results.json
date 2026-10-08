@@ -1,8 +1,0 @@
-{
-  "unit_files_passed": 2,
-  "unit_tests_passed": 10,
-  "unit_exit_code": 0,
-  "typescript_exit_code": 0,
-  "targeted_eslint_exit_code": 0,
-  "not_full_frontend_or_Rust_run": true
-}

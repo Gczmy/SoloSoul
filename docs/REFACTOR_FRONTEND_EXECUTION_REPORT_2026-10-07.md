@@ -8,6 +8,8 @@
 >
 > 当前环境：macOS；Windows 专属原生验证不得用本机检查替代。
 
+> 验收资料：2026-10-08 已精简当前目录，完整原件保留在固定原提交与仓库外备份中，见[归档说明](verification/README.md)和[完整索引](verification/fe2-evidence-index-2026-10-08.json)。以下执行记录中的历史状态、构建来源与失败结论不变；当前 checkpoint 为摘要，完整历史版本可按索引恢复。
+
 ## 1. 目标与范围
 
 本轮主要重构 React / TypeScript / CSS 前端，先完成 macOS 导航着色、圆角实色工作区、固定顶栏开关与登录页材质，再统一移动端的主题来源、表面和材质输入。目标是清晰的表面层级、稳定的布局和可维护的样式职责。设计依据为[桌面布局研究](CHATGPT_DESKTOP_LAYOUT_RESEARCH_2026-10-07.md)和[移动端统一方案](platform-mobile/MOBILE_VISUAL_ALIGNMENT_PROPOSAL_2026-10-07.md)。
@@ -261,7 +263,7 @@
 - **失败与修正：**第一次目录初始化遇到 `IMPORT_OPERATIONS_ACTIVE`；同时 adb stdin 归档恢复被截断，尽管 tar 退出 0，内容校验正确拒绝。原备份未损坏，改为完整归档落盘后恢复，242 项内容 / 链接 / 权限全部一致；独立恢复报告保留。后续驱动使用此路径，两组均恢复原目录。第三次虽有当前首页 DOM，截图却是旧设置页，拒绝作为首页合成证据；增加 WebView `postVisualStateCallback` 与绘制等待，真实屏幕的首页帧才接受。
 - **维护忙不是已修复：**同步绘制后的第四次运行显示真实登录错误 `The vault is under maintenance. Try again later.`，首次解锁失败保留。最终测试仅对这个明确提示进行有界 UI 重试，其他错误、持续繁忙或缺少最终首页仍失败；没有直接 invoke 登录、关闭更新或放宽维护准入。两组均第一次解锁维护忙、第二次界面提交成功，不能声称“首次解锁无错误”。当前网络更新源偏好对象持有 root activity 是待进一步归因的来源，未在本轮改写认证 / 维护生命周期。
 - **最终首页结果：**当前主 APK 与同一新测试 APK 在专用 API34 ARM64 `SoloSoul_RF201` 上，支持模式 **1/1**、系统 blur 关闭模式 **1/1**，退出均 0、跳过 0。各有 4 张最终合成帧：局部浅色、增强浅色、增强深色、解锁后的增强深色；资料库文案区域真实文字色像素分别 7660 / 7677 / 8102 / 8102，名称、数量及右侧装饰目测可见。暖石背景与表面、海蓝操作色、画布就绪、装饰分区、无横向溢出、4 个导航入口正确；真实 `user_data_get_preferences` 返回 dark / enhanced。原私有目录 242 项及模糊设置恢复。此处的 1/1 是新增独立首页方法，既有 13/11 通用原生矩阵不改计数。
-- **证据与状态：**3 项 Python 恢复 / 拒绝 / 原生报告检查、Kotlin instrumentation 构建及差异检查通过。公开测试报告、合成帧与失败历史保存在 [原生首页证据](verification/fe2-native-home-2026-10-07/fifth-supported/device-files/report.json)，私有目录备份 tar 仅留本机 `/tmp`，不入库。检查点冻结当前 APK / 源码 / 证据 SHA256。FE2-014 仍待有数据的对象与账户切换场景、首次维护忙体验、iOS 原生差异和实体设备性能；台账仍为 8 完成 / 6 待验证，不关闭第一轮遗留项，未提交推送。
+- **证据与状态：**3 项 Python 恢复 / 拒绝 / 原生报告检查、Kotlin instrumentation 构建及差异检查通过。公开测试报告、合成帧与失败历史保存在 [原生首页证据](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-native-home-2026-10-07/fifth-supported/device-files/report.json)，私有目录备份 tar 仅留本机 `/tmp`，不入库。检查点冻结当前 APK / 源码 / 证据 SHA256。FE2-014 仍待有数据的对象与账户切换场景、首次维护忙体验、iOS 原生差异和实体设备性能；台账仍为 8 完成 / 6 待验证，不关闭第一轮遗留项，未提交推送。
 
 ### 2026-10-07 有数据的 Android 对象与系统返回补证
 
@@ -270,13 +272,13 @@
 - **测试同步与失败保留：**通知权限对话框曾令 WebView 失焦并暂停视觉提交，测试只通过原生可访问性界面拒绝已识别的 SoloSoul 通知请求，其他权限弹窗仍失败；截图提交等待期间也处理这一已知弹窗。底部菜单另一次被测试在入场动画中途采样，增加动画结束门槛，保留原边界断言。每个成功阶段立即落盘，即使原生进程退出也保留诊断。此前 5 次失败分别保留，不将旧帧、进程退出或动画中途结果算成通过。
 - **当前验收：**同一当前主 / 测试 APK，API34 ARM64 专用模拟器支持模式 **1/1**、系统 blur 关闭 **1/1**，两次进程退出 0、跳过 0；各 12 个阶段和 11 张最终合成帧。对象列表 / 详情为共享暖石实色，短操作面为 CSS 局部玻璃；系统窗口 blur 关闭不等于关闭 WebView CSS blur。有数据增强首页浅 / 深文字色像素分别 6127 / 6520，文案、数量和右侧装饰可见。私有目录 242 项、根权限、系统 blur 与本应用通知授权 / 用户标记恢复。引导和解锁仍各需 2 次 UI 尝试，维护忙未宣称修复。
 - **检查与来源：**Kotlin 主 APK / instrumentation 构建退出 0，已有浮层 / 对象详情前端回归 2 文件 **27/27**，恢复 / 拒绝 / 原生报告 Python 检查 **5/5**。最终运行后收紧驱动判定，任何收尾错误即使已有部分成功标记也不接受；两份已落盘结果用当前判定重新核对通过，没有声称再执行设备流程。旧空账户首页与通用 13/11 矩阵保持其历史 APK 来源，本次 APK / 源码 / 92 份公开证据 SHA256 单列于[检查点](verification/fe2-frontend-checkpoint-2026-10-07.json)。私有备份 tar 只留本机，不入库。
-- **截图发现的剩余问题：**备份提醒 Toast 高于底部菜单，遮住操作项；在编辑页也盖住保存按钮。源码为 `ToastContainer.module.css` 固定底部定位、`--z-toast: 9000`，没有为移动端导航 / 编辑操作 / 弹层避让。见[实际菜单帧](verification/fe2-native-populated-2026-10-07/seventh-fallback/device-files/object-actions-dark.png)及[编辑页帧](verification/fe2-native-populated-2026-10-07/seventh-fallback/device-files/object-editor-dark.png)。这属于 FE2-014 通知与浮层布局的待修问题；本次流程通过不能等同于整体视觉验收完成，也不关闭账户切换、其他平台或实体设备性能。台账仍 8 完成 / 6 待验证，未提交推送。
+- **截图发现的剩余问题：**备份提醒 Toast 高于底部菜单，遮住操作项；在编辑页也盖住保存按钮。源码为 `ToastContainer.module.css` 固定底部定位、`--z-toast: 9000`，没有为移动端导航 / 编辑操作 / 弹层避让。见[实际菜单帧](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-native-populated-2026-10-07/seventh-fallback/device-files/object-actions-dark.png)及[编辑页帧](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-native-populated-2026-10-07/seventh-fallback/device-files/object-editor-dark.png)。这属于 FE2-014 通知与浮层布局的待修问题；本次流程通过不能等同于整体视觉验收完成，也不关闭账户切换、其他平台或实体设备性能。台账仍 8 完成 / 6 待验证，未提交推送。
 
 ### 2026-10-07 移动端通知占位修复
 
 - **实现：**新增不持久化的 Toast 宿主注册表，页面 / 登录壳、AndroidSheet、对象详情与共享 Dialog 提供正常流通知槽。当前最高层级宿主持有同一个全局 Toast 容器；关闭浮层后回到页面，不重新发提醒或延长原计时。菜单内操作不会留在 inert 页面里。桌面继续使用原固定通知布局；移动端窄屏文字可换行，页面通知保留横向留白。键盘触发内部操作按钮时不再冒泡重复执行外层操作。
 - **前端证据：**当前完整 Vitest **259 文件 / 2321 项通过**，退出 0；新增交接 / 优先级 / 计时 / 操作 / 桌面保护回归包含在内。类型及修改文件 ESLint 退出 0。移动材质整文件 **14/14**，最终留白后的移动通知与 macOS 玻璃 / 顶栏跨项目回归 **38/38**，均退出 0。320px 对象菜单中的附件与删除按钮、放大字体的编辑保存按钮没有与通知重叠，中心点可命中；截图已目测。测试使用真实前端通知组件与合成公开提醒，不冒充系统或账户原生流程。
-- **失败保留：**首轮全量测试有一项旧平台 mock 缺少 isAndroidSync，补齐导出后完整重跑通过。两个编辑测试曾停在未选择页面 / 不存在的菜单入口，改用现有对象的直接 Edit 按钮。一次菜单几何读取跨过入场动画的不同帧，增加动画结束门槛，重叠要求未放宽。失败日志与最终日志保留于 [通知修复证据](verification/fe2-toast-layout-2026-10-07/solosoul-fe2-toast-cross-platform-20261007.log)。
+- **失败保留：**首轮全量测试有一项旧平台 mock 缺少 isAndroidSync，补齐导出后完整重跑通过。两个编辑测试曾停在未选择页面 / 不存在的菜单入口，改用现有对象的直接 Edit 按钮。一次菜单几何读取跨过入场动画的不同帧，增加动画结束门槛，重叠要求未放宽。失败日志与最终日志保留于 [通知修复证据](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-toast-layout-2026-10-07/solosoul-fe2-toast-cross-platform-20261007.log)。
 - **原生当前边界：**新前端已随 Rust 重新嵌入 ARM64 Debug 主包，当前 instrumentation 也重新编译，构建退出 0。原生检查增加真实提醒存在、正常流占位、菜单归属与 Save / Edit / History / Attachments / Delete 可见命中断言，不通过主动关闭或等待提醒过期绕开遮挡。首轮支持模式在权限界面树未完整识别时失败，原生检查未到通知验收阶段；242 项目录内容、权限、系统 blur 和通知授权标记均已恢复。测试增加 3 秒有界树重读，只操作已完整识别的 SoloSoul 通知请求；重建后第二次支持运行通过权限阶段，但编辑采样点 Toast 数量为 0，被新增“提醒必须存在”断言正确拒绝。两次均恢复 242 项数据、blur 与通知授权标记；下一步核对实际提醒触发 / 采样时序，不放宽存在断言或把无提醒帧算成遮挡验收。未引用此前第六 / 第七次旧 APK 的通过作为本次验收。构建生成的 registry 与 tauri.properties 尾换行已恢复，未提交推送。
 - **整体状态：**仍为 8 完成 / 6 待验证。macOS 完整客户端隔离验收、Android 其他浮层 / 账户切换与维护忙体验、iOS 原生差异及实体设备性能继续保留，不把通知修复缩减为整体重构完成。
 
@@ -284,7 +286,7 @@
 
 - **时序与范围：**前两次权限识别 / 无提醒采样失败保留。测试在生产文档就绪后安装只读 DOM 观察器，记录提醒数量和路由变化；编辑页等待实际 `Back Up Now` 提醒出现再采样，截图后再次确认提醒仍在。没有修改提醒时长、注入合成 Toast、主动关闭提醒或等待其过期。两组时序均显示提醒从 0 变为 1 时路由为 `/editor`，解释此前内容就绪早于延迟提醒的问题。
 - **验收：**当前同一 ARM64 Debug 主包与新 instrumentation，专用 API34 `SoloSoul_RF201` 支持模式 **1/1**、系统 blur 关闭 **1/1**，进程退出均 0、跳过 0；各 12 个阶段、11 张截图。编辑页 Save，以及对象菜单 Edit / History / Attachments / Delete 均在真实提醒存在期间可见、中心点可命中且无矩形交叠；菜单提醒属于 sheet 内正常流。两组编辑 / 菜单截图已目测确认。系统窗口 blur 关闭不等于关闭 WebView CSS blur。
-- **保护与来源：**242 项文件内容 / 链接 / 权限、根权限、系统 blur 和本应用通知授权 / 用户标记均已恢复。引导初始化及首次解锁仍有维护忙后的界面重试，未声称修复该问题。公开证据见[支持模式](verification/fe2-toast-layout-2026-10-07/third-native-supported/report.json)和[关闭模式](verification/fe2-toast-layout-2026-10-07/fourth-native-fallback/report.json)；私有目录 tar 不入库。主包 SHA256 `b6eac8f11e25ef11d897cb60b588c7a51eb994a4bf9f19e451c9d2c494690f9d`，测试包 `66f7f47871bffbcdd714e2df1fee13f578aa072333aa3c2e5b6467a3012db5f1`。
+- **保护与来源：**242 项文件内容 / 链接 / 权限、根权限、系统 blur 和本应用通知授权 / 用户标记均已恢复。引导初始化及首次解锁仍有维护忙后的界面重试，未声称修复该问题。公开证据见[支持模式](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-toast-layout-2026-10-07/third-native-supported/report.json)和[关闭模式](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-toast-layout-2026-10-07/fourth-native-fallback/report.json)；私有目录 tar 不入库。主包 SHA256 `b6eac8f11e25ef11d897cb60b588c7a51eb994a4bf9f19e451c9d2c494690f9d`，测试包 `66f7f47871bffbcdd714e2df1fee13f578aa072333aa3c2e5b6467a3012db5f1`。
 - **剩余范围：**FE2-014 仍待附件 / 历史 / 预览等浮层、账户切换、键盘、维护忙体验、iOS 原生差异与实体设备性能。台账仍 8 完成 / 6 待验证；未提交推送。
 
 ### 2026-10-07 附件 / 历史 / 预览通知补齐
@@ -294,21 +296,21 @@
 - **前端验收：**相关单测 **10 文件 / 124 项**，完整 Vitest **259 文件 / 2321 项**，类型、修改文件 ESLint、格式及差异检查退出 0。浏览器按 mobile / chromium 独立运行，各 **35/35**、最终退出均 0，合计 **70 项**。覆盖附件 → 操作菜单 → 附件 → 详情、历史返回、浅深色文件 / 相册 / 查看器通知、属性对话框交接、320px 与横屏 / 矮视口、通知中心命中、缩放可操作；既有 macOS 整行预览玻璃顶栏和 Windows 表面 / 文字对比保护均通过。历史截图等待实际入场动画结束，避免把半透明中间帧作为最终样式。
 - **失败与运行环境：**第一批定向单测因旧平台 mock 缺少 `isAndroidSync` 而 24 项失败，补齐桌面 mock 后相关及完整测试重跑通过。合并两项目回归在 35 个 Chromium 用例后工作进程收尾停滞，正常中断与 TERM 未退出，最终只终止已核实的本次测试进程，退出 137，不计为完整通过。首次分项目回归复用了退出中的旧 Vite，出现 34 项连接拒绝；改为独立服务器后完整两组退出 0。原日志保留，未为消除环境失败改业务断言。
 - **构建与当前原生基线：**ARM64 Debug 主包经 Tauri / Rust 重新嵌入新前端，主包和 instrumentation 构建均退出 0。主包 SHA256 `65933cf9e289c0e788e36c4a1a1095a20b109d1585015e4b2326e77365c05121`。专用 API34 ARM64 同一包支持 / 系统 blur 关闭两组各 **1/1**、退出 0、跳过 0，各 12 阶段 / 11 PNG；真实编辑 Save 和对象菜单四项操作在备份提醒存在时可见命中且无重叠，已有系统返回与首页绘制未回归。242 项私有数据内容 / 链接 / 权限、根权限、系统 blur 和通知授权 / 标记恢复。原有 registry 与 tauri.properties 字节恢复，私有 tar 不入库。
-- **边界：**当前原生基线仍未操作新增附件 / 历史 / 文件 / 相册 / 查看器通知场景，不能以 70 项浏览器或新 APK 构建代替这些原生验收。维护忙、完整 macOS 客户端、键盘、账户切换、iOS 能力和实体设备性能继续待验证；本轮仍为 8 完成 / 6 待验证。公开结果与截图见[浮层通知证据](verification/fe2-overlay-toast-2026-10-07/solosoul-fe2-overlay-mobile-final-20261007-v2.log)及[检查点](verification/fe2-frontend-checkpoint-2026-10-07.json)。未提交推送。
+- **边界：**当前原生基线仍未操作新增附件 / 历史 / 文件 / 相册 / 查看器通知场景，不能以 70 项浏览器或新 APK 构建代替这些原生验收。维护忙、完整 macOS 客户端、键盘、账户切换、iOS 能力和实体设备性能继续待验证；本轮仍为 8 完成 / 6 待验证。公开结果与截图见[浮层通知证据](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-overlay-toast-2026-10-07/solosoul-fe2-overlay-mobile-final-20261007-v2.log)及[检查点](verification/fe2-frontend-checkpoint-2026-10-07.json)。未提交推送。
 
 ### 2026-10-07 附件与历史嵌套浮层原生验收
 
 - **范围：**首页原生驱动增加显式 `--scenario overlays`；默认 baseline 的 12 阶段范围保留。新场景在真实创建的 Travel / Visa 对象详情内打开附件、返回详情、打开历史，再通过 Android 系统返回关闭历史并保留详情，最后返回原 Travel 分类。使用原生产备份提醒，没有注入通知、修改计时或通过关闭 / 等待过期避开检查。新增场景不重复要求稍后的对象菜单仍有同一提醒，该菜单提醒遮挡已有同一主包的独立 baseline 证据。
 - **原生证据：**专用 API34 ARM64 `SoloSoul_RF201`，系统 blur 支持 / 设置关闭两组各 **1/1**、退出 0、跳过 0，各 **15 阶段 / 13 PNG**。附件与历史采样均有唯一通知容器、真实 `Back Up Now` 动作、static 正常流，属于当前 `zIndex=5100` 面板，通知中心可命中；附件 Upload / Close 与历史 Close 可见、可命中且未与提醒交叠。截图后再次确认真实提醒存在，四张原生合成帧已目测。历史中真实快照名称、公开 Country 字段和版本信息可读；附件当前覆盖空列表，不作为上传或文件预览证明。
-- **来源与保护：**主包仍为 `65933cf9e289c0e788e36c4a1a1095a20b109d1585015e4b2326e77365c05121`；新增场景测试包为 `67c7f116c34079b14d73a790fe9beefc83f40ba420b67a7896f6098dc918e468`，instrumentation 构建退出 0。驱动新增拒绝旧 baseline / 非前景通知证据检查，Python **6/6**、差异检查通过。两组各恢复 242 项私有数据内容 / 链接 / 权限、根权限、系统 blur 和通知授权 / 用户标记；公开证据见[支持报告](verification/fe2-nested-overlay-toast-2026-10-07/native-supported/report.json)、[关闭报告](verification/fe2-nested-overlay-toast-2026-10-07/native-fallback/report.json)。私有 tar 只留本机；原 Android registry 与 tauri.properties SHA256 保持原值。
+- **来源与保护：**主包仍为 `65933cf9e289c0e788e36c4a1a1095a20b109d1585015e4b2326e77365c05121`；新增场景测试包为 `67c7f116c34079b14d73a790fe9beefc83f40ba420b67a7896f6098dc918e468`，instrumentation 构建退出 0。驱动新增拒绝旧 baseline / 非前景通知证据检查，Python **6/6**、差异检查通过。两组各恢复 242 项私有数据内容 / 链接 / 权限、根权限、系统 blur 和通知授权 / 用户标记；公开证据见[支持报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-nested-overlay-toast-2026-10-07/native-supported/report.json)、[关闭报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-nested-overlay-toast-2026-10-07/native-fallback/report.json)。私有 tar 只留本机；原 Android registry 与 tauri.properties SHA256 保持原值。
 - **剩余范围：**两组目录初始化仍各需 2 次 UI 尝试，解锁各发生一次维护忙后第二次成功，未宣称修复。文件预览 / 相册 / 查看器与有附件列表的原生通知、键盘 / 账户切换、完整 macOS 客户端、iOS 能力及实体设备性能继续待验。台账仍为 8 完成 / 6 待验证，未提交推送。
 
 ### 2026-10-07 Android 真实软键盘避让修复与验收
 
-- **实际缺陷：**通过真实触屏打开编辑器对象名称的 Gboard，原生 IME 高 872px，但 WebView 仍高 1920px；`innerHeight` / `visualViewport` 仍约 732 CSS px，前端键盘 inset 为 0。输入框底沿落在实际键盘下方，因此仅依赖网页视口监听不能在该 edge-to-edge 环境避让。失败原文与帧保存在[修复前证据](verification/fe2-keyboard-2026-10-07/before-fix-supported/native.log)。
+- **实际缺陷：**通过真实触屏打开编辑器对象名称的 Gboard，原生 IME 高 872px，但 WebView 仍高 1920px；`innerHeight` / `visualViewport` 仍约 732 CSS px，前端键盘 inset 为 0。输入框底沿落在实际键盘下方，因此仅依赖网页视口监听不能在该 edge-to-edge 环境避让。失败原文与帧保存在[修复前证据](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-keyboard-2026-10-07/before-fix-supported/native.log)。
 - **生产修复：**业务 MainActivity 在 Wry 提供的 `onWebViewCreate` 安装 AndroidX IME insets 监听，按父容器实际被键盘覆盖的部分调整 WebView 底部 margin，让网页获得真实高度；父容器已缩小时不再重复扣除。返回原 insets，保留系统栏与 cutout 分发，键盘隐藏时恢复原 margin。修正既有多窗口回调的反向参数：进入多窗口启用系统边界适配，回全屏恢复 edge-to-edge，并请求重新分发 insets。没有修改依赖生成的 Wry / TauriActivity、JS 认证或业务状态。[Android 键盘 insets 文档](https://developer.android.com/develop/ui/views/layout/sw-keyboard)、[WindowCompat 参数说明](<https://developer.android.com/reference/androidx/core/view/WindowCompat#setDecorFitsSystemWindows(android.view.Window,boolean)>)。
 - **测试范围与纠错：**驱动新增 `--scenario keyboard`，通过实际 MotionEvent 打开输入法、Android 键盘事件写入公开 ` XYZ`、真实系统返回收起键盘。布局帧必须有未过期的真实备份提醒；四条边内部中点、中心命中、实际键盘顶沿、无重叠与完整截图同时检查。先采提醒与键盘同屏，再录入和返回，不延长原 8 秒提醒。新建菜单前置失败、圆角外命中误判和等待录入后提醒过期的失败均保留，见[证据说明](verification/fe2-keyboard-2026-10-07/README.md)。
-- **最终结果：**最终主包 `171aad74b2d85f9b18f9460d89615ebe461c2b9d23bb6b59f9de8ed6f4f3963f`，测试包 `e5fc3096308dac9d7d4c1752ffb3aea4ec48101fa596b3394ca4f0027f455efc`。专用 API34 ARM64 系统 blur 支持 / 设置关闭两组各 **1/1**、退出 0、跳过 0、**15 阶段 / 14 PNG**。IME 显示时 WebView 为 1048px，网页视口约 400 CSS px；名称和 Save 完整位于真实键盘上方，提醒唯一且未覆盖。返回后 WebView 恢复 1920px / 约 732 CSS px，草稿为实际录入后的名称，路由 `/editor?section=travel` 与历史 idx=14 保留；随后保存、对象详情返回、增强浅深首页通过。最终键盘 / 返回帧已目测。[支持报告](verification/fe2-keyboard-2026-10-07/final-native-supported/report.json)、[关闭报告](verification/fe2-keyboard-2026-10-07/final-native-fallback/report.json)。
+- **最终结果：**最终主包 `171aad74b2d85f9b18f9460d89615ebe461c2b9d23bb6b59f9de8ed6f4f3963f`，测试包 `e5fc3096308dac9d7d4c1752ffb3aea4ec48101fa596b3394ca4f0027f455efc`。专用 API34 ARM64 系统 blur 支持 / 设置关闭两组各 **1/1**、退出 0、跳过 0、**15 阶段 / 14 PNG**。IME 显示时 WebView 为 1048px，网页视口约 400 CSS px；名称和 Save 完整位于真实键盘上方，提醒唯一且未覆盖。返回后 WebView 恢复 1920px / 约 732 CSS px，草稿为实际录入后的名称，路由 `/editor?section=travel` 与历史 idx=14 保留；随后保存、对象详情返回、增强浅深首页通过。最终键盘 / 返回帧已目测。[支持报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-keyboard-2026-10-07/final-native-supported/report.json)、[关闭报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-keyboard-2026-10-07/final-native-fallback/report.json)。
 - **检查与恢复：**Tauri Debug 嵌入前端 / Rust 构建、最终 Kotlin 主包与测试包构建通过；仅 Kotlin 改动的后续构建复用同一前端 / Rust 产物，不将旧 APK 当作新包。Python 8/8 与差异检查通过，实际通过报告还经外部驱动严格校验。两组各恢复全部 242 项私有数据内容 / 链接 / 权限、私有根权限、blur 和通知授权 / 用户标记；原 registry 与 tauri.properties 字节保持，私有 tar 不入库。此前 2321 项前端检查保留原来源，本次没有 TypeScript / CSS 改动，不声称又重跑了全库。
 - **未关闭范围：**本次为全屏深色编辑与同一流程首页证据，不证明旧 Android、真实小窗 / 分屏、键盘动画逐帧同步、登录输入、其他键盘或账户切换。初始化仍 2 次尝试、解锁仍第一次维护忙后第二次成功。预览通知、完整 macOS 客户端隔离验收、iOS 能力与实体设备性能继续待验。台账仍 **8 完成 / 6 待验证**，目标保持进行中，未提交推送。
 
@@ -317,7 +319,7 @@
 - **真实切换：**新增 `--scenario accounts`。真实引导创建 A 账户并保存一个公开 Visa 对象，设置森林深色 / 增强玻璃 / `#112233`；通过锁定界面创建 B 账户，设置冷灰浅色 / 局部玻璃 / `#ffee00`，保留空库；再实际密码解锁 A → B → A。只读 IPC 核对当前账户保存的五个偏好键与身份，界面核对主题、系统栏图标模式、数量、画布与正文分区。没有直接调用解锁或写偏好 IPC 绕过界面。
 - **人工复核发现缺陷：**首版两组各 18 阶段 / 16 PNG 虽通过保存值与正文检查，截图中首页 “View all” 深色 / 浅色文字对比度只有约 1.02 / 1.13。旧报告与源码原样保留，不作为完整视觉验收。原因是无填色文字和工具图标直接使用原强调色，原有对比逻辑只保证强调色填色上的黑 / 白前景。
 - **修复：**Android 独立派生 `--md-primary-ink`，在共享页面与卡片底色上以最少黑 / 白混合调整强调色文字明度，使两种中性表面均至少 4.5:1；已可读的强调色保持原值。应用于无填色操作文字与工具图标。原按钮填色、CSS / WebGL / 原生菜单强调色、保存偏好和桌面色板不变。原生验收增加实际计算文字色、完整可见与中心命中，并在真正截图的文字范围中核对像素，不能只以 token 相符计通过。
-- **最终当前包：**主包 `4d186038fe6d4eaab748f093fe5f544bfce0b5187ecda3da40a3f268d6cf158e`、测试包 `54ad522c3c7e327813e75836e636d435093350cfc36b92a514949b18e761c4ea`，Tauri 嵌入最新前端 / Rust 与 instrumentation 构建均退出 0。API34 ARM64 系统 blur 支持 / 设置关闭两组各 **1/1**、退出 0、跳过 0、**18 阶段 / 16 PNG**；每次 A 的操作文字对比 5.26 / 999 像素，B 为 4.53 / 969 像素，全部可见命中；两账户偏好、身份和数量正确且未串用。四张切换后原生合成帧已目测。两组均恢复 242 项内容 / 链接 / 权限、私有根权限、系统 blur 和通知授权 / 用户标记；原 registry / tauri.properties 字节保持。[支持结果](verification/fe2-accounts-2026-10-07/contrast-native-supported/report.json)、[关闭结果](verification/fe2-accounts-2026-10-07/contrast-native-fallback/report.json)。
+- **最终当前包：**主包 `4d186038fe6d4eaab748f093fe5f544bfce0b5187ecda3da40a3f268d6cf158e`、测试包 `54ad522c3c7e327813e75836e636d435093350cfc36b92a514949b18e761c4ea`，Tauri 嵌入最新前端 / Rust 与 instrumentation 构建均退出 0。API34 ARM64 系统 blur 支持 / 设置关闭两组各 **1/1**、退出 0、跳过 0、**18 阶段 / 16 PNG**；每次 A 的操作文字对比 5.26 / 999 像素，B 为 4.53 / 969 像素，全部可见命中；两账户偏好、身份和数量正确且未串用。四张切换后原生合成帧已目测。两组均恢复 242 项内容 / 链接 / 权限、私有根权限、系统 blur 和通知授权 / 用户标记；原 registry / tauri.properties 字节保持。[支持结果](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-accounts-2026-10-07/contrast-native-supported/report.json)、[关闭结果](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-accounts-2026-10-07/contrast-native-fallback/report.json)。
 - **检查与失败保留：**42 项定向、259 文件 / 2321 项完整 Vitest、16 项 mobile 浏览器、类型、项目 Lint、格式 / 差异检查均退出 0，项目 Lint 仍有原 `syncStore.ts:838` 警告。额外对 E2E 整个文件运行 ESLint 的初次检查报 30 处原有 `any`，均不在新增块中，失败日志保留。Python 驱动最终 **11/11**，基于实际通过报告拒绝低对比、无文字像素、无法命中、不可见和串用偏好；也拒绝首版不含对比检查的历史报告。源码、APK、截图与驱动检查阶段分别保存在[证据说明](verification/fe2-accounts-2026-10-07/README.md)。
 - **仍需验证：**初始化仍两次尝试，解锁存在明确维护忙后 2～3 次 UI 提交，未修复该体验。系统栏此次只验证图标模式；截图的顶栏与原生状态栏安全区衔接另需几何验收，不能以配色通过宣称避让正确。账户冷重启 / 系统模式切换、登录及其他 IME、真实多窗口、非空附件 / 文件 / 相册 / 查看器通知、完整 macOS 隔离验收、iOS 能力和实体性能继续保留。台账仍 **8 完成 / 6 待验证**，目标进行中，未提交推送。
 
@@ -507,7 +509,7 @@ Android旧包API31/字体/预览/生命周期证据不升级为当前APK全矩�
 
 仅接受新包上述导入和稳定预览范围，不升级旧iOS主题矩阵、Android/macOS历史包来源。其他iOS版本/PDF/系统分享/PIN/生物识别、完整macOS窗口/材质/连续恢复帧和实体性能仍待验；macOS图形工具仍锁屏，未终止或把旧隔离实例计为当前包通过。目标保持14项、8完成、6待验证，未提交、推送或发布。[修复、原生截图与完整失败证据](verification/fe2-ios-native-file-picker-2026-10-08/README.md)。
 
-本轮归档后递归审计当前106份源文件与全部已声明公开证据，共4123项检查、0差异；新增目录503份公开文件。历史来源清单保持原值，审计回执不参与自身哈希。[审计回执](verification/fe2-ios-native-picker-checkpoint-audit-2026-10-08.json)。最终两份中转源码格式与git差异检查通过。
+本轮归档后递归审计当前106份源文件与全部已声明公开证据，共4123项检查、0差异；新增目录503份公开文件。历史来源清单保持原值，审计回执不参与自身哈希。[审计回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-native-picker-checkpoint-audit-2026-10-08.json)。最终两份中转源码格式与git差异检查通过。
 
 ### 2026-10-08 当前 iOS 多图预览、真实翻页和缩放
 
@@ -521,7 +523,7 @@ Android旧包API31/字体/预览/生命周期证据不升级为当前APK全矩�
 
 仅该模拟器两张小图及稳定帧/实际动作，不关闭其他iOS版本、PDF/系统分享、大图/长列表、辅助功能、完整生命周期、连续动画与实体性能待验；macOS完整当前包窗口验收仍待解锁。目标继续14项、8完成、6待验证，未提交推送或发布。[实际原生来源与截图](verification/fe2-ios-multiphoto-2026-10-08/README.md)。
 
-本轮递归审计当前106份源与全部已声明公开证据，共4288项检查、0差异；新目录165份公开文件。历史来源未升级，[独立回执](verification/fe2-ios-multiphoto-checkpoint-audit-2026-10-08.json)排除自身哈希，最终git差异检查通过。
+本轮递归审计当前106份源与全部已声明公开证据，共4288项检查、0差异；新目录165份公开文件。历史来源未升级，[独立回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-multiphoto-checkpoint-audit-2026-10-08.json)排除自身哈希，最终git差异检查通过。
 
 ### 2026-10-08 macOS 会话短暂恢复、当前包登录与 iOS PDF 能力边界
 
@@ -533,7 +535,7 @@ iOS PDF先按源码事实核对：移动PDF调用attachment_open，iOS尚无Andr
 
 最终99项记录（含根目录）实际内容/链接/权限及根权限与最终、首轮及最初备份一致，light外观恢复复读，助手卸载、设备Shutdown。完整app/xcresult/私有备份仅/tmp；首次并行源保护失败没有升级为成功。[PDF反馈、失败及公开夹具](verification/fe2-ios-pdf-feedback-2026-10-08/README.md)。只读设备清单Android仅两台模拟器、iOS实体清单空，未操作非本任务模拟器；实体性能无法由模拟器或稳定帧替代。目标14项、8完成、6待验证，未提交推送发布。
 
-本轮当前106份源及所有已声明公开证据递归审计4512项、0差异；新增macOS证据10份、iOS证据214份，历史失败与来源不升级。[回执](verification/fe2-macos-entry-ios-pdf-checkpoint-audit-2026-10-08.json)。git差异检查通过，原生/构建会话均终态，仅私有macOS续验客户端PID49150保留运行。
+本轮当前106份源及所有已声明公开证据递归审计4512项、0差异；新增macOS证据10份、iOS证据214份，历史失败与来源不升级。[回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-macos-entry-ios-pdf-checkpoint-audit-2026-10-08.json)。git差异检查通过，原生/构建会话均终态，仅私有macOS续验客户端PID49150保留运行。
 
 
 ### 2026-10-08 macOS 深色夹具修正与四方向原生补验
@@ -563,7 +565,7 @@ API34/WebView113系统模糊支持和关闭两组各 **1通过、0失败、0跳�
 
 此次附件通过真实content URI与加密接口建立公开夹具，**不经过系统SAF选择器**，不能关闭Android真实导入或共享中转模块的完整原生验收。稳定帧不证明连续合成/实体性能；未升级旧API31/IME/字体/生命周期矩阵。当前剩余验证清单已改为最新包与真实边界，历史构建/失败记录保留。完整目标仍14项、8完成、6待验证，本轮无产品源码修改、提交、推送或发布。[来源、原生报告与公开截图](verification/fe2-android-current-file-stage-2026-10-08/README.md)。
 
-本轮递归审计当前106份源与全部已声明公开证据，共4856项、0差异；新目录70份公开文件。历史来源保持，审计回执排除自身哈希。[独立回执](verification/fe2-android-current-file-stage-checkpoint-audit-2026-10-08.json)。
+本轮递归审计当前106份源与全部已声明公开证据，共4856项、0差异；新目录70份公开文件。历史来源保持，审计回执排除自身哈希。[独立回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-android-current-file-stage-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 Android 真实选择器导入故障修复
 
@@ -575,7 +577,7 @@ API34/WebView113系统模糊支持和关闭两组各 **1通过、0失败、0跳�
 
 五轮各242项实际沙盒内容/链接/权限及根权限与备份独立核对一致，blur/通知标记恢复，每轮仅本次两项公开MediaStore文件确认删除。源码与先前冻结助手的差异明确记录，APK/私有tar/保护备份只在/tmp。完整目标14项、8完成、6待验证；其他Android API/字体/IME/生命周期/多图/PDF/大附件、完整macOS窗口与实体性能仍待验，未提交推送发布。[修复、失败与原生来源](verification/fe2-android-native-saf-2026-10-08/README.md)。
 
-本轮实际安装APK哈希复读匹配修复后38482124…；当前107份源与全部公开证据递归审计4997项、0差异，新增140份公开文件。历史来源与失败不升级，审计回执排除自身哈希。[独立回执](verification/fe2-android-native-saf-checkpoint-audit-2026-10-08.json)。
+本轮实际安装APK哈希复读匹配修复后38482124…；当前107份源与全部公开证据递归审计4997项、0差异，新增140份公开文件。历史来源与失败不升级，审计回执排除自身哈希。[独立回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-android-native-saf-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 Android API31 真实导入补证与预览颜色诊断
 
@@ -587,7 +589,7 @@ API34/WebView113系统模糊支持和关闭两组各 **1通过、0失败、0跳�
 
 九组原生均 **1测试、1失败、0跳过、驱动退出1**，失败及对照完整保留；七个临时助手构建均0、107项来源一致、原测试源与十组平台输入恢复。每组实际2项沙盒内容/链接/权限及根权限独立抓取核对相同；驱动恢复blur，真实选择器运行的两份公开MediaStore文件每次确认删除。最后实际安装APK哈希匹配38482124…，核对专用AVD身份和数据恢复后关闭，宿主退出0、serial消失，其他模拟器保持。本轮无产品源码修改、提交推送或发布，目标仍14项、8完成、6待验证。[完整原生与诊断证据](verification/fe2-android-api31-saf-2026-10-08/README.md)。
 
-本轮归档264份公开证据，递归审计当前107项源码及全部已声明证据共5261项、0差异。历史来源保持原值，审计回执排除自身哈希。[独立回执](verification/fe2-android-api31-saf-checkpoint-audit-2026-10-08.json)。
+本轮归档264份公开证据，递归审计当前107项源码及全部已声明证据共5261项、0差异。历史来源保持原值，审计回执排除自身哈希。[独立回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-android-api31-saf-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 Android API31 绘制覆盖层与下层模糊对照
 
@@ -603,7 +605,7 @@ API34/WebView113系统模糊支持和关闭两组各 **1通过、0失败、0跳�
 
 根因、API31完整预览与关闭模糊矩阵、完整macOS材质/窗口恢复和实体移动性能仍待验；继续14项、8完成、6待验证。本轮取得新的绘制对照证据，归类为进展，未提交、推送或发布。[来源与完整失败记录](verification/fe2-android-api31-paint-2026-10-08/README.md)。
 
-本轮递归审计当前107项源码及全部已声明公开证据共5356项、0差异；历史来源不升级，回执排除自身哈希。[独立回执](verification/fe2-android-api31-paint-checkpoint-audit-2026-10-08.json)。
+本轮递归审计当前107项源码及全部已声明公开证据共5356项、0差异；历史来源不升级，回执排除自身哈希。[独立回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-android-api31-paint-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 当前 macOS 四方向导航与真实附件预览
 
@@ -617,7 +619,7 @@ API34/WebView113系统模糊支持和关闭两组各 **1通过、0失败、0跳�
 
 原生截图仅CUA工具输出，未导出PNG或连续帧；捕捉徽章遮住交通灯，不能证明主动交通灯。完整菜单矩阵、窄矮窗/字体/PIN/TouchID、系统辅助功能/回退、Dock/台前调度连续恢复、重绘原因及性能继续待验。完整目标仍14项、8完成、6待验证，无产品修改、提交、推送或发布。[本轮来源、观察与清理回执](verification/fe2-macos-current-previews-2026-10-08/README.md)。
 
-本轮 macOS 归档后，递归核对107份当前源码与全部已声明公开证据，共5364项、0差异；8份公开文件不含截图或私有备份。[独立审计回执](verification/fe2-macos-current-previews-checkpoint-audit-2026-10-08.json)。
+本轮 macOS 归档后，递归核对107份当前源码与全部已声明公开证据，共5364项、0差异；8份公开文件不含截图或私有备份。[独立审计回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-macos-current-previews-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 Android API31 选择器往返的原生 transitionAlpha
 
@@ -627,7 +629,7 @@ macOS再次锁屏前已完成浅深真实预览与外观恢复，随后补移动
 
 两项私有数据/链接/权限及根权限独立前后核对一致、blur恢复，两个本次MediaStore文件删除。助手卸载退出0；实际生产APK哈希匹配，专用5588模拟器宿主退出0、serial已消失，未操作5580/5586。APK/tar/保护备份仅在/tmp；归档只有公开合成证据。目标14项、8完成、6待验证，无产品改动、提交推送发布。[本轮来源和完整失败记录](verification/fe2-android-api31-transition-alpha-2026-10-08/README.md)。
 
-本轮最终递归核对107份当前源码及全部已声明公开证据，共5401项、0差异；Android新增37份公开文件/15PNG，macOS8份公开文件不含截图。历史构建来源保持原值，[最终审计回执](verification/fe2-android-api31-transition-alpha-checkpoint-audit-2026-10-08.json)。
+本轮最终递归核对107份当前源码及全部已声明公开证据，共5401项、0差异；Android新增37份公开文件/15PNG，macOS8份公开文件不含截图。历史构建来源保持原值，[最终审计回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-android-api31-transition-alpha-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 功能文字与主题边界、紧凑侧栏及浅深玻璃调整
 
@@ -641,7 +643,7 @@ macOS浅色外壳覆盖70%、底色混14%黑色；深色外壳继续降至65%，
 
 原生图像仅CUA会话，归档31张最终PNG均为Chromium；采集标识遮挡交通灯，稳定帧不证明主动交通灯整区域、连续恢复、动效或实体性能。旧包窄窗/菜单、旧附件缩放采集异常及Android/iOS原生矩阵仍绑定各自来源，未因共享文字调整升级；完整目标仍14项、8完成、6待验证，无提交、推送或发布。[构建、完整测试日志与原生边界](verification/fe2-desktop-functional-chrome-2026-10-08/README.md)。
 
-最终递归核对122份当前源码及全部已声明公开证据，共5473项、0差异；历史来源保持原值，回执排除自身哈希。[审计回执](verification/fe2-desktop-functional-chrome-checkpoint-audit-2026-10-08.json)。
+最终递归核对122份当前源码及全部已声明公开证据，共5473项、0差异；历史来源保持原值，回执排除自身哈希。[审计回执](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-desktop-functional-chrome-checkpoint-audit-2026-10-08.json)。
 
 ### 2026-10-08 最新macOS照片缩放与浏览器绘制对照
 
@@ -745,4 +747,14 @@ TypeScript、相关 ESLint / Prettier、原生 `cargo check`、文件 rustfmt �
 
 最终 Vitest **260 文件 / 2341 项通过**、Node **192 项通过 / 25 项按原配置跳过**、Rust 主客户端库 **785 项通过**。TypeScript、ESLint、Rust fmt、Clippy `-D warnings`、ACL、偏好 key、增量 IPC 契约及 Markdown 分块检查通过；ESLint 仅原 `syncStore:838` 警告。首次 Node 26 内置实验存储与 jsdom 冲突，禁用宿主实验存储后剩下一处共享输入框国际化后的旧 `Clear` 测试断言，改为 mock 返回的 `clear` key 后全量通过。Rust 首次沙盒拒绝本机回环端口，允许回环服务的执行环境重跑全量通过；两类环境失败和测试断言失败均保留原始日志，未记作首次全绿。
 
-旧 Android 系统诊断 ZIP、常规 Python 缓存和 iOS 自动复制的打包资源保留本地并加入忽略规则；已登记为验收证据的日志、构建报告和源码快照完整入库。插件市场子模块无修改，Android 暂存注册表与子模块一致。FE2-020 的原生顶部复验仍因锁屏待完成，其余原生范围保持既有边界。[本次检查回执](verification/fe2-push-checks-2026-10-08/receipt.json)。
+旧 Android 系统诊断 ZIP、常规 Python 缓存和 iOS 自动复制的打包资源保留本地并加入忽略规则；已登记的日志、构建报告和源码快照曾完整纳入资料提交 `75f1c1594`，后续按下述归档清单精简当前目录。插件市场子模块无修改，Android 暂存注册表与子模块一致。FE2-020 的原生顶部复验仍因锁屏待完成，其余原生范围保持既有边界。[本次检查回执](verification/fe2-push-checks-2026-10-08/receipt.json)。
+
+## 2026-10-08：验收资料精简与可恢复归档
+
+用户授权执行资料精简，同时要求不破坏 Git、避免不可恢复操作。先把原资料提交 `75f1c1594504dd6e09af57ff6debd25cccce03fa` 中全部 **6297 份 FE2 原件**备份到仓库外新目录，再逐文件核对原 Git blob、SHA-256 和整包哈希；复核通过后，通过普通清理提交移出 **6163 份**批量截图、录屏、过程日志、重复输入快照和缓存。原提交、产品提交和全部历史保留，未改写历史或强制推送。
+
+当前保留 **83 份字节不变的原件**：19 张代表性 PNG、25 份关键 JSON、8 份成功/失败压缩检查日志，以及 31 份判定测试依赖的真实报告/日志夹具。50 份阶段 README 增加归档导航；当前 checkpoint 保留 174 项当前源文件哈希、检查摘要和待验状态，原始完整 checkpoint 另按哈希保留。历史文件的 Markdown 直链改为固定原提交地址，当前文档无失效本地链接。完整索引及恢复命令见[归档说明](verification/README.md)。
+
+资料精简后，原有 Android 判定单测 **34/34** 与新增只读归档验证器 **19/19** 通过，整包、原提交、保留原件、替代 README 和 174 项源文件复核通过。产品、测试和原生适配代码未改变；本次没有重跑或升级产品验收。完整克隆的历史体积仍保留，当前目录体积大幅缩小。[清理检查回执](verification/fe2-evidence-cleanup-receipt-2026-10-08.json)。
+
+任务仍为 **21 项：14 完成、1 进行中、6 待验证**。FE2-020 的 macOS 第二包顶部悬停复验继续待完成，Android API31 暗色预览的严格像素检查仍失败；其余原生矩阵和性能边界保持原结论。

@@ -1,5 +1,0 @@
-{
-  "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt": "7195d8b0e3fc7c21d642da8c60254a98c22d69b0c393465e4c082bd101d8dc51",
-  "tauri/scripts/android-home-native-regression.py": "5f8783e548ded7e795e1a611058a9242a734ae657451ea139491dd9ba4fcf0d6",
-  "tauri/scripts/test_android_home_native_regression.py": "4e34b93c7b107bbdd47fb271754abae75116e4fdec47fb52e038dfd0c8e31562"
-}

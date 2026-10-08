@@ -1,6 +1,0 @@
-{
-  "observed_via": "cua.getApp(com.solosoul.fe2.macos)",
-  "result": "The Mac is locked and automatic unlock could not unlock it.",
-  "current_bundle_not_visually_accepted": true,
-  "scope": "current graphics availability; no system credential attempt"
-}

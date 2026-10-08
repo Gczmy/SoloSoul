@@ -1,6 +1,0 @@
-{
-  "path": "/Users/zzc/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4/libonnxruntime.a",
-  "sha256": "4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d",
-  "size": 73696536,
-  "source": "Existing ort-sys rc.12 ARM64 cache, referenced by previous successful local linker output"
-}

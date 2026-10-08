@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-08T21:22:45.196046+00:00",
+  "stage": "pre_commit_validated",
+  "scope": "普通资料清理提交的可恢复性与夹具回归；不修改产品/测试/原生代码，不重跑或升级产品验收。",
+  "original_commit": "75f1c1594504dd6e09af57ff6debd25cccce03fa",
+  "production_commit": "329f1ef0e666ba2027e63330c1a708322b026d35",
+  "archive": {
+    "filename": "fe2-original-evidence.tar.gz",
+    "sha256": "b31286f6032d0b19aa1dcf6051f708b60ed9684cc9adb1d1b01224cf61ceecac",
+    "file_count": 6297,
+    "bytes": 444091978,
+    "local_path": "/Users/zzc/SoloSoul/verification-archives/fe2-2026-10-08-75f1c1594/fe2-original-evidence.tar.gz",
+    "directory_mode": "0700",
+    "file_mode": "0600"
+  },
+  "index": "docs/verification/fe2-evidence-index-2026-10-08.json",
+  "index_sha256": "e47c9ded63eeb969076b0adebe0fab1a216ca8b02ec11467c3a5556248e71d5a",
+  "retention_summary": {
+    "unchanged_original_files": 83,
+    "representative_original_png": 19,
+    "result_json": 25,
+    "compressed_final_check_logs": 8,
+    "additional_automated_test_fixtures": 31,
+    "readme_replacement_documents": 50,
+    "checkpoint_replaced_with_current_summary": true,
+    "removed_from_checkout": 6163,
+    "product_acceptance_reexecuted": false
+  },
+  "statistics": {
+    "original_files": 6297,
+    "original_bytes": 510822777,
+    "current_selected_files_excluding_this_receipt": 138,
+    "current_selected_bytes_excluding_this_receipt": 5813906,
+    "current_statistics_scope": "当前docs/verification/fe2-*、本次README和只读验证脚本，排除本回执以免自包含计数。",
+    "removed_from_checkout": 6163,
+    "removed_paths_still_present": 0,
+    "historical_git_objects_removed": 0
+  },
+  "checks": {
+    "git_original_commit": {
+      "passed": true,
+      "mode": "git_original_commit",
+      "original_commit": "75f1c1594504dd6e09af57ff6debd25cccce03fa",
+      "indexed_files": 6297,
+      "retained_files_checked": 83,
+      "replacement_documents_checked": 50,
+      "archived_files_checked": 6214,
+      "checkpoint_evidence_references_checked": 0,
+      "current_source_files_checked": 174,
+      "archive_sha256": "b31286f6032d0b19aa1dcf6051f708b60ed9684cc9adb1d1b01224cf61ceecac",
+      "scope": "保留文件、替代文档、完整归档（tar 模式）或迁出文件原始 Git blob（Git 模式）、checkpoint 归档引用及当前源文件哈希；不重新执行产品验收"
+    },
+    "full_tar_archive": {
+      "passed": true,
+      "mode": "tar_gz_stream",
+      "original_commit": "75f1c1594504dd6e09af57ff6debd25cccce03fa",
+      "indexed_files": 6297,
+      "retained_files_checked": 83,
+      "replacement_documents_checked": 50,
+      "archived_files_checked": 6297,
+      "checkpoint_evidence_references_checked": 0,
+      "current_source_files_checked": 174,
+      "archive_sha256": "b31286f6032d0b19aa1dcf6051f708b60ed9684cc9adb1d1b01224cf61ceecac",
+      "scope": "保留文件、替代文档、完整归档（tar 模式）或迁出文件原始 Git blob（Git 模式）、checkpoint 归档引用及当前源文件哈希；不重新执行产品验收"
+    },
+    "archive_verifier": {
+      "passed": 19,
+      "failed": 0,
+      "exit_code": 0,
+      "connects_to_device": false
+    },
+    "existing_android_report_validator": {
+      "passed": 34,
+      "failed": 0,
+      "exit_code": 0,
+      "connects_to_device": false
+    },
+    "local_markdown_links": {
+      "documents": 53,
+      "checked": 209,
+      "missing": 0,
+      "external_urls_not_requested": true
+    },
+    "diff_whitespace": {
+      "unstaged_exit_code": 0,
+      "staged_exit_code": 0
+    }
+  },
+  "task_counts": {
+    "total": 21,
+    "complete": 14,
+    "in_progress": 1,
+    "pending_validation": 6
+  },
+  "pending_native_validation_preserved": true,
+  "git_safety": {
+    "strategy": "新增普通提交并正常推送；保留既有历史和原件恢复路径。",
+    "amend_rebase_reset_force_push": false,
+    "old_commits_preserved_as_ancestors": true,
+    "existing_archive_overwritten": false,
+    "source_changes": [],
+    "history_size_reduction_expected": false
+  }
+}

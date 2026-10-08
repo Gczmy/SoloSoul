@@ -1,2 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<testsuite name="android-production-home" tests="2" failures="1" skipped="0"><testcase classname="AndroidHomeInstrumentedTest" name="realHomePreservesGlassAndCopyAcrossLockUnlock" /><testcase classname="AndroidHomeInstrumentedTest" name="coldAccountPreferencesSurviveProcessRestart"><failure message="Command '['/Users/zzc/Library/Android/sdk/platform-tools/adb', '-s', 'emulator-5586', 'shell', 'pidof', 'com.solosoul.app']' returned non-zero exit status 1." /></testcase></testsuite>

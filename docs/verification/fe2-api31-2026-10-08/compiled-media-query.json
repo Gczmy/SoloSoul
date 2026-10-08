@@ -1,6 +1,0 @@
-[
-  {
-    "asset": "tauri/dist/assets/bootstrapApp-OEk42W9A.css",
-    "actual_form_actions": "}._header_2a12l_7>div:first-child>._label_2a12l_13{flex-basis:100%}}._formActions_1m2aj_1{justify-content:flex-end;gap:8px;display:flex}@media (max-width:767px){._formActions_1m2aj_1{background:var(--bg-toolbar);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:12px var(--page-padding,16px);padding-bottom:calc(12px + var(--safe-area-bottom));border-top:1px solid var(--border-subtle);z-index:100;flex-direction:column-reverse;align-items:stretch;position:fixed;bottom:0;left:0;right:0}._formActions_1m2aj_1>*{justify-content:center;width:100%}}._container_ta61v_1{border:1px solid var(--border-subtle);background:var(--bg-toolbar);border-radius:10px;gap:4px;padding:6px;display:flex}._tab_ta61v_10{"
-  }
-]

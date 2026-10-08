@@ -1,3 +1,0 @@
-src/components/object/ObjectDetailFieldsList.tsx(34,37): error TS2304: Cannot find name 'FieldPresentationPolicy'.
-src/components/object/ObjectDetailModal.tsx(229,11): error TS2322: Type '{ objectId: string; objectName: string; typeId: string; onClose: () => void; passwordVerify: () => Promise<{ ok: boolean; method: "password" | "pin" | "faceId" | "touchId" | "windowsHello"; }>; ... 5 more ...; zIndex: number; }' is not assignable to type 'IntrinsicAttributes & HistoryViewerProps'.
-  Property 'getFieldPolicy' does not exist on type 'IntrinsicAttributes & HistoryViewerProps'.

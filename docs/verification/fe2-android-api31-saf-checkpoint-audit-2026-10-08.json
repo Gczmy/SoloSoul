@@ -1,9 +1,0 @@
-{
-  "passed": true,
-  "recorded_at": "2026-10-08T11:48:35.567463+00:00",
-  "checked_entries": 5261,
-  "current_source_entries": 107,
-  "mismatch_count": 0,
-  "mismatches": [],
-  "scope": "Current product/test source map and every recursively declared *evidence_sha256 map; historical build/source snapshots retain original binding; receipt not included in its own hash map."
-}

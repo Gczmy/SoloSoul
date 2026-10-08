@@ -1,5 +1,7 @@
 # 当前 iOS 系统文件选择器与非空预览补验
 
+> **资料精简说明（2026-10-08）：**本页保留历史验收说明，批量原图、录屏、日志和输入快照已移出当前目录；下文的结果、来源与未完成项保持原验收边界。完整 6297 份原件已逐文件备份并建立 [SHA-256 索引](../fe2-evidence-index-2026-10-08.json)，恢复方法见[归档说明](../README.md)。迁出文件的 Markdown 链接指向固定原提交；代码块中的原路径及依赖完整目录的复跑命令需先恢复原件。
+
 2026-10-08，针对 FE2-014 的专用 iPhone17 / iOS26.3.1 补验。先复用无签名模拟器生产二进制 `98280597fff53310efb49a8849556b5820d0a218a5262a429ae5c4d85f7f277f` 复现真实附件导入失败，随后修复 iOS 中转目录并构建 `2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d`。测试助手的导航和夹具修正与产品路径修复分别保留来源。
 
 ## 环境与夹具
@@ -24,11 +26,11 @@ Xcode 会改写 PNG 资源，单独关闭 COMPRESS_PNG_FILES 仍有 CopyPNGFile 
 
 真实失败确认iOS文件中转原用Library/Caches，而原生附件命令允许应用临时目录。现在仅将iOS中转改为tempDir，Android/macOS/Windows沿用缓存；没有扩大后端路径白名单。新增回归修复前2失败/3通过，修复后定向2文件/10项通过，类型和定向ESLint退出0。新无签名Simulator包构建退出0，二进制2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d，106份涉及源码冻结、9组平台保护输入恢复。源码范围从103扩至106，新增共享中转实现/测试和平台依赖来源；旧103份没有变化。
 
-最终 [final-native](final-native/report.json) 原生 **1通过、0失败、0跳过，退出0**，助手构建与保护驱动均退出0。真实创建公开合成账户和对象，通过系统 UIDocumentPicker 分别导入 TXT 和 PNG；浅色、深色下文本正文可见，照片集和查看器图像可见，实际预览返回、查看器返回照片集、附件关闭与详情关闭均留在当前对象页面。45组PNG及阶段界面层级归档，不包含自动录屏或私有备份。
+最终 [final-native](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-native-file-picker-2026-10-08/final-native/report.json) 原生 **1通过、0失败、0跳过，退出0**，助手构建与保护驱动均退出0。真实创建公开合成账户和对象，通过系统 UIDocumentPicker 分别导入 TXT 和 PNG；浅色、深色下文本正文可见，照片集和查看器图像可见，实际预览返回、查看器返回照片集、附件关闭与详情关闭均留在当前对象页面。45组PNG及阶段界面层级归档，不包含自动录屏或私有备份。
 
-四个稳定文本/查看器帧的 [独立像素检查](final-native/preview-frame-audit.json) 通过：标题最低对比10.7865:1、原生时钟最低5.4607:1，正文实际前景像素和照片两种公开色块存在，返回/缩放操作44pt且不被底部区域覆盖；代表截图已目测。这是所采稳定帧的内容与几何证据，不是连续动画、所有弹层或真机性能证明。
+四个稳定文本/查看器帧的 [独立像素检查](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-native-file-picker-2026-10-08/final-native/preview-frame-audit.json) 通过：标题最低对比10.7865:1、原生时钟最低5.4607:1，正文实际前景像素和照片两种公开色块存在，返回/缩放操作44pt且不被底部区域覆盖；代表截图已目测。这是所采稳定帧的内容与几何证据，不是连续动画、所有弹层或真机性能证明。
 
-106份构建前来源与原生执行来源、当前文件逐项一致。[独立恢复核对](final-native/independent-restoration.json) 比较实际最终应用目录与本次及最初备份，99项记录（含根目录）内容/链接/权限全部相同；系统外观恢复light并复读，助手Host/Runner卸载，专用模拟器实际读回Shutdown。构建保护额外纳入Cargo.lock，9组输入恢复。终止测试应用命令返回3（当时进程已不在运行）；没有把该单条结果写成退出0，原生和整体保护驱动仍实际成功。
+106份构建前来源与原生执行来源、当前文件逐项一致。[独立恢复核对](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-native-file-picker-2026-10-08/final-native/independent-restoration.json) 比较实际最终应用目录与本次及最初备份，99项记录（含根目录）内容/链接/权限全部相同；系统外观恢复light并复读，助手Host/Runner卸载，专用模拟器实际读回Shutdown。构建保护额外纳入Cargo.lock，9组输入恢复。终止测试应用命令返回3（当时进程已不在运行）；没有把该单条结果写成退出0，原生和整体保护驱动仍实际成功。
 
 旧包的主题/键盘结果保持历史来源，新包仅接受上述导入与预览范围；PDF、系统分享、其他iOS版本、PIN/生物识别、完整生命周期与实体性能继续待验。
 

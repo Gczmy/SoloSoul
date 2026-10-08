@@ -1,3 +1,0 @@
-10-08 11:48:31.256 31330 31330 E Tauri/Console: File: http://tauri.localhost/assets/authStore-Ber-uibc.js - Line 2 - Msg: [useAutoLock] listen screen-locked failed: lock-state.registerListener not allowed. Plugin not found
-10-08 11:48:36.108 31330 31330 W Tauri/Console: File:  - Line 286 - Msg: [TAURI] Couldn't find callback id 1807160067. This might happen when the app is reloaded while Rust is running an asynchronous operation.
-10-08 11:48:38.642 31330 31330 E Tauri/Console: File: http://tauri.localhost/assets/authStore-Ber-uibc.js - Line 2 - Msg: [useAutoLock] listen screen-locked failed: lock-state.registerListener not allowed. Plugin not found

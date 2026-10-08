@@ -1,9 +1,0 @@
-{
-  "recorded_at": "2026-10-08T20:53:01.804728+00:00",
-  "passed": true,
-  "checked_files": 6447,
-  "current_source_entries": 174,
-  "mismatches": [],
-  "registered_paths_missing_from_index": [],
-  "scope": "Current source hashes and all historical evidence hashes; all registered paths must exist in Git index. Immutable archived whitespace preserved; no native pending item closed."
-}

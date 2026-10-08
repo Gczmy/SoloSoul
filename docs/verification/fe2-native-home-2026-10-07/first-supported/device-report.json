@@ -1,5 +1,0 @@
-{
-  "records": [],
-  "scope": "production AndroidHome, UI bootstrap, UI appearance, UI lock\/password unlock, real encrypted preferences",
-  "cleanup": "external driver must force-stop and restore full private data backup"
-}

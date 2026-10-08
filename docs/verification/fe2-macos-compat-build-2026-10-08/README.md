@@ -1,5 +1,7 @@
 # FE2 macOS 兼容修复后隔离客户端重建
 
+> **资料精简说明（2026-10-08）：**本页保留历史验收说明，批量原图、录屏、日志和输入快照已移出当前目录；下文的结果、来源与未完成项保持原验收边界。完整 6297 份原件已逐文件备份并建立 [SHA-256 索引](../fe2-evidence-index-2026-10-08.json)，恢复方法见[归档说明](../README.md)。迁出文件的 Markdown 链接指向固定原提交；代码块中的原路径及依赖完整目录的复跑命令需先恢复原件。
+
 2026-10-08。当前生产前端加入旧 WebView 能力兼容、传统媒体查询 / 视口回退及 Android 预览主题修复后，再次构建独立 macOS Debug app，退出 0。bundle ID 保持 com.solosoul.fe2.macos、版本 2.13.2；不是发布包。
 
 新二进制 SHA256 `0298630e7847fbf279f7266fabcda59775a6d818a710d0a1b69bab2e53ac2848`，frozen 文件位置在 build-result.json。95 份编译前 / 编译时源码与 35 份构建资产 hash 已记录。唯一构建暂存差异为 Tauri CLI 的精确 macos-private-api feature；之后 Cargo、原插件 registry 和 tauri.properties 的字节 / 权限恢复。全部当前源码仍与编译前快照一致，source-audit.json 退出 0。ONNX 使用上一阶段已验证的官方 ARM64 本机静态库缓存，不改依赖或清除增量缓存。

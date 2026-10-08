@@ -1,9 +1,0 @@
-{
-  "built_source_count": 103,
-  "execution_source_count": 103,
-  "differences": [
-    "tauri/scripts/test_android_home_native_regression.py",
-    "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt"
-  ],
-  "all_production_sources_identical": true
-}

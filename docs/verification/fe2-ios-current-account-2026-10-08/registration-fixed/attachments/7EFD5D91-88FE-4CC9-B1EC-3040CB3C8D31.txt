@@ -1,4 +1,0 @@
-Query chain:
- →Find: Application 'com.solosoul.app'
-  ↪︎Find: Descendants matching type TextField
-    ↪︎Find: Elements matching predicate '"主密码" IN identifiers'

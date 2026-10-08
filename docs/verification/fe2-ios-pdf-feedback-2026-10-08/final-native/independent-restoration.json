@@ -1,9 +1,0 @@
-{
-  "passed": true,
-  "actual_records_including_root": 99,
-  "actual_data_bytes_links_permissions_root_mode_match_final_first_and_earliest_backups": true,
-  "initial_and_restored_appearance": "light",
-  "actual_device_name": "SoloSoul RF201",
-  "actual_device_state": "Shutdown",
-  "private_content_not_exported": true
-}

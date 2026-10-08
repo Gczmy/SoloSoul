@@ -1,2 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<testsuite name="android-production-home" tests="1" failures="0" skipped="0"><testcase classname="AndroidHomeInstrumentedTest" name="realHomePreservesGlassAndCopyAcrossLockUnlock" /></testsuite>

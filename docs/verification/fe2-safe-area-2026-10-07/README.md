@@ -1,5 +1,7 @@
 # Android 安全区与登录键盘验收
 
+> **资料精简说明（2026-10-08）：**本页保留历史验收说明，批量原图、录屏、日志和输入快照已移出当前目录；下文的结果、来源与未完成项保持原验收边界。完整 6297 份原件已逐文件备份并建立 [SHA-256 索引](../fe2-evidence-index-2026-10-08.json)，恢复方法见[归档说明](../README.md)。迁出文件的 Markdown 链接指向固定原提交；代码块中的原路径及依赖完整目录的复跑命令需先恢复原件。
+
 本轮从 2026-10-07 延续至本地时间 2026-10-08。属于 FE2-014 的布局补证，整轮前端重构仍为 8 完成 / 6 待验证；未提交推送。
 
 ## 实际缺陷及修复
@@ -24,8 +26,8 @@
 
 两组首页控件从约 84px 起，品牌从约 105px 起，均避开 63px 状态栏。键盘高 872px，WebView 从 1920px 缩到 1048px；解锁按钮底沿约 969.73px，完整位于键盘顶沿 1048px 上方。系统返回后高度恢复 1920px，Router idx=19 保留；文档重载后登录控件安全区正确。实际设备支持 DOCUMENT_START_SCRIPT，旧回退分支不借此宣称通过。首页、横屏、键盘与重载截图已目测。
 
-- [支持组报告](final-native-supported/report.json)、[原生阶段](final-native-supported/device-files/report.json)
-- [关闭组报告](final-native-fallback/report.json)、[原生阶段](final-native-fallback/device-files/report.json)
+- [支持组报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-safe-area-2026-10-07/final-native-supported/report.json)、[原生阶段](final-native-supported/device-files/report.json)
+- [关闭组报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-safe-area-2026-10-07/final-native-fallback/report.json)、[原生阶段](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-safe-area-2026-10-07/final-native-fallback/device-files/report.json)
 - 主 APK SHA256：`f82370125a99ce46260a2cecea7fed7396fc60d55a30be498ccc052b75341c13`
 - 测试 APK SHA256：`2fae92246f7b2755ace467445d803027661aaba000d845c12d9e405c615984bf`
 

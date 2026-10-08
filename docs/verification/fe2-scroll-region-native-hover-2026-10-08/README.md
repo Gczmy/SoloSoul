@@ -1,5 +1,7 @@
 # FE2-020：鼠标悬停与原生顶部栏补验（2026-10-08）
 
+> **资料精简说明（2026-10-08）：**本页保留历史验收说明，批量原图、录屏、日志和输入快照已移出当前目录；下文的结果、来源与未完成项保持原验收边界。完整 6297 份原件已逐文件备份并建立 [SHA-256 索引](../fe2-evidence-index-2026-10-08.json)，恢复方法见[归档说明](../README.md)。迁出文件的 Markdown 链接指向固定原提交；代码块中的原路径及依赖完整目录的复跑命令需先恢复原件。
+
 用户要求在客户端内仅移动鼠标即可区分滚动区域内外，不以点击、滚动或键盘焦点作为高亮条件。前两轮浏览器通过结果仍未满足客户端反馈，本轮保留历史结果，重新实现并构建两份隔离 macOS 客户端。
 
 ## 当前实现
@@ -27,7 +29,7 @@
 
 两次构建都在独立临时工作区 / APFS 克隆 target 中完成；生产输入差异严格仅 `macos_titlebar.rs` 一项，9 项平台生成输入及第一包冻结产物均保持不变。[构建差异](native-build/production-input-diff.json)和各包 `source.json / report.json` 保留来源。构建报告的 `window_launched=false` 是构建阶段状态，后续 CUA 启动观察单独记录，未篡改历史构建报告。
 
-TypeScript、相关 ESLint / Prettier、差异检查通过；原生 `cargo check -p solo_soul --lib` 和文件 rustfmt 通过。两项定向 Rust 测试在原工作区与独立 target 各通过一次，不重复计作四项：4 种悬停事件穿透，左 / 右 / 其他按钮按下、拖动、抬起及滚轮 / 键盘事件不穿透。独立执行原始结果见 [titlebar-tests.log](native-build/after-titlebar-fix/titlebar-tests.log)，2 passed / 0 failed / 783 filtered，未发生链接错误或清理正式 target。
+TypeScript、相关 ESLint / Prettier、差异检查通过；原生 `cargo check -p solo_soul --lib` 和文件 rustfmt 通过。两项定向 Rust 测试在原工作区与独立 target 各通过一次，不重复计作四项：4 种悬停事件穿透，左 / 右 / 其他按钮按下、拖动、抬起及滚轮 / 键盘事件不穿透。独立执行原始结果见 [titlebar-tests.log](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-scroll-region-native-hover-2026-10-08/native-build/after-titlebar-fix/titlebar-tests.log)，2 passed / 0 failed / 783 filtered，未发生链接错误或清理正式 target。
 
 ## 原生验收边界
 

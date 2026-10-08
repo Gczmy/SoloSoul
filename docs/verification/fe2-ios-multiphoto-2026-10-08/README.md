@@ -1,5 +1,7 @@
 # 当前 iOS 多图照片集、真实翻页与缩放
 
+> **资料精简说明（2026-10-08）：**本页保留历史验收说明，批量原图、录屏、日志和输入快照已移出当前目录；下文的结果、来源与未完成项保持原验收边界。完整 6297 份原件已逐文件备份并建立 [SHA-256 索引](../fe2-evidence-index-2026-10-08.json)，恢复方法见[归档说明](../README.md)。迁出文件的 Markdown 链接指向固定原提交；代码块中的原路径及依赖完整目录的复跑命令需先恢复原件。
+
 2026-10-08，FE2-014 原生补验。复用生产二进制 `2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d`，106份源码与其构建/当前文件一致，客户端没有新增修改或重建；仅编译独立测试助手。专用 iPhone17 / iOS26.3.1，实际 WKWebView。
 
 ## 实际流程
@@ -9,15 +11,15 @@
 - 真实点“上一个”“下一个”完成双向翻页；实际“放大”使320pt图像变成384pt（100%→120%），“缩小”和“适应窗口”恢复320pt。所有翻页/缩放/返回按钮至少44×44pt、可命中且位于屏内。
 - 从查看器返回两图照片集、再返回附件，关闭附件保留详情，关闭详情仍在原对象工作区；浅深两组均完成。
 
-[原生结果](native/test-summary.json)：**1通过、0失败、0跳过**，原生、助手构建与整体保护驱动均退出0。所采PNG/层级数量见[归档范围](native/archive-scope.json)。测试运行189.656秒，是整个创建/导入/两主题操作流程耗时，不是产品性能指标。
+[原生结果](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-multiphoto-2026-10-08/native/test-summary.json)：**1通过、0失败、0跳过**，原生、助手构建与整体保护驱动均退出0。所采PNG/层级数量见[归档范围](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-multiphoto-2026-10-08/native/archive-scope.json)。测试运行189.656秒，是整个创建/导入/两主题操作流程耗时，不是产品性能指标。
 
 ## 独立检查与恢复
 
-[截图审计](native/multiphoto-frame-audit.json)对12个稳定查看器帧检查实际标题前景、两种公开图像色块、计数变化、六个按钮范围、缩放尺寸及系统时钟。标题最低对比17.9153:1，时钟最低5.4607:1。照片集、滑动后与放大帧已目测，内容及工具栏清晰。没有以AX名称单独证明图像被画出。
+[截图审计](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-multiphoto-2026-10-08/native/multiphoto-frame-audit.json)对12个稳定查看器帧检查实际标题前景、两种公开图像色块、计数变化、六个按钮范围、缩放尺寸及系统时钟。标题最低对比17.9153:1，时钟最低5.4607:1。照片集、滑动后与放大帧已目测，内容及工具栏清晰。没有以AX名称单独证明图像被画出。
 
-[独立恢复核对](native/independent-restoration.json)实际比较最终应用目录与本次及最初备份，99项记录（含根目录）的文件字节、链接、权限及根权限一致；系统light外观恢复并复读、Host/Runner卸载，专用模拟器实际读回Shutdown。完整app、xcresult、私有备份只留在/tmp；归档仅小型来源/结果/日志、公开夹具、PNG和阶段界面层级，附件清单过滤自动录屏及合成事件。
+[独立恢复核对](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-multiphoto-2026-10-08/native/independent-restoration.json)实际比较最终应用目录与本次及最初备份，99项记录（含根目录）的文件字节、链接、权限及根权限一致；系统light外观恢复并复读、Host/Runner卸载，专用模拟器实际读回Shutdown。完整app、xcresult、私有备份只留在/tmp；归档仅小型来源/结果/日志、公开夹具、PNG和阶段界面层级，附件清单过滤自动录屏及合成事件。
 
-首次在沙箱提取xcresult摘要/附件因本机TestReport缓存写入权限退出64；允许本机工具读结果并写缓存后两项实际退出0，见[提取记录](native/result-export-attempts.json)。测试结束terminate应用命令3（测试已自行结束应用）保留原文，不说每条命令都为0。
+首次在沙箱提取xcresult摘要/附件因本机TestReport缓存写入权限退出64；允许本机工具读结果并写缓存后两项实际退出0，见[提取记录](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-ios-multiphoto-2026-10-08/native/result-export-attempts.json)。测试结束terminate应用命令3（测试已自行结束应用）保留原文，不说每条命令都为0。
 
 ## 尚未覆盖
 

@@ -1,2 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<testsuite name="android-production-home" tests="2" failures="2" skipped="0"><testcase classname="AndroidHomeInstrumentedTest" name="realHomePreservesGlassAndCopyAcrossLockUnlock"><failure message="Missing exact successful one-test native report; skips are failures" /></testcase><testcase classname="AndroidHomeInstrumentedTest" name="coldAccountPreferencesSurviveProcessRestart"><failure message="Missing exact successful one-test native report; skips are failures" /></testcase></testsuite>

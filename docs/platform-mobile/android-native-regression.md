@@ -87,7 +87,7 @@ python3 tauri/scripts/android-home-native-regression.py \
 
 首页 DOM、画布就绪和文字存在均不是截图已绘制的充分条件。截图先等待生产 WebView 视觉提交，再检查资料库正文区域的文字像素，保存最终系统合成帧。引导初始化和解锁只对明确的维护忙错误允许有限 UI 重试，保留次数和提示；错误类型不符、持续繁忙、解锁后没有首页、缺失保存偏好或跳过均失败。当前两组各 1/1 通过且完整恢复，均发生一次解锁维护忙后第二次成功，不能作为首次解锁无错误的证据。
 
-这些结果覆盖真实空账户首页与基本锁定解锁，不覆盖有数据的对象详情、账户切换或实体设备性能。[公开帧与报告](../verification/fe2-native-home-2026-10-07/fifth-supported/device-files/report.json)、[全部来源与失败历史](../verification/fe2-frontend-checkpoint-2026-10-07.json)。
+这些结果覆盖真实空账户首页与基本锁定解锁，不覆盖有数据的对象详情、账户切换或实体设备性能。[公开帧与报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-native-home-2026-10-07/fifth-supported/device-files/report.json)、[全部来源与失败历史](../verification/fe2-frontend-checkpoint-2026-10-07.json)。
 
 ## FE2 有数据的对象与系统返回（2026-10-07）
 
@@ -97,7 +97,7 @@ python3 tauri/scripts/android-home-native-regression.py \
 
 原生通知权限弹窗只按已识别的 SoloSoul 通知消息和拒绝按钮操作；原 grant 与用户权限标记先记录，finally 独立恢复并核对。私有根模式核对和远端归档收尾完成后才设置恢复成功，任何恢复错误均拒绝通过。真实截图要求 WebView 提交当前视觉状态；底部弹层等待入场动画结束再核对边界，不放宽几何要求。
 
-当前截图也确认备份 Toast 遮挡菜单下方操作与编辑页保存区，该布局问题仍需修正。12 阶段通过不代表通知遮挡、账户切换、实体设备性能或其他平台已通过。[当前公开结果](../verification/fe2-native-populated-2026-10-07/seventh-fallback/report.json)、[系统返回后的列表帧](../verification/fe2-native-populated-2026-10-07/seventh-fallback/device-files/object-list-after-system-back.png)、[来源与失败历史](../verification/fe2-frontend-checkpoint-2026-10-07.json)。
+当前截图也确认备份 Toast 遮挡菜单下方操作与编辑页保存区，该布局问题仍需修正。12 阶段通过不代表通知遮挡、账户切换、实体设备性能或其他平台已通过。[当前公开结果](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-native-populated-2026-10-07/seventh-fallback/report.json)、[系统返回后的列表帧](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-native-populated-2026-10-07/seventh-fallback/device-files/object-list-after-system-back.png)、[来源与失败历史](../verification/fe2-frontend-checkpoint-2026-10-07.json)。
 
 ### FE2 通知占位的原生补验
 
@@ -111,13 +111,13 @@ python3 tauri/scripts/android-home-native-regression.py \
 
 专用 API34 ARM64 `SoloSoul_RF201`，同一当前主包及新测试包：系统 blur 支持 **1/1**、关闭 **1/1**，退出 0、跳过 0，各 12 阶段 / 11 PNG。真实提醒存在时 Save、Edit、History、Attachments、Delete 均可见、可命中且无重叠；菜单通知在 sheet 内。两组截图已目测。242 项私有目录内容 / 链接 / 权限、根权限、blur、通知授权及用户标记恢复。
 
-公开证据：[支持模式](../verification/fe2-toast-layout-2026-10-07/third-native-supported/report.json)、[关闭模式](../verification/fe2-toast-layout-2026-10-07/fourth-native-fallback/report.json)，APK / 源码 SHA256 见[检查点](../verification/fe2-frontend-checkpoint-2026-10-07.json)。旧 APK 结果保持原来源；私有 tar 不入库。附件 / 历史 / 预览、账户切换、键盘和实体设备性能未由这两条通知路径证明，首次维护忙重试仍存在。
+公开证据：[支持模式](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-toast-layout-2026-10-07/third-native-supported/report.json)、[关闭模式](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-toast-layout-2026-10-07/fourth-native-fallback/report.json)，APK / 源码 SHA256 见[检查点](../verification/fe2-frontend-checkpoint-2026-10-07.json)。旧 APK 结果保持原来源；私有 tar 不入库。附件 / 历史 / 预览、账户切换、键盘和实体设备性能未由这两条通知路径证明，首次维护忙重试仍存在。
 
 ## 2026-10-07 浮层通知扩展后的新包基线
 
 新 ARM64 Debug 主包 `65933cf9e289c0e788e36c4a1a1095a20b109d1585015e4b2326e77365c05121` 包含附件 / 历史 / 预览通知扩展。使用同一 instrumentation，在专用 API34 ARM64 支持 / 系统 blur 关闭两组各 1/1、退出 0，12 阶段 / 11 PNG；242 项目录、权限、blur、通知授权 / 标记恢复。真实备份提醒存在期间编辑与对象菜单操作可见命中且未重叠，已有首页 / 返回未回归。
 
-当前方法仍没有进入附件 / 历史 / 文件 / 相册 / 查看器的新增通知场景，这部分仅有两个浏览器项目各 35/35 的证据，原生需要继续扩展验证。两个阶段分别冻结 APK 与源码，不能把上一包结果称为本包或新增场景通过。[本包支持报告](../verification/fe2-overlay-toast-2026-10-07/native-supported/report.json)、[关闭报告](../verification/fe2-overlay-toast-2026-10-07/native-fallback/report.json)。
+当前方法仍没有进入附件 / 历史 / 文件 / 相册 / 查看器的新增通知场景，这部分仅有两个浏览器项目各 35/35 的证据，原生需要继续扩展验证。两个阶段分别冻结 APK 与源码，不能把上一包结果称为本包或新增场景通过。[本包支持报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-overlay-toast-2026-10-07/native-supported/report.json)、[关闭报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-overlay-toast-2026-10-07/native-fallback/report.json)。
 
 ## 2026-10-07 附件与历史嵌套通知场景
 
@@ -127,7 +127,7 @@ python3 tauri/scripts/android-home-native-regression.py \
 
 专用 API34 ARM64 支持 / 系统 blur 设置关闭两组各 **1/1**、退出 0、跳过 0，各 **15 阶段 / 13 PNG**，四张附件 / 历史最终帧已目测。主包仍为 `65933cf9e289c0e788e36c4a1a1095a20b109d1585015e4b2326e77365c05121`，新测试包 `67c7f116c34079b14d73a790fe9beefc83f40ba420b67a7896f6098dc918e468`。Python 驱动拒绝原 12 阶段报告或通知留在低层的报告，6 项检查通过。242 项完整目录、权限、blur 和通知授权 / 用户标记均恢复；私有 tar 不入库。
 
-这些结果证明空附件列表与有真实快照的历史面板，不证明上传、文件 / 相册 / 查看器、键盘或账户切换。初始化和解锁仍出现一次维护忙后的 UI 重试。[支持报告](../verification/fe2-nested-overlay-toast-2026-10-07/native-supported/report.json)、[关闭报告](../verification/fe2-nested-overlay-toast-2026-10-07/native-fallback/report.json)，当前范围与源码来源见 FE2 检查点。
+这些结果证明空附件列表与有真实快照的历史面板，不证明上传、文件 / 相册 / 查看器、键盘或账户切换。初始化和解锁仍出现一次维护忙后的 UI 重试。[支持报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-nested-overlay-toast-2026-10-07/native-supported/report.json)、[关闭报告](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-nested-overlay-toast-2026-10-07/native-fallback/report.json)，当前范围与源码来源见 FE2 检查点。
 
 ## 2026-10-07 真实 IME、提醒与键盘返回
 
@@ -137,7 +137,7 @@ python3 tauri/scripts/android-home-native-regression.py \
 
 最终主包 `171aad74b2d85f9b18f9460d89615ebe461c2b9d23bb6b59f9de8ed6f4f3963f`、测试包 `e5fc3096308dac9d7d4c1752ffb3aea4ec48101fa596b3394ca4f0027f455efc`，API34 ARM64 两组各 **1/1**、退出 0、跳过 0、15 阶段 / 14 PNG。键盘显示时 WebView 为 1048px，关闭后恢复 1920px；实际输入后的草稿与 `/editor?section=travel` / idx=14 保留。两组 242 项数据、根权限、blur 和通知授权 / 标记完整恢复，Python 驱动 8 项检查通过。
 
-提醒布局先于录入采样，录入和返回阶段独立核对真实草稿；没有削弱同屏提醒的原要求。新场景较晚的对象菜单不重复要求同一 8 秒提醒，菜单通知证明仍来自独立 baseline。前置菜单失败、圆角探针错误与提醒过期失败均独立保留。[最终支持结果](../verification/fe2-keyboard-2026-10-07/final-native-supported/report.json)、[最终关闭结果](../verification/fe2-keyboard-2026-10-07/final-native-fallback/report.json)、[来源说明](../verification/fe2-keyboard-2026-10-07/README.md)。旧系统、实际多窗口、键盘动画、登录键盘、其他 IME、账户切换与实体设备性能尚未验证。
+提醒布局先于录入采样，录入和返回阶段独立核对真实草稿；没有削弱同屏提醒的原要求。新场景较晚的对象菜单不重复要求同一 8 秒提醒，菜单通知证明仍来自独立 baseline。前置菜单失败、圆角探针错误与提醒过期失败均独立保留。[最终支持结果](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-keyboard-2026-10-07/final-native-supported/report.json)、[最终关闭结果](https://github.com/Gczmy/SoloSoul/blob/75f1c1594504dd6e09af57ff6debd25cccce03fa/docs/verification/fe2-keyboard-2026-10-07/final-native-fallback/report.json)、[来源说明](../verification/fe2-keyboard-2026-10-07/README.md)。旧系统、实际多窗口、键盘动画、登录键盘、其他 IME、账户切换与实体设备性能尚未验证。
 
 ## 2026-10-07 两账户外观隔离与无填色操作对比
 
