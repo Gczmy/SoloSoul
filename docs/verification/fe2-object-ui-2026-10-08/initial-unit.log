@@ -1,0 +1,1506 @@
+
+ RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri
+
+ ❯ src/components/forms/PinInput.test.tsx (3 tests | 3 failed) 162ms
+     × does not submit the same full PIN again for an extra global digit 116ms
+     × does not resubmit an unchanged full PIN through the input change path 23ms
+     × still accepts Enter for a legacy short PIN and a later edited PIN 21ms
+ ❯ src/components/object/ObjectDetailFieldsList.test.tsx (13 tests | 4 failed) 157ms
+     × internal 字段：默认掩码并提供揭示按钮 54ms
+     × internal 未揭示时无倒计时 4ms
+     × 组头仅显示一次敏感度徽章；子行不重复显示 6ms
+     × public 组保留子项等级，整组及子项复制不能绕过最高保护等级 14ms
+ ❯ src/pages/workspace/WorkspaceObjectCard.test.tsx (9 tests | 2 failed) 224ms
+     × renders history and attachment count badges 61ms
+     × P118: passes the object to card callbacks (stable handler contract) 10ms
+ ❯ src/components/object/HistoryViewer.test.tsx (29 tests | 1 failed) 1438ms
+     × returning to a revealed snapshot requires revealing again 1012ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/forms/PinInput.test.tsx > RF-923 PIN completion ownership > does not submit the same full PIN again for an extra global digit
+TestingLibraryElementError: Unable to find an accessible element with the role "textbox" and name "PIN 输入"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "common:pin_input":
+  [36m<input[39m
+    [33maria-label[39m=[32m"common:pin_input"[39m
+    [33mautocomplete[39m=[32m"one-time-code"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mmaxlength[39m=[32m"6"[39m
+    [33mpattern[39m=[32m"[0-9]*"[39m
+    [33mstyle[39m=[32m"position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; opacity: 0; z-index: 1; cursor: default; width: 100%; height: 100%;"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-pin-input[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: relative; display: flex; gap: 8px; justify-content: center; align-items: center; width: 100%; max-width: 280px; min-width: 0px; height: 48px; cursor: default;"[39m
+    [36m>[39m
+      [36m<input[39m
+        [33maria-label[39m=[32m"common:pin_input"[39m
+        [33mautocomplete[39m=[32m"one-time-code"[39m
+        [33minputmode[39m=[32m"numeric"[39m
+        [33mmaxlength[39m=[32m"6"[39m
+        [33mpattern[39m=[32m"[0-9]*"[39m
+        [33mstyle[39m=[32m"position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; opacity: 0; z-index: 1; cursor: default; width: 100%; height: 100%;"[39m
+        [33mtype[39m=[32m"text"[39m
+        [33mvalue[39m=[32m""[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mstyle[39m=[32m"display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; gap: 8px; opacity: 1; transition: opacity 0.25s ease; pointer-events: none;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--accent-primary); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/forms/PinInput.test.tsx:9:26
+      7|     const onComplete = vi.fn();
+      8|     render(<PinInput length={6} onComplete={onComplete} />);
+      9|     const input = screen.getByRole('textbox', { name: 'PIN 输入' });
+       |                          ^
+     10|     fireEvent.change(input, { target: { value: '123456' } });
+     11|     expect(onComplete).toHaveBeenCalledExactlyOnceWith('123456');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  src/components/forms/PinInput.test.tsx > RF-923 PIN completion ownership > does not resubmit an unchanged full PIN through the input change path
+TestingLibraryElementError: Unable to find an accessible element with the role "textbox" and name "PIN 输入"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "common:pin_input":
+  [36m<input[39m
+    [33maria-label[39m=[32m"common:pin_input"[39m
+    [33mautocomplete[39m=[32m"one-time-code"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mmaxlength[39m=[32m"6"[39m
+    [33mpattern[39m=[32m"[0-9]*"[39m
+    [33mstyle[39m=[32m"position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; opacity: 0; z-index: 1; cursor: default; width: 100%; height: 100%;"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-pin-input[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: relative; display: flex; gap: 8px; justify-content: center; align-items: center; width: 100%; max-width: 280px; min-width: 0px; height: 48px; cursor: default;"[39m
+    [36m>[39m
+      [36m<input[39m
+        [33maria-label[39m=[32m"common:pin_input"[39m
+        [33mautocomplete[39m=[32m"one-time-code"[39m
+        [33minputmode[39m=[32m"numeric"[39m
+        [33mmaxlength[39m=[32m"6"[39m
+        [33mpattern[39m=[32m"[0-9]*"[39m
+        [33mstyle[39m=[32m"position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; opacity: 0; z-index: 1; cursor: default; width: 100%; height: 100%;"[39m
+        [33mtype[39m=[32m"text"[39m
+        [33mvalue[39m=[32m""[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mstyle[39m=[32m"display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; gap: 8px; opacity: 1; transition: opacity 0.25s ease; pointer-events: none;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--accent-primary); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/forms/PinInput.test.tsx:22:26
+     20|     const onComplete = vi.fn();
+     21|     render(<PinInput length={6} onComplete={onComplete} />);
+     22|     const input = screen.getByRole('textbox', { name: 'PIN 输入' });
+       |                          ^
+     23|     fireEvent.change(input, { target: { value: '123456' } });
+     24|     fireEvent.change(input, { target: { value: '1234567' } });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  src/components/forms/PinInput.test.tsx > RF-923 PIN completion ownership > still accepts Enter for a legacy short PIN and a later edited PIN
+TestingLibraryElementError: Unable to find an accessible element with the role "textbox" and name "PIN 输入"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "common:pin_input":
+  [36m<input[39m
+    [33maria-label[39m=[32m"common:pin_input"[39m
+    [33mautocomplete[39m=[32m"one-time-code"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mmaxlength[39m=[32m"6"[39m
+    [33mpattern[39m=[32m"[0-9]*"[39m
+    [33mstyle[39m=[32m"position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; opacity: 0; z-index: 1; cursor: default; width: 100%; height: 100%;"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-pin-input[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: relative; display: flex; gap: 8px; justify-content: center; align-items: center; width: 100%; max-width: 280px; min-width: 0px; height: 48px; cursor: default;"[39m
+    [36m>[39m
+      [36m<input[39m
+        [33maria-label[39m=[32m"common:pin_input"[39m
+        [33mautocomplete[39m=[32m"one-time-code"[39m
+        [33minputmode[39m=[32m"numeric"[39m
+        [33mmaxlength[39m=[32m"6"[39m
+        [33mpattern[39m=[32m"[0-9]*"[39m
+        [33mstyle[39m=[32m"position: absolute; top: 0px; right: 0px; bottom: 0px; left: 0px; opacity: 0; z-index: 1; cursor: default; width: 100%; height: 100%;"[39m
+        [33mtype[39m=[32m"text"[39m
+        [33mvalue[39m=[32m""[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mstyle[39m=[32m"display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; gap: 8px; opacity: 1; transition: opacity 0.25s ease; pointer-events: none;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--accent-primary); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mdata-pin-digit[39m=[32m"true"[39m
+          [33mstyle[39m=[32m"min-width: 0px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-toolbar); color: var(--text-primary); font-family: monospace; font-size: var(--text-card-title, 20px); font-weight: 600; transition: border-color 0.15s ease, background 0.15s ease;"[39m
+        [36m/>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/forms/PinInput.test.tsx:31:26
+     29|     const onComplete = vi.fn();
+     30|     render(<PinInput length={6} onComplete={onComplete} />);
+     31|     const input = screen.getByRole('textbox', { name: 'PIN 输入' });
+       |                          ^
+     32|     fireEvent.change(input, { target: { value: '1234' } });
+     33|     input.blur();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  src/components/object/HistoryViewer.test.tsx > RF-107 snapshot protection and identity > returning to a revealed snapshot requires revealing again
+TestingLibraryElementError: Unable to find an element with the text: ••••••••. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-macos-glass-backdrop[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; z-index: 2000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"common:history"[39m
+        [33maria-modal[39m=[32m"true"[39m
+        [33mclass[39m=[32m"_panel_284658"[39m
+        [33mdata-history-viewer[39m=[32m"true"[39m
+        [33mdata-macos-glass[39m=[32m"panel"[39m
+        [33mrole[39m=[32m"dialog"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding: 14px 18px; border-bottom: 1px solid var(--border-subtle);"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-body-sm); font-weight: 600; display: flex; align-items: center; gap: 8px;"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-clock"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"14"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"14"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"10"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 6v6l4 2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m [0m
+            [0mcommon:history[0m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-badge); color: var(--text-tertiary); font-weight: 400;"[39m
+            [36m>[39m
+              [0m1 / 2[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; gap: 6px;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Previous"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 16px;"[39m
+                [33mtitle[39m=[32m"Previous"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-chevron-left"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m15 18-6-6 6-6"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Next"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mdisabled[39m=[32m""[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 16px;"[39m
+                [33mtitle[39m=[32m"Next"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 16px;"[39m
+                [33mtitle[39m=[32m"Close"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-x"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M18 6 6 18"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m6 6 12 12"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_body_284658"[39m
+          [33mdata-history-scroll-region[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: 8px;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; align-items: flex-start;"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mstyle[39m=[32m"padding: 3px 8px; border-radius: 6px; font-size: var(--text-badge); font-weight: 600; background: rgba(39, 174, 96, 0.12); color: rgb(39, 174, 96);"[39m
+              [36m>[39m
+                [0mcurrent_version[0m
+              [36m</span>[39m
+              [36m<div[39m
+                [33mstyle[39m=[32m"margin-left: auto; font-size: var(--text-body-sm); color: var(--text-primary); font-weight: 500; overflow-wrap: break-word; word-break: break-word; text-align: right; max-width: 70%;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_row_302171"[39m
+                [33mdata-field-presentation-row[39m=[32m"true"[39m
+                [33mstyle[39m=[32m"font-size: var(--text-caption); padding: 6px 8px; border-radius: 6px; background: var(--bg-toolbar); border: 1px solid var(--border-subtle); opacity: 1;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"_label_302171"[39m
+                  [33mdata-field-label-slot[39m=[32m"true"[39m
+                  [33mstyle[39m=[32m"min-width: 90px;"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-type"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mstyle[39m=[32m"color: var(--text-tertiary); flex-shrink: 0;"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M12 4v16"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M9 20h6"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<span[39m
+                    [33mstyle[39m=[32m"font-weight: 500; color: var(--text-secondary); text-decoration: none;"[39m
+                  [36m>[39m
+                    [0mfield[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mstyle[39m=[32m"display: inline-flex; align-items: center; gap: 3px; font-size: var(--text-badge); font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(74, 144, 217, 0.1); color: rgb(74, 144, 217); border: 1px solid rgb(74, 144, 217); line-height: 1.3; white-space: nowrap;"[39m
+                    [33mtitle[39m=[32m"sensitivity_label: internal"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mclass[39m=[32m"lucide lucide-circle-dot"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mheight[39m=[32m"10"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"10"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<circle[39m
+                        [33mcx[39m=[32m"12"[39m
+                        [33mcy[39m=[32m"12"[39m
+                        [33mr[39m=[32m"10"[39m
+                      [36m/>[39m
+                      [36m<circle[39m
+                        [33mcx[39m=[32m"12"[39m
+                        [33mcy[39m=[32m"12"[39m
+                        [33mr[39m=[32m"1"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                    [0minternal[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"_container_cd7634"[39m
+                  [33mdata-field-value[39m=[32m"true"[39m
+                  [33mdata-value-layout[39m=[32m"inline"[39m
+                  [33mstyle[39m=[32m""[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"_text_cd7634"[39m
+                    [33mdata-field-value-text[39m=[32m"true"[39m
+                  [36m>[39m
+                    [36m<span>[39m
+                      [0mFIRST_SECRET[0m
+                    [36m</span>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"flex-shrink: 0; padding: 10px 18px; border-top: 1px solid var(--border-subtle); font-size: var(--text-badge); color: var(--text-tertiary); text-align: center;"[39m
+        [36m>[39m
+          [0mcommon:version #2 · 1/1/1970, 1:00:00 AM · user_edit[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-macos-glass-backdrop[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; z-index: 2000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(6px);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"common:history"[39m
+        [33maria-modal[39m=[32m"true"[39m
+        [33mclass[39m=[32m"_panel_284658"[39m
+        [33mdata-history-viewer[39m=[32m"true"[39m
+        [33mdata-macos-glass[39m=[32m"panel"[39m
+        [33mrole[39m=[32m"dialog"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; padding: 14px 18px; border-bottom: 1px solid var(--border-subtle);"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-body-sm); font-weight: 600; display: flex; align-items: center; gap: 8px;"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-clock"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"14"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"14"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"10"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 6v6l4 2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m [0m
+            [0mcommon:history[0m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-badge); color: var(--text-tertiary); font-weight: 400;"[39m
+            [36m>[39m
+              [0m1 / 2[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; gap: 6px;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Previous"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 16px;"[39m
+                [33mtitle[39m=[32m"Previous"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-chevron-left"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m15 18-6-6 6-6"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Next"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mdisabled[39m=[32m""[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 16px;"[39m
+                [33mtitle[39m=[32m"Next"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-chevron-right"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Close"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 16px;"[39m
+                [33mtitle[39m=[32m"Close"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-x"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"16"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"16"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M18 6 6 18"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m6 6 12 12"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_body_284658"[39m
+          [33mdata-history-scroll-region[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: 8px;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; align-items: flex-start;"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mstyle[39m=[32m"padding: 3px 8px; border-radius: 6px; font-size: var(--text-badge); font-weight: 600; background: rgba(39, 174, 96, 0.12); color: rgb(39, 174, 96);"[39m
+              [36m>[39m
+                [0mcurrent_version[0m
+              [36m</span>[39m
+              [36m<div[39m
+                [33mstyle[39m=[32m"margin-left: auto; font-size: var(--text-body-sm); color: var(--text-primary); font-weight: 500; overflow-wrap: break-word; word-break: break-word; text-align: right; max-width: 70%;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_row_302171"[39m
+                [33mdata-field-presentation-row[39m=[32m"true"[39m
+                [33mstyle[39m=[32m"font-size: var(--text-caption); padding: 6px 8px; border-radius: 6px; background: var(--bg-toolbar); border: 1px solid var(--border-subtle); opacity: 1;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"_label_302171"[39m
+                  [33mdata-field-label-slot[39m=[32m"true"[39m
+                  [33mstyle[39m=[32m"min-width: 90px;"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-type"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mstyle[39m=[32m"color: var(--text-tertiary); flex-shrink: 0;"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M12 4v16"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M9 20h6"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<span[39m
+                    [33mstyle[39m=[32m"font-weight: 500; color: var(--text-secondary); text-decoration: none;"[39m
+                  [36m>[39m
+                    [0mfield[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mstyle[39m=[32m"display: inline-flex; align-items: center; gap: 3px; font-size: var(--text-badge); font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(74, 144, 217, 0.1); color: rgb(74, 144, 217); border: 1px solid rgb(74, 144, 217); line-height: 1.3; white-space: nowrap;"[39m
+                    [33mtitle[39m=[32m"sensitivity_label: internal"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33maria-hidden[39m=[32m"true"[39m
+                      [33mclass[39m=[32m"lucide lucide-circle-dot"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mheight[39m=[32m"10"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mwidth[39m=[32m"10"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<circle[39m
+                        [33mcx[39m=[32m"12"[39m
+                        [33mcy[39m=[32m"12"[39m
+                        [33mr[39m=[32m"10"[39m
+                      [36m/>[39m
+                      [36m<circle[39m
+                        [33mcx[39m=[32m"12"[39m
+                        [33mcy[39m=[32m"12"[39m
+                        [33mr[39m=[32m"1"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                    [0minternal[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"_container_cd7634"[39m
+                  [33mdata-field-value[39m=[32m"true"[39m
+                  [33mdata-value-layout[39m=[32m"inline"[39m
+                  [33mstyle[39m=[32m""[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"_text_cd7634"[39m
+                    [33mdata-field-value-text[39m=[32m"true"[39m
+                  [36m>[39m
+                    [36m<span>[39m
+                      [0mFIRST_SECRET[0m
+                    [36m</span>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"flex-shrink: 0; padding: 10px 18px; border-top: 1px solid var(--border-subtle); font-size: var(--text-badge); color: var(--text-tertiary); text-align: center;"[39m
+        [36m>[39m
+          [0mcommon:version #2 · 1/1/1970, 1:00:00 AM · user_edit[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/components/object/HistoryViewer.test.tsx:846:33
+    844|     });
+    845|     render(<HistoryViewer {...props} />);
+    846|     const button = await screen.findByText('••••••••');
+       |                                 ^
+    847|     await act(async () => fireEvent.click(button));
+    848|     expect(screen.getByText('FIRST_SECRET')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  src/components/object/ObjectDetailFieldsList.test.tsx > ObjectDetailFieldsList 掩码规则 > internal 字段：默认掩码并提供揭示按钮
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <div
+  class="_fieldValue_dcea64"
+  style="color: var(--text-primary);"
+>
+  13800138000
+</div> instead
+ ❯ src/components/object/ObjectDetailFieldsList.test.tsx:59:51
+     57|       />,
+     58|     );
+     59|     expect(screen.queryByText('13800138000')).not.toBeInTheDocument();
+       |                                                   ^
+     60|     expect(screen.getByText('••••••••')).toBeInTheDocument();
+     61|     expect(screen.getByText('common:reveal')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  src/components/object/ObjectDetailFieldsList.test.tsx > ObjectDetailFieldsList 掩码规则 > internal 未揭示时无倒计时
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <div
+  class="_fieldValue_dcea64"
+  style="color: var(--text-primary);"
+>
+  13800138000
+</div> instead
+ ❯ src/components/object/ObjectDetailFieldsList.test.tsx:216:51
+    214|     render(<HarnessInternal />);
+    215|     // 未揭示不显示倒计时。
+    216|     expect(screen.queryByText('13800138000')).not.toBeInTheDocument();
+       |                                                   ^
+    217|     expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeIn…
+    218|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  src/components/object/ObjectDetailFieldsList.test.tsx > 动态字段组树状渲染（与历史快照同构） > 组头仅显示一次敏感度徽章；子行不重复显示
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <div
+  class="_fieldValue_dcea64"
+  style="color: var(--text-primary);"
+>
+  hello world
+</div> instead
+ ❯ src/components/object/ObjectDetailFieldsList.test.tsx:243:51
+    241|     renderGroup({ __dynamic_group__: 'internal' });
+    242|     // internal 子项默认占位。
+    243|     expect(screen.queryByText('hello world')).not.toBeInTheDocument();
+       |                                                   ^
+    244|     expect(screen.queryByText('second value')).not.toBeInTheDocument();
+    245|     // 子行名称可见
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  src/components/object/ObjectDetailFieldsList.test.tsx > 复制先揭示/验证 > public 组保留子项等级，整组及子项复制不能绕过最高保护等级
+AssertionError: expected '<div style="display: flex; flex-direc…' not to contain 'UNKNOWN_VALUE'
+
+Expected: "UNKNOWN_VALUE"
+Received: "<div style="display: flex; flex-direction: column; gap: 12px;"><div style="display: flex; flex-direction: column; gap: 4px;"><div class="_fieldRow_dcea64" style="opacity: 1;"><div data-field-presentation-row="true" class="_fieldRowTop_dcea64 _row_302171"><div data-field-label-slot="true" class="_fieldLabel_dcea64 _label_302171"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type" aria-hidden="true" style="color: var(--text-tertiary); flex-shrink: 0;"><path d="M12 4v16"></path><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"></path><path d="M9 20h6"></path></svg><span style="font-size: var(--text-caption); font-weight: 600; color: var(--text-secondary); text-decoration: none;">Group</span><span title="sensitivity_label: critical" style="display: inline-flex; align-items: center; gap: 3px; font-size: var(--text-badge); font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(192, 57, 43, 0.1); color: rgb(192, 57, 43); border: 1px solid rgb(192, 57, 43); line-height: 1.3; white-space: nowrap;"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>critical</span></div><div data-field-actions-slot="true" class="_fieldActions_dcea64 _actions_302171"><button type="button" class="_revealBtn_dcea64 _revealBtnCritical_dcea64"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><span class="_btnLabel_dcea64">common:unlock</span></button><button type="button" class="_copyBtn_dcea64 "><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span class="_btnLabel_dcea64">common:copy</span></button></div></div></div><div class="_fieldRow_dcea64" style="margin-left: 16px; opacity: 1;"><div data-field-presentation-row="true" class="_fieldRowTop_dcea64 _row_302171"><div data-field-label-slot="true" class="_fieldLabel_dcea64 _label_302171"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type" aria-hidden="true" style="color: var(--text-tertiary); flex-shrink: 0;"><path d="M12 4v16"></path><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"></path><path d="M9 20h6"></path></svg><span style="font-size: var(--text-caption); font-weight: 500; color: var(--text-secondary);">Open</span></div><div data-field-actions-slot="true" class="_fieldActions_dcea64 _actions_302171"><button type="button" class="_copyBtn_dcea64 "><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span class="_btnLabel_dcea64">common:copy</span></button></div></div><div class="_fieldValue_dcea64" style="color: var(--text-primary);">PUBLIC_VALUE</div></div><div class="_fieldRow_dcea64" style="margin-left: 16px; opacity: 1;"><div data-field-presentation-row="true" class="_fieldRowTop_dcea64 _row_302171"><div data-field-label-slot="true" class="_fieldLabel_dcea64 _label_302171"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type" aria-hidden="true" style="color: var(--text-tertiary); flex-shrink: 0;"><path d="M12 4v16"></path><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"></path><path d="M9 20h6"></path></svg><span style="font-size: var(--text-caption); font-weight: 500; color: var(--text-secondary);">Protected</span></div><div data-field-actions-slot="true" class="_fieldActions_dcea64 _actions_302171"><button type="button" class="_copyBtn_dcea64 "><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span class="_btnLabel_dcea64">common:copy</span></button></div></div><div class="_fieldValue_dcea64" style="color: var(--text-tertiary);">••••••••</div></div><div class="_fieldRow_dcea64" style="margin-left: 16px; opacity: 1;"><div data-field-presentation-row="true" class="_fieldRowTop_dcea64 _row_302171"><div data-field-label-slot="true" class="_fieldLabel_dcea64 _label_302171"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type" aria-hidden="true" style="color: var(--text-tertiary); flex-shrink: 0;"><path d="M12 4v16"></path><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"></path><path d="M9 20h6"></path></svg><span style="font-size: var(--text-caption); font-weight: 500; color: var(--text-secondary);">Unknown</span></div><div data-field-actions-slot="true" class="_fieldActions_dcea64 _actions_302171"><button type="button" class="_copyBtn_dcea64 "><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span class="_btnLabel_dcea64">common:copy</span></button></div></div><div class="_fieldValue_dcea64" style="color: var(--text-primary);">UNKNOWN_VALUE</div></div></div></div>"
+
+ ❯ src/components/object/ObjectDetailFieldsList.test.tsx:302:37
+    300|     expect(screen.getByText('PUBLIC_VALUE')).toBeInTheDocument();
+    301|     expect(container.innerHTML).not.toContain('CRITICAL_VALUE');
+    302|     expect(container.innerHTML).not.toContain('UNKNOWN_VALUE');
+       |                                     ^
+    303|     expect(screen.getByText('common:unlock')).toBeInTheDocument();
+    304|     await act(async () => fireEvent.click(screen.getAllByText('common:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  src/pages/workspace/WorkspaceObjectCard.test.tsx > WorkspaceObjectCard > renders history and attachment count badges
+TestingLibraryElementError: Unable to find an element by: [data-testid="count-badge-history"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"_anchor_b9524a"[39m
+      [33mdata-testid[39m=[32m"workspace-object-card"[39m
+      [33mid[39m=[32m"workspace-object-obj-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_card_652a3f _interactive_652a3f "[39m
+        [33mdata-ui-card[39m=[32m"default"[39m
+        [33mrole[39m=[32m"button"[39m
+        [33mtabindex[39m=[32m"0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_cardHeader_b9524a"[39m
+          [33mstyle[39m=[32m"margin-bottom: 8px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_headerMain_b9524a"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"_headerIcon_b9524a"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-user"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"12"[39m
+                  [33mcy[39m=[32m"7"[39m
+                  [33mr[39m=[32m"4"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</span>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_headerContent_b9524a"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"_objectName_b9524a"[39m
+              [36m>[39m
+                [0mTest Object[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"_pageBadge_b9524a"[39m
+              [36m>[39m
+                [0mIdentity[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"_templateName_b9524a"[39m
+                [33mstyle[39m=[32m"text-decoration: none;"[39m
+              [36m>[39m
+                [0mAccount[0m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_mobileActionCol_b9524a"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_actionRow_b9524a"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_wrapper_4a5217"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"common:history (3)"[39m
+                  [33mclass[39m=[32m"_button_4a5217 "[39m
+                  [33mdata-has-count[39m=[32m"true"[39m
+                  [33mdata-ui-icon-button[39m=[32m"default"[39m
+                  [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                  [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                  [33mtitle[39m=[32m"common:history"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-clock"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<circle[39m
+                      [33mcx[39m=[32m"12"[39m
+                      [33mcy[39m=[32m"12"[39m
+                      [33mr[39m=[32m"10"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M12 6v6l4 2"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_badge_4a5217"[39m
+                    [33mdata-testid[39m=[32m"count-badge-common:history"[39m
+                  [36m>[39m
+                    [0m3[0m
+                  [36m</span>[39m
+                [36m</button>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_wrapper_4a5217"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"common:attachments (2)"[39m
+                  [33mclass[39m=[32m"_button_4a5217 "[39m
+                  [33mdata-has-count[39m=[32m"true"[39m
+                  [33mdata-ui-icon-button[39m=[32m"default"[39m
+                  [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                  [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                  [33mtitle[39m=[32m"common:attachments"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-paperclip"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_badge_4a5217"[39m
+  ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:109:15
+ ❯ src/pages/workspace/WorkspaceObjectCard.test.tsx:60:19
+     58|     );
+     59|
+     60|     expect(screen.getAllByTestId('count-badge-history')[0]).toHaveText…
+       |                   ^
+     61|     expect(screen.getAllByTestId('count-badge-attachments')[0]).toHave…
+     62|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  src/pages/workspace/WorkspaceObjectCard.test.tsx > WorkspaceObjectCard > P118: passes the object to card callbacks (stable handler contract)
+TestingLibraryElementError: Unable to find an element with the title: Move to trash.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"_anchor_b9524a"[39m
+      [33mdata-testid[39m=[32m"workspace-object-card"[39m
+      [33mid[39m=[32m"workspace-object-obj-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"_card_652a3f _interactive_652a3f "[39m
+        [33mdata-ui-card[39m=[32m"default"[39m
+        [33mrole[39m=[32m"button"[39m
+        [33mtabindex[39m=[32m"0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_cardHeader_b9524a"[39m
+          [33mstyle[39m=[32m"margin-bottom: 8px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_headerMain_b9524a"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"_headerIcon_b9524a"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-user"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"12"[39m
+                  [33mcy[39m=[32m"7"[39m
+                  [33mr[39m=[32m"4"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</span>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_headerContent_b9524a"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"_objectName_b9524a"[39m
+              [36m>[39m
+                [0mTest Object[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"_pageBadge_b9524a"[39m
+              [36m>[39m
+                [0mIdentity[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"_templateName_b9524a"[39m
+                [33mstyle[39m=[32m"text-decoration: none;"[39m
+              [36m>[39m
+                [0mAccount[0m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_mobileActionCol_b9524a"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_actionRow_b9524a"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_wrapper_4a5217"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"common:history"[39m
+                  [33mclass[39m=[32m"_button_4a5217 "[39m
+                  [33mdata-ui-icon-button[39m=[32m"default"[39m
+                  [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                  [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                  [33mtitle[39m=[32m"common:history"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-clock"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<circle[39m
+                      [33mcx[39m=[32m"12"[39m
+                      [33mcy[39m=[32m"12"[39m
+                      [33mr[39m=[32m"10"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M12 6v6l4 2"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</button>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_wrapper_4a5217"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"common:attachments"[39m
+                  [33mclass[39m=[32m"_button_4a5217 "[39m
+                  [33mdata-ui-icon-button[39m=[32m"default"[39m
+                  [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                  [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                  [33mtitle[39m=[32m"common:attachments"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-paperclip"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_actionRow_b9524a"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_wrapper_4a5217"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"common:edit"[39m
+                  [33mclass[39m=[32m"_button_4a5217 "[39m
+                  [33mdata-ui-icon-button[39m=[32m"default"[39m
+                  [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                  [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                  [33mtitle[39m=[32m"common:edit"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-pencil"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"m15 5 4 4"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</button>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_wrapper_4a5217"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"common:move_to_trash"[39m
+                  [33mclass[39m=[32m"_button_4a5217 "[39m
+                  [33mdata-ui-icon-button[39m=[32m"danger-outline"[39m
+                  [33mdata-ui-icon-intent[39m=[32m"danger-soft"[39m
+                  [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                  [33mtitle[39m=[32m"common:move_to_trash"[39m
+                  [33mtype[39m=[32m"button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-trash2 lucide-trash-2"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M10 11v6"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M14 11v6"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M3 6h18"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_headerActions_b9524a"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"common:history"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                [33mtitle[39m=[32m"common:history"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-clock"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"14"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<circle[39m
+                    [33mcx[39m=[32m"12"[39m
+                    [33mcy[39m=[32m"12"[39m
+                    [33mr[39m=[32m"10"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M12 6v6l4 2"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"common:attachments"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                [33mtitle[39m=[32m"common:attachments"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-paperclip"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"14"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_actionsDivider_b9524a"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"common:edit"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"default"[39m
+                [33mdata-ui-icon-intent[39m=[32m"neutral"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                [33mtitle[39m=[32m"common:edit"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-pencil"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"14"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m15 5 4 4"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_wrapper_4a5217"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"common:move_to_trash"[39m
+                [33mclass[39m=[32m"_button_4a5217 "[39m
+                [33mdata-ui-icon-button[39m=[32m"danger-outline"[39m
+                [33mdata-ui-icon-intent[39m=[32m"danger-soft"[39m
+                [33mstyle[39m=[32m"--icon-symbol-size: 14px;"[39m
+                [33mtitle[39m=[32m"common:move_to_trash"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-trash2 lucide-trash-2"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"14"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M10 11v6"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M14 11v6"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M3 6h18"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; gap: 6px; flex-wrap: wrap;"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"padding: 3px 8px; border-radius: 6px; font-size: var(--text-badge); background: var(--bg-toolbar); color: var(--text-secondary); border: 1px solid rgb(61, 139, 94); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 1; box-shadow: 0 0 2px #3D8B5E33;"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-weight: 600; text-decoration: none;"[39m
+            [36m>[39m
+              [0mUsername[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"margin: 0px 3px;"[39m
+            [36m>[39m
+              [0m:[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"color: var(--text-primary);"[39m
+            [36m>[39m
+              [0malice[0m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"padding: 1px 7px; border-radius: 10px; font-size: var(--text-badge); background: rgba(91, 124, 153, 0.08); color: var(--accent-primary); font-weight: 500;"[39m
+          [36m>[39m
+            [0mtag1[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:109:15
+ ❯ src/pages/workspace/WorkspaceObjectCard.test.tsx:168:28
+    166|
+    167|     // 点击删除按钮 → onDelete 收到 obj（移动端/桌面端两处按钮任意一个）
+    168|     fireEvent.click(screen.getAllByTitle('Move to trash')[0]);
+       |                            ^
+    169|     expect(onDelete).toHaveBeenCalledWith(baseObj);
+    170|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+
+ Test Files  4 failed | 4 passed (8)
+      Tests  10 failed | 79 passed (89)
+   Start at  19:35:06
+   Duration  3.22s (transform 1.85s, setup 1.14s, import 2.79s, tests 2.60s, environment 5.76s)
+

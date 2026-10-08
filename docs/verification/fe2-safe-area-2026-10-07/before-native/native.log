@@ -1,0 +1,53 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidHomeInstrumentedTest:
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: 控件必须避开实际系统栏、缺口和键盘: safe-home-portrait / {"tag":"DIV","rect":{"x":20,"y":16,"right":144.28571319580078,"bottom":48},"hittable":true} / {"imeVisible":false,"imeHeightPx":0,"screenHeightPx":1920,"webViewWidthPx":1080,"webViewHeightPx":1920,"webViewScreenX":0,"webViewScreenY":0,"systemBars":{"top":63,"right":0,"bottom":63,"left":0},"windowBounds":{"top":0,"right":1080,"bottom":1920,"left":0}}
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureInsets(AndroidHomeInstrumentedTest.kt:479)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureInsets$default(AndroidHomeInstrumentedTest.kt:451)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyInsets(AndroidHomeInstrumentedTest.kt:489)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:1020)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest):
+java.lang.AssertionError: 控件必须避开实际系统栏、缺口和键盘: safe-home-portrait / {"tag":"DIV","rect":{"x":20,"y":16,"right":144.28571319580078,"bottom":48},"hittable":true} / {"imeVisible":false,"imeHeightPx":0,"screenHeightPx":1920,"webViewWidthPx":1080,"webViewHeightPx":1920,"webViewScreenX":0,"webViewScreenY":0,"systemBars":{"top":63,"right":0,"bottom":63,"left":0},"windowBounds":{"top":0,"right":1080,"bottom":1920,"left":0}}
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureInsets(AndroidHomeInstrumentedTest.kt:479)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureInsets$default(AndroidHomeInstrumentedTest.kt:451)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyInsets(AndroidHomeInstrumentedTest.kt:489)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:1020)
+
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 67.764
+There was 1 failure:
+1) realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest)
+java.lang.AssertionError: 控件必须避开实际系统栏、缺口和键盘: safe-home-portrait / {"tag":"DIV","rect":{"x":20,"y":16,"right":144.28571319580078,"bottom":48},"hittable":true} / {"imeVisible":false,"imeHeightPx":0,"screenHeightPx":1920,"webViewWidthPx":1080,"webViewHeightPx":1920,"webViewScreenX":0,"webViewScreenY":0,"systemBars":{"top":63,"right":0,"bottom":63,"left":0},"windowBounds":{"top":0,"right":1080,"bottom":1920,"left":0}}
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureInsets(AndroidHomeInstrumentedTest.kt:479)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureInsets$default(AndroidHomeInstrumentedTest.kt:451)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyInsets(AndroidHomeInstrumentedTest.kt:489)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:1020)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

@@ -1,0 +1,29 @@
+{
+  "status": "current macOS isolated client rebuilt; window validation pending manual unlock",
+  "recorded_at": "2026-10-08T02:19:29.845579+00:00",
+  "build_result": "docs/verification/fe2-macos-current-build-2026-10-08/build-result.json",
+  "build_exit_code": 0,
+  "first_build_exit_code": 1,
+  "first_failure": "Offline ort-sys runtime lookup; resolved by explicit existing ORT_LIB_PATH, no source/dependency change or Cargo clean",
+  "binary_sha256": "1c1b28ff7af5fd6a1111548ddec70f06eb50253e324db8869c786fcf67ece961",
+  "frozen_binary": "/tmp/solosoul-fe2-macos-current-frozen-20261008/solo_soul",
+  "source_manifest": "docs/verification/fe2-macos-current-build-2026-10-08/source-during-build.json",
+  "source_files": 14,
+  "worktree_manifest": "docs/verification/fe2-macos-current-build-2026-10-08/worktree-source-during-build.json",
+  "frontend_manifest": "docs/verification/fe2-macos-current-build-2026-10-08/frontend-assets.json",
+  "frontend_assets": 35,
+  "source_audit": "docs/verification/fe2-macos-current-build-2026-10-08/source-audit.json",
+  "source_audit_exit_code": 0,
+  "prepare_exit_code": 0,
+  "preflight_exit_code": 0,
+  "negative_preflight_passed": 3,
+  "window_launched": false,
+  "native_visual_passed": false,
+  "bundle_binding_present_after_rebuild": false,
+  "protected_build_inputs": {
+    "tauri/src-tauri/Cargo.toml": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6"
+  },
+  "remaining": "Bind new test bundle after closing prior test instance and manual Mac unlock; full native titlebar/navigation/theme/login/popups/previews/a11y/recovery frames remain; historical native screenshots belong to prior binary"
+}

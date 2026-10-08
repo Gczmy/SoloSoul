@@ -1,0 +1,10 @@
+
+> solosoul@2.13.2 lint
+> eslint src --ext .ts,.tsx
+
+
+/Users/zzc/PycharmProjects/SoloSoul/tauri/src/stores/syncStore.ts
+  838:71  warning  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+

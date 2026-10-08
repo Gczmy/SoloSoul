@@ -1,0 +1,72 @@
+Attributes: Application, 0x1041b95a0, pid: 76732, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x1041b95a0, pid: 76732, label: 'SoloSoul'
+    Window (Main), 0x10412e280, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x104139380, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1041377e0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x104130bc0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x104130850, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x104137460, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x104138270, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x104139a60, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10413a830, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x104137f00, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x10413a160, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x104139010, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Button, 0x10413a4d0, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused
+                            Other, 0x104139dc0, {{76.0, 75.0}, {70.0, 21.0}}, label: '主题与外观', value: 1, Focused
+                              StaticText, 0x104120ff0, {{76.0, 75.0}, {70.0, 21.0}}, label: '主题与外观', value: 主题与外观, Focused
+                          Other, 0x10414ece0, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x104169740, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x104114b60, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x104118df0, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x1041b3a30, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x10414a240, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x1041a0680, {{0.0, 0.0}, {402.0, 784.0}}, Focused
+                            Other, 0x104109ce0, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x104156f80, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused
+                              Other, 0x104185790, {{35.0, 145.0}, {332.0, 20.0}}, label: '外观', value: 3, Focused
+                                StaticText, 0x10413f2c0, {{35.0, 145.0}, {28.0, 20.0}}, label: '外观', value: 外观, Focused
+                              Other, 0x10419c680, {{35.0, 177.0}, {332.0, 36.0}}, Focused
+                                Other, 0x104158820, {{35.0, 177.0}, {332.0, 36.0}}, label: '浅色 · 暖石', value: 0, Focused
+                                StaticText, 0x10414a6a0, {{71.0, 185.0}, {73.0, 20.0}}, label: '浅色 · 暖石', value: 浅色 · 暖石, Focused
+                              Other, 0x1041664a0, {{35.0, 221.0}, {332.0, 36.0}}, Focused
+                                Other, 0x104167560, {{35.0, 221.0}, {332.0, 36.0}}, label: '深色 · 森夜', value: 0, Focused
+                                StaticText, 0x1041668c0, {{71.0, 229.0}, {73.0, 20.0}}, label: '深色 · 森夜', value: 深色 · 森夜, Focused
+                              Other, 0x104149c00, {{35.0, 265.0}, {332.0, 36.0}}, Focused
+                                Other, 0x10414b300, {{35.0, 265.0}, {332.0, 36.0}}, label: '跟随系统', value: 1, Focused
+                                StaticText, 0x10414aee0, {{71.0, 273.0}, {56.0, 20.0}}, label: '跟随系统', value: 跟随系统, Focused
+                              Button, 0x10417fc70, {{35.0, 317.0}, {332.0, 44.0}}, label: '更多外观', Focused
+                              Other, 0x10418cf90, {{35.0, 419.0}, {332.0, 20.0}}, label: '主题色', value: 3, Focused
+                                StaticText, 0x1041b7440, {{35.0, 419.0}, {42.0, 20.0}}, label: '主题色', value: 主题色, Focused
+                              Button, 0x1041a9890, {{32.0, 448.0}, {50.0, 50.0}}, label: '海洋蓝', Focused
+                              Button, 0x104191af0, {{91.0, 451.0}, {44.0, 44.0}}, label: '琥珀金', Focused
+                              Button, 0x10419ab00, {{147.0, 451.0}, {44.0, 44.0}}, label: '森林绿', Focused
+                              Button, 0x1041a9cb0, {{203.0, 451.0}, {44.0, 44.0}}, label: '玫瑰红', Focused
+                              Button, 0x1041a1250, {{259.0, 451.0}, {44.0, 44.0}}, label: '柔紫', Focused
+                              Other, 0x104190a70, {{35.0, 553.0}, {332.0, 20.0}}, label: '语言', value: 3, Focused
+                                StaticText, 0x104199a20, {{35.0, 553.0}, {28.0, 20.0}}, label: '语言', value: 语言, Focused
+                              Other, 0x104180a90, {{35.0, 585.0}, {332.0, 36.0}}, Focused
+                                Other, 0x104190e90, {{35.0, 585.0}, {332.0, 36.0}}, label: '中文（简体）', value: 1, Focused
+                                StaticText, 0x1041a1a90, {{71.0, 593.0}, {84.0, 20.0}}, label: '中文（简体）', value: 中文（简体）, Focused
+                              Other, 0x1041a1eb0, {{35.0, 629.0}, {332.0, 36.0}}, Focused
+                                Other, 0x1041916d0, {{35.0, 629.0}, {332.0, 36.0}}, label: 'English', value: 0, Focused
+                                StaticText, 0x1041a8190, {{71.0, 637.0}, {47.0, 20.0}}, label: 'English', value: English, Focused
+                Other, 0x1041912b0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x1041a1670, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x1041a9470, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x1041c19f0, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x104160140, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x104160260, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x104158e60, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x104158f80, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x1041590a0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1041591c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1041592e0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1041b95a0, pid: 76732, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x104160610, pid: 76732, label: 'SoloSoul'
+  }

@@ -1,0 +1,37 @@
+/sdcard/Android/data/com.solosoul.app/files/fe2-home-c8ceef6f3dfd4fdfa38fac414d1e3fce/: 15 files pulled, 0 skipped. 24.1 MB/s (2284575 bytes in 0.090s)
+/private/tmp/solosoul-fe2-current-api31-insets-supported-20261008/private-data-before.tar: 1 file pushed, 0 skipped. 6.4 MB/s (2560 bytes in 0.000s)
+{
+  "serial": "emulator-5588",
+  "avd": "SoloSoul_FE2_API31",
+  "mode": "supported",
+  "scenario": "insets",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791444927.12539,
+  "passed": false,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 31,
+  "abi": "arm64-v8a",
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-editor-build-20261008/app-arm64-debug.apk",
+      "sha256": "9c6395c574bacd15a1658a56db81b42f25963a6b6b2a5d75e9b7348d764a8176"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-editor-after-back-test-build-20261008/app-arm64-debug-androidTest.apk",
+      "sha256": "c0e688fe4ba193cb1bf4c2124a3827d1f019e0dad7cd031098b55469b0dc9c02"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-current-api31-insets-supported-20261008/private-data-before.tar",
+    "sha256": "cf948b41b20956d220ba614b32361ae2fd4f008f1099a8107d88d2828e81fc96",
+    "entries": 2
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 2,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "finishedAt": 1791445006.71713
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "directory": "native-edge-supported",
+    "driver_passed": true,
+    "records": 19,
+    "pngs": 18,
+    "runtime": {
+      "api": 31,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "91.0.4472.114",
+      "webViewVersionCode": 447211484
+    },
+    "scope": "原导航、登录、IME 安全区；尚未检查通知按钮横向安全区",
+    "source_manifest": "edge-source.json",
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "418db08653c0c8f4ae899f043a230f9afacf621c1286422333176b58c9d30163"
+      }
+    ],
+    "restore": {
+      "entries": 2,
+      "allFileContentsLinksAndModesMatch": true
+    }
+  },
+  {
+    "directory": "native-edge-fallback",
+    "driver_passed": true,
+    "records": 19,
+    "pngs": 18,
+    "runtime": {
+      "api": 31,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "91.0.4472.114",
+      "webViewVersionCode": 447211484
+    },
+    "scope": "原导航、登录、IME 安全区；尚未检查通知按钮横向安全区",
+    "source_manifest": "edge-source.json",
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "418db08653c0c8f4ae899f043a230f9afacf621c1286422333176b58c9d30163"
+      }
+    ],
+    "restore": {
+      "entries": 2,
+      "allFileContentsLinksAndModesMatch": true
+    }
+  }
+]

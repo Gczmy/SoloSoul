@@ -1,0 +1,271 @@
+{
+  "scope": "Current production iOS PDF system picker import, unsupported external-open failure feedback visibility and UI return in light/dark; does not assert PDF rendering support",
+  "passed": false,
+  "commands": [
+    {
+      "name": "device-inventory",
+      "command": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "available",
+        "--json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "boot",
+      "command": [
+        "xcrun",
+        "simctl",
+        "boot",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "boot-status",
+      "command": [
+        "xcrun",
+        "simctl",
+        "bootstatus",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "-b"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "initial-appearance",
+      "command": [
+        "xcrun",
+        "simctl",
+        "ui",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "appearance"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "data-container",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "data"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "installed-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "install-current-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "install",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "/tmp/solosoul-fe2-ios-current-file-stage-build-20261008/SoloSoul.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "current-installed-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "current-data-container",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "data"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "install-fixture-host",
+      "command": [
+        "xcrun",
+        "simctl",
+        "install",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "/tmp/solosoul-fe2-ios-current-pdf-feedback-ui-20261008/DerivedData/Build/Products/Debug-iphonesimulator/ProbeHost.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "launch-fixture-host",
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probehost"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "fixture-host-data",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probehost",
+        "data"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "terminate-fixture-host",
+      "command": [
+        "xcrun",
+        "simctl",
+        "terminate",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probehost"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "launch-current-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native-ui-test",
+      "command": [
+        "xcodebuild",
+        "-project",
+        "/tmp/solosoul-fe2-ios-current-pdf-feedback-ui-20261008/SoloSoulFE2UIProbe.xcodeproj",
+        "-scheme",
+        "Probe",
+        "-destination",
+        "platform=iOS Simulator,id=362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "-derivedDataPath",
+        "/tmp/solosoul-fe2-ios-current-pdf-feedback-ui-20261008/DerivedData",
+        "-parallel-testing-enabled",
+        "NO",
+        "-resultBundlePath",
+        "/tmp/solosoul-fe2-ios-current-pdf-feedback-ui-20261008/probe.xcresult",
+        "test-without-building",
+        "CODE_SIGNING_ALLOWED=NO"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "terminate-tested-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "terminate",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app"
+      ],
+      "exit_code": 3
+    },
+    {
+      "name": "restore-appearance",
+      "command": [
+        "xcrun",
+        "simctl",
+        "ui",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "appearance",
+        "light"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "restored-appearance",
+      "command": [
+        "xcrun",
+        "simctl",
+        "ui",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "appearance"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "uninstall-probe-host",
+      "command": [
+        "xcrun",
+        "simctl",
+        "uninstall",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probehost"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "uninstall-probe-runner",
+      "command": [
+        "xcrun",
+        "simctl",
+        "uninstall",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probetests.xctrunner"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "shutdown",
+      "command": [
+        "xcrun",
+        "simctl",
+        "shutdown",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "restored": true,
+  "initial_state": "Shutdown",
+  "initial_appearance": "light",
+  "production_binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "private_entries_before": 99,
+  "previous_binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "data_container_relocated": true,
+  "public_fixture_files": [
+    {
+      "name": "FE2-public-document.pdf",
+      "sha256": "ffe75755c25444e7edcf3bbc14b479e45f4727022793bc6070db48808d754c09"
+    }
+  ],
+  "source_differences_after_execution": [
+    "tauri/src-tauri/Cargo.toml"
+  ],
+  "error": "",
+  "appearance_restored": true,
+  "simulator_shutdown_restored": true
+}

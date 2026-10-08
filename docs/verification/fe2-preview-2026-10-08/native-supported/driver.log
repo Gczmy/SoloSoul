@@ -1,0 +1,75 @@
+/sdcard/Android/data/com.solosoul.app/files/fe2-home-718efa81d7c74a8f816707e9fc2bc53b/: 26 files pulled, 0 skipped. 21.2 MB/s (3278809 bytes in 0.147s)
+/private/tmp/solosoul-fe2-preview-supported-eighth-20261008/private-data-before.tar: 1 file pushed, 0 skipped. 451.1 MB/s (4051456 bytes in 0.009s)
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "previews",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791424948.813635,
+  "passed": true,
+  "restored": true,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "688e90599fe65bca72a89d31b5a319ffb856dc7b9e2545f75c2426118df566a9"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "c8e0b4bf709ebfc75b09382edae3c3865fb254d5c4104cda9d7b95e38811dd77"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-preview-supported-eighth-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "preview-fixtures-encrypted",
+    "nonempty-attachments-dark",
+    "file-preview-text-dark",
+    "file-preview-image-dark",
+    "photo-album-dark",
+    "photo-viewer-dark",
+    "photo-album-after-back-dark",
+    "attachments-after-back-dark",
+    "preview-returned-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "nonempty-attachments-light",
+    "file-preview-text-light",
+    "file-preview-image-light",
+    "photo-album-light",
+    "photo-viewer-light",
+    "photo-album-after-back-light",
+    "attachments-after-back-light",
+    "preview-returned-detail-light"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791425035.0796669
+}

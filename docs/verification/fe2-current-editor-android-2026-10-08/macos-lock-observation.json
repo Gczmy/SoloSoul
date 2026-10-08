@@ -1,0 +1,7 @@
+{
+  "recorded_at": 1791443787.827938,
+  "tool": "mcp__cua_repl.js",
+  "action": "await cua.getApp('com.solosoul.fe2.macos')",
+  "result": "The Mac is locked and automatic unlock could not unlock it.",
+  "native_ui_acceptance": "not available; no credential input or alternate UI automation attempted"
+}

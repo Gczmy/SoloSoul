@@ -1,0 +1,108 @@
+[2m[WebServer] [22m(node:49645) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 38 tests using 1 worker
+
+(node:49646) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49646) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m10:09:05 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:09:05 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   1 [chromium] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (4.2s)
+[2m[WebServer] [22m10:09:08 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:09:08 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:09:09 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   2 [chromium] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text (1.6s)
+  ✓   3 [chromium] › e2e/macos-glass.spec.ts:103:3 › light 登录双层材质保留正文与辅助功能回退 (1.0s)
+[2m[WebServer] [22m10:09:12 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   4 [chromium] › e2e/macos-glass.spec.ts:152:3 › light AppBar 平面按钮保持原生标题栏尺寸与操作 (1.9s)
+[2m[WebServer] [22m10:09:14 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:14 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:14 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓   5 [chromium] › e2e/macos-glass.spec.ts:189:3 › light 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.2s)
+  ✓   6 [chromium] › e2e/macos-glass.spec.ts:103:3 › dark 登录双层材质保留正文与辅助功能回退 (563ms)
+[2m[WebServer] [22m10:09:17 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   7 [chromium] › e2e/macos-glass.spec.ts:152:3 › dark AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+[2m[WebServer] [22m10:09:20 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:20 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓   8 [chromium] › e2e/macos-glass.spec.ts:189:3 › dark 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.1s)
+  ✓   9 [chromium] › e2e/macos-glass.spec.ts:249:1 › 小窗口菜单与辅助功能回退保持键盘操作及清晰表面 (1.3s)
+  ✓  10 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS left 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓  11 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS right 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓  12 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS top 导航背景铺至顶部，控件避开交通灯 (1.2s)
+  ✓  13 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS bottom 导航背景铺至顶部，控件避开交通灯 (1.2s)
+[2m[WebServer] [22m10:09:29 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  14 [chromium] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 (1.5s)
+  ✓  15 [chromium] › e2e/macos-titlebar.spec.ts:182:1 › macOS 全屏往返保持单行 AppBar，无重复顶部留白 (1.2s)
+  ✓  16 [chromium] › e2e/macos-titlebar.spec.ts:200:1 › macOS 交通灯范围变宽时折叠侧栏和正文同步避让 (1.2s)
+  ✓  17 [chromium] › e2e/macos-titlebar.spec.ts:213:1 › macOS 小窗口登录卡片保留上下留白及完整圆角 (934ms)
+[2m[WebServer] [22m10:09:34 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:34 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:34 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  18 [chromium] › e2e/macos-titlebar.spec.ts:228:3 › left 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (2.4s)
+[2m[WebServer] [22m10:09:42 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:42 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:42 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  19 [chromium] › e2e/macos-titlebar.spec.ts:228:3 › right 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (7.3s)
+(node:50508) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:50508) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m10:09:43 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:09:43 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓  20 [mobile] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (2.9s)
+[2m[WebServer] [22m10:09:46 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:09:46 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:09:47 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  21 [mobile] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text (1.5s)
+  ✓  22 [mobile] › e2e/macos-glass.spec.ts:103:3 › light 登录双层材质保留正文与辅助功能回退 (1.0s)
+[2m[WebServer] [22m10:09:49 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  23 [mobile] › e2e/macos-glass.spec.ts:152:3 › light AppBar 平面按钮保持原生标题栏尺寸与操作 (1.7s)
+[2m[WebServer] [22m10:09:52 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:52 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:52 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  24 [mobile] › e2e/macos-glass.spec.ts:189:3 › light 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.1s)
+  ✓  25 [mobile] › e2e/macos-glass.spec.ts:103:3 › dark 登录双层材质保留正文与辅助功能回退 (979ms)
+[2m[WebServer] [22m10:09:55 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  26 [mobile] › e2e/macos-glass.spec.ts:152:3 › dark AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+[2m[WebServer] [22m10:09:57 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:57 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:09:57 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  27 [mobile] › e2e/macos-glass.spec.ts:189:3 › dark 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.1s)
+  ✓  28 [mobile] › e2e/macos-glass.spec.ts:249:1 › 小窗口菜单与辅助功能回退保持键盘操作及清晰表面 (1.4s)
+  ✓  29 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS left 导航背景铺至顶部，控件避开交通灯 (1.5s)
+  ✓  30 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS right 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓  31 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS top 导航背景铺至顶部，控件避开交通灯 (1.2s)
+  ✓  32 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS bottom 导航背景铺至顶部，控件避开交通灯 (1.2s)
+[2m[WebServer] [22m10:10:07 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  33 [mobile] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 (2.0s)
+  ✓  34 [mobile] › e2e/macos-titlebar.spec.ts:182:1 › macOS 全屏往返保持单行 AppBar，无重复顶部留白 (1.2s)
+  ✓  35 [mobile] › e2e/macos-titlebar.spec.ts:200:1 › macOS 交通灯范围变宽时折叠侧栏和正文同步避让 (1.2s)
+  ✓  36 [mobile] › e2e/macos-titlebar.spec.ts:213:1 › macOS 小窗口登录卡片保留上下留白及完整圆角 (915ms)
+[2m[WebServer] [22m10:10:13 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:10:13 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:10:13 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  37 [mobile] › e2e/macos-titlebar.spec.ts:228:3 › left 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (7.0s)
+[2m[WebServer] [22m10:10:25 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:10:25 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:10:25 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  38 [mobile] › e2e/macos-titlebar.spec.ts:228:3 › right 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (7.4s)
+
+  38 passed (1.4m)

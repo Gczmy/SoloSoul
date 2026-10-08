@@ -1,0 +1,12 @@
+{
+  "tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk": {
+    "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d",
+    "size": 211550511
+  },
+  "tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk": {
+    "sha256": "feecaf56fd427ef80e240874c7d19b1eacf8680c536fb352aac40ef4ca4fb8c0",
+    "size": 1676283
+  },
+  "embedded_native_library_sha256": "eb0ae26ea2d7ee444a6779aead6736a72df60559cc12c6a4a0f8f8ab2d0c95d9",
+  "built_native_library_sha256": "eb0ae26ea2d7ee444a6779aead6736a72df60559cc12c6a4a0f8f8ab2d0c95d9"
+}

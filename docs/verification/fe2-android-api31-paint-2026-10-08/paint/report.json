@@ -1,0 +1,36 @@
+{
+  "actualSafPickerChecks": true,
+  "serial": "emulator-5588",
+  "avd": "SoloSoul_FE2_API31",
+  "mode": "supported",
+  "scenario": "previews",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791461315.0971038,
+  "passed": false,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 31,
+  "abi": "arm64-v8a",
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-android-saf-repaired-production-build-20261008/app-arm64-debug.apk",
+      "sha256": "384821244478eaa76ee9bd25c8902dd8344b123c747b1f5b27c6fdd6847af118"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-android-saf-test-build-api31-paint-20261008/app-arm64-debug-androidTest.apk",
+      "sha256": "93976cf8d3496eeacf9f9df6ba2d5f570b72ed4afea6780485b86da10b923573"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-android-saf-api31-paint-supported-20261008/private-data-before.tar",
+    "sha256": "cf948b41b20956d220ba614b32361ae2fd4f008f1099a8107d88d2828e81fc96",
+    "entries": 2
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 2,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "finishedAt": 1791461397.8337479
+}

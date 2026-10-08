@@ -1,0 +1,42 @@
+{
+  "tauri/src/stores/settingsStore.ts": {
+    "snapshot": "native-source/0-settingsStore.ts",
+    "sha256": "c05a5c45af2fb1b1a701b51c9332cbe990c85c5bec983391bcea7c629052174b"
+  },
+  "tauri/src/stores/settingsStore.test.ts": {
+    "snapshot": "native-source/1-settingsStore.test.ts",
+    "sha256": "fa92f3e113ab2022aac1baa42ef1bd4b5aa4490e188043f88979a49c55647789"
+  },
+  "tauri/scripts/android-home-native-regression.py": {
+    "snapshot": "native-source/2-android-home-native-regression.py",
+    "sha256": "10b0dcf6badf1e37ab5ffc1abfd2c6c280f30ea54e871c484044ffc0bd681664"
+  },
+  "tauri/scripts/test_android_home_native_regression.py": {
+    "snapshot": "native-source/3-test_android_home_native_regression.py",
+    "sha256": "8873c564f64b7d6b0db01e9be0d25771751f5eabbf1bf7142b86df806918189d"
+  },
+  "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt": {
+    "snapshot": "native-source/4-AndroidHomeInstrumentedTest.kt",
+    "sha256": "edd105116225b8c8f35e794fa1b312ff54d0f04aa49492455cd3b632904a1a75"
+  },
+  "tauri/src-tauri/src/commands/settings.rs": {
+    "snapshot": "native-source/5-settings.rs",
+    "sha256": "ad3f542787c1064ffa4c2457d17a85c300610286037a60a565dbb734ac00d5b0"
+  },
+  "tauri/src/bootstrapApp.tsx": {
+    "snapshot": "native-source/6-bootstrapApp.tsx",
+    "sha256": "088ae63f2bc752c73085ac59eca9c238baa512d7aeb4c430f64619b64b3b673c"
+  },
+  "tauri/src/components/android/AndroidLiquidArtwork.tsx": {
+    "snapshot": "native-source/7-AndroidLiquidArtwork.tsx",
+    "sha256": "e5058b363413b1b71178d09492edd7061e89c5ad600d1d3cd4959d7ae464f4fb"
+  },
+  "tauri/src/hooks/useAndroidCreateMenu.ts": {
+    "snapshot": "native-source/8-useAndroidCreateMenu.ts",
+    "sha256": "7e54d45778cf78c14258beee984c08d9a43fb255879183e19877190d2fc3578c"
+  },
+  "tauri/src/styles/android.css": {
+    "snapshot": "native-source/9-android.css",
+    "sha256": "3bef1f0508467a3d416209524241441ae6702f357e4158c955ecf9146a4cab8b"
+  }
+}

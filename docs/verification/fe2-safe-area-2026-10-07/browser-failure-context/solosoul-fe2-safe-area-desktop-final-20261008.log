@@ -1,0 +1,139 @@
+[2m[WebServer] [22m(node:49312) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 31 tests using 1 worker
+
+(node:49314) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49314) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/macos-glass.spec.ts:103:3 › light 登录双层材质保留正文与辅助功能回退 (1.8s)
+[2m[WebServer] [22m12:11:56 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   2 [chromium] › e2e/macos-glass.spec.ts:152:3 › light AppBar 平面按钮保持原生标题栏尺寸与操作 (1.7s)
+[2m[WebServer] [22m12:11:58 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:11:58 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:11:58 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓   3 [chromium] › e2e/macos-glass.spec.ts:189:3 › light 侧栏浮层与对象二级对话框保持可点击和视口定位 (2.8s)
+  ✓   4 [chromium] › e2e/macos-glass.spec.ts:103:3 › dark 登录双层材质保留正文与辅助功能回退 (576ms)
+[2m[WebServer] [22m12:12:01 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   5 [chromium] › e2e/macos-glass.spec.ts:152:3 › dark AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+[2m[WebServer] [22m12:12:03 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:12:03 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:12:03 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓   6 [chromium] › e2e/macos-glass.spec.ts:189:3 › dark 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.1s)
+  ✓   7 [chromium] › e2e/macos-glass.spec.ts:249:1 › 小窗口菜单与辅助功能回退保持键盘操作及清晰表面 (1.3s)
+[2m[WebServer] [22m12:12:06 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m12:12:06 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m12:12:06 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✘   8 [chromium] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer (3.1s)
+(node:49682) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49682) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m12:12:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m12:12:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m12:12:10 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✘   9 [chromium] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer (3.1s)
+(node:49718) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49718) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m12:12:14 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  10 [chromium] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light text preview preserves traffic lights and native hit regions (2.0s)
+[2m[WebServer] [22m12:12:15 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  11 [chromium] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light pdf preview preserves traffic lights and native hit regions (1.9s)
+[2m[WebServer] [22m12:12:18 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  12 [chromium] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light image preview preserves traffic lights and native hit regions (2.5s)
+[2m[WebServer] [22m12:12:20 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  13 [chromium] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark text preview preserves traffic lights and native hit regions (2.0s)
+[2m[WebServer] [22m12:12:22 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  14 [chromium] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark pdf preview preserves traffic lights and native hit regions (1.9s)
+[2m[WebServer] [22m12:12:24 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  15 [chromium] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark image preview preserves traffic lights and native hit regions (2.0s)
+[2m[WebServer] [22m12:12:26 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  16 [chromium] › e2e/macos-preview-titlebar.spec.ts:385:1 › macOS photo viewer returns through album and restores each titlebar hit region (2.7s)
+[2m[WebServer] [22m12:12:29 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  17 [chromium] › e2e/macos-preview-titlebar.spec.ts:416:1 › macOS preview also removes the object attachment card backdrop from the traffic lights (2.1s)
+[2m[WebServer] [22m12:12:31 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  18 [chromium] › e2e/macos-preview-titlebar.spec.ts:446:3 › windows preview keeps its existing top spacing (1.3s)
+[2m[WebServer] [22m12:12:31 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m12:12:32 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m12:12:32 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  19 [chromium] › e2e/macos-preview-titlebar.spec.ts:446:3 › android preview keeps its existing top spacing (1.6s)
+[2m[WebServer] [22m12:12:34 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  20 [chromium] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows light photo preview and album keep the AppBar surface (2.5s)
+[2m[WebServer] [22m12:12:36 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  21 [chromium] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows dark photo preview and album keep the AppBar surface (2.4s)
+  ✓  22 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS left 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓  23 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS right 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓  24 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS top 导航背景铺至顶部，控件避开交通灯 (1.2s)
+  ✓  25 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS bottom 导航背景铺至顶部，控件避开交通灯 (1.2s)
+[2m[WebServer] [22m12:12:44 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  26 [chromium] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 (1.5s)
+  ✓  27 [chromium] › e2e/macos-titlebar.spec.ts:182:1 › macOS 全屏往返保持单行 AppBar，无重复顶部留白 (1.3s)
+  ✓  28 [chromium] › e2e/macos-titlebar.spec.ts:200:1 › macOS 交通灯范围变宽时折叠侧栏和正文同步避让 (1.2s)
+  ✓  29 [chromium] › e2e/macos-titlebar.spec.ts:213:1 › macOS 小窗口登录卡片保留上下留白及完整圆角 (941ms)
+[2m[WebServer] [22m12:12:50 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:12:50 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:12:50 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  30 [chromium] › e2e/macos-titlebar.spec.ts:228:3 › left 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (2.6s)
+[2m[WebServer] [22m12:12:58 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:12:58 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m12:12:58 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  31 [chromium] › e2e/macos-titlebar.spec.ts:228:3 › right 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (7.4s)
+
+
+  1) [chromium] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      265 |           return !!hit && node.contains(hit);
+      266 |         }),
+    > 267 |       ).toBe(true);
+          |         ^
+      268 |       expect(await overlay.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+      269 |     };
+      270 |     await page.getByRole('button', { name: /^Attachment actions:/ }).click();
+        at expectFrontToast (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:267:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:299:7
+
+    Error Context: test-results/macos-preview-titlebar-And-2c52b-view-album-and-photo-viewer-chromium/error-context.md
+
+  2) [chromium] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      265 |           return !!hit && node.contains(hit);
+      266 |         }),
+    > 267 |       ).toBe(true);
+          |         ^
+      268 |       expect(await overlay.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+      269 |     };
+      270 |     await page.getByRole('button', { name: /^Attachment actions:/ }).click();
+        at expectFrontToast (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:267:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:299:7
+
+    Error Context: test-results/macos-preview-titlebar-And-e2d1e-view-album-and-photo-viewer-chromium/error-context.md
+
+  2 failed
+    [chromium] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer 
+    [chromium] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer 
+  29 passed (1.1m)

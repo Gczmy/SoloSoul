@@ -1,0 +1,269 @@
+{
+  "ancestors": [
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(42, 38, 32)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "blur(6px)",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0.35)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_controls_skkf7_1",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_container_ruoo8_1 _medium_ruoo8_14 _gap-default_ruoo8_34 android-workspace",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "MAIN",
+      "classes": "_content_18ixn_12",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_contentSurface_18ixn_28",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_main_18ixn_17",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_appShell_18ixn_1",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "BODY",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "HTML",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    }
+  ],
+  "overlaps": [],
+  "geometry": {
+    "theme": "dark",
+    "path": "\/workspace",
+    "search": "?section=travel",
+    "visible": true,
+    "settled": true,
+    "rect": {
+      "x": 16,
+      "y": 154.59524536132812,
+      "right": 396.19049072265625,
+      "bottom": 577.5952453613281,
+      "width": 380.19049072265625,
+      "height": 423
+    },
+    "viewportWidth": 412,
+    "viewportHeight": 732,
+    "overflow": false,
+    "controls": [
+      {
+        "label": "Active (2)",
+        "rect": {
+          "x": 61,
+          "y": 169.59524536132812,
+          "right": 142.73809814453125,
+          "bottom": 217.59524536132812,
+          "width": 81.73809814453125,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Trash (0)",
+        "rect": {
+          "x": 146.73809814453125,
+          "y": 169.59524536132812,
+          "right": 225.1309585571289,
+          "bottom": 217.59524536132812,
+          "width": 78.39286041259766,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Upload",
+        "rect": {
+          "x": 273.19049072265625,
+          "y": 169.59524536132812,
+          "right": 321.19049072265625,
+          "bottom": 217.59524536132812,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Close",
+        "rect": {
+          "x": 329.19049072265625,
+          "y": 169.59524536132812,
+          "right": 377.19049072265625,
+          "bottom": 217.59524536132812,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      }
+    ],
+    "headerBackground": null,
+    "headerForegrounds": [],
+    "toastCount": 1,
+    "toastRect": {
+      "x": 29,
+      "y": 297.5952453613281,
+      "right": 383.19049072265625,
+      "bottom": 387.5952453613281,
+      "width": 354.19049072265625,
+      "height": 90
+    },
+    "savedNotification": false,
+    "backupReminder": false,
+    "toastInPanel": true,
+    "toastInFlow": true,
+    "toastVisible": true,
+    "toastHittable": true,
+    "text": "Active (2)Trash (0)Select allUploaded successfullyxPhoto Album1FE2-public-notes.txtTXT64 B · 10\/8\/2026FE2-public-quadrants.pngPNG927 B · 10\/8\/2026",
+    "textRect": null,
+    "textColor": null,
+    "imageDecoded": false,
+    "imageRect": null,
+    "imageCount": 0,
+    "zoomRect": null
+  },
+  "nativeViewport": {
+    "imeVisible": false,
+    "documentStartScriptSupported": false,
+    "imeHeightPx": 0,
+    "screenHeightPx": 1920,
+    "webViewWidthPx": 1080,
+    "webViewHeightPx": 1920,
+    "webViewScreenX": 0,
+    "webViewScreenY": 0,
+    "systemBars": {
+      "top": 63,
+      "right": 0,
+      "bottom": 126,
+      "left": 0
+    },
+    "windowBounds": {
+      "top": 0,
+      "right": 1080,
+      "bottom": 1920,
+      "left": 0
+    }
+  },
+  "nativeAncestors": [
+    {
+      "class": "com.solosoul.app.RustWebView",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "androidx.appcompat.widget.ContentFrameLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "androidx.appcompat.widget.FitWindowsLinearLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "android.widget.FrameLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "android.widget.LinearLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "com.android.internal.policy.DecorView",
+      "alpha": 1,
+      "visibility": 0
+    }
+  ],
+  "windowAlpha": 1,
+  "windowDimAmount": 1,
+  "windowFlags": -2122252032,
+  "focused": true
+}

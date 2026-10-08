@@ -1,0 +1,34 @@
+{
+  "serial": "emulator-5588",
+  "avd": "SoloSoul_FE2_API31",
+  "mode": "supported",
+  "scenario": "insets",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791430282.162257,
+  "passed": false,
+  "restored": true,
+  "api": 31,
+  "abi": "arm64-v8a",
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "8963d02005eb86c8e804cbd5e50b2cdadb9e1dc34a30a302707943bb5ca7f5bf"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-api31-insets-supported-20261008/private-data-before.tar",
+    "sha256": "cf948b41b20956d220ba614b32361ae2fd4f008f1099a8107d88d2828e81fc96",
+    "entries": 2
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 2,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "finishedAt": 1791430343.112006
+}

@@ -1,0 +1,31 @@
+[2m[WebServer] [22m(node:27943) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 8 tests using 1 worker
+
+(node:27946) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27946) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:24:52 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  1 [webkit] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/tiny-image-stage/zoom.spec.ts:110:6 › photo toolbar drawing through zoom dark (4.3s)
+[2m[WebServer] [22m4:24:55 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  2 [webkit] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/tiny-image-stage/zoom.spec.ts:110:6 › photo toolbar drawing through zoom light (2.6s)
+[2m[WebServer] [22m4:24:58 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  3 [webkit] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/zoom.spec.ts:110:6 › photo toolbar drawing through zoom dark (3.2s)
+[2m[WebServer] [22m4:25:00 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  4 [webkit] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/zoom.spec.ts:110:6 › photo toolbar drawing through zoom light (2.7s)
+(node:28078) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28078) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:25:03 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  5 [chromium] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/tiny-image-stage/zoom.spec.ts:110:6 › photo toolbar drawing through zoom dark (2.7s)
+[2m[WebServer] [22m4:25:06 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  6 [chromium] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/tiny-image-stage/zoom.spec.ts:110:6 › photo toolbar drawing through zoom light (2.4s)
+[2m[WebServer] [22m4:25:09 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  7 [chromium] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/zoom.spec.ts:110:6 › photo toolbar drawing through zoom dark (2.9s)
+[2m[WebServer] [22m4:25:11 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  8 [chromium] › ../../../../../private/tmp/solosoul-fe2-macos-zoom-diagnostic-20261008/zoom.spec.ts:110:6 › photo toolbar drawing through zoom light (2.9s)
+
+  8 passed (25.6s)

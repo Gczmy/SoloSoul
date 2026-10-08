@@ -1,0 +1,41 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "insets",
+  "startedAt": 1791413933.2733681,
+  "passed": false,
+  "restored": true,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-safe-area-before-apks-20261007/main.apk",
+      "sha256": "4d186038fe6d4eaab748f093fe5f544bfce0b5187ecda3da40a3f268d6cf158e"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-safe-area-before-apks-20261007/test.apk",
+      "sha256": "bc6c1218433a1127a20777e52c8b1c8ef0c2844bcf1d3b3a7773de07bc48511d"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-safe-area-before-native-20261007/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791414004.618438
+}

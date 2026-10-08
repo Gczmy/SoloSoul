@@ -1,0 +1,940 @@
+
+Running 35 tests using 1 worker
+
+(node:73695) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73695) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [mobile] › e2e/android-attachment-actions.spec.ts:95:1 › reminders follow object attachments and history without being trapped below the overlay (3.1s)
+  ✘   2 [mobile] › e2e/android-attachment-actions.spec.ts:157:1 › Android Back closes object details and preserves the current filtered workspace (191ms)
+(node:73782) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73782) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   3 [mobile] › e2e/android-attachment-actions.spec.ts:188:1 › global attachment menus preserve actions, confirmations and the trash menu (321ms)
+(node:73814) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73814) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   4 [mobile] › e2e/android-attachment-actions.spec.ts:281:1 › object attachment menu stays above its host and closes without dismissing details (268ms)
+(node:73834) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73834) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   5 [mobile] › e2e/android-attachment-actions.spec.ts:318:1 › object detail keeps primary actions visible and groups secondary actions safely (273ms)
+(node:73860) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73860) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   6 [mobile] › e2e/android-attachment-actions.spec.ts:418:1 › object attachment count refreshes after deleting an attachment (327ms)
+(node:73877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   7 [mobile] › e2e/android-material.spec.ts:77:1 › Android navigation stays mounted and icons keep their geometry (286ms)
+(node:73911) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73911) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   8 [mobile] › e2e/android-material.spec.ts:95:1 › responsive surfaces and navigation rail have no horizontal overflow (273ms)
+(node:73934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   9 [mobile] › e2e/android-material.spec.ts:114:1 › page sheets keep focus, stay within the viewport and preserve create/edit routes (293ms)
+(node:73948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  10 [mobile] › e2e/android-material.spec.ts:229:1 › all objects, filters, search, details and contextual creation reuse business routes (274ms)
+(node:73973) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73973) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  11 [mobile] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (303ms)
+(node:73997) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73997) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  12 [mobile] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text (394ms)
+(node:74033) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74033) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  13 [mobile] › e2e/android-material.spec.ts:361:1 › appearance persists across reload and a locked vault drops cached names (281ms)
+(node:74047) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74047) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  14 [mobile] › e2e/android-material.spec.ts:389:1 › shared schemes and custom accents reach CSS, artwork and native menu together (310ms)
+(node:74081) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74081) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  15 [mobile] › e2e/android-material.spec.ts:501:1 › glass switches retain navigation geometry, forced colors use solid surfaces (658ms)
+(node:74115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  16 [mobile] › e2e/android-material.spec.ts:525:1 › enhanced home has its final artwork on the first visible frame after navigation (369ms)
+(node:74148) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74148) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  17 [mobile] › e2e/android-material.spec.ts:556:1 › liquid artwork recovers context loss, stops when hidden and clears on lock (1.3s)
+(node:74193) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74193) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  18 [mobile] › e2e/android-material.spec.ts:600:1 › enhanced glass follows Android WebView system theme and ignores desktop theme events (380ms)
+(node:74211) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74211) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  19 [mobile] › e2e/android-material.spec.ts:665:1 › native menu returns contextual actions and uses web fallback when unavailable (318ms)
+(node:74249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  20 [mobile] › e2e/android-material.spec.ts:708:1 › late native menu results cannot navigate after route change or lock (266ms)
+(node:74262) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74262) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  21 [mobile] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (341ms)
+(node:74299) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74299) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  22 [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer (290ms)
+(node:74319) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74319) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  23 [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer (270ms)
+(node:74347) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74347) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  24 [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light text preview preserves traffic lights and native hit regions (337ms)
+(node:74362) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74362) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  25 [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light pdf preview preserves traffic lights and native hit regions (319ms)
+(node:74388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  26 [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light image preview preserves traffic lights and native hit regions (435ms)
+(node:74424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74424) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  27 [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark text preview preserves traffic lights and native hit regions (483ms)
+(node:74454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  28 [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark pdf preview preserves traffic lights and native hit regions (296ms)
+(node:74520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  29 [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark image preview preserves traffic lights and native hit regions (272ms)
+(node:74560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  30 [mobile] › e2e/macos-preview-titlebar.spec.ts:385:1 › macOS photo viewer returns through album and restores each titlebar hit region (1.4s)
+(node:74658) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74658) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  31 [mobile] › e2e/macos-preview-titlebar.spec.ts:416:1 › macOS preview also removes the object attachment card backdrop from the traffic lights (916ms)
+(node:74675) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74675) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  32 [mobile] › e2e/macos-preview-titlebar.spec.ts:446:3 › windows preview keeps its existing top spacing (572ms)
+(node:74711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  33 [mobile] › e2e/macos-preview-titlebar.spec.ts:446:3 › android preview keeps its existing top spacing (1.4s)
+(node:74768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  34 [mobile] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows light photo preview and album keep the AppBar surface (293ms)
+(node:74795) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74795) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  35 [mobile] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows dark photo preview and album keep the AppBar surface (317ms)
+
+
+  1) [mobile] › e2e/android-attachment-actions.spec.ts:157:1 › Android Back closes object details and preserves the current filtered workspace 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:84:9
+
+    Error Context: test-results/android-attachment-actions-28e8f--current-filtered-workspace-mobile/error-context.md
+
+  2) [mobile] › e2e/android-attachment-actions.spec.ts:188:1 › global attachment menus preserve actions, confirmations and the trash menu 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:84:9
+
+    Error Context: test-results/android-attachment-actions-39bc5-rmations-and-the-trash-menu-mobile/error-context.md
+
+  3) [mobile] › e2e/android-attachment-actions.spec.ts:281:1 › object attachment menu stays above its host and closes without dismissing details 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:84:9
+
+    Error Context: test-results/android-attachment-actions-1dddb--without-dismissing-details-mobile/error-context.md
+
+  4) [mobile] › e2e/android-attachment-actions.spec.ts:318:1 › object detail keeps primary actions visible and groups secondary actions safely 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:84:9
+
+    Error Context: test-results/android-attachment-actions-9508f-ps-secondary-actions-safely-mobile/error-context.md
+
+  5) [mobile] › e2e/android-attachment-actions.spec.ts:418:1 › object attachment count refreshes after deleting an attachment 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:84:9
+
+    Error Context: test-results/android-attachment-actions-c570e-fter-deleting-an-attachment-mobile/error-context.md
+
+  6) [mobile] › e2e/android-material.spec.ts:77:1 › Android navigation stays mounted and icons keep their geometry 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-Android-n-901db-d-icons-keep-their-geometry-mobile/error-context.md
+
+  7) [mobile] › e2e/android-material.spec.ts:95:1 › responsive surfaces and navigation rail have no horizontal overflow 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-responsiv-eadc2-have-no-horizontal-overflow-mobile/error-context.md
+
+  8) [mobile] › e2e/android-material.spec.ts:114:1 › page sheets keep focus, stay within the viewport and preserve create/edit routes 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-page-shee-52950-preserve-create-edit-routes-mobile/error-context.md
+
+  9) [mobile] › e2e/android-material.spec.ts:229:1 › all objects, filters, search, details and contextual creation reuse business routes 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-all-objec-ba1f9-ation-reuse-business-routes-mobile/error-context.md
+
+  10) [mobile] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-Android-r-61a01-et-without-covering-actions-mobile/error-context.md
+
+  11) [mobile] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-Android-e-b5c24--reminder-and-enlarged-text-mobile/error-context.md
+
+  12) [mobile] › e2e/android-material.spec.ts:361:1 › appearance persists across reload and a locked vault drops cached names 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-appearanc-01619-ed-vault-drops-cached-names-mobile/error-context.md
+
+  13) [mobile] › e2e/android-material.spec.ts:389:1 › shared schemes and custom accents reach CSS, artwork and native menu together 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-shared-sc-e9f98-rk-and-native-menu-together-mobile/error-context.md
+
+  14) [mobile] › e2e/android-material.spec.ts:501:1 › glass switches retain navigation geometry, forced colors use solid surfaces 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-glass-swi-7411b-d-colors-use-solid-surfaces-mobile/error-context.md
+
+  15) [mobile] › e2e/android-material.spec.ts:525:1 › enhanced home has its final artwork on the first visible frame after navigation 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-enhanced--2197d-ible-frame-after-navigation-mobile/error-context.md
+
+  16) [mobile] › e2e/android-material.spec.ts:556:1 › liquid artwork recovers context loss, stops when hidden and clears on lock 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-liquid-ar-49588-n-hidden-and-clears-on-lock-mobile/error-context.md
+
+  17) [mobile] › e2e/android-material.spec.ts:600:1 › enhanced glass follows Android WebView system theme and ignores desktop theme events 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-enhanced--a19ee-gnores-desktop-theme-events-mobile/error-context.md
+
+  18) [mobile] › e2e/android-material.spec.ts:665:1 › native menu returns contextual actions and uses web fallback when unavailable 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-native-me-26b44-b-fallback-when-unavailable-mobile/error-context.md
+
+  19) [mobile] › e2e/android-material.spec.ts:708:1 › late native menu results cannot navigate after route change or lock 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:74:9
+
+    Error Context: test-results/android-material-late-nati-76881--after-route-change-or-lock-mobile/error-context.md
+
+  20) [mobile] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM ──────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/history-keyboard.spec.ts:25:9
+
+    Error Context: test-results/history-keyboard-隐藏历史字段支持-Enter-和-Space，揭示前无原文-DOM-mobile/error-context.md
+
+  21) [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:231:5
+
+    Error Context: test-results/macos-preview-titlebar-And-2c52b-view-album-and-photo-viewer-mobile/error-context.md
+
+  22) [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:231:5
+
+    Error Context: test-results/macos-preview-titlebar-And-e2d1e-view-album-and-photo-viewer-mobile/error-context.md
+
+  23) [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light text preview preserves traffic lights and native hit regions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:335:7
+
+    Error Context: test-results/macos-preview-titlebar-mac-72524-ghts-and-native-hit-regions-mobile/error-context.md
+
+  24) [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light pdf preview preserves traffic lights and native hit regions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:335:7
+
+    Error Context: test-results/macos-preview-titlebar-mac-ea634-ghts-and-native-hit-regions-mobile/error-context.md
+
+  25) [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light image preview preserves traffic lights and native hit regions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:335:7
+
+    Error Context: test-results/macos-preview-titlebar-mac-84218-ghts-and-native-hit-regions-mobile/error-context.md
+
+  26) [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark text preview preserves traffic lights and native hit regions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:335:7
+
+    Error Context: test-results/macos-preview-titlebar-mac-4ed68-ghts-and-native-hit-regions-mobile/error-context.md
+
+  27) [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark pdf preview preserves traffic lights and native hit regions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:335:7
+
+    Error Context: test-results/macos-preview-titlebar-mac-ac5fb-ghts-and-native-hit-regions-mobile/error-context.md
+
+  28) [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark image preview preserves traffic lights and native hit regions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:335:7
+
+    Error Context: test-results/macos-preview-titlebar-mac-22d7a-ghts-and-native-hit-regions-mobile/error-context.md
+
+  29) [mobile] › e2e/macos-preview-titlebar.spec.ts:385:1 › macOS photo viewer returns through album and restores each titlebar hit region 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:388:3
+
+    Error Context: test-results/macos-preview-titlebar-mac-36730-es-each-titlebar-hit-region-mobile/error-context.md
+
+  30) [mobile] › e2e/macos-preview-titlebar.spec.ts:416:1 › macOS preview also removes the object attachment card backdrop from the traffic lights 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:419:3
+
+    Error Context: test-results/macos-preview-titlebar-mac-b8993-rop-from-the-traffic-lights-mobile/error-context.md
+
+  31) [mobile] › e2e/macos-preview-titlebar.spec.ts:446:3 › windows preview keeps its existing top spacing 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:447:5
+
+    Error Context: test-results/macos-preview-titlebar-win-16979-ps-its-existing-top-spacing-mobile/error-context.md
+
+  32) [mobile] › e2e/macos-preview-titlebar.spec.ts:446:3 › android preview keeps its existing top spacing 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:447:5
+
+    Error Context: test-results/macos-preview-titlebar-and-7360b-ps-its-existing-top-spacing-mobile/error-context.md
+
+  33) [mobile] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows light photo preview and album keep the AppBar surface 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:464:5
+
+    Error Context: test-results/macos-preview-titlebar-Win-6e14b-bum-keep-the-AppBar-surface-mobile/error-context.md
+
+  34) [mobile] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows dark photo preview and album keep the AppBar surface 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1420/login
+    Call log:
+    [2m  - navigating to "http://localhost:1420/login", waiting until "load"[22m
+
+
+       at fixtures/auth.ts:8
+
+       6 |
+       7 | export async function login(page: Page) {
+    >  8 |   await page.goto('/login');
+         |              ^
+       9 |   await page.waitForSelector('input[type="text"]', { timeout: 10000 });
+      10 |   await page.locator('input[type="text"]').fill('any-password');
+      11 |   await page.locator('button[type="submit"]').click();
+        at login (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/auth.ts:8:14)
+        at setupPreview (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:95:9)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:464:5
+
+    Error Context: test-results/macos-preview-titlebar-Win-4bda0-bum-keep-the-AppBar-surface-mobile/error-context.md
+
+  34 failed
+    [mobile] › e2e/android-attachment-actions.spec.ts:157:1 › Android Back closes object details and preserves the current filtered workspace 
+    [mobile] › e2e/android-attachment-actions.spec.ts:188:1 › global attachment menus preserve actions, confirmations and the trash menu 
+    [mobile] › e2e/android-attachment-actions.spec.ts:281:1 › object attachment menu stays above its host and closes without dismissing details 
+    [mobile] › e2e/android-attachment-actions.spec.ts:318:1 › object detail keeps primary actions visible and groups secondary actions safely 
+    [mobile] › e2e/android-attachment-actions.spec.ts:418:1 › object attachment count refreshes after deleting an attachment 
+    [mobile] › e2e/android-material.spec.ts:77:1 › Android navigation stays mounted and icons keep their geometry 
+    [mobile] › e2e/android-material.spec.ts:95:1 › responsive surfaces and navigation rail have no horizontal overflow 
+    [mobile] › e2e/android-material.spec.ts:114:1 › page sheets keep focus, stay within the viewport and preserve create/edit routes 
+    [mobile] › e2e/android-material.spec.ts:229:1 › all objects, filters, search, details and contextual creation reuse business routes 
+    [mobile] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions 
+    [mobile] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text 
+    [mobile] › e2e/android-material.spec.ts:361:1 › appearance persists across reload and a locked vault drops cached names 
+    [mobile] › e2e/android-material.spec.ts:389:1 › shared schemes and custom accents reach CSS, artwork and native menu together 
+    [mobile] › e2e/android-material.spec.ts:501:1 › glass switches retain navigation geometry, forced colors use solid surfaces 
+    [mobile] › e2e/android-material.spec.ts:525:1 › enhanced home has its final artwork on the first visible frame after navigation 
+    [mobile] › e2e/android-material.spec.ts:556:1 › liquid artwork recovers context loss, stops when hidden and clears on lock 
+    [mobile] › e2e/android-material.spec.ts:600:1 › enhanced glass follows Android WebView system theme and ignores desktop theme events 
+    [mobile] › e2e/android-material.spec.ts:665:1 › native menu returns contextual actions and uses web fallback when unavailable 
+    [mobile] › e2e/android-material.spec.ts:708:1 › late native menu results cannot navigate after route change or lock 
+    [mobile] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM ────────────────
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light text preview preserves traffic lights and native hit regions 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light pdf preview preserves traffic lights and native hit regions 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS light image preview preserves traffic lights and native hit regions 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark text preview preserves traffic lights and native hit regions 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark pdf preview preserves traffic lights and native hit regions 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:332:5 › macOS dark image preview preserves traffic lights and native hit regions 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:385:1 › macOS photo viewer returns through album and restores each titlebar hit region 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:416:1 › macOS preview also removes the object attachment card backdrop from the traffic lights 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:446:3 › windows preview keeps its existing top spacing 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:446:3 › android preview keeps its existing top spacing 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows light photo preview and album keep the AppBar surface 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:463:3 › Windows dark photo preview and album keep the AppBar surface 
+  1 passed (42.6s)

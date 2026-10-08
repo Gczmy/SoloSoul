@@ -1,0 +1,3463 @@
+{
+  "scope": "连续三轮正文/侧栏/工具/顶栏往返，浅深主题，两种浏览器实际像素；不是原生客户端目测",
+  "passed": true,
+  "count": 144,
+  "samples": [
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "sidebar",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "tools",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png",
+      "x": 133,
+      "y": 118,
+      "active": true,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "chrome",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "sidebar",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "tools",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png",
+      "x": 133,
+      "y": 118,
+      "active": true,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "chrome",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "sidebar",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "tools",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png",
+      "x": 133,
+      "y": 118,
+      "active": true,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "chrome",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "sidebar",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "tools",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png",
+      "x": 133,
+      "y": 118,
+      "active": true,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "chrome",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "sidebar",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "tools",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png",
+      "x": 133,
+      "y": 118,
+      "active": true,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "chrome",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "sidebar",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "tools",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png",
+      "x": 133,
+      "y": 118,
+      "active": true,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "chrome",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png",
+      "x": 133,
+      "y": 118,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "sidebar",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-6-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "tools",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-6-tools.png",
+      "x": 133,
+      "y": 120,
+      "active": true,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-8-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-8-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-10-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "chrome",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-10-chrome.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-12-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-12-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-14-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "sidebar",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-14-sidebar.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-16-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-16-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-18-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "tools",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-18-tools.png",
+      "x": 133,
+      "y": 120,
+      "active": true,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-20-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-20-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-22-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "chrome",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-22-chrome.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-24-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-24-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-26-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "sidebar",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-26-sidebar.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-28-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-28-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-30-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "tools",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-30-tools.png",
+      "x": 133,
+      "y": 120,
+      "active": true,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-32-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "light",
+      "region": "main",
+      "actual": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        17,
+        17,
+        17
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-32-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-34-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "light",
+      "region": "chrome",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-34-chrome.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "light",
+      "region": "tools-thumb",
+      "actual": [
+        198,
+        198,
+        198
+      ],
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "expected": [
+        198,
+        198,
+        198
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-36-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-36-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-38-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "sidebar",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-38-sidebar.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-40-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-40-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-42-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "tools",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-42-tools.png",
+      "x": 133,
+      "y": 120,
+      "active": true,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-44-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-44-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-46-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "chrome",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-46-chrome.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-48-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-48-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-50-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "sidebar",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-50-sidebar.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-52-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-52-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-54-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "tools",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-54-tools.png",
+      "x": 133,
+      "y": 120,
+      "active": true,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-56-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-56-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-58-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "chrome",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-58-chrome.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-60-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-60-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-62-sidebar.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "sidebar",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-62-sidebar.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-64-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-64-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-66-tools.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "tools",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-66-tools.png",
+      "x": 133,
+      "y": 120,
+      "active": true,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-68-main.png",
+      "x": 997,
+      "y": 100,
+      "active": true,
+      "theme": "dark",
+      "region": "main",
+      "actual": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-68-main.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-70-chrome.png",
+      "x": 997,
+      "y": 100,
+      "active": false,
+      "theme": "dark",
+      "region": "chrome",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    },
+    {
+      "path": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-70-chrome.png",
+      "x": 133,
+      "y": 120,
+      "active": false,
+      "theme": "dark",
+      "region": "tools-thumb",
+      "actual": [
+        76,
+        76,
+        76
+      ],
+      "background": [
+        32,
+        32,
+        32
+      ],
+      "expected": [
+        75,
+        75,
+        75
+      ],
+      "passed": true
+    }
+  ]
+}

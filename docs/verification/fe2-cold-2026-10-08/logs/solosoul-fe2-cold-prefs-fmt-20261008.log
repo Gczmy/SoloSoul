@@ -1,0 +1,10 @@
+Diff in /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/src/commands/settings.rs:1222:
+         std::os::unix::fs::symlink(&real, &alias).unwrap();
+         let old = real.join("ui_preferences.json");
+         let new = alias.join("ui_preferences.json");
+-        let content = br##"{"theme":"dark","androidGlass":"enhanced","customAccentHex":"#112233"}"##;
++        let content =
++            br##"{"theme":"dark","androidGlass":"enhanced","customAccentHex":"#112233"}"##;
+         std::fs::write(&old, content).unwrap();
+ 
+         lazy_cleanup_old_ui_prefs(&old, &new);

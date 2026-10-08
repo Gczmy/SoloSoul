@@ -1,0 +1,4 @@
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  ↪︎Find: Descendants matching type Button
+    ↪︎Find: Elements matching predicate '"返回" IN identifiers'

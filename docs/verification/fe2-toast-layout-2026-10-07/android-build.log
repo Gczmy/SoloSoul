@@ -1,0 +1,536 @@
+        Info Using installed NDK: /Users/zzc/Library/Android/sdk/ndk/30.0.14904198
+        Info Looking up installed tauri packages to check mismatched versions...
+        Warn The bundle identifier "com.solosoul.app" set in `"tauri.conf.json" identifier` ends with `.app`. This is not recommended because it conflicts with the application bundle extension on macOS.
+     Running beforeBuildCommand `npm run build`
+
+> solosoul@2.13.2 build
+> npm run gen-nsis-assets && node scripts/build-search-index.js && node scripts/stage-mobile-resources.cjs && node scripts/stage-desktop-resources.cjs && tsc --noEmit && vite build
+
+
+> solosoul@2.13.2 gen-nsis-assets
+> python3 scripts/generate-nsis-assets.py || python scripts/generate-nsis-assets.py
+
+Pillow not installed; using existing NSIS assets.
+Search index built: 3387 words, 21 guides
+[stage-mobile-resources] 已生成移动端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-mobile/SoloSoul_plugin_market
+[stage-mobile-resources] 资源版本 0ea5bd93dd11abafd625e241db82695204a8f502a8cc6f6efe7e8a5a635f3ac1，89 文件
+[stage-desktop-resources] 已生成桌面端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-desktop/SoloSoul_plugin_market
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 4184 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                           1.46 kB │ gzip:   0.73 kB
+dist/assets/128x128@2x-lsnePcND.png                      13.59 kB
+dist/assets/is-prop-valid_framer-motion-BVADqg-m.css      0.16 kB │ gzip:   0.12 kB
+dist/assets/useLlmChatCore-BS2IyamA.css                   1.00 kB │ gzip:   0.49 kB
+dist/assets/RecoveryQrScanner-C7HdV_uH.css                1.58 kB │ gzip:   0.51 kB
+dist/assets/photoAlbumPreview-L7zcWlvn.css                2.19 kB │ gzip:   0.58 kB
+dist/assets/index-B_i18wfL.css                            2.54 kB │ gzip:   0.92 kB
+dist/assets/Dialog-C8ggxjcN.css                           7.86 kB │ gzip:   2.18 kB
+dist/assets/bootstrapApp-BYbtnET-.css                   259.15 kB │ gzip:  37.15 kB
+dist/assets/vaultDirectory-DfeU30cC.js                    0.08 kB │ gzip:   0.09 kB
+dist/assets/loginAvailabilityPreflight-BV_-qKiO.js        0.08 kB │ gzip:   0.09 kB
+dist/assets/dialog-D2hG-XWr.js                            0.10 kB │ gzip:   0.10 kB
+dist/assets/is-prop-valid_framer-motion-BQtxy9Xb.js       0.66 kB │ gzip:   0.43 kB
+dist/assets/rolldown-runtime-Cyuzqnbw.js                  0.82 kB │ gzip:   0.47 kB
+dist/assets/constants-OmM7_JPu.js                         2.43 kB │ gzip:   1.31 kB
+dist/assets/core-BAM5JyGC.js                              2.48 kB │ gzip:   1.01 kB
+dist/assets/webviewWindow-Tw8VvEfX.js                     4.66 kB │ gzip:   1.37 kB
+dist/assets/jsx-runtime-Cvd_-Vl0.js                       5.14 kB │ gzip:   2.43 kB
+dist/assets/PhotoViewerOverlay-CwzX4IS9.js                8.13 kB │ gzip:   3.06 kB
+dist/assets/react-SqCrPCpP.js                             8.13 kB │ gzip:   3.14 kB
+dist/assets/Dialog-BTrXEdrj.js                            8.19 kB │ gzip:   3.24 kB
+dist/assets/photoAlbumPreview-ZNIzx9PH.js                12.04 kB │ gzip:   4.61 kB
+dist/assets/window-C8cD48jL.js                           12.99 kB │ gzip:   3.12 kB
+dist/assets/AiQuickChatPopover-B3WgwoxT.js               14.84 kB │ gzip:   4.34 kB
+dist/assets/useLlmChatCore-BEHR-pxB.js                   20.20 kB │ gzip:   7.38 kB
+dist/assets/index-Ds1AvVHX.js                            24.53 kB │ gzip:   8.55 kB
+dist/assets/RecoveryReceiveDialog-DQs-J8LZ.js            31.54 kB │ gzip:   8.12 kB
+dist/assets/backendError-CSIvg-HE.js                     53.26 kB │ gzip:  18.00 kB
+dist/assets/motion-vendor-Bbq6zQIA.js                   125.02 kB │ gzip:  40.72 kB
+dist/assets/notification-vZymhtbm.js                    137.60 kB │ gzip:  41.24 kB
+dist/assets/authStore-DRnDpoEh.js                       312.15 kB │ gzip:  96.76 kB
+dist/assets/markdown-vendor-CblRrG_B.js                 317.98 kB │ gzip:  97.54 kB
+dist/assets/RecoveryQrScanner-BjdLqfz1.js               377.18 kB │ gzip: 111.50 kB
+dist/assets/bootstrapApp-B_x8IC5f.js                  1,272.93 kB │ gzip: 338.65 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 893ms
+[1m[33mwarning[0m[1m: unused variable: `lock_path`[0m
+  [1m[94m--> [0mcrates/solosoul-core/src/process_lock.rs:26:13
+   [1m[94m|[0m
+[1m[94m26[0m [1m[94m|[0m         let lock_path = base_path.join(".lock");
+   [1m[94m|[0m             [1m[33m^^^^^^^^^[0m [1m[33mhelp: if this is intentional, prefix it with an underscore: `_lock_path`[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `solosoul-core` (lib) generated 1 warning (run `cargo fix --lib -p solosoul-core` to apply 1 suggestion)
+[1m[92m   Compiling[0m solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+[1m[33mwarning[0m[1m: methods `reopen` and `wait_stopping` are never used[0m
+  [1m[94m--> [0mcrates/solosoul-sync/src/workers.rs:42:19
+   [1m[94m|[0m
+[1m[94m26[0m [1m[94m|[0m impl SyncWorkers {
+   [1m[94m|[0m [1m[94m----------------[0m [1m[94mmethods in this implementation[0m
+[1m[94m...[0m
+[1m[94m42[0m [1m[94m|[0m     pub(crate) fn reopen(&self) -> Result<(), String> {
+   [1m[94m|[0m                   [1m[33m^^^^^^[0m
+[1m[94m...[0m
+[1m[94m97[0m [1m[94m|[0m     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {
+   [1m[94m|[0m                         [1m[33m^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: method `is_finished` is never used[0m
+   [1m[94m--> [0mcrates/solosoul-sync/src/workers.rs:303:8
+    [1m[94m|[0m
+[1m[94m296[0m [1m[94m|[0m impl StopCompletion {
+    [1m[94m|[0m [1m[94m-------------------[0m [1m[94mmethod in this implementation[0m
+[1m[94m...[0m
+[1m[94m303[0m [1m[94m|[0m     fn is_finished(&self) -> bool {
+    [1m[94m|[0m        [1m[33m^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `solosoul-sync` (lib) generated 2 warnings
+[1m[33mwarning[0m[1m: unused import: `Manager`[0m
+  [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:20:22
+   [1m[94m|[0m
+[1m[94m20[0m [1m[94m|[0m use tauri::{Emitter, Manager, State};
+   [1m[94m|[0m                      [1m[33m^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused import: `tauri::Emitter`[0m
+ [1m[94m--> [0msrc-tauri/src/setup/mod.rs:6:5
+  [1m[94m|[0m
+[1m[94m6[0m [1m[94m|[0m use tauri::Emitter;
+  [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: unused variable: `app`[0m
+  [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:39:5
+   [1m[94m|[0m
+[1m[94m39[0m [1m[94m|[0m     app: tauri::AppHandle,
+   [1m[94m|[0m     [1m[33m^^^[0m [1m[33mhelp: if this is intentional, prefix it with an underscore: `_app`[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused variable: `instance_name`[0m
+   [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:225:21
+    [1m[94m|[0m
+[1m[94m225[0m [1m[94m|[0m         if let Some(instance_name) = mdns_name {
+    [1m[94m|[0m                     [1m[33m^^^^^^^^^^^^^[0m [1m[33mhelp: if this is intentional, prefix it with an underscore: `_instance_name`[0m
+
+[1m[33mwarning[0m[1m: constant `MDNS_SERVICE_TYPE` is never used[0m
+  [1m[94m--> [0msrc-tauri/src/commands/discovery.rs:22:7
+   [1m[94m|[0m
+[1m[94m22[0m [1m[94m|[0m const MDNS_SERVICE_TYPE: &str = "_solosoul._tcp.local.";
+   [1m[94m|[0m       [1m[33m^^^^^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used[0m
+  [1m[94m--> [0msrc-tauri/src/commands/discovery.rs:24:7
+   [1m[94m|[0m
+[1m[94m24[0m [1m[94m|[0m const RECOVERY_MDNS_SERVICE_TYPE: &str = "_solosoul_recovery._tcp.local.";
+   [1m[94m|[0m       [1m[33m^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `advertise_recovery_mdns` is never used[0m
+   [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:202:10
+    [1m[94m|[0m
+[1m[94m202[0m [1m[94m|[0m async fn advertise_recovery_mdns(
+    [1m[94m|[0m          [1m[33m^^^^^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `poll_accessibility` is never used[0m
+   [1m[94m--> [0msrc-tauri/src/commands/window.rs:194:15
+    [1m[94m|[0m
+[1m[94m194[0m [1m[94m|[0m pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {
+    [1m[94m|[0m               [1m[33m^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `setup_spawn_registry_refresh` is never used[0m
+   [1m[94m--> [0msrc-tauri/src/setup/mod.rs:258:4
+    [1m[94m|[0m
+[1m[94m258[0m [1m[94m|[0m fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {
+    [1m[94m|[0m    [1m[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `solo_soul` (lib) generated 9 warnings (run `cargo fix --lib -p solo_soul` to apply 4 suggestions)
+[1m[92m    Finished[0m `dev` profile [optimized + debuginfo] target(s) in 32.78s
+        Info symlinking lib "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" in jniLibs dir "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a"
+        Info "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libandroid.so"
+        Info "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libdl.so"
+        Info "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "liblog.so"
+        Info "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libm.so"
+        Info "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libc.so"
+        Info symlink at "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a/libsolo_soul.so" points to "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so"
+        Info symlink at "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/armeabi-v7a/libsolo_soul.so" points to "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/armv7-linux-androideabi/release/libsolo_soul.so"
+        Info symlink at "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/x86/libsolo_soul.so" points to "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/i686-linux-android/release/libsolo_soul.so"
+        Info symlink at "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/x86_64/libsolo_soul.so" points to "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/x86_64-linux-android/release/libsolo_soul.so"
+        Info connection; remote_addr=127.0.0.1:53670 conn_id=0
+
+> solosoul@2.13.2 tauri
+> tauri android android-studio-script --target aarch64
+
+[1m[32m        Info[0m Using installed NDK: /Users/zzc/Library/Android/sdk/ndk/30.0.14904198
+[1m[33mwarning[0m[1m: unused variable: `lock_path`[0m
+  [1m[94m--> [0mcrates/solosoul-core/src/process_lock.rs:26:13
+   [1m[94m|[0m
+[1m[94m26[0m [1m[94m|[0m         let lock_path = base_path.join(".lock");
+   [1m[94m|[0m             [1m[33m^^^^^^^^^[0m [1m[33mhelp: if this is intentional, prefix it with an underscore: `_lock_path`[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m: `solosoul-core` (lib) generated 1 warning (run `cargo fix --lib -p solosoul-core` to apply 1 suggestion)
+[1m[33mwarning[0m[1m: methods `reopen` and `wait_stopping` are never used[0m
+  [1m[94m--> [0mcrates/solosoul-sync/src/workers.rs:42:19
+   [1m[94m|[0m
+[1m[94m26[0m [1m[94m|[0m impl SyncWorkers {
+   [1m[94m|[0m [1m[94m----------------[0m [1m[94mmethods in this implementation[0m
+[1m[94m...[0m
+[1m[94m42[0m [1m[94m|[0m     pub(crate) fn reopen(&self) -> Result<(), String> {
+   [1m[94m|[0m                   [1m[33m^^^^^^[0m
+[1m[94m...[0m
+[1m[94m97[0m [1m[94m|[0m     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {
+   [1m[94m|[0m                         [1m[33m^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: method `is_finished` is never used[0m
+   [1m[94m--> [0mcrates/solosoul-sync/src/workers.rs:303:8
+    [1m[94m|[0m
+[1m[94m296[0m [1m[94m|[0m impl StopCompletion {
+    [1m[94m|[0m [1m[94m-------------------[0m [1m[94mmethod in this implementation[0m
+[1m[94m...[0m
+[1m[94m303[0m [1m[94m|[0m     fn is_finished(&self) -> bool {
+    [1m[94m|[0m        [1m[33m^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `solosoul-sync` (lib) generated 2 warnings
+[1m[92m   Compiling[0m solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+[1m[33mwarning[0m[1m: unused import: `Manager`[0m
+  [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:20:22
+   [1m[94m|[0m
+[1m[94m20[0m [1m[94m|[0m use tauri::{Emitter, Manager, State};
+   [1m[94m|[0m                      [1m[33m^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused import: `tauri::Emitter`[0m
+ [1m[94m--> [0msrc-tauri/src/setup/mod.rs:6:5
+  [1m[94m|[0m
+[1m[94m6[0m [1m[94m|[0m use tauri::Emitter;
+  [1m[94m|[0m     [1m[33m^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: unused variable: `app`[0m
+  [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:39:5
+   [1m[94m|[0m
+[1m[94m39[0m [1m[94m|[0m     app: tauri::AppHandle,
+   [1m[94m|[0m     [1m[33m^^^[0m [1m[33mhelp: if this is intentional, prefix it with an underscore: `_app`[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: unused variable: `instance_name`[0m
+   [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:225:21
+    [1m[94m|[0m
+[1m[94m225[0m [1m[94m|[0m         if let Some(instance_name) = mdns_name {
+    [1m[94m|[0m                     [1m[33m^^^^^^^^^^^^^[0m [1m[33mhelp: if this is intentional, prefix it with an underscore: `_instance_name`[0m
+
+[1m[33mwarning[0m[1m: constant `MDNS_SERVICE_TYPE` is never used[0m
+  [1m[94m--> [0msrc-tauri/src/commands/discovery.rs:22:7
+   [1m[94m|[0m
+[1m[94m22[0m [1m[94m|[0m const MDNS_SERVICE_TYPE: &str = "_solosoul._tcp.local.";
+   [1m[94m|[0m       [1m[33m^^^^^^^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used[0m
+  [1m[94m--> [0msrc-tauri/src/commands/discovery.rs:24:7
+   [1m[94m|[0m
+[1m[94m24[0m [1m[94m|[0m const RECOVERY_MDNS_SERVICE_TYPE: &str = "_solosoul_recovery._tcp.local.";
+   [1m[94m|[0m       [1m[33m^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `advertise_recovery_mdns` is never used[0m
+   [1m[94m--> [0msrc-tauri/src/commands/recovery.rs:202:10
+    [1m[94m|[0m
+[1m[94m202[0m [1m[94m|[0m async fn advertise_recovery_mdns(
+    [1m[94m|[0m          [1m[33m^^^^^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `poll_accessibility` is never used[0m
+   [1m[94m--> [0msrc-tauri/src/commands/window.rs:194:15
+    [1m[94m|[0m
+[1m[94m194[0m [1m[94m|[0m pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {
+    [1m[94m|[0m               [1m[33m^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: function `setup_spawn_registry_refresh` is never used[0m
+   [1m[94m--> [0msrc-tauri/src/setup/mod.rs:258:4
+    [1m[94m|[0m
+[1m[94m258[0m [1m[94m|[0m fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {
+    [1m[94m|[0m    [1m[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `solo_soul` (lib) generated 9 warnings (run `cargo fix --lib -p solo_soul` to apply 4 suggestions)
+[1m[92m    Finished[0m `dev` profile [optimized + debuginfo] target(s) in 14.78s
+[1m[32m        Info[0m symlinking lib "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" in jniLibs dir "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a"
+[1m[32m        Info[0m "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libandroid.so"
+[1m[32m        Info[0m "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libdl.so"
+[1m[32m        Info[0m "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "liblog.so"
+[1m[32m        Info[0m "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libm.so"
+[1m[32m        Info[0m "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so" requires shared lib "libc.so"
+
+[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+    Finished 1 APK at:
+        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :buildSrc:compileKotlin UP-TO-DATE
+> Task :buildSrc:compileJava NO-SOURCE
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors UP-TO-DATE
+> Task :buildSrc:processResources UP-TO-DATE
+> Task :buildSrc:classes UP-TO-DATE
+> Task :buildSrc:jar UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:generateAppLevelNames UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preArm64DebugBuild UP-TO-DATE
+> Task :app:generateArm64DebugBuildConfig UP-TO-DATE
+> Task :tauri-android:preBuild UP-TO-DATE
+> Task :tauri-android:preDebugBuild UP-TO-DATE
+> Task :tauri-android:writeDebugAarMetadata UP-TO-DATE
+> Task :tauri-plugin-biometric:preBuild UP-TO-DATE
+> Task :tauri-plugin-biometric:preDebugBuild UP-TO-DATE
+> Task :tauri-plugin-biometric:writeDebugAarMetadata UP-TO-DATE
+> Task :tauri-plugin-dialog:preBuild UP-TO-DATE
+> Task :tauri-plugin-dialog:preDebugBuild UP-TO-DATE
+> Task :tauri-plugin-dialog:writeDebugAarMetadata UP-TO-DATE
+> Task :tauri-plugin-fs:preBuild UP-TO-DATE
+> Task :tauri-plugin-fs:preDebugBuild UP-TO-DATE
+> Task :tauri-plugin-fs:writeDebugAarMetadata UP-TO-DATE
+> Task :tauri-plugin-notification:preBuild UP-TO-DATE
+> Task :tauri-plugin-notification:preDebugBuild UP-TO-DATE
+> Task :tauri-plugin-notification:writeDebugAarMetadata UP-TO-DATE
+> Task :tauri-plugin-shell:preBuild UP-TO-DATE
+> Task :tauri-plugin-shell:preDebugBuild UP-TO-DATE
+> Task :tauri-plugin-shell:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkArm64DebugAarMetadata UP-TO-DATE
+> Task :app:generateArm64DebugResValues UP-TO-DATE
+> Task :tauri-android:generateDebugResValues UP-TO-DATE
+> Task :tauri-android:generateDebugResources UP-TO-DATE
+> Task :tauri-android:packageDebugResources UP-TO-DATE
+> Task :tauri-plugin-biometric:generateDebugResValues UP-TO-DATE
+> Task :tauri-plugin-biometric:generateDebugResources UP-TO-DATE
+> Task :tauri-plugin-biometric:packageDebugResources UP-TO-DATE
+> Task :tauri-plugin-dialog:generateDebugResValues UP-TO-DATE
+> Task :tauri-plugin-dialog:generateDebugResources UP-TO-DATE
+> Task :tauri-plugin-dialog:packageDebugResources UP-TO-DATE
+> Task :tauri-plugin-fs:generateDebugResValues UP-TO-DATE
+> Task :tauri-plugin-fs:generateDebugResources UP-TO-DATE
+> Task :tauri-plugin-fs:packageDebugResources UP-TO-DATE
+> Task :tauri-plugin-notification:generateDebugResValues UP-TO-DATE
+> Task :tauri-plugin-notification:generateDebugResources UP-TO-DATE
+> Task :tauri-plugin-notification:packageDebugResources UP-TO-DATE
+> Task :tauri-plugin-shell:generateDebugResValues UP-TO-DATE
+> Task :tauri-plugin-shell:generateDebugResources UP-TO-DATE
+> Task :tauri-plugin-shell:packageDebugResources UP-TO-DATE
+> Task :app:mapArm64DebugSourceSetPaths UP-TO-DATE
+> Task :app:generateArm64DebugResources UP-TO-DATE
+> Task :app:mergeArm64DebugResources UP-TO-DATE
+> Task :app:packageArm64DebugResources UP-TO-DATE
+> Task :app:parseArm64DebugLocalResources UP-TO-DATE
+> Task :app:createArm64DebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksArm64Debug UP-TO-DATE
+> Task :tauri-android:extractDeepLinksDebug UP-TO-DATE
+> Task :tauri-android:processDebugManifest UP-TO-DATE
+> Task :tauri-plugin-biometric:extractDeepLinksDebug UP-TO-DATE
+> Task :tauri-plugin-biometric:processDebugManifest UP-TO-DATE
+> Task :tauri-plugin-dialog:extractDeepLinksDebug UP-TO-DATE
+> Task :tauri-plugin-dialog:processDebugManifest UP-TO-DATE
+> Task :tauri-plugin-fs:extractDeepLinksDebug UP-TO-DATE
+> Task :tauri-plugin-fs:processDebugManifest UP-TO-DATE
+> Task :tauri-plugin-notification:extractDeepLinksDebug UP-TO-DATE
+> Task :tauri-plugin-notification:processDebugManifest UP-TO-DATE
+> Task :tauri-plugin-shell:extractDeepLinksDebug UP-TO-DATE
+> Task :tauri-plugin-shell:processDebugManifest UP-TO-DATE
+> Task :app:processArm64DebugMainManifest UP-TO-DATE
+> Task :app:processArm64DebugManifest UP-TO-DATE
+> Task :app:processArm64DebugManifestForPackage UP-TO-DATE
+> Task :tauri-android:compileDebugLibraryResources UP-TO-DATE
+> Task :tauri-android:parseDebugLocalResources UP-TO-DATE
+> Task :tauri-android:generateDebugRFile UP-TO-DATE
+> Task :tauri-plugin-biometric:compileDebugLibraryResources UP-TO-DATE
+> Task :tauri-plugin-biometric:parseDebugLocalResources UP-TO-DATE
+> Task :tauri-plugin-biometric:generateDebugRFile UP-TO-DATE
+> Task :tauri-plugin-dialog:compileDebugLibraryResources UP-TO-DATE
+> Task :tauri-plugin-dialog:parseDebugLocalResources UP-TO-DATE
+> Task :tauri-plugin-dialog:generateDebugRFile UP-TO-DATE
+> Task :tauri-plugin-fs:compileDebugLibraryResources UP-TO-DATE
+> Task :tauri-plugin-fs:parseDebugLocalResources UP-TO-DATE
+> Task :tauri-plugin-fs:generateDebugRFile UP-TO-DATE
+> Task :tauri-plugin-notification:compileDebugLibraryResources UP-TO-DATE
+> Task :tauri-plugin-notification:parseDebugLocalResources UP-TO-DATE
+> Task :tauri-plugin-notification:generateDebugRFile UP-TO-DATE
+> Task :tauri-plugin-shell:compileDebugLibraryResources UP-TO-DATE
+> Task :tauri-plugin-shell:parseDebugLocalResources UP-TO-DATE
+> Task :tauri-plugin-shell:generateDebugRFile UP-TO-DATE
+> Task :app:processArm64DebugResources UP-TO-DATE
+> Task :patchTauriAndroidPluginManager
+> Task :tauri-android:checkKotlinGradlePluginConfigurationErrors
+> Task :tauri-android:generateDebugBuildConfig UP-TO-DATE
+> Task :tauri-android:compileDebugKotlin UP-TO-DATE
+> Task :tauri-android:javaPreCompileDebug UP-TO-DATE
+> Task :tauri-android:compileDebugJavaWithJavac UP-TO-DATE
+> Task :tauri-android:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :tauri-plugin-biometric:checkKotlinGradlePluginConfigurationErrors
+> Task :tauri-plugin-biometric:compileDebugKotlin UP-TO-DATE
+> Task :tauri-plugin-biometric:javaPreCompileDebug UP-TO-DATE
+> Task :tauri-plugin-biometric:compileDebugJavaWithJavac NO-SOURCE
+> Task :tauri-plugin-biometric:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :tauri-plugin-dialog:checkKotlinGradlePluginConfigurationErrors
+> Task :tauri-plugin-dialog:compileDebugKotlin UP-TO-DATE
+> Task :tauri-plugin-dialog:javaPreCompileDebug UP-TO-DATE
+> Task :tauri-plugin-dialog:compileDebugJavaWithJavac NO-SOURCE
+> Task :tauri-plugin-dialog:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :tauri-plugin-fs:checkKotlinGradlePluginConfigurationErrors
+> Task :tauri-plugin-fs:compileDebugKotlin UP-TO-DATE
+> Task :tauri-plugin-fs:javaPreCompileDebug UP-TO-DATE
+> Task :tauri-plugin-fs:compileDebugJavaWithJavac NO-SOURCE
+> Task :tauri-plugin-fs:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :tauri-plugin-notification:checkKotlinGradlePluginConfigurationErrors
+> Task :tauri-plugin-notification:compileDebugKotlin UP-TO-DATE
+> Task :tauri-plugin-notification:javaPreCompileDebug UP-TO-DATE
+> Task :tauri-plugin-notification:compileDebugJavaWithJavac NO-SOURCE
+> Task :tauri-plugin-notification:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :tauri-plugin-shell:checkKotlinGradlePluginConfigurationErrors
+> Task :tauri-plugin-shell:compileDebugKotlin UP-TO-DATE
+> Task :tauri-plugin-shell:javaPreCompileDebug UP-TO-DATE
+> Task :tauri-plugin-shell:compileDebugJavaWithJavac NO-SOURCE
+> Task :tauri-plugin-shell:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:compileArm64DebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileArm64Debug UP-TO-DATE
+> Task :app:compileArm64DebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleArm64DebugClassesToCompileJar UP-TO-DATE
+> Task :app:preArm64DebugAndroidTestBuild SKIPPED
+> Task :app:processArm64DebugAndroidTestManifest UP-TO-DATE
+> Task :app:generateArm64DebugAndroidTestBuildConfig UP-TO-DATE
+> Task :app:checkArm64DebugAndroidTestAarMetadata UP-TO-DATE
+> Task :app:generateArm64DebugAndroidTestResValues UP-TO-DATE
+> Task :app:mapArm64DebugAndroidTestSourceSetPaths UP-TO-DATE
+> Task :app:generateArm64DebugAndroidTestResources UP-TO-DATE
+> Task :app:mergeArm64DebugAndroidTestResources UP-TO-DATE
+> Task :app:processArm64DebugAndroidTestResources UP-TO-DATE
+> Task :app:javaPreCompileArm64DebugAndroidTest UP-TO-DATE
+> Task :app:mergeArm64DebugAndroidTestShaders UP-TO-DATE
+> Task :app:compileArm64DebugAndroidTestShaders NO-SOURCE
+> Task :app:generateArm64DebugAndroidTestAssets UP-TO-DATE
+> Task :tauri-android:mergeDebugShaders UP-TO-DATE
+> Task :tauri-android:compileDebugShaders NO-SOURCE
+> Task :tauri-android:generateDebugAssets UP-TO-DATE
+> Task :tauri-android:mergeDebugAssets UP-TO-DATE
+> Task :tauri-plugin-biometric:mergeDebugShaders UP-TO-DATE
+> Task :tauri-plugin-biometric:compileDebugShaders NO-SOURCE
+> Task :tauri-plugin-biometric:generateDebugAssets UP-TO-DATE
+> Task :tauri-plugin-biometric:mergeDebugAssets UP-TO-DATE
+> Task :tauri-plugin-dialog:mergeDebugShaders UP-TO-DATE
+> Task :tauri-plugin-dialog:compileDebugShaders NO-SOURCE
+> Task :tauri-plugin-dialog:generateDebugAssets UP-TO-DATE
+> Task :tauri-plugin-dialog:mergeDebugAssets UP-TO-DATE
+> Task :tauri-plugin-fs:mergeDebugShaders UP-TO-DATE
+> Task :tauri-plugin-fs:compileDebugShaders NO-SOURCE
+> Task :tauri-plugin-fs:generateDebugAssets UP-TO-DATE
+> Task :tauri-plugin-fs:mergeDebugAssets UP-TO-DATE
+> Task :tauri-plugin-notification:mergeDebugShaders UP-TO-DATE
+> Task :tauri-plugin-notification:compileDebugShaders NO-SOURCE
+> Task :tauri-plugin-notification:generateDebugAssets UP-TO-DATE
+> Task :tauri-plugin-notification:mergeDebugAssets UP-TO-DATE
+> Task :tauri-plugin-shell:mergeDebugShaders UP-TO-DATE
+> Task :tauri-plugin-shell:compileDebugShaders NO-SOURCE
+> Task :tauri-plugin-shell:generateDebugAssets UP-TO-DATE
+> Task :tauri-plugin-shell:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeArm64DebugAndroidTestAssets UP-TO-DATE
+> Task :app:compressArm64DebugAndroidTestAssets UP-TO-DATE
+> Task :tauri-android:processDebugJavaRes UP-TO-DATE
+> Task :tauri-plugin-biometric:processDebugJavaRes UP-TO-DATE
+> Task :tauri-plugin-dialog:processDebugJavaRes UP-TO-DATE
+> Task :tauri-plugin-fs:processDebugJavaRes UP-TO-DATE
+> Task :tauri-plugin-notification:processDebugJavaRes UP-TO-DATE
+> Task :tauri-plugin-shell:processDebugJavaRes UP-TO-DATE
+> Task :app:checkArm64DebugAndroidTestDuplicateClasses UP-TO-DATE
+> Task :app:desugarArm64DebugAndroidTestFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexArm64DebugAndroidTest UP-TO-DATE
+> Task :tauri-plugin-biometric:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :tauri-plugin-dialog:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :tauri-plugin-fs:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :tauri-plugin-notification:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :tauri-plugin-shell:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :tauri-android:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :app:mergeArm64DebugAndroidTestJniLibFolders UP-TO-DATE
+> Task :app:mergeArm64DebugJniLibFolders UP-TO-DATE
+> Task :tauri-android:mergeDebugJniLibFolders UP-TO-DATE
+> Task :tauri-android:mergeDebugNativeLibs NO-SOURCE
+> Task :app:mergeLibDexArm64DebugAndroidTest UP-TO-DATE
+> Task :tauri-android:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :tauri-plugin-biometric:mergeDebugJniLibFolders UP-TO-DATE
+> Task :tauri-plugin-biometric:mergeDebugNativeLibs NO-SOURCE
+> Task :tauri-plugin-biometric:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :tauri-plugin-dialog:mergeDebugJniLibFolders UP-TO-DATE
+> Task :tauri-plugin-dialog:mergeDebugNativeLibs NO-SOURCE
+> Task :tauri-plugin-dialog:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :tauri-plugin-fs:mergeDebugJniLibFolders UP-TO-DATE
+> Task :tauri-plugin-fs:mergeDebugNativeLibs NO-SOURCE
+> Task :tauri-plugin-fs:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :tauri-plugin-notification:mergeDebugJniLibFolders UP-TO-DATE
+> Task :tauri-plugin-notification:mergeDebugNativeLibs NO-SOURCE
+> Task :tauri-plugin-notification:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :tauri-plugin-shell:mergeDebugJniLibFolders UP-TO-DATE
+> Task :tauri-plugin-shell:mergeDebugNativeLibs NO-SOURCE
+> Task :tauri-plugin-shell:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :app:mergeArm64DebugNativeLibs UP-TO-DATE
+> Task :app:mergeArm64DebugAndroidTestNativeLibs NO-SOURCE
+> Task :app:stripArm64DebugAndroidTestDebugSymbols NO-SOURCE
+> Task :app:validateSigningArm64DebugAndroidTest UP-TO-DATE
+> Task :app:writeArm64DebugAndroidTestSigningConfigVersions UP-TO-DATE
+
+> Task :app:compileArm64DebugAndroidTestKotlin
+w: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt:90:20 Variable 'last' initializer is redundant
+
+> Task :app:compileArm64DebugAndroidTestJavaWithJavac UP-TO-DATE
+Java compiler version 21 has deprecated support for compiling with source/target version 8.
+Try one of the following options:
+    1. [Recommended] Use Java toolchain with a lower language version
+    2. Set a higher source/target version
+    3. Use a lower version of the JDK running the build (if you're not using Java toolchain)
+For more details on how to configure these settings, see https://developer.android.com/build/jdks.
+To suppress this warning, set android.javaCompile.suppressSourceTargetDeprecationWarning=true in gradle.properties.
+
+> Task :app:processArm64DebugAndroidTestJavaRes UP-TO-DATE
+> Task :app:mergeArm64DebugAndroidTestJavaResource UP-TO-DATE
+> Task :app:dexBuilderArm64DebugAndroidTest
+> Task :app:mergeProjectDexArm64DebugAndroidTest
+> Task :app:packageArm64DebugAndroidTest
+> Task :app:createArm64DebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleArm64DebugAndroidTest
+
+[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2s
+170 actionable tasks: 12 executed, 158 up-to-date
+Protected files restored: 1
+

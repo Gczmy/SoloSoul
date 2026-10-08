@@ -1,0 +1,12 @@
+{
+  "recorded_at": 1791437646.9538372,
+  "previous_binary_sha256": "8c062ef6c8cc05081d77dd9c56e61584d000d59417550beb2cd9ccad86118f56",
+  "current_binary_sha256": "5484c123902dede8a2d608207b1a9a99684396aed352eeb1ebbfb74910a03ca8",
+  "changed_file": "tauri/src/styles/global.css",
+  "before_css_sha256": "5aef81bb265218276da67312b62a29f97a7e17be40c2847a81e10bdcafbd2a7d",
+  "after_css_sha256": "2e1170a80964294eb9fc925f7075073abf7abafbdef43e5309dbc115e15b25af",
+  "before_css_scope": "Reconstructed from unchanged HEAD file; not part of previous 95-file execution snapshot",
+  "after_css_scope": "Explicit additional snapshot after current build and before UI result; not silently added to raw build source.json",
+  "scope": "iOS-only form-control font-family fallback; no other source change this goal turn",
+  "coverage_gap": "Previous 95-file checkpoint omitted global.css, so equality of those 95 hashes alone could not prove unchanged iOS typography."
+}

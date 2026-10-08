@@ -1,0 +1,464 @@
+{
+  "ancestors": [
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "blur(12px)",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0.8)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "blur(6px)",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0.35)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_controls_skkf7_1",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_container_ruoo8_1 _medium_ruoo8_14 _gap-default_ruoo8_34 android-workspace",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "MAIN",
+      "classes": "_content_18ixn_12",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_contentSurface_18ixn_28",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_main_18ixn_17",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_appShell_18ixn_1",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "BODY",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "HTML",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    }
+  ],
+  "overlaps": [
+    {
+      "tag": "path",
+      "classes": {},
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "svg",
+      "classes": {},
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "BUTTON",
+      "classes": "interactive-icon",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgb(42, 38, 32)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0.8)",
+      "zIndex": "7000"
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0.35)",
+      "zIndex": "5100"
+    },
+    {
+      "tag": "DIV",
+      "classes": "_overlay_1le0a_1",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(18, 16, 14, 0.65)",
+      "zIndex": "4000"
+    },
+    {
+      "tag": "path",
+      "classes": {},
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "svg",
+      "classes": {},
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "BUTTON",
+      "classes": "android-icon-button",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "android-appbar-leading",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "HEADER",
+      "classes": "android-appbar android-glass-surface",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(42, 38, 32, 0.9)",
+      "zIndex": "100"
+    },
+    {
+      "tag": "DIV",
+      "classes": "_main_18ixn_17",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "_appShell_18ixn_1",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgb(31, 28, 24)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgba(0, 0, 0, 0)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "BODY",
+      "classes": "",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgb(31, 28, 24)",
+      "zIndex": "auto"
+    },
+    {
+      "tag": "HTML",
+      "classes": "",
+      "opacity": "1",
+      "color": "rgb(221, 216, 200)",
+      "background": "rgb(31, 28, 24)",
+      "zIndex": "auto"
+    }
+  ],
+  "geometry": {
+    "theme": "dark",
+    "path": "\/workspace",
+    "search": "?section=travel",
+    "visible": true,
+    "settled": true,
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "right": 412.19049072265625,
+      "bottom": 732.1904907226562,
+      "width": 412.19049072265625,
+      "height": 732.1904907226562
+    },
+    "viewportWidth": 412,
+    "viewportHeight": 732,
+    "overflow": false,
+    "controls": [
+      {
+        "label": "Back",
+        "rect": {
+          "x": 14,
+          "y": 34.029762268066406,
+          "right": 62,
+          "bottom": 82.0297622680664,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Edit Attachment Attributes",
+        "rect": {
+          "x": 292.19049072265625,
+          "y": 34.029762268066406,
+          "right": 340.19049072265625,
+          "bottom": 82.0297622680664,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Close",
+        "rect": {
+          "x": 350.19049072265625,
+          "y": 34.029762268066406,
+          "right": 398.19049072265625,
+          "bottom": 82.0297622680664,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      }
+    ],
+    "headerBackground": "rgb(42, 38, 32)",
+    "headerForegrounds": [
+      {
+        "label": "Back",
+        "rect": {
+          "x": 14,
+          "y": 34.029762268066406,
+          "right": 62,
+          "bottom": 82.0297622680664,
+          "width": 48,
+          "height": 48
+        },
+        "color": "rgb(221, 216, 200)",
+        "contrast": 10.547993239277183
+      },
+      {
+        "label": "FE2-public-notes.txt",
+        "rect": {
+          "x": 72,
+          "y": 49.83928680419922,
+          "right": 282.1904754638672,
+          "bottom": 66.22023963928223,
+          "width": 210.1904754638672,
+          "height": 16.380952835083008
+        },
+        "color": "rgb(221, 216, 200)",
+        "contrast": 10.547993239277183
+      },
+      {
+        "label": "Edit Attachment Attributes",
+        "rect": {
+          "x": 292.19049072265625,
+          "y": 34.029762268066406,
+          "right": 340.19049072265625,
+          "bottom": 82.0297622680664,
+          "width": 48,
+          "height": 48
+        },
+        "color": "rgb(221, 216, 200)",
+        "contrast": 10.547993239277183
+      },
+      {
+        "label": "Close",
+        "rect": {
+          "x": 350.19049072265625,
+          "y": 34.029762268066406,
+          "right": 398.19049072265625,
+          "bottom": 82.0297622680664,
+          "width": 48,
+          "height": 48
+        },
+        "color": "rgb(221, 216, 200)",
+        "contrast": 10.547993239277183
+      }
+    ],
+    "toastCount": 1,
+    "toastRect": {
+      "x": 16,
+      "y": 92.0297622680664,
+      "right": 396.19049072265625,
+      "bottom": 182.0297622680664,
+      "width": 380.19049072265625,
+      "height": 90
+    },
+    "savedNotification": false,
+    "backupReminder": false,
+    "toastInPanel": true,
+    "toastInFlow": true,
+    "toastVisible": true,
+    "toastHittable": true,
+    "text": "FE2-public-notes.txtUploaded successfullyxFE2 public preview text\nShared neutral surfaces\nNo private data\n",
+    "preText": "FE2 public preview text\nShared neutral surfaces\nNo private data\n",
+    "textRect": {
+      "x": 48,
+      "y": 432.5357360839844,
+      "right": 364.19049072265625,
+      "bottom": 481.67859268188477,
+      "width": 316.19049072265625,
+      "height": 49.14285659790039
+    },
+    "textColor": "rgb(221, 216, 200)",
+    "imageDecoded": false,
+    "imageRect": null,
+    "imageCount": 0,
+    "zoomRect": null
+  },
+  "nativeViewport": {
+    "imeVisible": false,
+    "documentStartScriptSupported": false,
+    "imeHeightPx": 0,
+    "screenHeightPx": 1920,
+    "webViewWidthPx": 1080,
+    "webViewHeightPx": 1920,
+    "webViewScreenX": 0,
+    "webViewScreenY": 0,
+    "systemBars": {
+      "top": 63,
+      "right": 0,
+      "bottom": 126,
+      "left": 0
+    },
+    "windowBounds": {
+      "top": 0,
+      "right": 1080,
+      "bottom": 1920,
+      "left": 0
+    }
+  },
+  "nativeAncestors": [
+    {
+      "class": "com.solosoul.app.RustWebView",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "androidx.appcompat.widget.ContentFrameLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "androidx.appcompat.widget.FitWindowsLinearLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "android.widget.FrameLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "android.widget.LinearLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "com.android.internal.policy.DecorView",
+      "alpha": 1,
+      "visibility": 0
+    }
+  ],
+  "windowAlpha": 1,
+  "windowDimAmount": 1,
+  "windowFlags": -2122252032,
+  "focused": true,
+  "forceDark": 1,
+  "documentColorScheme": {
+    "root": "dark",
+    "body": "dark"
+  },
+  "filtersRestored": {
+    "restored": true
+  },
+  "forceDarkRestored": true,
+  "forceDarkAllowedBefore": true
+}

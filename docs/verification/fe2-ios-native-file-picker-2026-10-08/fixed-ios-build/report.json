@@ -1,0 +1,35 @@
+{
+  "scope": "Current source unsigned ARM64 iOS Simulator Debug archive",
+  "passed": true,
+  "started_at": 1791448290.066798,
+  "command": [
+    "npm",
+    "run",
+    "tauri:ios:build:sim",
+    "--",
+    "--debug",
+    "--no-sign",
+    "--archive-only",
+    "--ci"
+  ],
+  "exit_code": 0,
+  "app": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app",
+  "binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "platforms": [
+    "iPhoneSimulator"
+  ],
+  "frozen_app": "/tmp/solosoul-fe2-ios-current-file-stage-build-20261008/SoloSoul.app",
+  "protected_inputs_restored": {
+    "tauri/Cargo.lock": true,
+    "tauri/Cargo.toml": true,
+    "tauri/src-tauri/Cargo.toml": true,
+    "tauri/src-tauri/gen/apple/project.yml": true,
+    "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+    "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+    "tauri/src-tauri/gen/apple/assets": true,
+    "tauri/src-tauri/gen/android/app/src/main/assets": true,
+    "tauri/src-tauri/gen/android/app/tauri.properties": true
+  },
+  "source_differences_after_restore": [],
+  "finished_at": 1791448354.28091
+}

@@ -1,0 +1,36 @@
+{
+  "scope": "Current source ARM64 Android Debug APK",
+  "passed": true,
+  "started_at": 1791455011.4195662,
+  "command": [
+    "npm",
+    "run",
+    "tauri",
+    "--",
+    "android",
+    "build",
+    "--debug",
+    "--target",
+    "aarch64",
+    "--split-per-abi",
+    "--apk",
+    "--ci"
+  ],
+  "exit_code": 0,
+  "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+  "apk_sha256": "87e493af09fcbd4900434415fa7f8185e614e1c676c7621bc2d9bdacf8fe066d",
+  "frozen_apk": "/tmp/solosoul-fe2-android-current-file-stage-build-20261008/app-arm64-debug.apk",
+  "protected_inputs_restored": {
+    "tauri/Cargo.lock": true,
+    "tauri/Cargo.toml": true,
+    "tauri/src-tauri/Cargo.toml": true,
+    "tauri/src-tauri/gen/apple/project.yml": true,
+    "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+    "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+    "tauri/src-tauri/gen/apple/assets": true,
+    "tauri/src-tauri/gen/android/app/src/main/assets": true,
+    "tauri/src-tauri/gen/android/app/tauri.properties": true
+  },
+  "source_differences_after_restore": [],
+  "finished_at": 1791455090.397599
+}

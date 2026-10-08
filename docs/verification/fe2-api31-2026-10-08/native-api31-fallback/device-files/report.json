@@ -1,0 +1,2966 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "light",
+      "glass": "local",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 217.82142639160156,
+        "height": 124,
+        "right": 261.82142639160156,
+        "bottom": 378.5059509277344
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(253, 252, 249, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "local-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 7632,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791428283615
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "light",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(253, 252, 249, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "enhanced-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 7649,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791428285051
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(42, 38, 32, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "enhanced-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 8084,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791428285840
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(42, 38, 32, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "enhanced-dark-after-unlock",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 8084,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791428288711
+    },
+    {
+      "stage": "encrypted-preferences",
+      "theme": "dark",
+      "androidGlass": "enhanced",
+      "recordedAtMs": 1791428288716
+    },
+    {
+      "path": "\/editor",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 14,
+      "historyLength": 15,
+      "overlayMarker": false,
+      "text": "Save to: Travel",
+      "visible": true,
+      "settled": true,
+      "background": "rgba(0, 0, 0, 0)",
+      "foreground": "rgb(166, 157, 138)",
+      "backdrop": "none",
+      "rect": {
+        "x": 36,
+        "y": 257.4583435058594,
+        "right": 370.4761962890625,
+        "bottom": 273.8392963409424
+      },
+      "toastCount": 1,
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 615,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 53628.200000000186,
+          "count": 1,
+          "path": "\/editor"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": false,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [
+        {
+          "label": "Save",
+          "found": true,
+          "rect": {
+            "x": 0,
+            "y": 568.125,
+            "right": 412.19049072265625,
+            "bottom": 616.125
+          },
+          "ancestors": [
+            {
+              "tag": "BUTTON",
+              "classes": "_button_18jp9_1 ",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "48px",
+              "top": 568.125,
+              "bottom": 616.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "_formActions_1m2aj_1",
+              "position": "fixed",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "blur(12px)",
+              "height": "177.065px",
+              "top": 555.125,
+              "bottom": 732.1904754638672
+            },
+            {
+              "tag": "DIV",
+              "classes": "_container_ruoo8_1 _xs_ruoo8_22 _gap-default_ruoo8_34",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "1045.71px",
+              "top": 211.55357360839844,
+              "bottom": 1257.2679290771484
+            },
+            {
+              "tag": "MAIN",
+              "classes": "_content_18ixn_12",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "402.571px",
+              "top": 195.55357360839844,
+              "bottom": 598.1250152587891
+            },
+            {
+              "tag": "DIV",
+              "classes": "_contentSurface_18ixn_28",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "auto",
+              "top": 0,
+              "bottom": 0
+            },
+            {
+              "tag": "DIV",
+              "classes": "_main_18ixn_17",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "DIV",
+              "classes": "_appShell_18ixn_1",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "DIV",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            }
+          ],
+          "visible": true,
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-editor-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791428290706
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 13,
+      "historyLength": 14,
+      "overlayMarker": false,
+      "text": "FE2 public objectTravel · Visa",
+      "visible": true,
+      "settled": true,
+      "background": "rgb(42, 38, 32)",
+      "foreground": "rgb(221, 216, 200)",
+      "backdrop": "none",
+      "rect": {
+        "x": 20,
+        "y": 527.2678833007812,
+        "right": 386.4761962890625,
+        "bottom": 617.2678833007812
+      },
+      "toastCount": 1,
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 615,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 53628.200000000186,
+          "count": 1,
+          "path": "\/editor"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": false,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-list-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791428291485
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 14,
+      "historyLength": 15,
+      "overlayMarker": true,
+      "text": "FE2 public objectTravel · VisaPlugin Bound · created: 2026-10-08 · updated: 2026-10-08It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxObject createdxCountryPublicPlugin BoundCopyFE2 public countryAttachmentsEdit",
+      "visible": true,
+      "settled": true,
+      "background": "rgb(42, 38, 32)",
+      "foreground": "rgb(221, 216, 200)",
+      "backdrop": "none",
+      "rect": {
+        "x": 16.488096237182617,
+        "y": 65.94047546386719,
+        "right": 395.70239067077637,
+        "bottom": 642.2142791748047
+      },
+      "toastCount": 1,
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 615,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 53628.200000000186,
+          "count": 1,
+          "path": "\/editor"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": true,
+      "toastBackdrop": "",
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-detail-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791428292062
+    },
+    {
+      "stage": "preview-fixtures-encrypted",
+      "savedCount": 2,
+      "encrypted": true,
+      "source": "owned private cache via production FileProvider\/content URI\/import\/save IPC",
+      "recordedAtMs": 1791428292184
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 16,
+        "y": 104.83333587646484,
+        "right": 396.19049072265625,
+        "bottom": 627.3571395874023,
+        "width": 380.19049072265625,
+        "height": 522.5238037109375
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Active (2)",
+          "rect": {
+            "x": 61,
+            "y": 119.83333587646484,
+            "right": 142.73809814453125,
+            "bottom": 167.83333587646484,
+            "width": 81.73809814453125,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Trash (0)",
+          "rect": {
+            "x": 146.73809814453125,
+            "y": 119.83333587646484,
+            "right": 225.1309585571289,
+            "bottom": 167.83333587646484,
+            "width": 78.39286041259766,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Upload",
+          "rect": {
+            "x": 273.19049072265625,
+            "y": 119.83333587646484,
+            "right": 321.19049072265625,
+            "bottom": 167.83333587646484,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 329.19049072265625,
+            "y": 119.83333587646484,
+            "right": 377.19049072265625,
+            "bottom": 167.83333587646484,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 29,
+        "y": 247.83334350585938,
+        "right": 383.19049072265625,
+        "bottom": 437.35716247558594,
+        "width": 354.19049072265625,
+        "height": 189.52381896972656
+      },
+      "savedNotification": false,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "Active (2)Trash (0)Select allIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxObject createdxPhoto Album1FE2-public-quadrants.pngPNG927 B · 10\/8\/2026FE2-public-notes.txtTXT64 B · 10\/8\/2026",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": false,
+      "imageRect": null,
+      "imageCount": 0,
+      "zoomRect": null,
+      "notificationKind": "backup",
+      "notificationPresentAtCapture": true,
+      "stage": "nonempty-attachments-dark",
+      "kind": "attachments",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428293050
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Edit Attachment Attributes",
+          "rect": {
+            "x": 292.19049072265625,
+            "y": 34.029762268066406,
+            "right": 340.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 92.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 281.55358123779297,
+        "width": 380.19049072265625,
+        "height": 189.52381896972656
+      },
+      "savedNotification": false,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "FE2-public-notes.txtIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxObject createdxFE2 public preview text\nShared neutral surfaces\nNo private data\n",
+      "preText": "FE2 public preview text\nShared neutral surfaces\nNo private data\n",
+      "textRect": {
+        "x": 48,
+        "y": 482.2976379394531,
+        "right": 364.19049072265625,
+        "bottom": 531.4404945373535,
+        "width": 316.19049072265625,
+        "height": 49.14285659790039
+      },
+      "textColor": "rgb(221, 216, 200)",
+      "imageDecoded": false,
+      "imageRect": null,
+      "imageCount": 0,
+      "zoomRect": null,
+      "textInkPixels": 5721,
+      "notificationKind": "backup",
+      "notificationPresentAtCapture": true,
+      "stage": "file-preview-text-dark",
+      "kind": "text",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428293738
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Edit Attachment Attributes",
+          "rect": {
+            "x": 292.19049072265625,
+            "y": 34.029762268066406,
+            "right": 340.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom Out",
+          "rect": {
+            "x": 93.0952377319336,
+            "y": 603.125,
+            "right": 141.0952377319336,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom In",
+          "rect": {
+            "x": 213.09524536132812,
+            "y": 603.125,
+            "right": 261.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Fit to window",
+          "rect": {
+            "x": 271.0952453613281,
+            "y": 603.125,
+            "right": 319.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 92.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 199.55357360839844,
+        "width": 380.19049072265625,
+        "height": 107.52381134033203
+      },
+      "savedNotification": false,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "FE2-public-quadrants.pngIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up Nowx100%",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 320,
+      "imageNaturalHeight": 240,
+      "imageRect": {
+        "x": 46.095237731933594,
+        "y": 345.8690490722656,
+        "right": 366.0952377319336,
+        "bottom": 585.8690490722656,
+        "width": 320,
+        "height": 240
+      },
+      "imageCount": 1,
+      "zoomText": "100%",
+      "zoomRect": {
+        "x": 78.0952377319336,
+        "y": 594.125,
+        "right": 334.0952377319336,
+        "bottom": 660.125,
+        "width": 256,
+        "height": 66
+      },
+      "quadrantPixels": [
+        [
+          228,
+          61,
+          48
+        ],
+        [
+          36,
+          179,
+          94
+        ],
+        [
+          40,
+          107,
+          224
+        ],
+        [
+          233,
+          181,
+          46
+        ]
+      ],
+      "notificationKind": "backup",
+      "notificationPresentAtCapture": true,
+      "stage": "file-preview-image-dark",
+      "kind": "image",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428294403
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 93.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 200.55357360839844,
+        "width": 380.19049072265625,
+        "height": 107.52381134033203
+      },
+      "savedNotification": false,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "\n        .photo-album-tag-filter::-webkit-scrollbar { display: none; }\n      Photo Album1It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxNewest firstNo grouping1",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 256,
+      "imageNaturalHeight": 192,
+      "imageRect": {
+        "x": 17,
+        "y": 286.5535888671875,
+        "right": 104.04762268066406,
+        "bottom": 373.60121154785156,
+        "width": 87.04762268066406,
+        "height": 87.04762268066406
+      },
+      "imageCount": 1,
+      "zoomRect": null,
+      "notificationKind": "backup",
+      "notificationPresentAtCapture": true,
+      "stage": "photo-album-dark",
+      "kind": "album",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428295051
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back to album",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Edit Attachment Attributes",
+          "rect": {
+            "x": 292.19049072265625,
+            "y": 34.029762268066406,
+            "right": 340.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom Out",
+          "rect": {
+            "x": 93.0952377319336,
+            "y": 603.125,
+            "right": 141.0952377319336,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom In",
+          "rect": {
+            "x": 213.09524536132812,
+            "y": 603.125,
+            "right": 261.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Fit to window",
+          "rect": {
+            "x": 271.0952453613281,
+            "y": 603.125,
+            "right": 319.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 93.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 282.55358123779297,
+        "width": 380.19049072265625,
+        "height": 189.52381896972656
+      },
+      "savedNotification": true,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "FE2-public-quadrants.png1 \/ 1It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxSavedx100%",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 320,
+      "imageNaturalHeight": 240,
+      "imageRect": {
+        "x": 46.095237731933594,
+        "y": 387.3690490722656,
+        "right": 366.0952377319336,
+        "bottom": 627.3690490722656,
+        "width": 320,
+        "height": 240
+      },
+      "imageCount": 1,
+      "zoomText": "100%",
+      "zoomRect": {
+        "x": 78.0952377319336,
+        "y": 594.125,
+        "right": 334.0952377319336,
+        "bottom": 660.125,
+        "width": 256,
+        "height": 66
+      },
+      "counter": "1 \/ 1",
+      "quadrantPixels": [
+        [
+          228,
+          61,
+          48
+        ],
+        [
+          36,
+          179,
+          94
+        ],
+        [
+          40,
+          107,
+          224
+        ],
+        [
+          233,
+          181,
+          46
+        ]
+      ],
+      "notificationKind": "saved",
+      "notificationPresentAtCapture": true,
+      "stage": "photo-viewer-dark",
+      "kind": "viewer",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428296442
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 93.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 282.55358123779297,
+        "width": 380.19049072265625,
+        "height": 189.52381896972656
+      },
+      "savedNotification": true,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "\n        .photo-album-tag-filter::-webkit-scrollbar { display: none; }\n      Photo Album1It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxSavedxNewest firstNo grouping1",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 256,
+      "imageNaturalHeight": 192,
+      "imageRect": {
+        "x": 17,
+        "y": 368.5535888671875,
+        "right": 104.04762268066406,
+        "bottom": 455.60121154785156,
+        "width": 87.04762268066406,
+        "height": 87.04762268066406
+      },
+      "imageCount": 1,
+      "zoomRect": null,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "photo-album-after-back-dark",
+      "kind": "album",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428296983
+    },
+    {
+      "theme": "dark",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 16,
+        "y": 98.85714721679688,
+        "right": 396.19049072265625,
+        "bottom": 633.3333435058594,
+        "width": 380.19049072265625,
+        "height": 534.4761962890625
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Active (2)",
+          "rect": {
+            "x": 61,
+            "y": 113.85714721679688,
+            "right": 142.73809814453125,
+            "bottom": 161.85714721679688,
+            "width": 81.73809814453125,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Trash (0)",
+          "rect": {
+            "x": 146.73809814453125,
+            "y": 113.85714721679688,
+            "right": 225.1309585571289,
+            "bottom": 161.85714721679688,
+            "width": 78.39286041259766,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Upload",
+          "rect": {
+            "x": 273.19049072265625,
+            "y": 113.85714721679688,
+            "right": 321.19049072265625,
+            "bottom": 161.85714721679688,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 329.19049072265625,
+            "y": 113.85714721679688,
+            "right": 377.19049072265625,
+            "bottom": 161.85714721679688,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 29,
+        "y": 241.85714721679688,
+        "right": 383.19049072265625,
+        "bottom": 431.38096618652344,
+        "width": 354.19049072265625,
+        "height": 189.52381896972656
+      },
+      "savedNotification": true,
+      "backupReminder": true,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "Active (2)Trash (0)Select allIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxSavedxPhoto Album1FE2-public-quadrants.pngPNG927 B · 10\/8\/2026FE2 public preview metadata darkFE2-public-notes.txtTXT64 B · 10\/8\/2026",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": false,
+      "imageRect": null,
+      "imageCount": 0,
+      "zoomRect": null,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "attachments-after-back-dark",
+      "kind": "attachments",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428297498
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "detail": true,
+      "panel": false,
+      "stage": "preview-returned-detail-dark",
+      "theme": "dark",
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428297511
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 14,
+      "historyLength": 15,
+      "overlayMarker": true,
+      "text": "FE2 public objectIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxSavedxEditHistory · 1Attachments · 0Delete",
+      "visible": true,
+      "settled": true,
+      "background": "rgba(42, 38, 32, 0.92)",
+      "foreground": "rgb(221, 216, 200)",
+      "backdrop": "blur(24px) saturate(1.08)",
+      "rect": {
+        "x": 12,
+        "y": 84.98214721679688,
+        "right": 400.19049072265625,
+        "bottom": 678.1250305175781
+      },
+      "toastCount": 1,
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 615,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 53628.200000000186,
+          "count": 1,
+          "path": "\/editor"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": true,
+      "toastInPanel": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [
+        {
+          "label": "Edit",
+          "found": true,
+          "rect": {
+            "x": 36,
+            "y": 402.125,
+            "right": 376.19049072265625,
+            "bottom": 462.125
+          },
+          "ancestors": [
+            {
+              "tag": "BUTTON",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "60px",
+              "top": 402.125,
+              "bottom": 462.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-create-options",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "252px",
+              "top": 402.125,
+              "bottom": 654.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet android-glass-surface",
+              "position": "relative",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "blur(24px) saturate(1.08)",
+              "height": "593.143px",
+              "top": 84.98214721679688,
+              "bottom": 678.1250305175781
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet-layer",
+              "position": "fixed",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "BODY",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "HTML",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            }
+          ],
+          "visible": true,
+          "hittable": true,
+          "overlapped": true
+        },
+        {
+          "label": "History",
+          "found": true,
+          "rect": {
+            "x": 36,
+            "y": 466.125,
+            "right": 376.19049072265625,
+            "bottom": 526.125
+          },
+          "ancestors": [
+            {
+              "tag": "BUTTON",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "60px",
+              "top": 466.125,
+              "bottom": 526.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-create-options",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "252px",
+              "top": 402.125,
+              "bottom": 654.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet android-glass-surface",
+              "position": "relative",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "blur(24px) saturate(1.08)",
+              "height": "593.143px",
+              "top": 84.98214721679688,
+              "bottom": 678.1250305175781
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet-layer",
+              "position": "fixed",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "BODY",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "HTML",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            }
+          ],
+          "visible": true,
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Attachments",
+          "found": true,
+          "rect": {
+            "x": 36,
+            "y": 530.125,
+            "right": 376.19049072265625,
+            "bottom": 590.125
+          },
+          "ancestors": [
+            {
+              "tag": "BUTTON",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "60px",
+              "top": 530.125,
+              "bottom": 590.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-create-options",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "252px",
+              "top": 402.125,
+              "bottom": 654.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet android-glass-surface",
+              "position": "relative",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "blur(24px) saturate(1.08)",
+              "height": "593.143px",
+              "top": 84.98214721679688,
+              "bottom": 678.1250305175781
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet-layer",
+              "position": "fixed",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "BODY",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "HTML",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            }
+          ],
+          "visible": true,
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Delete",
+          "found": true,
+          "rect": {
+            "x": 36,
+            "y": 594.125,
+            "right": 376.19049072265625,
+            "bottom": 654.125
+          },
+          "ancestors": [
+            {
+              "tag": "BUTTON",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "60px",
+              "top": 594.125,
+              "bottom": 654.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-create-options",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "252px",
+              "top": 402.125,
+              "bottom": 654.125
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet android-glass-surface",
+              "position": "relative",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "blur(24px) saturate(1.08)",
+              "height": "593.143px",
+              "top": 84.98214721679688,
+              "bottom": 678.1250305175781
+            },
+            {
+              "tag": "DIV",
+              "classes": "android-sheet-layer",
+              "position": "fixed",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "BODY",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "HTML",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            }
+          ],
+          "visible": true,
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-actions-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791428298469
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 13,
+      "historyLength": 15,
+      "overlayMarker": false,
+      "text": "FE2 public objectTravel · Visa",
+      "visible": true,
+      "settled": true,
+      "background": "rgb(42, 38, 32)",
+      "foreground": "rgb(221, 216, 200)",
+      "backdrop": "none",
+      "rect": {
+        "x": 20,
+        "y": 427.7440490722656,
+        "right": 386.4761962890625,
+        "bottom": 517.7440490722656
+      },
+      "toastCount": 1,
+      "backupReminder": false,
+      "toastTrace": [
+        {
+          "time": 615,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 53628.200000000186,
+          "count": 1,
+          "path": "\/editor"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": false,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-list-after-system-back",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791428299010
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "1",
+      "copyText": "My vault1objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(42, 38, 32, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "populated-enhanced-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 6502,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791428300006
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "light",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "1",
+      "copyText": "My vault1objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(253, 252, 249, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "populated-enhanced-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 6099,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791428300719
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 16,
+        "y": 193.61904907226562,
+        "right": 396.19049072265625,
+        "bottom": 538.5714416503906,
+        "width": 380.19049072265625,
+        "height": 344.952392578125
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Active (2)",
+          "rect": {
+            "x": 61,
+            "y": 208.61904907226562,
+            "right": 142.73809814453125,
+            "bottom": 256.6190490722656,
+            "width": 81.73809814453125,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Trash (0)",
+          "rect": {
+            "x": 146.73809814453125,
+            "y": 208.61904907226562,
+            "right": 225.1309585571289,
+            "bottom": 256.6190490722656,
+            "width": 78.39286041259766,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Upload",
+          "rect": {
+            "x": 273.19049072265625,
+            "y": 208.61904907226562,
+            "right": 321.19049072265625,
+            "bottom": 256.6190490722656,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 329.19049072265625,
+            "y": 208.61904907226562,
+            "right": 377.19049072265625,
+            "bottom": 256.6190490722656,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 0,
+      "toastRect": null,
+      "savedNotification": false,
+      "backupReminder": false,
+      "toastInPanel": false,
+      "toastInFlow": false,
+      "toastVisible": false,
+      "toastHittable": false,
+      "text": "Active (2)Trash (0)Select allPhoto Album1FE2-public-quadrants.pngPNG927 B · 10\/8\/2026FE2 public preview metadata darkFE2-public-notes.txtTXT64 B · 10\/8\/2026",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": false,
+      "imageRect": null,
+      "imageCount": 0,
+      "zoomRect": null,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "nonempty-attachments-light",
+      "kind": "attachments",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428301740
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Edit Attachment Attributes",
+          "rect": {
+            "x": 292.19049072265625,
+            "y": 34.029762268066406,
+            "right": 340.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 0,
+      "toastRect": null,
+      "savedNotification": false,
+      "backupReminder": false,
+      "toastInPanel": false,
+      "toastInFlow": false,
+      "toastVisible": false,
+      "toastHittable": false,
+      "text": "FE2-public-notes.txtFE2 public preview text\nShared neutral surfaces\nNo private data\n",
+      "preText": "FE2 public preview text\nShared neutral surfaces\nNo private data\n",
+      "textRect": {
+        "x": 48,
+        "y": 387.5357360839844,
+        "right": 364.19049072265625,
+        "bottom": 436.67859268188477,
+        "width": 316.19049072265625,
+        "height": 49.14285659790039
+      },
+      "textColor": "rgb(31, 28, 24)",
+      "imageDecoded": false,
+      "imageRect": null,
+      "imageCount": 0,
+      "zoomRect": null,
+      "textInkPixels": 5198,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "file-preview-text-light",
+      "kind": "text",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428302425
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Edit Attachment Attributes",
+          "rect": {
+            "x": 292.19049072265625,
+            "y": 34.029762268066406,
+            "right": 340.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom Out",
+          "rect": {
+            "x": 93.0952377319336,
+            "y": 603.125,
+            "right": 141.0952377319336,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom In",
+          "rect": {
+            "x": 213.09524536132812,
+            "y": 603.125,
+            "right": 261.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Fit to window",
+          "rect": {
+            "x": 271.0952453613281,
+            "y": 603.125,
+            "right": 319.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 0,
+      "toastRect": null,
+      "savedNotification": false,
+      "backupReminder": false,
+      "toastInPanel": false,
+      "toastInFlow": false,
+      "toastVisible": false,
+      "toastHittable": false,
+      "text": "FE2-public-quadrants.png100%",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 320,
+      "imageNaturalHeight": 240,
+      "imageRect": {
+        "x": 46.095237731933594,
+        "y": 292.1071472167969,
+        "right": 366.0952377319336,
+        "bottom": 532.1071472167969,
+        "width": 320,
+        "height": 240
+      },
+      "imageCount": 1,
+      "zoomText": "100%",
+      "zoomRect": {
+        "x": 78.0952377319336,
+        "y": 594.125,
+        "right": 334.0952377319336,
+        "bottom": 660.125,
+        "width": 256,
+        "height": 66
+      },
+      "quadrantPixels": [
+        [
+          228,
+          61,
+          48
+        ],
+        [
+          36,
+          179,
+          94
+        ],
+        [
+          40,
+          107,
+          224
+        ],
+        [
+          233,
+          181,
+          46
+        ]
+      ],
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "file-preview-image-light",
+      "kind": "image",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428303128
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 0,
+      "toastRect": null,
+      "savedNotification": false,
+      "backupReminder": false,
+      "toastInPanel": false,
+      "toastInFlow": false,
+      "toastVisible": false,
+      "toastHittable": false,
+      "text": "\n        .photo-album-tag-filter::-webkit-scrollbar { display: none; }\n      Photo Album1Newest firstNo grouping1",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 256,
+      "imageNaturalHeight": 192,
+      "imageRect": {
+        "x": 17,
+        "y": 179.02976989746094,
+        "right": 104.04762268066406,
+        "bottom": 266.077392578125,
+        "width": 87.04762268066406,
+        "height": 87.04762268066406
+      },
+      "imageCount": 1,
+      "zoomRect": null,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "photo-album-light",
+      "kind": "album",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428303708
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back to album",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Edit Attachment Attributes",
+          "rect": {
+            "x": 292.19049072265625,
+            "y": 34.029762268066406,
+            "right": 340.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom Out",
+          "rect": {
+            "x": 93.0952377319336,
+            "y": 603.125,
+            "right": 141.0952377319336,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Zoom In",
+          "rect": {
+            "x": 213.09524536132812,
+            "y": 603.125,
+            "right": 261.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Fit to window",
+          "rect": {
+            "x": 271.0952453613281,
+            "y": 603.125,
+            "right": 319.0952453613281,
+            "bottom": 651.125,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 93.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 183.0297622680664,
+        "width": 380.19049072265625,
+        "height": 90
+      },
+      "savedNotification": true,
+      "backupReminder": false,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "FE2-public-quadrants.png1 \/ 1Savedx100%",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 320,
+      "imageNaturalHeight": 240,
+      "imageRect": {
+        "x": 46.095237731933594,
+        "y": 337.6071472167969,
+        "right": 366.0952377319336,
+        "bottom": 577.6071472167969,
+        "width": 320,
+        "height": 240
+      },
+      "imageCount": 1,
+      "zoomText": "100%",
+      "zoomRect": {
+        "x": 78.0952377319336,
+        "y": 594.125,
+        "right": 334.0952377319336,
+        "bottom": 660.125,
+        "width": 256,
+        "height": 66
+      },
+      "counter": "1 \/ 1",
+      "quadrantPixels": [
+        [
+          228,
+          61,
+          48
+        ],
+        [
+          36,
+          179,
+          94
+        ],
+        [
+          40,
+          107,
+          224
+        ],
+        [
+          233,
+          181,
+          46
+        ]
+      ],
+      "notificationKind": "saved",
+      "notificationPresentAtCapture": true,
+      "stage": "photo-viewer-light",
+      "kind": "viewer",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428304452
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "right": 412.19049072265625,
+        "bottom": 732.1904907226562,
+        "width": 412.19049072265625,
+        "height": 732.1904907226562
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Back",
+          "rect": {
+            "x": 14,
+            "y": 34.029762268066406,
+            "right": 62,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 350.19049072265625,
+            "y": 34.029762268066406,
+            "right": 398.19049072265625,
+            "bottom": 82.0297622680664,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 93.0297622680664,
+        "right": 396.19049072265625,
+        "bottom": 183.0297622680664,
+        "width": 380.19049072265625,
+        "height": 90
+      },
+      "savedNotification": true,
+      "backupReminder": false,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "\n        .photo-album-tag-filter::-webkit-scrollbar { display: none; }\n      Photo Album1SavedxNewest firstNo grouping1",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": true,
+      "imageNaturalWidth": 256,
+      "imageNaturalHeight": 192,
+      "imageRect": {
+        "x": 17,
+        "y": 269.0297546386719,
+        "right": 104.04762268066406,
+        "bottom": 356.07737731933594,
+        "width": 87.04762268066406,
+        "height": 87.04762268066406
+      },
+      "imageCount": 1,
+      "zoomRect": null,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "photo-album-after-back-light",
+      "kind": "album",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428304949
+    },
+    {
+      "theme": "light",
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "visible": true,
+      "settled": true,
+      "rect": {
+        "x": 16,
+        "y": 148.61904907226562,
+        "right": 396.19049072265625,
+        "bottom": 583.5714416503906,
+        "width": 380.19049072265625,
+        "height": 434.952392578125
+      },
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "controls": [
+        {
+          "label": "Active (2)",
+          "rect": {
+            "x": 61,
+            "y": 163.61904907226562,
+            "right": 142.73809814453125,
+            "bottom": 211.61904907226562,
+            "width": 81.73809814453125,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Trash (0)",
+          "rect": {
+            "x": 146.73809814453125,
+            "y": 163.61904907226562,
+            "right": 225.1309585571289,
+            "bottom": 211.61904907226562,
+            "width": 78.39286041259766,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Upload",
+          "rect": {
+            "x": 273.19049072265625,
+            "y": 163.61904907226562,
+            "right": 321.19049072265625,
+            "bottom": 211.61904907226562,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        },
+        {
+          "label": "Close",
+          "rect": {
+            "x": 329.19049072265625,
+            "y": 163.61904907226562,
+            "right": 377.19049072265625,
+            "bottom": 211.61904907226562,
+            "width": 48,
+            "height": 48
+          },
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "toastCount": 1,
+      "toastRect": {
+        "x": 29,
+        "y": 291.6190490722656,
+        "right": 383.19049072265625,
+        "bottom": 381.6190490722656,
+        "width": 354.19049072265625,
+        "height": 90
+      },
+      "savedNotification": true,
+      "backupReminder": false,
+      "toastInPanel": true,
+      "toastInFlow": true,
+      "toastVisible": true,
+      "toastHittable": true,
+      "text": "Active (2)Trash (0)Select allSavedxPhoto Album1FE2-public-quadrants.pngPNG927 B · 10\/8\/2026FE2 public preview metadata lightFE2-public-notes.txtTXT64 B · 10\/8\/2026",
+      "textRect": null,
+      "textColor": null,
+      "imageDecoded": false,
+      "imageRect": null,
+      "imageCount": 0,
+      "zoomRect": null,
+      "notificationKind": "none",
+      "notificationPresentAtCapture": true,
+      "stage": "attachments-after-back-light",
+      "kind": "attachments",
+      "nativeViewport": {
+        "imeVisible": false,
+        "documentStartScriptSupported": false,
+        "imeHeightPx": 0,
+        "screenHeightPx": 1920,
+        "webViewWidthPx": 1080,
+        "webViewHeightPx": 1920,
+        "webViewScreenX": 0,
+        "webViewScreenY": 0,
+        "systemBars": {
+          "top": 63,
+          "right": 0,
+          "bottom": 126,
+          "left": 0
+        },
+        "windowBounds": {
+          "top": 0,
+          "right": 1080,
+          "bottom": 1920,
+          "left": 0
+        }
+      },
+      "systemBars": {
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428305496
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "detail": true,
+      "panel": false,
+      "stage": "preview-returned-detail-light",
+      "theme": "light",
+      "systemBars": {
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "nightMode": false
+      },
+      "recordedAtMs": 1791428305513
+    }
+  ],
+  "processId": 8421,
+  "runtime": {
+    "api": 31,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "91.0.4472.114",
+    "webViewVersionCode": 447211484
+  },
+  "directoryAttempts": 2,
+  "unlockAttempts": [
+    {
+      "attempt": 1,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "attempt": 2,
+      "result": "home"
+    }
+  ],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "scenario": "previews",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back, real encrypted content-URI fixtures, nonempty attachments\/text\/image\/album\/viewer in both themes and real in-flow backup\/metadata-save notifications; not system picker",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

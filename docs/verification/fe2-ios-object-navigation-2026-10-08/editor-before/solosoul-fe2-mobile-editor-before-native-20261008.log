@@ -1,0 +1,39 @@
+[2m[WebServer] [22m(node:83659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:83674) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83674) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › ios 390px: editor save and cancel remain above navigation (6.9s)
+
+
+  1) [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › ios 390px: editor save and cancel remain above navigation 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByLabel('Object Name', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByLabel('Object Name', { exact: true })[22m
+
+
+      43 |       await login(page);
+      44 |       await page.goto('/editor?section=identity');
+    > 45 |       await expect(page.getByLabel('Object Name', { exact: true })).toBeVisible();
+         |                                                                     ^
+      46 |       await page.evaluate(() => {
+      47 |         document.documentElement.style.fontSize = '20px';
+      48 |       });
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/mobile-editor-actions.spec.ts:45:69
+
+    Error Context: test-results/mobile-editor-actions-ios--b0520-cel-remain-above-navigation-mobile/error-context.md
+
+  1 failed
+    [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › ios 390px: editor save and cancel remain above navigation 

@@ -1,0 +1,169 @@
+{
+  "passed": true,
+  "scope": "Four stable actual native iPhone17/iOS26.3.1 appearance frames plus actual account identity before and after two-way native list selection and real unlock. Body/top pixels, selected radio, native accent selection geometry/fill and clock contrast verified. Not animation performance or physical devices.",
+  "production_binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "frames": [
+    {
+      "stage": "a-light-ocean-selected",
+      "mode": "light",
+      "selected_mode": "浅色 · 暖石",
+      "actual_top_rgb": [
+        253,
+        252,
+        249
+      ],
+      "actual_body_rgb": [
+        250,
+        250,
+        246
+      ],
+      "selected_accent": "海洋蓝",
+      "selected_accent_rect": [
+        32.0,
+        448.0,
+        50.0,
+        50.0
+      ],
+      "other_accent_rect": [
+        203.0,
+        451.0,
+        44.0,
+        44.0
+      ],
+      "actual_accent_fill_rgb": [
+        91,
+        124,
+        153
+      ],
+      "actual_accent_fill_pixels": 19844,
+      "native_clock_foreground_pixels": 1090,
+      "native_clock_contrast": 20.468601412918044
+    },
+    {
+      "stage": "b-dark-rose-selected",
+      "mode": "dark",
+      "selected_mode": "深色 · 森夜",
+      "actual_top_rgb": [
+        36,
+        45,
+        40
+      ],
+      "actual_body_rgb": [
+        26,
+        33,
+        29
+      ],
+      "selected_accent": "玫瑰红",
+      "selected_accent_rect": [
+        200.0,
+        448.0,
+        50.0,
+        50.0
+      ],
+      "other_accent_rect": [
+        35.0,
+        451.0,
+        44.0,
+        44.0
+      ],
+      "actual_accent_fill_rgb": [
+        176,
+        107,
+        122
+      ],
+      "actual_accent_fill_pixels": 16748,
+      "native_clock_foreground_pixels": 1092,
+      "native_clock_contrast": 14.179529102820139
+    },
+    {
+      "stage": "a-restored-light-ocean",
+      "mode": "light",
+      "selected_mode": "浅色 · 暖石",
+      "actual_top_rgb": [
+        253,
+        252,
+        249
+      ],
+      "actual_body_rgb": [
+        250,
+        250,
+        246
+      ],
+      "selected_accent": "海洋蓝",
+      "selected_accent_rect": [
+        32.0,
+        448.0,
+        50.0,
+        50.0
+      ],
+      "other_accent_rect": [
+        203.0,
+        451.0,
+        44.0,
+        44.0
+      ],
+      "actual_accent_fill_rgb": [
+        91,
+        124,
+        153
+      ],
+      "actual_accent_fill_pixels": 19844,
+      "native_clock_foreground_pixels": 1123,
+      "native_clock_contrast": 20.468601412918044
+    },
+    {
+      "stage": "b-restored-dark-rose",
+      "mode": "dark",
+      "selected_mode": "深色 · 森夜",
+      "actual_top_rgb": [
+        36,
+        45,
+        40
+      ],
+      "actual_body_rgb": [
+        26,
+        33,
+        29
+      ],
+      "selected_accent": "玫瑰红",
+      "selected_accent_rect": [
+        200.0,
+        448.0,
+        50.0,
+        50.0
+      ],
+      "other_accent_rect": [
+        35.0,
+        451.0,
+        44.0,
+        44.0
+      ],
+      "actual_accent_fill_rgb": [
+        176,
+        107,
+        122
+      ],
+      "actual_accent_fill_pixels": 16748,
+      "native_clock_foreground_pixels": 1124,
+      "native_clock_contrast": 14.179529102820139
+    }
+  ],
+  "account_identities": {
+    "a-created-identity": {
+      "account_name": "FE2 Theme A",
+      "account_id": "acc_7d6359327dc24745"
+    },
+    "a-restored-identity": {
+      "account_name": "FE2 Theme A",
+      "account_id": "acc_7d6359327dc24745"
+    },
+    "b-created-identity": {
+      "account_name": "FE2 Theme B",
+      "account_id": "acc_13d65aab47394b1e"
+    },
+    "b-restored-identity": {
+      "account_name": "FE2 Theme B",
+      "account_id": "acc_13d65aab47394b1e"
+    }
+  }
+}

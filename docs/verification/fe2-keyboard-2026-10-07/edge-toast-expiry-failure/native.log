@@ -1,0 +1,53 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidHomeInstrumentedTest:
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: editor-keyboard-dark: {"path":"\/editor","search":"?section=travel","historyIndex":14,"theme":"dark","draft":"FE2 public object XYZ","focused":true,"viewportWidth":412,"viewportHeight":400,"visualHeight":400,"visualOffset":0,"keyboardInset":"0px","rect":{"x":36,"y":178.38095092773438,"right":370.4761962890625,"bottom":230.38095092773438},"hittable":true,"toastCount":0,"unobscured":true,"backupReminder":false,"overlapped":false,"overflow":false}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:115)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureKeyboard(AndroidHomeInstrumentedTest.kt:456)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureKeyboard$default(AndroidHomeInstrumentedTest.kt:454)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyKeyboard(AndroidHomeInstrumentedTest.kt:521)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyPopulatedContent(AndroidHomeInstrumentedTest.kt:384)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:689)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest):
+java.lang.AssertionError: editor-keyboard-dark: {"path":"\/editor","search":"?section=travel","historyIndex":14,"theme":"dark","draft":"FE2 public object XYZ","focused":true,"viewportWidth":412,"viewportHeight":400,"visualHeight":400,"visualOffset":0,"keyboardInset":"0px","rect":{"x":36,"y":178.38095092773438,"right":370.4761962890625,"bottom":230.38095092773438},"hittable":true,"toastCount":0,"unobscured":true,"backupReminder":false,"overlapped":false,"overflow":false}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:115)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureKeyboard(AndroidHomeInstrumentedTest.kt:456)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureKeyboard$default(AndroidHomeInstrumentedTest.kt:454)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyKeyboard(AndroidHomeInstrumentedTest.kt:521)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyPopulatedContent(AndroidHomeInstrumentedTest.kt:384)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:689)
+
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 107.448
+There was 1 failure:
+1) realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest)
+java.lang.AssertionError: editor-keyboard-dark: {"path":"\/editor","search":"?section=travel","historyIndex":14,"theme":"dark","draft":"FE2 public object XYZ","focused":true,"viewportWidth":412,"viewportHeight":400,"visualHeight":400,"visualOffset":0,"keyboardInset":"0px","rect":{"x":36,"y":178.38095092773438,"right":370.4761962890625,"bottom":230.38095092773438},"hittable":true,"toastCount":0,"unobscured":true,"backupReminder":false,"overlapped":false,"overflow":false}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:115)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureKeyboard(AndroidHomeInstrumentedTest.kt:456)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.captureKeyboard$default(AndroidHomeInstrumentedTest.kt:454)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyKeyboard(AndroidHomeInstrumentedTest.kt:521)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyPopulatedContent(AndroidHomeInstrumentedTest.kt:384)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:689)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

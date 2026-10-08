@@ -1,0 +1,61 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "fallback",
+  "scenario": "keyboard",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791444173.6799722,
+  "passed": true,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-editor-build-20261008/app-arm64-debug.apk",
+      "sha256": "9c6395c574bacd15a1658a56db81b42f25963a6b6b2a5d75e9b7348d764a8176"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-editor-after-back-test-build-20261008/app-arm64-debug-androidTest.apk",
+      "sha256": "c0e688fe4ba193cb1bf4c2124a3827d1f019e0dad7cd031098b55469b0dc9c02"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-android-current-editor-keyboard-after-back-fallback-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "editor-keyboard-dark",
+    "editor-keyboard-save-dark",
+    "editor-keyboard-cancel-dark",
+    "editor-keyboard-after-back",
+    "object-list-dark",
+    "object-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791444247.56459
+}

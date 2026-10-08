@@ -1,0 +1,175 @@
+{
+  "scope": "Original Back button region; intervention frames diagnostic only, no product acceptance",
+  "frames": [
+    {
+      "group": "paint",
+      "frame": "file-preview-text-dark-pixel-diagnostic.png",
+      "back_region": [
+        36,
+        89,
+        163,
+        216
+      ],
+      "most_frequent_colors": [
+        [
+          [
+            39,
+            35,
+            30
+          ],
+          15855
+        ],
+        [
+          [
+            205,
+            200,
+            185
+          ],
+          115
+        ]
+      ],
+      "expected_foreground": [
+        221,
+        216,
+        200
+      ],
+      "expected_ink_pixels": 0
+    },
+    {
+      "group": "underlying-blur",
+      "frame": "file-preview-text-dark-pixel-diagnostic.png",
+      "back_region": [
+        36,
+        89,
+        163,
+        216
+      ],
+      "most_frequent_colors": [
+        [
+          [
+            39,
+            35,
+            30
+          ],
+          15855
+        ],
+        [
+          [
+            205,
+            200,
+            185
+          ],
+          115
+        ]
+      ],
+      "expected_foreground": [
+        221,
+        216,
+        200
+      ],
+      "expected_ink_pixels": 0
+    },
+    {
+      "group": "underlying-blur",
+      "frame": "file-preview-text-dark-without-underlying-blur.png",
+      "back_region": [
+        36,
+        89,
+        163,
+        216
+      ],
+      "most_frequent_colors": [
+        [
+          [
+            39,
+            35,
+            30
+          ],
+          15855
+        ],
+        [
+          [
+            205,
+            200,
+            185
+          ],
+          115
+        ]
+      ],
+      "expected_foreground": [
+        221,
+        216,
+        200
+      ],
+      "expected_ink_pixels": 0
+    },
+    {
+      "group": "underlying-blur-restored",
+      "frame": "file-preview-text-dark-pixel-diagnostic.png",
+      "back_region": [
+        36,
+        89,
+        163,
+        216
+      ],
+      "most_frequent_colors": [
+        [
+          [
+            39,
+            35,
+            30
+          ],
+          15855
+        ],
+        [
+          [
+            205,
+            200,
+            185
+          ],
+          115
+        ]
+      ],
+      "expected_foreground": [
+        221,
+        216,
+        200
+      ],
+      "expected_ink_pixels": 0
+    },
+    {
+      "group": "underlying-blur-restored",
+      "frame": "file-preview-text-dark-without-underlying-blur.png",
+      "back_region": [
+        36,
+        89,
+        163,
+        216
+      ],
+      "most_frequent_colors": [
+        [
+          [
+            39,
+            35,
+            30
+          ],
+          15855
+        ],
+        [
+          [
+            205,
+            200,
+            185
+          ],
+          115
+        ]
+      ],
+      "expected_foreground": [
+        221,
+        216,
+        200
+      ],
+      "expected_ink_pixels": 0
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "actual_app_private_entries": 242,
+  "live_contents_permissions_links_equal_before_and_restored_archives": true,
+  "actual_root_mode_matches_backup": true,
+  "private_archives_not_published": true,
+  "avd_identity_verified": "SoloSoul_RF201"
+}

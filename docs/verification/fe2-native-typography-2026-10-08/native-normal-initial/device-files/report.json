@@ -1,0 +1,48 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "buttons": [
+        "",
+        "",
+        "",
+        "",
+        "New",
+        "View all",
+        "Identity0 objects",
+        "Travel0 objects",
+        "Financial0 objects",
+        "Professional0 objects",
+        "Documents0 objects",
+        ""
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "SoloSoul\nHome\nObjects\nTools\nSettings\nNew\nWelcome back, FE2 public visual test\n\nA place for every part of your life.\n\nMy vault\n\n0\nobjects\n\nLocal vault · Your data, your control\n\nData Sections\nView all\nIdentity\n0 objects\nTravel\n0 objects\nFinancial\n0 objects\nProfessional\n0 objects\nDocuments\n0 objects\nRecently updated\n\nNo objects yet",
+      "glass": "local",
+      "reduceMotion": "false",
+      "hidden": false,
+      "home": true,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "系统放大后文字不能被自身容器截断: {\"selector\":\".android-overview-copy strong\",\"found\":true,\"text\":\"0\",\"fontSize\":\"52px\",\"lineHeight\":\"52px\",\"glyph\":{\"x\":44,\"y\":293.0535888671875,\"width\":29.708335876464844,\"height\":60.952362060546875,\"right\":73.70833587646484,\"bottom\":354.0059509277344},\"box\":{\"x\":44,\"y\":297.625,\"right\":73.70833396911621,\"bottom\":349.625},\"clipped\":true}",
+      "recordedAtMs": 1791433322894
+    }
+  ],
+  "processId": 21508,
+  "runtime": {
+    "api": 34,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "113.0.5672.136",
+    "webViewVersionCode": 567263634
+  },
+  "directoryAttempts": 2,
+  "unlockAttempts": [],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "requestedFontScale": 1,
+  "scenario": "baseline",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

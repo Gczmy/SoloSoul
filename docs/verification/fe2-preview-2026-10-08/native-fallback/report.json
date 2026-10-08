@@ -1,0 +1,73 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "fallback",
+  "scenario": "previews",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791425044.3081138,
+  "passed": true,
+  "restored": true,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "688e90599fe65bca72a89d31b5a319ffb856dc7b9e2545f75c2426118df566a9"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "c8e0b4bf709ebfc75b09382edae3c3865fb254d5c4104cda9d7b95e38811dd77"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-preview-fallback-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "preview-fixtures-encrypted",
+    "nonempty-attachments-dark",
+    "file-preview-text-dark",
+    "file-preview-image-dark",
+    "photo-album-dark",
+    "photo-viewer-dark",
+    "photo-album-after-back-dark",
+    "attachments-after-back-dark",
+    "preview-returned-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "nonempty-attachments-light",
+    "file-preview-text-light",
+    "file-preview-image-light",
+    "photo-album-light",
+    "photo-viewer-light",
+    "photo-album-after-back-light",
+    "attachments-after-back-light",
+    "preview-returned-detail-light"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791425128.7611158
+}

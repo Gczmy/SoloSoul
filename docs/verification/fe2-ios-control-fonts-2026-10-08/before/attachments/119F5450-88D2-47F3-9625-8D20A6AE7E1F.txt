@@ -1,0 +1,70 @@
+Attributes: Application, 0x101c5b7f0, pid: 60842, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x101c5b7f0, pid: 60842, label: 'SoloSoul'
+    Window (Main), 0x101c5b910, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x101c5bcd0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x101c5bdf0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x101c5ba30, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x101c5bb50, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x101c5c390, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x101c5bf10, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x101c5c030, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x101c5c150, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x101c5c270, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x101c5c4b0, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x101c5c5d0, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Other, 0x101c5c6f0, {{12.0, 75.0}, {28.0, 21.0}}, label: '首页', value: 1, Focused
+                              StaticText, 0x101c5c810, {{12.0, 75.0}, {28.0, 21.0}}, label: '首页', value: 首页, Focused
+                            Button, 0x101c5c930, {{346.0, 63.0}, {44.0, 45.0}}, label: '更多操作', Focused
+                          Other, 0x101c5ca50, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x101c5cb70, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x101c5cc90, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x101c5cdb0, {{131.0, 788.0}, {141.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x101c5ced0, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x101c5cff0, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x101c5d110, {{0.0, 0.0}, {402.0, 784.0}}, Focused
+                            Other, 0x101c5d230, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x101c5d350, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused
+                              Other, 0x101c5d470, {{33.0, 143.0}, {336.0, 29.0}}, label: '欢迎回来，FE2 iOS public account', value: 2, Focused
+                                StaticText, 0x101c5d590, {{33.0, 143.0}, {329.0, 29.0}}, label: '欢迎回来，FE2 iOS public account', value: 欢迎回来，FE2 iOS publi..., Focused
+                              Other, 0x101c5d6b0, {{33.0, 176.0}, {336.0, 20.0}}, Focused
+                                StaticText, 0x101c5d7d0, {{33.0, 176.0}, {322.0, 20.0}}, label: '您的个人数据保险库。所有数据已加密并本地存储。', value: 您的个人数据保险库。所有数据已加密并..., Focused
+                              Other, 0x101c5d8f0, {{16.0, 233.0}, {370.0, 23.0}}, label: '资料分区', value: 2, Focused
+                                StaticText, 0x101c5da10, {{16.0, 233.0}, {64.0, 23.0}}, label: '资料分区', value: 资料分区, Focused
+                              Button, 0x101c5db30, {{16.0, 268.0}, {180.0, 100.0}}, label: '身份个人信息、身份证、联系人', Focused
+                              Button, 0x101c5dc50, {{206.0, 268.0}, {180.0, 100.0}}, label: '旅行护照、签证、旅行记录', Focused
+                              Button, 0x101c5dd70, {{16.0, 378.0}, {180.0, 100.0}}, label: '财务银行账户、卡片、税务信息', Focused
+                              Button, 0x101c5de90, {{206.0, 378.0}, {180.0, 100.0}}, label: '职业教育背景、工作经历、技能', Focused
+                              Button, 0x101c5dfb0, {{16.0, 488.0}, {180.0, 82.0}}, label: '文档OCR 扫描导入的文档', Focused
+                              Other, 0x101c5e0d0, {{16.0, 590.0}, {370.0, 23.0}}, label: '快捷入口', value: 2, Focused
+                                StaticText, 0x101c5e1f0, {{16.0, 590.0}, {64.0, 23.0}}, label: '快捷入口', value: 快捷入口, Focused
+                              Button, 0x101c5e310, {{16.0, 625.0}, {180.0, 100.0}}, label: '设置管理账户、主题、安全与偏好设置', Focused
+                              Button, 0x101c5e430, {{206.0, 625.0}, {180.0, 100.0}}, label: '回收站查看并管理已删除的对象，支持恢复或永久清理', Focused
+                              Button, 0x101c5e550, {{16.0, 735.0}, {180.0, 100.0}}, label: '搜索全局搜索对象、资料、帮助文档', Focused
+                              Button, 0x101c5e670, {{206.0, 735.0}, {180.0, 100.0}}, label: '模板管理创建、编辑与管理对象模板', Focused
+                              Button, 0x101c5e790, {{16.0, 845.0}, {180.0, 100.0}}, label: '附件管理 0管理附件的上传、下载与回收站', Focused
+                              Button, 0x101c5e8b0, {{206.0, 845.0}, {180.0, 100.0}}, label: '照片集 0浏览所有对象的所有照片', Focused
+                              Button, 0x101c5e9d0, {{16.0, 955.0}, {180.0, 100.0}}, label: '插件管理本地插件市场', Focused
+                              Button, 0x101c5eaf0, {{206.0, 955.0}, {180.0, 100.0}}, label: 'OCR 扫描扫描图片中的文字，快速提取并创建对象', Focused
+                              Button, 0x101c5ec10, {{16.0, 1065.0}, {180.0, 100.0}}, label: '导入导出导出或导入加密 Vault 包', Focused
+                              Button, 0x101c5ed30, {{206.0, 1065.0}, {180.0, 100.0}}, label: '设备同步在局域网内与附近设备同步 Vault 数据', Focused
+                              Button, 0x101c5ee50, {{16.0, 1175.0}, {180.0, 100.0}}, label: '帮助文档快速了解功能、安全与使用指南', Focused
+                              Button, 0x101c5ef70, {{206.0, 1175.0}, {180.0, 100.0}}, label: 'AI 对话与 AI 助手对话，获取建议与帮助', Focused
+                Other, 0x101c5f090, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x101c5f1b0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x101c5f2d0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x101c5f3f0, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x101c5f510, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x101c5f630, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x101c5f750, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x101c5f870, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x101c5f990, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x101c5fab0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x101c5fbd0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x101c5b7f0, pid: 60842, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x101c5a4d0, pid: 60842, label: 'SoloSoul'
+  }

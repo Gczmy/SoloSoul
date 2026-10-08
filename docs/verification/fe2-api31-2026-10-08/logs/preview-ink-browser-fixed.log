@@ -1,0 +1,55 @@
+[2m[WebServer] [22m(node:51155) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 2 workers
+
+(node:51187) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51186) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51186) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51187) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:15:52 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:52 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:52 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:52 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:52 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:15:52 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  1 [chromium] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android dark reminders follow file preview, album and photo viewer (5.5s)
+  ✓  2 [chromium] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android light reminders follow file preview, album and photo viewer (5.5s)
+(node:51257) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51258) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51257) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:51258) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:15:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:15:57 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:15:57 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  3 [mobile] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android light reminders follow file preview, album and photo viewer (4.3s)
+  ✓  4 [mobile] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android dark reminders follow file preview, album and photo viewer (4.3s)
+
+  4 passed (12.3s)

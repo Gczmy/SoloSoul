@@ -1,0 +1,161 @@
+{
+  "scope": "Seven actual screenshot frames for current iPhone17/iOS26.3.1 account appearance; native clock foreground and shared palette only, not transitions/performance/other iOS versions",
+  "passed": true,
+  "frames": [
+    {
+      "stage": "fixed-dark-system-light",
+      "mode": "dark",
+      "selected_control": "深色 · 森夜",
+      "top_rgb": [
+        36,
+        45,
+        40
+      ],
+      "body_rgb": [
+        26,
+        33,
+        29
+      ],
+      "clock_foreground_rgb": [
+        255,
+        255,
+        255
+      ],
+      "clock_solid_foreground_pixels": 1728,
+      "clock_contrast": 14.179529102820139
+    },
+    {
+      "stage": "fixed-light-system-light",
+      "mode": "light",
+      "selected_control": "浅色 · 暖石",
+      "top_rgb": [
+        253,
+        252,
+        249
+      ],
+      "body_rgb": [
+        250,
+        250,
+        246
+      ],
+      "clock_foreground_rgb": [
+        0,
+        0,
+        0
+      ],
+      "clock_solid_foreground_pixels": 1723,
+      "clock_contrast": 20.468601412918044
+    },
+    {
+      "stage": "system-mode-system-light",
+      "mode": "light",
+      "selected_control": "跟随系统",
+      "top_rgb": [
+        253,
+        252,
+        249
+      ],
+      "body_rgb": [
+        250,
+        250,
+        246
+      ],
+      "clock_foreground_rgb": [
+        0,
+        0,
+        0
+      ],
+      "clock_solid_foreground_pixels": 1719,
+      "clock_contrast": 20.468601412918044
+    },
+    {
+      "stage": "system-mode-system-dark",
+      "mode": "dark",
+      "selected_control": "跟随系统",
+      "top_rgb": [
+        36,
+        45,
+        40
+      ],
+      "body_rgb": [
+        26,
+        33,
+        29
+      ],
+      "clock_foreground_rgb": [
+        255,
+        255,
+        255
+      ],
+      "clock_solid_foreground_pixels": 1724,
+      "clock_contrast": 14.179529102820139
+    },
+    {
+      "stage": "fixed-light-system-dark",
+      "mode": "light",
+      "selected_control": "浅色 · 暖石",
+      "top_rgb": [
+        253,
+        252,
+        249
+      ],
+      "body_rgb": [
+        250,
+        250,
+        246
+      ],
+      "clock_foreground_rgb": [
+        0,
+        0,
+        0
+      ],
+      "clock_solid_foreground_pixels": 1719,
+      "clock_contrast": 20.468601412918044
+    },
+    {
+      "stage": "fixed-dark-system-dark",
+      "mode": "dark",
+      "selected_control": "深色 · 森夜",
+      "top_rgb": [
+        36,
+        45,
+        40
+      ],
+      "body_rgb": [
+        26,
+        33,
+        29
+      ],
+      "clock_foreground_rgb": [
+        255,
+        255,
+        255
+      ],
+      "clock_solid_foreground_pixels": 1724,
+      "clock_contrast": 14.179529102820139
+    },
+    {
+      "stage": "system-mode-system-dark-again",
+      "mode": "dark",
+      "selected_control": "跟随系统",
+      "top_rgb": [
+        36,
+        45,
+        40
+      ],
+      "body_rgb": [
+        26,
+        33,
+        29
+      ],
+      "clock_foreground_rgb": [
+        255,
+        255,
+        255
+      ],
+      "clock_solid_foreground_pixels": 1724,
+      "clock_contrast": 14.179529102820139
+    }
+  ],
+  "production_binary_sha256": "98280597fff53310efb49a8849556b5820d0a218a5262a429ae5c4d85f7f277f"
+}

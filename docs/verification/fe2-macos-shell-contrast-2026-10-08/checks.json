@@ -1,0 +1,7 @@
+{
+  "types": 0,
+  "format": 0,
+  "diff": 0,
+  "lint": 0,
+  "lint_scope": "Before white-content change; relevant TSX/hooks unchanged since lint. Styles and e2e source checked by format/build/browser."
+}

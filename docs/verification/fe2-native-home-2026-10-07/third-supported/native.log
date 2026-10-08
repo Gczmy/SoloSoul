@@ -1,0 +1,44 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidHomeInstrumentedTest:
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: enhanced-dark-after-unlock: {"path":"\/login","home":false,"theme":"dark","glass":"enhanced","background":"#1f1c18","surface":"#2a2620","foreground":"#ddd8c8","accent":"#7a9ab5","copyVisible":false,"copyColor":null,"copyRect":null,"artRect":null,"ready":false,"canvasVisible":false,"viewportWidth":412,"overflow":false,"navCount":0}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:62)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.capture(AndroidHomeInstrumentedTest.kt:108)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:220)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest):
+java.lang.AssertionError: enhanced-dark-after-unlock: {"path":"\/login","home":false,"theme":"dark","glass":"enhanced","background":"#1f1c18","surface":"#2a2620","foreground":"#ddd8c8","accent":"#7a9ab5","copyVisible":false,"copyColor":null,"copyRect":null,"artRect":null,"ready":false,"canvasVisible":false,"viewportWidth":412,"overflow":false,"navCount":0}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:62)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.capture(AndroidHomeInstrumentedTest.kt:108)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:220)
+
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 97.579
+There was 1 failure:
+1) realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest)
+java.lang.AssertionError: enhanced-dark-after-unlock: {"path":"\/login","home":false,"theme":"dark","glass":"enhanced","background":"#1f1c18","surface":"#2a2620","foreground":"#ddd8c8","accent":"#7a9ab5","copyVisible":false,"copyColor":null,"copyRect":null,"artRect":null,"ready":false,"canvasVisible":false,"viewportWidth":412,"overflow":false,"navCount":0}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:62)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.capture(AndroidHomeInstrumentedTest.kt:108)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:220)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

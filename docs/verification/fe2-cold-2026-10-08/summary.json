@@ -1,0 +1,119 @@
+{
+  "status": "passed partial FE2-014 native process-cold account appearance scope",
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "SoloSoul_RF201",
+    "api": 34,
+    "abi": "arm64-v8a"
+  },
+  "main_apk_sha256": "5158c440cec5a7168278a414298cce15cda80d7104c1354949fa3aff5ea00b6e",
+  "test_apk_sha256": "f5545eea9a1a4168a1406dd84e196a437df3b5d0f28505946fa2c2c43baca335",
+  "production_apk_rebuilt": true,
+  "main_build_exit_code": 0,
+  "test_build_exit_code": 0,
+  "executed_source_manifest": "docs/verification/fe2-cold-2026-10-08/final-native-source.json",
+  "current_source_manifest": "docs/verification/fe2-cold-2026-10-08/current-source.json",
+  "post_native_change": "Only rustfmt line wrapping in cfg(test) UI preferences alias regression; native execution snapshots preserved",
+  "fixes": [
+    "Restore manifest-present app-private Vault root on mobile without SAF URI, keep auth locked and directory lock errors",
+    "Compare actual UI preferences file identity for directory aliases and synchronize reads/writes",
+    "Refresh startup cache from confirmed current-account settings"
+  ],
+  "checks": {
+    "full_vitest": {
+      "files": 259,
+      "passed": 2322,
+      "exit_code": 0
+    },
+    "targeted_vitest": {
+      "passed": 61,
+      "exit_code": 0
+    },
+    "rust_preferences": {
+      "passed": 24,
+      "exit_code": 0
+    },
+    "rust_saf_config": {
+      "passed": 6,
+      "exit_code": 0
+    },
+    "python_driver": {
+      "passed": 18,
+      "exit_code": 0
+    },
+    "default_clippy_exit_code": 0,
+    "project_lint_exit_code": 0,
+    "project_lint_existing_warning": "syncStore.ts:838 unused event",
+    "rust_fmt_exit_code": 0,
+    "diff_check_exit_code": 0
+  },
+  "native_runs": {
+    "supported": {
+      "exit_code": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "methods": 2,
+      "stages": 23,
+      "png": 20,
+      "report": "docs/verification/fe2-cold-2026-10-08/final-supported/report.json",
+      "previous_pid": 10205,
+      "new_pid": 10662,
+      "private_data_restored": true,
+      "restore_entries": 242,
+      "blur_restored": true,
+      "notification_restored": true,
+      "system_night_mode_restored": true
+    },
+    "fallback": {
+      "exit_code": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "methods": 2,
+      "stages": 23,
+      "png": 20,
+      "report": "docs/verification/fe2-cold-2026-10-08/final-fallback/report.json",
+      "previous_pid": 11016,
+      "new_pid": 11450,
+      "private_data_restored": true,
+      "restore_entries": 242,
+      "blur_restored": true,
+      "notification_restored": true,
+      "system_night_mode_restored": true
+    }
+  },
+  "failure_history": [
+    "attempt-1-supported driver pidof handling; no cold acceptance",
+    "attempt-2-supported real process enters bootstrap; no cold acceptance",
+    "attempt-3-root-fixed-supported locked login restored, wrong appearance; no cold acceptance"
+  ],
+  "human_review": "Login, account A dark, account B light cold PNG reviewed for each mode; stable frames only",
+  "scope": "Two production UI accounts, durable appearance mirror confirmed before ending first process; distinct second process, locked login, password UI unlock, opposing explicit themes and actual system theme, text/action pixels and glass/canvas partition",
+  "private_backup_policy": "Private tar remains in /tmp; public evidence synthetic only",
+  "remaining": [
+    "Continuous first startup frames and crash during pending writes are not proven",
+    "Old WebView, real side cutout, multiwindow, other IME",
+    "Nonempty attachment/file/album/viewer native notifications",
+    "Maintenance-busy first-use UX",
+    "iOS native capability and physical-device performance",
+    "Complete macOS native visual/recovery acceptance; locked screen; rebuild shared settings cache code"
+  ],
+  "task_count": {
+    "total": 14,
+    "complete": 8,
+    "pending": 6
+  },
+  "public_evidence_directory": "docs/verification/fe2-cold-2026-10-08",
+  "protected_build_inputs": {
+    "tauri/src-tauri/Cargo.toml": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6"
+  },
+  "macos_last_observation": {
+    "at": "2026-10-08T01:11:22.285189+00:00",
+    "tool": "CUA fe2MacApp.getAXState",
+    "state": "Mac locked; manual unlock required; no unlock attempted",
+    "pending_request": "Existing manual unlock request unanswered; no duplicate request"
+  }
+}

@@ -1,0 +1,39 @@
+name: SoloSoulFE2UIProbe
+options:
+  deploymentTarget:
+    iOS: "14.0"
+settings:
+  base:
+    CODE_SIGNING_ALLOWED: NO
+    SWIFT_VERSION: "5.0"
+    GENERATE_INFOPLIST_FILE: YES
+targets:
+  ProbeHost:
+    type: application
+    platform: iOS
+    sources: [Host]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.solosoul.fe2.ios.probehost
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_CFBundleDisplayName: SoloSoul FE2 Files
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+  ProbeTests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: ProbeHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.solosoul.fe2.ios.probetests
+        TEST_TARGET_NAME: ProbeHost
+schemes:
+  Probe:
+    build:
+      targets:
+        ProbeHost: all
+        ProbeTests: [test]
+    test:
+      targets: [ProbeTests]

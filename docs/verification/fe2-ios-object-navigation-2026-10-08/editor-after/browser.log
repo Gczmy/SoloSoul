@@ -1,0 +1,31 @@
+[2m[WebServer] [22m(node:86217) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 1 worker
+
+(node:86218) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:86218) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m7:02:19 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  1 [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › ios 320px: editor save and cancel remain above navigation (2.7s)
+[2m[WebServer] [22m7:02:21 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  2 [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › ios 390px: editor save and cancel remain above navigation (1.4s)
+[2m[WebServer] [22m7:02:21 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m7:02:22 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m7:02:22 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  3 [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › android 320px: editor save and cancel remain above navigation (1.8s)
+[2m[WebServer] [22m7:02:23 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m7:02:24 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m7:02:24 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  4 [mobile] › e2e/mobile-editor-actions.spec.ts:6:5 › android 390px: editor save and cancel remain above navigation (1.9s)
+
+  4 passed (9.2s)

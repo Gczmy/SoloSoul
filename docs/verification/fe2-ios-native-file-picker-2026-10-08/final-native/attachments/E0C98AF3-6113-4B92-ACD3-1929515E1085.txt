@@ -1,0 +1,223 @@
+Attributes: Application, 0x11a490ac0, pid: 18361, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x11a490ac0, pid: 18361, label: 'SoloSoul'
+    Window (Main), 0x11a48fa80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11a48fe40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11a48ff60, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x11a48fba0, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x11a48fcc0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x11a490080, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x11a4901a0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x11a4902c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11a4903e0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11a4912a0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x11a4913c0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x11a4914e0, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x11a491600, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Button, 0x11a491720, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused
+                            Other, 0x11a491840, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 1, Focused
+                              StaticText, 0x11a491960, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 身份, Focused
+                            Button, 0x11a491a80, {{294.0, 63.0}, {44.0, 45.0}}, label: '+', Focused
+                            Button, 0x11a491ba0, {{346.0, 63.0}, {44.0, 45.0}}, label: '更多操作', Focused
+                          Other, 0x11a491cc0, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x11a491de0, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x11a491f00, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x11a47f830, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x11a47f950, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x11a47fa70, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x11a497580, {{0.0, 0.0}, {402.0, 784.0}}, Focused
+                            Other, 0x11a4976a0, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x11a4977c0, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused
+                              Button, 0x11a4978e0, {{16.0, 126.0}, {76.0, 44.0}}, label: '身份', Focused
+                              Button, 0x11a497a00, {{100.0, 126.0}, {76.0, 44.0}}, label: '旅行', Focused
+                              Button, 0x11a497b20, {{184.0, 126.0}, {76.0, 44.0}}, label: '财务', Focused
+                              Button, 0x11a497c40, {{268.0, 126.0}, {76.0, 44.0}}, label: '职业', Focused
+                              Button, 0x11a497d60, {{16.0, 178.0}, {76.0, 44.0}}, label: '文档', Focused
+                              Button, 0x11a497e80, {{100.0, 178.0}, {56.0, 44.0}}, label: '清除', Focused
+                              TextField, 0x11a497fa0, {{16.0, 250.0}, {370.0, 42.0}}, label: '搜索对象…', placeholderValue: '搜索对象…', value: 搜索对象…, Focused
+                              Button, 0x11a4980c0, {{16.0, 316.0}, {370.0, 153.0}}, label: 'FE2 iOS public identity 身份 身份信息History (1) 1AttachmentsEditMove to trash姓名:Public Person', Focused
+                              Other, 0x11a4981e0, {{16.0, 274.0}, {370.0, 326.0}}, label: 'FE2 iOS public identity, 网页对话框', Focused
+                                Other, 0x11a498300, {{71.0, 291.0}, {250.0, 28.0}}, label: 'FE2 iOS public identity', value: 2, Focused
+                                  StaticText, 0x11a498420, {{71.0, 291.0}, {202.0, 28.0}}, label: 'FE2 iOS public identity', value: FE2 iOS public ide..., Focused
+                                StaticText, 0x11a498540, {{71.0, 324.0}, {21.0, 16.0}}, label: '身份', value: 身份, Focused
+                                StaticText, 0x11a498660, {{91.0, 324.0}, {12.0, 16.0}}, label: '·', value:  · , Focused
+                                StaticText, 0x11a498780, {{102.0, 324.0}, {41.0, 16.0}}, label: '身份信息', value: 身份信息, Focused
+                                StaticText, 0x11a4988a0, {{142.0, 324.0}, {13.0, 16.0}}, label: '·', value:  · , Focused
+                                StaticText, 0x11a4989c0, {{154.0, 324.0}, {41.0, 16.0}}, label: '创建时间', value: 创建时间, Focused
+                                StaticText, 0x11a498ae0, {{194.0, 324.0}, {7.0, 16.0}}, label: ':', value: : , Focused
+                                StaticText, 0x11a498c00, {{200.0, 324.0}, {58.0, 16.0}}, label: '2026-10-08', value: 2026-10-08, Focused
+                                StaticText, 0x11a498d20, {{257.0, 324.0}, {13.0, 16.0}}, label: '·', value:  · , Focused
+                                StaticText, 0x11a498e40, {{269.0, 324.0}, {41.0, 16.0}}, label: '更新时间', value: 更新时间, Focused
+                                StaticText, 0x11a498f60, {{309.0, 324.0}, {4.0, 16.0}}, label: ':', value: :, Focused
+                                StaticText, 0x11a499080, {{71.0, 347.0}, {58.0, 16.0}}, label: '2026-10-08', value: 2026-10-08, Focused
+                                Button, 0x11a4991a0, {{320.0, 306.0}, {45.0, 44.0}}, label: '关闭', Focused
+                                StaticText, 0x11a4992c0, {{70.0, 415.0}, {25.0, 19.0}}, label: '姓名', value: 姓名, Focused
+                                StaticText, 0x11a4993e0, {{120.0, 417.0}, {21.0, 15.0}}, label: '公开', value: 公开, Focused
+                                Button, 0x11a499500, {{307.0, 402.0}, {45.0, 45.0}}, Focused
+                                Other, 0x11a499790, {{50.0, 450.0}, {302.0, 21.0}}, Focused
+                                  StaticText, 0x11a4998b0, {{50.0, 450.0}, {90.0, 21.0}}, label: 'Public Person', value: Public Person, Focused
+                                Other, 0x11a4999d0, {{37.0, 514.0}, {33.0, 33.0}}, Focused
+                                  Button, 0x11a499af0, {{37.0, 514.0}, {33.0, 33.0}}, label: '指南', Focused
+                                Button, 0x11a499c10, {{164.0, 508.0}, {45.0, 45.0}}, label: '历史记录', Focused
+                                Button, 0x11a49dd60, {{216.0, 508.0}, {45.0, 45.0}}, label: '附件', Focused
+                                Button, 0x11a49de80, {{268.0, 508.0}, {45.0, 45.0}}, label: '编辑', Focused
+                                Other, 0x11a49dfa0, {{320.0, 508.0}, {45.0, 45.0}}, Focused
+                                  Button, 0x11a49e0c0, {{320.0, 508.0}, {45.0, 45.0}}, label: '删除', Focused
+                              Switch, 0x11a49e1e0, {{61.0, 356.0}, {74.0, 45.0}}, label: '活跃 (0)', value: 1, Focused
+                              Switch, 0x11a49e300, {{138.0, 356.0}, {86.0, 45.0}}, label: '回收站 (0)', value: 0, Focused
+                              Button, 0x11a49e420, {{271.0, 356.0}, {44.0, 45.0}}, label: '上传', Focused
+                              Button, 0x11a49e540, {{323.0, 356.0}, {44.0, 45.0}}, label: '关闭', Focused
+                              Other, 0x11a49e660, {{17.0, 415.0}, {368.0, 117.0}}, Focused
+                                StaticText, 0x11a49e780, {{173.0, 463.0}, {56.0, 21.0}}, label: '暂无附件', value: 暂无附件, Focused
+                Other, 0x11a49e8a0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x11a49e9c0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x11a49eae0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x11a49ec00, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x11a49ed20, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x11a49ee40, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x11a49ef60, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x11a49f080, {{65.0, 868.0}, {272.0, 3.0}}
+      Other, 0x11a49f1a0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11a49f2c0, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x11a49f3e0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x11a49f500, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x11a49f620, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x11a49f740, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x11a49f860, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x11a49f980, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11a49faa0, {{291.3, 92.0}, {36.7, 36.0}}, label: 'Cancel'
+                  Other, 0x11a49fbc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11a49fce0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x11a49fe00, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x11a49ff20, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x11a4a0040, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x11a4a0160, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x11a4a0280, {{0.0, 72.0}, {402.0, 802.0}}
+                                Image, 0x11a4a03a0, {{-150.0, -78.0}, {702.0, 1102.0}}
+                                Other, 0x11a4a04c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                  Other, 0x11a4a05e0, {{0.0, 72.0}, {402.0, 802.0}}
+                                    Other, 0x11a4a0700, {{0.0, 72.0}, {402.0, 802.0}}
+                                      Other, 0x11a4a0820, {{0.0, 72.0}, {402.0, 802.0}}
+                                        Other, 0x11a4a0940, {{0.0, 72.0}, {402.0, 802.0}}
+                                          Other, 0x11a4a0a60, {{0.0, 72.0}, {402.0, 802.0}}
+                                          Other, 0x11a4a0b80, {{0.0, 72.0}, {402.0, 802.0}}
+                                            Other, 0x11a4a0ca0, {{0.0, 72.0}, {402.0, 802.0}}
+                                              Other, 0x11a4a0dc0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                Other, 0x11a4a0ee0, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'Browse View (Picker)'
+                                                  Other, 0x11a4a1000, {{0.0, 72.0}, {402.0, 802.0}}
+                                                    Other, 0x11a4a1120, {{0.0, 72.0}, {402.0, 802.0}}
+                                                      Other, 0x11a4a1240, {{0.0, 72.0}, {402.0, 802.0}}
+                                                        Other, 0x11a4a1360, {{0.0, 72.0}, {402.0, 802.0}}
+                                                        Other, 0x11a4a1480, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'DOC.browsingRoot Source: com.apple.FileProvider.LocalStorage, Title: 我的iPhone'
+                                                          NavigationBar, 0x11a4a15a0, {{0.0, 88.0}, {402.0, 114.0}}, identifier: 'FullDocumentManagerViewControllerNavigationBar'
+                                                            Button, 0x11a4a16c0, {{16.0, 88.0}, {44.0, 44.0}}, identifier: 'BackButton', label: '我的iPhone'
+                                                            Button, 0x11a4a17e0, {{72.0, 99.7}, {144.7, 20.7}}, label: 'SoloSoul FE2 Files, 操作菜单'
+                                                            Button, 0x11a4a1900, {{291.3, 92.0}, {36.7, 36.0}}, label: 'Cancel'
+                                                            Button, 0x11a4a1a20, {{344.0, 92.0}, {38.0, 36.0}}, identifier: 'OverflowBarButtonItem', label: '更多'
+                                                            SearchField, 0x11a4a1b40, {{16.0, 143.0}, {370.0, 44.0}}, label: '搜索', placeholderValue: '搜索'
+                                                              Image, 0x11a4a1c60, {{28.0, 155.0}, {20.7, 19.3}}, identifier: 'magnifyingglass', label: '搜索'
+                                                          Other, 0x11a4a1d80, {{0.0, 72.0}, {402.0, 802.0}}
+                                                            Other, 0x11a4a1ea0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                              Other, 0x11a4a1fc0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                Other, 0x11a4a20e0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                  ScrollView, 0x11a4a2200, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                    Other, 0x11a4a2320, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                      Other, 0x11a4a2440, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                      Other, 0x11a4a2560, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                    Other, 0x11a4a2680, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                      Other, 0x11a4a27a0, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                        Image, 0x11a4a28c0, {{-120.0, -103.0}, {642.0, 350.0}}, identifier: 'AdditionalDimmingOverlay'
+                                                                        Other, 0x11a4a29e0, {{0.0, 72.0}, {402.0, 115.0}}
+                                                                        Other, 0x11a4a2b00, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                          Other, 0x11a4a2c20, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                        Other, 0x11a4a2d40, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                          Other, 0x11a4a2e60, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                        Other, 0x11a4a2f80, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                          Other, 0x11a4a30a0, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                          Other, 0x11a4a31c0, {{0.0, 72.0}, {402.0, 179.8}}
+                                                                      Other, 0x11a4a32e0, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                        Image, 0x11a4a3400, {{-120.0, 731.0}, {642.0, 286.0}}, identifier: 'AdditionalDimmingOverlay'
+                                                                        Other, 0x11a4a3520, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                          Other, 0x11a4a3640, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                        Other, 0x11a4a3760, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                          Other, 0x11a4a3880, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                          Other, 0x11a4a39a0, {{0.0, 726.2}, {402.0, 147.8}}
+                                                                    CollectionView, 0x11a4a3ac0, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'File View', value: Icon Mode
+                                                                      Cell, 0x11a4a3be0, {{10.0, 212.0}, {122.0, 189.7}}, identifier: 'FE2-public-note, txt', label: 'FE2-public-note, txt, 09:35, 105 字节'
+                                                                        Other, 0x11a4a3d00, {{10.0, 212.0}, {122.0, 189.7}}
+                                                                        Other, 0x11a4a3e20, {{10.0, 212.0}, {122.0, 189.7}}
+                                                                          Other, 0x11a4a3f40, {{29.0, 216.0}, {84.0, 84.0}}
+                                                                            Image, 0x11a4a4060, {{39.7, 216.0}, {63.0, 84.0}}
+                                                                            Other, 0x11a4a4180, {{39.7, 216.0}, {63.0, 84.0}}
+                                                                          Other, 0x11a4a42a0, {{13.0, 305.0}, {116.0, 55.7}}
+                                                                            StaticText, 0x11a4a43c0, {{13.0, 305.0}, {116.0, 20.0}}, label: 'FE2-public-note'
+                                                                            StaticText, 0x11a4a44e0, {{13.0, 328.0}, {116.0, 14.3}}, label: '09:35'
+                                                                            StaticText, 0x11a4a4600, {{13.0, 346.3}, {116.0, 14.3}}, label: '105 字节'
+                                                                      Cell, 0x11a4a4720, {{140.0, 212.0}, {122.0, 189.7}}, identifier: 'FE2-public-photo, png', label: 'FE2-public-photo, png, 09:35, 2 KB'
+                                                                        Other, 0x11a4a4840, {{140.0, 212.0}, {122.0, 189.7}}
+                                                                        Other, 0x11a4a4960, {{140.0, 212.0}, {122.0, 189.7}}
+                                                                          Other, 0x11a4a4a80, {{159.0, 216.0}, {84.0, 84.0}}
+                                                                            Image, 0x11a4a4ba0, {{159.0, 226.7}, {84.0, 63.0}}
+                                                                            Other, 0x11a4a4cc0, {{159.0, 226.7}, {84.0, 63.0}}
+                                                                          Other, 0x11a4a4de0, {{143.0, 305.0}, {116.0, 75.7}}
+                                                                            StaticText, 0x11a4a4f00, {{143.0, 305.0}, {116.0, 40.0}}, label: 'FE2-public-photo'
+                                                                            StaticText, 0x11a4a5020, {{143.0, 348.0}, {116.0, 14.3}}, label: '09:35'
+                                                                            StaticText, 0x11a4a5140, {{143.0, 366.3}, {116.0, 14.3}}, label: '2 KB'
+                                                                      Other, 0x11a4a5260, {{0.0, 753.0}, {402.0, 38.0}}
+                                                                        Other, 0x11a4a5380, {{0.0, 753.0}, {402.0, 38.0}}, identifier: 'DOCItemCollectionViewFooterViewIdentifier'
+                                                                          StaticText, 0x11a4a54a0, {{188.0, 753.0}, {26.3, 18.0}}, label: '2项'
+                                                                      Other, 0x11a4a55c0, {{369.0, 202.0}, {30.0, 589.0}}, label: '垂直滚动条, 1页', value: 0%
+                                                                        Other, 0x11a4a56e0, {{396.0, 750.0}, {3.0, 38.0}}
+                                                                      Other, 0x11a4a5800, {{369.0, 202.0}, {30.0, 589.0}}, label: '垂直滚动条, 1页', value: 0%
+                                                                        Other, 0x11a4a5920, {{396.0, 750.0}, {3.0, 38.0}}
+                                                                    Other, 0x11a4a5a40, {{369.0, 202.0}, {30.0, 589.0}}, label: '垂直滚动条, 1页', value: 0%
+                                                                      Other, 0x11a4a5b60, {{396.0, 781.0}, {3.0, 7.0}}
+                                                                    Other, 0x11a4a5c80, {{56.0, 758.0}, {290.0, 30.0}}, label: '水平滚动条, 1页', value: 0%
+                                                                      Other, 0x11a4a5da0, {{392.0, 785.0}, {7.0, 3.0}}
+                                                                    Other, 0x11a4a5ec0, {{369.0, 202.0}, {30.0, 589.0}}, label: '垂直滚动条, 1页', value: 0%
+                                                                      Other, 0x11a4a5fe0, {{396.0, 781.0}, {3.0, 7.0}}
+                                                                    Other, 0x11a4a6100, {{56.0, 758.0}, {290.0, 30.0}}, label: '水平滚动条, 1页', value: 0%
+                                                                      Other, 0x11a4a6220, {{392.0, 785.0}, {7.0, 3.0}}
+                                                          Other, 0x11a4a6340, {{0.0, 72.0}, {402.0, 802.0}}
+                                                            Other, 0x11a4a6460, {{0.0, 72.0}, {402.0, 802.0}}
+                                                  Other, 0x11a4a6580, {{0.0, 72.0}, {402.0, 802.0}}
+                                                    Other, 0x11a4a66a0, {{0.0, 72.0}, {402.0, 802.0}}
+                                            Other, 0x11a4a67c0, {{0.0, 791.0}, {402.0, 83.0}}
+                                              Other, 0x11a4a68e0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                TabBar, 0x11a4a6a00, {{0.0, 791.0}, {402.0, 83.0}}, identifier: 'DOC.browsingModeTabBar', label: '标签页栏'
+                                                  Other, 0x11a4a6b20, {{64.0, 791.0}, {274.0, 62.0}}
+                                                    Other, 0x11a4a6c40, {{64.0, 791.0}, {94.0, 54.0}}
+                                                    Other, 0x11a4a6d60, {{64.0, 791.0}, {274.0, 62.0}}
+                                                      Button, 0x11a4a6e80, {{68.0, 795.0}, {94.0, 54.0}}, label: '最近项目'
+                                                        Image, 0x11a4a6fa0, {{101.0, 801.3}, {27.3, 27.3}}, identifier: 'clock.fill', label: '时钟'
+                                                      Button, 0x11a4a70c0, {{154.0, 795.0}, {94.0, 54.0}}, label: '共享'
+                                                        Image, 0x11a4a71e0, {{185.0, 800.3}, {35.0, 27.0}}, identifier: 'folder.fill.badge.person.crop', label: '共享文件夹'
+                                                      Button, 0x11a4a7300, {{240.0, 795.0}, {94.0, 54.0}}, label: '浏览', Selected
+                                                        Image, 0x11a4a7420, {{271.0, 802.3}, {32.0, 25.0}}, identifier: 'folder.fill', label: '移动'
+                                                    Other, 0x11a4a7540, {{240.0, 795.0}, {94.0, 54.0}}
+                                                      Other, 0x11a4a7660, {{240.0, 795.0}, {94.0, 54.0}}
+                                                        Other, 0x11a4a7780, {{240.0, 795.0}, {94.0, 54.0}}
+                                                        Other, 0x11a4a78a0, {{240.0, 795.0}, {94.0, 54.0}}
+                                                          Other, 0x11a4a79c0, {{240.0, 795.0}, {94.0, 54.0}}
+                                                            Other, 0x11a4a7ae0, {{240.0, 795.0}, {94.0, 54.0}}
+                                                              Other, 0x11a4a7c00, {{240.0, 795.0}, {94.0, 54.0}}
+                                                            Other, 0x11a4a7d20, {{240.0, 795.0}, {94.0, 54.0}}
+                                                          Other, 0x11a4a7e40, {{240.0, 795.0}, {94.0, 54.0}}
+                                              Other, 0x11a4a7f60, {{0.0, 791.0}, {402.0, 83.0}}
+                                                Other, 0x11a4a8080, {{0.0, 791.0}, {402.0, 83.0}}
+                                                  Other, 0x11a4a81a0, {{0.0, 791.0}, {402.0, 83.0}}
+                                                    Other, 0x11a4a82c0, {{0.0, 791.0}, {402.0, 83.0}}
+                                                      Other, 0x11a4a83e0, {{0.0, 791.0}, {402.0, 83.0}}
+                                                        Other, 0x11a4a8500, {{0.0, 791.0}, {402.0, 83.0}}
+                                                    Other, 0x11a4a8620, {{0.0, 791.0}, {402.0, 83.0}}
+                                                      Other, 0x11a4a8740, {{0.0, 791.0}, {402.0, 83.0}}
+    Window, 0x11a4a8860, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11a4a8980, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11a4a8aa0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x11a490ac0, pid: 18361, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x1064ffab0, pid: 18361, label: 'SoloSoul'
+  }

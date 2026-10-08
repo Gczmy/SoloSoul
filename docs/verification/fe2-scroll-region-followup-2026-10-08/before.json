@@ -1,0 +1,493 @@
+{
+  "config": {
+    "configFile": "/tmp/solosoul-scroll-region-before.config.cjs",
+    "rootDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/tmp/solosoul-scroll-region-before-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "scroll-region.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/solosoul-scroll-region-before-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "scroll-region.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/tmp/solosoul-scroll-region-before.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev",
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "url": "http://localhost:1420",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "scroll-region.spec.ts",
+      "file": "scroll-region.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "horizontal child keeps the effective vertical parent highlighted",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5388,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-main')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-main')\u001b[22m\n\u001b[2m    14 × locator resolved to <main id=\"scroll-main\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-main')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-main')\u001b[22m\n\u001b[2m    14 × locator resolved to <main id=\"scroll-main\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:12:46",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                      "column": 46,
+                      "line": 12
+                    },
+                    "snippet": "  10 | test('horizontal child keeps the effective vertical parent highlighted', async ({ page }) => {\n  11 |   await page.locator('#horizontal').hover({ position: { x: 40, y: 25 } });\n> 12 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                              ^\n  13 |   await expect(page.locator('#horizontal')).toHaveAttribute('data-scrollbar-active', 'true');\n  14 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  15 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                        "column": 46,
+                        "line": 12
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-main')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-main')\u001b[22m\n\u001b[2m    14 × locator resolved to <main id=\"scroll-main\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n\n  10 | test('horizontal child keeps the effective vertical parent highlighted', async ({ page }) => {\n  11 |   await page.locator('#horizontal').hover({ position: { x: 40, y: 25 } });\n> 12 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                              ^\n  13 |   await expect(page.locator('#horizontal')).toHaveAttribute('data-scrollbar-active', 'true');\n  14 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  15 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:12:46"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:44.925Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-scroll-region-before-results/scroll-region-horizontal-c-67f4c-vertical-parent-highlighted-chromium/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                    "column": 46,
+                    "line": 12
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-2ac748b074f3a88e79bd",
+          "file": "scroll-region.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "keyboard focus does not override the current pointer scroll area",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5188,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-sidebar')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-sidebar')\u001b[22m\n\u001b[2m    14 × locator resolved to <aside id=\"scroll-sidebar\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-sidebar')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-sidebar')\u001b[22m\n\u001b[2m    14 × locator resolved to <aside id=\"scroll-sidebar\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:24:49",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                      "column": 49,
+                      "line": 24
+                    },
+                    "snippet": "  22 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  23 |   await page.keyboard.press('ArrowDown');\n> 24 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                                 ^\n  25 |   await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-active', 'true');\n  26 | });\n  27 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                        "column": 49,
+                        "line": 24
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-sidebar')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-sidebar')\u001b[22m\n\u001b[2m    14 × locator resolved to <aside id=\"scroll-sidebar\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n\n  22 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  23 |   await page.keyboard.press('ArrowDown');\n> 24 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                                 ^\n  25 |   await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-active', 'true');\n  26 | });\n  27 |\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:24:49"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:50.844Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-scroll-region-before-results/scroll-region-keyboard-foc-f8097-current-pointer-scroll-area-chromium/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                    "column": 49,
+                    "line": 24
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-942e896b7f8d87c1708a",
+          "file": "scroll-region.spec.ts",
+          "line": 20,
+          "column": 1
+        },
+        {
+          "title": "style-only overlay changes recompute the stationary pointer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 228,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:56.424Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-765a366105d06dad4a8e",
+          "file": "scroll-region.spec.ts",
+          "line": 28,
+          "column": 1
+        },
+        {
+          "title": "an actually scrollable textarea takes the vertical wheel before the main area",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 148,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:56.749Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-f678ccf568c2d8eed626",
+          "file": "scroll-region.spec.ts",
+          "line": 44,
+          "column": 1
+        },
+        {
+          "title": "horizontal child keeps the effective vertical parent highlighted",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 5883,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-main')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-main')\u001b[22m\n\u001b[2m    14 × locator resolved to <main id=\"scroll-main\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-main')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-main')\u001b[22m\n\u001b[2m    14 × locator resolved to <main id=\"scroll-main\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:12:46",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                      "column": 46,
+                      "line": 12
+                    },
+                    "snippet": "  10 | test('horizontal child keeps the effective vertical parent highlighted', async ({ page }) => {\n  11 |   await page.locator('#horizontal').hover({ position: { x: 40, y: 25 } });\n> 12 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                              ^\n  13 |   await expect(page.locator('#horizontal')).toHaveAttribute('data-scrollbar-active', 'true');\n  14 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  15 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                        "column": 46,
+                        "line": 12
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-main')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-main')\u001b[22m\n\u001b[2m    14 × locator resolved to <main id=\"scroll-main\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n\n  10 | test('horizontal child keeps the effective vertical parent highlighted', async ({ page }) => {\n  11 |   await page.locator('#horizontal').hover({ position: { x: 40, y: 25 } });\n> 12 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                              ^\n  13 |   await expect(page.locator('#horizontal')).toHaveAttribute('data-scrollbar-active', 'true');\n  14 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  15 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:12:46"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:44.926Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-scroll-region-before-results/scroll-region-horizontal-c-67f4c-vertical-parent-highlighted-webkit/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                    "column": 46,
+                    "line": 12
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-a2fd849b5f1655bf4449",
+          "file": "scroll-region.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "keyboard focus does not override the current pointer scroll area",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 5551,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-sidebar')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-sidebar')\u001b[22m\n\u001b[2m    14 × locator resolved to <aside id=\"scroll-sidebar\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-sidebar')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-sidebar')\u001b[22m\n\u001b[2m    14 × locator resolved to <aside id=\"scroll-sidebar\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:24:49",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                      "column": 49,
+                      "line": 24
+                    },
+                    "snippet": "  22 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  23 |   await page.keyboard.press('ArrowDown');\n> 24 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                                 ^\n  25 |   await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-active', 'true');\n  26 | });\n  27 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                        "column": 49,
+                        "line": 24
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scroll-sidebar')\nExpected: \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scroll-sidebar')\u001b[22m\n\u001b[2m    14 × locator resolved to <aside id=\"scroll-sidebar\">…</aside>\u001b[22m\n\u001b[2m       - unexpected value \"null\"\u001b[22m\n\n\n  22 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });\n  23 |   await page.keyboard.press('ArrowDown');\n> 24 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');\n     |                                                 ^\n  25 |   await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-active', 'true');\n  26 | });\n  27 |\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:24:49"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:51.353Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-scroll-region-before-results/scroll-region-keyboard-foc-f8097-current-pointer-scroll-area-webkit/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts",
+                    "column": 49,
+                    "line": 24
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-6d63739848388b0fd68f",
+          "file": "scroll-region.spec.ts",
+          "line": 20,
+          "column": 1
+        },
+        {
+          "title": "style-only overlay changes recompute the stationary pointer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1044,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:57.359Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-3030be442dad6889a1a5",
+          "file": "scroll-region.spec.ts",
+          "line": 28,
+          "column": 1
+        },
+        {
+          "title": "an actually scrollable textarea takes the vertical wheel before the main area",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 371,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T19:14:58.584Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "daaac7b17dadb2705155-440bd7a67783fb1e93cc",
+          "file": "scroll-region.spec.ts",
+          "line": 44,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-08T19:14:44.542Z",
+    "duration": 14441.286,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

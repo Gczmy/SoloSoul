@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "recorded_at": "2026-10-08T16:30:26.377969+00:00",
+  "checked_entries": 5888,
+  "current_source_entries": 138,
+  "mismatch_count": 0,
+  "mismatches": [],
+  "scope": "Current source map and all recursively declared *evidence_sha256 maps; historical source/build manifests retain their original bindings; this receipt excludes its own hash."
+}

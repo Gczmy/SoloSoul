@@ -1,0 +1,1646 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 14; sdk_gphone64_arm64 Build\/UPB5.230623.003; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/113.0.5672.136 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": true,
+        "dynamicViewport": true
+      },
+      "theme": "light",
+      "glass": "local",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 327.827392578125,
+        "width": 318.4761962890625,
+        "height": 266.3928527832031,
+        "right": 362.4761962890625,
+        "bottom": 594.2202453613281
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(253, 252, 249, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "typography": {
+        "samples": [
+          {
+            "selector": ".android-overview-copy > p:first-child",
+            "found": true,
+            "text": "My vault",
+            "fontSize": "28px",
+            "lineHeight": "44.8px",
+            "glyph": {
+              "x": 44,
+              "y": 333.54168701171875,
+              "width": 104.63095092773438,
+              "height": 32.76190185546875,
+              "right": 148.63095092773438,
+              "bottom": 366.3035888671875
+            },
+            "box": {
+              "x": 44,
+              "y": 327.827392578125,
+              "right": 362.4761962890625,
+              "bottom": 372.6250114440918
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 303.827392578125,
+                  "right": 386.4761962890625,
+                  "bottom": 618.2202453613281
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          },
+          {
+            "selector": ".android-overview-copy strong",
+            "found": true,
+            "text": "0",
+            "fontSize": "104px",
+            "lineHeight": "104px",
+            "glyph": {
+              "x": 44,
+              "y": 383.4821472167969,
+              "width": 59.41667175292969,
+              "height": 121.90475463867188,
+              "right": 103.41667175292969,
+              "bottom": 505.38690185546875
+            },
+            "box": {
+              "x": 44,
+              "y": 392.625,
+              "right": 103.41666793823242,
+              "bottom": 496.625
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 303.827392578125,
+                  "right": 386.4761962890625,
+                  "bottom": 618.2202453613281
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          }
+        ],
+        "viewportWidth": 412,
+        "viewportHeight": 732,
+        "header": {
+          "headingRight": 224.57142639160156,
+          "actionsLeft": 256.19049072265625,
+          "controls": [
+            {
+              "label": "Lock Vault",
+              "x": 256.19049072265625,
+              "y": 32.029762268066406,
+              "right": 304.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 268.19049072265625,
+                "y": 44.029762268066406,
+                "right": 292.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(31, 28, 24)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 924
+            },
+            {
+              "label": "Account management",
+              "x": 304.19049072265625,
+              "y": 32.029762268066406,
+              "right": 352.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 316.19049072265625,
+                "y": 44.029762268066406,
+                "right": 340.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(31, 28, 24)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 621
+            },
+            {
+              "label": "More actions",
+              "x": 352.19049072265625,
+              "y": 32.029762268066406,
+              "right": 400.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 366.19049072265625,
+                "y": 46.029762268066406,
+                "right": 386.19049072265625,
+                "bottom": 66.0297622680664,
+                "width": 20,
+                "height": 20
+              },
+              "color": "rgb(122, 114, 101)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 152
+            }
+          ]
+        },
+        "nativeFontScale": 2,
+        "textZoom": 200
+      },
+      "stage": "local-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 35442,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791434442580
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 14; sdk_gphone64_arm64 Build\/UPB5.230623.003; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/113.0.5672.136 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": true,
+        "dynamicViewport": true
+      },
+      "theme": "light",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 283.2559509277344,
+        "width": 184.71429443359375,
+        "height": 311.19049072265625,
+        "right": 228.71429443359375,
+        "bottom": 594.4464416503906
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 259.2559509277344,
+        "width": 153.9166717529297,
+        "height": 359.19049072265625,
+        "right": 386.4761962890625,
+        "bottom": 618.4464416503906
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 539,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(253, 252, 249, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "typography": {
+        "samples": [
+          {
+            "selector": ".android-overview-copy > p:first-child",
+            "found": true,
+            "text": "My vault",
+            "fontSize": "28px",
+            "lineHeight": "44.8px",
+            "glyph": {
+              "x": 44,
+              "y": 288.9702453613281,
+              "width": 104.63095092773438,
+              "height": 32.76190185546875,
+              "right": 148.63095092773438,
+              "bottom": 321.7321472167969
+            },
+            "box": {
+              "x": 44,
+              "y": 283.2559509277344,
+              "right": 228.71429443359375,
+              "bottom": 328.0535697937012
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 259.2559509277344,
+                  "right": 386.4761962890625,
+                  "bottom": 618.4464416503906
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          },
+          {
+            "selector": ".android-overview-copy strong",
+            "found": true,
+            "text": "0",
+            "fontSize": "104px",
+            "lineHeight": "104px",
+            "glyph": {
+              "x": 44,
+              "y": 338.91070556640625,
+              "width": 59.41667175292969,
+              "height": 121.90478515625,
+              "right": 103.41667175292969,
+              "bottom": 460.81549072265625
+            },
+            "box": {
+              "x": 44,
+              "y": 348.0535888671875,
+              "right": 103.41666793823242,
+              "bottom": 452.0535888671875
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 259.2559509277344,
+                  "right": 386.4761962890625,
+                  "bottom": 618.4464416503906
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          }
+        ],
+        "viewportWidth": 412,
+        "viewportHeight": 732,
+        "header": {
+          "headingRight": 224.57142639160156,
+          "actionsLeft": 256.19049072265625,
+          "controls": [
+            {
+              "label": "Lock Vault",
+              "x": 256.19049072265625,
+              "y": 32.029762268066406,
+              "right": 304.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 268.19049072265625,
+                "y": 44.029762268066406,
+                "right": 292.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(31, 28, 24)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 924
+            },
+            {
+              "label": "Account management",
+              "x": 304.19049072265625,
+              "y": 32.029762268066406,
+              "right": 352.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 316.19049072265625,
+                "y": 44.029762268066406,
+                "right": 340.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(31, 28, 24)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 621
+            },
+            {
+              "label": "More actions",
+              "x": 352.19049072265625,
+              "y": 32.029762268066406,
+              "right": 400.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 366.19049072265625,
+                "y": 46.029762268066406,
+                "right": 386.19049072265625,
+                "bottom": 66.0297622680664,
+                "width": 20,
+                "height": 20
+              },
+              "color": "rgb(122, 114, 101)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 152
+            }
+          ]
+        },
+        "nativeFontScale": 2,
+        "textZoom": 200
+      },
+      "stage": "enhanced-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 35372,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791434445447
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 14; sdk_gphone64_arm64 Build\/UPB5.230623.003; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/113.0.5672.136 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": true,
+        "dynamicViewport": true
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 283.2559509277344,
+        "width": 184.71429443359375,
+        "height": 311.19049072265625,
+        "right": 228.71429443359375,
+        "bottom": 594.4464416503906
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 259.2559509277344,
+        "width": 153.9166717529297,
+        "height": 359.19049072265625,
+        "right": 386.4761962890625,
+        "bottom": 618.4464416503906
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 539,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(42, 38, 32, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "typography": {
+        "samples": [
+          {
+            "selector": ".android-overview-copy > p:first-child",
+            "found": true,
+            "text": "My vault",
+            "fontSize": "28px",
+            "lineHeight": "44.8px",
+            "glyph": {
+              "x": 44,
+              "y": 288.9702453613281,
+              "width": 104.63095092773438,
+              "height": 32.76190185546875,
+              "right": 148.63095092773438,
+              "bottom": 321.7321472167969
+            },
+            "box": {
+              "x": 44,
+              "y": 283.2559509277344,
+              "right": 228.71429443359375,
+              "bottom": 328.0535697937012
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 259.2559509277344,
+                  "right": 386.4761962890625,
+                  "bottom": 618.4464416503906
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          },
+          {
+            "selector": ".android-overview-copy strong",
+            "found": true,
+            "text": "0",
+            "fontSize": "104px",
+            "lineHeight": "104px",
+            "glyph": {
+              "x": 44,
+              "y": 338.91070556640625,
+              "width": 59.41667175292969,
+              "height": 121.90478515625,
+              "right": 103.41667175292969,
+              "bottom": 460.81549072265625
+            },
+            "box": {
+              "x": 44,
+              "y": 348.0535888671875,
+              "right": 103.41666793823242,
+              "bottom": 452.0535888671875
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 259.2559509277344,
+                  "right": 386.4761962890625,
+                  "bottom": 618.4464416503906
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          }
+        ],
+        "viewportWidth": 412,
+        "viewportHeight": 732,
+        "header": {
+          "headingRight": 224.57142639160156,
+          "actionsLeft": 256.19049072265625,
+          "controls": [
+            {
+              "label": "Lock Vault",
+              "x": 256.19049072265625,
+              "y": 32.029762268066406,
+              "right": 304.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 268.19049072265625,
+                "y": 44.029762268066406,
+                "right": 292.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(221, 216, 200)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 924
+            },
+            {
+              "label": "Account management",
+              "x": 304.19049072265625,
+              "y": 32.029762268066406,
+              "right": 352.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 316.19049072265625,
+                "y": 44.029762268066406,
+                "right": 340.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(221, 216, 200)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 631
+            },
+            {
+              "label": "More actions",
+              "x": 352.19049072265625,
+              "y": 32.029762268066406,
+              "right": 400.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 366.19049072265625,
+                "y": 46.029762268066406,
+                "right": 386.19049072265625,
+                "bottom": 66.0297622680664,
+                "width": 20,
+                "height": 20
+              },
+              "color": "rgb(166, 157, 138)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 152
+            }
+          ]
+        },
+        "nativeFontScale": 2,
+        "textZoom": 200
+      },
+      "stage": "enhanced-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 36326,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791434448236
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 14; sdk_gphone64_arm64 Build\/UPB5.230623.003; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/113.0.5672.136 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": true,
+        "dynamicViewport": true
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 283.2559509277344,
+        "width": 184.71429443359375,
+        "height": 311.19049072265625,
+        "right": 228.71429443359375,
+        "bottom": 594.4464416503906
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 259.2559509277344,
+        "width": 153.9166717529297,
+        "height": 359.19049072265625,
+        "right": 386.4761962890625,
+        "bottom": 618.4464416503906
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 539,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navigationBackground": "rgba(42, 38, 32, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "typography": {
+        "samples": [
+          {
+            "selector": ".android-overview-copy > p:first-child",
+            "found": true,
+            "text": "My vault",
+            "fontSize": "28px",
+            "lineHeight": "44.8px",
+            "glyph": {
+              "x": 44,
+              "y": 288.9702453613281,
+              "width": 104.63095092773438,
+              "height": 32.76190185546875,
+              "right": 148.63095092773438,
+              "bottom": 321.7321472167969
+            },
+            "box": {
+              "x": 44,
+              "y": 283.2559509277344,
+              "right": 228.71429443359375,
+              "bottom": 328.0535697937012
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 259.2559509277344,
+                  "right": 386.4761962890625,
+                  "bottom": 618.4464416503906
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          },
+          {
+            "selector": ".android-overview-copy strong",
+            "found": true,
+            "text": "0",
+            "fontSize": "104px",
+            "lineHeight": "104px",
+            "glyph": {
+              "x": 44,
+              "y": 338.91070556640625,
+              "width": 59.41667175292969,
+              "height": 121.90478515625,
+              "right": 103.41667175292969,
+              "bottom": 460.81549072265625
+            },
+            "box": {
+              "x": 44,
+              "y": 348.0535888671875,
+              "right": 103.41666793823242,
+              "bottom": 452.0535888671875
+            },
+            "clippers": [
+              {
+                "tag": "SECTION",
+                "classes": "android-overview",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 20,
+                  "y": 259.2559509277344,
+                  "right": 386.4761962890625,
+                  "bottom": 618.4464416503906
+                }
+              },
+              {
+                "tag": "MAIN",
+                "classes": "_content_18ixn_12",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 88.0297622680664,
+                  "right": 412.19049072265625,
+                  "bottom": 622.1607437133789
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_main_18ixn_17",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "DIV",
+                "classes": "_appShell_18ixn_1",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "BODY",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              },
+              {
+                "tag": "HTML",
+                "classes": "",
+                "clipX": true,
+                "clipY": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "right": 412.19049072265625,
+                  "bottom": 732.1904907226562
+                }
+              }
+            ],
+            "clipped": false
+          }
+        ],
+        "viewportWidth": 412,
+        "viewportHeight": 732,
+        "header": {
+          "headingRight": 224.57142639160156,
+          "actionsLeft": 256.19049072265625,
+          "controls": [
+            {
+              "label": "Lock Vault",
+              "x": 256.19049072265625,
+              "y": 32.029762268066406,
+              "right": 304.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 268.19049072265625,
+                "y": 44.029762268066406,
+                "right": 292.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(221, 216, 200)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 924
+            },
+            {
+              "label": "Account management",
+              "x": 304.19049072265625,
+              "y": 32.029762268066406,
+              "right": 352.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 316.19049072265625,
+                "y": 44.029762268066406,
+                "right": 340.19049072265625,
+                "bottom": 68.0297622680664,
+                "width": 24,
+                "height": 24
+              },
+              "color": "rgb(221, 216, 200)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 631
+            },
+            {
+              "label": "More actions",
+              "x": 352.19049072265625,
+              "y": 32.029762268066406,
+              "right": 400.19049072265625,
+              "bottom": 80.0297622680664,
+              "svg": {
+                "x": 366.19049072265625,
+                "y": 46.029762268066406,
+                "right": 386.19049072265625,
+                "bottom": 66.0297622680664,
+                "width": 20,
+                "height": 20
+              },
+              "color": "rgb(166, 157, 138)",
+              "width": 48,
+              "height": 48,
+              "visible": true,
+              "hittable": true,
+              "inkPixels": 152
+            }
+          ]
+        },
+        "nativeFontScale": 2,
+        "textZoom": 200
+      },
+      "stage": "enhanced-dark-after-unlock",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 36326,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791434456909
+    },
+    {
+      "stage": "encrypted-preferences",
+      "theme": "dark",
+      "androidGlass": "enhanced",
+      "recordedAtMs": 1791434456936
+    },
+    {
+      "path": "\/editor",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 14,
+      "historyLength": 15,
+      "overlayMarker": false,
+      "text": "Save to: Travel",
+      "visible": true,
+      "settled": true,
+      "background": "rgba(0, 0, 0, 0)",
+      "foreground": "rgb(166, 157, 138)",
+      "backdrop": "none",
+      "rect": {
+        "x": 36,
+        "y": 380.7261962890625,
+        "right": 370.4761962890625,
+        "bottom": 413.4881019592285
+      },
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 88.0297622680664,
+        "right": 390.4761962890625,
+        "bottom": 320.60118865966797,
+        "width": 374.4761962890625,
+        "height": 232.57142639160156
+      },
+      "contentAnimations": [],
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 1258.7999999523163,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 63896.299999952316,
+          "count": 1,
+          "path": "\/"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": false,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [
+        {
+          "label": "Save",
+          "found": true,
+          "rect": {
+            "x": 0,
+            "y": 565.1130981445312,
+            "right": 412.19049072265625,
+            "bottom": 626.6369094848633
+          },
+          "ancestors": [
+            {
+              "tag": "BUTTON",
+              "classes": "_button_18jp9_1 ",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "61.5238px",
+              "top": 565.1130981445312,
+              "bottom": 626.6369094848633
+            },
+            {
+              "tag": "DIV",
+              "classes": "_formActions_1m2aj_1",
+              "position": "fixed",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "blur(12px)",
+              "height": "179.839px",
+              "top": 552.3511962890625,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "DIV",
+              "classes": "_container_ruoo8_1 _xs_ruoo8_22 _gap-default_ruoo8_34",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "1417.27px",
+              "top": 317.6785888671875,
+              "bottom": 1734.946533203125
+            },
+            {
+              "tag": "MAIN",
+              "classes": "_content_18ixn_12",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "320.482px",
+              "top": 301.6785888671875,
+              "bottom": 622.1607360839844
+            },
+            {
+              "tag": "DIV",
+              "classes": "_contentSurface_18ixn_28",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "auto",
+              "top": 0,
+              "bottom": 0
+            },
+            {
+              "tag": "DIV",
+              "classes": "_main_18ixn_17",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "DIV",
+              "classes": "_appShell_18ixn_1",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            },
+            {
+              "tag": "DIV",
+              "classes": "",
+              "position": "static",
+              "transform": "none",
+              "filter": "none",
+              "backdrop": "none",
+              "height": "732.19px",
+              "top": 0,
+              "bottom": 732.1904907226562
+            }
+          ],
+          "visible": true,
+          "hittable": true,
+          "overlapWidth": 374.4761962890625,
+          "overlapHeight": 0,
+          "overlapTolerance": 0.001,
+          "overlapped": false
+        }
+      ],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-editor-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791434460063
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 13,
+      "historyLength": 14,
+      "overlayMarker": false,
+      "text": "FE2 public objectTravel · Visa",
+      "visible": true,
+      "settled": true,
+      "background": "rgb(42, 38, 32)",
+      "foreground": "rgb(221, 216, 200)",
+      "backdrop": "none",
+      "rect": {
+        "x": 20,
+        "y": 558.6309814453125,
+        "right": 386.4761962890625,
+        "bottom": 714.0595550537109
+      },
+      "toastCount": 1,
+      "toastRect": {
+        "x": 16,
+        "y": 88.0297622680664,
+        "right": 390.4761962890625,
+        "bottom": 402.12500762939453,
+        "width": 374.4761962890625,
+        "height": 314.0952453613281
+      },
+      "contentAnimations": [],
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 1258.7999999523163,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 63896.299999952316,
+          "count": 1,
+          "path": "\/"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": false,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-list-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791434461630
+    },
+    {
+      "path": "\/workspace",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 14,
+      "historyLength": 15,
+      "overlayMarker": true,
+      "text": "FE2 public objectTravel · VisaPlugin Bound · created: 2026-10-08 · updated: 2026-10-08It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.Back Up NowxObject createdxCountryPublicPlugin BoundCopyFE2 public countryAttachments0Edit",
+      "visible": true,
+      "settled": true,
+      "background": "rgb(42, 38, 32)",
+      "foreground": "rgb(221, 216, 200)",
+      "backdrop": "none",
+      "rect": {
+        "x": 16.488096237182617,
+        "y": 48.03571701049805,
+        "right": 395.70239067077637,
+        "bottom": 684.1547966003418
+      },
+      "toastCount": 1,
+      "toastRect": {
+        "x": 36.488094329833984,
+        "y": 328.88690185546875,
+        "right": 369.988094329834,
+        "bottom": 675.7440490722656,
+        "width": 333.5,
+        "height": 346.8571472167969
+      },
+      "contentAnimations": [],
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 1258.7999999523163,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 63896.299999952316,
+          "count": 1,
+          "path": "\/"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": true,
+      "toastBackdrop": "",
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-detail-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791434462340
+    },
+    {
+      "path": "\/workspace",
+      "buttons": [
+        "",
+        "",
+        "",
+        "",
+        "New",
+        "All",
+        "Identity",
+        "Travel",
+        "Financial",
+        "Professional",
+        "Documents",
+        "FE2 public objectTravel · Visa",
+        "",
+        "",
+        "Edit",
+        "History · 1",
+        "Attachments · 0",
+        "Delete"
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "Travel\nHome\nObjects\nTools\nSettings\nNew\nAll\nIdentity\nTravel\nFinancial\nProfessional\nDocuments\n1 object\nRecently updated\nBy name\nFE2 public object\nTravel · Visa\nFE2 public object\nEdit\nHistory · 1\nAttachments · 0\nDelete",
+      "glass": "local",
+      "reduceMotion": "false",
+      "hidden": false,
+      "createTrigger": {
+        "path": "\/",
+        "glass": "local",
+        "hidden": false,
+        "busy": "false",
+        "expanded": "false",
+        "disabled": false
+      },
+      "home": false,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "最终合成截图时提醒必须仍存在",
+      "recordedAtMs": 1791434465177
+    }
+  ],
+  "processId": 24079,
+  "runtime": {
+    "api": 34,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "113.0.5672.136",
+    "webViewVersionCode": 567263634
+  },
+  "directoryAttempts": 2,
+  "unlockAttempts": [
+    {
+      "attempt": 1,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "attempt": 2,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "attempt": 3,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "attempt": 4,
+      "result": "home"
+    }
+  ],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "requestedFontScale": 2,
+  "scenario": "baseline",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

@@ -1,0 +1,38 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidHomeInstrumentedTest:
+INSTRUMENTATION_STATUS: test=coldAccountPreferencesSurviveProcessRestart
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: 真实进程冷启动必须进入锁定页: {"path":"\/bootstrap","buttons":["","","Create Account","Back to account source","Next"],"mounted":true,"startupGone":true,"platform":"android","text":"Welcome to SoloSoul\n\nFirst time setup — create a master password to protect your data.\n\nAccount Name\nMaster Password\nMinimum 8 characters required\nConfirm Password\nPassword Hint\nPlease keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!\nCreate Account\nBack to account source\nWelcome to SoloSoul\n\nYour personal digital twin and universal identity engine. All sensitive data is encrypted and stored locally.\n\nNext","glass":"local","hidden":false,"home":false,"alerts":[]}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:126)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.coldAccountPreferencesSurviveProcessRestart(AndroidHomeInstrumentedTest.kt:1008)
+
+INSTRUMENTATION_STATUS: stream=
+Error in coldAccountPreferencesSurviveProcessRestart(com.solosoul.app.AndroidHomeInstrumentedTest):
+java.lang.AssertionError: 真实进程冷启动必须进入锁定页: {"path":"\/bootstrap","buttons":["","","Create Account","Back to account source","Next"],"mounted":true,"startupGone":true,"platform":"android","text":"Welcome to SoloSoul\n\nFirst time setup — create a master password to protect your data.\n\nAccount Name\nMaster Password\nMinimum 8 characters required\nConfirm Password\nPassword Hint\nPlease keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!\nCreate Account\nBack to account source\nWelcome to SoloSoul\n\nYour personal digital twin and universal identity engine. All sensitive data is encrypted and stored locally.\n\nNext","glass":"local","hidden":false,"home":false,"alerts":[]}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:126)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.coldAccountPreferencesSurviveProcessRestart(AndroidHomeInstrumentedTest.kt:1008)
+
+INSTRUMENTATION_STATUS: test=coldAccountPreferencesSurviveProcessRestart
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 46.065
+There was 1 failure:
+1) coldAccountPreferencesSurviveProcessRestart(com.solosoul.app.AndroidHomeInstrumentedTest)
+java.lang.AssertionError: 真实进程冷启动必须进入锁定页: {"path":"\/bootstrap","buttons":["","","Create Account","Back to account source","Next"],"mounted":true,"startupGone":true,"platform":"android","text":"Welcome to SoloSoul\n\nFirst time setup — create a master password to protect your data.\n\nAccount Name\nMaster Password\nMinimum 8 characters required\nConfirm Password\nPassword Hint\nPlease keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!\nCreate Account\nBack to account source\nWelcome to SoloSoul\n\nYour personal digital twin and universal identity engine. All sensitive data is encrypted and stored locally.\n\nNext","glass":"local","hidden":false,"home":false,"alerts":[]}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:126)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.coldAccountPreferencesSurviveProcessRestart(AndroidHomeInstrumentedTest.kt:1008)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

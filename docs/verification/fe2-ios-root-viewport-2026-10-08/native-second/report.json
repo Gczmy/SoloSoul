@@ -1,0 +1,217 @@
+{
+  "scope": "Current production iOS object creation/list/detail close and mobile expanded navigation/add-page popover",
+  "passed": false,
+  "commands": [
+    {
+      "name": "device-inventory",
+      "command": [
+        "xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "available",
+        "--json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "boot",
+      "command": [
+        "xcrun",
+        "simctl",
+        "boot",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "boot-status",
+      "command": [
+        "xcrun",
+        "simctl",
+        "bootstatus",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "-b"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "initial-appearance",
+      "command": [
+        "xcrun",
+        "simctl",
+        "ui",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "appearance"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "data-container",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "data"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "installed-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "install-current-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "install",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "/tmp/solosoul-fe2-ios-root-insets-locked-build-20261008/SoloSoul.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "current-installed-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "current-data-container",
+      "command": [
+        "xcrun",
+        "simctl",
+        "get_app_container",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app",
+        "data"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "launch-current-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "launch",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native-ui-test",
+      "command": [
+        "xcodebuild",
+        "-project",
+        "/tmp/solosoul-fe2-ios-root-insets-ui-20261008/SoloSoulFE2UIProbe.xcodeproj",
+        "-scheme",
+        "Probe",
+        "-destination",
+        "platform=iOS Simulator,id=362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "-derivedDataPath",
+        "/tmp/solosoul-fe2-ios-root-insets-ui-20261008/DerivedData",
+        "-parallel-testing-enabled",
+        "NO",
+        "-resultBundlePath",
+        "/tmp/solosoul-fe2-ios-root-insets-ui-20261008/probe.xcresult",
+        "test-without-building",
+        "CODE_SIGNING_ALLOWED=NO"
+      ],
+      "exit_code": 65
+    },
+    {
+      "name": "terminate-tested-app",
+      "command": [
+        "xcrun",
+        "simctl",
+        "terminate",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "restore-appearance",
+      "command": [
+        "xcrun",
+        "simctl",
+        "ui",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "appearance",
+        "light"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "restored-appearance",
+      "command": [
+        "xcrun",
+        "simctl",
+        "ui",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "appearance"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "uninstall-probe-host",
+      "command": [
+        "xcrun",
+        "simctl",
+        "uninstall",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probehost"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "uninstall-probe-runner",
+      "command": [
+        "xcrun",
+        "simctl",
+        "uninstall",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "com.solosoul.fe2.ios.probetests.xctrunner"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "shutdown",
+      "command": [
+        "xcrun",
+        "simctl",
+        "shutdown",
+        "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "restored": true,
+  "initial_state": "Shutdown",
+  "initial_appearance": "light",
+  "production_binary_sha256": "fc1e0d4661409a0c992515e75ead9881667e44e2d106b6f9ffa3f4aa45ad4bc1",
+  "private_entries_before": 99,
+  "previous_binary_sha256": "01d7e9087bf63d17f4f0979aecfb2adb8fa4dc07831e03593c36ef436b1e89e3",
+  "data_container_relocated": true,
+  "error": "native-ui-test failed: 2026-10-08 07:46:37.381 xcodebuild[21931:246775861] [MT] IDETestOperationsObserverDebug: 74.371 elapsed -- Testing started completed.\n2026-10-08 07:46:37.381 xcodebuild[21931:246775861] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start\n2026-10-08 07:46:37.381 xcodebuild[21931:246775861] [MT] IDETestOperationsObserverDebug: 74.371 sec, +74.371 sec -- end\n** TEST EXECUTE FAILED **\n\n",
+  "appearance_restored": true,
+  "simulator_shutdown_restored": true
+}

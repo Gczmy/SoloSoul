@@ -1,0 +1,95 @@
+[
+  {
+    "directory": "native-api31-header-supported",
+    "source_manifest": "sixth-native-source.json",
+    "driver_passed": true,
+    "native_tests": 1,
+    "skipped": 0,
+    "records": 29,
+    "pngs": 25,
+    "runtime": {
+      "api": 31,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "91.0.4472.114",
+      "webViewVersionCode": 447211484
+    },
+    "minimum_header_contrast": 4.6284365312035725,
+    "minimum_header_ink_pixels": 30,
+    "data_restore": {
+      "entries": 2,
+      "allFileContentsLinksAndModesMatch": true
+    },
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "4e0bdf15ffac44ee4f09ce051e203423cd094d6812499f5e5616e7f51438d782"
+      }
+    ]
+  },
+  {
+    "directory": "native-api31-header-fallback",
+    "source_manifest": "sixth-native-source.json",
+    "driver_passed": true,
+    "native_tests": 1,
+    "skipped": 0,
+    "records": 29,
+    "pngs": 25,
+    "runtime": {
+      "api": 31,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "91.0.4472.114",
+      "webViewVersionCode": 447211484
+    },
+    "minimum_header_contrast": 4.6284365312035725,
+    "minimum_header_ink_pixels": 30,
+    "data_restore": {
+      "entries": 2,
+      "allFileContentsLinksAndModesMatch": true
+    },
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "4e0bdf15ffac44ee4f09ce051e203423cd094d6812499f5e5616e7f51438d782"
+      }
+    ]
+  },
+  {
+    "directory": "native-api34-header-bulk-fallback",
+    "source_manifest": "seventh-native-source.json",
+    "driver_passed": true,
+    "native_tests": 1,
+    "skipped": 0,
+    "records": 29,
+    "pngs": 25,
+    "runtime": {
+      "api": 34,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "113.0.5672.136",
+      "webViewVersionCode": 567263634
+    },
+    "minimum_header_contrast": 4.6284365312035725,
+    "minimum_header_ink_pixels": 30,
+    "data_restore": {
+      "entries": 242,
+      "allFileContentsLinksAndModesMatch": true
+    },
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "389349cd70ef5e98e873bb2d4839b660f34e4d7d72fa9126b34a485a1bc1728d"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "8963d02005eb86c8e804cbd5e50b2cdadb9e1dc34a30a302707943bb5ca7f5bf"
+      }
+    ]
+  }
+]

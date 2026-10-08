@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "avd": "SoloSoul_RF201",
+  "serial": "emulator-5586",
+  "installed_production_sha256": "384821244478eaa76ee9bd25c8902dd8344b123c747b1f5b27c6fdd6847af118",
+  "scope": "Read-only actual installed package check after both final native groups"
+}

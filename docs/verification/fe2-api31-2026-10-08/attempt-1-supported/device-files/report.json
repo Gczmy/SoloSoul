@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "path": "\/bootstrap",
+      "buttons": [
+        "",
+        "",
+        "Create Account",
+        "Back to account source",
+        "App Private DirectoryData is stored inside the app and will be deleted when uninstalled (default).",
+        "Choose External DirectoryData is stored in a user-selected external directory and persists after uninstall. Recommended.",
+        "Back"
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "Welcome to SoloSoul\n\nFirst time setup — create a master password to protect your data.\n\nAccount Name\nMaster Password\nMinimum 8 characters required\nConfirm Password\nPassword Hint\nPlease keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!\nCreate Account\nBack to account source\nChoose Vault Storage Location\n\nOn Android, app data is deleted when the app is uninstalled. Choose an external directory to keep your data safe even after uninstalling.\n\nApp Private Directory\nData is stored inside the app and will be deleted when uninstalled (default).\nChoose External Directory\nData is stored in a user-selected external directory and persists after uninstall. Recommended.\nTypeError: Object.hasOwn is not a function\nBack",
+      "glass": "local",
+      "reduceMotion": "false",
+      "hidden": false,
+      "home": false,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "目录初始化后下一步: {\"path\":\"\\\/bootstrap\",\"buttons\":[\"\",\"\",\"Create Account\",\"Back to account source\",\"App Private DirectoryData is stored inside the app and will be deleted when uninstalled (default).\",\"Choose External DirectoryData is stored in a user-selected external directory and persists after uninstall. Recommended.\",\"Back\"],\"mounted\":true,\"startupGone\":true,\"platform\":\"android\",\"text\":\"Welcome to SoloSoul\\n\\nFirst time setup — create a master password to protect your data.\\n\\nAccount Name\\nMaster Password\\nMinimum 8 characters required\\nConfirm Password\\nPassword Hint\\nPlease keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!\\nCreate Account\\nBack to account source\\nChoose Vault Storage Location\\n\\nOn Android, app data is deleted when the app is uninstalled. Choose an external directory to keep your data safe even after uninstalling.\\n\\nApp Private Directory\\nData is stored inside the app and will be deleted when uninstalled (default).\\nChoose External Directory\\nData is stored in a user-selected external directory and persists after uninstall. Recommended.\\nTypeError: Object.hasOwn is not a function\\nBack\",\"glass\":\"local\",\"reduceMotion\":\"false\",\"hidden\":false,\"home\":false,\"alerts\":[]}",
+      "recordedAtMs": 1791426975253
+    }
+  ],
+  "processId": 6738,
+  "runtime": {
+    "api": 31,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "91.0.4472.114",
+    "webViewVersionCode": 447211484
+  },
+  "directoryAttempts": 1,
+  "unlockAttempts": [],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "scenario": "previews",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back, real encrypted content-URI fixtures, nonempty attachments\/text\/image\/album\/viewer in both themes and real in-flow backup\/metadata-save notifications; not system picker",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

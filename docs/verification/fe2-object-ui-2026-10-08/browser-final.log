@@ -1,0 +1,31 @@
+
+Running 14 tests using 2 workers
+
+(node:18901) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18902) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18901) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18902) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [chromium] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (2.1s)
+(node:18930) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:18930) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar (3.8s)
+  ✓   3 [webkit] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (3.3s)
+  ✓   4 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar (3.0s)
+  ✓   6 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar (2.5s)
+  ✓   5 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar (3.6s)
+  ✓   7 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar (3.4s)
+  ✓   9 [chromium] › e2e/object-ui-refinement.spec.ts:185:3 › android: long password stays clear of controls at 320px (1.0s)
+  ✓  10 [chromium] › e2e/object-ui-refinement.spec.ts:185:3 › ios: long password stays clear of controls at 320px (1.1s)
+  ✓   8 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar (4.8s)
+  ✓  11 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar (2.9s)
+  ✓  12 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar (2.7s)
+  ✓  13 [webkit] › e2e/object-ui-refinement.spec.ts:185:3 › android: long password stays clear of controls at 320px (1.2s)
+  ✓  14 [webkit] › e2e/object-ui-refinement.spec.ts:185:3 › ios: long password stays clear of controls at 320px (1.3s)
+
+  14 passed (23.5s)

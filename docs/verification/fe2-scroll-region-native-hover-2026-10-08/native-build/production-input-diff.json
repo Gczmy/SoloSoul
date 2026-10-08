@@ -1,0 +1,20 @@
+{
+  "recorded_at": 1791491448.304223,
+  "production_input_counts": {
+    "before": 1370,
+    "after": 1370
+  },
+  "changed_inputs": [
+    {
+      "path": "tauri/src-tauri/src/commands/window/macos_titlebar.rs",
+      "before_sha256": "25835748d3a5c3d2f0300fe2bb49132916811a6fb920c2b101fce36058f963d7",
+      "after_sha256": "e8824c705e72b083e3e729185d8858fd5572b3934714431be2977285548476a9"
+    }
+  ],
+  "removed_inputs": [],
+  "css_and_hook_unchanged": true,
+  "before_binary_sha256": "6e386d811466df6afd116c1e708e594338e2dedeb14c96183a48ebf3cafebe69",
+  "after_binary_sha256": "26cbfd224ab1c37bef6e0e9f272bba78962b41dbdb5ee818214d36dc4447a038",
+  "native_windows_launched_by_this_agent": false,
+  "copied_targets_or_bundles": false
+}

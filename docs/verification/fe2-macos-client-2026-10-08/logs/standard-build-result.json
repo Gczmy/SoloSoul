@@ -1,0 +1,8 @@
+{
+  "build_exit_code": 0,
+  "preserved": {
+    "tauri/src-tauri/Cargo.toml": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6"
+  }
+}

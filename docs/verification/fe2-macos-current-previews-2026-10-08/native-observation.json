@@ -1,0 +1,153 @@
+{
+  "scope": "Manual CUA observations of frozen complete native client, actual React/IPC/Vault/AppKit, public synthetic account only",
+  "recorded_at": "2026-10-08T13:44:03.050110+00:00",
+  "binary_sha256": "e811729b523619ef2b5ca6b0d2ce7f5e0e2f5dbc822af48d4eef1671e023ae27",
+  "actual_pid": 83926,
+  "macos_version": "26.6 (25G72)",
+  "window_title": "SoloSoul · FE2 macOS 隔离验收",
+  "observed_window_image_size": [
+    1200,
+    800
+  ],
+  "product_source_changed": false,
+  "native_tests_are_cua_observations_not_instrumented_suite": true,
+  "images": {
+    "location": "CUA conversation tool outputs only",
+    "exported_pngs": 0,
+    "quantitative_pixel_check": false,
+    "continuous_frames": false
+  },
+  "unlock": {
+    "initial_maintenance_error_then_second_actual_click_succeeded": true,
+    "later_light_login_actual_password_unlock_succeeded": true,
+    "later_capture_error": "ScreenCaptureKit -3811; subsequent same handle AX showed unlocked Home; no client restart"
+  },
+  "navigation": {
+    "stable_frames": {
+      "light": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "dark": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ]
+    },
+    "sidebar_actual_collapse_expand_observed": true,
+    "sidebar_widths_approximately": [
+      232,
+      96
+    ],
+    "toggle_position_and_logo_size_observed_stable": true,
+    "tools_open_frames": {
+      "light": [
+        "right",
+        "top",
+        "bottom"
+      ],
+      "dark": [
+        "left",
+        "right",
+        "bottom"
+      ]
+    },
+    "all_menu_states_in_all_directions_verified": false,
+    "add_page_top_light": {
+      "panel_bounds_approximately": [
+        584,
+        104,
+        821,
+        543
+      ],
+      "actual_scrollbar_drag_changed_icon_rows": true,
+      "panel_bounds_stable_after_drag": true,
+      "tools_remained_expanded": true,
+      "plain_wheel_attempt_had_no_effect": true,
+      "cancel_no_page_saved": true
+    },
+    "add_page_bottom_dark": {
+      "panel_bounds_approximately": [
+        16,
+        56,
+        1184,
+        749
+      ],
+      "actual_scrollbar_drag_changed_icon_rows": true,
+      "panel_bounds_stable_after_drag": true,
+      "cancel_no_page_saved": true
+    },
+    "no_continuous_animation_claim": true
+  },
+  "attachments": {
+    "actual_native_open_panel_import": true,
+    "files": [
+      {
+        "name": "FE2-public-notes.txt",
+        "ui_bytes": 64
+      },
+      {
+        "name": "FE2-public-quadrants.png",
+        "ui_bytes": 811
+      }
+    ],
+    "actual_cancel_preserved_two_attachment_count": true,
+    "ciphertext_solc_verified": true,
+    "encrypted_test_imports_preserved": true
+  },
+  "previews": {
+    "dark": [
+      "actual text content",
+      "decoded 320x240 quadrant PNG",
+      "album grid",
+      "photo viewer",
+      "actual 100 to 120 percent zoom and fit",
+      "return to album then attachment list"
+    ],
+    "light": [
+      "actual text content",
+      "decoded 320x240 quadrant PNG",
+      "album grid",
+      "photo viewer with 1 / 1",
+      "actual 100 to 120 percent zoom and fit",
+      "return to album then attachments then object then Identity workspace"
+    ],
+    "whole_visible_titlebar_kept_theme_surface": true,
+    "traffic_lights_active_appearance_verified": false,
+    "traffic_lights_obscured_by_capture_badge": true,
+    "initial_and_restored_zoom_controls_text_and_icons_visible": true,
+    "zoom_repaint_issue": {
+      "observed": true,
+      "details": "After actual zoom/fit, some capture frames show only percentage with missing toolbar surface and icons. One attachment preview subsequent no-action capture recovered; photo viewer repeat remained incomplete until actual fit restored complete controls. AX buttons remain present. Continuous frames and cause unverified.",
+      "full_rendering_passed": false
+    }
+  },
+  "restoration": {
+    "theme": "dark",
+    "scheme": "warm-stone-dark",
+    "navigation": "left",
+    "sidebar": "expanded",
+    "tools": "collapsed",
+    "actual_selected_radio_and_left_navigation_screenshot_confirmed": true,
+    "public_downloads_fixture_copies_removed_after_hash_mode_name_guard": true
+  },
+  "last_graphical_state": "Mac locked before attempted narrow/short-window check; not resized, no restart, no system preference changes",
+  "remaining": [
+    "unobscured active traffic lights",
+    "complete tools/collapse matrix",
+    "narrow and short-window/font/PIN/TouchID",
+    "actual system accessibility/material fallbacks",
+    "Dock/Stage Manager continuous restore frames",
+    "zoom-toolbar repaint diagnosis and verification",
+    "performance"
+  ],
+  "full_native_material_matrix_passed": false,
+  "tasks": {
+    "total": 14,
+    "complete": 8,
+    "pending_verification": 6
+  }
+}

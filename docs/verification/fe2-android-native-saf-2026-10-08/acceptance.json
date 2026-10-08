@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "production_apk_sha256": "384821244478eaa76ee9bd25c8902dd8344b123c747b1f5b27c6fdd6847af118",
+  "current_source_entries": 107,
+  "before_production_apk_sha256": "87e493af09fcbd4900434415fa7f8185e614e1c676c7621bc2d9bdacf8fe066d",
+  "instrumentation_apk_sha256": "3dcc8f0ce028d0d193ca33d28e7d2253f3a57ca17096a79450f11d615e168f0e",
+  "groups": [
+    {
+      "group": "failure-1",
+      "passed": false,
+      "stages": 12,
+      "pngs": 10,
+      "actual_private_entries_restored": 242,
+      "public_fixtures_cleaned": true,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    },
+    {
+      "group": "failure-2",
+      "passed": false,
+      "stages": 12,
+      "pngs": 10,
+      "actual_private_entries_restored": 242,
+      "public_fixtures_cleaned": true,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    },
+    {
+      "group": "failure-3",
+      "passed": false,
+      "stages": 12,
+      "pngs": 10,
+      "actual_private_entries_restored": 242,
+      "public_fixtures_cleaned": true,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    },
+    {
+      "group": "passed-supported",
+      "passed": true,
+      "stages": 34,
+      "pngs": 29,
+      "actual_private_entries_restored": 242,
+      "public_fixtures_cleaned": true,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    },
+    {
+      "group": "passed-fallback",
+      "passed": true,
+      "stages": 34,
+      "pngs": 29,
+      "actual_private_entries_restored": 242,
+      "public_fixtures_cleaned": true,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    }
+  ],
+  "source_scope": "Only Android AttachmentImportPlugin.kt product change. Frozen temporary helpers built against original 106-source map, public API unchanged; production runtime APK rebuilt from 107 current sources. macOS/iOS Kotlin-excluded product scopes unchanged.",
+  "notification_scope": "Native picker flow allows original 8-second reminder to expire naturally. Preview geometry/ink/system bars/hits remain strict; actual Saved notifications still required. Earlier direct-fixture notification proofs retain original APK binding.",
+  "remaining": "Other Android APIs/WebViews, PDF/large/multi-image/external viewers, font/IME/lifecycle complete current-package matrices, continuous animation and physical performance remain unverified. macOS lock still blocks current full window matrix."
+}

@@ -1,0 +1,264 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "light",
+      "glass": "local",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 217.82142639160156,
+        "height": 124,
+        "right": 261.82142639160156,
+        "bottom": 378.5059509277344
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "local-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 7632,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791427253305
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "light",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "enhanced-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 7649,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791427254150
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "enhanced-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 8084,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791427254986
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; sdk_gphone64_arm64 Build\/SE1A.220630.001.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 254.50595092773438,
+        "width": 184.71429443359375,
+        "height": 146.09524536132812,
+        "right": 228.71429443359375,
+        "bottom": 400.6011962890625
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 230.50595092773438,
+        "width": 153.9166717529297,
+        "height": 194.09524536132812,
+        "right": 386.4761962890625,
+        "bottom": 424.6011962890625
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 291,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "enhanced-dark-after-unlock",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 8084,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791427257872
+    },
+    {
+      "stage": "encrypted-preferences",
+      "theme": "dark",
+      "androidGlass": "enhanced",
+      "recordedAtMs": 1791427257979
+    },
+    {
+      "path": "\/editor",
+      "buttons": [
+        "",
+        "",
+        "Back Up Now",
+        "x",
+        "PassportPlugin Bound",
+        "VisaPlugin Bound",
+        "Manage Templates",
+        "Cancel",
+        "Save"
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "New Object\nHome\nObjects\nTools\nSettings\nIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.\nBack Up Now\nx\nObject Type\n\nSave to: Travel\n\nPassport\nPlugin Bound\nVisa\nPlugin Bound\nManage Templates\nObject Name\nProperties\nCountry\nPublic\nVisa Type\nPublic\nVisa Number\nCritical\nIssue Date\nInternal\ne.g. YYYY-MM-DD\n-\n-\nExpiry Date\nInternal\nPlugin Bound\ne.g. YYYY-MM-DD\n-\n-\nCancel\nSave",
+      "glass": "local",
+      "reduceMotion": "false",
+      "hidden": false,
+      "createTrigger": {
+        "path": "\/",
+        "glass": "local",
+        "hidden": false,
+        "busy": "false",
+        "expanded": "false",
+        "disabled": false
+      },
+      "home": false,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "底部操作必须存在且可见: {\"label\":\"Save\",\"found\":true,\"visible\":false,\"hittable\":false,\"overlapped\":false}",
+      "recordedAtMs": 1791427259264
+    }
+  ],
+  "processId": 7279,
+  "runtime": {
+    "api": 31,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "91.0.4472.114",
+    "webViewVersionCode": 447211484
+  },
+  "directoryAttempts": 2,
+  "unlockAttempts": [
+    {
+      "attempt": 1,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "attempt": 2,
+      "result": "home"
+    }
+  ],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "scenario": "previews",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back, real encrypted content-URI fixtures, nonempty attachments\/text\/image\/album\/viewer in both themes and real in-flow backup\/metadata-save notifications; not system picker",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

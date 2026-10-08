@@ -1,0 +1,22 @@
+{
+  "recorded_at": 1791491719.471086,
+  "two_bundle_binary_and_binding_checks": {
+    "before-titlebar-fix": {
+      "binary_sha256": "6e386d811466df6afd116c1e708e594338e2dedeb14c96183a48ebf3cafebe69",
+      "binary_matches_build_report": true,
+      "binding_matches_build_report": true
+    },
+    "after-titlebar-fix": {
+      "binary_sha256": "26cbfd224ab1c37bef6e0e9f272bba78962b41dbdb5ee818214d36dc4447a038",
+      "binary_matches_build_report": true,
+      "binding_matches_build_report": true
+    }
+  },
+  "source_changes_after_tests": [],
+  "tests_passed": true,
+  "tests_target": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/target",
+  "isolated_source_workspace": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace",
+  "real_workspace_target_used": false,
+  "root_or_bundle_written_by_tests": false,
+  "native_visual_validation": "performed separately by root agent; this report makes no native UI pass claim"
+}

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="520" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+  <title id="title">SoloSoul 主窗口分层建议</title>
+  <desc id="desc">左图侧栏展开，右图保留紧凑导航。交通灯右侧的开关位置固定，半透明外壳包围纯色圆角内容面。此图为设计建议，不是 ChatGPT 截图。</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#b4beb8"/><stop offset="1" stop-color="#6d8479"/></linearGradient>
+    <linearGradient id="chrome" x2="1" y2="1"><stop stop-color="#36483e" stop-opacity=".93"/><stop offset="1" stop-color="#263b32" stop-opacity=".90"/></linearGradient>
+  </defs>
+  <rect width="1120" height="520" rx="18" fill="#edf0eb"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, PingFang SC, sans-serif">
+    <text x="30" y="38" fill="#27392d" font-size="19" font-weight="600">SoloSoul 主窗口布局建议</text>
+    <text x="30" y="61" fill="#627569" font-size="12">结构示意 · 非 ChatGPT 截图 · 参数需在后续 HTML 与原生窗口中校准</text>
+    <g transform="translate(30 88)">
+      <rect width="510" height="360" rx="18" fill="url(#bg)"/>
+      <rect x="12" y="12" width="486" height="336" rx="13" fill="url(#chrome)"/>
+      <g transform="translate(26 30)"><circle r="5" fill="#ff6057"/><circle cx="16" r="5" fill="#ffbd2e"/><circle cx="32" r="5" fill="#28c840"/><rect x="51" y="-8" width="19" height="16" rx="3" fill="none" stroke="#d3dfd4"/><path d="M57-8v16" stroke="#d3dfd4"/></g>
+      <text x="180" y="35" fill="#d7e3d7" font-size="12">首页</text><text x="400" y="35" fill="#d7e3d7" font-size="11">新建　指南</text>
+      <text x="27" y="71" fill="#e2ece1" font-size="14" font-weight="600">SoloSoul</text>
+      <rect x="21" y="89" width="137" height="29" rx="7" fill="#e7f3e1" fill-opacity=".14"/>
+      <text x="33" y="108" fill="#e5eee2" font-size="12">⌂　首页</text>
+      <text x="33" y="141" fill="#bccdbf" font-size="12">⌕　搜索</text>
+      <text x="30" y="179" fill="#9caf9f" font-size="10">我的页面</text>
+      <text x="33" y="205" fill="#d7e4d6" font-size="12">身份与证件</text>
+      <text x="33" y="234" fill="#d7e4d6" font-size="12">工作</text>
+      <text x="33" y="263" fill="#d7e4d6" font-size="12">添加页面</text>
+      <text x="33" y="322" fill="#b8cbbb" font-size="12">工具　　　设置</text>
+      <rect x="169" y="49" width="321" height="291" rx="12" fill="#f8f9f5"/>
+      <text x="187" y="82" fill="#304234" font-size="18" font-weight="600">我的资料库</text>
+      <text x="187" y="104" fill="#7d8a7d" font-size="11">生活的重要信息，安心放在这里</text>
+      <g fill="#eef1e9"><rect x="187" y="126" width="84" height="53" rx="8"/><rect x="281" y="126" width="84" height="53" rx="8"/><rect x="375" y="126" width="97" height="53" rx="8"/></g>
+      <g fill="#425c46" font-size="19"><text x="199" y="150">36</text><text x="293" y="150">3</text><text x="387" y="150">24</text></g>
+      <g fill="#798676" font-size="10"><text x="199" y="168">对象</text><text x="293" y="168">页面</text><text x="387" y="168">附件</text></g>
+      <text x="187" y="208" fill="#435646" font-size="12">最近修改</text>
+      <rect x="187" y="224" width="285" height="1" fill="#dfe6d8"/>
+      <text x="187" y="250" fill="#687d66" font-size="11">出行资料</text><text x="187" y="280" fill="#687d66" font-size="11">项目记录</text>
+    </g>
+    <g transform="translate(580 88)">
+      <rect width="510" height="360" rx="18" fill="url(#bg)"/>
+      <rect x="12" y="12" width="486" height="336" rx="13" fill="url(#chrome)"/>
+      <g transform="translate(26 30)"><circle r="5" fill="#ff6057"/><circle cx="16" r="5" fill="#ffbd2e"/><circle cx="32" r="5" fill="#28c840"/><rect x="51" y="-8" width="19" height="16" rx="3" fill="none" stroke="#d3dfd4"/><path d="M57-8v16" stroke="#d3dfd4"/></g>
+      <text x="116" y="35" fill="#d7e3d7" font-size="12">首页</text><text x="400" y="35" fill="#d7e3d7" font-size="11">新建　指南</text>
+      <rect x="24" y="72" width="39" height="34" rx="7" fill="#e7f3e1" fill-opacity=".14"/>
+      <g fill="#c5d7c7" text-anchor="middle" font-size="18"><text x="43" y="95">⌂</text><text x="43" y="142">⌕</text><text x="43" y="193">▤</text><text x="43" y="242">＋</text><text x="43" y="323">⚙</text></g>
+      <rect x="77" y="49" width="413" height="291" rx="12" fill="#f8f9f5"/>
+      <text x="96" y="82" fill="#304234" font-size="18" font-weight="600">我的资料库</text>
+      <text x="96" y="104" fill="#7d8a7d" font-size="11">同一个内容面，只增加可用宽度</text>
+      <g fill="#eef1e9"><rect x="96" y="126" width="113" height="53" rx="8"/><rect x="221" y="126" width="113" height="53" rx="8"/><rect x="346" y="126" width="125" height="53" rx="8"/></g>
+      <g fill="#425c46" font-size="19"><text x="108" y="150">36</text><text x="233" y="150">3</text><text x="358" y="150">24</text></g>
+      <g fill="#798676" font-size="10"><text x="108" y="168">对象</text><text x="233" y="168">页面</text><text x="358" y="168">附件</text></g>
+      <text x="96" y="208" fill="#435646" font-size="12">最近修改</text>
+      <rect x="96" y="224" width="375" height="1" fill="#dfe6d8"/>
+      <text x="96" y="250" fill="#687d66" font-size="11">出行资料</text><text x="96" y="280" fill="#687d66" font-size="11">项目记录</text>
+    </g>
+    <text x="30" y="476" fill="#405746" font-size="13">侧栏展开</text><text x="580" y="476" fill="#405746" font-size="13">紧凑导航 · 开关坐标保持固定</text>
+    <text x="30" y="500" fill="#718171" font-size="11">半透明外壳负责导航与窗口控制，纯色圆角内容面负责阅读与编辑。</text>
+  </g>
+</svg>

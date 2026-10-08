@@ -1,0 +1,14 @@
+{
+  "scope": "XcodeGen project and driver used for old iOS production archive UI entry probe; no production source edits",
+  "execution_source_sha256": {
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/corrected/Host/App.swift": "21eb0dfcc90794d4b31fb00d0d030d114807b4fd5a1895d5326fb3b7506b4f42",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/corrected/Tests/ProbeTests.swift": "9c8abcebb8933dd7941ff670386c4ef048cb426afbb50a827e0f25eb024af985",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/corrected/project.yml": "f706a194912aa088b3d09c1de7e4efc6706f6e40bc1fa6e53291096f566f0b1c",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/corrected/run.py": "aad5a8431d2425fd67d414f30e8b8c5d280fe4675e20641a947887f07df47a21",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/initial/Host/App.swift": "21eb0dfcc90794d4b31fb00d0d030d114807b4fd5a1895d5326fb3b7506b4f42",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/initial/Tests/ProbeTests.swift": "b831f420b3b32575c05cdf406ca6c48dda3028f522271619689dd4be57f00497",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/initial/project.yml": "f706a194912aa088b3d09c1de7e4efc6706f6e40bc1fa6e53291096f566f0b1c",
+    "docs/verification/fe2-ios-ui-entry-2026-10-08/initial/run.py": "e1ee534699f36ff42b6f8c777385fd73df125ef0de06fd61ec53eee672bd8e4d"
+  },
+  "tested_production_binary_sha256": "b7c5ae8b372980d5de03b76f5e9c23e2362d28e5f38db8f94cde3b75fdd14749"
+}

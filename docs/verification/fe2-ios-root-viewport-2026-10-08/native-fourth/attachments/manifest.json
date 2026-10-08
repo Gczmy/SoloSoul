@@ -1,0 +1,575 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "1582983B-6B8D-44E4-833C-DE003A58C7D9.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "public-name-before-focus-hierarchy_0_A0B0A37A-0FF3-47EC-890E-35C6EFF0E775.txt",
+        "timestamp" : 1791442827.473
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "35CB53C1-F721-49C6-8E90-8A1F71D08E4B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "public-name-before-focus_0_744D4D1E-BF3A-4F1E-B34D-24D394219E92.png",
+        "timestamp" : 1791442827.136
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "BFD480B8-7172-4FD3-834F-CF0BBF5E7AB8",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.26 上午",
+        "timestamp" : 1791442826.301
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "770EF409-1506-4594-8F43-649AA401586B",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.26 上午",
+        "timestamp" : 1791442826.972
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "1C9E348A-0272-43C3-BEFD-F3080339A83F",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.25 上午",
+        "timestamp" : 1791442825.26
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "9306285A-ED9C-4387-B7FC-6913DB7B5404",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.25 上午",
+        "timestamp" : 1791442825.922
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "73CD9320-BDA8-4367-ADE9-3B70734D1B50",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.24 上午",
+        "timestamp" : 1791442824.195
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "02DCC94A-9312-4EC6-B109-30FE8D8FFDC1",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.24 上午",
+        "timestamp" : 1791442824.872
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "DCE51BF9-A58A-4E0C-BD40-EEEF194420C5",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.23 上午",
+        "timestamp" : 1791442823.115
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "F9610F4D-1EC7-4858-A52E-DFEA6BCC3084",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.23 上午",
+        "timestamp" : 1791442823.789
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "CB1ED3AB-9BDD-4CF2-92B3-C75C2B9F3800",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.22 上午",
+        "timestamp" : 1791442822.046
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "6E3B840B-15A3-4FD7-BDD1-3C61E3EE419A",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.22 上午",
+        "timestamp" : 1791442822.73
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "E0A2CC43-F573-4EE4-8869-3630B85F3316",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.20 上午",
+        "timestamp" : 1791442820.865
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "2DB10358-F924-4CFB-8F07-11752216FA87",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.21 上午",
+        "timestamp" : 1791442821.534
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "89A23BA8-F790-4628-8F22-9078C17897B9",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.18 上午",
+        "timestamp" : 1791442818.148
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "D6A4840C-DF85-4EBC-8C58-29A5D50B040D",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.18 上午",
+        "timestamp" : 1791442818.824
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "73884AD9-32F7-400C-AF54-D51C09AED99F",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.15 上午",
+        "timestamp" : 1791442815.31
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "2A099DB4-0D1A-43AF-95E7-C93AEDE1E92C",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.15 上午",
+        "timestamp" : 1791442815.983
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "3DB5A5DE-42E2-478A-A339-EF4499C82542.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "object-name-with-keyboard-hierarchy_0_A9B4B165-9843-4F1F-B199-0E8F0BE8E144.txt",
+        "timestamp" : 1791442813.683
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "F649AC6F-9267-4BB5-8636-26042F7F64C7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "object-name-with-keyboard_0_B3775C7A-C04C-4776-9CD1-35CFD294733A.png",
+        "timestamp" : 1791442813.219
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "E7BE830D-4192-432E-A9CF-344FD8FF8DCA",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.12 上午",
+        "timestamp" : 1791442812.49
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "33B259D9-4BEB-4E14-8C33-DC2E60857386",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.13 上午",
+        "timestamp" : 1791442813.079
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "85F9FD21-850A-42F7-A164-3143AF511C04",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.11 上午",
+        "timestamp" : 1791442811.827
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "CFD09739-E660-4F30-80BE-808A5396CB06",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.12 上午",
+        "timestamp" : 1791442812.121
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "4824AD4B-BC19-43A9-83F2-7BA3A1DA880C",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.10 上午",
+        "timestamp" : 1791442810.338
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "D0867A4B-3319-48D1-A15D-FB992EC6FE4E",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.10 上午",
+        "timestamp" : 1791442810.63
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "8B6DCD37-42F2-468F-9D2B-0AC237CF61F0.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "identity-template-editor-hierarchy_0_685066F6-A451-44A3-9B79-13937E56F425.txt",
+        "timestamp" : 1791442809.158
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "3E8B3D03-F9BC-4AD6-BD62-780A93FEB8A9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "identity-template-editor_0_7F4F3B01-4B4E-49F8-9190-F4AA4822B469.png",
+        "timestamp" : 1791442808.848
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "F77A64BC-9DE6-4A13-923A-61C79B048AA7",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.08 上午",
+        "timestamp" : 1791442808.439
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "FE9A2380-5E4C-4990-BADA-95C6C1C027D0",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.08 上午",
+        "timestamp" : 1791442808.732
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "85B344FA-0549-4D3B-915D-BE5171CA3C25.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "empty-identity-workspace-hierarchy_0_B82E83C7-2F13-437D-B7DD-F3B88C73FA58.txt",
+        "timestamp" : 1791442807.268
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "D4AB51B7-F6B3-471A-8710-8C2600F1AA88.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "empty-identity-workspace_0_0F2D5B02-D57A-4E36-BDEA-24A016FA940A.png",
+        "timestamp" : 1791442807.128
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "55610D76-0065-4BF7-939D-D3027CD3651D",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.06 上午",
+        "timestamp" : 1791442806.733
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "1D58777F-B5E1-47B5-92D0-EB7886DBFA4B",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.07 上午",
+        "timestamp" : 1791442807.021
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "89152D31-9E52-4331-8CE0-9AE9B5F8FBD7",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.05 上午",
+        "timestamp" : 1791442805.265
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "41FC729D-9D35-47D2-B051-FE4F751538DB",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.05 上午",
+        "timestamp" : 1791442805.551
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "21B86E6F-5EBF-4696-9C99-49E1C0996971.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "expanded-mobile-navigation-hierarchy_0_05CCA8E2-C5F8-431B-BC0D-BF04F187D31E.txt",
+        "timestamp" : 1791442805.171
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "491C794E-E7FA-4A36-8B5F-625C7EE30E76.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "expanded-mobile-navigation_0_09D635CA-CCB6-4BAB-8291-9D2D214AE4D4.png",
+        "timestamp" : 1791442804.943
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "B10B86FB-3FFF-4C37-8979-F168862A2215",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 08.00.04 上午",
+        "timestamp" : 1791442804.538
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "FAF6E64D-6FC9-4C1C-A685-E7BD329C2C69",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 08.00.04 上午",
+        "timestamp" : 1791442804.833
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "FB91849E-2F82-46D0-9130-D744002436F7.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "current-created-home-hierarchy_0_9733F779-C0D9-4848-9EAC-F065AF53DDE4.txt",
+        "timestamp" : 1791442794.422
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "0B620EBC-DC17-4D53-83E0-DA2CC1DA210C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "current-created-home_0_56E80E13-99BC-46DB-A36B-46B405BD17F1.png",
+        "timestamp" : 1791442794.229
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "69BCC983-678C-41BB-B1F5-FB559BE829F4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 07.59.52 上午",
+        "timestamp" : 1791442792.144
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "FAD24CCD-0147-4782-A29E-12111B5EACA0",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.52 上午",
+        "timestamp" : 1791442792.713
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "BA1569B8-83F1-410E-892B-294B6253DA30",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 07.59.51 上午",
+        "timestamp" : 1791442791.658
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "6273645A-4EAF-4138-9EE9-8FA97F37067C",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.51 上午",
+        "timestamp" : 1791442791.947
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "85B6FFBA-7FF5-4BD7-B378-18F5564C3D1C",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 07.59.50 上午",
+        "timestamp" : 1791442790.957
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "323E010F-FEC0-4128-9702-2188B7028BE9",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.51 上午",
+        "timestamp" : 1791442791.507
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "1FCE705A-6459-4139-9D31-81AEC3448EF1",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 07.59.50 上午",
+        "timestamp" : 1791442790.46
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "C6154CED-076E-49C7-A7AD-19D45EA8CA3D",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.50 上午",
+        "timestamp" : 1791442790.749
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "2A9DFE6C-8CE7-4D6E-B60A-899F0723137F",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 07.59.49 上午",
+        "timestamp" : 1791442789.731
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "2E373165-ABBA-43EE-AAA3-83DCA648B817",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.50 上午",
+        "timestamp" : 1791442790.298
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "DDA2114D-D088-4173-86D2-925B5F3C442F",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-08 at 07.59.48 上午",
+        "timestamp" : 1791442788.843
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "AD5F3D26-2C40-4D75-9A72-57373F79772C",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.49 上午",
+        "timestamp" : 1791442789.133
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "94D8696A-79F6-4A76-9869-3ACDA98F9428.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "current-registration-hierarchy_0_7A5C102E-D242-41DD-A380-189972ACB6C3.txt",
+        "timestamp" : 1791442788.805
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "928B08E4-680B-4754-B9D4-4E0B294B5FBD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "current-registration_0_17FFE0C7-A859-4B89-ABAF-B2A8F25C236D.png",
+        "timestamp" : 1791442788.647
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "FDF91250-72E3-45EC-8BDB-9F2EDA15B601",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.47 上午",
+        "timestamp" : 1791442787.377
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "4602EC36-8B17-4899-A4DB-3C121928AE33",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.45 上午",
+        "timestamp" : 1791442785.922
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "1473F4D9-7941-4A0F-8FD1-1BC72C11347C",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.44 上午",
+        "timestamp" : 1791442784.463
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "EE174C80-D8EF-4DE6-8CFA-0FBE5036721F",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.42 上午",
+        "timestamp" : 1791442782.98
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "CFF4EC19-69AE-49FE-83A5-518F69658D9E",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.41 上午",
+        "timestamp" : 1791442781.513
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "96FAF5F7-17F4-4A2F-B389-11756BFF7AF2",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-08 at 07.59.39 上午",
+        "timestamp" : 1791442779.908
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName" : "SoloSoul RF201",
+        "exportedFileName" : "56A13B37-BA3A-4991-978A-D3B35A6B8E10.mp4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Screen Recording 2026-10-08 at 07.59.35 上午.mp4",
+        "timestamp" : 1791442775.323
+      }
+    ],
+    "testIdentifier" : "ProbeTests/testCurrentProductionObjectAndMobileNavigation()",
+    "testIdentifierURL" : "test://com.apple.xcode/SoloSoulFE2UIProbe/ProbeTests/ProbeTests/testCurrentProductionObjectAndMobileNavigation"
+  }
+]

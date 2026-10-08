@@ -1,0 +1,65 @@
+{
+  "serial": "emulator-5588",
+  "avd": "SoloSoul_FE2_API31",
+  "mode": "supported",
+  "scenario": "previews",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791428768.399776,
+  "passed": true,
+  "restored": true,
+  "api": 31,
+  "abi": "arm64-v8a",
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "33d83ae45e6626500a02e219d2abcd84b63cd1a8392d4303a5d153684c904a7d"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "f85017f41d50e1b76b3c3b3a8b2428285247fe2062ae21d0d0256f32c94274f2"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-api31-bars-supported-20261008/private-data-before.tar",
+    "sha256": "606841d2f59c237e388ccb7a4e029253f2dac8f929135aab3b0808fff7f8fa8a",
+    "entries": 2
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "preview-fixtures-encrypted",
+    "nonempty-attachments-dark",
+    "file-preview-text-dark",
+    "file-preview-image-dark",
+    "photo-album-dark",
+    "photo-viewer-dark",
+    "photo-album-after-back-dark",
+    "attachments-after-back-dark",
+    "preview-returned-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "nonempty-attachments-light",
+    "file-preview-text-light",
+    "file-preview-image-light",
+    "photo-album-light",
+    "photo-viewer-light",
+    "photo-album-after-back-light",
+    "attachments-after-back-light",
+    "preview-returned-detail-light"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 2,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "finishedAt": 1791428838.9974232
+}

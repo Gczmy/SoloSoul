@@ -1,0 +1,2 @@
+Protected input snapshots verified 8
+{"passed": true, "exit_code": 0, "error": null, "binary_sha256": "85e6e66575218cb9d4905d6ee831377d967db5efa1bb667c708499fd6c908be7", "source_differences_after_restore": []}

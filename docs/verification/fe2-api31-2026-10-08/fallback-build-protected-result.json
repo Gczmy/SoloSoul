@@ -1,0 +1,27 @@
+{
+  "build_exit_code": 0,
+  "before": {
+    "src-tauri/Cargo.toml": {
+      "sha256": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+      "mode": 420
+    },
+    "src-tauri/gen/android/app/tauri.properties": {
+      "sha256": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+      "mode": 420
+    },
+    "src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": {
+      "sha256": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94",
+      "mode": 420
+    }
+  },
+  "cli_generated": {
+    "src-tauri/Cargo.toml": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+    "src-tauri/gen/android/app/tauri.properties": "5b1281d035930b20fa092db0fff14fb01cdcfd0412288dde8fe127d50ecdc952",
+    "src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94"
+  },
+  "restored": {
+    "src-tauri/Cargo.toml": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+    "src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+    "src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94"
+  }
+}

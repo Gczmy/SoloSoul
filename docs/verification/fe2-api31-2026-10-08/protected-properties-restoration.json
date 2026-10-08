@@ -1,0 +1,7 @@
+{
+  "before_sha256": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+  "cli_generated_sha256": "5b1281d035930b20fa092db0fff14fb01cdcfd0412288dde8fe127d50ecdc952",
+  "restored_from": "/tmp/solosoul-fe2-cold-final-build-protected-20261008/2-tauri.properties",
+  "after_sha256": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+  "only_whitespace_differs": true
+}

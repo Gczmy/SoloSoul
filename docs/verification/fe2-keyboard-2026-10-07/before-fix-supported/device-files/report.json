@@ -1,0 +1,272 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "light",
+      "glass": "local",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 231.19642639160156,
+        "width": 217.82142639160156,
+        "height": 124.79762268066406,
+        "right": 261.82142639160156,
+        "bottom": 355.9940490722656
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "local-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 7660,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791410493602
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "light",
+      "glass": "enhanced",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#1f1c18",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(31, 28, 24)",
+      "copyRect": {
+        "x": 44,
+        "y": 231.19642639160156,
+        "width": 184.71429443359375,
+        "height": 147.19642639160156,
+        "right": 228.71429443359375,
+        "bottom": 378.3928527832031
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 207.19642639160156,
+        "width": 153.9166717529297,
+        "height": 195.19642639160156,
+        "right": 386.4761962890625,
+        "bottom": 402.3928527832031
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 293,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "enhanced-light",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 7677,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791410495247
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "dark",
+      "glass": "enhanced",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 231.19642639160156,
+        "width": 184.71429443359375,
+        "height": 147.19642639160156,
+        "right": 228.71429443359375,
+        "bottom": 378.3928527832031
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 207.19642639160156,
+        "width": 153.9166717529297,
+        "height": 195.19642639160156,
+        "right": 386.4761962890625,
+        "bottom": 402.3928527832031
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 293,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "enhanced-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 8102,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791410496928
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "dark",
+      "glass": "enhanced",
+      "background": "#1f1c18",
+      "surface": "#2a2620",
+      "foreground": "#ddd8c8",
+      "accent": "#7a9ab5",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(221, 216, 200)",
+      "copyRect": {
+        "x": 44,
+        "y": 231.19642639160156,
+        "width": 184.71429443359375,
+        "height": 147.19642639160156,
+        "right": 228.71429443359375,
+        "bottom": 378.3928527832031
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 207.19642639160156,
+        "width": 153.9166717529297,
+        "height": 195.19642639160156,
+        "right": 386.4761962890625,
+        "bottom": 402.3928527832031
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 293,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "stage": "enhanced-dark-after-unlock",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "copyInkPixels": 8102,
+      "webViewScale": 2.621359223300971,
+      "recordedAtMs": 1791410500527
+    },
+    {
+      "stage": "encrypted-preferences",
+      "theme": "dark",
+      "androidGlass": "enhanced",
+      "recordedAtMs": 1791410500550
+    },
+    {
+      "path": "\/editor",
+      "search": "?section=travel",
+      "theme": "dark",
+      "historyIndex": 14,
+      "historyLength": 15,
+      "overlayMarker": false,
+      "text": "Save to: Travel",
+      "visible": true,
+      "settled": true,
+      "background": "rgba(0, 0, 0, 0)",
+      "foreground": "rgb(166, 157, 138)",
+      "backdrop": "none",
+      "rect": {
+        "x": 36,
+        "y": 232.952392578125,
+        "right": 370.4761962890625,
+        "bottom": 249.333345413208
+      },
+      "toastCount": 1,
+      "backupReminder": true,
+      "toastTrace": [
+        {
+          "time": 1200,
+          "count": 0,
+          "path": "\/bootstrap"
+        },
+        {
+          "time": 56921.09999999404,
+          "count": 1,
+          "path": "\/editor"
+        }
+      ],
+      "toastInFlow": true,
+      "toastInSheet": false,
+      "toastInPanel": false,
+      "toastVisible": true,
+      "toastHittable": true,
+      "controls": [
+        {
+          "label": "Save",
+          "found": true,
+          "visible": true,
+          "hittable": true,
+          "overlapped": false
+        }
+      ],
+      "viewportWidth": 412,
+      "viewportHeight": 732,
+      "overflow": false,
+      "stage": "object-editor-dark",
+      "screenshotWidth": 1080,
+      "screenshotHeight": 1920,
+      "recordedAtMs": 1791410502958
+    },
+    {
+      "path": "\/editor",
+      "buttons": [
+        "",
+        "",
+        "Back Up Now",
+        "x",
+        "VisaPlugin Bound",
+        "PassportPlugin Bound",
+        "Manage Templates",
+        "Cancel",
+        "Save"
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "New Object\nHome\nObjects\nTools\nSettings\nIt has been a while since your last backup. Please go to Settings > Backup & Restore to create one.\nBack Up Now\nx\nObject Type\n\nSave to: Travel\n\nVisa\nPlugin Bound\nPassport\nPlugin Bound\nManage Templates\nObject Name\nProperties\nCountry\nPublic\nVisa Type\nPublic\nVisa Number\nCritical\nIssue Date\nInternal\ne.g. YYYY-MM-DD\n-\n-\nExpiry Date\nInternal\nPlugin Bound\ne.g. YYYY-MM-DD\n-\n-\nCancel\nSave",
+      "home": false,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "操作必须完全位于真实键盘上方: {\"path\":\"\\\/editor\",\"search\":\"?section=travel\",\"historyIndex\":14,\"theme\":\"dark\",\"draft\":\"FE2 public object XYZ\",\"focused\":true,\"viewportWidth\":412,\"viewportHeight\":732,\"visualHeight\":732.1904907226562,\"visualOffset\":0,\"keyboardInset\":\"0px\",\"rect\":{\"x\":36,\"y\":382.5714416503906,\"right\":370.4761962890625,\"bottom\":434.5714416503906},\"hittable\":true,\"toastCount\":1,\"backupReminder\":true,\"overlapped\":false,\"overflow\":false} \/ {\"imeVisible\":true,\"imeHeightPx\":872,\"screenHeightPx\":1920,\"webViewWidthPx\":1080,\"webViewHeightPx\":1920,\"webViewScreenX\":0,\"webViewScreenY\":0}",
+      "recordedAtMs": 1791410504638
+    }
+  ],
+  "directoryAttempts": 2,
+  "unlockAttempts": [
+    {
+      "attempt": 1,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "attempt": 2,
+      "result": "home"
+    }
+  ],
+  "notificationPrompts": 1,
+  "scenario": "keyboard",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back, real touch\/IME\/typing, backup reminder, Save reachability and keyboard-first system back",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

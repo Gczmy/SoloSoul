@@ -1,0 +1,89 @@
+
+ RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri
+
+ ❯ src/components/attachment/AttachmentPreviewOverlay.test.tsx (25 tests | 24 failed) 202ms
+     × loads image preview via fs_read_file_as_data_url 29ms
+     × 图片按视口适配，按钮与 Ctrl 滚轮缩放，窗口变化后重新适配 10ms
+     × image 读取失败显示预览错误并停止加载 7ms
+     × PDF 读取失败显示预览错误并停止加载 6ms
+     × text 读取失败显示预览错误并停止加载 6ms
+     × 切换附件后忽略旧图片读取的迟到结果 9ms
+     × 旧附件读取失败不覆盖新附件的加载状态 6ms
+     × 切换文本附件后忽略旧文本内容 5ms
+     × 旧 PDF 的无效读取结果不遮盖新 PDF 5ms
+     × pdf preview uses solosoul-pdf:// custom protocol on Windows 7ms
+     × pdf preview keeps data URL path on non-Windows desktop 6ms
+     × loads text preview via fs_read_file_as_text 5ms
+     × shows error when vaultPath is missing 7ms
+     × shows error when vaultPath is a content URI 6ms
+     × 顶栏提供左上角返回按钮，点击关闭预览（与照片集查看器一致） 11ms
+     × 点击预览背景仅关闭预览本身（不冒泡关闭附件卡片容器） 20ms
+     × disableMetaEdit 隐藏「编辑附件属性」按钮（回收站只读上下文） 4ms
+     × disableMetaEdit 且 vaultPath 缺失时提示「文件已不存在」而非「未存储在保险库」 5ms
+     × calls onOpenExternal for unsupported types 5ms
+     × pinches with two fingers to zoom in and out 8ms
+     × double-tap toggles zoom between fit and fit×2 5ms
+     × binds gestures when mounted empty then given an item (real caller pattern) 10ms
+     × overrides touch-action to pan-y when image fits viewport (browser must not grab pinch) 5ms
+     × reopening after close does not double-bind gestures 6ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 24 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > loads image preview via fs_read_file_as_data_url
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 图片按视口适配，按钮与 Ctrl 滚轮缩放，窗口变化后重新适配
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > image 读取失败显示预览错误并停止加载
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > PDF 读取失败显示预览错误并停止加载
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > text 读取失败显示预览错误并停止加载
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 切换附件后忽略旧图片读取的迟到结果
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 旧附件读取失败不覆盖新附件的加载状态
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 切换文本附件后忽略旧文本内容
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 旧 PDF 的无效读取结果不遮盖新 PDF
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > pdf preview uses solosoul-pdf:// custom protocol on Windows
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > pdf preview keeps data URL path on non-Windows desktop
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > loads text preview via fs_read_file_as_text
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > shows error when vaultPath is missing
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > shows error when vaultPath is a content URI
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 顶栏提供左上角返回按钮，点击关闭预览（与照片集查看器一致）
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > 点击预览背景仅关闭预览本身（不冒泡关闭附件卡片容器）
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > disableMetaEdit 隐藏「编辑附件属性」按钮（回收站只读上下文）
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > disableMetaEdit 且 vaultPath 缺失时提示「文件已不存在」而非「未存储在保险库」
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > calls onOpenExternal for unsupported types
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > pinches with two fingers to zoom in and out
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > double-tap toggles zoom between fit and fit×2
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > binds gestures when mounted empty then given an item (real caller pattern)
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > overrides touch-action to pan-y when image fits viewport (browser must not grab pinch)
+ FAIL  src/components/attachment/AttachmentPreviewOverlay.test.tsx > AttachmentPreviewOverlay > reopening after close does not double-bind gestures
+Error: [vitest] No "isAndroidSync" export is defined on the "@/lib/platform" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@/lib/platform"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ ToastOutlet src/components/ui/ToastOutlet.tsx:33:8
+     31|   );
+     32|
+     33|   if (!isAndroidSync()) return null;
+       |        ^
+     34|   return <div ref={attach} className={`${styles.outlet} ${className ??…
+     35| }
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
+ ❯ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/24]⎯
+
+
+ Test Files  1 failed | 9 passed (10)
+      Tests  24 failed | 100 passed (124)
+   Start at  22:32:11
+   Duration  3.47s (transform 3.50s, setup 1.08s, import 5.40s, tests 4.11s, environment 5.36s)
+

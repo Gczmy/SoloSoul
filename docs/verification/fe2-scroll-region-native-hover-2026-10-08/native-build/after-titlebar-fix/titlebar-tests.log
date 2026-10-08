@@ -1,0 +1,67 @@
+   Compiling objc2-exception-helper v0.1.1
+   Compiling ring v0.17.14
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+   Compiling wasmtime-internal-jit-debug v45.0.1
+   Compiling libsqlite3-sys v0.30.1
+   Compiling wasmtime v45.0.1
+   Compiling mac-notification-sys v0.6.14
+   Compiling onig_sys v69.9.3
+   Compiling objc2 v0.6.4
+   Compiling solo_soul v2.13.2 (/private/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/src-tauri)
+   Compiling block2 v0.6.2
+   Compiling objc2-core-foundation v0.3.2
+   Compiling dispatch2 v0.3.1
+   Compiling rustls v0.23.40
+   Compiling objc2-foundation v0.3.2
+   Compiling rustls-webpki v0.103.13
+   Compiling zstd-safe v7.2.4
+   Compiling onig v6.5.3
+   Compiling zstd v0.13.3
+   Compiling wasmtime-internal-cache v45.0.1
+   Compiling tokenizers v0.21.4
+   Compiling tokio-rustls v0.26.4
+   Compiling rustls-platform-verifier v0.7.0
+   Compiling hyper-rustls v0.27.9
+   Compiling reqwest v0.12.28
+   Compiling reqwest v0.13.4
+   Compiling objc2-quartz-core v0.3.2
+   Compiling objc2-app-kit v0.3.2
+   Compiling wiggle v45.0.1
+   Compiling wasmtime-wasi-io v45.0.1
+   Compiling rusqlite v0.32.1
+   Compiling notify-rust v4.17.0
+   Compiling wasmtime-wasi v45.0.1
+   Compiling os_info v3.15.0
+   Compiling solosoul-vault v2.13.2 (/private/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/crates/solosoul-vault)
+   Compiling solosoul-core v2.13.2 (/private/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/crates/solosoul-core)
+   Compiling solosoul-sync v2.13.2 (/private/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/crates/solosoul-sync)
+   Compiling objc2-web-kit v0.3.2
+   Compiling tauri-runtime v2.11.2
+   Compiling wry v0.55.1
+   Compiling tao v0.35.3
+   Compiling muda v0.19.2
+   Compiling tauri-runtime-wry v2.11.2
+   Compiling window-vibrancy v0.6.0
+   Compiling objc2-osa-kit v0.3.2
+   Compiling tauri v2.11.2
+   Compiling osakit v0.3.1
+   Compiling rfd v0.16.0
+   Compiling window-vibrancy v0.8.0
+   Compiling solosoul-plugin v2.13.2 (/private/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/crates/solosoul-plugin)
+   Compiling tauri-plugin-fs v2.5.1
+   Compiling tauri-plugin-dialog v2.7.1
+   Compiling tauri-plugin-shell v2.3.5
+   Compiling tauri-plugin-process v2.3.1
+   Compiling tauri-plugin-updater v2.10.1
+   Compiling tauri-plugin-notification v2.3.3
+   Compiling tauri-plugin-window-state v2.4.1
+   Compiling tauri-plugin-os v2.3.2
+    Finished `test` profile [optimized + debuginfo] target(s) in 4m 01s
+     Running unittests src/lib.rs (/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/target/debug/deps/solo_soul-b89224cd832d41f3)
+
+running 2 tests
+test commands::window::macos::titlebar::tests::mouse_buttons_and_dragging_keep_native_titlebar_target ... ok
+test commands::window::macos::titlebar::tests::pointer_tracking_events_pass_through_titlebar ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 783 filtered out; finished in 0.00s
+

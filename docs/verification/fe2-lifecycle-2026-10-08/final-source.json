@@ -1,0 +1,14 @@
+{
+  "tauri/scripts/android-home-native-regression.py": {
+    "snapshot": "final-verifier-source/0-android-home-native-regression.py",
+    "sha256": "224dcf123f7eec546eb0781bda8e2f8507c755a4cfd6b4a169c96ce1a5b2dad5"
+  },
+  "tauri/scripts/test_android_home_native_regression.py": {
+    "snapshot": "final-verifier-source/1-test_android_home_native_regression.py",
+    "sha256": "94ca69041fe132210f8c566702d33673608804eea7919ddb91441bdd15188264"
+  },
+  "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt": {
+    "snapshot": "final-verifier-source/2-AndroidHomeInstrumentedTest.kt",
+    "sha256": "d7f5459c83669a383a82f4367530742970fe5f43e4f82a169b239029575b4a8c"
+  }
+}

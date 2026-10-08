@@ -1,0 +1,57 @@
+Attributes: Application, 0x1064ec250, pid: 18361, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x1064ec250, pid: 18361, label: 'SoloSoul'
+    Window (Main), 0x1064f57e0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11a5361f0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1064ffed0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1064e8ec0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x1064fdff0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1064fc6b0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1064ffab0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1064ff470, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1064ff050, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1064fec30, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1064fe810, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x1064fe3f0, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Button, 0x1064fd9b0, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused
+                            Other, 0x1064fd590, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 1, Focused
+                              StaticText, 0x1064eed50, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 身份, Focused
+                            Button, 0x1064f8d70, {{294.0, 63.0}, {44.0, 45.0}}, label: '+', Focused
+                            Button, 0x11a52fef0, {{346.0, 63.0}, {44.0, 45.0}}, label: '更多操作', Focused
+                          Other, 0x11a530010, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x11a530130, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x11a530250, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x11a530370, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x11a530490, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x11a5305b0, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x11a5306d0, {{0.0, 0.0}, {402.0, 784.0}}, Focused
+                            Other, 0x11a5307f0, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x11a530910, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused
+                              Button, 0x11a530a30, {{16.0, 126.0}, {76.0, 44.0}}, label: '身份', Focused
+                              Button, 0x11a530b50, {{100.0, 126.0}, {76.0, 44.0}}, label: '旅行', Focused
+                              Button, 0x11a530c70, {{184.0, 126.0}, {76.0, 44.0}}, label: '财务', Focused
+                              Button, 0x11a5068c0, {{268.0, 126.0}, {76.0, 44.0}}, label: '职业', Focused
+                              Button, 0x11a5069e0, {{16.0, 178.0}, {76.0, 44.0}}, label: '文档', Focused
+                              Button, 0x11a506b00, {{100.0, 178.0}, {56.0, 44.0}}, label: '清除', Focused
+                              TextField, 0x11a506c20, {{16.0, 250.0}, {370.0, 42.0}}, label: '搜索对象…', placeholderValue: '搜索对象…', value: 搜索对象…, Focused
+                              Button, 0x11a506d40, {{16.0, 316.0}, {370.0, 153.0}}, label: 'FE2 iOS public identity 身份 身份信息History (1) 1AttachmentsEditMove to trash姓名:Public Person', Focused
+                          StaticText, 0x11a506e60, {{244.0, 775.0}, {65.0, 20.0}}, label: '对象已创建', value: 对象已创建, Focused
+                          Button, 0x11a504da0, {{321.0, 763.0}, {44.0, 44.0}}, label: '关闭', Focused
+                Other, 0x11a504ec0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x11a504fe0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x11a505100, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x11a505220, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x11a505340, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x11a5041a0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x11a5042c0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x11a5043e0, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x11a504500, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11a504620, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11a504740, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1064ec250, pid: 18361, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x11a479570, pid: 18361, label: 'SoloSoul'
+  }

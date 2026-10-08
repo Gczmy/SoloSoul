@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "scope": "Two stable iPhone17/iOS26.3.1 PDF external-opener failure feedback frames, actual readable text and retained attachment UI; this does not establish PDF rendering or opening support",
+  "production_binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "frames": [
+    {
+      "stage": "light-pdf-external-open-error-feedback",
+      "error_text_bounds_points": [
+        41.0,
+        766.0,
+        244.0,
+        38.0
+      ],
+      "error_text_actual_pixels": {
+        "background_rgb": [
+          253,
+          252,
+          249
+        ],
+        "dominant_foreground_rgb": [
+          31,
+          28,
+          24
+        ],
+        "foreground_pixels": 5928,
+        "contrast": 16.53958372169489
+      },
+      "attachment_name_bounds_points": [
+        103.0,
+        460.0,
+        162.0,
+        20.0
+      ],
+      "upload_bounds_points": [
+        271.0,
+        328.0,
+        44.0,
+        44.0
+      ]
+    },
+    {
+      "stage": "dark-pdf-external-open-error-feedback",
+      "error_text_bounds_points": [
+        41.0,
+        766.0,
+        244.0,
+        38.0
+      ],
+      "error_text_actual_pixels": {
+        "background_rgb": [
+          36,
+          45,
+          40
+        ],
+        "dominant_foreground_rgb": [
+          214,
+          221,
+          216
+        ],
+        "foreground_pixels": 5928,
+        "contrast": 10.258809940122399
+      },
+      "attachment_name_bounds_points": [
+        103.0,
+        460.0,
+        162.0,
+        20.0
+      ],
+      "upload_bounds_points": [
+        271.0,
+        328.0,
+        44.0,
+        44.0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+Attributes: Application, 0x101670910, pid: 64734, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x101670910, pid: 64734, label: 'SoloSoul'
+    Window (Main), 0x10167d400, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x101674270, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x101674390, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x101673fd0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x1016740f0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x101674930, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1016744b0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1016745d0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1016746f0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x101674810, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x101674a50, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x101674b70, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                          Image, 0x101674c90, {{177.0, 177.0}, {48.0, 49.0}}, label: 'SoloSoul', Focused
+                          Other, 0x101674db0, {{41.0, 241.0}, {320.0, 30.0}}, label: 'SoloSoul', value: 1, Focused
+                            StaticText, 0x1017626c0, {{158.0, 241.0}, {86.0, 30.0}}, label: 'SoloSoul', value: SoloSoul, Focused
+                          Other, 0x101764240, {{41.0, 274.0}, {320.0, 20.0}}, Focused
+                            StaticText, 0x101764360, {{149.0, 274.0}, {104.0, 20.0}}, label: '解锁保险库以继续', value: 解锁保险库以继续, Focused
+                          Other, 0x101764480, {{56.0, 308.0}, {290.0, 21.0}}, Focused
+                            StaticText, 0x1017645a0, {{56.0, 308.0}, {154.0, 21.0}}, label: 'FE2 iOS public account', value: FE2 iOS public acc..., Focused
+                          Other, 0x1017646c0, {{56.0, 330.0}, {290.0, 14.0}}, Focused
+                            StaticText, 0x1017647e0, {{56.0, 330.0}, {121.0, 14.0}}, label: 'acc_6dfa4f7e99d2457d', value: acc_6dfa4f7e99d2457d, Focused
+                          Other, 0x101764900, {{41.0, 402.0}, {320.0, 115.0}}, label: '表单', Focused
+                            TextField, 0x101764a20, {{42.0, 403.0}, {318.0, 41.0}}, placeholderValue: '输入密码', value: 输入密码, Focused
+                            Button, 0x101764b40, {{308.0, 401.0}, {44.0, 45.0}}, label: '查看密码提示', Focused
+                            Other, 0x101764c60, {{41.0, 448.0}, {320.0, 17.0}}, Focused
+                            Button, 0x101764d80, {{41.0, 472.0}, {320.0, 45.0}}, label: '解锁', Focused
+                          Button, 0x101764ea0, {{156.0, 571.0}, {90.0, 45.0}}, label: '创建新账户', Focused
+                          Button, 0x101764fc0, {{130.0, 623.0}, {142.0, 45.0}}, label: '从其他设备恢复账户', Focused
+                          Button, 0x1017650e0, {{41.0, 680.0}, {44.0, 45.0}}, label: '主密码', Focused
+                Other, 0x101765200, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x101765320, {{396.0, 161.0}, {3.0, 648.0}}
+                Other, 0x101765440, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x101765560, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x101765680, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x1017657a0, {{396.0, 161.0}, {3.0, 648.0}}
+                Other, 0x1017658c0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x1017659e0, {{65.0, 868.0}, {272.0, 3.0}}
+Path to element:
+ →Application, 0x101670910, pid: 64734, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x1016750f0, pid: 64734, label: 'SoloSoul'
+  }

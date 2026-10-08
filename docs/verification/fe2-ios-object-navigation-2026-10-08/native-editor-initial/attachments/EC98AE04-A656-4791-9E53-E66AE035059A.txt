@@ -1,0 +1,100 @@
+Attributes: Application, 0x1040681b0, pid: 89143, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x1040681b0, pid: 89143, label: 'SoloSoul'
+    Window (Main), 0x10405e400, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10404eec0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10405c160, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10404f920, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x10404f230, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10404a9b0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1040547f0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10405c840, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10405d990, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1040544a0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x10404fca0, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x104050030, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Button, 0x1040514b0, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused
+                            Other, 0x104050380, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 1, Focused
+                              StaticText, 0x104050a80, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 新建对象, Focused
+                          Other, 0x104050710, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x104051820, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x104050df0, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x10404a2d0, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x10405f1f0, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x104054150, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x10405dd00, {{0.0, 0.0}, {402.0, 784.0}}, Focused
+                            Other, 0x10405cbb0, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x10404e480, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused
+                              Other, 0x104052ca0, {{33.0, 143.0}, {336.0, 20.0}}, label: '对象类型', value: 3, Focused
+                                StaticText, 0x104051b90, {{33.0, 143.0}, {56.0, 20.0}}, label: '对象类型', value: 对象类型, Focused
+                              Other, 0x104051140, {{33.0, 175.0}, {336.0, 19.0}}, Focused
+                                StaticText, 0x10404d6b0, {{33.0, 175.0}, {78.0, 19.0}}, label: '保存到：身份', value: 保存到：身份, Focused
+                              Switch, 0x10404c1f0, {{33.0, 210.0}, {141.0, 44.0}}, label: '身份证插件绑定', value: 1, Focused
+                              Switch, 0x104051f00, {{182.0, 210.0}, {86.0, 44.0}}, label: '身份信息', value: 0, Focused
+                              Switch, 0x10404bea0, {{33.0, 262.0}, {128.0, 44.0}}, label: '地址插件绑定', value: 0, Focused
+                              Button, 0x104052ff0, {{275.0, 262.0}, {94.0, 44.0}}, label: '管理模板', Focused
+                              Other, 0x10404bb20, {{33.0, 364.0}, {336.0, 19.0}}, label: '对象名称', Focused
+                                StaticText, 0x10404b790, {{33.0, 364.0}, {52.0, 19.0}}, label: '对象名称', value: 对象名称, Focused
+                              TextField, 0x104052910, {{33.0, 389.0}, {336.0, 42.0}}, label: '对象名称', placeholderValue: '输入名称', value: 输入名称, Focused
+                              Other, 0x10405ee70, {{33.0, 489.0}, {336.0, 20.0}}, label: '属性', value: 3, Focused
+                                StaticText, 0x10404dd70, {{33.0, 489.0}, {28.0, 20.0}}, label: '属性', value: 属性, Focused
+                              Other, 0x10405f8c0, {{33.0, 521.0}, {336.0, 44.0}}, label: '姓名 公开', Focused
+                                StaticText, 0x10405fc30, {{53.0, 521.0}, {26.0, 19.0}}, label: '姓名', value: 姓名, Focused
+                                StaticText, 0x104060d60, {{53.0, 548.0}, {20.0, 15.0}}, label: '公开', value: 公开, Focused
+                              TextField, 0x104060660, {{33.0, 569.0}, {336.0, 38.0}}, label: '姓名 公开', Focused
+                              Other, 0x10404b0a0, {{33.0, 631.0}, {336.0, 44.0}}, label: '身份证号 关键', Focused
+                                StaticText, 0x104053a70, {{53.0, 631.0}, {52.0, 19.0}}, label: '身份证号', value: 身份证号, Focused
+                                StaticText, 0x1040525b0, {{53.0, 658.0}, {20.0, 15.0}}, label: '关键', value: 关键, Focused
+                              TextField, 0x104053700, {{33.0, 679.0}, {336.0, 38.0}}, label: '身份证号 关键', Focused
+                              Other, 0x104053370, {{33.0, 741.0}, {336.0, 44.0}}, label: '出生日期 内部', Focused
+                                StaticText, 0x10405cf10, {{53.0, 741.0}, {52.0, 19.0}}, label: '出生日期', value: 出生日期, Focused
+                                StaticText, 0x10406a410, {{53.0, 768.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused
+                              Other, 0x104069d30, {{33.0, 788.0}, {336.0, 15.0}}, Focused
+                                StaticText, 0x1040775d0, {{33.0, 788.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused
+                              Other, 0x104069670, {{33.0, 807.0}, {336.0, 42.0}}, Focused
+                                TextField, 0x104085d10, {{42.0, 813.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused
+                                TextField, 0x104086280, {{110.0, 813.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused
+                                TextField, 0x104086600, {{160.0, 813.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused
+                              Other, 0x104086990, {{33.0, 873.0}, {336.0, 44.0}}, label: '国籍 公开', Focused
+                                StaticText, 0x104086d20, {{53.0, 873.0}, {26.0, 19.0}}, label: '国籍', value: 国籍, Focused
+                                StaticText, 0x1040870a0, {{53.0, 900.0}, {20.0, 15.0}}, label: '公开', value: 公开, Focused
+                              TextField, 0x104087420, {{33.0, 921.0}, {336.0, 38.0}}, label: '国籍 公开', Focused
+                              Other, 0x1040877b0, {{33.0, 983.0}, {336.0, 44.0}}, label: '签发日期 内部', Focused
+                                StaticText, 0x104087b30, {{53.0, 983.0}, {52.0, 19.0}}, label: '签发日期', value: 签发日期, Focused
+                                StaticText, 0x104087ed0, {{53.0, 1010.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused
+                              Other, 0x104088250, {{33.0, 1030.0}, {336.0, 15.0}}, Focused
+                                StaticText, 0x1040885d0, {{33.0, 1030.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused
+                              Other, 0x104088960, {{33.0, 1049.0}, {336.0, 42.0}}, Focused
+                                TextField, 0x104088ce0, {{42.0, 1055.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused
+                                TextField, 0x104089060, {{110.0, 1055.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused
+                                TextField, 0x1040893e0, {{160.0, 1055.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused
+                              Other, 0x104089770, {{33.0, 1115.0}, {336.0, 44.0}}, label: '有效期至 内部插件绑定', Focused
+                                StaticText, 0x104089b00, {{53.0, 1115.0}, {52.0, 19.0}}, label: '有效期至', value: 有效期至, Focused
+                                StaticText, 0x104089ea0, {{53.0, 1142.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused
+                                StaticText, 0x10408aa00, {{101.0, 1141.0}, {40.0, 16.0}}, label: '插件绑定', value: 插件绑定, Focused
+                              Other, 0x10408ada0, {{33.0, 1162.0}, {336.0, 15.0}}, Focused
+                                StaticText, 0x10408b120, {{33.0, 1162.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused
+                              Other, 0x10408b4a0, {{33.0, 1181.0}, {336.0, 42.0}}, Focused
+                                TextField, 0x10408b800, {{42.0, 1187.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused
+                                TextField, 0x10408bb70, {{110.0, 1187.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused
+                                TextField, 0x10408bed0, {{160.0, 1187.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused
+                              Button, 0x10408c230, {{16.0, 1328.0}, {370.0, 44.0}}, label: '取消', Focused
+                              Button, 0x10408c5c0, {{16.0, 1276.0}, {370.0, 44.0}}, label: '保存', Focused
+                Other, 0x10408c920, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x10408ccc0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x10408d030, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x10408d390, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x10408d720, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x10408dab0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x10408de40, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x10408e1b0, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x10408e520, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10408e8a0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10408ec10, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1040681b0, pid: 89143, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x101e75640, pid: 89143, label: 'SoloSoul'
+  }

@@ -1,0 +1,10 @@
+{
+  "com.solosoul.app": {
+    "installed_apk_sha256": "9c6395c574bacd15a1658a56db81b42f25963a6b6b2a5d75e9b7348d764a8176",
+    "matches_frozen_tested_artifact": true
+  },
+  "com.solosoul.app.test": {
+    "installed_apk_sha256": "c0e688fe4ba193cb1bf4c2124a3827d1f019e0dad7cd031098b55469b0dc9c02",
+    "matches_frozen_tested_artifact": true
+  }
+}

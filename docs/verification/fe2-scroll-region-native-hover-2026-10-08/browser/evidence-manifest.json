@@ -1,0 +1,2075 @@
+{
+  "scope": "仅本轮 browser 证据；包含成功验收与独立历史调试",
+  "algorithm": "SHA-256",
+  "excluded": [
+    "evidence-manifest.json",
+    "SHA256SUMS"
+  ],
+  "files": [
+    {
+      "path": "FILES.txt",
+      "bytes": 36217,
+      "sha256": "2ae3ea5e5fbc995233d9f862107bd3d26de20f1836e6285aa755883e9e94a40e",
+      "kind": "generated",
+      "source": "归档说明/校验元数据"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4157,
+      "sha256": "5d33126db71caac6d201d3fa36134e633ffe0a80fde5aa3ed3d41db292ba4d05",
+      "kind": "generated",
+      "source": "归档说明/校验元数据"
+    },
+    {
+      "path": "fixture-32/pixels-original.py",
+      "bytes": 2551,
+      "sha256": "c9b04bbddf17ddea4c52a1c8801ae946b64e5f7516c47cf5b852bb7f0db83abc",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-pixels.py"
+    },
+    {
+      "path": "fixture-32/pixels.json",
+      "bytes": 73635,
+      "sha256": "9f287b023b898fdc48d15f92ef03a9376a3e23d27acaf2653e5e0a06e8f956cc",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-pixels.json"
+    },
+    {
+      "path": "fixture-32/playwright-original.config.cjs",
+      "bytes": 889,
+      "sha256": "4515cf1a7f41213951ed7bb9392ea60df40ac11f416f493eee288346353450f1",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008.config.cjs"
+    },
+    {
+      "path": "fixture-32/playwright-stdout-session-85904.log",
+      "bytes": 4752,
+      "sha256": "32cbdf0fafa5571433028293b44568d666633d1a770c5fae4e8e768fafef7ae2",
+      "kind": "generated",
+      "source": "工具会话 85904 的 stdout；省略 Node/颜色环境警告，测试结果行按原文保留"
+    },
+    {
+      "path": "fixture-32/results/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/.last-run.json"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-36-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-36-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-38-sidebar.png",
+      "bytes": 17402,
+      "sha256": "c7d3e1894800d47b6429933812334c934561ea447cbde06a09ead8e72198cf88",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-38-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-40-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-40-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-42-tools.png",
+      "bytes": 17352,
+      "sha256": "a084c02975019d6f22d940730b99f6a9da1476cdbe0d4074dd0ad7b4755bcb69",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-42-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-44-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-44-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-46-chrome.png",
+      "bytes": 17343,
+      "sha256": "b7fc03d211cf814826917e2bc37faf7db993c8b6d8fbf870435e836130bd71a3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-46-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-48-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-48-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-50-sidebar.png",
+      "bytes": 17402,
+      "sha256": "c7d3e1894800d47b6429933812334c934561ea447cbde06a09ead8e72198cf88",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-50-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-52-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-52-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-54-tools.png",
+      "bytes": 17352,
+      "sha256": "a084c02975019d6f22d940730b99f6a9da1476cdbe0d4074dd0ad7b4755bcb69",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-54-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-56-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-56-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-58-chrome.png",
+      "bytes": 17343,
+      "sha256": "b7fc03d211cf814826917e2bc37faf7db993c8b6d8fbf870435e836130bd71a3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-58-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-60-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-60-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-62-sidebar.png",
+      "bytes": 17402,
+      "sha256": "c7d3e1894800d47b6429933812334c934561ea447cbde06a09ead8e72198cf88",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-62-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-64-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-64-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-66-tools.png",
+      "bytes": 17352,
+      "sha256": "a084c02975019d6f22d940730b99f6a9da1476cdbe0d4074dd0ad7b4755bcb69",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-66-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-68-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-68-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-70-chrome.png",
+      "bytes": 17343,
+      "sha256": "b7fc03d211cf814826917e2bc37faf7db993c8b6d8fbf870435e836130bd71a3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-70-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-10-chrome.png",
+      "bytes": 17305,
+      "sha256": "8dd0930168e12810fe6ef475da962913050e7832af5a4c5739091b1f48d3c85d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-10-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-6-tools.png",
+      "bytes": 17303,
+      "sha256": "6f335616e8ac37248e064f00fd3452c4916f37542d7ef74bdcff24081429e6aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-6-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-8-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-8-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-12-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-12-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-14-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-14-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-16-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-16-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-18-tools.png",
+      "bytes": 17303,
+      "sha256": "6f335616e8ac37248e064f00fd3452c4916f37542d7ef74bdcff24081429e6aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-18-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-20-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-20-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-22-chrome.png",
+      "bytes": 17305,
+      "sha256": "8dd0930168e12810fe6ef475da962913050e7832af5a4c5739091b1f48d3c85d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-22-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-24-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-24-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-26-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-26-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-28-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-28-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-30-tools.png",
+      "bytes": 17303,
+      "sha256": "6f335616e8ac37248e064f00fd3452c4916f37542d7ef74bdcff24081429e6aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-30-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-32-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-32-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-34-chrome.png",
+      "bytes": 17305,
+      "sha256": "8dd0930168e12810fe6ef475da962913050e7832af5a4c5739091b1f48d3c85d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-34-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-samples.json",
+      "bytes": 19912,
+      "sha256": "e9c770c7463f2358987c6e771c1d9625ab0b43d9062329d80b505c440d8cfd7f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-samples.json"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-samples.json",
+      "bytes": 19768,
+      "sha256": "2538e3d8f04ce1be80655c6fcef9553f98ad3e9ff92e14ec6f8f20dee43bf7d8",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-samples.json"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/all-axes.png",
+      "bytes": 19083,
+      "sha256": "e9e7448e1c9197695a9c3bc3f4b7e061858bdb276ad6e56c30bfed22bb631295",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/all-axes.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/vertical-parent-horizontal-child.png",
+      "bytes": 19081,
+      "sha256": "17df15a99c4967d9897ee14e979c549eeb9011b512a848ed95e76e4c1f2b40fb",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/vertical-parent-horizontal-child.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/all-axes.png",
+      "bytes": 30045,
+      "sha256": "21416dbb414edf0cdab37ae15db86c9a98735409f1a733636ea68ab258c41e83",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/all-axes.png"
+    },
+    {
+      "path": "fixture-32/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/vertical-parent-horizontal-child.png",
+      "bytes": 30015,
+      "sha256": "a7dc468fec4503b6e61d98a22d0ee8d7ac8051af9ddd0f6722c8db9003b7ddcf",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-verified-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/vertical-parent-horizontal-child.png"
+    },
+    {
+      "path": "fixture-32/scroll-region.spec.ts.snapshot",
+      "bytes": 17595,
+      "sha256": "a40a8795324cbac58e3b023b00331748e3f63f9217eadd7cd630bf71cd7f9a50",
+      "kind": "byte-identical-copy",
+      "source": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts"
+    },
+    {
+      "path": "fixture-32/scrollRegion.html.snapshot",
+      "bytes": 330,
+      "sha256": "8610d6aa30926d75c3fda400a69dc399ac9e7640c335ce5ca6ae8d86edc88f1d",
+      "kind": "byte-identical-copy",
+      "source": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/scrollRegion.html"
+    },
+    {
+      "path": "fixture-32/scrollRegionHarness.tsx.snapshot",
+      "bytes": 2117,
+      "sha256": "21a434375fdfc03316821fd745ba2955bca2dbd869cefa899e998447c98aefcf",
+      "kind": "byte-identical-copy",
+      "source": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/fixtures/scrollRegionHarness.tsx"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/diagnostic-computed-child.png",
+      "bytes": 18992,
+      "sha256": "6353f4dc295749132e2f844dcfe86be58d98e9e5b56ceb4cb98c11a8aa01b07d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-computed-child-chromium-20261008.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/diagnostic-computed-tools.png",
+      "bytes": 18896,
+      "sha256": "133c087c1beab6f27d2e1cd81cd940ab514e933f65e7409f7f5713d75445e6fe",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-computed-tools-chromium-20261008.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/diagnostic-computed.png",
+      "bytes": 18980,
+      "sha256": "4334b553114bef3b10c2f044a1c78d66e139cad123a486b231cc83e49c125fc3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-computed-chromium-20261008.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/diagnostic-observations.json",
+      "bytes": 993,
+      "sha256": "92e4b89c8ecc523347fad11de781d544ecf1814b77c4821995419e8e2ce09d56",
+      "kind": "generated",
+      "source": "本轮工具输出及截图像素解码结果"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/playwright-stdout-excerpt-session-61081.log",
+      "bytes": 1497,
+      "sha256": "318b9218aed22dcf719242d69cfa71a126212dc9db7ad98a38fe8a04adfa4871",
+      "kind": "generated",
+      "source": "工具会话 61081 的失败输出摘录"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/.last-run.json",
+      "bytes": 586,
+      "sha256": "6ebcb3fe2f87c5f42f8b90e6c026d4d7a5ec62bf53ebed88d6200e53baf80ad2",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/.last-run.json"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-content-beco-4171d-axis-without-moving-pointer-chromium/error-context.md",
+      "bytes": 7120,
+      "sha256": "41f65a84ed71743091d122f1f767de7a86e39a75dc8b41fceb4503cd812173aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-content-beco-4171d-axis-without-moving-pointer-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/error-context.md",
+      "bytes": 7134,
+      "sha256": "6e48f562d0c30c588457ecdbe57bafa58f05b81034d47874ba367cf7ff9aef28",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-samples.json",
+      "bytes": 19552,
+      "sha256": "e4347fd6c48b7f9531a49630c3a468d16fb50ace98a2d6b86fcacb25f4cc51f0",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-samples.json"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/all-axes.png",
+      "bytes": 19083,
+      "sha256": "e9e7448e1c9197695a9c3bc3f4b7e061858bdb276ad6e56c30bfed22bb631295",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/all-axes.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/error-context.md",
+      "bytes": 7122,
+      "sha256": "17e8e6d9ada69deaba7f4eb56db692f0051ca005c16d2758e6da820a2316a909",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/vertical-parent-horizontal-child.png",
+      "bytes": 19081,
+      "sha256": "17df15a99c4967d9897ee14e979c549eeb9011b512a848ed95e76e4c1f2b40fb",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/vertical-parent-horizontal-child.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/all-axes.png",
+      "bytes": 30045,
+      "sha256": "21416dbb414edf0cdab37ae15db86c9a98735409f1a733636ea68ab258c41e83",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/all-axes.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/vertical-parent-horizontal-child.png",
+      "bytes": 30015,
+      "sha256": "a7dc468fec4503b6e61d98a22d0ee8d7ac8051af9ddd0f6722c8db9003b7ddcf",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/vertical-parent-horizontal-child.png"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-horizontal-c-93ad7-vertical-parent-highlighted-chromium/error-context.md",
+      "bytes": 7121,
+      "sha256": "8dd269a6173dab060da54f453214e2df9c929f8d4851dba2a4a4e93a601ae9e4",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-horizontal-c-93ad7-vertical-parent-highlighted-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-nearest-same-27010-overflowing-child-yields-it-chromium/error-context.md",
+      "bytes": 7126,
+      "sha256": "da9ac31101ed6a0fcf73181da1d2662335a9ecef22febbbb2598b12b9b39be2b",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-nearest-same-27010-overflowing-child-yields-it-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-nested-aria--b63c1-resses-hover-outside-dialog-chromium/error-context.md",
+      "bytes": 7150,
+      "sha256": "36b35bede46092cce5316237ea721478f90ffa5e32a63ec24c50f2ea7f42f9c8",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-nested-aria--b63c1-resses-hover-outside-dialog-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-nested-data--224af-resses-hover-outside-dialog-chromium/error-context.md",
+      "bytes": 7165,
+      "sha256": "2937adaab6c1c7bd8cf3fb83becf1e834f17cf7d26467ae2959ff919af21a3e4",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-nested-data--224af-resses-hover-outside-dialog-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-nested-role--917ba-resses-hover-outside-dialog-chromium/error-context.md",
+      "bytes": 7170,
+      "sha256": "777236df06034b47a01c041695cfba4429667f631d399d0ff4d4b60e9d0b05d8",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-nested-role--917ba-resses-hover-outside-dialog-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-pure-mouse-m-b76ad--JS-move-events-are-blocked-chromium/error-context.md",
+      "bytes": 7128,
+      "sha256": "6df19fdb43d520f26637461222ba742b435f9fe4aef47209d85b3e3fc09f050f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-pure-mouse-m-b76ad--JS-move-events-are-blocked-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-text-node-up-5e5aa-fresh-overflow-registration-chromium/error-context.md",
+      "bytes": 9446,
+      "sha256": "6465372077460ed10d123a4e5cae125f13b5afe84c5393e2848cad504f003df5",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-text-node-up-5e5aa-fresh-overflow-registration-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/computed-style-false-positive/results/scroll-region-textarea-inp-72968-nput-select-remain-excluded-chromium/error-context.md",
+      "bytes": 7127,
+      "sha256": "5fcf88c6dc890b596296aa4904ca8261743db575e768ea72f3d8968fa0b53602",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-final-results/scroll-region-textarea-inp-72968-nput-select-remain-excluded-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/playwright-stdout-excerpt-session-74811.log",
+      "bytes": 832,
+      "sha256": "332d174afb92440e748e7febd5fcb690c6a6e24b43e16e490af4e1c99e6b220b",
+      "kind": "generated",
+      "source": "工具会话 74811 的失败输出摘录及本轮测试夹具修正说明"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/.last-run.json",
+      "bytes": 145,
+      "sha256": "20d0bba6485e5352b74884b6ed2cebe3f9fc662fd625de0e3dca223c9625d9f3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/.last-run.json"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-36-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-36-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-38-sidebar.png",
+      "bytes": 17402,
+      "sha256": "c7d3e1894800d47b6429933812334c934561ea447cbde06a09ead8e72198cf88",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-38-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-40-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-40-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-42-tools.png",
+      "bytes": 17352,
+      "sha256": "a084c02975019d6f22d940730b99f6a9da1476cdbe0d4074dd0ad7b4755bcb69",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-42-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-44-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-44-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-46-chrome.png",
+      "bytes": 17343,
+      "sha256": "b7fc03d211cf814826917e2bc37faf7db993c8b6d8fbf870435e836130bd71a3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-0-46-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-48-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-48-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-50-sidebar.png",
+      "bytes": 17402,
+      "sha256": "c7d3e1894800d47b6429933812334c934561ea447cbde06a09ead8e72198cf88",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-50-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-52-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-52-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-54-tools.png",
+      "bytes": 17352,
+      "sha256": "a084c02975019d6f22d940730b99f6a9da1476cdbe0d4074dd0ad7b4755bcb69",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-54-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-56-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-56-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-58-chrome.png",
+      "bytes": 17343,
+      "sha256": "b7fc03d211cf814826917e2bc37faf7db993c8b6d8fbf870435e836130bd71a3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-1-58-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-60-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-60-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-62-sidebar.png",
+      "bytes": 17402,
+      "sha256": "c7d3e1894800d47b6429933812334c934561ea447cbde06a09ead8e72198cf88",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-62-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-64-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-64-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-66-tools.png",
+      "bytes": 17352,
+      "sha256": "a084c02975019d6f22d940730b99f6a9da1476cdbe0d4074dd0ad7b4755bcb69",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-66-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-68-main.png",
+      "bytes": 17405,
+      "sha256": "d81002e32cdb28e99387a0df583d954458fba6c1e539f7e9d64751597a3d4a79",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-68-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-70-chrome.png",
+      "bytes": 17343,
+      "sha256": "b7fc03d211cf814826917e2bc37faf7db993c8b6d8fbf870435e836130bd71a3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-dark-2-70-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-0-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-10-chrome.png",
+      "bytes": 17305,
+      "sha256": "8dd0930168e12810fe6ef475da962913050e7832af5a4c5739091b1f48d3c85d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-10-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-2-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-4-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-6-tools.png",
+      "bytes": 17303,
+      "sha256": "6f335616e8ac37248e064f00fd3452c4916f37542d7ef74bdcff24081429e6aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-6-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-8-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-0-8-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-12-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-12-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-14-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-14-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-16-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-16-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-18-tools.png",
+      "bytes": 17303,
+      "sha256": "6f335616e8ac37248e064f00fd3452c4916f37542d7ef74bdcff24081429e6aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-18-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-20-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-20-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-22-chrome.png",
+      "bytes": 17305,
+      "sha256": "8dd0930168e12810fe6ef475da962913050e7832af5a4c5739091b1f48d3c85d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-1-22-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-24-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-24-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-26-sidebar.png",
+      "bytes": 17323,
+      "sha256": "43c88a7d5232d6564d8a9288fb5e5b34759348017782d00aeeda6b04fdaf444a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-26-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-28-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-28-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-30-tools.png",
+      "bytes": 17303,
+      "sha256": "6f335616e8ac37248e064f00fd3452c4916f37542d7ef74bdcff24081429e6aa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-30-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-32-main.png",
+      "bytes": 17363,
+      "sha256": "bc0c4c91f0bc36d57c0cbca2ecd10d83adf0e316b661c364a9830709d697e6ac",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-32-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-34-chrome.png",
+      "bytes": 17305,
+      "sha256": "8dd0930168e12810fe6ef475da962913050e7832af5a4c5739091b1f48d3c85d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-light-2-34-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-samples.json",
+      "bytes": 19624,
+      "sha256": "d62e674b7697c902f02d32699609f2b0944324b8be9c2d3e04b617b1ed0ae63c",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-chromium/paint-samples.json"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-36-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-38-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-40-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-42-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-44-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-0-46-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-48-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-50-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-52-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-54-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-56-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-1-58-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-60-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png",
+      "bytes": 28467,
+      "sha256": "7e8b73da532ca6ca6527060a197432bfc9ad1ffbd989575883dae2828d7012f6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-62-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-64-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png",
+      "bytes": 28405,
+      "sha256": "598980b05af0f1900535b918ebee91d0364e289cff075cf899647ba4851c8836",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-66-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png",
+      "bytes": 28456,
+      "sha256": "087a58d64ee7da40fd0853e58b5e50f1f21729f7864a862d72a43b426b37b815",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-68-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png",
+      "bytes": 28417,
+      "sha256": "f3c670eebfa7e1c5e618229596b86323c6f9607f5bb905d341368625c0e85e4f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-dark-2-70-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-0-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-10-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-2-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-4-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-6-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-0-8-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-12-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-14-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-16-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-18-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-20-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-1-22-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-24-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png",
+      "bytes": 28346,
+      "sha256": "d2fbc67faf2422bc188aca8dad90412b770a7052427f939adb2dc3373a4d41f9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-26-sidebar.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-28-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png",
+      "bytes": 28286,
+      "sha256": "698e95d7889afaa2cd556c616f5a7d2b783eab1494f01e3a8200772bcc3ec8c9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-30-tools.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png",
+      "bytes": 28334,
+      "sha256": "8b91373aebb7c14e0c761b72ac206c0c2a467099a0d675b3386b821ca5da1e03",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-32-main.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png",
+      "bytes": 28299,
+      "sha256": "a2a2e54a9a18c10a445a2b1d145f5731b80b157dd1f69e8313ab7d0d2333b0d6",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-light-2-34-chrome.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-samples.json",
+      "bytes": 19480,
+      "sha256": "54f3ac3c2b006b604fa6f7e3b0e58d829c86f2968cd3edad45196fa8e62b157f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-continuous-m-3384a-paint-light-and-dark-thumbs-webkit/paint-samples.json"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/all-axes.png",
+      "bytes": 19083,
+      "sha256": "e9e7448e1c9197695a9c3bc3f4b7e061858bdb276ad6e56c30bfed22bb631295",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/all-axes.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/vertical-parent-horizontal-child.png",
+      "bytes": 19081,
+      "sha256": "17df15a99c4967d9897ee14e979c549eeb9011b512a848ed95e76e4c1f2b40fb",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-chromium/vertical-parent-horizontal-child.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/all-axes.png",
+      "bytes": 30045,
+      "sha256": "21416dbb414edf0cdab37ae15db86c9a98735409f1a733636ea68ab258c41e83",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/all-axes.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/vertical-parent-horizontal-child.png",
+      "bytes": 30015,
+      "sha256": "a7dc468fec4503b6e61d98a22d0ee8d7ac8051af9ddd0f6722c8db9003b7ddcf",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-each-nested--988d8-parent-and-child-can-scroll-webkit/vertical-parent-horizontal-child.png"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-text-node-up-5e5aa-fresh-overflow-registration-chromium/error-context.md",
+      "bytes": 11103,
+      "sha256": "5739ea57f71d49686a9b9751146acd9e3b2521f264d0bde4b385a68573f27379",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-text-node-up-5e5aa-fresh-overflow-registration-chromium/error-context.md"
+    },
+    {
+      "path": "historical-debug/fixture-selector-failure/results/scroll-region-text-node-up-5e5aa-fresh-overflow-registration-webkit/error-context.md",
+      "bytes": 11103,
+      "sha256": "5739ea57f71d49686a9b9751146acd9e3b2521f264d0bde4b385a68573f27379",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-css-hover-regression-20261008-full-results/scroll-region-text-node-up-5e5aa-fresh-overflow-registration-webkit/error-context.md"
+    },
+    {
+      "path": "integration-14/pixels-original.py",
+      "bytes": 2537,
+      "sha256": "c050b200090c966743e076bcc6a1ffb67f3cdf350be5b3f58285c5918ce88dbe",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-pixels.py"
+    },
+    {
+      "path": "integration-14/pixels.json",
+      "bytes": 25174,
+      "sha256": "b43c99a2827eabfdc636a705ac705a2c8a6d10944abb4e8ad29ea2b5e868c4a9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-pixels.json"
+    },
+    {
+      "path": "integration-14/playwright-original.config.cjs",
+      "bytes": 822,
+      "sha256": "41320b74d4a5245eb6adb04756aadb6a2e7718f8d2655702079b9b21c0a0829a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration.config.cjs"
+    },
+    {
+      "path": "integration-14/playwright.json",
+      "bytes": 17768,
+      "sha256": "172394fe9aadcecc7c6f5fc9ed2953c171232904d2f817938b6691fa1f6463c8",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration.json"
+    },
+    {
+      "path": "integration-14/playwright.log",
+      "bytes": 3082,
+      "sha256": "86146677fe0367f9e938d8aedfa041f78e08399926d65ed35157910d88694e94",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration.log"
+    },
+    {
+      "path": "integration-14/results/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/.last-run.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png",
+      "bytes": 103013,
+      "sha256": "ba2d03fb7037236bd0da6aa9808ad2a619fbf3b826e90b710bb3243f96991e81",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png",
+      "bytes": 103017,
+      "sha256": "6e2de8f102dc8c40273848f69b0b5cd312265e3b1c5499462d274c1b0b2bd0d5",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png",
+      "bytes": 103025,
+      "sha256": "7742a2313350384ce2e0bf6404ad77e4ef65222046f8dbdae3732a6c70577a6f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png",
+      "bytes": 103011,
+      "sha256": "0a06bf5098f4b1234cf064810eb182ca3a9d9816d061765822c29ad6550e046b",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png",
+      "bytes": 103011,
+      "sha256": "981e79dd17b05753839b24e002709ece22e4795c7e06f356a232dc1ffc1d9b71",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png",
+      "bytes": 103064,
+      "sha256": "2b53b30fb7de6164d6c539b68cae1719e7d2a0d02b7b6b65eba5edfb324b136b",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-samples.json",
+      "bytes": 1709,
+      "sha256": "acd861474c9674aa2e778003b70232453c14fe1945cf890ce08d2c866bd38ba3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png",
+      "bytes": 134043,
+      "sha256": "056a13a87240f0cba0367345e7d9f1627234e55f9eaa136546b40dd623020767",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png",
+      "bytes": 134071,
+      "sha256": "8904452b7bcd3428e8076cdb6411194cf084f85213dd501c7ce32ddeca3e19e3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png",
+      "bytes": 143451,
+      "sha256": "4dcfb0f6949240c2c1ad3e8705bf891dc06f8b21b391a86e09ecd2fef09d28b0",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png",
+      "bytes": 144225,
+      "sha256": "5094ac289e1c5575be68090cc81083d73f74fd1b2bccc0ac24e0cf60771ed329",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png",
+      "bytes": 143630,
+      "sha256": "323752f19ca45932263b9728919a31792f80f2dbbb9fb8a68dde09995ae23da4",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png",
+      "bytes": 143696,
+      "sha256": "c0ebd16a0d6f683ae5e33ab1041fe673f427b815a8be4fee0374f408a1bfbeed",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-samples.json",
+      "bytes": 1697,
+      "sha256": "79c59291bcad15cdb462ba849e34f9a1a00a6c82383dd2b8f329497e6f24d3c3",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png",
+      "bytes": 103053,
+      "sha256": "55612c957c594a2fd5f205c23d530e6440187483f8a5d2928fa8fe3a7cc40df2",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png",
+      "bytes": 103027,
+      "sha256": "2607da7e0fb5f72f0291c5612dd9919aeb562836b1e9dc6fd69d9da51aff1d8d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png",
+      "bytes": 103042,
+      "sha256": "a0be024931a59b7c06dab0411ef22e3f77f0e51017169d758b954ab353cac86c",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png",
+      "bytes": 103027,
+      "sha256": "2607da7e0fb5f72f0291c5612dd9919aeb562836b1e9dc6fd69d9da51aff1d8d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png",
+      "bytes": 103089,
+      "sha256": "d91f8e06a344c11091694103408f9db65882b6138ea2ea8b54f5f9c87aec6d6a",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png",
+      "bytes": 103051,
+      "sha256": "64afa73d8891a391744ef0f831a8dab03ce8022c5fc902990190ce44e076123b",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-samples.json",
+      "bytes": 1715,
+      "sha256": "f33ed7b97c928bcaa000933f596e89334420cc541e49bf7b356a760b779e16db",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png",
+      "bytes": 134873,
+      "sha256": "8c2956fcc489cf3ef5a8369a67a69652b9480736d99505179b57d2d6433b5715",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png",
+      "bytes": 134932,
+      "sha256": "e4217b129dd70206faf915e80f9b875aa38b77d57fe8d0e0ab7edf297c851e7e",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png",
+      "bytes": 134914,
+      "sha256": "1097a3a74fd6f426e7dfac0bd1d955da3a1aad9fa1c6cac28d131c9a2f4f226d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png",
+      "bytes": 146619,
+      "sha256": "6ae6554ddef0b7406ffdd276dae54042f5d95e9df58567ff837ee7f24a9ea70c",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png",
+      "bytes": 144235,
+      "sha256": "62ce2c3fea4c7dacd227bba29938e46bff91a455c034633aaa9cfb85447a2c80",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png",
+      "bytes": 144229,
+      "sha256": "bb9906fe2049304ecb758f67afc2a277f6033b480ff62aa98b30e0345398ae3d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-samples.json",
+      "bytes": 1703,
+      "sha256": "b3ba372f1e0fc5db445a1833d13c6bc1c2b34b4fcb604c4fb8deda8a99b8dd76",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png",
+      "bytes": 94864,
+      "sha256": "af8246a547fda4fe98dbe656adddd823fc2bd0a61560d7969e374adc2612dbd1",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png",
+      "bytes": 94929,
+      "sha256": "effc19aade80005f8067ededc3454824a9658304c89a6df1852bc1cbaf4b04fa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png",
+      "bytes": 94881,
+      "sha256": "5dab9f7bd6c0c1a2985186b1981d7bc0000d5aab6cc230a87d9ea81571c48335",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png",
+      "bytes": 94859,
+      "sha256": "932f3fdfd706a08d8a2c6997af28833d512cfa80d2f8458eb1675f4560037bd9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png",
+      "bytes": 94851,
+      "sha256": "a2105b2dbd6d00b083bc72e81122e61110f17db70bf8d8bc87a86c5a432e7833",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png",
+      "bytes": 94872,
+      "sha256": "e8eb4e8bbea0af89a1ef4047396c150a18ce24fa94d6533a227e51549be22a59",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-samples.json",
+      "bytes": 1709,
+      "sha256": "6509df1de4c215c9e0678f8eda96f35d6b17213dce3c97e836aca9aa5776bffa",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png",
+      "bytes": 124796,
+      "sha256": "65dec3807b0b1cebee834b87da9e288e2fa421b7c6c0ba913f7136e8a904462e",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png",
+      "bytes": 124738,
+      "sha256": "521aa5e1278a2ced9959a627edb5b80d39c570c386552c881f97fcf3ca3208fb",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png",
+      "bytes": 124849,
+      "sha256": "9b6a2ff9836a48ebff36084564e975afdc08bb93a1af0bb8338fa04101de7093",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png",
+      "bytes": 141303,
+      "sha256": "01a79389b6b342f75f47d8786358fdec1b4562618ae0eccb0ca5901c2249abc9",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png",
+      "bytes": 140962,
+      "sha256": "fe42c3b3712e00c97c6471cb0ec6cf31f22ad568b25f76cab652513b36fbbf80",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png",
+      "bytes": 140883,
+      "sha256": "5187d3a3be685fe293222bdc93c7f70225870dabf05a5dd3bb9b775eb9f58309",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-samples.json",
+      "bytes": 1697,
+      "sha256": "c11a0325f8990df0e380327e85058c97a65a4916f3282ad3563ff2ab0e871b3e",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png",
+      "bytes": 96526,
+      "sha256": "a6ea60cdc0f8cc93ef92cc17638116f10cec87e9ccd51dfb8005dbc3fc93cb2f",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png",
+      "bytes": 96555,
+      "sha256": "88d846dffa0e5330adf300d9039780520fce1a0c74212dc71ac17a8a28664def",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png",
+      "bytes": 96599,
+      "sha256": "2bc4c0402a90a03e91c3decfe148812636839774d83b5e0706538ef13c1f0461",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png",
+      "bytes": 96620,
+      "sha256": "c8c89c0d0ba21e311bd5bd09b5b39c0999a3b77d2a59a36d35a688677b7627c1",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png",
+      "bytes": 96585,
+      "sha256": "ecd813aa00dd4050704d485b4fc2df633418fb552e2258a93bd3fb62b4ecd540",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png",
+      "bytes": 96567,
+      "sha256": "de91bbc6bc2a947923358523ffe4fc1d354b2157e0fcdf8bb291c163a023085c",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-samples.json",
+      "bytes": 1715,
+      "sha256": "76b9cda750baffe610e7f3ca4eabf0aac32fc23e473940cb55a643a7533f485d",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/paint-samples.json"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png",
+      "bytes": 126169,
+      "sha256": "90da91b423308d73c822c657fa4fa87e0ae79a198d1bde621ecdb2f617e7020b",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png",
+      "bytes": 139163,
+      "sha256": "36bf080fbbc46b9a648c44a6ec95707116d1d989d92b5eb71cef4c41306e74d7",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png",
+      "bytes": 141521,
+      "sha256": "2ef399f8af4c644ee05ada1f8637014db056cdd707716a926662336eb23a938e",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png",
+      "bytes": 141578,
+      "sha256": "599051db7845a71bc2b2233df6c1ac621e337619816ae5d5a3bc9c066380498e",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png",
+      "bytes": 141497,
+      "sha256": "d79afae858a8542c44539908c127d484b2d92aa4dcae429b96960a441ad83dde",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png",
+      "bytes": 141388,
+      "sha256": "b84420f0c22fd574adc24a417872f6c0109664ffbcdd015ac4481b0896eee774",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png"
+    },
+    {
+      "path": "integration-14/results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-samples.json",
+      "bytes": 1703,
+      "sha256": "369fb58a960b9de127d807a22484a218465edebf778b59759ad55dd25f33f123",
+      "kind": "byte-identical-copy",
+      "source": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/paint-samples.json"
+    },
+    {
+      "path": "path-map.json",
+      "bytes": 412,
+      "sha256": "fa99f196fd65e6387365c8fd68df9a30d086da857d408d330f81799b1872ff94",
+      "kind": "generated",
+      "source": "归档说明/校验元数据"
+    },
+    {
+      "path": "verify-archived-pixels.py",
+      "bytes": 2707,
+      "sha256": "7d14fe472ec128a3fe5b0538cb1d751ad508e851eac672742e461e7ea3ae3250",
+      "kind": "generated",
+      "source": "归档说明/校验元数据"
+    }
+  ]
+}

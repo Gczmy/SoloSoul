@@ -1,0 +1,56 @@
+[
+  {
+    "path": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-0-main.png",
+    "x": 1089,
+    "y": 168,
+    "active": true,
+    "theme": "dark",
+    "region": "main",
+    "fullApp": true
+  },
+  {
+    "path": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-0-sidebar.png",
+    "x": 1089,
+    "y": 168,
+    "active": false,
+    "theme": "dark",
+    "region": "sidebar",
+    "fullApp": true
+  },
+  {
+    "path": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-1-main.png",
+    "x": 1089,
+    "y": 168,
+    "active": true,
+    "theme": "dark",
+    "region": "main",
+    "fullApp": true
+  },
+  {
+    "path": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-1-sidebar.png",
+    "x": 1089,
+    "y": 168,
+    "active": false,
+    "theme": "dark",
+    "region": "sidebar",
+    "fullApp": true
+  },
+  {
+    "path": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-2-main.png",
+    "x": 1089,
+    "y": 168,
+    "active": true,
+    "theme": "dark",
+    "region": "main",
+    "fullApp": true
+  },
+  {
+    "path": "/tmp/solosoul-scroll-region-hover-integration-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/paint-app-2-sidebar.png",
+    "x": 1089,
+    "y": 168,
+    "active": false,
+    "theme": "dark",
+    "region": "sidebar",
+    "fullApp": true
+  }
+]

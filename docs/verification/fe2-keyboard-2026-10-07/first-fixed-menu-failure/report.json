@@ -1,0 +1,41 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "keyboard",
+  "startedAt": 1791410790.079563,
+  "passed": false,
+  "restored": true,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "7c3f176b1d8dc8f933f3dc3a418c0c3087d3512b605b718768027edc3369472d"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "fda77f600bfee5066bd058a92591d29e799f5667d03082e53db99a93eda41bbb"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-keyboard-fixed-native-supported-20261007/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791410898.134634
+}

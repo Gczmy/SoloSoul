@@ -1,0 +1,6 @@
+{
+  "stage": "helper-built-public-PNG-preflight",
+  "product_ui_test_started": false,
+  "reason": "Xcode CopyPNGFile optimized PNG to Apple format, original source no longer byte-identical; Pillow decoder rejected optimized file",
+  "resolution": "disable helper-only COMPRESS_PNG_FILES and verify built fixture bytes before next driver"
+}

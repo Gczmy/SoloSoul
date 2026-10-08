@@ -1,0 +1,29 @@
+{
+  "scope": "Current source ARM64 Android instrumentation APK; production APK separately frozen",
+  "passed": true,
+  "started_at": 1791443873.333536,
+  "command": [
+    "./gradlew",
+    ":app:assembleArm64DebugAndroidTest",
+    "-x",
+    ":app:rustBuildArm64Debug",
+    "--offline",
+    "--no-daemon"
+  ],
+  "exit_code": 0,
+  "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+  "apk_sha256": "b51991f240a7c52d09c80d77dcee8526ab6d0f0640221493226a2e09b487c1e2",
+  "frozen_apk": "/tmp/solosoul-fe2-android-current-editor-final-test-build-20261008/app-arm64-debug-androidTest.apk",
+  "protected_inputs_restored": {
+    "tauri/Cargo.toml": true,
+    "tauri/src-tauri/Cargo.toml": true,
+    "tauri/src-tauri/gen/apple/project.yml": true,
+    "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+    "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+    "tauri/src-tauri/gen/apple/assets": true,
+    "tauri/src-tauri/gen/android/app/src/main/assets": true,
+    "tauri/src-tauri/gen/android/app/tauri.properties": true
+  },
+  "source_differences_after_restore": [],
+  "finished_at": 1791443887.968738
+}

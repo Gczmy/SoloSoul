@@ -1,0 +1,8 @@
+{
+  "observed_at": "2026-10-08",
+  "tool": "cua.getApp(com.solosoul.fe2.macos)",
+  "result": "Mac locked; automatic unlock failed",
+  "current_native_macos_acceptance": "pending",
+  "old_test_process_pid": 99069,
+  "old_test_process_not_promoted_as_current_package_acceptance": true
+}

@@ -1,0 +1,289 @@
+
+Running 14 tests using 2 workers
+
+(node:16908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16907) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16907) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (2.1s)
+(node:16956) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16956) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 [webkit] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (1.9s)
+  ✘   2 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar (7.5s)
+(node:16996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   4 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar (6.9s)
+(node:17017) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17017) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   5 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar (6.6s)
+(node:17029) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17029) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   6 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar (7.2s)
+(node:17094) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17094) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   7 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar (6.5s)
+(node:17156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   8 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar (7.1s)
+(node:17280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   9 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar (6.6s)
+(node:17291) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17291) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 [chromium] › e2e/object-ui-refinement.spec.ts:166:3 › android: long password stays clear of controls at 320px (1.1s)
+  ✓  12 [chromium] › e2e/object-ui-refinement.spec.ts:166:3 › ios: long password stays clear of controls at 320px (1.0s)
+  ✘  10 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar (7.1s)
+(node:17355) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:17355) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 [webkit] › e2e/object-ui-refinement.spec.ts:166:3 › android: long password stays clear of controls at 320px (1.4s)
+  ✓  14 [webkit] › e2e/object-ui-refinement.spec.ts:166:3 › ios: long password stays clear of controls at 320px (1.3s)
+
+
+  1) [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="Edit" type="button" aria-label="Edit" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/error-context.md
+
+  2) [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="编辑" type="button" aria-label="编辑" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/error-context.md
+
+  3) [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="Edit" type="button" aria-label="Edit" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-chromium/error-context.md
+
+  4) [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="编辑" type="button" aria-label="编辑" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-chromium/error-context.md
+
+  5) [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="Edit" type="button" aria-label="Edit" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/error-context.md
+
+  6) [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="编辑" type="button" aria-label="编辑" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/error-context.md
+
+  7) [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('Edit', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="Edit" type="button" aria-label="Edit" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-windo-c7a21-istory-and-scoped-scrollbar-webkit/error-context.md
+
+  8) [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('[data-shell-content]').getByTitle('编辑', { exact: true }).first()[22m
+    [2m    13 × locator resolved to <button title="编辑" type="button" aria-label="编辑" class="_button_1jis0_9 " data-ui-icon-button="default" data-ui-icon-intent="neutral">…</button>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      105 |       await expect(count).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      106 |       await expect(count).toHaveCSS('position', 'static');
+    > 107 |       await expect(main.getByTitle(zh ? '编辑' : 'Edit', { exact: true }).first()).toBeVisible();
+          |                                                                                  ^
+      108 |       await expect(
+      109 |         main.getByTitle(zh ? '移入回收站' : 'Move to trash', { exact: true }).first(),
+      110 |       ).toBeVisible();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:107:82
+
+    Error Context: ../../../../../tmp/solosoul-object-ui-browser-results/object-ui-refinement-windo-9f753-istory-and-scoped-scrollbar-webkit/error-context.md
+
+  8 failed
+    [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar 
+    [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar 
+    [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar 
+    [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar 
+    [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar 
+    [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar 
+    [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar 
+    [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar 
+  6 passed (39.4s)

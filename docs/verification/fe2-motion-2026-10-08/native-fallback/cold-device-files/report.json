@@ -1,0 +1,338 @@
+{
+  "records": [
+    {
+      "path": "\/login",
+      "buttons": [
+        "Restart",
+        "Diagnostics",
+        "",
+        "Unlock",
+        "Create a new account",
+        "Restore from another device",
+        "Master password"
+      ],
+      "mounted": true,
+      "startupGone": false,
+      "platform": "android",
+      "text": "SoloSoul\nSoloSoul\n\nUnlock your vault to continue\n\nFE2 public visual test · acc_35d4c276448a416e\nFE2 public second account · acc_bf1b6a74ff1e4e40\nUnlock\nCreate a new account\nRestore from another device\nMaster password",
+      "glass": "enhanced",
+      "reduceMotion": "true",
+      "hidden": false,
+      "home": false,
+      "alerts": [],
+      "theme": "dark",
+      "background": "#1a211d",
+      "foreground": "#d6ddd8",
+      "accent": "#112233",
+      "accountCount": 2,
+      "passwordRequired": true,
+      "stage": "cold-login",
+      "previousProcessId": 13083,
+      "processId": 13500,
+      "locked": true,
+      "recordedAtMs": 1791422583832
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "true",
+      "background": "#1a211d",
+      "surface": "#242d28",
+      "foreground": "#d6ddd8",
+      "accent": "#112233",
+      "count": "1",
+      "copyText": "My vault1objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(214, 221, 216)",
+      "copyRect": {
+        "x": 44,
+        "y": 255.2261962890625,
+        "width": 184.71429443359375,
+        "height": 147.19642639160156,
+        "right": 228.71429443359375,
+        "bottom": 402.42262268066406
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 231.2261962890625,
+        "width": 153.9166717529297,
+        "height": 195.19642639160156,
+        "right": 386.4761962890625,
+        "bottom": 426.42262268066406
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 293,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "primaryInk": "#ffffff",
+      "action": {
+        "color": "rgb(138, 147, 155)",
+        "contrast": 5.259082618914598,
+        "hittable": true,
+        "visible": true,
+        "textRect": {
+          "x": 293.4345397949219,
+          "y": 465.08929443359375,
+          "right": 348.4761962890625,
+          "bottom": 483.7559509277344
+        },
+        "rgb": [
+          138,
+          147,
+          155
+        ],
+        "inkPixels": 999
+      },
+      "liquidBase": "#242d28",
+      "motionEffect": {
+        "navigationTransition": "1e-05s",
+        "systemReduced": false
+      },
+      "navBackdrop": "blur(16px) saturate(1.08)",
+      "stage": "account-a-cold-system-light",
+      "accountId": "acc_35d4c276448a416e",
+      "accountName": "FE2 public visual test",
+      "savedPreferences": {
+        "theme": "dark",
+        "defaultDarkTheme": "forest-night",
+        "accentColor": "custom",
+        "customAccentHex": "#112233",
+        "androidGlass": "enhanced",
+        "reduceMotion": true
+      },
+      "copyInkPixels": 6520,
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "systemNightMode": false,
+      "recordedAtMs": 1791422591719
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "true",
+      "background": "#1a211d",
+      "surface": "#242d28",
+      "foreground": "#d6ddd8",
+      "accent": "#112233",
+      "count": "1",
+      "copyText": "My vault1objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(214, 221, 216)",
+      "copyRect": {
+        "x": 44,
+        "y": 255.2261962890625,
+        "width": 184.71429443359375,
+        "height": 147.19642639160156,
+        "right": 228.71429443359375,
+        "bottom": 402.42262268066406
+      },
+      "artRect": {
+        "x": 232.5595245361328,
+        "y": 231.2261962890625,
+        "width": 153.9166717529297,
+        "height": 195.19642639160156,
+        "right": 386.4761962890625,
+        "bottom": 426.42262268066406
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 231,
+      "canvasHeight": 293,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "primaryInk": "#ffffff",
+      "action": {
+        "color": "rgb(138, 147, 155)",
+        "contrast": 5.259082618914598,
+        "hittable": true,
+        "visible": true,
+        "textRect": {
+          "x": 293.4345397949219,
+          "y": 465.08929443359375,
+          "right": 348.4761962890625,
+          "bottom": 483.7559509277344
+        },
+        "rgb": [
+          138,
+          147,
+          155
+        ],
+        "inkPixels": 999
+      },
+      "liquidBase": "#242d28",
+      "motionEffect": {
+        "navigationTransition": "1e-05s",
+        "systemReduced": false
+      },
+      "navBackdrop": "blur(16px) saturate(1.08)",
+      "stage": "account-a-cold-system-dark",
+      "accountId": "acc_35d4c276448a416e",
+      "accountName": "FE2 public visual test",
+      "savedPreferences": {
+        "theme": "dark",
+        "defaultDarkTheme": "forest-night",
+        "accentColor": "custom",
+        "customAccentHex": "#112233",
+        "androidGlass": "enhanced",
+        "reduceMotion": true
+      },
+      "copyInkPixels": 6520,
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": true
+      },
+      "systemNightMode": true,
+      "recordedAtMs": 1791422593219
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "theme": "light",
+      "glass": "local",
+      "reduceMotion": "false",
+      "background": "#f6f8fa",
+      "surface": "#ffffff",
+      "foreground": "#1f2328",
+      "accent": "#ffee00",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public second account",
+      "copyColor": "rgb(31, 35, 40)",
+      "copyRect": {
+        "x": 44,
+        "y": 255.2261962890625,
+        "width": 217.82142639160156,
+        "height": 124.79762268066406,
+        "right": 261.82142639160156,
+        "bottom": 380.02381896972656
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 412,
+      "overflow": false,
+      "navCount": 4,
+      "primaryInk": "#000000",
+      "action": {
+        "color": "rgb(124, 116, 0)",
+        "contrast": 4.529314742972726,
+        "hittable": true,
+        "visible": true,
+        "textRect": {
+          "x": 293.4345397949219,
+          "y": 442.69049072265625,
+          "right": 348.4761962890625,
+          "bottom": 461.3571472167969
+        },
+        "rgb": [
+          124,
+          116,
+          0
+        ],
+        "inkPixels": 969
+      },
+      "liquidBase": "#ffffff",
+      "motionEffect": {
+        "navigationTransition": "0s",
+        "systemReduced": false
+      },
+      "navBackdrop": "blur(16px) saturate(1.08)",
+      "stage": "account-b-cold-system-dark",
+      "accountId": "acc_bf1b6a74ff1e4e40",
+      "accountName": "FE2 public second account",
+      "savedPreferences": {
+        "theme": "light",
+        "defaultLightTheme": "clean-slate",
+        "accentColor": "custom",
+        "customAccentHex": "#ffee00",
+        "androidGlass": "local",
+        "reduceMotion": false
+      },
+      "copyInkPixels": 7660,
+      "systemBars": {
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "nightMode": true
+      },
+      "systemNightMode": true,
+      "recordedAtMs": 1791422598733
+    },
+    {
+      "stage": "account-preferences-isolated",
+      "accountCount": 2,
+      "aRetainsObjectCount": true,
+      "bRemainsEmpty": true,
+      "savedPreferencesUnchanged": true,
+      "recordedAtMs": 1791422598744
+    }
+  ],
+  "processId": 13500,
+  "directoryAttempts": 0,
+  "unlockAttempts": [
+    {
+      "accountName": "FE2 public visual test",
+      "attempt": 1,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "accountName": "FE2 public visual test",
+      "attempt": 2,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "accountName": "FE2 public visual test",
+      "attempt": 3,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "accountName": "FE2 public visual test",
+      "attempt": 4,
+      "result": "home"
+    },
+    {
+      "accountName": "FE2 public second account",
+      "attempt": 1,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "accountName": "FE2 public second account",
+      "attempt": 2,
+      "alerts": [
+        "The vault is under maintenance. Try again later."
+      ]
+    },
+    {
+      "accountName": "FE2 public second account",
+      "attempt": 3,
+      "result": "home"
+    }
+  ],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": true,
+  "scenario": "cold",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back, two public accounts with distinct saved themes\/materials\/accents, repeated UI switch, system bars and composed home pixels, real process-cold startup\/login\/password unlock\/system theme",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

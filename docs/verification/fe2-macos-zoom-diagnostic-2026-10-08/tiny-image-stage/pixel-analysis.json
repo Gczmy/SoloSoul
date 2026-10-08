@@ -1,0 +1,450 @@
+{
+  "passed": true,
+  "scope": "Headless Playwright browser screenshots only; not WKWebView/AppKit or physical display proof",
+  "rows": [
+    {
+      "engine": "webkit",
+      "theme": "dark",
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29260
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 29263
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 29190
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29260
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in-again": [
+          55,
+          60,
+          53
+        ],
+        "fit": [
+          55,
+          60,
+          53
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in-again": [
+          24,
+          24,
+          26
+        ],
+        "fit": [
+          24,
+          24,
+          26
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "passed": true
+    },
+    {
+      "engine": "webkit",
+      "theme": "light",
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29039
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 28984
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 28932
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29039
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in-again": [
+          55,
+          60,
+          53
+        ],
+        "fit": [
+          55,
+          60,
+          53
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in-again": [
+          26,
+          26,
+          28
+        ],
+        "fit": [
+          26,
+          26,
+          28
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "passed": true
+    },
+    {
+      "engine": "chromium",
+      "theme": "dark",
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 14800
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 14964
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 14848
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 14800
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          57,
+          62,
+          55
+        ],
+        "zoom-in": [
+          57,
+          62,
+          55
+        ],
+        "zoom-in-again": [
+          57,
+          62,
+          55
+        ],
+        "fit": [
+          57,
+          62,
+          55
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in-again": [
+          24,
+          24,
+          26
+        ],
+        "fit": [
+          24,
+          24,
+          26
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "passed": true
+    },
+    {
+      "engine": "chromium",
+      "theme": "light",
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 11630
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 11791
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 11682
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 11630
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          57,
+          62,
+          57
+        ],
+        "zoom-in": [
+          57,
+          62,
+          57
+        ],
+        "zoom-in-again": [
+          57,
+          62,
+          57
+        ],
+        "fit": [
+          57,
+          62,
+          57
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in-again": [
+          26,
+          26,
+          28
+        ],
+        "fit": [
+          26,
+          26,
+          28
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "passed": true
+    }
+  ]
+}

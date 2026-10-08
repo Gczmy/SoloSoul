@@ -1,0 +1,74 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "previews",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791455156.178632,
+  "passed": true,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-file-stage-build-20261008/app-arm64-debug.apk",
+      "sha256": "87e493af09fcbd4900434415fa7f8185e614e1c676c7621bc2d9bdacf8fe066d"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-file-stage-test-build-20261008/app-arm64-debug-androidTest.apk",
+      "sha256": "3996695574d0aef888fed131ff66c2a30136511aa5f8c636a76292e0140e5a9f"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-android-current-file-stage-native-supported-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "preview-fixtures-encrypted",
+    "nonempty-attachments-dark",
+    "file-preview-text-dark",
+    "file-preview-image-dark",
+    "photo-album-dark",
+    "photo-viewer-dark",
+    "photo-album-after-back-dark",
+    "attachments-after-back-dark",
+    "preview-returned-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "nonempty-attachments-light",
+    "file-preview-text-light",
+    "file-preview-image-light",
+    "photo-album-light",
+    "photo-viewer-light",
+    "photo-album-after-back-light",
+    "attachments-after-back-light",
+    "preview-returned-detail-light"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791455244.977937
+}

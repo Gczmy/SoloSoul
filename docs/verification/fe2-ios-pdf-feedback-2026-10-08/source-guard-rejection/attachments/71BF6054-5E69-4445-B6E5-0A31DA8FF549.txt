@@ -1,0 +1,210 @@
+Attributes: Application, 0x103d86ec0, pid: 46129, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x103d86ec0, pid: 46129, label: 'SoloSoul'
+    Window (Main), 0x103fc0440, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103fa0860, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103d4a950, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x103da6420, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x103db9150, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x103db6f80, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x103d9b620, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x103d9b740, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x103d9b860, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x103d9b980, {{0.0, -191.0}, {402.0, 874.0}}
+                        Other, 0x103d9baa0, {{0.0, -191.0}, {402.0, 874.0}}, label: 'SoloSoul'
+                          Other, 0x103d9bbc0, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅'
+                            Button, 0x103ebc300, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回'
+                            Other, 0x103caceb0, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 1
+                              StaticText, 0x103cbbe50, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 新建对象
+                          Other, 0x103cbbf70, {{0.0, 414.0}, {402.0, 56.0}}, label: '首页, 导览'
+                            Button, 0x103cbc090, {{0.0, 415.0}, {81.0, 55.0}}, label: '首页'
+                            Button, 0x103cbc1b0, {{80.0, 415.0}, {81.0, 55.0}}, label: '设置'
+                            Button, 0x103cbc2d0, {{179.0, 418.0}, {45.0, 49.0}}, label: '添加页面'
+                            Button, 0x103cbc3f0, {{241.0, 415.0}, {81.0, 55.0}}, label: '展开'
+                            Button, 0x103cbc510, {{321.0, 415.0}, {81.0, 55.0}}, label: '锁定保险库'
+                          Other, 0x103cbc630, {{0.0, 0.0}, {402.0, 380.0}}
+                            Other, 0x103cbc750, {{0.0, 0.0}, {402.0, 10.0}}
+                            Other, 0x103cbc870, {{0.0, 110.0}, {402.0, 270.0}}, label: '主要'
+                              Other, 0x103cbc990, {{33.0, -194.0}, {336.0, 20.0}}, label: '对象类型', value: 3
+                                StaticText, 0x103cbcab0, {{33.0, -194.0}, {56.0, 20.0}}, label: '对象类型', value: 对象类型
+                              Other, 0x103cbcbd0, {{33.0, -162.0}, {336.0, 19.0}}
+                                StaticText, 0x103cbccf0, {{33.0, -162.0}, {78.0, 19.0}}, label: '保存到：身份', value: 保存到：身份
+                              Switch, 0x103cbce10, {{33.0, -127.0}, {141.0, 44.0}}, label: '身份证插件绑定', value: 0
+                              Switch, 0x103cbcf30, {{182.0, -127.0}, {86.0, 44.0}}, label: '身份信息', value: 1
+                              Switch, 0x103cbd050, {{33.0, -75.0}, {128.0, 44.0}}, label: '地址插件绑定', value: 0
+                              Button, 0x103cbd170, {{275.0, -75.0}, {94.0, 44.0}}, label: '管理模板'
+                              Other, 0x103cbd290, {{33.0, 27.0}, {336.0, 19.0}}, label: '对象名称'
+                                StaticText, 0x103cbd3b0, {{33.0, 27.0}, {52.0, 19.0}}, label: '对象名称', value: 对象名称
+                              TextField, 0x103cbd4d0, {{33.0, 52.0}, {336.0, 42.0}}, label: '对象名称', placeholderValue: '输入名称', value: FE2 iOS public ide...
+                              Other, 0x103cbd5f0, {{33.0, 152.0}, {336.0, 20.0}}, label: '属性', value: 3
+                                StaticText, 0x103cbd710, {{33.0, 152.0}, {28.0, 20.0}}, label: '属性', value: 属性
+                              Other, 0x103cbd830, {{33.0, 184.0}, {336.0, 44.0}}, label: '姓名 公开'
+                                StaticText, 0x103cbd950, {{53.0, 184.0}, {26.0, 19.0}}, label: '姓名', value: 姓名
+                                StaticText, 0x103cbda70, {{53.0, 211.0}, {20.0, 15.0}}, label: '公开', value: 公开
+                              TextField, 0x103cbdb90, {{33.0, 232.0}, {336.0, 38.0}}, label: '姓名 公开', Keyboard Focused, Focused
+                              Other, 0x103cbdcb0, {{33.0, 294.0}, {336.0, 44.0}}, label: '出生日期 内部'
+                                StaticText, 0x103cbddd0, {{53.0, 294.0}, {52.0, 19.0}}, label: '出生日期', value: 出生日期
+                                StaticText, 0x103cbdef0, {{53.0, 321.0}, {20.0, 15.0}}, label: '内部', value: 内部
+                              Other, 0x103cbe010, {{33.0, 341.0}, {336.0, 15.0}}
+                                StaticText, 0x103cbe130, {{33.0, 341.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD
+                              Other, 0x103cbe250, {{33.0, 360.0}, {336.0, 42.0}}
+                                TextField, 0x103cbe370, {{42.0, 366.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy
+                                TextField, 0x103cbe490, {{110.0, 366.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm
+                                TextField, 0x103cbe5b0, {{160.0, 366.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd
+                              Other, 0x103cbe6d0, {{33.0, 426.0}, {336.0, 44.0}}, label: '国籍 公开'
+                                StaticText, 0x103cbe7f0, {{53.0, 426.0}, {26.0, 19.0}}, label: '国籍', value: 国籍
+                                StaticText, 0x103cbe910, {{53.0, 453.0}, {20.0, 15.0}}, label: '公开', value: 公开
+                              TextField, 0x103cbea30, {{33.0, 474.0}, {336.0, 38.0}}, label: '国籍 公开'
+                              Other, 0x103cbeb50, {{33.0, 536.0}, {336.0, 44.0}}, label: '证件号码 关键'
+                                StaticText, 0x103cbec70, {{53.0, 536.0}, {52.0, 19.0}}, label: '证件号码', value: 证件号码
+                                StaticText, 0x103cbed90, {{53.0, 563.0}, {20.0, 15.0}}, label: '关键', value: 关键
+                              TextField, 0x103cbeeb0, {{33.0, 584.0}, {336.0, 38.0}}, label: '证件号码 关键'
+                              Other, 0x103cbefd0, {{33.0, 646.0}, {336.0, 44.0}}, label: '电子邮箱 内部'
+                                StaticText, 0x103d9bce0, {{53.0, 646.0}, {52.0, 19.0}}, label: '电子邮箱', value: 电子邮箱
+                                StaticText, 0x103d9be00, {{53.0, 673.0}, {20.0, 15.0}}, label: '内部', value: 内部
+                              Other, 0x103d9bf20, {{33.0, 693.0}, {336.0, 15.0}}
+                                StaticText, 0x103d9c040, {{33.0, 693.0}, {146.0, 15.0}}, label: '格式示例：name@example.com', value: 格式示例：name@example....
+                              TextField, 0x103d9c160, {{33.0, 712.0}, {336.0, 38.0}}, label: '电子邮箱 内部'
+                              Other, 0x103d9c280, {{33.0, 774.0}, {336.0, 44.0}}, label: '电话 内部'
+                                StaticText, 0x103d9c3a0, {{53.0, 774.0}, {26.0, 19.0}}, label: '电话', value: 电话
+                                StaticText, 0x103d9c4c0, {{53.0, 801.0}, {20.0, 15.0}}, label: '内部', value: 内部
+                              Other, 0x103d9c5e0, {{33.0, 821.0}, {336.0, 15.0}}
+                                StaticText, 0x103d9c700, {{33.0, 821.0}, {129.0, 15.0}}, label: '格式示例：+86 1234567890', value: 格式示例：+86 1234567890
+                              TextField, 0x103d9c820, {{33.0, 840.0}, {336.0, 38.0}}, label: '电话 内部'
+                              Button, 0x103d9c940, {{16.0, 983.0}, {370.0, 44.0}}, label: '取消'
+                              Button, 0x103d9ca60, {{16.0, 931.0}, {370.0, 44.0}}, label: '保存'
+                Other, 0x103d9cd80, {{369.0, 62.0}, {30.0, 374.0}}, label: 'Vertical scroll bar, 2 pages', value: 47%
+                  Other, 0x103d9cea0, {{396.0, 120.0}, {3.0, 251.7}}
+                Other, 0x103d9cfc0, {{62.0, 403.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x103d9d0e0, {{65.0, 430.0}, {272.0, 3.0}}
+                Other, 0x103d9d200, {{369.0, 62.0}, {30.0, 374.0}}, label: 'Vertical scroll bar, 2 pages', value: 47%
+                  Other, 0x103d9d320, {{396.0, 120.0}, {3.0, 251.7}}
+                Other, 0x103d9d440, {{62.0, 403.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x103d9d560, {{65.0, 430.0}, {272.0, 3.0}}
+    Window, 0x103ebc9c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103ebcd60, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103ebd180, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103ebd2a0, {{0.0, 470.0}, {402.0, 404.0}}
+          Other, 0x103ebd3c0, {{0.0, 470.0}, {402.0, 68.0}}
+            Other, 0x103ebd4e0, {{0.0, 470.0}, {402.0, 68.0}}
+              Toolbar, 0x103eb43a0, {{0.0, 480.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Other, 0x103eb44c0, {{0.0, 480.0}, {402.0, 48.0}}
+                  Other, 0x103eb45e0, {{16.0, 480.0}, {370.0, 48.0}}
+                    Other, 0x103eb4700, {{16.0, 480.0}, {370.0, 48.0}}
+                      Other, 0x103eb4820, {{16.0, 480.0}, {0.0, 0.0}}
+                        Other, 0x103eb4940, {{16.0, 480.0}, {370.0, 48.0}}
+                          Other, 0x103eb4a60, {{16.0, 480.0}, {50.0, 48.0}}
+                            Other, 0x103eb4b80, {{21.0, 485.0}, {40.0, 38.0}}
+                              Other, 0x103eb4ca0, {{21.0, 485.0}, {40.0, 38.0}}
+                                Button, 0x103eb4dc0, {{21.0, 485.0}, {40.0, 38.0}}, label: 'Previous', Disabled
+                          Other, 0x103eb4ee0, {{70.0, 480.0}, {50.0, 48.0}}
+                            Other, 0x103eb5000, {{75.0, 485.0}, {40.0, 38.0}}
+                              Other, 0x103eb5120, {{75.0, 485.0}, {40.0, 38.0}}
+                                Button, 0x103eb5240, {{75.0, 485.0}, {40.0, 38.0}}, label: 'Next', Disabled
+                          Other, 0x103eb5360, {{336.0, 480.0}, {50.0, 48.0}}
+                            Other, 0x103eb5480, {{341.0, 485.0}, {40.0, 38.0}}
+                              Other, 0x103eb55a0, {{341.0, 485.0}, {40.0, 38.0}}
+                                Button, 0x103eb56c0, {{341.0, 485.0}, {40.0, 38.0}}, label: 'Done'
+          Other, 0x103eb57e0, {{0.0, 538.0}, {402.0, 336.0}}, identifier: 'inputView'
+    Window, 0x103eb5900, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103eb5a20, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103eb5b40, {{0.0, 470.0}, {402.0, 404.0}}
+          Other, 0x103eb5c60, {{0.0, 470.0}, {402.0, 68.0}}
+          Other, 0x103eb5d80, {{0.0, 538.0}, {402.0, 45.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x103eb5ea0, {{0.0, 538.0}, {402.0, 45.0}}
+              Other, 0x103eb5fc0, {{0.0, 538.0}, {402.0, 45.0}}, identifier: 'CenterPageView'
+                Other, 0x103eb60e0, {{0.0, -62.0}, {402.0, 1245.0}}
+                  ScrollView, 0x103eb6200, {{0.0, 538.0}, {402.0, 45.0}}
+                Other, 0x103eb6320, {{0.0, 538.0}, {402.0, 45.0}}
+                  Other, 0x103eb6440, {{0.0, 538.0}, {402.0, 45.0}}
+                    Other, 0x103eb6560, {{0.0, 538.0}, {402.0, 55.0}}
+                      Other, 0x103eb6680, {{0.0, 538.0}, {402.0, 55.0}}
+                        Other, 0x103ea8050, {{0.0, 538.0}, {357.0, 55.0}}
+                          CollectionView, 0x103ea8170, {{0.0, 538.0}, {357.0, 55.0}}
+                            Cell, 0x103ea8290, {{1.0, 538.0}, {41.0, 45.0}}, identifier: '我', label: '我, 我们的我'
+                              Other, 0x103ea83b0, {{1.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103ea84d0, {{11.0, 542.0}, {21.0, 45.0}}, label: '我'
+                            Cell, 0x103fbc380, {{42.0, 538.0}, {41.0, 45.0}}, identifier: '你', label: '你, 你们的你'
+                              Other, 0x103fb9790, {{42.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103f9ed20, {{52.0, 542.0}, {21.0, 45.0}}, label: '你'
+                            Cell, 0x103f6e980, {{83.0, 538.0}, {41.0, 45.0}}, identifier: '在', label: '在, 现在的在'
+                              Other, 0x103fbbd40, {{83.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103f95fe0, {{93.0, 542.0}, {21.0, 45.0}}, label: '在'
+                            Cell, 0x103fb9250, {{124.0, 538.0}, {41.0, 45.0}}, identifier: '这', label: '这, 这个的这'
+                              Other, 0x103fa1f10, {{124.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103fdf770, {{134.0, 542.0}, {21.0, 45.0}}, label: '这'
+                            Cell, 0x103fdf890, {{165.0, 538.0}, {41.0, 45.0}}, identifier: '不', label: '不, 不是的不'
+                              Other, 0x103fdf9b0, {{165.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103fdfad0, {{175.0, 542.0}, {21.0, 45.0}}, label: '不'
+                            Cell, 0x103fdfbf0, {{206.0, 538.0}, {41.0, 45.0}}, identifier: '是', label: '是, 还是的是'
+                              Other, 0x103fdfd10, {{206.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103fdfe30, {{216.0, 542.0}, {21.0, 45.0}}, label: '是'
+                            Cell, 0x103fdff50, {{247.0, 538.0}, {41.0, 45.0}}, identifier: '一', label: '一, 一二三的一'
+                              Other, 0x103fe0070, {{247.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103fe0190, {{257.0, 542.0}, {21.0, 45.0}}, label: '一'
+                            Cell, 0x103fe02b0, {{288.0, 538.0}, {41.0, 45.0}}, identifier: '好', label: '好, 好友的好'
+                              Other, 0x103cbf0f0, {{288.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103d9d680, {{298.0, 542.0}, {21.0, 45.0}}, label: '好'
+                            Cell, 0x103d9d7a0, {{329.0, 538.0}, {41.0, 45.0}}, identifier: '他', label: '他, 男他的他'
+                              Other, 0x103d9d8c0, {{329.0, 538.0}, {41.0, 45.0}}
+                                StaticText, 0x103d9d9e0, {{339.0, 542.0}, {21.0, 45.0}}, label: '他'
+                        Button, 0x103d9db00, {{357.0, 542.0}, {45.0, 45.0}}, label: 'More suggestions'
+          Other, 0x103d9dc20, {{0.0, 538.0}, {402.0, 336.0}}
+            Other, 0x103d9dd40, {{0.0, 538.0}, {402.0, 336.0}}
+              Other, 0x103d9de60, {{0.0, 538.0}, {402.0, 336.0}}
+          Other, 0x103d9df80, {{0.0, 583.0}, {402.0, 233.0}}
+            Keyboard, 0x103d9e0a0, {{0.0, 583.0}, {402.0, 233.0}}
+              Other, 0x103d9e1c0, {{0.0, 583.0}, {402.0, 233.0}}
+                Other, 0x103d9e2e0, {{0.0, 583.0}, {402.0, 233.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x103d9e400, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x103d9e520, {{4.7, 590.0}, {39.3, 54.0}}, label: 'q'
+                  Key, 0x103d9e640, {{44.0, 590.0}, {39.7, 54.0}}, label: 'w'
+                  Key, 0x103d9e760, {{83.7, 590.0}, {39.3, 54.0}}, label: 'e'
+                  Key, 0x103d9e880, {{123.0, 590.0}, {39.7, 54.0}}, label: 'r'
+                  Key, 0x103cbf210, {{162.7, 590.0}, {39.3, 54.0}}, label: 't'
+                  Key, 0x103ea85f0, {{202.0, 590.0}, {39.7, 54.0}}, label: 'y'
+                  Key, 0x103ea8710, {{241.7, 590.0}, {39.3, 54.0}}, label: 'u'
+                  Key, 0x103ea8830, {{281.0, 590.0}, {39.7, 54.0}}, label: 'i'
+                  Key, 0x103ea8950, {{320.7, 590.0}, {39.3, 54.0}}, label: 'o'
+                  Key, 0x103cbf330, {{360.0, 590.0}, {39.7, 54.0}}, label: 'p'
+                  Key, 0x103cbf450, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x103cbf570, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x103cbf690, {{24.3, 644.0}, {39.3, 54.0}}, label: 'a'
+                  Key, 0x103cbf7b0, {{63.7, 644.0}, {39.7, 54.0}}, label: 's'
+                  Key, 0x103cbf8d0, {{103.3, 644.0}, {39.3, 54.0}}, label: 'd'
+                  Key, 0x103cbf9f0, {{142.7, 644.0}, {39.7, 54.0}}, label: 'f'
+                  Key, 0x103cbfb10, {{182.3, 644.0}, {39.3, 54.0}}, label: 'g'
+                  Key, 0x103cbfc30, {{221.7, 644.0}, {39.7, 54.0}}, label: 'h'
+                  Key, 0x103cbfd50, {{261.3, 644.0}, {39.3, 54.0}}, label: 'j'
+                  Key, 0x103cbfe70, {{300.7, 644.0}, {39.7, 54.0}}, label: 'k'
+                  Key, 0x103cbff90, {{340.3, 644.0}, {39.3, 54.0}}, label: 'l'
+                  Key, 0x103cc00b0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x103cc01d0, {{4.7, 698.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift'
+                  Key, 0x103cc02f0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x103cc0410, {{63.7, 698.0}, {39.7, 54.0}}, label: 'z'
+                  Key, 0x103cc0530, {{103.3, 698.0}, {39.3, 54.0}}, label: 'x'
+                  Key, 0x103cc07a0, {{142.7, 698.0}, {39.7, 54.0}}, label: 'c'
+                  Key, 0x103cc08c0, {{182.3, 698.0}, {39.3, 54.0}}, label: 'v'
+                  Key, 0x103cc09e0, {{221.7, 698.0}, {39.7, 54.0}}, label: 'b'
+                  Key, 0x103cc0b00, {{261.3, 698.0}, {39.3, 54.0}}, label: 'n'
+                  Key, 0x103cc0c20, {{300.7, 698.0}, {39.7, 54.0}}, label: 'm'
+                  Key, 0x103cc0d40, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x103cc0e60, {{348.0, 698.0}, {51.7, 54.0}}, identifier: 'delete', label: '删除'
+                  Key, 0x103cc0f80, {{4.7, 752.0}, {49.3, 54.0}}, identifier: 'more', label: '数字'
+                  Button, 0x103cc10a0, {{54.0, 752.0}, {49.3, 54.0}}, identifier: 'emoji', label: '表情符号'
+                  Key, 0x103cc11c0, {{103.3, 752.0}, {197.3, 54.0}}, identifier: 'space', label: ' '
+                  Button, 0x103cc12e0, {{300.7, 752.0}, {99.0, 54.0}}, identifier: 'Return', label: '换行'
+          Other, 0x103cc1600, {{0.0, 583.0}, {402.0, 291.0}}
+            Button, 0x103cc1720, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Next keyboard', value: English (US)
+              StaticText, 0x103ea8a70, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x103ea8b90, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x103ea8cb0, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x103cc1840, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x103cc1960, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x103d86ec0, pid: 46129, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x10680a8e0, pid: 46129, label: 'SoloSoul'
+  }

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "recorded_at": "2026-10-08T18:54:05.977343+00:00",
+  "checked_entries": 5948,
+  "current_source_entries": 169,
+  "mismatch_count": 0,
+  "mismatches": [],
+  "scope": "Current selected source map and recursively declared evidence_sha256 maps; historical source/build maps remain bound to their original versions; receipt excludes its own hash.",
+  "evidence_entries": 5779
+}

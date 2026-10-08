@@ -1,0 +1,223 @@
+[2m[WebServer] [22m(node:65800) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 30 tests using 2 workers
+
+(node:65821) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65820) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65821) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65820) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m5:11:39 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1493/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1493/src/stores/updateStore.ts:94:65
+  ✓   1 [chromium] › e2e/login-method-layout.spec.ts:59:3 › android 390px: login methods stay compact and PIN stays inside the card (4.2s)
+  ✓   2 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone: functional labels remain neutral and navigation separates from content (4.4s)
+[2m[WebServer] [22m5:11:41 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1493/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1493/src/stores/updateStore.ts:94:65
+  ✓   3 [chromium] › e2e/login-method-layout.spec.ts:59:3 › android 320px: login methods stay compact and PIN stays inside the card (2.1s)
+  ✓   4 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › macos soft-cream: functional labels remain neutral and navigation separates from content (2.4s)
+  ✓   5 [chromium] › e2e/login-method-layout.spec.ts:59:3 › ios 390px: login methods stay compact and PIN stays inside the card (1.5s)
+  ✓   6 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone-dark: functional labels remain neutral and navigation separates from content (1.9s)
+  ✘   7 [chromium] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card (1.5s)
+(node:65934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   8 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › macos deep-ocean: functional labels remain neutral and navigation separates from content (1.7s)
+  ✓   9 [chromium] › e2e/login-method-layout.spec.ts:59:3 › windows 1100px: login methods stay compact and PIN stays inside the card (1.9s)
+  ✓  10 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › windows warm-stone: functional labels remain neutral and navigation separates from content (1.8s)
+  ✓  11 [chromium] › e2e/macos-glass.spec.ts:103:3 › light 登录普通面板收窄至80%并保留辅助功能回退 (2.1s)
+  ✓  12 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › windows soft-cream: functional labels remain neutral and navigation separates from content (2.2s)
+  ✓  13 [chromium] › e2e/macos-glass.spec.ts:103:3 › dark 登录普通面板收窄至80%并保留辅助功能回退 (1.6s)
+(node:65996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  14 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › windows warm-stone-dark: functional labels remain neutral and navigation separates from content (1.7s)
+  ✓  15 [chromium] › e2e/desktop-functional-colors.spec.ts:9:5 › windows deep-ocean: functional labels remain neutral and navigation separates from content (1.7s)
+(node:66029) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:66029) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  16 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone: functional labels remain neutral and navigation separates from content (2.7s)
+(node:66040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m5:11:57 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1493/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1493/src/stores/updateStore.ts:94:92
+(node:66040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [webkit] › e2e/login-method-layout.spec.ts:59:3 › android 390px: login methods stay compact and PIN stays inside the card (2.5s)
+[2m[WebServer] [22m5:11:59 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1493/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1493/src/stores/updateStore.ts:94:92
+  ✘  18 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos soft-cream: functional labels remain neutral and navigation separates from content (2.9s)
+  ✓  19 [webkit] › e2e/login-method-layout.spec.ts:59:3 › android 320px: login methods stay compact and PIN stays inside the card (2.7s)
+(node:66191) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:66191) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  20 [webkit] › e2e/login-method-layout.spec.ts:59:3 › ios 390px: login methods stay compact and PIN stays inside the card (2.7s)
+  ✘  21 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone-dark: functional labels remain neutral and navigation separates from content (3.1s)
+(node:66244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:66244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  22 [webkit] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card (2.8s)
+(node:66262) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:66262) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  23 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos deep-ocean: functional labels remain neutral and navigation separates from content (2.5s)
+(node:66289) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:66289) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  24 [webkit] › e2e/login-method-layout.spec.ts:59:3 › windows 1100px: login methods stay compact and PIN stays inside the card (2.6s)
+  ✓  25 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › windows warm-stone: functional labels remain neutral and navigation separates from content (2.6s)
+  ✓  26 [webkit] › e2e/macos-glass.spec.ts:103:3 › light 登录普通面板收窄至80%并保留辅助功能回退 (2.9s)
+  ✓  27 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › windows soft-cream: functional labels remain neutral and navigation separates from content (3.1s)
+  ✓  28 [webkit] › e2e/macos-glass.spec.ts:103:3 › dark 登录普通面板收窄至80%并保留辅助功能回退 (2.2s)
+  ✓  29 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › windows warm-stone-dark: functional labels remain neutral and navigation separates from content (2.1s)
+  ✓  30 [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › windows deep-ocean: functional labels remain neutral and navigation separates from content (2.0s)
+
+
+  1) [chromium] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card 
+
+    Error: 正常三方式的卡片应等高
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: <= [32m2[39m
+    Received:    [31m8[39m
+
+      152 |       Math.max(...heights) - Math.min(...heights),
+      153 |       '正常三方式的卡片应等高',
+    > 154 |     ).toBeLessThanOrEqual(2);
+          |       ^
+      155 |
+      156 |     // 错误必须可读；不把正常态等高约束套到错误态，允许长文案撑开卡片。
+      157 |     await page.getByRole('button', { name: 'Master password', exact: true }).click();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/login-method-layout.spec.ts:154:7
+
+    Error Context: ../../../../../tmp/solosoul-login-solid-20261008/final-results/login-method-layout-macos--f24a0-d-PIN-stays-inside-the-card-chromium/error-context.md
+
+  2) [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone: functional labels remain neutral and navigation separates from content 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeCloseTo[2m([22m[32mexpected[39m[2m, [22mprecision[2m)[22m
+
+    Expected: [32m230[39m
+    Received: [31m229[39m
+
+    Expected precision:    0
+    Expected difference: < [32m0.5[39m
+    Received difference:   [31m1[39m
+
+      105 |         paint.slice(0, 3).map((v, i) => (v * paint[3]) / 255 + base[i] * (1 - paint[3] / 255));
+      106 |       if (platform === 'macos') {
+    > 107 |         expect(sample.shell[3]).toBeCloseTo(230, 0);
+          |                                 ^
+      108 |         for (const underlay of [
+      109 |           [0, 0, 0],
+      110 |           [255, 255, 255],
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/desktop-functional-colors.spec.ts:107:33
+
+    Error Context: ../../../../../tmp/solosoul-login-solid-20261008/final-results/desktop-functional-colors--d7a55-tion-separates-from-content-webkit/error-context.md
+
+  3) [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos soft-cream: functional labels remain neutral and navigation separates from content 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeCloseTo[2m([22m[32mexpected[39m[2m, [22mprecision[2m)[22m
+
+    Expected: [32m230[39m
+    Received: [31m229[39m
+
+    Expected precision:    0
+    Expected difference: < [32m0.5[39m
+    Received difference:   [31m1[39m
+
+      105 |         paint.slice(0, 3).map((v, i) => (v * paint[3]) / 255 + base[i] * (1 - paint[3] / 255));
+      106 |       if (platform === 'macos') {
+    > 107 |         expect(sample.shell[3]).toBeCloseTo(230, 0);
+          |                                 ^
+      108 |         for (const underlay of [
+      109 |           [0, 0, 0],
+      110 |           [255, 255, 255],
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/desktop-functional-colors.spec.ts:107:33
+
+    Error Context: ../../../../../tmp/solosoul-login-solid-20261008/final-results/desktop-functional-colors--36a72-tion-separates-from-content-webkit/error-context.md
+
+  4) [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone-dark: functional labels remain neutral and navigation separates from content 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeCloseTo[2m([22m[32mexpected[39m[2m, [22mprecision[2m)[22m
+
+    Expected: [32m230[39m
+    Received: [31m229[39m
+
+    Expected precision:    0
+    Expected difference: < [32m0.5[39m
+    Received difference:   [31m1[39m
+
+      105 |         paint.slice(0, 3).map((v, i) => (v * paint[3]) / 255 + base[i] * (1 - paint[3] / 255));
+      106 |       if (platform === 'macos') {
+    > 107 |         expect(sample.shell[3]).toBeCloseTo(230, 0);
+          |                                 ^
+      108 |         for (const underlay of [
+      109 |           [0, 0, 0],
+      110 |           [255, 255, 255],
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/desktop-functional-colors.spec.ts:107:33
+
+    Error Context: ../../../../../tmp/solosoul-login-solid-20261008/final-results/desktop-functional-colors--8157b-tion-separates-from-content-webkit/error-context.md
+
+  5) [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos deep-ocean: functional labels remain neutral and navigation separates from content 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeCloseTo[2m([22m[32mexpected[39m[2m, [22mprecision[2m)[22m
+
+    Expected: [32m230[39m
+    Received: [31m229[39m
+
+    Expected precision:    0
+    Expected difference: < [32m0.5[39m
+    Received difference:   [31m1[39m
+
+      105 |         paint.slice(0, 3).map((v, i) => (v * paint[3]) / 255 + base[i] * (1 - paint[3] / 255));
+      106 |       if (platform === 'macos') {
+    > 107 |         expect(sample.shell[3]).toBeCloseTo(230, 0);
+          |                                 ^
+      108 |         for (const underlay of [
+      109 |           [0, 0, 0],
+      110 |           [255, 255, 255],
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/desktop-functional-colors.spec.ts:107:33
+
+    Error Context: ../../../../../tmp/solosoul-login-solid-20261008/final-results/desktop-functional-colors--7a415-tion-separates-from-content-webkit/error-context.md
+
+  6) [webkit] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card 
+
+    Error: 正常三方式的卡片应等高
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: <= [32m2[39m
+    Received:    [31m10[39m
+
+      152 |       Math.max(...heights) - Math.min(...heights),
+      153 |       '正常三方式的卡片应等高',
+    > 154 |     ).toBeLessThanOrEqual(2);
+          |       ^
+      155 |
+      156 |     // 错误必须可读；不把正常态等高约束套到错误态，允许长文案撑开卡片。
+      157 |     await page.getByRole('button', { name: 'Master password', exact: true }).click();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/login-method-layout.spec.ts:154:7
+
+    Error Context: ../../../../../tmp/solosoul-login-solid-20261008/final-results/login-method-layout-macos--f24a0-d-PIN-stays-inside-the-card-webkit/error-context.md
+
+  6 failed
+    [chromium] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card 
+    [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone: functional labels remain neutral and navigation separates from content 
+    [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos soft-cream: functional labels remain neutral and navigation separates from content 
+    [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos warm-stone-dark: functional labels remain neutral and navigation separates from content 
+    [webkit] › e2e/desktop-functional-colors.spec.ts:9:5 › macos deep-ocean: functional labels remain neutral and navigation separates from content 
+    [webkit] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card 
+  24 passed (45.6s)

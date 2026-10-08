@@ -1,0 +1,61 @@
+{
+  "status": "passed partial FE2-014 native account lifecycle scope",
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "SoloSoul_RF201",
+    "api": 34,
+    "abi": "arm64-v8a"
+  },
+  "native_runs": {
+    "supported": {
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "stages": 22,
+      "png": 20,
+      "report": "docs/verification/fe2-lifecycle-2026-10-08/native-supported/report.json",
+      "private_data_restored": true,
+      "restore_entries": 242,
+      "blur_restored": true,
+      "notification_restored": true,
+      "system_night_mode_restored": true
+    },
+    "fallback": {
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "stages": 22,
+      "png": 20,
+      "report": "docs/verification/fe2-lifecycle-2026-10-08/native-fallback/report.json",
+      "private_data_restored": true,
+      "restore_entries": 242,
+      "blur_restored": true,
+      "notification_restored": true,
+      "system_night_mode_restored": true
+    }
+  },
+  "main_apk_sha256": "f82370125a99ce46260a2cecea7fed7396fc60d55a30be498ccc052b75341c13",
+  "test_apk_sha256": "cb25578653e57668daeaa6d21b814df95928a079cc43a7888adf63b70cf4a343",
+  "production_source_provenance": "docs/verification/fe2-safe-area-2026-10-07/final-native-source-sha256.json",
+  "executed_source_manifest": "docs/verification/fe2-lifecycle-2026-10-08/native-source.json",
+  "final_verifier_source_manifest": "docs/verification/fe2-lifecycle-2026-10-08/final-source.json",
+  "driver_tests": {
+    "exit_code": 0,
+    "passed": 16
+  },
+  "test_build_exit_code": 0,
+  "production_apk_rebuilt": false,
+  "diff_check_exit_code": 0,
+  "scope": "Two real public accounts, opposing explicit modes and saved color/glass/accent, actual native system theme and Activity/WebView recreation, password UI unlock, composed text and action pixels; not process-cold startup",
+  "private_backup_policy": "Private tar remains only in /tmp; public device files/logs contain synthetic fixtures only",
+  "remaining": [
+    "process-cold startup account/system matrix",
+    "old WebView and actual nonzero side cutout/multiwindow/other IME",
+    "nonempty attachment/file/album/viewer native notifications",
+    "maintenance-busy first-use UX",
+    "iOS native capability and physical-device performance",
+    "macOS complete native visual/recovery acceptance (screen locked)"
+  ]
+}

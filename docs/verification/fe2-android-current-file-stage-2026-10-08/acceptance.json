@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "builds": {
+    "production-build": "87e493af09fcbd4900434415fa7f8185e614e1c676c7621bc2d9bdacf8fe066d",
+    "test-build": "3996695574d0aef888fed131ff66c2a30136511aa5f8c636a76292e0140e5a9f"
+  },
+  "current_source_entries": 106,
+  "source_differences": [],
+  "protected_platform_groups_restored": 9,
+  "native": {
+    "supported": {
+      "passed": true,
+      "native_tests": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "stages": 29,
+      "pngs": 25,
+      "restored_private_entries": 242,
+      "minimum_preview_header_contrast": 4.6284365312035725,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    },
+    "fallback": {
+      "passed": true,
+      "native_tests": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "stages": 29,
+      "pngs": 25,
+      "restored_private_entries": 242,
+      "minimum_preview_header_contrast": 4.6284365312035725,
+      "runtime": {
+        "api": 34,
+        "webViewPackage": "com.google.android.webview",
+        "webViewVersion": "113.0.5672.136",
+        "webViewVersionCode": 567263634
+      }
+    }
+  },
+  "scope": "Current Android production APK API34/WebView113 previews in supported/fallback blur modes. Encrypted public fixtures via content URI, not actual system SAF picker; stable frames are not continuous animation/performance proof.",
+  "excluded": "Full APKs, protected input backups and all private sandbox archives remain only in /tmp; historical API31/IME/font/lifecycle results keep original provenance."
+}

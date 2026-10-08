@@ -1,0 +1,570 @@
+{
+  "passed": true,
+  "scope": "320x240 public fixture; headless Playwright browser screenshots only, not WKWebView/AppKit or physical display proof",
+  "rows": [
+    {
+      "engine": "webkit",
+      "theme": "dark",
+      "public_image_size": [
+        320,
+        240
+      ],
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29916
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 29894
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 29905
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29880
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in-again": [
+          55,
+          60,
+          53
+        ],
+        "fit": [
+          55,
+          60,
+          53
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in-again": [
+          24,
+          24,
+          26
+        ],
+        "fit": [
+          24,
+          24,
+          26
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "quadrant_color_pixel_counts": {
+        "initial": [
+          19179,
+          19179,
+          19179,
+          19179
+        ],
+        "zoom-in": [
+          27292,
+          27292,
+          27292,
+          27292
+        ],
+        "zoom-in-again": [
+          39539,
+          39539,
+          39539,
+          39539
+        ],
+        "fit": [
+          19179,
+          19179,
+          19179,
+          19179
+        ]
+      },
+      "passed": true
+    },
+    {
+      "engine": "webkit",
+      "theme": "light",
+      "public_image_size": [
+        320,
+        240
+      ],
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29570
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 29512
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 29691
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 29823
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in": [
+          55,
+          60,
+          53
+        ],
+        "zoom-in-again": [
+          55,
+          60,
+          53
+        ],
+        "fit": [
+          55,
+          60,
+          53
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in-again": [
+          26,
+          26,
+          28
+        ],
+        "fit": [
+          26,
+          26,
+          28
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "quadrant_color_pixel_counts": {
+        "initial": [
+          19179,
+          19179,
+          19179,
+          19179
+        ],
+        "zoom-in": [
+          27292,
+          27292,
+          27292,
+          27292
+        ],
+        "zoom-in-again": [
+          39539,
+          39539,
+          39539,
+          39539
+        ],
+        "fit": [
+          19179,
+          19179,
+          19179,
+          19179
+        ]
+      },
+      "passed": true
+    },
+    {
+      "engine": "chromium",
+      "theme": "dark",
+      "public_image_size": [
+        320,
+        240
+      ],
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 17951
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 18163
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 18042
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 17951
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          57,
+          62,
+          55
+        ],
+        "zoom-in": [
+          57,
+          62,
+          55
+        ],
+        "zoom-in-again": [
+          57,
+          62,
+          55
+        ],
+        "fit": [
+          57,
+          62,
+          55
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in": [
+          24,
+          24,
+          26
+        ],
+        "zoom-in-again": [
+          24,
+          24,
+          26
+        ],
+        "fit": [
+          24,
+          24,
+          26
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "quadrant_color_pixel_counts": {
+        "initial": [
+          19179,
+          19179,
+          19178,
+          19178
+        ],
+        "zoom-in": [
+          27292,
+          27292,
+          27291,
+          27291
+        ],
+        "zoom-in-again": [
+          39539,
+          39539,
+          39538,
+          39538
+        ],
+        "fit": [
+          19179,
+          19179,
+          19178,
+          19178
+        ]
+      },
+      "passed": true
+    },
+    {
+      "engine": "chromium",
+      "theme": "light",
+      "public_image_size": [
+        320,
+        240
+      ],
+      "image_size": [
+        1280,
+        720
+      ],
+      "bounds": {
+        "x": 542,
+        "y": 650,
+        "width": 196,
+        "height": 46
+      },
+      "metadata": [
+        {
+          "step": "initial",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 18581
+        },
+        {
+          "step": "zoom-in",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "120%",
+          "bytes": 18789
+        },
+        {
+          "step": "zoom-in-again",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "144%",
+          "bytes": 18678
+        },
+        {
+          "step": "fit",
+          "bounds": {
+            "x": 542,
+            "y": 650,
+            "width": 196,
+            "height": 46
+          },
+          "percentage": "100%",
+          "bytes": 18581
+        }
+      ],
+      "svg_bright_pixel_counts": {
+        "initial": [
+          57,
+          62,
+          57
+        ],
+        "zoom-in": [
+          57,
+          62,
+          57
+        ],
+        "zoom-in-again": [
+          57,
+          62,
+          57
+        ],
+        "fit": [
+          57,
+          62,
+          57
+        ]
+      },
+      "background_rgb": {
+        "initial": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in": [
+          26,
+          26,
+          28
+        ],
+        "zoom-in-again": [
+          26,
+          26,
+          28
+        ],
+        "fit": [
+          26,
+          26,
+          28
+        ]
+      },
+      "changed_pixels_outside_percentage": {
+        "initial": 0,
+        "zoom-in": 0,
+        "zoom-in-again": 0,
+        "fit": 0
+      },
+      "quadrant_color_pixel_counts": {
+        "initial": [
+          19179,
+          19179,
+          19178,
+          19178
+        ],
+        "zoom-in": [
+          27292,
+          27292,
+          27291,
+          27291
+        ],
+        "zoom-in-again": [
+          39539,
+          39539,
+          39538,
+          39538
+        ],
+        "fit": [
+          19179,
+          19179,
+          19178,
+          19178
+        ]
+      },
+      "passed": true
+    }
+  ]
+}

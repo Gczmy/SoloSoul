@@ -1,0 +1,145 @@
+import XCTest
+final class ProbeTests: XCTestCase {
+    private func capture(_ app: XCUIApplication, _ name: String) {
+        let image = XCTAttachment(screenshot: app.screenshot())
+        image.name = name; image.lifetime = .keepAlways; add(image)
+        let tree = XCTAttachment(string: app.debugDescription)
+        tree.name = name + "-hierarchy"; tree.lifetime = .keepAlways; add(tree)
+    }
+    private func field(_ app: XCUIApplication, _ name: String) -> XCUIElement {
+        let secure = app.secureTextFields[name]
+        return secure.exists ? secure : app.textFields[name]
+    }
+    func testCurrentProductionObjectAndMobileNavigation() {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "com.solosoul.app")
+        app.launch()
+        defer { capture(app, "final-state"); app.terminate() }
+        for _ in 0..<4 {
+            let next = app.buttons["下一步"]
+            XCTAssertTrue(next.waitForExistence(timeout: 30)); XCTAssertTrue(next.isHittable)
+            next.tap()
+        }
+        let done = app.buttons["完成"]
+        XCTAssertTrue(done.waitForExistence(timeout: 15)); done.tap()
+        let createNew = app.buttons["不，创建新账户"]
+        XCTAssertTrue(createNew.waitForExistence(timeout: 30)); createNew.tap()
+        let name = field(app, "账户名称")
+        XCTAssertTrue(name.waitForExistence(timeout: 30))
+        capture(app, "current-registration")
+        name.tap(); name.typeText("FE2 iOS public account")
+        let password = field(app, "主密码")
+        XCTAssertTrue(password.exists); password.tap(); password.typeText("FE2-public-test-2026!")
+        let confirmation = field(app, "确认密码")
+        XCTAssertTrue(confirmation.exists); confirmation.tap(); confirmation.typeText("FE2-public-test-2026!\n")
+        let home = app.buttons["首页"]
+        XCTAssertTrue(home.waitForExistence(timeout: 60), "Production account creation did not reach home")
+        XCTAssertTrue(home.isHittable)
+        capture(app, "current-created-home")
+        // Preserve the real reminder; wait for it to expire before testing the toolbar.
+        Thread.sleep(forTimeInterval: 10)
+        let expand = app.buttons["展开"]
+        XCTAssertTrue(expand.exists); XCTAssertTrue(expand.isHittable); expand.tap()
+        capture(app, "expanded-mobile-navigation")
+        let collapse = app.buttons["收起"]
+        XCTAssertTrue(collapse.exists); XCTAssertTrue(collapse.isHittable); collapse.tap()
+        let identity = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "身份个人信息")).firstMatch
+        XCTAssertTrue(identity.waitForExistence(timeout: 15)); XCTAssertTrue(identity.isHittable); identity.tap()
+        capture(app, "empty-identity-workspace")
+        let create = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ OR label == %@", "+", "新建")).firstMatch
+        XCTAssertTrue(create.waitForExistence(timeout: 20), "Workspace create control missing")
+        XCTAssertTrue(create.isHittable); create.tap()
+        capture(app, "identity-template-editor")
+        let template = app.switches["身份信息"]
+        XCTAssertTrue(template.waitForExistence(timeout: 20)); XCTAssertTrue(template.isHittable); template.tap()
+        let objectName = field(app, "对象名称")
+        XCTAssertTrue(objectName.waitForExistence(timeout: 15)); objectName.tap(); objectName.typeText("FE2 iOS public identity")
+        capture(app, "object-name-with-keyboard")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), "Real software keyboard must remain open")
+        XCTAssertGreaterThanOrEqual(app.otherElements["横幅"].firstMatch.frame.minY, 0, "Object-name focus must keep AppBar onscreen")
+        let fullName = app.textFields.matching(NSPredicate(format: "label BEGINSWITH %@", "姓名")).firstMatch
+        XCTAssertTrue(fullName.exists, "Required public name field missing")
+        for _ in 0..<8 {
+            let main = app.otherElements["主要"].firstMatch
+            let top = max(110, main.frame.minY + 12)
+            let bottom = min(home.frame.minY, main.frame.maxY) - 12
+            if fullName.frame.minY >= top && fullName.frame.maxY <= bottom && fullName.isHittable { break }
+            XCTAssertGreaterThan(bottom - top, 40)
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            origin.withOffset(CGVector(dx: app.frame.midX, dy: top + (bottom - top) * 0.75))
+                .press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: app.frame.midX, dy: top + (bottom - top) * 0.25)))
+        }
+        XCTAssertTrue(fullName.isHittable)
+        capture(app, "public-name-before-focus")
+        fullName.tap()
+        capture(app, "public-name-focused-before-typing")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        fullName.typeText("Public Person\n")
+        capture(app, "filled-identity-editor")
+        let header = app.otherElements["横幅"].firstMatch
+        XCTAssertTrue(header.exists)
+        XCTAssertGreaterThanOrEqual(header.frame.minY, 0, "Keyboard must not push AppBar above screen")
+        XCTAssertTrue(app.buttons["返回"].isHittable)
+        let toolbar = app.toolbars.firstMatch
+        let keyboardTopDuringEdit = toolbar.exists ? toolbar.frame.minY : app.keyboards.firstMatch.frame.minY
+        XCTAssertGreaterThanOrEqual(fullName.frame.minY, header.frame.maxY)
+        XCTAssertLessThanOrEqual(fullName.frame.maxY, keyboardTopDuringEdit)
+
+        let save = app.buttons["保存"]
+        let cancelEdit = app.buttons["取消"]
+        XCTAssertTrue(save.exists); XCTAssertTrue(cancelEdit.exists)
+        for _ in 0..<8 {
+            if save.isHittable && cancelEdit.isHittable && cancelEdit.frame.maxY <= home.frame.minY { break }
+            let main = app.otherElements["主要"].firstMatch
+            XCTAssertTrue(main.exists)
+            let top = max(110, main.frame.minY + 12)
+            let bottom = min(home.frame.minY, main.frame.maxY) - 12
+            XCTAssertGreaterThan(bottom - top, 40)
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: app.frame.midX, dy: top + (bottom - top) * 0.85))
+            let end = origin.withOffset(CGVector(dx: app.frame.midX, dy: top + (bottom - top) * 0.15))
+            start.press(forDuration: 0.05, thenDragTo: end)
+        }
+        capture(app, "editor-after-real-viewport-scroll")
+        XCTAssertTrue(save.isHittable, "Save must remain reachable by real content scrolling")
+        XCTAssertTrue(cancelEdit.isHittable, "Cancel must remain reachable by real content scrolling")
+        XCTAssertGreaterThanOrEqual(save.frame.minY, 110)
+        XCTAssertLessThanOrEqual(save.frame.maxY, home.frame.minY)
+        XCTAssertLessThanOrEqual(cancelEdit.frame.maxY, home.frame.minY)
+        XCTAssertGreaterThanOrEqual(header.frame.minY, 0, "Content scroll must not move AppBar offscreen")
+        XCTAssertTrue(app.buttons["返回"].isHittable)
+        capture(app, "editor-save-reachable")
+        save.tap()
+        let object = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "FE2 iOS public identity")).firstMatch
+        XCTAssertTrue(object.waitForExistence(timeout: 30), "Production object save did not return to its workspace")
+        XCTAssertTrue(object.isHittable)
+        capture(app, "populated-identity-workspace")
+        object.tap()
+        let close = app.buttons["关闭"].firstMatch
+        XCTAssertTrue(close.waitForExistence(timeout: 20)); XCTAssertTrue(close.isHittable)
+        XCTAssertTrue(app.staticTexts["Public Person"].exists, "Saved public field was not present in actual detail")
+        capture(app, "identity-detail")
+        close.tap()
+        XCTAssertTrue(object.exists); XCTAssertTrue(object.isHittable); XCTAssertTrue(create.exists)
+        capture(app, "detail-closed-same-workspace")
+        home.tap()
+        XCTAssertTrue(app.buttons["展开"].waitForExistence(timeout: 15))
+        let addPage = app.buttons["添加页面"]
+        XCTAssertTrue(addPage.exists); XCTAssertTrue(addPage.isHittable); addPage.tap()
+        let pageName = field(app, "页面名称")
+        XCTAssertTrue(pageName.waitForExistence(timeout: 15)); XCTAssertTrue(pageName.isHittable)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        let keyboardTop = app.toolbars.firstMatch.exists ? app.toolbars.firstMatch.frame.minY : app.keyboards.firstMatch.frame.minY
+        let confirmPage = app.buttons["确认"]
+        XCTAssertTrue(confirmPage.exists); XCTAssertTrue(confirmPage.isHittable)
+        XCTAssertLessThanOrEqual(confirmPage.frame.maxY, keyboardTop)
+        capture(app, "add-page-popover")
+        let cancel = app.buttons["取消"]
+        XCTAssertTrue(cancel.exists); XCTAssertTrue(cancel.isHittable)
+        XCTAssertLessThanOrEqual(cancel.frame.maxY, keyboardTop)
+        cancel.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: pageName)
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
+        capture(app, "add-page-cancelled-home")
+    }
+}

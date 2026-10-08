@@ -1,0 +1,78 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "cold",
+  "motionPreferenceChecks": true,
+  "startedAt": 1791422359.468828,
+  "passed": true,
+  "restored": true,
+  "nightModeBefore": "no",
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "688e90599fe65bca72a89d31b5a319ffb856dc7b9e2545f75c2426118df566a9"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "5d96dfd1e6b39d1fcc9c57245a3deca25ce226dceb43fe27496c2d9101d7ed9c"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-motion-20261008/paint-ready-supported/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "account-a-custom-dark",
+    "account-b-custom-light",
+    "account-a-after-switch",
+    "account-b-after-switch",
+    "account-a-after-second-switch",
+    "account-preferences-isolated"
+  ],
+  "oldProcessAlreadyExited": true,
+  "oldProcessStopped": true,
+  "coldStages": [
+    "cold-login",
+    "account-a-cold-system-light",
+    "account-a-cold-system-dark",
+    "account-b-cold-system-dark",
+    "account-preferences-isolated"
+  ],
+  "coldProcessAlreadyExited": true,
+  "previousProcessId": 12324,
+  "coldProcessId": 12715,
+  "coldPassed": true,
+  "motionPreferencePassed": true,
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "nightModeRestored": true,
+  "finishedAt": 1791422466.950793
+}

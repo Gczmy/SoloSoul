@@ -1,0 +1,71 @@
+Application, 0x10154f1b0, pid: 76003, label: 'SoloSoul' <App element pid: 76003>
+  Window (Main), 0x101554800, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4538442176.4>
+    Other, 0x10157dc90, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4541557584.5>
+      Other, 0x10157d900, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4541627040.6>
+        Other, 0x101559da0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4538391168.7>
+          WebView, 0x1015435e0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4555210752.8>
+            WebView, 0x10157ce70, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4555255296.9>
+              WebView, 0x10157d570, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4546985472.10>
+                Other, 0x10157cae0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 9032414095369093496.9999>
+                  Other, 0x10157d1f0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76005, elementOrHash.elementID: 105553150918976.3>
+                    Other, 0x10157c3b0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76005, elementOrHash.elementID: 105553119016864.4>
+                      Other, 0x10157c740, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused <AX element pid: 76005, elementOrHash.elementID: 105553118860736.5>
+                        Other, 0x101543cd0, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119058176.52>
+                          Other, 0x1015596d0, {{12.0, 75.0}, {28.0, 21.0}}, label: '首页', value: 1, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119035200.55>
+                            StaticText, 0x1015443d0, {{12.0, 75.0}, {28.0, 21.0}}, label: '首页', value: 首页, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119033344.64>
+                          Button, 0x101543960, {{346.0, 63.0}, {44.0, 45.0}}, label: '更多操作', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119067296.56>
+                        Button, 0x101545520, {{12.0, 518.0}, {89.0, 68.0}}, label: '搜索', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102688.90>
+                        Button, 0x1015496e0, {{108.0, 518.0}, {90.0, 68.0}}, label: '回收站', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102720.91>
+                        Button, 0x10154a8f0, {{205.0, 518.0}, {89.0, 68.0}}, label: '模板管理', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102752.92>
+                        Button, 0x10157b970, {{301.0, 518.0}, {90.0, 68.0}}, label: '附件管理', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102784.93>
+                        Button, 0x10157b2a0, {{12.0, 594.0}, {89.0, 68.0}}, label: '插件', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102816.94>
+                        Button, 0x10157b610, {{108.0, 594.0}, {90.0, 68.0}}, label: 'OCR 扫描', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102848.95>
+                        Button, 0x10157af30, {{205.0, 594.0}, {89.0, 68.0}}, label: '导入导出', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102880.96>
+                        Button, 0x10157abb0, {{301.0, 594.0}, {90.0, 68.0}}, label: '设备同步', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102912.97>
+                        Button, 0x10157a850, {{12.0, 670.0}, {89.0, 68.0}}, label: '帮助文档', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102944.98>
+                        Button, 0x10157a4e0, {{108.0, 670.0}, {90.0, 68.0}}, label: 'AI 对话', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119102976.99>
+                        Other, 0x10157a180, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119031968.53>
+                          Button, 0x101579e00, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119034592.57>
+                          Button, 0x10154c200, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119022336.58>
+                          Button, 0x101548c90, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119032704.59>
+                          Button, 0x1015368f0, {{241.0, 785.0}, {81.0, 55.0}}, label: '收起', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119023520.60>
+                          Button, 0x10154c570, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119028640.61>
+                        Other, 0x10154c8f0, {{0.0, 0.0}, {402.0, 784.0}}, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119023584.54>
+                          Other, 0x101549370, {{0.0, 0.0}, {402.0, 10.0}}, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119024736.62>
+                          Other, 0x101547750, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119020704.63>
+                            Other, 0x101542ed0, {{33.0, 143.0}, {336.0, 29.0}}, label: '欢迎回来，FE2 iOS public account', value: 2, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119027360.65>
+                              StaticText, 0x101549000, {{33.0, 143.0}, {329.0, 29.0}}, label: '欢迎回来，FE2 iOS public account', value: 欢迎回来，FE2 iOS publi..., Focused <AX element pid: 76005, elementOrHash.elementID: 105553119030048.86>
+                            Other, 0x10153b1a0, {{33.0, 176.0}, {336.0, 20.0}}, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119022624.66>
+                              StaticText, 0x101547090, {{33.0, 176.0}, {322.0, 20.0}}, label: '您的个人数据保险库。所有数据已加密并本地存储。', value: 您的个人数据保险库。所有数据已加密并..., Focused <AX element pid: 76005, elementOrHash.elementID: 105553119031712.87>
+                            Other, 0x101548250, {{16.0, 233.0}, {370.0, 23.0}}, label: '资料分区', value: 2, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119028576.67>
+                              StaticText, 0x10153a010, {{16.0, 233.0}, {64.0, 23.0}}, label: '资料分区', value: 资料分区, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119023232.88>
+                            Button, 0x101547400, {{16.0, 268.0}, {180.0, 100.0}}, label: '身份个人信息、身份证、联系人', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119032864.68>
+                            Button, 0x1015384a0, {{206.0, 268.0}, {180.0, 100.0}}, label: '旅行护照、签证、旅行记录', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119032928.69>
+                            Button, 0x101546d20, {{16.0, 378.0}, {180.0, 100.0}}, label: '财务银行账户、卡片、税务信息', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119030784.70>
+                            Button, 0x10154a560, {{206.0, 378.0}, {180.0, 100.0}}, label: '职业教育背景、工作经历、技能', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119026176.71>
+                            Button, 0x101549a40, {{16.0, 488.0}, {180.0, 82.0}}, label: '文档OCR 扫描导入的文档', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119027072.72>
+                            Other, 0x101536570, {{16.0, 590.0}, {370.0, 23.0}}, label: '快捷入口', value: 2, Focused <AX element pid: 76005, elementOrHash.elementID: 105553119029728.73>
+                              StaticText, 0x10154ac60, {{16.0, 590.0}, {64.0, 23.0}}, label: '快捷入口', value: 快捷入口, Focused <AX element pid: 76005, elementOrHash.elementID: 105553118866848.89>
+                            Button, 0x101538820, {{16.0, 625.0}, {180.0, 100.0}}, label: '设置管理账户、主题、安全与偏好设置', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119032448.74>
+                            Button, 0x101548920, {{206.0, 625.0}, {180.0, 100.0}}, label: '回收站查看并管理已删除的对象，支持恢复或永久清理', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119024544.75>
+                            Button, 0x101543250, {{16.0, 735.0}, {180.0, 100.0}}, label: '搜索全局搜索对象、资料、帮助文档', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119025408.76>
+                            Button, 0x1015485d0, {{206.0, 735.0}, {180.0, 100.0}}, label: '模板管理创建、编辑与管理对象模板', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119023328.77>
+                            Button, 0x101536c70, {{16.0, 845.0}, {180.0, 100.0}}, label: '附件管理 0管理附件的上传、下载与回收站', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119034752.78>
+                            Button, 0x101557ed0, {{206.0, 845.0}, {180.0, 100.0}}, label: '照片集 0浏览所有对象的所有照片', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119028800.79>
+                            Button, 0x1015376f0, {{16.0, 955.0}, {180.0, 100.0}}, label: '插件管理本地插件市场', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119033952.80>
+                            Button, 0x101580ce0, {{206.0, 955.0}, {180.0, 100.0}}, label: 'OCR 扫描扫描图片中的文字，快速提取并创建对象', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119022560.81>
+                            Button, 0x1015821b0, {{16.0, 1065.0}, {180.0, 100.0}}, label: '导入导出导出或导入加密 Vault 包', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119033440.82>
+                            Button, 0x10157f4f0, {{206.0, 1065.0}, {180.0, 100.0}}, label: '设备同步在局域网内与附近设备同步 Vault 数据', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119020224.83>
+                            Button, 0x10157ede0, {{16.0, 1175.0}, {180.0, 100.0}}, label: '帮助文档快速了解功能、安全与使用指南', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119031008.84>
+                            Button, 0x101580600, {{206.0, 1175.0}, {180.0, 100.0}}, label: 'AI 对话与 AI 助手对话，获取建议与帮助', Focused <AX element pid: 76005, elementOrHash.elementID: 105553119023040.85>
+              Other, 0x1015813e0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 76003, elementOrHash.elementID: 4538456272.11>
+                Other, 0x101580950, {{396.0, 65.0}, {3.0, 744.0}} <AX element pid: 76003, elementOrHash.elementID: 4538441152.13>
+              Other, 0x101581040, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 76003, elementOrHash.elementID: 4538383824.12>
+                Other, 0x101580290, {{65.0, 868.0}, {272.0, 3.0}} <AX element pid: 76003, elementOrHash.elementID: 4538448432.14>
+              Other, 0x10157ff00, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 76003, elementOrHash.elementID: 4538456272.11>
+                Other, 0x101575980, {{396.0, 65.0}, {3.0, 744.0}} <AX element pid: 76003, elementOrHash.elementID: 4538441152.13>
+              Other, 0x1015882f0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 76003, elementOrHash.elementID: 4538383824.12>
+                Other, 0x101549fb0, {{65.0, 868.0}, {272.0, 3.0}} <AX element pid: 76003, elementOrHash.elementID: 4538448432.14>
+  Window, 0x10151e630, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4555335168.15>
+    Other, 0x101524ff0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4540992144.16>
+      Other, 0x101532920, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 76003, elementOrHash.elementID: 4541762944.17>

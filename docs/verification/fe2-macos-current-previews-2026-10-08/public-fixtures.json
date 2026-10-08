@@ -1,0 +1,16 @@
+{
+  "folder": "/Users/zzc/Downloads/SoloSoul-FE2-Preview-8f0265ee35614a5b83195160a6259166",
+  "scope": "Only newly-created public synthetic preview files; never existing user files",
+  "files": [
+    {
+      "path": "/Users/zzc/Downloads/SoloSoul-FE2-Preview-8f0265ee35614a5b83195160a6259166/FE2-public-notes.txt",
+      "sha256": "7468d0788ba8f80cfe7046c40d2c81e1b9297612cfccd360aee80c3febde4aa4",
+      "size": 64
+    },
+    {
+      "path": "/Users/zzc/Downloads/SoloSoul-FE2-Preview-8f0265ee35614a5b83195160a6259166/FE2-public-quadrants.png",
+      "sha256": "4cb4c956a6d92c7289850c3d8bdcda125fba7279ed23b7bdcbf3d5bba63ff651",
+      "size": 811
+    }
+  ]
+}

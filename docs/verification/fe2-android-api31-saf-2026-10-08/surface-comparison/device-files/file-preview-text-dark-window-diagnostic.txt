@@ -1,0 +1,34 @@
+    mAttrs={(0,1264)(fillx656) sim={adjust=pan} layoutInDisplayCutoutMode=always ty=NAVIGATION_BAR_PANEL fmt=TRANSLUCENT
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    mAttrs={(0,0)(fillxfill) sim={adjust=pan} layoutInDisplayCutoutMode=always ty=NAVIGATION_BAR fmt=TRANSLUCENT
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0)  transform=(1.0, 0.0, 0.0, 1.0)
+    mAttrs={(0,0)(fillxfill) gr=TOP CENTER_VERTICAL sim={adjust=resize} layoutInDisplayCutoutMode=always ty=2040 fmt=TRANSLUCENT
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    mAttrs={(0,0)(fillx63) gr=TOP CENTER_VERTICAL sim={adjust=pan} layoutInDisplayCutoutMode=always ty=STATUS_BAR fmt=TRANSLUCENT
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0)  transform=(1.0, 0.0, 0.0, 1.0)
+    mAttrs={(0,0)(fillxfill) sim={adjust=pan} layoutInDisplayCutoutMode=always ty=APPLICATION_OVERLAY fmt=TRANSLUCENT
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    mAttrs={(0,0)(fillxfill) gr=BOTTOM CENTER_VERTICAL sim={adjust=pan} ty=INPUT_METHOD fmt=TRANSPARENT wanim=0x1030056 receive insets ignoring z-order
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+  Window #6 Window{aa2c604 u0 com.solosoul.app/com.solosoul.app.MainActivity}:
+    mOwnerUid=10146 showForAllUsers=false package=com.solosoul.app appop=NONE
+    mAttrs={(0,0)(fillxfill) sim={state=hidden adjust=resize} layoutInDisplayCutoutMode=always ty=BASE_APPLICATION wanim=0x10302fe
+    mBaseLayer=21000 mSubLayer=0    mToken=ActivityRecord{d7fcb2f u0 com.solosoul.app/.MainActivity t43}
+    mActivityRecord=ActivityRecord{d7fcb2f u0 com.solosoul.app/.MainActivity t43}
+    mHasSurface=true isReadyForDisplay()=true mWindowRemovalAllowed=false
+    WindowStateAnimator{1368731 com.solosoul.app/com.solosoul.app.MainActivity}:
+      mSurface=Surface(name=com.solosoul.app/com.solosoul.app.MainActivity)/@0x24eae16
+      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0)  transform=(1.0, 0.0, 0.0, 1.0)
+    mAttrs={(0,0)(fillxfill) gr=LEFT CENTER_HORIZONTAL sim={adjust=resize} layoutInDisplayCutoutMode=always ty=DRAWN_APPLICATION fmt=TRANSPARENT wanim=0x10302f2 alpha=0.0
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    mAttrs={(0,0)(fillxfill) sim={adjust=nothing forwardNavigation} layoutInDisplayCutoutMode=always ty=BASE_APPLICATION fmt=TRANSPARENT wanim=0x10302f2
+    mHasSurface=false isReadyForDisplay()=false mWindowRemovalAllowed=false
+    mAttrs={(0,0)(2330x1920) gr=TOP START CENTER layoutInDisplayCutoutMode=always ty=WALLPAPER fmt=RGBX_8888 wanim=0x103030e
+    mHasSurface=true isReadyForDisplay()=false mWindowRemovalAllowed=false
+      Surface: shown=false layer=0 alpha=1.0 rect=(0.0,0.0)  transform=(1.0, 0.0, 0.0, 1.0)
+  imeLayeringTarget in display# 0 Window{aa2c604 u0 com.solosoul.app/com.solosoul.app.MainActivity}
+  imeInputTarget in display# 0 Window{aa2c604 u0 com.solosoul.app/com.solosoul.app.MainActivity}
+  imeControlTarget in display# 0 Window{aa2c604 u0 com.solosoul.app/com.solosoul.app.MainActivity}
+  mObscuringWindow=Window{aa2c604 u0 com.solosoul.app/com.solosoul.app.MainActivity}

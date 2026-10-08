@@ -1,0 +1,13 @@
+
+ RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri
+
+✔ 资源版本只由排序后的内容决定，修改时间和路径不影响结果 (2.933125ms)
+✔ UTF-8 文件内容和不同根的清单排序稳定 (1.2445ms)
+✔ 拒绝符号链接，避免把资源目录之外的内容打包 (1.005834ms)
+✔ 缺失源目录不能生成一个伪完整版本 (0.100833ms)
+
+ Test Files  259 passed (259)
+      Tests  2322 passed (2322)
+   Start at  02:01:47
+   Duration  103.75s (transform 4.72s, setup 10.94s, import 37.51s, tests 58.07s, environment 80.50s)
+

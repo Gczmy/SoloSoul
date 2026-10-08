@@ -1,0 +1,835 @@
+{
+  "passed": true,
+  "scope": "Twelve stable current-production iPhone17/iOS26.3.1 light/dark multiphoto frames; actual public image/title pixels, counter transitions, button geometry, image zoom dimensions and native clock contrast. Does not establish animation frame rate or physical device performance.",
+  "production_binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "frames": [
+    {
+      "stage": "light-first-photo-fit",
+      "filename": "FE2-public-photo.png",
+      "title": {
+        "background_rgb": [
+          23,
+          23,
+          24
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2772,
+        "contrast": 17.915341518405846
+      },
+      "actual_public_color_pixels": [
+        164836,
+        164836
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "2 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 5.4606652210302435,
+      "native_clock_foreground_pixels": 1597
+    },
+    {
+      "stage": "light-native-swipe-second-photo",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          23,
+          23,
+          24
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 17.915341518405846
+      },
+      "actual_public_color_pixels": [
+        333905,
+        340066
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 5.4606652210302435,
+      "native_clock_foreground_pixels": 1597
+    },
+    {
+      "stage": "light-previous-button-first-photo",
+      "filename": "FE2-public-photo.png",
+      "title": {
+        "background_rgb": [
+          23,
+          23,
+          24
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2772,
+        "contrast": 17.915341518405846
+      },
+      "actual_public_color_pixels": [
+        164836,
+        164836
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "2 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 5.4606652210302435,
+      "native_clock_foreground_pixels": 1597
+    },
+    {
+      "stage": "light-next-button-second-photo",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          23,
+          23,
+          24
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 17.915341518405846
+      },
+      "actual_public_color_pixels": [
+        333905,
+        340056
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 5.4606652210302435,
+      "native_clock_foreground_pixels": 1597
+    },
+    {
+      "stage": "light-second-photo-zoomed",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          23,
+          23,
+          24
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 17.915341518405846
+      },
+      "actual_public_color_pixels": [
+        471286,
+        481229
+      ],
+      "image_rect_points": [
+        9.0,
+        339.0,
+        384.0,
+        289.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 5.4606652210302435,
+      "native_clock_foreground_pixels": 1597
+    },
+    {
+      "stage": "light-second-photo-fit-restored",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          23,
+          23,
+          24
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 17.915341518405846
+      },
+      "actual_public_color_pixels": [
+        333905,
+        340066
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 5.4606652210302435,
+      "native_clock_foreground_pixels": 1597
+    },
+    {
+      "stage": "dark-first-photo-fit",
+      "filename": "FE2-public-photo.png",
+      "title": {
+        "background_rgb": [
+          18,
+          18,
+          19
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2772,
+        "contrast": 18.7224912329185
+      },
+      "actual_public_color_pixels": [
+        164836,
+        164836
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "2 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 18.934113090305317,
+      "native_clock_foreground_pixels": 1688
+    },
+    {
+      "stage": "dark-native-swipe-second-photo",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          18,
+          18,
+          19
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 18.7224912329185
+      },
+      "actual_public_color_pixels": [
+        333905,
+        340066
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 18.934113090305317,
+      "native_clock_foreground_pixels": 1688
+    },
+    {
+      "stage": "dark-previous-button-first-photo",
+      "filename": "FE2-public-photo.png",
+      "title": {
+        "background_rgb": [
+          18,
+          18,
+          19
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2772,
+        "contrast": 18.7224912329185
+      },
+      "actual_public_color_pixels": [
+        164836,
+        164836
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "2 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 18.934113090305317,
+      "native_clock_foreground_pixels": 1688
+    },
+    {
+      "stage": "dark-next-button-second-photo",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          18,
+          18,
+          19
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 18.7224912329185
+      },
+      "actual_public_color_pixels": [
+        333905,
+        340056
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 18.934113090305317,
+      "native_clock_foreground_pixels": 1688
+    },
+    {
+      "stage": "dark-second-photo-zoomed",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          18,
+          18,
+          19
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 18.7224912329185
+      },
+      "actual_public_color_pixels": [
+        471286,
+        481229
+      ],
+      "image_rect_points": [
+        9.0,
+        339.0,
+        384.0,
+        289.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 18.934113090305317,
+      "native_clock_foreground_pixels": 1688
+    },
+    {
+      "stage": "dark-second-photo-fit-restored",
+      "filename": "FE2-public-second.png",
+      "title": {
+        "background_rgb": [
+          18,
+          18,
+          19
+        ],
+        "dominant_foreground_rgb": [
+          255,
+          255,
+          255
+        ],
+        "foreground_pixels": 2921,
+        "contrast": 18.7224912329185
+      },
+      "actual_public_color_pixels": [
+        333905,
+        340066
+      ],
+      "image_rect_points": [
+        41.0,
+        363.0,
+        320.0,
+        241.0
+      ],
+      "counter": "1 / 2",
+      "controls": {
+        "上一个": [
+          12.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "下一个": [
+          346.0,
+          461.0,
+          44.0,
+          45.0
+        ],
+        "缩小": [
+          94.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "放大": [
+          210.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "适应窗口": [
+          264.0,
+          763.0,
+          44.0,
+          44.0
+        ],
+        "返回照片集": [
+          14.0,
+          72.0,
+          44.0,
+          44.0
+        ]
+      },
+      "native_clock_contrast": 18.934113090305317,
+      "native_clock_foreground_pixels": 1688
+    }
+  ]
+}

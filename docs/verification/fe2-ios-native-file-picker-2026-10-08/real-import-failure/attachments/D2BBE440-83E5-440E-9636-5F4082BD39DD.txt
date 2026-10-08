@@ -1,0 +1,60 @@
+Attributes: Application, 0x103e3e380, pid: 10359, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x103e3e380, pid: 10359, label: 'SoloSoul'
+    Window (Main), 0x103e39a00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103e3a240, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103e39e20, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x103e3f160, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x103e3e870, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x103e395e0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x103e391c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x103e40020, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x103e40140, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x103e40260, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x103e40380, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x103e404a0, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                          Other, 0x103e405c0, {{32.0, 98.0}, {338.0, 35.0}}, label: '欢迎使用 SoloSoul', value: 1, Focused
+                            StaticText, 0x103e406e0, {{32.0, 98.0}, {207.0, 35.0}}, label: '欢迎使用 SoloSoul', value: 欢迎使用 SoloSoul, Focused
+                          Other, 0x103e40800, {{32.0, 141.0}, {338.0, 20.0}}, Focused
+                            StaticText, 0x103e40920, {{32.0, 141.0}, {262.0, 20.0}}, label: '首次使用 — 创建主密码以保护您的数据。', value: 首次使用 — 创建主密码以保护您的数据。, Focused
+                          Other, 0x103e40a40, {{32.0, 185.0}, {338.0, 527.0}}, label: '表单', Focused
+                            Other, 0x103e40b60, {{32.0, 185.0}, {338.0, 19.0}}, label: '账户名称', Focused
+                              StaticText, 0x103e40c80, {{32.0, 185.0}, {52.0, 19.0}}, label: '账户名称', value: 账户名称, Focused
+                            TextField, 0x103e40da0, {{32.0, 210.0}, {338.0, 42.0}}, placeholderValue: '账户名称', value: 账户名称, Focused
+                            Other, 0x103e40ec0, {{32.0, 258.0}, {338.0, 16.0}}, Focused
+                            Other, 0x103e40fe0, {{32.0, 290.0}, {338.0, 19.0}}, label: '主密码', Focused
+                              StaticText, 0x103e41100, {{32.0, 290.0}, {39.0, 19.0}}, label: '主密码', value: 主密码, Focused
+                            TextField, 0x103e41220, {{33.0, 314.0}, {336.0, 40.0}}, label: '主密码', placeholderValue: '输入密码', value: 输入密码, Focused
+                            Button, 0x103e41340, {{317.0, 312.0}, {44.0, 44.0}}, label: '查看密码提示', Focused
+                            Other, 0x103e41460, {{32.0, 359.0}, {338.0, 15.0}}, Focused
+                              StaticText, 0x103e41580, {{32.0, 359.0}, {86.0, 15.0}}, label: '密码长度不小于8位', value: 密码长度不小于8位, Focused
+                            Other, 0x103e416a0, {{32.0, 390.0}, {338.0, 19.0}}, label: '确认密码', Focused
+                              StaticText, 0x103e417c0, {{32.0, 390.0}, {52.0, 19.0}}, label: '确认密码', value: 确认密码, Focused
+                            TextField, 0x103e418e0, {{33.0, 414.0}, {336.0, 40.0}}, label: '确认密码', placeholderValue: '输入密码', value: 输入密码, Focused
+                            Button, 0x103e41a00, {{317.0, 412.0}, {44.0, 44.0}}, label: '查看密码提示', Focused
+                            Other, 0x103e41b20, {{32.0, 471.0}, {338.0, 19.0}}, label: '密码提示词', Focused
+                              StaticText, 0x103e41c40, {{32.0, 471.0}, {65.0, 19.0}}, label: '密码提示词', value: 密码提示词, Focused
+                            TextField, 0x103e41d60, {{32.0, 496.0}, {338.0, 42.0}}, placeholderValue: '可选的密码提示，帮助您回忆密码', value: 可选的密码提示，帮助您回忆密码, Focused
+                            Other, 0x103e41e80, {{32.0, 554.0}, {338.0, 20.0}}, Focused
+                            StaticText, 0x103e41fa0, {{67.0, 600.0}, {288.0, 34.0}}, label: '请妥善保管您的主密码，如果遗失将无法解锁保险库，所有数据将无法找回！', value: 请妥善保管您的主密码，如果遗失将无法..., Focused
+                            Button, 0x103e420c0, {{32.0, 668.0}, {338.0, 44.0}}, label: '创建账户', Focused
+                          Button, 0x103e421e0, {{137.0, 728.0}, {128.0, 44.0}}, label: '返回账户来源选择', Focused
+                          Button, 0x103e42300, {{163.0, 776.0}, {76.0, 44.0}}, label: '返回登录', Focused
+                Other, 0x103e42420, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x103e42540, {{396.0, 802.0}, {3.0, 7.0}}
+                Other, 0x103e42660, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x103e42780, {{330.0, 868.0}, {7.0, 3.0}}
+                Other, 0x103e428a0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x103e429c0, {{396.0, 802.0}, {3.0, 7.0}}
+                Other, 0x103e42ae0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x103e42c00, {{330.0, 868.0}, {7.0, 3.0}}
+    Window, 0x103e42d20, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103e42e40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103e42f60, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x103e3e380, pid: 10359, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x103e3a7a0, pid: 10359, label: 'SoloSoul'
+  }

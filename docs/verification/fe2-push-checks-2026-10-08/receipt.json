@@ -1,0 +1,56 @@
+{
+  "recorded_at": "2026-10-08T20:51:02.901675+00:00",
+  "scope": "Submission checkpoint of all local frontend refactor work; does not close pending native acceptance",
+  "production_commit": "329f1ef0e",
+  "node": "v26.3.0",
+  "frontend_test_environment": "NODE_OPTIONS=--no-experimental-webstorage",
+  "frontend": {
+    "vitest_files": 260,
+    "vitest_passed": 2341,
+    "node_passed": 192,
+    "node_skipped": 25,
+    "exit_code": 0
+  },
+  "rust": {
+    "passed": 785,
+    "failed": 0,
+    "exit_code": 0,
+    "loopback_tests_rerun_outside_sandbox": true
+  },
+  "checks": {
+    "typescript": 0,
+    "eslint": 0,
+    "eslint_existing_warning": "syncStore.ts:838 unused event",
+    "cargo_fmt": 0,
+    "cargo_clippy_D_warnings": 0,
+    "acl": 0,
+    "preference_keys": 0,
+    "ipc_contracts": 0,
+    "markdown_chunk_boundary": 0,
+    "diff": 0,
+    "diff_scope": "Production source and prose outside immutable verification archive; raw logs/error contexts/source snapshots retain original whitespace for hash integrity."
+  },
+  "initial_failures_preserved": [
+    "Node 26 experimental host storage conflicts with jsdom: 309 failures",
+    "After host storage disabled: 1 stale GuideSearch Clear label assertion; aligned with localized clear key",
+    "Sandbox prohibits loopback servers: 54 Rust failures; rerun unrestricted passes all785"
+  ],
+  "test_change": "GuideSearch.test.tsx matches i18n mock clear key; production implementation unchanged after native build",
+  "native_acceptance": "FE2-020 still in progress: current native titlebar visual reverification awaits manual Mac unlock; other native tasks unchanged",
+  "local_only_retained": [
+    "tauri/bugreport-*.zip",
+    "Python bytecode caches",
+    "tauri/src-tauri/gen/apple/assets/"
+  ],
+  "submodule": "SoloSoul_plugin_market clean at f55fc4b5a257cb8d7d9273168c3fd05b01b9d921; Android staged registry matches its content",
+  "log_sha256": {
+    "clippy.log.gz": "33593d44951e6b4b7783dd8b0d06a8a88afe034a77d1e6179b2f5d51032bc321",
+    "frontend-final.log.gz": "9c39b21340c2c82916647355fb8829e07ef4d5ac4ae085b233683c10db5cb566",
+    "frontend-i18n-test-failure.log.gz": "4fddd91250e5bce7d3718d73f00e6ee149039d671ddbc6d36b1cba584fee99da",
+    "frontend-node26-storage-failure.log.gz": "d7519d8a341bc3c0d6935f4593cc2cfcb910ae2156811d4d8142fcdfa3f9242f",
+    "lint.log.gz": "73a21cf13ac363769e2e239ed9cfa2553898864fbf5a193ec1cba3f94e82a281",
+    "rust-final.log.gz": "0ac91c5fbb8e85a85de47acb66ed1d991cf15a43c6dd13b67270740bc7dc3b88",
+    "rust-fmt.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "rust-sandbox-loopback-failure.log.gz": "3f5fb4fd565e2bb93879ab25c1a458e810524b717b1ff589d858fa067156fb18"
+  }
+}

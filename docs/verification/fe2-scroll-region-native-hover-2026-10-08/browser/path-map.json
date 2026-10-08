@@ -1,0 +1,6 @@
+{
+  "/tmp/solosoul-css-hover-regression-20261008-verified-results": "fixture-32/results",
+  "/tmp/solosoul-scroll-region-hover-integration-results": "integration-14/results",
+  "/tmp/solosoul-css-hover-regression-20261008-full-results": "historical-debug/fixture-selector-failure/results",
+  "/tmp/solosoul-css-hover-regression-20261008-final-results": "historical-debug/computed-style-false-positive/results"
+}

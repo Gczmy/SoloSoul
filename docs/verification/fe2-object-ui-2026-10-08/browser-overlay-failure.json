@@ -1,0 +1,707 @@
+{
+  "config": {
+    "configFile": "/tmp/solosoul-object-ui.playwright.config.cjs",
+    "rootDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/tmp/solosoul-object-ui-browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "object-ui-refinement.spec.ts",
+          "history-keyboard.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/tmp/solosoul-object-ui-browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "object-ui-refinement.spec.ts",
+          "history-keyboard.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/tmp/solosoul-object-ui-browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev",
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "url": "http://localhost:1420",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "history-keyboard.spec.ts",
+      "file": "history-keyboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1330,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:28.313Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "06261bb821d6b966f02d-b91880ddf5a5c10c251c",
+          "file": "history-keyboard.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1868,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:30.167Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "06261bb821d6b966f02d-33941adfa4f6c7ac43e9",
+          "file": "history-keyboard.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "object-ui-refinement.spec.ts",
+      "file": "object-ui-refinement.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "macos light: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 6921,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                      "column": 30,
+                      "line": 128
+                    },
+                    "snippet": "  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                        "column": 30,
+                        "line": 128
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n\n  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:28.316Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-chromium/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                    "column": 30,
+                    "line": 128
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-7ab5cb9c967eb373fb28",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "macos dark: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 6743,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                      "column": 30,
+                      "line": 128
+                    },
+                    "snippet": "  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                        "column": 30,
+                        "line": 128
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n\n  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:35.733Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-chromium/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                    "column": 30,
+                    "line": 128
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-a87833701d1f1c6dd227",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "windows light: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2264,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:42.885Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-58dd1682d93fd7f790ce",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "windows dark: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2294,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:45.258Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-1c2722ee8d096d44c0ba",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "android: long password stays clear of controls at 320px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1060,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:47.558Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-0c17f08ad51e2f47abd0",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 185,
+          "column": 3
+        },
+        {
+          "title": "ios: long password stays clear of controls at 320px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 984,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:48.627Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-5edea7157bcfe5841f90",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 185,
+          "column": 3
+        },
+        {
+          "title": "macos light: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7226,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                      "column": 30,
+                      "line": 128
+                    },
+                    "snippet": "  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                        "column": 30,
+                        "line": 128
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n\n  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:32.271Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-ce6c6-istory-and-scoped-scrollbar-webkit/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                    "column": 30,
+                    "line": 128
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-f33f7f349a653adf6a31",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "macos dark: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7397,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30",
+                    "location": {
+                      "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                      "column": 30,
+                      "line": 128
+                    },
+                    "snippet": "  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                        "column": 30,
+                        "line": 128
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).not.\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-shell-content]')\nExpected: not \u001b[32m\"true\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mtrue\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"not toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-shell-content]')\u001b[22m\n\u001b[2m    13 × locator resolved to <main class=\"_content_1i6v6_12\" data-shell-content=\"true\" data-scrollbar-active=\"true\">…</main>\u001b[22m\n\u001b[2m       - unexpected value \"true\"\u001b[22m\n\n\n  126 |       await main.getByRole('button', { name: /^Object 00/ }).click();\n  127 |       const detail = page.getByTestId('object-detail-modal');\n> 128 |       await expect(main).not.toHaveAttribute('data-scrollbar-active', 'true');\n      |                              ^\n  129 |       await expect(detail.getByText('INTERNAL_DETAIL', { exact: true })).toBeVisible();\n  130 |       expect(await detail.innerHTML()).not.toContain('SENSITIVE_DETAIL');\n  131 |       expect(await detail.innerHTML()).not.toContain('CRITICAL_DETAIL');\n    at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts:128:30"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:39.785Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/tmp/solosoul-object-ui-browser-results/object-ui-refinement-macos-25b0a-istory-and-scoped-scrollbar-webkit/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/object-ui-refinement.spec.ts",
+                    "column": 30,
+                    "line": 128
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-bc56d0752f02e35ba413",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "windows light: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2790,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:47.694Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-41d271044eeac8a97dd5",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "windows dark: password, localized counts, stable cached history and scoped scrollbar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2657,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:50.796Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-a2bf99d9e2aace8cce10",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "android: long password stays clear of controls at 320px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1348,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:53.459Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-9c851de2b6b7e349228c",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 185,
+          "column": 3
+        },
+        {
+          "title": "ios: long password stays clear of controls at 320px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1238,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T18:46:54.814Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "09d5f8117aae31f77cd8-cd38f6a59ba7c4030684",
+          "file": "object-ui-refinement.spec.ts",
+          "line": 185,
+          "column": 3
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-08T18:46:27.935Z",
+    "duration": 28169.637,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

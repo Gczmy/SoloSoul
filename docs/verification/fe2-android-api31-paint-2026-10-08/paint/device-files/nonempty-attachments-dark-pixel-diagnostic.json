@@ -1,0 +1,470 @@
+{
+  "ancestors": [
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(42, 38, 32)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "blur(6px)",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0.35)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_controls_skkf7_1",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_container_ruoo8_1 _medium_ruoo8_14 _gap-default_ruoo8_34 android-workspace",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "MAIN",
+      "classes": "_content_18ixn_12",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_contentSurface_18ixn_28",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_main_18ixn_17",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "_appShell_18ixn_1",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "animations": []
+    },
+    {
+      "tag": "BODY",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    },
+    {
+      "tag": "HTML",
+      "classes": "",
+      "opacity": "1",
+      "filter": "none",
+      "backdrop": "none",
+      "transform": "none",
+      "background": "rgb(31, 28, 24)",
+      "animations": []
+    }
+  ],
+  "overlaps": [],
+  "paintPoints": [],
+  "positionedPseudos": [
+    {
+      "node": {
+        "tag": "SPAN",
+        "id": "",
+        "classes": "android-nav-icon",
+        "attrs": []
+      },
+      "pseudo": "::before",
+      "style": {
+        "position": "absolute",
+        "zIndex": "auto",
+        "opacity": "0",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "auto",
+        "background": "rgb(52, 52, 50)",
+        "backgroundImage": "none",
+        "boxShadow": "none",
+        "filter": "none",
+        "backdropFilter": "none",
+        "mixBlendMode": "normal",
+        "transform": "matrix(0.45, 0, 0, 1, 0, 0)",
+        "clipPath": "none",
+        "mask": "none",
+        "content": "\"\"",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px",
+        "width": "64px",
+        "height": "32px",
+        "isolation": "auto"
+      }
+    },
+    {
+      "node": {
+        "tag": "SPAN",
+        "id": "",
+        "classes": "android-nav-icon",
+        "attrs": []
+      },
+      "pseudo": "::before",
+      "style": {
+        "position": "absolute",
+        "zIndex": "auto",
+        "opacity": "1",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "auto",
+        "background": "rgb(52, 52, 50)",
+        "backgroundImage": "none",
+        "boxShadow": "none",
+        "filter": "none",
+        "backdropFilter": "none",
+        "mixBlendMode": "normal",
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "clipPath": "none",
+        "mask": "none",
+        "content": "\"\"",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px",
+        "width": "64px",
+        "height": "32px",
+        "isolation": "auto"
+      }
+    },
+    {
+      "node": {
+        "tag": "SPAN",
+        "id": "",
+        "classes": "android-nav-icon",
+        "attrs": []
+      },
+      "pseudo": "::before",
+      "style": {
+        "position": "absolute",
+        "zIndex": "auto",
+        "opacity": "0",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "auto",
+        "background": "rgb(52, 52, 50)",
+        "backgroundImage": "none",
+        "boxShadow": "none",
+        "filter": "none",
+        "backdropFilter": "none",
+        "mixBlendMode": "normal",
+        "transform": "matrix(0.45, 0, 0, 1, 0, 0)",
+        "clipPath": "none",
+        "mask": "none",
+        "content": "\"\"",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px",
+        "width": "64px",
+        "height": "32px",
+        "isolation": "auto"
+      }
+    },
+    {
+      "node": {
+        "tag": "SPAN",
+        "id": "",
+        "classes": "android-nav-icon",
+        "attrs": []
+      },
+      "pseudo": "::before",
+      "style": {
+        "position": "absolute",
+        "zIndex": "auto",
+        "opacity": "0",
+        "visibility": "visible",
+        "display": "block",
+        "pointerEvents": "auto",
+        "background": "rgb(52, 52, 50)",
+        "backgroundImage": "none",
+        "boxShadow": "none",
+        "filter": "none",
+        "backdropFilter": "none",
+        "mixBlendMode": "normal",
+        "transform": "matrix(0.45, 0, 0, 1, 0, 0)",
+        "clipPath": "none",
+        "mask": "none",
+        "content": "\"\"",
+        "top": "0px",
+        "right": "0px",
+        "bottom": "0px",
+        "left": "0px",
+        "width": "64px",
+        "height": "32px",
+        "isolation": "auto"
+      }
+    }
+  ],
+  "rootState": {
+    "htmlAttrs": [
+      [
+        "lang",
+        "en-US"
+      ],
+      [
+        "data-theme",
+        "dark"
+      ],
+      [
+        "data-native-material",
+        "solid"
+      ],
+      [
+        "data-reduce-motion",
+        "false"
+      ],
+      [
+        "data-high-contrast",
+        "false"
+      ],
+      [
+        "data-desktop-platform",
+        "other"
+      ],
+      [
+        "style",
+        "--native-titlebar-height:0px; --android-native-safe-area-top:24.0333px; --android-native-safe-area-right:0px; --android-native-safe-area-bottom:48.0667px; --android-native-safe-area-left:0px; --bg-base:#1f1c18; --bg-elevated:#2a2620; --bg-toolbar:rgba(42, 38, 32, 0.92); --bg-elevated-hover:#322d26; --bg-inset:rgba(26, 23, 20, 0.5); --bg-hover:#353029; --bg-active:#423b33; --text-primary:#ddd8c8; --text-secondary:#a69d8a; --text-tertiary:#7a7265; --text-inverse:#1f1c18; --text-accent:#a8bfd4; --text-warm:#d4b88a; --border-subtle:#3d3831; --border-default:#4a433b; --border-strong:#5c5549; --accent-primary-text:#000000; --accent-hover-text:#000000; --md-primary-container:#343432; --md-on-primary-container:#ddd8c8; --md-on-primary:#000000; --md-primary-ink:#7a9ab5; --md-surface-high:#221f1a; --md-secondary-container:#2f2d29; --md-on-secondary-container:#ddd8c8; --md-tertiary-container:#383b3b; --md-on-tertiary-container:#ddd8c8; --android-liquid-base:#2a2620; --android-theme-surface-rgb:42, 38, 32; --android-theme-foreground-rgb:221, 216, 200; --android-theme-accent-rgb:122, 154, 181; --android-theme-login-underlay-rgb:28, 25, 22; --sidebar-width:88px; --shell-chrome-bottom:calc(64px + var(--safe-area-top)); --shell-navigation-bottom:calc(86px + var(--safe-area-bottom)); --shell-page-padding:16px; --shell-content-top:88.0298px; --shell-content-bottom:133.875px; --shell-content-left:0px; --shell-content-right:0px; --shell-content-height:510.095px; --android-keyboard-inset:0px;"
+      ],
+      [
+        "data-platform",
+        "android"
+      ],
+      [
+        "data-accent",
+        "ocean"
+      ],
+      [
+        "data-user-reduce-motion",
+        "false"
+      ],
+      [
+        "data-android-glass",
+        "local"
+      ],
+      [
+        "data-android-backdrop",
+        "true"
+      ]
+    ],
+    "bodyAttrs": [],
+    "active": {
+      "tag": "BUTTON",
+      "id": "",
+      "classes": "android-icon-button",
+      "attrs": []
+    },
+    "focused": true,
+    "visibility": "visible",
+    "animations": []
+  },
+  "geometry": {
+    "theme": "dark",
+    "path": "\/workspace",
+    "search": "?section=travel",
+    "visible": true,
+    "settled": true,
+    "rect": {
+      "x": 16,
+      "y": 154.59524536132812,
+      "right": 396.19049072265625,
+      "bottom": 577.5952453613281,
+      "width": 380.19049072265625,
+      "height": 423
+    },
+    "viewportWidth": 412,
+    "viewportHeight": 732,
+    "overflow": false,
+    "controls": [
+      {
+        "label": "Active (2)",
+        "rect": {
+          "x": 61,
+          "y": 169.59524536132812,
+          "right": 142.73809814453125,
+          "bottom": 217.59524536132812,
+          "width": 81.73809814453125,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Trash (0)",
+        "rect": {
+          "x": 146.73809814453125,
+          "y": 169.59524536132812,
+          "right": 225.1309585571289,
+          "bottom": 217.59524536132812,
+          "width": 78.39286041259766,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Upload",
+        "rect": {
+          "x": 273.19049072265625,
+          "y": 169.59524536132812,
+          "right": 321.19049072265625,
+          "bottom": 217.59524536132812,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      },
+      {
+        "label": "Close",
+        "rect": {
+          "x": 329.19049072265625,
+          "y": 169.59524536132812,
+          "right": 377.19049072265625,
+          "bottom": 217.59524536132812,
+          "width": 48,
+          "height": 48
+        },
+        "hittable": true,
+        "overlapped": false
+      }
+    ],
+    "headerBackground": null,
+    "headerForegrounds": [],
+    "toastCount": 1,
+    "toastRect": {
+      "x": 29,
+      "y": 297.5952453613281,
+      "right": 383.19049072265625,
+      "bottom": 387.5952453613281,
+      "width": 354.19049072265625,
+      "height": 90
+    },
+    "savedNotification": false,
+    "backupReminder": false,
+    "toastInPanel": true,
+    "toastInFlow": true,
+    "toastVisible": true,
+    "toastHittable": true,
+    "text": "Active (2)Trash (0)Select allUploaded successfullyxPhoto Album1FE2-public-notes.txtTXT64 B · 10\/8\/2026FE2-public-quadrants.pngPNG927 B · 10\/8\/2026",
+    "textRect": null,
+    "textColor": null,
+    "imageDecoded": false,
+    "imageRect": null,
+    "imageCount": 0,
+    "zoomRect": null
+  },
+  "nativeViewport": {
+    "imeVisible": false,
+    "documentStartScriptSupported": false,
+    "imeHeightPx": 0,
+    "screenHeightPx": 1920,
+    "webViewWidthPx": 1080,
+    "webViewHeightPx": 1920,
+    "webViewScreenX": 0,
+    "webViewScreenY": 0,
+    "systemBars": {
+      "top": 63,
+      "right": 0,
+      "bottom": 126,
+      "left": 0
+    },
+    "windowBounds": {
+      "top": 0,
+      "right": 1080,
+      "bottom": 1920,
+      "left": 0
+    }
+  },
+  "nativeAncestors": [
+    {
+      "class": "com.solosoul.app.RustWebView",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "androidx.appcompat.widget.ContentFrameLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "androidx.appcompat.widget.FitWindowsLinearLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "android.widget.FrameLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "android.widget.LinearLayout",
+      "alpha": 1,
+      "visibility": 0
+    },
+    {
+      "class": "com.android.internal.policy.DecorView",
+      "alpha": 1,
+      "visibility": 0
+    }
+  ],
+  "windowAlpha": 1,
+  "windowDimAmount": 1,
+  "windowFlags": -2122252032,
+  "focused": true
+}

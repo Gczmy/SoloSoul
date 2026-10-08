@@ -1,0 +1,10 @@
+{
+  "matching_isolated_client_processes": [
+    {
+      "pid": "99069",
+      "command": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul"
+    }
+  ],
+  "read_only": true,
+  "scope": "known full-client bundle and previous frozen binary; not a global process absence claim"
+}

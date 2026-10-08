@@ -1,0 +1,134 @@
+{
+  "prepared_at": 1791490246.32086,
+  "source": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0",
+  "copy": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+  "source_unchanged": true,
+  "sqlite_backup": {
+    "source_uri_mode": "ro&immutable=1",
+    "backup_api": true,
+    "no_source_sidecars": true,
+    "quick_check": "ok",
+    "size": 241664,
+    "source_sha256": "73c732cd5857ffaacb9b454cffeb0f41e5b049f6e49c0f3705811e2006243c42",
+    "backup_sha256": "a3a245dcca5f7be6f51d93e150d3c34fc1aeac184f52f233a1974de46cf6db77"
+  },
+  "marker": {
+    "version": 1,
+    "root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+    "identifier": "com.solosoul.fe2.macos.ab5da5ed6c344e8aba12409781dbd5c6",
+    "account_id": "acc_e50ad3aa16464b74"
+  },
+  "permissions": "all directories 0700; all files 0600",
+  "copied_root_inventory": {
+    ".": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "app-data": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "fe2-macos-owned.json": {
+      "mode": 384,
+      "type": "file",
+      "size": 256,
+      "sha256": "d622c0831a5289185b4ec3441ce6ad7e7f217665a0e4e3e3b64b3e0d17abfe53"
+    },
+    "plugins": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault/.lock": {
+      "mode": 384,
+      "type": "file",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vault/acc_e50ad3aa16464b74": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault/acc_e50ad3aa16464b74/config.bak": {
+      "mode": 384,
+      "type": "file",
+      "size": 702,
+      "sha256": "ad273b8398c694dda3eefa7194746a45ed5988d9262535c8ea8ba16aef4cdfdf"
+    },
+    "vault/acc_e50ad3aa16464b74/config.json": {
+      "mode": 384,
+      "type": "file",
+      "size": 702,
+      "sha256": "24f2b8181fff56e3a9becd1998ef1ed27048f7f5c6f23aafb980905127962c08"
+    },
+    "vault/acc_e50ad3aa16464b74/vault.db": {
+      "mode": 384,
+      "type": "file",
+      "size": 241664,
+      "sha256": "a3a245dcca5f7be6f51d93e150d3c34fc1aeac184f52f233a1974de46cf6db77"
+    },
+    "vault/acc_e50ad3aa16464b74/vault.db.backup-in-progress-shm": {
+      "mode": 384,
+      "type": "file",
+      "size": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    "vault/acc_e50ad3aa16464b74/vault.db.backup-in-progress-wal": {
+      "mode": 384,
+      "type": "file",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vault/accounts.bak": {
+      "mode": 384,
+      "type": "file",
+      "size": 199,
+      "sha256": "0249baa1b7e5e2ceb3940d789a86ec3f9c8454b076357c302e63cec4486aaf67"
+    },
+    "vault/accounts.json": {
+      "mode": 384,
+      "type": "file",
+      "size": 199,
+      "sha256": "80c2309be9ea86be2129fd1a044debc897fa8c1fe65bef1c713c64d8fd691a59"
+    },
+    "vault/attachments": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3/3841cc17-f6b3-4485-9ba5-08f275203a48": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3/3841cc17-f6b3-4485-9ba5-08f275203a48/FE2-public-notes.txt": {
+      "mode": 384,
+      "type": "file",
+      "size": 105,
+      "sha256": "3d79e8bec22377db367033c24dd9a4b8863c4191df0f440c8f7eb5a6dabaf533"
+    },
+    "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3/8331ce59-d7bc-4e16-8401-2ca92f696712": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3/8331ce59-d7bc-4e16-8401-2ca92f696712/FE2-public-quadrants.png": {
+      "mode": 384,
+      "type": "file",
+      "size": 852,
+      "sha256": "913821e63faed3aabfe594c5abea9c259f5ae6407e4624cfac4ffceaa10e56d7"
+    },
+    "vault/ui_preferences.json": {
+      "mode": 384,
+      "type": "file",
+      "size": 429,
+      "sha256": "6cc299bc19385decb7e3a387c872e9dcb8ce298d864099e29abd19489e4d0856"
+    }
+  },
+  "window_launched": false,
+  "binding_prepared": false
+}

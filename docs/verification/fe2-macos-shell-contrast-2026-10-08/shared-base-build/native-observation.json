@@ -1,0 +1,9 @@
+{
+  "process": {
+    "pid": 71399,
+    "executable": "/private/tmp/solosoul-fe2-macos-solid-login-shell-build-20261008/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul"
+  },
+  "binary_sha256": "a5a578fd53818a99ec426f6d34a62a0c76a410ea38c4a6c467f7f16ae579b1e0",
+  "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6\nBuildVersion:\t\t25G72\n",
+  "scope": "Native CUA screenshots only; light login and unlocked homepage observed. No local screenshot file and no continuous activation recording."
+}

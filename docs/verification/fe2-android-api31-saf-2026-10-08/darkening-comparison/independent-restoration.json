@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "serial": "emulator-5588",
+  "avd": "SoloSoul_FE2_API31",
+  "actual_private_entries": 2,
+  "contents_links_modes_and_actual_root_equal": true
+}

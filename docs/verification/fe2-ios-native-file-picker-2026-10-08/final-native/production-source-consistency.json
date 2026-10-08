@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "source_files": 106,
+  "build_equals_native_execution_equals_checkpoint_equals_current": true,
+  "differences": []
+}

@@ -1,0 +1,7 @@
+{
+  "serial": "emulator-5588",
+  "avd": "SoloSoul_FE2_API31",
+  "api": 31,
+  "boot_completed": true,
+  "restart_reason": "Previous emulator explicitly stopped after successful test restoration; next existing insets scenario"
+}

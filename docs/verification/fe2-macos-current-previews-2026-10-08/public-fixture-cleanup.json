@@ -1,0 +1,20 @@
+{
+  "scope": "Only two owned public synthetic fixture copies in exact unique Downloads folder",
+  "files": [
+    {
+      "name": "FE2-public-notes.txt",
+      "size": 64,
+      "sha256": "7468d0788ba8f80cfe7046c40d2c81e1b9297612cfccd360aee80c3febde4aa4",
+      "verified_before_removal": true
+    },
+    {
+      "name": "FE2-public-quadrants.png",
+      "size": 811,
+      "sha256": "4cb4c956a6d92c7289850c3d8bdcda125fba7279ed23b7bdcbf3d5bba63ff651",
+      "verified_before_removal": true
+    }
+  ],
+  "folder_removed": true,
+  "existing_user_files_touched": false,
+  "encrypted_test_vault_imports_preserved": true
+}

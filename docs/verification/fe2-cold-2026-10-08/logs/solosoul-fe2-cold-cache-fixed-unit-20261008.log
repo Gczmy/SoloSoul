@@ -1,0 +1,9 @@
+
+ RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri
+
+
+ Test Files  4 passed (4)
+      Tests  61 passed (61)
+   Start at  02:00:27
+   Duration  1.05s (transform 656ms, setup 488ms, import 724ms, tests 90ms, environment 2.11s)
+

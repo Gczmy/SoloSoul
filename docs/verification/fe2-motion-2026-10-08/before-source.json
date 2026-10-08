@@ -1,0 +1,18 @@
+{
+  "tauri/src/stores/settingsStore.ts": {
+    "snapshot": "before-source/0-settingsStore.ts",
+    "sha256": "d05339ea00d5f2a907d4df0eca0b05ec4643a9567c8a479470bfdd0c44f9a871"
+  },
+  "tauri/src/stores/settingsStore.test.ts": {
+    "snapshot": "before-source/1-settingsStore.test.ts",
+    "sha256": "fa92f3e113ab2022aac1baa42ef1bd4b5aa4490e188043f88979a49c55647789"
+  },
+  "tauri/scripts/android-home-native-regression.py": {
+    "snapshot": "before-source/2-android-home-native-regression.py",
+    "sha256": "3dda885bcaba5739a5bcab0bd0ad17fdf25a541ca2ea15b568415ff44c0354ed"
+  },
+  "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt": {
+    "snapshot": "before-source/3-AndroidHomeInstrumentedTest.kt",
+    "sha256": "117dd50b6b7c786eb358a9be086b125144e5e351ec9a3c728bb323249ff7cf0c"
+  }
+}

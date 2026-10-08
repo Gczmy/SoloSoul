@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "source_files": 138,
+  "binary_sha256": "f2b9e981230e1c3d10c985a92482478cd5a8fc0b9a4162e35a2b7444f741e534",
+  "root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0",
+  "preflight_exit_code": 0,
+  "binding_mode": "0600",
+  "scope": "Same synthetic account root; standard CUA launch does not inherit external sandbox."
+}

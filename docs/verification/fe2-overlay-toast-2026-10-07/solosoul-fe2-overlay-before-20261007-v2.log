@@ -1,0 +1,129 @@
+[2m[WebServer] [22m(node:65427) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 3 tests using 1 worker
+
+(node:65435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m10:30:02 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:30:02 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:30:02 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✘  1 [mobile] › e2e/android-attachment-actions.spec.ts:95:1 › reminders follow object attachments and history without being trapped below the overlay (7.4s)
+(node:65625) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65625) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m10:30:08 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:30:08 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:30:09 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✘  2 [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer (6.4s)
+(node:65709) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65709) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m10:30:15 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:30:15 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:30:16 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✘  3 [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer (6.0s)
+
+
+  1) [mobile] › e2e/android-attachment-actions.spec.ts:95:1 › reminders follow object attachments and history without being trapped below the overlay 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 2[39m
+    [31m+ Received  + 2[39m
+
+    [2m  Object {[22m
+    [32m-   "hit": true,[39m
+    [31m+   "hit": false,[39m
+    [2m    "inFlow": "static",[22m
+    [32m-   "layer": "5100",[39m
+    [31m+   "layer": "4000",[39m
+    [2m  }[22m
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      127 |         }),
+      128 |       )
+    > 129 |       .toEqual({ layer: '5100', inFlow: 'static', hit: true });
+          |        ^
+      130 |   };
+      131 |   await expectFrontToast();
+      132 |   const actions = page.getByRole('button', {
+        at expectFrontToast (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:129:8)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-attachment-actions.spec.ts:131:3
+
+    Error Context: test-results/android-attachment-actions-264d9-g-trapped-below-the-overlay-mobile/error-context.md
+
+  2) [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('attachment-preview-overlay').locator(':scope > [data-toast-outlet] [data-toast-container]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('attachment-preview-overlay').locator(':scope > [data-toast-outlet] [data-toast-container]')[22m
+
+
+      245 |     const toast = page.locator('[data-toast-container]');
+      246 |     const expectFrontToast = async (overlay: Locator) => {
+    > 247 |       await expect(overlay.locator(':scope > [data-toast-outlet] [data-toast-container]')).toBeVisible();
+          |                                                                                            ^
+      248 |       await expect(toast).toHaveCount(1);
+      249 |       expect(await toast.evaluate((node) => getComputedStyle(node).position)).toBe('static');
+      250 |       const header = overlay.locator(':scope > [data-preview-titlebar]');
+        at expectFrontToast (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:247:92)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:265:11
+
+    Error Context: test-results/macos-preview-titlebar-And-2c52b-view-album-and-photo-viewer-mobile/error-context.md
+
+  3) [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByTestId('attachment-preview-overlay').locator(':scope > [data-toast-outlet] [data-toast-container]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('attachment-preview-overlay').locator(':scope > [data-toast-outlet] [data-toast-container]')[22m
+
+
+      245 |     const toast = page.locator('[data-toast-container]');
+      246 |     const expectFrontToast = async (overlay: Locator) => {
+    > 247 |       await expect(overlay.locator(':scope > [data-toast-outlet] [data-toast-container]')).toBeVisible();
+          |                                                                                            ^
+      248 |       await expect(toast).toHaveCount(1);
+      249 |       expect(await toast.evaluate((node) => getComputedStyle(node).position)).toBe('static');
+      250 |       const header = overlay.locator(':scope > [data-preview-titlebar]');
+        at expectFrontToast (/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:247:92)
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-preview-titlebar.spec.ts:265:11
+
+    Error Context: test-results/macos-preview-titlebar-And-e2d1e-view-album-and-photo-viewer-mobile/error-context.md
+
+  3 failed
+    [mobile] › e2e/android-attachment-actions.spec.ts:95:1 › reminders follow object attachments and history without being trapped below the overlay 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android light reminders follow file preview, album and photo viewer 
+    [mobile] › e2e/macos-preview-titlebar.spec.ts:228:3 › Android dark reminders follow file preview, album and photo viewer 

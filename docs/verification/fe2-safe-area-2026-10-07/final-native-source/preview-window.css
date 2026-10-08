@@ -1,0 +1,95 @@
+/* Android 提醒占用顶栏下方布局，限制高度并独立滚动，给照片和缩放操作留空间。 */
+html[data-platform='android'] [data-preview-titlebar] {
+  padding-top: calc(10px + var(--safe-area-top)) !important;
+  padding-left: max(14px, var(--safe-area-left)) !important;
+  padding-right: max(14px, var(--safe-area-right)) !important;
+}
+html[data-platform='android'] [data-preview-zoom-controls] {
+  bottom: calc(24px + var(--safe-area-bottom)) !important;
+  max-width: calc(100% - var(--safe-area-left) - var(--safe-area-right) - 24px);
+}
+html[data-platform='android'] .preview-notifications {
+  width: 100%;
+  flex-shrink: 0;
+  max-height: min(35dvh, 240px);
+  overflow: auto;
+  padding-inline: max(16px, var(--safe-area-left)) max(16px, var(--safe-area-right));
+  background: var(--bg-elevated);
+}
+
+/* macOS 预览由 Portal 放在 body 下：整条顶栏直接透出同一个原生材质。
+   原页面（包括 AppBar、侧栏边线和多层附件卡片）在这一行不绘制，
+   防止透明预览顶栏透出旧标题/按钮。退出预览后自动恢复，无原生外观重设。 */
+html[data-desktop-platform='macos']:has([data-preview-window]) {
+  --preview-titlebar-height: max(52px, var(--native-titlebar-height, 0px));
+}
+html[data-desktop-platform='macos']:has([data-preview-window]) #root,
+html[data-desktop-platform='macos']:has([data-preview-window]) [data-macos-glass-backdrop] {
+  clip-path: inset(var(--preview-titlebar-height) 0 0);
+}
+
+/* 深色背景和网页模糊仅绘制在顶栏下方，不能再覆盖整窗。
+   外壳保留自己的堆叠上下文，负层级伪元素位于内容后、底层页面前。 */
+html[data-desktop-platform='macos'] [data-preview-window] {
+  isolation: isolate;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-desktop-platform='macos'] [data-preview-window]::before {
+  content: '';
+  position: absolute;
+  inset: var(--preview-titlebar-height) 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--preview-surface);
+  -webkit-backdrop-filter: var(--preview-blur);
+  backdrop-filter: var(--preview-blur);
+}
+
+html[data-desktop-platform='macos'] [data-preview-titlebar] {
+  background: transparent !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary);
+}
+/* 查看器打开或懒加载时，相册标题仍占位，但不与查看器顶栏重叠。 */
+html[data-desktop-platform='macos'] [data-preview-titlebar][data-active='false'] {
+  visibility: hidden;
+}
+html[data-desktop-platform='macos'] [data-preview-titlebar] :is(button, span) {
+  color: inherit !important;
+}
+html[data-desktop-platform='macos'] [data-preview-titlebar] [data-testid='photo-viewer-counter'] {
+  color: var(--text-secondary) !important;
+}
+
+/* 遵循原生减少透明度/高对比偏好。 */
+html[data-desktop-platform='macos']:is([data-native-material='solid'], [data-high-contrast='true'])
+  [data-preview-titlebar] {
+  background: var(--bg-base) !important;
+}
+@media (forced-colors: active), (prefers-reduced-transparency: reduce) {
+  html[data-desktop-platform='macos'] [data-preview-titlebar] {
+    background: var(--bg-base) !important;
+  }
+}
+
+/* Windows 预览沿用 AppBar 的实色表面，避免旧的半透明工具栏叠上深色照片背景后变黑。
+   仅调整顶栏；照片区域与底部缩放栏继续使用深色表面。 */
+html[data-desktop-platform='windows'] [data-preview-titlebar] {
+  background: var(--bg-elevated) !important;
+  border-bottom-color: var(--navigation-divider, transparent) !important;
+  color: var(--text-primary);
+}
+@media (min-width: 768px) {
+  html[data-desktop-platform='windows'] [data-preview-titlebar] {
+    /* 对象附件卡片可能通过 Portal 脱离 AppShell，回退色与正文表面一致。 */
+    background: var(--shell-content-surface, var(--bg-base)) !important;
+  }
+}
+html[data-desktop-platform='windows'] [data-preview-titlebar] > span {
+  color: inherit !important;
+}
+html[data-desktop-platform='windows'] [data-preview-titlebar] [data-testid='photo-viewer-counter'] {
+  color: var(--text-secondary) !important;
+}

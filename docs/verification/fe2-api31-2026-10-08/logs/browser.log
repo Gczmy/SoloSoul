@@ -1,0 +1,671 @@
+[2m[WebServer] [22m(node:29363) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 112 tests using 2 workers
+
+(node:29377) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29376) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29377) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:29376) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m3:47:47 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:47 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:47 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:47 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:48 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:47:48 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓    2 [chromium] › e2e/android-attachment-actions.spec.ts:157:1 › Android Back closes object details and preserves the current filtered workspace (2.9s)
+[2m[WebServer] [22m3:47:49 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:49 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:49 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓    1 [chromium] › e2e/android-attachment-actions.spec.ts:95:1 › reminders follow object attachments and history without being trapped below the overlay (4.3s)
+[2m[WebServer] [22m3:47:50 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:51 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:51 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓    4 [chromium] › e2e/android-attachment-actions.spec.ts:281:1 › object attachment menu stays above its host and closes without dismissing details (2.9s)
+[2m[WebServer] [22m3:47:53 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:53 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:53 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓    3 [chromium] › e2e/android-attachment-actions.spec.ts:188:1 › global attachment menus preserve actions, confirmations and the trash menu (6.2s)
+[2m[WebServer] [22m3:47:55 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:55 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:55 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓    5 [chromium] › e2e/android-attachment-actions.spec.ts:318:1 › object detail keeps primary actions visible and groups secondary actions safely (3.3s)
+[2m[WebServer] [22m3:47:56 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓    6 [chromium] › e2e/android-attachment-actions.spec.ts:418:1 › object attachment count refreshes after deleting an attachment (2.4s)
+[2m[WebServer] [22m3:47:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓    7 [chromium] › e2e/android-material.spec.ts:77:1 › Android navigation stays mounted and icons keep their geometry (1.5s)
+[2m[WebServer] [22m3:47:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓    8 [chromium] › e2e/android-material.spec.ts:95:1 › responsive surfaces and navigation rail have no horizontal overflow (1.3s)
+[2m[WebServer] [22m3:47:58 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:58 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:58 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:59 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:47:59 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   10 [chromium] › e2e/android-material.spec.ts:229:1 › all objects, filters, search, details and contextual creation reuse business routes (2.6s)
+  ✓    9 [chromium] › e2e/android-material.spec.ts:114:1 › page sheets keep focus, stay within the viewport and preserve create/edit routes (3.5s)
+[2m[WebServer] [22m3:48:01 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:01 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:01 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:02 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:02 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   12 [chromium] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text (1.5s)
+[2m[WebServer] [22m3:48:03 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   11 [chromium] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (2.5s)
+[2m[WebServer] [22m3:48:03 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:03 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:04 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:04 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:05 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:05 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:05 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   13 [chromium] › e2e/android-material.spec.ts:361:1 › appearance persists across reload and a locked vault drops cached names (2.4s)
+  ✓   14 [chromium] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding (1.9s)
+[2m[WebServer] [22m3:48:06 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:06 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:06 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:06 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   16 [chromium] › e2e/android-material.spec.ts:489:3 › custom #ffee00 keeps home actions and tools readable in Light (1.6s)
+  ✓   15 [chromium] › e2e/android-material.spec.ts:489:3 › custom #112233 keeps home actions and tools readable in Dark (2.3s)
+[2m[WebServer] [22m3:48:07 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:07 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:07 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:08 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   18 [chromium] › e2e/android-material.spec.ts:655:1 › glass switches retain navigation geometry, forced colors use solid surfaces (2.4s)
+[2m[WebServer] [22m3:48:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   17 [chromium] › e2e/android-material.spec.ts:543:1 › shared schemes and custom accents reach CSS, artwork and native menu together (3.1s)
+[2m[WebServer] [22m3:48:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:11 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:12 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   20 [chromium] › e2e/android-material.spec.ts:710:1 › liquid artwork recovers context loss, stops when hidden and clears on lock (2.2s)
+[2m[WebServer] [22m3:48:12 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:13 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   19 [chromium] › e2e/android-material.spec.ts:679:1 › enhanced home has its final artwork on the first visible frame after navigation (3.5s)
+[2m[WebServer] [22m3:48:13 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   21 [chromium] › e2e/android-material.spec.ts:754:1 › enhanced glass follows Android WebView system theme and ignores desktop theme events (2.2s)
+[2m[WebServer] [22m3:48:14 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:14 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+[2m[WebServer] [22m3:48:14 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   22 [chromium] › e2e/android-material.spec.ts:819:1 › native menu returns contextual actions and uses web fallback when unavailable (1.8s)
+[2m[WebServer] [22m3:48:15 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:16 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   23 [chromium] › e2e/android-material.spec.ts:862:1 › late native menu results cannot navigate after route change or lock (1.6s)
+  ✓   24 [chromium] › e2e/macos-glass.spec.ts:103:3 › light 登录双层材质保留正文与辅助功能回退 (981ms)
+[2m[WebServer] [22m3:48:17 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   25 [chromium] › e2e/macos-glass.spec.ts:152:3 › light AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+  ✓   27 [chromium] › e2e/macos-glass.spec.ts:103:3 › dark 登录双层材质保留正文与辅助功能回退 (568ms)
+[2m[WebServer] [22m3:48:18 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:18 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:18 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓   26 [chromium] › e2e/macos-glass.spec.ts:189:3 › light 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.2s)
+[2m[WebServer] [22m3:48:19 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   28 [chromium] › e2e/macos-glass.spec.ts:152:3 › dark AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+  ✓   30 [chromium] › e2e/macos-glass.spec.ts:249:1 › 小窗口菜单与辅助功能回退保持键盘操作及清晰表面 (1.3s)
+[2m[WebServer] [22m3:48:21 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:21 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:21 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:21 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:22 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:22 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   29 [chromium] › e2e/macos-glass.spec.ts:189:3 › dark 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.1s)
+[2m[WebServer] [22m3:48:22 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:23 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:23 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   31 [chromium] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android light reminders follow file preview, album and photo viewer (3.3s)
+[2m[WebServer] [22m3:48:24 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:25 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:25 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   32 [chromium] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android dark reminders follow file preview, album and photo viewer (3.3s)
+[2m[WebServer] [22m3:48:26 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:26 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:27 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   33 [chromium] › e2e/macos-preview-titlebar.spec.ts:340:3 › Android light preview controls respect native safe-area lengths (2.6s)
+[2m[WebServer] [22m3:48:28 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   34 [chromium] › e2e/macos-preview-titlebar.spec.ts:340:3 › Android dark preview controls respect native safe-area lengths (2.6s)
+  ✓   35 [chromium] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS light text preview preserves traffic lights and native hit regions (1.9s)
+[2m[WebServer] [22m3:48:29 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:48:30 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   36 [chromium] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS light pdf preview preserves traffic lights and native hit regions (1.9s)
+  ✓   37 [chromium] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS light image preview preserves traffic lights and native hit regions (2.0s)
+[2m[WebServer] [22m3:48:31 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:48:32 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   38 [chromium] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS dark text preview preserves traffic lights and native hit regions (1.9s)
+  ✓   39 [chromium] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS dark pdf preview preserves traffic lights and native hit regions (1.9s)
+[2m[WebServer] [22m3:48:33 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   40 [chromium] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS dark image preview preserves traffic lights and native hit regions (1.9s)
+[2m[WebServer] [22m3:48:34 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:48:35 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   41 [chromium] › e2e/macos-preview-titlebar.spec.ts:453:1 › macOS photo viewer returns through album and restores each titlebar hit region (2.8s)
+  ✓   42 [chromium] › e2e/macos-preview-titlebar.spec.ts:484:1 › macOS preview also removes the object attachment card backdrop from the traffic lights (2.2s)
+[2m[WebServer] [22m3:48:36 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:36 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   43 [chromium] › e2e/macos-preview-titlebar.spec.ts:514:3 › windows preview keeps its existing top spacing (1.3s)
+[2m[WebServer] [22m3:48:37 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:37 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   44 [chromium] › e2e/macos-preview-titlebar.spec.ts:514:3 › android preview keeps its existing top spacing (1.6s)
+[2m[WebServer] [22m3:48:38 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:48:39 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   45 [chromium] › e2e/macos-preview-titlebar.spec.ts:531:3 › Windows light photo preview and album keep the AppBar surface (2.5s)
+  ✓   46 [chromium] › e2e/macos-preview-titlebar.spec.ts:531:3 › Windows dark photo preview and album keep the AppBar surface (2.4s)
+  ✓   47 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS left 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓   48 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS right 导航背景铺至顶部，控件避开交通灯 (1.6s)
+  ✓   49 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS top 导航背景铺至顶部，控件避开交通灯 (1.2s)
+  ✓   50 [chromium] › e2e/macos-titlebar.spec.ts:65:3 › macOS bottom 导航背景铺至顶部，控件避开交通灯 (1.1s)
+[2m[WebServer] [22m3:48:43 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   52 [chromium] › e2e/macos-titlebar.spec.ts:182:1 › macOS 全屏往返保持单行 AppBar，无重复顶部留白 (1.2s)
+  ✓   53 [chromium] › e2e/macos-titlebar.spec.ts:200:1 › macOS 交通灯范围变宽时折叠侧栏和正文同步避让 (1.2s)
+  ✓   54 [chromium] › e2e/macos-titlebar.spec.ts:213:1 › macOS 小窗口登录卡片保留上下留白及完整圆角 (925ms)
+[2m[WebServer] [22m3:48:48 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:48 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:48 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✘   51 [chromium] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 (6.5s)
+(node:30248) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30248) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   55 [chromium] › e2e/macos-titlebar.spec.ts:228:3 › left 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (2.8s)
+(node:30249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m3:48:50 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:50 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:50 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   57 [mobile] › e2e/android-attachment-actions.spec.ts:95:1 › reminders follow object attachments and history without being trapped below the overlay (2.7s)
+[2m[WebServer] [22m3:48:52 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:53 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:53 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   58 [mobile] › e2e/android-attachment-actions.spec.ts:157:1 › Android Back closes object details and preserves the current filtered workspace (1.4s)
+[2m[WebServer] [22m3:48:54 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:54 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:54 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:48:56 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:56 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:48:56 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓   56 [chromium] › e2e/macos-titlebar.spec.ts:228:3 › right 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (7.4s)
+(node:30336) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30336) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m3:48:57 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:58 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:48:58 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   59 [mobile] › e2e/android-attachment-actions.spec.ts:188:1 › global attachment menus preserve actions, confirmations and the trash menu (5.9s)
+  ✓   60 [mobile] › e2e/android-attachment-actions.spec.ts:281:1 › object attachment menu stays above its host and closes without dismissing details (2.8s)
+[2m[WebServer] [22m3:49:00 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:00 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:00 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:00 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:01 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:01 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   62 [mobile] › e2e/android-attachment-actions.spec.ts:418:1 › object attachment count refreshes after deleting an attachment (2.3s)
+[2m[WebServer] [22m3:49:02 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   61 [mobile] › e2e/android-attachment-actions.spec.ts:318:1 › object detail keeps primary actions visible and groups secondary actions safely (3.2s)
+[2m[WebServer] [22m3:49:03 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:03 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   63 [mobile] › e2e/android-material.spec.ts:77:1 › Android navigation stays mounted and icons keep their geometry (1.4s)
+[2m[WebServer] [22m3:49:04 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   64 [mobile] › e2e/android-material.spec.ts:95:1 › responsive surfaces and navigation rail have no horizontal overflow (1.2s)
+[2m[WebServer] [22m3:49:04 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:04 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:04 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:05 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:05 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   66 [mobile] › e2e/android-material.spec.ts:229:1 › all objects, filters, search, details and contextual creation reuse business routes (2.6s)
+  ✓   65 [mobile] › e2e/android-material.spec.ts:114:1 › page sheets keep focus, stay within the viewport and preserve create/edit routes (3.3s)
+[2m[WebServer] [22m3:49:07 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:07 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:07 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:08 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:08 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   68 [mobile] › e2e/android-material.spec.ts:327:1 › Android editor save stays reachable with a reminder and enlarged text (1.4s)
+[2m[WebServer] [22m3:49:08 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   67 [mobile] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (2.3s)
+[2m[WebServer] [22m3:49:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:09 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   69 [mobile] › e2e/android-material.spec.ts:361:1 › appearance persists across reload and a locked vault drops cached names (1.9s)
+[2m[WebServer] [22m3:49:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:10 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   70 [mobile] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding (1.8s)
+[2m[WebServer] [22m3:49:11 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:11 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:11 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   71 [mobile] › e2e/android-material.spec.ts:489:3 › custom #112233 keeps home actions and tools readable in Dark (1.7s)
+  ✓   72 [mobile] › e2e/android-material.spec.ts:489:3 › custom #ffee00 keeps home actions and tools readable in Light (1.6s)
+[2m[WebServer] [22m3:49:12 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:12 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:13 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:13 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:14 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:14 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   74 [mobile] › e2e/android-material.spec.ts:655:1 › glass switches retain navigation geometry, forced colors use solid surfaces (1.9s)
+[2m[WebServer] [22m3:49:14 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:15 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:15 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   73 [mobile] › e2e/android-material.spec.ts:543:1 › shared schemes and custom accents reach CSS, artwork and native menu together (3.4s)
+[2m[WebServer] [22m3:49:15 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:15 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:16 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:17 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   76 [mobile] › e2e/android-material.spec.ts:710:1 › liquid artwork recovers context loss, stops when hidden and clears on lock (2.1s)
+[2m[WebServer] [22m3:49:17 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   75 [mobile] › e2e/android-material.spec.ts:679:1 › enhanced home has its final artwork on the first visible frame after navigation (3.5s)
+[2m[WebServer] [22m3:49:18 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:18 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:19 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:19 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   77 [mobile] › e2e/android-material.spec.ts:754:1 › enhanced glass follows Android WebView system theme and ignores desktop theme events (2.1s)
+  ✓   78 [mobile] › e2e/android-material.spec.ts:819:1 › native menu returns contextual actions and uses web fallback when unavailable (1.8s)
+[2m[WebServer] [22m3:49:20 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:20 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   80 [mobile] › e2e/macos-glass.spec.ts:103:3 › light 登录双层材质保留正文与辅助功能回退 (1.0s)
+[2m[WebServer] [22m3:49:21 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   79 [mobile] › e2e/android-material.spec.ts:862:1 › late native menu results cannot navigate after route change or lock (1.8s)
+[2m[WebServer] [22m3:49:22 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   81 [mobile] › e2e/macos-glass.spec.ts:152:3 › light AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+  ✓   83 [mobile] › e2e/macos-glass.spec.ts:103:3 › dark 登录双层材质保留正文与辅助功能回退 (550ms)
+[2m[WebServer] [22m3:49:23 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:23 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:23 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:24 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   82 [mobile] › e2e/macos-glass.spec.ts:189:3 › light 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.2s)
+  ✓   84 [mobile] › e2e/macos-glass.spec.ts:152:3 › dark AppBar 平面按钮保持原生标题栏尺寸与操作 (1.6s)
+  ✓   86 [mobile] › e2e/macos-glass.spec.ts:249:1 › 小窗口菜单与辅助功能回退保持键盘操作及清晰表面 (1.3s)
+[2m[WebServer] [22m3:49:26 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:26 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:26 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:26 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:26 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:27 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   85 [mobile] › e2e/macos-glass.spec.ts:189:3 › dark 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.1s)
+[2m[WebServer] [22m3:49:28 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:28 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:28 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   87 [mobile] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android light reminders follow file preview, album and photo viewer (3.3s)
+[2m[WebServer] [22m3:49:29 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:30 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:30 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   88 [mobile] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android dark reminders follow file preview, album and photo viewer (3.2s)
+[2m[WebServer] [22m3:49:31 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✓   89 [mobile] › e2e/macos-preview-titlebar.spec.ts:340:3 › Android light preview controls respect native safe-area lengths (2.5s)
+[2m[WebServer] [22m3:49:31 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:32 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:32 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   90 [mobile] › e2e/macos-preview-titlebar.spec.ts:340:3 › Android dark preview controls respect native safe-area lengths (2.6s)
+  ✓   91 [mobile] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS light text preview preserves traffic lights and native hit regions (1.9s)
+[2m[WebServer] [22m3:49:34 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:34 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   92 [mobile] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS light pdf preview preserves traffic lights and native hit regions (2.0s)
+  ✓   93 [mobile] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS light image preview preserves traffic lights and native hit regions (2.0s)
+[2m[WebServer] [22m3:49:36 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:36 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   94 [mobile] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS dark text preview preserves traffic lights and native hit regions (1.9s)
+  ✓   95 [mobile] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS dark pdf preview preserves traffic lights and native hit regions (2.0s)
+[2m[WebServer] [22m3:49:38 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:38 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   96 [mobile] › e2e/macos-preview-titlebar.spec.ts:400:5 › macOS dark image preview preserves traffic lights and native hit regions (1.9s)
+  ✓   97 [mobile] › e2e/macos-preview-titlebar.spec.ts:453:1 › macOS photo viewer returns through album and restores each titlebar hit region (2.7s)
+[2m[WebServer] [22m3:49:40 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:41 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   99 [mobile] › e2e/macos-preview-titlebar.spec.ts:514:3 › windows preview keeps its existing top spacing (1.3s)
+  ✓   98 [mobile] › e2e/macos-preview-titlebar.spec.ts:484:1 › macOS preview also removes the object attachment card backdrop from the traffic lights (2.2s)
+[2m[WebServer] [22m3:49:42 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:42 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m3:49:42 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m3:49:42 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  100 [mobile] › e2e/macos-preview-titlebar.spec.ts:514:3 › android preview keeps its existing top spacing (1.6s)
+  ✓  101 [mobile] › e2e/macos-preview-titlebar.spec.ts:531:3 › Windows light photo preview and album keep the AppBar surface (2.4s)
+[2m[WebServer] [22m3:49:44 AM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  103 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS left 导航背景铺至顶部，控件避开交通灯 (1.5s)
+  ✓  102 [mobile] › e2e/macos-preview-titlebar.spec.ts:531:3 › Windows dark photo preview and album keep the AppBar surface (2.5s)
+  ✓  105 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS top 导航背景铺至顶部，控件避开交通灯 (1.8s)
+  ✓  104 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS right 导航背景铺至顶部，控件避开交通灯 (2.1s)
+  ✓  106 [mobile] › e2e/macos-titlebar.spec.ts:65:3 › macOS bottom 导航背景铺至顶部，控件避开交通灯 (1.7s)
+[2m[WebServer] [22m3:49:49 AM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  108 [mobile] › e2e/macos-titlebar.spec.ts:182:1 › macOS 全屏往返保持单行 AppBar，无重复顶部留白 (1.2s)
+  ✓  109 [mobile] › e2e/macos-titlebar.spec.ts:200:1 › macOS 交通灯范围变宽时折叠侧栏和正文同步避让 (1.2s)
+  ✓  110 [mobile] › e2e/macos-titlebar.spec.ts:213:1 › macOS 小窗口登录卡片保留上下留白及完整圆角 (913ms)
+  ✘  107 [mobile] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 (7.2s)
+[2m[WebServer] [22m3:49:54 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:54 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:49:54 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  111 [mobile] › e2e/macos-titlebar.spec.ts:228:3 › left 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (2.4s)
+(node:31544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m3:50:02 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:50:02 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m3:50:02 AM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  112 [mobile] › e2e/macos-titlebar.spec.ts:228:3 › right 侧栏快捷卡片覆盖正文和顶部栏，输入区不被遮挡 (7.4s)
+
+
+  1) [chromium] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 ──────────────────────
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected: [32m"http://[7mlocalhost:1420[27m/"[39m
+    Received: [31m"http://[7m127.0.0.1:1459[27m/"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 5000ms[22m
+    [2m    14 × unexpected value "http://127.0.0.1:1459/"[22m
+
+
+      175 |   await expectNativeControl(create);
+      176 |   await back.click();
+    > 177 |   await expect(page).toHaveURL('http://localhost:1420/');
+          |                      ^
+      178 |   await expect(back).toHaveCount(0);
+      179 |   await expectNativeControl(header.getByRole('button', { name: 'Guide', exact: true }));
+      180 | });
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-titlebar.spec.ts:177:22
+
+    Error Context: ../../../../../tmp/solosoul-fe2-api31-browser-results-20261008/macos-titlebar-macOS-切页、折叠和缩放后更新顶部按钮命中区-chromium/error-context.md
+
+  2) [mobile] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 ────────────────────────
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected: [32m"http://[7mlocalhost:1420[27m/"[39m
+    Received: [31m"http://[7m127.0.0.1:1459[27m/"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 5000ms[22m
+    [2m    14 × unexpected value "http://127.0.0.1:1459/"[22m
+
+
+      175 |   await expectNativeControl(create);
+      176 |   await back.click();
+    > 177 |   await expect(page).toHaveURL('http://localhost:1420/');
+          |                      ^
+      178 |   await expect(back).toHaveCount(0);
+      179 |   await expectNativeControl(header.getByRole('button', { name: 'Guide', exact: true }));
+      180 | });
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/macos-titlebar.spec.ts:177:22
+
+    Error Context: ../../../../../tmp/solosoul-fe2-api31-browser-results-20261008/macos-titlebar-macOS-切页、折叠和缩放后更新顶部按钮命中区-mobile/error-context.md
+
+  2 failed
+    [chromium] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 ───────────────────────
+    [mobile] › e2e/macos-titlebar.spec.ts:153:1 › macOS 切页、折叠和缩放后更新顶部按钮命中区 ─────────────────────────
+  110 passed (2.3m)

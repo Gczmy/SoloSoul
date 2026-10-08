@@ -1,0 +1,349 @@
+[
+  {
+    "testIdentifier": "ProbeTests/testCurrentProductionNativeFilePickerAndPreview()",
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "996D479B-131D-4CB2-B647-91AEF9193B15.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "native-file-picker-open-hierarchy_0_88BAA3E8-7918-4205-8CB9-1D368624516B.txt",
+        "timestamp": 1791447579.647
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "384D2F1E-993F-45F0-8A52-075D1AADC341.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "native-file-picker-open_0_24304349-FB27-4BC8-A39C-615E9FFD146A.png",
+        "timestamp": 1791447579.013
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "13E71C2F-6F47-40BA-B58C-05696A6D9618.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "empty-attachments-panel-hierarchy_0_7D1E04B8-ADB7-4867-A42F-3F4A87E46184.txt",
+        "timestamp": 1791447574.531
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "FC2F526F-9A05-4684-85AC-886FED0A1076.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "empty-attachments-panel_0_44DBDC91-D7C0-41DD-8289-C9D65494C0D7.png",
+        "timestamp": 1791447574.262
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "90A55EBE-0EC3-4E5B-A373-013BD9741FBC.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "identity-detail-hierarchy_0_81451646-F096-453E-B8A1-F96032ECDBBB.txt",
+        "timestamp": 1791447572.662
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "0039F36D-7263-4DF8-9073-39033D2E45F2.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "identity-detail_0_74FD8614-574F-4AF9-8077-63DC11AA93DA.png",
+        "timestamp": 1791447572.394
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "BB61BAE6-F717-4911-8C8C-820DD9CA1BB9.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "populated-identity-workspace-hierarchy_0_7EABD48F-245C-4C5D-8F5F-0B66C26B9985.txt",
+        "timestamp": 1791447570.79
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "82FEBCD6-90C9-4DB2-B8BB-884365B71EF1.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "populated-identity-workspace_0_EA6795F3-A5DD-4D6A-A6B9-C5CF2D97510C.png",
+        "timestamp": 1791447570.647
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "48C5F8AE-ADE4-4557-B867-89F033190442.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "editor-save-reachable-hierarchy_0_CBF3F69A-641A-4507-AB2C-5925C738BC51.txt",
+        "timestamp": 1791447568.86
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "FF462A31-C0A1-4F02-A779-4889D8B95977.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "editor-save-reachable_0_36BA716E-3DE2-4FB2-8CAB-C94EB2BABD97.png",
+        "timestamp": 1791447568.51
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "9092D2FF-08C7-455D-A5E6-4A728B177E8C.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "editor-after-real-viewport-scroll-hierarchy_0_3D7FA320-16AB-4090-AC35-8F3AC88E2183.txt",
+        "timestamp": 1791447567.874
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "29ABAD00-FA3E-40D0-ADEA-CBE4FEDC1BB8.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "editor-after-real-viewport-scroll_0_E63A6FF5-2C66-4073-B994-45B3E9BE1FEB.png",
+        "timestamp": 1791447567.532
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "456BA9CC-75F1-423C-8F6E-41FD5560C742.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "filled-identity-editor-hierarchy_0_17959A72-4677-4F66-9189-BD683A9138E4.txt",
+        "timestamp": 1791447560.912
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "C7A59DD8-8600-43BD-A04C-7469A4AC2F2C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "filled-identity-editor_0_47441C02-1D15-44A7-8971-EDF0B07DD634.png",
+        "timestamp": 1791447560.483
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "213DE83A-D2C2-45FA-BAFC-546D64591FF9.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-focused-before-typing-hierarchy_0_55485F35-E0B6-479E-8431-74A9B48E4A1D.txt",
+        "timestamp": 1791447558.651
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "354F7449-6396-4733-AF9A-656E00D417DE.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-focused-before-typing_0_368178A1-B4C3-4112-96C9-5E96FEBFC6BC.png",
+        "timestamp": 1791447558.193
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "2F6A59C0-FDE4-4486-8D91-7F448427E0C9.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-before-focus-hierarchy_0_DA47FF20-B2F3-4D61-9D65-626CF990C6A2.txt",
+        "timestamp": 1791447557.128
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "05E160A0-A73A-4807-AF91-4B4A034981B4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-before-focus_0_B0CEB43C-C91D-4409-81D2-C76CD260A3AA.png",
+        "timestamp": 1791447556.688
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "CF651C53-F8AC-45BF-A0EB-B71386B9F571.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-3-hierarchy_0_E905077D-3A36-4A8F-A9AF-1F2745C1FC12.txt",
+        "timestamp": 1791447556.563
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "4566A383-1B90-40A1-8316-C400C337BEAB.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-3_0_25FE6275-E211-4BD8-B601-AC3C637AE652.png",
+        "timestamp": 1791447556.136
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "06FA5610-9FFA-4971-98B8-86614EADEE70.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-2-hierarchy_0_BF79E704-D2E3-4C88-BA4B-35688EBC1803.txt",
+        "timestamp": 1791447553.326
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "2778417F-B2B2-4FBA-9C29-6D524686CB25.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-2_0_C23F3DDF-F9E7-47A7-B65C-E10B94188C3F.png",
+        "timestamp": 1791447552.9
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "0883C814-DEBD-420B-8A4D-8784C4929847.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-1-hierarchy_0_E724FEA1-9018-4BB9-81AE-B81BB946D043.txt",
+        "timestamp": 1791447549.675
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "A29D2624-8366-402F-B6BA-8B4D2F78DDE2.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-1_0_9F94E03B-0115-4C36-9880-9B159E7A4FA2.png",
+        "timestamp": 1791447549.227
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "75499B12-71BF-4A9F-9753-79A72DE96314.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-0-hierarchy_0_A1981B0E-3EAF-437A-99BF-729A2EA9B35C.txt",
+        "timestamp": 1791447546.898
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "6AD811F4-10C4-4D1E-AD17-CC391D7A1136.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "public-name-scroll-0_0_78365A75-1E9A-4482-A30C-F11B833BFF3A.png",
+        "timestamp": 1791447546.448
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "CE574E70-4C74-4CBE-B2A2-A46A5FE5A950.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "object-name-with-keyboard-hierarchy_0_DE933BBD-28C1-4594-9CEB-1A15C66EB952.txt",
+        "timestamp": 1791447544.856
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "3A818FC7-DB77-4D0A-A7C7-34734E22FC72.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "object-name-with-keyboard_0_1EDD7399-B5E1-4E11-9EB8-E655CCB69253.png",
+        "timestamp": 1791447544.415
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "7D0F7EF9-372F-419E-8274-C737E1FC5FDC.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "identity-template-editor-hierarchy_0_2AAC113C-4604-4EDB-B103-AA1F65BABDF8.txt",
+        "timestamp": 1791447540.378
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "6D1D6DD9-2251-489C-BDEA-624EFEFB956F.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "identity-template-editor_0_53AB21D8-AA71-42C0-88A0-1966EA267BB5.png",
+        "timestamp": 1791447540.065
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "4ACCEE12-8EDF-498F-83BE-1AF588E691E7.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "empty-identity-workspace-hierarchy_0_A4E6E524-8DC8-4067-8449-05582925365B.txt",
+        "timestamp": 1791447538.49
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "3EE3B52B-BB7D-4973-B7BC-33CCF371BCEE.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "empty-identity-workspace_0_D09F2E7B-C80A-4752-9015-80054D191C45.png",
+        "timestamp": 1791447538.35
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "75A1405E-9A0E-47D5-B483-106F80CF5682.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "expanded-mobile-navigation-hierarchy_0_364686C1-81D4-4D3F-AD70-376CAD1C86A9.txt",
+        "timestamp": 1791447536.38
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "1DDA2AB1-2A04-420A-A4C2-8FC98CC2DA65.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "expanded-mobile-navigation_0_430A4BB4-E910-43C8-B71C-7948CDFE139D.png",
+        "timestamp": 1791447536.151
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "80B37F10-EE12-4B9F-9C78-E8671F900920.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "current-created-home-hierarchy_0_62401186-F8CE-44AE-A982-D7D5ADB5F25D.txt",
+        "timestamp": 1791447525.617
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "A80818D3-DCEE-471F-95F7-3DDC39613739.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "current-created-home_0_7B78F965-487F-4FFB-912C-232A314F4102.png",
+        "timestamp": 1791447525.412
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "F43EE497-5ED2-4DB6-9ECF-C8B0C42C4045.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "current-registration-hierarchy_0_27BDE233-8E4E-430A-B824-9FD5CF4A0ABF.txt",
+        "timestamp": 1791447519.964
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "deviceName": "SoloSoul RF201",
+        "exportedFileName": "4ED67351-BF53-45F8-894F-E404B5C3E508.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "current-registration_0_48959E77-704E-4D2F-80C8-0BC752E1CC44.png",
+        "timestamp": 1791447519.685
+      }
+    ]
+  }
+]

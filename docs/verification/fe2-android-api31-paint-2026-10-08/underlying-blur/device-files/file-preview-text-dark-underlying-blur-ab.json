@@ -1,0 +1,22 @@
+{
+  "changed": [
+    {
+      "tag": "HEADER",
+      "classes": "android-appbar android-glass-surface",
+      "filter": "blur(16px) saturate(1.08)",
+      "zIndex": "100"
+    },
+    {
+      "tag": "NAV",
+      "classes": "android-navigation android-glass-surface",
+      "filter": "blur(16px) saturate(1.08)",
+      "zIndex": "90"
+    },
+    {
+      "tag": "DIV",
+      "classes": "",
+      "filter": "blur(6px)",
+      "zIndex": "5100"
+    }
+  ]
+}

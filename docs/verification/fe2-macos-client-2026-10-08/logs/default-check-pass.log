@@ -1,0 +1,7 @@
+    Checking solosoul-crypto v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-crypto)
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+    Checking solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)
+    Checking solosoul-core v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-core)
+    Checking solosoul-sync v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-sync)
+    Checking solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 21.92s

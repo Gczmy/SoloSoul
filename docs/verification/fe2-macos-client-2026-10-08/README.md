@@ -1,0 +1,36 @@
+# FE2 macOS 完整客户端阶段证据（2026-10-08）
+
+本目录是完整生产前端 / IPC 的 **debug 隔离构建**阶段记录。它不同于此前不读账户的 Card 例程，也不代表 FE2-002～005 / 007 已全部完成。
+
+## 已执行范围
+
+在 macOS 26.6（25G72）/ ARM64 上，以 `SoloSoulFE2Mac.app` 标准 LaunchServices 启动，使用新临时根中的一个公开合成账户。实际登录页面、主密码验证后的首页、顶部开关收起与再展开均经过电脑控制工具操作；保存前三个稳定状态的 AX 和截图。认证通过真实 VaultService / Tauri IPC，不注入已登录状态，不读取正式账户。
+
+- `01-login-light.png`：浅色登录页，深底板、浅色卡片和四周圆角留白可见。
+- `02-home-expanded-light.png`：实际解锁后的首页、实色内容面与展开导航。
+- `03-home-collapsed-light.png`：实际点击顶部开关后的紧凑导航。
+- 同名 `.ax.txt`：该阶段实际路由、合成账户和控件语义。
+
+截图中的紫色系统共享提示遮住左上角交通灯区域，因此这些图不证明交通灯的完整外观、整条顶栏颜色或拖拽命中。未量化透明度、像素坐标或动画；稳定截图也不证明恢复过程没有闪黑。
+
+## 构建、测试与来源
+
+两次 Tauri CLI debug app 构建均退出 0。最终图形验收二进制 SHA256 为 `feefce633483b1ec6f0d004261f7a66991b0e939f50395fb3bb18d05e1ebccd9`，来源见 `native-build-source.json`：11 份原生源码快照及 35 份前端构建资产 hash。
+
+最后一次图形构建之后，当前源码只将 `PathBuf::from(other)` 比较改为 `Path::new(&other)`，修复 Clippy 的 cmp-owned，不改变路径判断。当前六项隔离单测全部通过、Clippy `-D warnings` 和默认功能 `cargo check` 退出 0。图形截图属于前述二进制，不冒称执行了这一行清理后的新构建；测试源码 hash 单独写入 `report.json`。
+
+普通 Cargo 单测 / Clippy / 默认检查使用 `TAURI_CONFIG` 中 `app.macOSPrivateApi=false` 以满足构建脚本的 manifest 检查；它们不创建窗口。实际图形 app 通过 Tauri CLI 按 macOS 配置构建，保留原生私有 API。未修改正式 Cargo 依赖来绕过这个检查。
+
+六项单测覆盖合成账户真实解锁、软链接根与子项、外来账户、孤儿账户目录、marker 错位以及其他用户可访问目录。`preflight-negative.json` 的三项真实二进制检查分别拒绝外部根、冲突 Vault 环境变量和无绑定二进制，均按预期退出 1。
+
+`logs/sandbox-pass.log` 记录实际 sandbox 对新建合成文件的读写拒绝和可写输出正向控制。该 sandbox 仅用于直接启动；当前电脑控制工具的标准启动不继承它，依靠 test feature 路径隔离。启动器早先在外层工具沙箱中正向控制失败，以及 `/var` 未规范化造成拒绝策略失效，均未作为保护通过；后续规范化路径并在外层限制之外执行才获得该日志。
+
+`logs/` 同时保留测试 private API 配置失败、初次 Clippy 失败和一次错误工作目录失败。通过结果只对应明确的最终日志，不把原始失败删除或计为通过。构建对 Cargo.toml、原有 Android registry / tauri.properties 的临时改动已按原始字节恢复；3 个 hash 已再次核对。
+
+## 隔离范围与剩余验收
+
+测试 feature 仅允许 macOS debug。Vault、日志和插件分别位于本轮临时根；WKWebView 使用非持久存储，运行时 Tauri 标识追加 UUID。默认正式构建不启用这些分支。测试根 / binding 无效时停止，不回退到正式目录。
+
+当前用户级操作系统服务没有完整隔离。不配置 Touch ID / Keychain，不操作真实账户、用户目录导出或系统辅助功能设置。此入口可用于应用内的合成数据验收，不能等价替代独立用户 / VM。
+
+本轮窗口操作在工具菜单测试前遭遇 Mac 锁屏，2026-10-08 00:14 UTC 再次检查仍锁定。深色主题、四种导航、工具与浮层、错误 / PIN / Touch ID、矮窗口、完整顶栏 / 拖拽、预览 / 通知、应用锁定恢复、Dock / 台前调度连续帧与原生辅助功能仍待验证。整轮任务仍为 8 完成、6 待验证，未提交、推送或发布。

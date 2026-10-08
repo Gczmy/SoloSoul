@@ -1,0 +1,16 @@
+{
+  "serial": "emulator-5588",
+  "verified_avd": "SoloSoul_FE2_API31",
+  "packages": [
+    {
+      "package": "com.solosoul.app",
+      "actual_base_apk_sha256": "9c6395c574bacd15a1658a56db81b42f25963a6b6b2a5d75e9b7348d764a8176",
+      "matches_frozen_artifact": true
+    },
+    {
+      "package": "com.solosoul.app.test",
+      "actual_base_apk_sha256": "3996695574d0aef888fed131ff66c2a30136511aa5f8c636a76292e0140e5a9f",
+      "matches_frozen_artifact": true
+    }
+  ]
+}

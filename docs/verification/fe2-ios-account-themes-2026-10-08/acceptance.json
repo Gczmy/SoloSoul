@@ -1,0 +1,30 @@
+{
+  "scope": "Two-account real iOS UI creation, account identity and theme ownership, stable-frame pixel checks and full private restoration",
+  "passed": true,
+  "native_tests": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+  },
+  "independent_theme_frames": 4,
+  "native_device": "iPhone 17 / iOS 26.3.1 / ARM64 Simulator",
+  "production_binary_sha256": "2e4006a7227f771f442a98c259f84ff6c7ceff7044b21066975365e88d041d7d",
+  "current_source_files": 106,
+  "frozen_build_vs_current_diff": [
+    "tauri/src-tauri/src/macos_ui_regression.rs"
+  ],
+  "difference_scope": "macOS Debug fixture is cfg-gated out of the tested production iOS binary",
+  "initial_failure": "Native iOS popover option is a real 86pt Button; test incorrectly excluded height >=80. Retained failure and corrected only temporary XCTest selector. No product patch.",
+  "original_entries_restored": 99,
+  "independent_actual_data_matches_run_and_earliest_backup": true,
+  "appearance_restored": true,
+  "actual_simulator_final_state": "Shutdown",
+  "product_source_changes_this_turn": false,
+  "not_verified": [
+    "continuous animation frames",
+    "physical device performance",
+    "other iOS versions",
+    "full macOS matrix"
+  ],
+  "all_tasks_complete": false
+}

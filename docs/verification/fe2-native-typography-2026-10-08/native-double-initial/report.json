@@ -1,0 +1,45 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "baseline",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791433687.249304,
+  "passed": false,
+  "restored": true,
+  "requestedFontScale": 2.0,
+  "fontScaleBefore": "1.0",
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "474846b7a031baa21c0ab27c013fa1981c9195c06e815e5da2f713c1a4a56c04"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "d3008615c771548dd791c04f88391b7da8fbdc4686d18b8cae1c9a27406ebbb1"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-native-typography-double-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "fontScaleRestored": true,
+  "finishedAt": 1791433740.244649
+}

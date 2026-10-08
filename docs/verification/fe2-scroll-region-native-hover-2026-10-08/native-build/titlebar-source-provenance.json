@@ -1,0 +1,4 @@
+{
+  "before_titlebar_source": "Recovered from HEAD and verified byte-for-byte against first frozen source hash",
+  "after_titlebar_source": "Read from frozen isolated source snapshot and verified against second frozen source hash"
+}

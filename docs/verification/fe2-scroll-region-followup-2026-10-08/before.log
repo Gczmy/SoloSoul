@@ -1,0 +1,151 @@
+
+Running 8 tests using 2 workers
+
+(node:37411) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37410) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37411) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37410) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted (5.4s)
+(node:37448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [webkit] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted (5.9s)
+(node:37460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 [chromium] › e2e/scroll-region.spec.ts:20:1 › keyboard focus does not override the current pointer scroll area (5.2s)
+(node:37499) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37499) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 [chromium] › e2e/scroll-region.spec.ts:28:1 › style-only overlay changes recompute the stationary pointer (228ms)
+  ✓  6 [chromium] › e2e/scroll-region.spec.ts:44:1 › an actually scrollable textarea takes the vertical wheel before the main area (148ms)
+  ✘  4 [webkit] › e2e/scroll-region.spec.ts:20:1 › keyboard focus does not override the current pointer scroll area (5.6s)
+(node:37543) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37543) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  7 [webkit] › e2e/scroll-region.spec.ts:28:1 › style-only overlay changes recompute the stationary pointer (1.0s)
+  ✓  8 [webkit] › e2e/scroll-region.spec.ts:44:1 › an actually scrollable textarea takes the vertical wheel before the main area (371ms)
+
+
+  1) [chromium] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('#scroll-main')
+    Expected: [32m"true"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for locator('#scroll-main')[22m
+    [2m    14 × locator resolved to <main id="scroll-main">…</main>[22m
+    [2m       - unexpected value "null"[22m
+
+
+      10 | test('horizontal child keeps the effective vertical parent highlighted', async ({ page }) => {
+      11 |   await page.locator('#horizontal').hover({ position: { x: 40, y: 25 } });
+    > 12 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active', 'true');
+         |                                              ^
+      13 |   await expect(page.locator('#horizontal')).toHaveAttribute('data-scrollbar-active', 'true');
+      14 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });
+      15 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:12:46
+
+    Error Context: ../../../../../tmp/solosoul-scroll-region-before-results/scroll-region-horizontal-c-67f4c-vertical-parent-highlighted-chromium/error-context.md
+
+  2) [chromium] › e2e/scroll-region.spec.ts:20:1 › keyboard focus does not override the current pointer scroll area 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('#scroll-sidebar')
+    Expected: [32m"true"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for locator('#scroll-sidebar')[22m
+    [2m    14 × locator resolved to <aside id="scroll-sidebar">…</aside>[22m
+    [2m       - unexpected value "null"[22m
+
+
+      22 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });
+      23 |   await page.keyboard.press('ArrowDown');
+    > 24 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');
+         |                                                 ^
+      25 |   await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-active', 'true');
+      26 | });
+      27 |
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:24:49
+
+    Error Context: ../../../../../tmp/solosoul-scroll-region-before-results/scroll-region-keyboard-foc-f8097-current-pointer-scroll-area-chromium/error-context.md
+
+  3) [webkit] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('#scroll-main')
+    Expected: [32m"true"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for locator('#scroll-main')[22m
+    [2m    14 × locator resolved to <main id="scroll-main">…</main>[22m
+    [2m       - unexpected value "null"[22m
+
+
+      10 | test('horizontal child keeps the effective vertical parent highlighted', async ({ page }) => {
+      11 |   await page.locator('#horizontal').hover({ position: { x: 40, y: 25 } });
+    > 12 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active', 'true');
+         |                                              ^
+      13 |   await expect(page.locator('#horizontal')).toHaveAttribute('data-scrollbar-active', 'true');
+      14 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });
+      15 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:12:46
+
+    Error Context: ../../../../../tmp/solosoul-scroll-region-before-results/scroll-region-horizontal-c-67f4c-vertical-parent-highlighted-webkit/error-context.md
+
+  4) [webkit] › e2e/scroll-region.spec.ts:20:1 › keyboard focus does not override the current pointer scroll area 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('#scroll-sidebar')
+    Expected: [32m"true"[39m
+    Received: [31m""[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for locator('#scroll-sidebar')[22m
+    [2m    14 × locator resolved to <aside id="scroll-sidebar">…</aside>[22m
+    [2m       - unexpected value "null"[22m
+
+
+      22 |   await page.locator('#scroll-sidebar').hover({ position: { x: 40, y: 100 } });
+      23 |   await page.keyboard.press('ArrowDown');
+    > 24 |   await expect(page.locator('#scroll-sidebar')).toHaveAttribute('data-scrollbar-active', 'true');
+         |                                                 ^
+      25 |   await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-active', 'true');
+      26 | });
+      27 |
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:24:49
+
+    Error Context: ../../../../../tmp/solosoul-scroll-region-before-results/scroll-region-keyboard-foc-f8097-current-pointer-scroll-area-webkit/error-context.md
+
+  4 failed
+    [chromium] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted 
+    [chromium] › e2e/scroll-region.spec.ts:20:1 › keyboard focus does not override the current pointer scroll area 
+    [webkit] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted 
+    [webkit] › e2e/scroll-region.spec.ts:20:1 › keyboard focus does not override the current pointer scroll area 
+  4 passed (14.4s)

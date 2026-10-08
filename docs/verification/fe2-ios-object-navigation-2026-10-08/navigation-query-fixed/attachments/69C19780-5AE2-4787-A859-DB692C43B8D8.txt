@@ -1,0 +1,4 @@
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  ↪︎Find: Descendants matching type Button
+    ↪︎Find: Elements matching predicate '"身份信息" IN identifiers'

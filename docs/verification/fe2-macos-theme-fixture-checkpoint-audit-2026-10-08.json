@@ -1,0 +1,9 @@
+{
+  "recorded_at": 1791453339.485585,
+  "passed": true,
+  "checks": 4653,
+  "current_source_files": 106,
+  "new_macos_public_evidence_files": 16,
+  "mismatches": [],
+  "scope": "Current source plus recursive declared public evidence maps; preserve old source/build observations and config failure; receipt excludes its own hash"
+}

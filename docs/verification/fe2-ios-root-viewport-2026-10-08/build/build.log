@@ -1,0 +1,103 @@
+
+> solosoul@2.13.2 tauri:ios:build:sim
+> tauri ios build --target aarch64-sim --debug --no-sign --archive-only --ci
+
+        Info Looking up installed tauri packages to check mismatched versions...
+        Warn The bundle identifier "com.solosoul.app" set in `"tauri.conf.json" identifier` ends with `.app`. This is not recommended because it conflicts with the application bundle extension on macOS.
+     Running beforeBuildCommand `npm run build`
+
+> solosoul@2.13.2 build
+> npm run gen-nsis-assets && node scripts/build-search-index.js && node scripts/stage-mobile-resources.cjs && node scripts/stage-desktop-resources.cjs && tsc --noEmit && vite build
+
+
+> solosoul@2.13.2 gen-nsis-assets
+> python3 scripts/generate-nsis-assets.py || python scripts/generate-nsis-assets.py
+
+Pillow not installed; using existing NSIS assets.
+Search index built: 3387 words, 21 guides
+[stage-mobile-resources] 已生成移动端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-mobile/SoloSoul_plugin_market
+[stage-mobile-resources] 资源版本 0ea5bd93dd11abafd625e241db82695204a8f502a8cc6f6efe7e8a5a635f3ac1，89 文件
+[stage-desktop-resources] 已生成桌面端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-desktop/SoloSoul_plugin_market
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 4190 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                           1.46 kB │ gzip:   0.72 kB
+dist/assets/128x128@2x-lsnePcND.png                      13.59 kB
+dist/assets/is-prop-valid_framer-motion-BVADqg-m.css      0.16 kB │ gzip:   0.12 kB
+dist/assets/useLlmChatCore-DmTdtc80.css                   0.97 kB │ gzip:   0.48 kB
+dist/assets/RecoveryQrScanner-C7HdV_uH.css                1.58 kB │ gzip:   0.51 kB
+dist/assets/index-B_i18wfL.css                            2.54 kB │ gzip:   0.92 kB
+dist/assets/photoAlbumPreview-Djhl_LIP.css                3.35 kB │ gzip:   0.83 kB
+dist/assets/Dialog-UeLObrkG.css                           7.80 kB │ gzip:   2.17 kB
+dist/assets/bootstrapApp-ffoORAdh.css                   262.11 kB │ gzip:  37.76 kB
+dist/assets/vaultDirectory-Hs5D5wzD.js                    0.08 kB │ gzip:   0.09 kB
+dist/assets/loginAvailabilityPreflight-L_p9d3A6.js        0.08 kB │ gzip:   0.09 kB
+dist/assets/dialog-XUoKGiUi.js                            0.10 kB │ gzip:   0.10 kB
+dist/assets/is-prop-valid_framer-motion-CA6xaaQw.js       0.66 kB │ gzip:   0.43 kB
+dist/assets/rolldown-runtime-Cyuzqnbw.js                  0.82 kB │ gzip:   0.47 kB
+dist/assets/constants-OmM7_JPu.js                         2.43 kB │ gzip:   1.31 kB
+dist/assets/core-BAM5JyGC.js                              2.48 kB │ gzip:   1.01 kB
+dist/assets/webviewWindow-BJJ57QJh.js                     4.66 kB │ gzip:   1.37 kB
+dist/assets/jsx-runtime-C41Aq2-u.js                       5.14 kB │ gzip:   2.43 kB
+dist/assets/react-SqCrPCpP.js                             8.13 kB │ gzip:   3.14 kB
+dist/assets/Dialog-BNEkgAbA.js                            8.22 kB │ gzip:   3.25 kB
+dist/assets/PhotoViewerOverlay-DuUf6XqA.js                8.23 kB │ gzip:   3.11 kB
+dist/assets/photoAlbumPreview-DhblXMoT.js                12.04 kB │ gzip:   4.62 kB
+dist/assets/window-DLKp6x0s.js                           12.99 kB │ gzip:   3.13 kB
+dist/assets/AiQuickChatPopover-DiY8XK_1.js               14.84 kB │ gzip:   4.34 kB
+dist/assets/useLlmChatCore-laddrQFV.js                   20.25 kB │ gzip:   7.39 kB
+dist/assets/index-KTVxki7x.js                            25.81 kB │ gzip:   9.09 kB
+dist/assets/RecoveryReceiveDialog-mew2d7_Z.js            31.54 kB │ gzip:   8.12 kB
+dist/assets/backendError-IUslNth6.js                     53.26 kB │ gzip:  18.00 kB
+dist/assets/motion-vendor-DkjkdnBf.js                   125.02 kB │ gzip:  40.72 kB
+dist/assets/notification-Ddi-PGVJ.js                    138.60 kB │ gzip:  41.56 kB
+dist/assets/authStore-CmdXVdNB.js                       312.15 kB │ gzip:  96.76 kB
+dist/assets/markdown-vendor-0Ub_s1cn.js                 318.00 kB │ gzip:  97.55 kB
+dist/assets/RecoveryQrScanner-1uy_vb4n.js               377.18 kB │ gzip: 111.50 kB
+dist/assets/bootstrapApp-BTSGmEjh.js                  1,274.81 kB │ gzip: 339.10 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.
+
+✓ built in 588ms
+Setting version of project solo_soul to: 
+    2.13.2.
+
+Also setting CFBundleVersion key (assuming it exists)
+
+Updating CFBundleVersion in Info.plist(s)...
+
+Updated CFBundleVersion in "solo_soul.xcodeproj/../solo_soul_iOS/Info.plist" to 2.13.2
+
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
+{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+{ platform:iOS Simulator, arch:arm64, id:362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C, OS:26.3.1, name:SoloSoul RF201 }
+{ platform:iOS Simulator, arch:arm64, id:AA69885C-23B7-472C-A9A8-9EB43BD388CB, OS:26.3.1, name:iPad (A16) }
+{ platform:iOS Simulator, arch:arm64, id:B1B24E21-C3B2-40FC-88EF-0B99B6578D49, OS:26.3.1, name:iPad Air 11-inch (M3) }
+{ platform:iOS Simulator, arch:arm64, id:8A3E3E3B-F5E5-4368-9F0D-D9F32CC86AC2, OS:26.3.1, name:iPad Air 13-inch (M3) }
+{ platform:iOS Simulator, arch:arm64, id:2FA9C8E0-555A-48B7-88F0-653E67552C13, OS:26.3.1, name:iPad Pro 11-inch (M5) }
+{ platform:iOS Simulator, arch:arm64, id:96194A5F-8FD9-496B-BCB8-AEC7FA753A94, OS:26.3.1, name:iPad Pro 13-inch (M5) }
+{ platform:iOS Simulator, arch:arm64, id:6EE0FD73-2A7A-4CD2-BCD1-5B35A1E94EAC, OS:26.3.1, name:iPad mini (A17 Pro) }
+{ platform:iOS Simulator, arch:arm64, id:4B4271F1-5A3A-41B9-B8F1-8325361ECDEF, OS:26.3.1, name:iPhone 16e }
+{ platform:iOS Simulator, arch:arm64, id:0B0B7D51-6745-4255-B446-C9D66DEDB0CE, OS:26.3.1, name:iPhone 17 }
+{ platform:iOS Simulator, arch:arm64, id:D3E8488C-6429-43DD-87B7-F48C43DCC454, OS:26.3.1, name:iPhone 17 Pro }
+{ platform:iOS Simulator, arch:arm64, id:8ABA1583-81D7-4AB5-860E-A046BDE08453, OS:26.3.1, name:iPhone 17 Pro Max }
+{ platform:iOS Simulator, arch:arm64, id:104CE20F-887F-4B3C-AF8D-371E85DD6F50, OS:26.3.1, name:iPhone Air }
+{ platform:macOS, arch:arm64, variant:Designed for [iPad,iPhone], id:00008112-001A618C1E8A201E, name:My Mac }
+        Info connection; remote_addr=127.0.0.1:64105 conn_id=0
+    Finished 1 iOS Bundle at:
+        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive
+

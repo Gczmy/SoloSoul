@@ -1,0 +1,14 @@
+device-inventory 0
+boot 0
+boot-status 0
+initial-appearance 0
+data-container 0
+installed-app 0
+ERROR [Errno 2] No such file or directory: '/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Bundle/Application/E97CD686-96BB-445D-B1E7-036AAA3F721A/SoloSoul.app/Info.plist'
+terminate-tested-app 3
+restore-appearance 0
+restored-appearance 0
+uninstall-probe-host 0
+uninstall-probe-runner 0
+shutdown 0
+{"passed": false, "restored": false, "error": "[Errno 2] No such file or directory: '/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Bundle/Application/E97CD686-96BB-445D-B1E7-036AAA3F721A/SoloSoul.app/Info.plist'", "restore_error": null, "simulator_shutdown_restored": true}

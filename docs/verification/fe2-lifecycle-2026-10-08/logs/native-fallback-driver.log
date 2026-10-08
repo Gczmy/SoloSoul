@@ -1,0 +1,69 @@
+/sdcard/Android/data/com.solosoul.app/files/fe2-home-be157735678941f9a0ef4ee965fd9df9/: 21 files pulled, 0 skipped. 17.4 MB/s (3253163 bytes in 0.179s)
+/private/tmp/solosoul-fe2-lifecycle-20261008/native-fallback/private-data-before.tar: 1 file pushed, 0 skipped. 508.1 MB/s (4051456 bytes in 0.008s)
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "fallback",
+  "scenario": "lifecycle",
+  "startedAt": 1791418984.884372,
+  "passed": true,
+  "restored": true,
+  "nightModeBefore": "no",
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "f82370125a99ce46260a2cecea7fed7396fc60d55a30be498ccc052b75341c13"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "cb25578653e57668daeaa6d21b814df95928a079cc43a7888adf63b70cf4a343"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-lifecycle-20261008/native-fallback/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "account-a-custom-dark",
+    "account-b-custom-light",
+    "account-a-after-switch",
+    "account-b-after-switch",
+    "account-a-after-second-switch",
+    "account-a-system-light",
+    "account-a-after-activity-recreate",
+    "account-b-system-dark",
+    "account-b-after-activity-recreate",
+    "account-preferences-isolated"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "nightModeRestored": true,
+  "finishedAt": 1791419102.831224
+}

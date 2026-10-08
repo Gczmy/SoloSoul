@@ -1,0 +1,93 @@
+Attributes: Application, 0x103967d80, pid: 13470, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x103967d80, pid: 13470, label: 'SoloSoul'
+    Window (Main), 0x1039403d0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103968fb0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103969320, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x103968c20, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x1039688c0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x103969690, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1039699f0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10396a550, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10396a8e0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10396ac40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x10396afa0, {{0.0, 0.0}, {402.0, 778.0}}, label: 'SoloSoul', Focused
+                          Other, 0x10396b300, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Button, 0x10396b660, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused
+                            Other, 0x10396b9d0, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 1, Focused
+                              StaticText, 0x10396bd30, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 新建对象, Focused
+                          Other, 0x10396c0a0, {{0.0, 688.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x10396c440, {{0.0, 689.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x10396c7a0, {{80.0, 689.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x10396cb40, {{179.0, 692.0}, {45.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x10396cea0, {{241.0, 689.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x10396d220, {{321.0, 689.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x10396d5a0, {{0.0, 0.0}, {402.0, 688.0}}, Focused
+                            Other, 0x10396e0c0, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x10396e420, {{0.0, 110.0}, {402.0, 578.0}}, label: '主要', Focused
+                              Other, 0x10396e7a0, {{33.0, 143.0}, {336.0, 20.0}}, label: '对象类型', value: 3, Focused
+                                StaticText, 0x10396eb00, {{33.0, 143.0}, {56.0, 20.0}}, label: '对象类型', value: 对象类型, Focused
+                              Other, 0x10396ee70, {{33.0, 175.0}, {336.0, 19.0}}, Focused
+                                StaticText, 0x10396f1d0, {{33.0, 175.0}, {78.0, 19.0}}, label: '保存到：身份', value: 保存到：身份, Focused
+                              Switch, 0x10396f550, {{33.0, 210.0}, {86.0, 44.0}}, label: '身份信息', value: 1, Focused
+                              Switch, 0x10396f8c0, {{127.0, 210.0}, {141.0, 44.0}}, label: '身份证插件绑定', value: 0, Focused
+                              Switch, 0x10396fc30, {{33.0, 262.0}, {128.0, 44.0}}, label: '地址插件绑定', value: 0, Focused
+                              Button, 0x10396ff90, {{275.0, 262.0}, {94.0, 44.0}}, label: '管理模板', Focused
+                              Other, 0x1039709d0, {{33.0, 364.0}, {336.0, 19.0}}, label: '对象名称', Focused
+                                StaticText, 0x103970d60, {{33.0, 364.0}, {52.0, 19.0}}, label: '对象名称', value: 对象名称, Focused
+                              TextField, 0x103971100, {{33.0, 389.0}, {336.0, 42.0}}, label: '对象名称', placeholderValue: '输入名称', value: 输入名称, Focused
+                              Other, 0x103971490, {{33.0, 489.0}, {336.0, 20.0}}, label: '属性', value: 3, Focused
+                                StaticText, 0x103971810, {{33.0, 489.0}, {28.0, 20.0}}, label: '属性', value: 属性, Focused
+                              Other, 0x103971b90, {{33.0, 521.0}, {336.0, 44.0}}, label: '姓名 公开', Focused
+                                StaticText, 0x103971f20, {{53.0, 521.0}, {26.0, 19.0}}, label: '姓名', value: 姓名, Focused
+                                StaticText, 0x1039722b0, {{53.0, 548.0}, {20.0, 15.0}}, label: '公开', value: 公开, Focused
+                              TextField, 0x103972d00, {{33.0, 569.0}, {336.0, 38.0}}, label: '姓名 公开', Focused
+                              Other, 0x103973080, {{33.0, 631.0}, {336.0, 44.0}}, label: '出生日期 内部', Focused
+                                StaticText, 0x103973400, {{53.0, 631.0}, {52.0, 19.0}}, label: '出生日期', value: 出生日期, Focused
+                                StaticText, 0x1039737a0, {{53.0, 658.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused
+                              Other, 0x103973b10, {{33.0, 678.0}, {336.0, 15.0}}, Focused
+                                StaticText, 0x103974520, {{33.0, 678.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused
+                              Other, 0x1039748b0, {{33.0, 697.0}, {336.0, 42.0}}, Focused
+                                TextField, 0x103974c20, {{42.0, 703.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused
+                                TextField, 0x103974f70, {{110.0, 703.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused
+                                TextField, 0x103975300, {{160.0, 703.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused
+                              Other, 0x103975660, {{33.0, 763.0}, {336.0, 44.0}}, label: '国籍 公开', Focused
+                                StaticText, 0x103975a00, {{53.0, 763.0}, {26.0, 19.0}}, label: '国籍', value: 国籍, Focused
+                                StaticText, 0x103975d70, {{53.0, 790.0}, {20.0, 15.0}}, label: '公开', value: 公开, Focused
+                              TextField, 0x1039760d0, {{33.0, 811.0}, {336.0, 38.0}}, label: '国籍 公开', Focused
+                              Other, 0x103976460, {{33.0, 873.0}, {336.0, 44.0}}, label: '证件号码 关键', Focused
+                                StaticText, 0x1039767d0, {{53.0, 873.0}, {52.0, 19.0}}, label: '证件号码', value: 证件号码, Focused
+                                StaticText, 0x10397b0e0, {{53.0, 900.0}, {20.0, 15.0}}, label: '关键', value: 关键, Focused
+                              TextField, 0x103924f40, {{33.0, 921.0}, {336.0, 38.0}}, label: '证件号码 关键', Focused
+                              Other, 0x103978550, {{33.0, 983.0}, {336.0, 44.0}}, label: '电子邮箱 内部', Focused
+                                StaticText, 0x10394e6e0, {{53.0, 983.0}, {52.0, 19.0}}, label: '电子邮箱', value: 电子邮箱, Focused
+                                StaticText, 0x1039773d0, {{53.0, 1010.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused
+                              Other, 0x103996f50, {{33.0, 1030.0}, {336.0, 15.0}}, Focused
+                                StaticText, 0x10397f230, {{33.0, 1030.0}, {146.0, 15.0}}, label: '格式示例：name@example.com', value: 格式示例：name@example...., Focused
+                              TextField, 0x103997b90, {{33.0, 1049.0}, {336.0, 38.0}}, label: '电子邮箱 内部', Focused
+                              Other, 0x103997770, {{33.0, 1111.0}, {336.0, 44.0}}, label: '电话 内部', Focused
+                                StaticText, 0x103997350, {{53.0, 1111.0}, {26.0, 19.0}}, label: '电话', value: 电话, Focused
+                                StaticText, 0x103996910, {{53.0, 1138.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused
+                              Other, 0x1039964f0, {{33.0, 1158.0}, {336.0, 15.0}}, Focused
+                                StaticText, 0x1039960d0, {{33.0, 1158.0}, {129.0, 15.0}}, label: '格式示例：+86 1234567890', value: 格式示例：+86 1234567890, Focused
+                              TextField, 0x103995cb0, {{33.0, 1177.0}, {336.0, 38.0}}, label: '电话 内部', Focused
+                              Button, 0x103995890, {{16.0, 1320.0}, {370.0, 44.0}}, label: '取消', Focused
+                              Button, 0x10397bfc0, {{16.0, 1268.0}, {370.0, 44.0}}, label: '保存', Focused
+                Other, 0x1039981b0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x1039982d0, {{396.0, 161.0}, {3.0, 648.0}}
+                Other, 0x1039983f0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x103998510, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x103998630, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x103998750, {{396.0, 161.0}, {3.0, 648.0}}
+                Other, 0x103998870, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x103998990, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x103998ab0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x103998bd0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x103998cf0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x103967d80, pid: 13470, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x103a60390, pid: 13470, label: 'SoloSoul'
+  }

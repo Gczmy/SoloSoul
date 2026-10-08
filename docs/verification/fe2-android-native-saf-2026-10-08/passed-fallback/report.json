@@ -1,0 +1,80 @@
+{
+  "actualSafPickerChecks": true,
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "fallback",
+  "scenario": "previews",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791457227.056482,
+  "passed": true,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-android-saf-repaired-production-build-20261008/app-arm64-debug.apk",
+      "sha256": "384821244478eaa76ee9bd25c8902dd8344b123c747b1f5b27c6fdd6847af118"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-android-saf-test-build-diagnostic-20261008/app-arm64-debug-androidTest.apk",
+      "sha256": "3dcc8f0ce028d0d193ca33d28e7d2253f3a57ca17096a79450f11d615e168f0e"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-android-saf-repaired-native-fallback-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "saf-picker-open-1",
+    "saf-picker-selected-1",
+    "saf-picker-open-2",
+    "saf-picker-selected-2",
+    "preview-fixtures-encrypted",
+    "nonempty-attachments-dark",
+    "file-preview-text-dark",
+    "file-preview-image-dark",
+    "photo-album-dark",
+    "photo-viewer-dark",
+    "photo-album-after-back-dark",
+    "attachments-after-back-dark",
+    "preview-returned-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "nonempty-attachments-light",
+    "file-preview-text-light",
+    "file-preview-image-light",
+    "photo-album-light",
+    "photo-viewer-light",
+    "photo-album-after-back-light",
+    "attachments-after-back-light",
+    "preview-returned-detail-light",
+    "saf-public-fixtures-cleaned"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791457321.270761
+}

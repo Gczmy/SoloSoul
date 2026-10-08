@@ -1,0 +1,101 @@
+{
+  "passed": true,
+  "production_apk_sha256": "474846b7a031baa21c0ab27c013fa1981c9195c06e815e5da2f713c1a4a56c04",
+  "normal_font_scale": 1.0,
+  "enlarged_font_scale": 2.0,
+  "runtime": {
+    "api": 34,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "113.0.5672.136",
+    "webViewVersionCode": 567263634
+  },
+  "normal_text_zoom": 100,
+  "enlarged_text_zoom": 200,
+  "comparisons": [
+    {
+      "stage": "local-light",
+      "selector": ".android-overview-copy > p:first-child",
+      "normal_glyph_height": 16.380950927734375,
+      "enlarged_glyph_height": 32.76190185546875,
+      "height_ratio": 2.0
+    },
+    {
+      "stage": "local-light",
+      "selector": ".android-overview-copy strong",
+      "normal_glyph_height": 60.952362060546875,
+      "enlarged_glyph_height": 121.90475463867188,
+      "height_ratio": 2.0000005006791715
+    },
+    {
+      "stage": "enhanced-light",
+      "selector": ".android-overview-copy > p:first-child",
+      "normal_glyph_height": 16.380950927734375,
+      "enlarged_glyph_height": 32.76190185546875,
+      "height_ratio": 2.0
+    },
+    {
+      "stage": "enhanced-light",
+      "selector": ".android-overview-copy strong",
+      "normal_glyph_height": 60.952362060546875,
+      "enlarged_glyph_height": 121.90478515625,
+      "height_ratio": 2.0000010013583425
+    },
+    {
+      "stage": "enhanced-dark",
+      "selector": ".android-overview-copy > p:first-child",
+      "normal_glyph_height": 16.380950927734375,
+      "enlarged_glyph_height": 32.76190185546875,
+      "height_ratio": 2.0
+    },
+    {
+      "stage": "enhanced-dark",
+      "selector": ".android-overview-copy strong",
+      "normal_glyph_height": 60.952362060546875,
+      "enlarged_glyph_height": 121.90475463867188,
+      "height_ratio": 2.0000005006791715
+    },
+    {
+      "stage": "enhanced-dark-after-unlock",
+      "selector": ".android-overview-copy > p:first-child",
+      "normal_glyph_height": 16.380950927734375,
+      "enlarged_glyph_height": 32.76190185546875,
+      "height_ratio": 2.0
+    },
+    {
+      "stage": "enhanced-dark-after-unlock",
+      "selector": ".android-overview-copy strong",
+      "normal_glyph_height": 60.952362060546875,
+      "enlarged_glyph_height": 121.90475463867188,
+      "height_ratio": 2.0000005006791715
+    },
+    {
+      "stage": "populated-enhanced-dark",
+      "selector": ".android-overview-copy > p:first-child",
+      "normal_glyph_height": 16.380950927734375,
+      "enlarged_glyph_height": 32.76190185546875,
+      "height_ratio": 2.0
+    },
+    {
+      "stage": "populated-enhanced-dark",
+      "selector": ".android-overview-copy strong",
+      "normal_glyph_height": 60.952392578125,
+      "enlarged_glyph_height": 121.90475463867188,
+      "height_ratio": 1.9999994993210795
+    },
+    {
+      "stage": "populated-enhanced-light",
+      "selector": ".android-overview-copy > p:first-child",
+      "normal_glyph_height": 16.380950927734375,
+      "enlarged_glyph_height": 32.76190185546875,
+      "height_ratio": 2.0
+    },
+    {
+      "stage": "populated-enhanced-light",
+      "selector": ".android-overview-copy strong",
+      "normal_glyph_height": 60.952392578125,
+      "enlarged_glyph_height": 121.90478515625,
+      "height_ratio": 2.0
+    }
+  ],
+  "scope": "Actual production title/count at six home states; double-scale header pixels/hits and real scrollable object menu; normal sample retains original non-header gate"
+}

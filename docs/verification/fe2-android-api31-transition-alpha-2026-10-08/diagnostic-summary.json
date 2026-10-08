@@ -1,0 +1,84 @@
+{
+  "accepted": false,
+  "status": "preview_color_pending_native_transition_alpha_normal",
+  "scope": "Read-only six-stage native alpha/transitionAlpha sampling in actual API31/WebView91 production UI; real DocumentsUI imports; original pixel gate preserved",
+  "production_apk_sha256": "384821244478eaa76ee9bd25c8902dd8344b123c747b1f5b27c6fdd6847af118",
+  "helper_apk_sha256": "51541e707d4b872c96e39fca6f81cfbd258b71d4344eb3be6e61497a586409bc",
+  "native_test_counts": {
+    "tests": 1,
+    "failed": 1,
+    "skipped": 0
+  },
+  "native_driver_exit_code": 1,
+  "helper_build_exit_code": 0,
+  "protected_inputs_restored": 10,
+  "current_source_entries": 107,
+  "source_changed": false,
+  "alpha_samples": [
+    {
+      "stage": "after-two-pickers",
+      "ancestor_count": 6,
+      "all_alpha_and_transition_alpha_one": true,
+      "window_alpha": 1,
+      "window_focused": true,
+      "dim_behind_flag": false
+    },
+    {
+      "stage": "before-file-preview-text-dark",
+      "ancestor_count": 6,
+      "all_alpha_and_transition_alpha_one": true,
+      "window_alpha": 1,
+      "window_focused": true,
+      "dim_behind_flag": false
+    },
+    {
+      "stage": "before-nonempty-attachments-dark",
+      "ancestor_count": 6,
+      "all_alpha_and_transition_alpha_one": true,
+      "window_alpha": 1,
+      "window_focused": true,
+      "dim_behind_flag": false
+    },
+    {
+      "stage": "before-picker-1",
+      "ancestor_count": 6,
+      "all_alpha_and_transition_alpha_one": true,
+      "window_alpha": 1,
+      "window_focused": true,
+      "dim_behind_flag": false
+    },
+    {
+      "stage": "before-picker-2",
+      "ancestor_count": 6,
+      "all_alpha_and_transition_alpha_one": true,
+      "window_alpha": 1,
+      "window_focused": true,
+      "dim_behind_flag": false
+    },
+    {
+      "stage": "initial-home",
+      "ancestor_count": 6,
+      "all_alpha_and_transition_alpha_one": true,
+      "window_alpha": 1,
+      "window_focused": true,
+      "dim_behind_flag": false
+    }
+  ],
+  "observed_header_rgb": [
+    205,
+    200,
+    185
+  ],
+  "computed_header_rgb": [
+    221,
+    216,
+    200
+  ],
+  "all_four_header_controls_original_ink_count_zero": true,
+  "test_data_contents_links_modes_root_independently_restored": true,
+  "public_media_rows_deleted": 2,
+  "helper_uninstalled": true,
+  "emulator_host_exit_code": 0,
+  "owned_serial_absent": true,
+  "next_investigation": "Compare known opaque CSS solid RGB patches before/after picker with native pixels to separate rendering/color conversion from glyph antialiasing. Sampled normal transitionAlpha does not prove all intermediate animation frames."
+}

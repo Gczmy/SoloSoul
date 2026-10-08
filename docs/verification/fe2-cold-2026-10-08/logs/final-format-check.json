@@ -1,0 +1,8 @@
+{
+  "command": "cargo fmt --check",
+  "exit_code": 0,
+  "initial_final_check_exit_code": 1,
+  "repair": "Rustfmt wrapped only cfg(test) ui_preferences symlink regression JSON declaration; no production logic change",
+  "native_run_source": "final-native-source.json",
+  "current_source": "current-source.json"
+}

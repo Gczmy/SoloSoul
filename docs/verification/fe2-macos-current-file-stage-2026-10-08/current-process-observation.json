@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only current process/open-file observation after CUA login/unlock and OS relock; not a whole access guarantee",
+  "pid": 49150,
+  "binary_sha256": "6410ed9994f3c84ddbe71077817f6315007be2de59f04758c943e608db1cec3d",
+  "canonical_current_frozen_binary_path_matched": true,
+  "isolated_root_paths": [
+    "$FE2_ROOT/vault/acc_339749777ac04904/vault.db-shm",
+    "$FE2_ROOT/vault/.lock",
+    "$FE2_ROOT/app-data/logs/app.log",
+    "$FE2_ROOT/plugins/.lock",
+    "$FE2_ROOT/vault/acc_339749777ac04904/vault.db",
+    "$FE2_ROOT/vault/acc_339749777ac04904/vault.db-wal",
+    "$FE2_ROOT/vault/acc_339749777ac04904/vault.db-shm"
+  ],
+  "formal_path_matches": [],
+  "old_pid_99069_absent": true,
+  "process_left_running_for_continuation": true,
+  "initial_unresolved_tmp_path_probe_no_match": "/tmp vs /private/tmp; corrected by resolving actual binary path, without restarting process"
+}

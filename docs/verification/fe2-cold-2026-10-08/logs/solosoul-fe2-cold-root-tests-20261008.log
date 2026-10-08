@@ -1,0 +1,11 @@
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+    Finished `test` profile [optimized + debuginfo] target(s) in 31.98s
+     Running unittests src/lib.rs (target/debug/deps/solo_soul-b89224cd832d41f3)
+
+running 3 tests
+test state::saf_config::rf905_tests::fe2_mobile_restored_root_busy_does_not_fall_back_to_an_empty_placeholder ... ok
+test state::saf_config::rf905_tests::fe2_mobile_first_launch_still_uses_placeholder_without_creating_accounts ... ok
+test state::saf_config::rf905_tests::fe2_mobile_cold_start_restores_app_private_accounts_but_keeps_them_locked ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 779 filtered out; finished in 0.05s
+

@@ -1,0 +1,91 @@
+Application, 0x10608cd20, pid: 80939, label: 'SoloSoul' <App element pid: 80939>
+  Window (Main), 0x10608d6f0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4520608000.4>
+    Other, 0x106098ce0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4519606192.5>
+      Other, 0x106098e00, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4519591248.6>
+        Other, 0x106098b90, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4520508544.7>
+          WebView, 0x10608d810, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4521551872.8>
+            WebView, 0x1060993a0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4538637824.9>
+              WebView, 0x1060994c0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4521586688.10>
+                Other, 0x106098f20, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 9762539739248038033.9999>
+                  Other, 0x106099040, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80941, elementOrHash.elementID: 105553150905792.3>
+                    Other, 0x106099160, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80941, elementOrHash.elementID: 105553119021856.4>
+                      Other, 0x106099280, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119022368.5>
+                        Other, 0x106099730, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119076448.52>
+                          Button, 0x106099850, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119064992.113>
+                          Other, 0x106099970, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 1, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119058560.55>
+                            StaticText, 0x106099a90, {{76.0, 75.0}, {56.0, 21.0}}, label: '新建对象', value: 新建对象, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119057984.114>
+                        Other, 0x106099bb0, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119021152.53>
+                          Button, 0x106099cd0, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119063072.57>
+                          Button, 0x106099df0, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119065888.58>
+                          Button, 0x106099f10, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119057536.59>
+                          Button, 0x10609a030, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119066592.60>
+                          Button, 0x10609a150, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119052992.61>
+                        Other, 0x10609a270, {{0.0, 0.0}, {402.0, 784.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119030304.54>
+                          Other, 0x10609a390, {{0.0, 0.0}, {402.0, 10.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119055968.62>
+                          Other, 0x10609a4b0, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119061152.63>
+                            Other, 0x10609a5d0, {{33.0, 143.0}, {336.0, 20.0}}, label: '对象类型', value: 3, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119062976.115>
+                              StaticText, 0x10609a6f0, {{33.0, 143.0}, {56.0, 20.0}}, label: '对象类型', value: 对象类型, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119056896.141>
+                            Other, 0x10609a810, {{33.0, 175.0}, {336.0, 19.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119044928.116>
+                              StaticText, 0x10609a930, {{33.0, 175.0}, {78.0, 19.0}}, label: '保存到：身份', value: 保存到：身份, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119058848.142>
+                            Switch, 0x10609aa50, {{33.0, 210.0}, {141.0, 44.0}}, label: '身份证插件绑定', value: 1, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119060768.117>
+                            Switch, 0x10609ab70, {{182.0, 210.0}, {128.0, 44.0}}, label: '地址插件绑定', value: 0, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119064896.118>
+                            Switch, 0x10609ac90, {{33.0, 262.0}, {86.0, 44.0}}, label: '身份信息', value: 0, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119055936.119>
+                            Button, 0x10609adb0, {{275.0, 262.0}, {94.0, 44.0}}, label: '管理模板', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119053696.120>
+                            Other, 0x10609aed0, {{33.0, 364.0}, {336.0, 19.0}}, label: '对象名称', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119050400.121>
+                              StaticText, 0x10609aff0, {{33.0, 364.0}, {52.0, 19.0}}, label: '对象名称', value: 对象名称, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119064320.143>
+                            TextField, 0x10609b110, {{33.0, 389.0}, {336.0, 42.0}}, label: '对象名称', placeholderValue: '输入名称', value: 输入名称, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119059392.122>
+                            Other, 0x10609b230, {{33.0, 489.0}, {336.0, 20.0}}, label: '属性', value: 3, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119054432.123>
+                              StaticText, 0x10609b350, {{33.0, 489.0}, {28.0, 20.0}}, label: '属性', value: 属性, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119052512.144>
+                            Other, 0x10609b470, {{33.0, 521.0}, {336.0, 44.0}}, label: '姓名 公开', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119049824.124>
+                              StaticText, 0x10609b590, {{53.0, 521.0}, {26.0, 19.0}}, label: '姓名', value: 姓名, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119055424.145>
+                              StaticText, 0x10609b6b0, {{53.0, 548.0}, {20.0, 15.0}}, label: '公开', value: 公开, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119059904.146>
+                            TextField, 0x10609b7d0, {{33.0, 569.0}, {336.0, 38.0}}, label: '姓名 公开', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119049664.125>
+                            Other, 0x10609b8f0, {{33.0, 631.0}, {336.0, 44.0}}, label: '身份证号 关键', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119043136.126>
+                              StaticText, 0x10609ba10, {{53.0, 631.0}, {52.0, 19.0}}, label: '身份证号', value: 身份证号, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119054304.147>
+                              StaticText, 0x10609bb30, {{53.0, 658.0}, {20.0, 15.0}}, label: '关键', value: 关键, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119059040.148>
+                            TextField, 0x10609bc50, {{33.0, 679.0}, {336.0, 38.0}}, label: '身份证号 关键', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119043584.127>
+                            Other, 0x10609bd70, {{33.0, 741.0}, {336.0, 44.0}}, label: '出生日期 内部', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119046016.128>
+                              StaticText, 0x10609be90, {{53.0, 741.0}, {52.0, 19.0}}, label: '出生日期', value: 出生日期, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119055680.149>
+                              StaticText, 0x10609bfb0, {{53.0, 768.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119067168.150>
+                            Other, 0x10609c0d0, {{33.0, 788.0}, {336.0, 15.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119056704.129>
+                              StaticText, 0x10609c1f0, {{33.0, 788.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119067936.151>
+                            Other, 0x10609c310, {{33.0, 807.0}, {336.0, 42.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119058784.130>
+                              TextField, 0x10609c430, {{42.0, 813.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119061312.152>
+                              TextField, 0x10609c550, {{110.0, 813.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119003776.153>
+                              TextField, 0x10609c670, {{160.0, 813.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119017440.154>
+                            Other, 0x10609c790, {{33.0, 873.0}, {336.0, 44.0}}, label: '国籍 公开', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119045088.131>
+                              StaticText, 0x10609c8b0, {{53.0, 873.0}, {26.0, 19.0}}, label: '国籍', value: 国籍, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118983424.155>
+                              StaticText, 0x10609c9d0, {{53.0, 900.0}, {20.0, 15.0}}, label: '公开', value: 公开, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118984896.156>
+                            TextField, 0x10609caf0, {{33.0, 921.0}, {336.0, 38.0}}, label: '国籍 公开', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119048096.132>
+                            Other, 0x10609cc10, {{33.0, 983.0}, {336.0, 44.0}}, label: '签发日期 内部', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119051136.133>
+                              StaticText, 0x10609cd30, {{53.0, 983.0}, {52.0, 19.0}}, label: '签发日期', value: 签发日期, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118983328.157>
+                              StaticText, 0x10609ce50, {{53.0, 1010.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118984096.158>
+                            Other, 0x10609cf70, {{33.0, 1030.0}, {336.0, 15.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119054240.134>
+                              StaticText, 0x10609d090, {{33.0, 1030.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118984512.159>
+                            Other, 0x10609d1b0, {{33.0, 1049.0}, {336.0, 42.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119068032.135>
+                              TextField, 0x10609d2d0, {{42.0, 1055.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118984128.160>
+                              TextField, 0x10609d3f0, {{110.0, 1055.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118986208.161>
+                              TextField, 0x10609d510, {{160.0, 1055.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118985952.162>
+                            Other, 0x10609d630, {{33.0, 1115.0}, {336.0, 44.0}}, label: '有效期至 内部插件绑定', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119045120.136>
+                              StaticText, 0x10609d750, {{53.0, 1115.0}, {52.0, 19.0}}, label: '有效期至', value: 有效期至, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118984768.163>
+                              StaticText, 0x10609d870, {{53.0, 1142.0}, {20.0, 15.0}}, label: '内部', value: 内部, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118803872.164>
+                              StaticText, 0x10609d990, {{101.0, 1141.0}, {40.0, 16.0}}, label: '插件绑定', value: 插件绑定, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118800832.165>
+                            Other, 0x10609dab0, {{33.0, 1162.0}, {336.0, 15.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119056384.137>
+                              StaticText, 0x10609dbd0, {{33.0, 1162.0}, {121.0, 15.0}}, label: '格式示例：YYYY-MM-DD', value: 格式示例：YYYY-MM-DD, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118802464.166>
+                            Other, 0x10609dcf0, {{33.0, 1181.0}, {336.0, 42.0}}, Focused <AX element pid: 80941, elementOrHash.elementID: 105553119060224.138>
+                              TextField, 0x10609de10, {{42.0, 1187.0}, {52.0, 30.0}}, label: '年份输入', placeholderValue: 'yyyy', value: yyyy, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118805952.167>
+                              TextField, 0x10609df30, {{110.0, 1187.0}, {35.0, 30.0}}, label: '月份输入', placeholderValue: 'mm', value: mm, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118802016.168>
+                              TextField, 0x10609e050, {{160.0, 1187.0}, {35.0, 30.0}}, label: '日期输入', placeholderValue: 'dd', value: dd, Focused <AX element pid: 80941, elementOrHash.elementID: 105553118800928.169>
+                            Button, 0x10609e170, {{0.0, 784.0}, {402.0, 44.0}}, label: '取消', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119056000.139>
+                            Button, 0x10609e290, {{0.0, 732.0}, {402.0, 44.0}}, label: '保存', Focused <AX element pid: 80941, elementOrHash.elementID: 105553119055296.140>
+              Other, 0x10609e5b0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 80939, elementOrHash.elementID: 4519831024.11>
+                Other, 0x10609e6d0, {{396.0, 65.0}, {3.0, 744.0}} <AX element pid: 80939, elementOrHash.elementID: 4519831488.13>
+              Other, 0x10609e7f0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 80939, elementOrHash.elementID: 4519829536.12>
+                Other, 0x10609e910, {{65.0, 868.0}, {272.0, 3.0}} <AX element pid: 80939, elementOrHash.elementID: 4519830000.14>
+              Other, 0x10609ea30, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 80939, elementOrHash.elementID: 4519831024.11>
+                Other, 0x10609eb50, {{396.0, 65.0}, {3.0, 744.0}} <AX element pid: 80939, elementOrHash.elementID: 4519831488.13>
+              Other, 0x10609ec70, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 80939, elementOrHash.elementID: 4519829536.12>
+                Other, 0x10609ed90, {{65.0, 868.0}, {272.0, 3.0}} <AX element pid: 80939, elementOrHash.elementID: 4519830000.14>
+  Window, 0x10609eeb0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4538734080.15>
+    Other, 0x10609efd0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4519908384.16>
+      Other, 0x10609f0f0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 80939, elementOrHash.elementID: 4519928736.17>

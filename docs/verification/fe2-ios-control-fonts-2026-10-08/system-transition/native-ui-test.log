@@ -1,0 +1,367 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /tmp/solosoul-fe2-ios-system-theme-ui-20261008/SoloSoulFE2UIProbe.xcodeproj -scheme Probe -destination "platform=iOS Simulator,id=362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C" -derivedDataPath /tmp/solosoul-fe2-ios-system-theme-ui-20261008/DerivedData -parallel-testing-enabled NO -resultBundlePath /tmp/solosoul-fe2-ios-system-theme-ui-20261008/probe.xcresult test-without-building CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Writing result bundle at path:
+	/tmp/solosoul-fe2-ios-system-theme-ui-20261008/probe.xcresult
+
+2026-10-08 06:37:47.493105+0100 ProbeTests-Runner[67625:246470766] [Default] Running tests...
+2026-10-08 06:37:47.525166+0100 ProbeTests-Runner[67625:246470871] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+2026-10-08 06:37:47.566275+0100 ProbeTests-Runner[67625:246470871] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-08 06:37:51.425.
+Test Suite 'ProbeTests.xctest' started at 2026-10-08 06:37:51.425.
+Test Suite 'ProbeTests' started at 2026-10-08 06:37:51.426.
+Test Case '-[ProbeTests.ProbeTests testCurrentProductionSystemThemeTransition]' started.
+    t =     0.00s Start Test at 2026-10-08 06:37:51.426
+    t =     0.21s Set Up
+    t =     0.21s Open com.solosoul.app
+    t =     0.21s     Launch com.solosoul.app
+    t =     0.21s         Terminate com.solosoul.app:67558
+    t =     1.42s         Setting up automation session
+    t =     1.97s         Wait for com.solosoul.app to idle
+    t =     3.18s Waiting 30.0s for "下一步" Button to exist
+    t =     4.21s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     4.21s         Checking existence of `"下一步" Button`
+    t =     4.30s Find the "下一步" Button
+    t =     4.34s Tap "下一步" Button
+    t =     4.34s     Wait for com.solosoul.app to idle
+    t =     4.34s     Find the "下一步" Button
+    t =     4.35s     Check for interrupting elements affecting "下一步" Button
+    t =     4.39s     Synthesize event
+    t =     4.78s     Wait for com.solosoul.app to idle
+    t =     4.88s Waiting 30.0s for "下一步" Button to exist
+    t =     5.91s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     5.91s         Checking existence of `"下一步" Button`
+    t =     5.93s Find the "下一步" Button
+    t =     5.95s Tap "下一步" Button
+    t =     5.95s     Wait for com.solosoul.app to idle
+    t =     5.96s     Find the "下一步" Button
+    t =     5.97s     Check for interrupting elements affecting "下一步" Button
+    t =     5.99s     Synthesize event
+    t =     6.28s     Wait for com.solosoul.app to idle
+    t =     6.29s Waiting 30.0s for "下一步" Button to exist
+    t =     7.31s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     7.31s         Checking existence of `"下一步" Button`
+    t =     7.36s Find the "下一步" Button
+    t =     7.39s Tap "下一步" Button
+    t =     7.39s     Wait for com.solosoul.app to idle
+    t =     7.39s     Find the "下一步" Button
+    t =     7.41s     Check for interrupting elements affecting "下一步" Button
+    t =     7.43s     Synthesize event
+    t =     7.71s     Wait for com.solosoul.app to idle
+    t =     7.72s Waiting 30.0s for "下一步" Button to exist
+    t =     8.75s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     8.76s         Checking existence of `"下一步" Button`
+    t =     8.79s Find the "下一步" Button
+    t =     8.82s Tap "下一步" Button
+    t =     8.82s     Wait for com.solosoul.app to idle
+    t =     8.82s     Find the "下一步" Button
+    t =     8.85s     Check for interrupting elements affecting "下一步" Button
+    t =     8.87s     Synthesize event
+    t =     9.16s     Wait for com.solosoul.app to idle
+    t =     9.16s Waiting 15.0s for "完成" Button to exist
+    t =    10.19s     Checking `Expect predicate `existsNoRetry == 1` for object "完成" Button`
+    t =    10.20s         Checking existence of `"完成" Button`
+    t =    10.23s Tap "完成" Button
+    t =    10.23s     Wait for com.solosoul.app to idle
+    t =    10.23s     Find the "完成" Button
+    t =    10.25s     Check for interrupting elements affecting "完成" Button
+    t =    10.27s     Synthesize event
+    t =    10.56s     Wait for com.solosoul.app to idle
+    t =    10.56s Waiting 30.0s for "不，创建新账户" Button to exist
+    t =    11.60s     Checking `Expect predicate `existsNoRetry == 1` for object "不，创建新账户" Button`
+    t =    11.61s         Checking existence of `"不，创建新账户" Button`
+    t =    11.66s Tap "不，创建新账户" Button
+    t =    11.66s     Wait for com.solosoul.app to idle
+    t =    11.66s     Find the "不，创建新账户" Button
+    t =    11.68s     Check for interrupting elements affecting "不，创建新账户" Button
+    t =    11.70s     Synthesize event
+    t =    11.99s     Wait for com.solosoul.app to idle
+    t =    12.00s Checking existence of `"账户名称" SecureTextField`
+    t =    12.03s Waiting 30.0s for "账户名称" TextField to exist
+    t =    13.06s     Checking `Expect predicate `existsNoRetry == 1` for object "账户名称" TextField`
+    t =    13.06s         Checking existence of `"账户名称" TextField`
+    t =    13.10s Find the Application 'com.solosoul.app'
+    t =    13.22s Added attachment named 'current-registration'
+    t =    13.22s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    13.35s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    13.38s Added attachment named 'current-registration-hierarchy'
+    t =    13.38s Tap "账户名称" TextField
+    t =    13.38s     Wait for com.solosoul.app to idle
+    t =    13.38s     Find the "账户名称" TextField
+    t =    13.40s     Check for interrupting elements affecting "账户名称" TextField
+    t =    13.41s     Synthesize event
+    t =    13.70s     Wait for com.solosoul.app to idle
+    t =    13.81s Type 'FE2 iOS public acc...' into "账户名称" TextField
+    t =    13.81s     Wait for com.solosoul.app to idle
+    t =    14.20s     Find the "账户名称" TextField
+    t =    14.26s     Check for interrupting elements affecting "账户名称" TextField
+    t =    14.30s     Synthesize event
+    t =    14.86s     Wait for com.solosoul.app to idle
+    t =    14.87s Checking existence of `"主密码" SecureTextField`
+    t =    14.90s Checking existence of `"主密码" TextField`
+    t =    14.94s Tap "主密码" TextField
+    t =    14.94s     Wait for com.solosoul.app to idle
+    t =    14.95s     Find the "主密码" TextField
+    t =    14.98s     Check for interrupting elements affecting "输入密码" TextField
+    t =    15.02s     Synthesize event
+    t =    15.31s     Wait for com.solosoul.app to idle
+    t =    15.44s Type 'FE2-public-test-20...' into "输入密码" TextField
+    t =    15.44s     Wait for com.solosoul.app to idle
+    t =    15.44s     Find the "输入密码" TextField
+    t =    15.47s     Check for interrupting elements affecting "输入密码" TextField
+    t =    15.50s     Synthesize event
+    t =    16.06s     Wait for com.solosoul.app to idle
+    t =    16.06s Checking existence of `"确认密码" SecureTextField`
+    t =    16.11s Checking existence of `"确认密码" TextField`
+    t =    16.15s Tap "确认密码" TextField
+    t =    16.15s     Wait for com.solosoul.app to idle
+    t =    16.15s     Find the "确认密码" TextField
+    t =    16.19s     Check for interrupting elements affecting "输入密码" TextField
+    t =    16.22s     Synthesize event
+    t =    16.51s     Wait for com.solosoul.app to idle
+    t =    16.64s Type 'FE2-public-test-20...' into "输入密码" TextField
+    t =    16.64s     Wait for com.solosoul.app to idle
+    t =    16.64s     Find the "输入密码" TextField
+    t =    16.68s     Check for interrupting elements affecting "输入密码" TextField
+    t =    16.71s     Synthesize event
+    t =    17.28s     Wait for com.solosoul.app to idle
+    t =    17.58s Waiting 60.0s for "首页" Button to exist
+    t =    18.60s     Checking `Expect predicate `existsNoRetry == 1` for object "首页" Button`
+    t =    18.60s         Checking existence of `"首页" Button`
+    t =    18.65s Find the "首页" Button
+    t =    18.68s Find the Application 'com.solosoul.app'
+    t =    18.78s Added attachment named 'current-created-home'
+    t =    18.78s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    18.95s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    18.98s Added attachment named 'current-created-home-hierarchy'
+    t =    18.98s Waiting 30.0s for "锁定保险库" Button to exist
+    t =    20.01s     Checking `Expect predicate `existsNoRetry == 1` for object "锁定保险库" Button`
+    t =    20.01s         Checking existence of `"锁定保险库" Button`
+    t =    20.06s Find the "锁定保险库" Button
+    t =    20.09s Tap "锁定保险库" Button
+    t =    20.09s     Wait for com.solosoul.app to idle
+    t =    20.09s     Find the "锁定保险库" Button
+    t =    20.11s     Check for interrupting elements affecting "锁定保险库" Button
+    t =    20.13s     Synthesize event
+    t =    20.41s     Wait for com.solosoul.app to idle
+    t =    20.42s Waiting 30.0s for "解锁" Button to exist
+    t =    21.45s     Checking `Expect predicate `existsNoRetry == 1` for object "解锁" Button`
+    t =    21.45s         Checking existence of `"解锁" Button`
+    t =    21.48s Checking existence of `"输入密码" SecureTextField`
+    t =    21.50s Waiting 30.0s for "输入密码" TextField to exist
+    t =    22.53s     Checking `Expect predicate `existsNoRetry == 1` for object "输入密码" TextField`
+    t =    22.53s         Checking existence of `"输入密码" TextField`
+    t =    22.57s Find the Application 'com.solosoul.app'
+    t =    22.67s Added attachment named 'current-locked-login'
+    t =    22.67s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    22.78s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    22.80s Added attachment named 'current-locked-login-hierarchy'
+    t =    22.80s Tap "输入密码" TextField
+    t =    22.80s     Wait for com.solosoul.app to idle
+    t =    22.80s     Find the "输入密码" TextField
+    t =    22.81s     Check for interrupting elements affecting "输入密码" TextField
+    t =    22.83s     Synthesize event
+    t =    23.11s     Wait for com.solosoul.app to idle
+    t =    23.36s Type 'FE2-public-test-20...' into "输入密码" TextField
+    t =    23.36s     Wait for com.solosoul.app to idle
+    t =    23.37s     Find the "输入密码" TextField
+    t =    23.40s     Check for interrupting elements affecting "输入密码" TextField
+    t =    23.43s     Synthesize event
+    t =    23.99s     Wait for com.solosoul.app to idle
+    t =    24.25s Waiting 60.0s for "首页" Button to exist
+    t =    25.28s     Checking `Expect predicate `existsNoRetry == 1` for object "首页" Button`
+    t =    25.28s         Checking existence of `"首页" Button`
+    t =    25.31s Find the "首页" Button
+    t =    25.34s Find the Application 'com.solosoul.app'
+    t =    25.45s Added attachment named 'current-unlocked-home'
+    t =    25.45s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    25.73s Requesting snapshot of accessibility hierarchy for app with pid 67704
+    t =    25.76s Added attachment named 'current-unlocked-home-hierarchy'
+    t =    25.76s Get number of matches for: Descendants matching type Keyboard
+    t =    25.78s Requesting snapshot of accessibility hierarchy for app with pid 67038
+    t =    26.08s Requesting snapshot of accessibility hierarchy for app with pid 67038
+    t =    26.16s Added attachment named 'system-ui-after-password'
+    t =    26.16s Terminate com.solosoul.app:67704
+    t =    27.22s Open com.solosoul.app
+    t =    27.22s     Launch com.solosoul.app
+    t =    27.36s         Setting up automation session
+    t =    27.92s         Wait for com.solosoul.app to idle
+    t =    29.14s Checking existence of `"输入密码" SecureTextField`
+    t =    29.30s Waiting 30.0s for "输入密码" TextField to exist
+    t =    30.32s     Checking `Expect predicate `existsNoRetry == 1` for object "输入密码" TextField`
+    t =    30.32s         Checking existence of `"输入密码" TextField`
+    t =    30.35s Find the Application 'com.solosoul.app'
+    t =    30.47s Added attachment named 'cold-account-login'
+    t =    30.48s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    30.58s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    30.60s Added attachment named 'cold-account-login-hierarchy'
+    t =    30.60s Tap "输入密码" TextField
+    t =    30.60s     Wait for com.solosoul.app to idle
+    t =    30.60s     Find the "输入密码" TextField
+    t =    30.62s     Check for interrupting elements affecting "输入密码" TextField
+    t =    30.63s         Wait for com.apple.springboard to idle
+    t =    30.67s     Synthesize event
+    t =    30.97s     Wait for com.solosoul.app to idle
+    t =    31.07s Type 'FE2-public-test-20...' into "输入密码" TextField
+    t =    31.07s     Wait for com.solosoul.app to idle
+    t =    31.44s     Find the "输入密码" TextField
+    t =    31.50s     Check for interrupting elements affecting "输入密码" TextField
+    t =    31.52s         Wait for com.apple.springboard to idle
+    t =    31.56s     Synthesize event
+    t =    32.12s     Wait for com.solosoul.app to idle
+    t =    32.41s Waiting 60.0s for "首页" Button to exist
+    t =    33.45s     Checking `Expect predicate `existsNoRetry == 1` for object "首页" Button`
+    t =    33.45s         Checking existence of `"首页" Button`
+    t =    33.48s Find the Application 'com.solosoul.app'
+    t =    33.60s Added attachment named 'cold-unlocked-home'
+    t =    33.60s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    33.76s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    33.79s Added attachment named 'cold-unlocked-home-hierarchy'
+    t =    33.79s Waiting 15.0s for "设置" Button to exist
+    t =    34.81s     Checking `Expect predicate `existsNoRetry == 1` for object "设置" Button`
+    t =    34.81s         Checking existence of `"设置" Button`
+    t =    34.83s Find the "设置" Button
+    t =    34.85s Tap "设置" Button
+    t =    34.85s     Wait for com.solosoul.app to idle
+    t =    34.85s     Find the "设置" Button
+    t =    34.87s     Check for interrupting elements affecting "设置" Button
+    t =    34.89s         Wait for com.apple.springboard to idle
+    t =    34.92s     Synthesize event
+    t =    35.21s     Wait for com.solosoul.app to idle
+    t =    35.22s Find the Application 'com.solosoul.app'
+    t =    35.33s Added attachment named 'settings-page'
+    t =    35.33s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    35.51s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    35.54s Added attachment named 'settings-page-hierarchy'
+    t =    35.55s Waiting 15.0s for Button (First Match) to exist
+    t =    36.56s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    36.56s         Checking existence of `Button (First Match)`
+    t =    36.61s Find the Button (First Match)
+    t =    36.63s Tap "主题与外观 自定义主题、主题色、语言和背景›" Button
+    t =    36.64s     Wait for com.solosoul.app to idle
+    t =    36.64s     Find the "主题与外观 自定义主题、主题色、语言和背景›" Button
+    t =    36.65s     Check for interrupting elements affecting "主题与外观 自定义主题、主题色、语言和背景›" Button
+    t =    36.67s     Synthesize event
+    t =    36.97s     Wait for com.solosoul.app to idle
+    t =    36.97s Find the Application 'com.solosoul.app'
+    t =    37.09s Added attachment named 'appearance-before'
+    t =    37.09s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    37.25s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    37.28s Added attachment named 'appearance-before-hierarchy'
+    t =    47.29s Waiting 15.0s for StaticText (First Match) to exist
+    t =    48.32s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    48.32s         Checking existence of `StaticText (First Match)`
+    t =    48.36s Find the StaticText (First Match)
+    t =    48.39s Tap "深色 · 森夜" StaticText
+    t =    48.39s     Wait for com.solosoul.app to idle
+    t =    48.39s     Find the "深色 · 森夜" StaticText
+    t =    48.41s     Check for interrupting elements affecting "深色 · 森夜" StaticText
+    t =    48.43s     Synthesize event
+    t =    48.71s     Wait for com.solosoul.app to idle
+    t =    50.22s Find the Application 'com.solosoul.app'
+    t =    50.34s Added attachment named 'fixed-dark-system-light'
+    t =    50.34s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    50.51s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    50.53s Added attachment named 'fixed-dark-system-light-hierarchy'
+    t =    50.54s Waiting 15.0s for StaticText (First Match) to exist
+    t =    51.56s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    51.56s         Checking existence of `StaticText (First Match)`
+    t =    51.60s Find the StaticText (First Match)
+    t =    51.63s Tap "浅色 · 暖石" StaticText
+    t =    51.63s     Wait for com.solosoul.app to idle
+    t =    51.63s     Find the "浅色 · 暖石" StaticText
+    t =    51.65s     Check for interrupting elements affecting "浅色 · 暖石" StaticText
+    t =    51.67s     Synthesize event
+    t =    51.96s     Wait for com.solosoul.app to idle
+    t =    53.47s Find the Application 'com.solosoul.app'
+    t =    53.60s Added attachment named 'fixed-light-system-light'
+    t =    53.60s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    53.76s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    53.79s Added attachment named 'fixed-light-system-light-hierarchy'
+    t =    53.79s Waiting 15.0s for StaticText (First Match) to exist
+    t =    54.82s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    54.82s         Checking existence of `StaticText (First Match)`
+    t =    54.86s Find the StaticText (First Match)
+    t =    54.88s Tap "跟随系统" StaticText
+    t =    54.88s     Wait for com.solosoul.app to idle
+    t =    54.89s     Find the "跟随系统" StaticText
+    t =    54.90s     Check for interrupting elements affecting "跟随系统" StaticText
+    t =    54.92s     Synthesize event
+    t =    55.21s     Wait for com.solosoul.app to idle
+    t =    56.72s Find the Application 'com.solosoul.app'
+    t =    56.86s Added attachment named 'system-mode-system-light'
+    t =    56.86s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    57.03s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    57.05s Added attachment named 'system-mode-system-light-hierarchy'
+FE2_SYSTEM_THEME_READY
+    t =    67.06s Find the Application 'com.solosoul.app'
+    t =    67.20s Added attachment named 'system-mode-system-dark'
+    t =    67.20s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    67.37s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    67.40s Added attachment named 'system-mode-system-dark-hierarchy'
+    t =    67.40s Checking existence of `StaticText (First Match)`
+    t =    67.41s Find the StaticText (First Match)
+    t =    67.44s Tap "浅色 · 暖石" StaticText
+    t =    67.44s     Wait for com.solosoul.app to idle
+    t =    67.44s     Find the "浅色 · 暖石" StaticText
+    t =    67.46s     Check for interrupting elements affecting "浅色 · 暖石" StaticText
+    t =    67.48s     Synthesize event
+    t =    67.76s     Wait for com.solosoul.app to idle
+    t =    69.27s Find the Application 'com.solosoul.app'
+    t =    69.40s Added attachment named 'fixed-light-system-dark'
+    t =    69.40s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    69.57s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    69.60s Added attachment named 'fixed-light-system-dark-hierarchy'
+    t =    69.60s Checking existence of `StaticText (First Match)`
+    t =    69.62s Find the StaticText (First Match)
+    t =    69.64s Tap "深色 · 森夜" StaticText
+    t =    69.64s     Wait for com.solosoul.app to idle
+    t =    69.65s     Find the "深色 · 森夜" StaticText
+    t =    69.66s     Check for interrupting elements affecting "深色 · 森夜" StaticText
+    t =    69.68s     Synthesize event
+    t =    69.97s     Wait for com.solosoul.app to idle
+    t =    71.48s Find the Application 'com.solosoul.app'
+    t =    71.60s Added attachment named 'fixed-dark-system-dark'
+    t =    71.60s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    71.76s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    71.79s Added attachment named 'fixed-dark-system-dark-hierarchy'
+    t =    71.79s Checking existence of `"跟随系统" StaticText`
+    t =    71.81s Tap "跟随系统" StaticText
+    t =    71.81s     Wait for com.solosoul.app to idle
+    t =    71.81s     Find the "跟随系统" StaticText
+    t =    71.83s     Check for interrupting elements affecting "跟随系统" StaticText
+    t =    71.85s     Synthesize event
+    t =    72.15s     Wait for com.solosoul.app to idle
+    t =    73.66s Find the Application 'com.solosoul.app'
+    t =    73.76s Added attachment named 'system-mode-system-dark-again'
+    t =    73.76s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    73.93s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    73.96s Added attachment named 'system-mode-system-dark-again-hierarchy'
+    t =    73.96s Find the Application 'com.solosoul.app'
+    t =    74.06s Added attachment named 'final-state'
+    t =    74.06s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    74.22s Requesting snapshot of accessibility hierarchy for app with pid 68071
+    t =    74.25s Added attachment named 'final-state-hierarchy'
+    t =    74.25s Terminate com.solosoul.app:68071
+    t =    75.30s Tear Down
+Test Case '-[ProbeTests.ProbeTests testCurrentProductionSystemThemeTransition]' passed (75.398 seconds).
+Test Suite 'ProbeTests' passed at 2026-10-08 06:39:06.824.
+	 Executed 1 test, with 0 failures (0 unexpected) in 75.398 (75.398) seconds
+Test Suite 'ProbeTests.xctest' passed at 2026-10-08 06:39:06.825.
+	 Executed 1 test, with 0 failures (0 unexpected) in 75.398 (75.399) seconds
+Test Suite 'All tests' passed at 2026-10-08 06:39:06.825.
+	 Executed 1 test, with 0 failures (0 unexpected) in 75.398 (75.400) seconds
+2026-10-08 06:39:07.189 xcodebuild[67561:246470261] [MT] IDETestOperationsObserverDebug: 82.026 elapsed -- Testing started completed.
+2026-10-08 06:39:07.190 xcodebuild[67561:246470261] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-08 06:39:07.190 xcodebuild[67561:246470261] [MT] IDETestOperationsObserverDebug: 82.026 sec, +82.026 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/solosoul-fe2-ios-system-theme-ui-20261008/probe.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

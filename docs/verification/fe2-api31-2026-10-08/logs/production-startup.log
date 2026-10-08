@@ -1,0 +1,27 @@
+[2m[WebServer] [22m(node:60941) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.
+[2m[WebServer] [22m
+[2m[WebServer] [22m[plugin builtin:vite-reporter] [33m[1m
+[2m[WebServer] [22m(!) Some chunks are larger than 500 kB after minification. Consider:
+[2m[WebServer] [22m- Using dynamic import() to code-split the application
+[2m[WebServer] [22m- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[2m[WebServer] [22m- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[0m[39m
+[2m[WebServer] [22m[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.
+[2m[WebServer] [22m
+[2m[WebServer] [22m[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.
+[2m[WebServer] [22m
+[2m[WebServer] [22m[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.
+[2m[WebServer] [22m
+[2m[WebServer] [22m(node:60962) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:60979) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:60979) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/production-startup.spec.ts:5:1 › 生产包完成启动并正常渲染 Markdown (684ms)
+
+  1 passed (3.2s)

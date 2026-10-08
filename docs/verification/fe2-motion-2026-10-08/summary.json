@@ -1,0 +1,135 @@
+{
+  "status": "passed partial FE2-014 reduced-motion account/process persistence scope",
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "SoloSoul_RF201",
+    "api": 34,
+    "abi": "arm64-v8a"
+  },
+  "artifacts_sha256": {
+    "tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk": "688e90599fe65bca72a89d31b5a319ffb856dc7b9e2545f75c2426118df566a9",
+    "tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk": "5d96dfd1e6b39d1fcc9c57245a3deca25ce226dceb43fe27496c2d9101d7ed9c"
+  },
+  "production_apk_rebuilt": true,
+  "main_build_exit_code": 0,
+  "instrumentation_build_exit_code": 0,
+  "executed_source_manifest": "docs/verification/fe2-motion-2026-10-08/paint-ready-source.json",
+  "final_check_source_manifest": "docs/verification/fe2-motion-2026-10-08/final-checks-source.json",
+  "source_provenance": "Main package rebuilt after production serialization fix; first test package final-native-source, final native test package paint-ready-source; afterwards only Python negative unit tests added",
+  "fix": "Serialize only non-string UI mirror IPC values for Rust String parameter, preserve boolean encrypted/cache values and request/session ordering",
+  "checks": {
+    "before_fix_regression": {
+      "exit_code": 1,
+      "failed": 1,
+      "focused_skipped": 26
+    },
+    "targeted_vitest": {
+      "exit_code": 0,
+      "files": 6,
+      "passed": 105
+    },
+    "first_targeted_vitest": {
+      "exit_code": 0,
+      "files": 3,
+      "passed": 63
+    },
+    "python_driver": {
+      "exit_code": 0,
+      "passed": 20
+    },
+    "modified_eslint_exit_code": 0,
+    "prettier_exit_code": 0,
+    "frontend_type_vite_build_exit_code": 0,
+    "pref_keys_exit_code": 0,
+    "ipc_contracts_exit_code": 0,
+    "diff_check_exit_code": 0,
+    "full_vitest_rerun": false,
+    "rust_checks_rerun": false
+  },
+  "native_runs": {
+    "supported": {
+      "exit_code": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "methods": 2,
+      "stages": 23,
+      "png": 20,
+      "report": "docs/verification/fe2-motion-2026-10-08/native-supported/report.json",
+      "previous_pid": 12324,
+      "new_pid": 12715,
+      "all_private_data_restored": true,
+      "restore_entries": 242,
+      "blur_restored": true,
+      "notification_restored": true,
+      "night_mode_restored": true
+    },
+    "fallback": {
+      "exit_code": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "methods": 2,
+      "stages": 23,
+      "png": 20,
+      "report": "docs/verification/fe2-motion-2026-10-08/native-fallback/report.json",
+      "previous_pid": 13083,
+      "new_pid": 13500,
+      "all_private_data_restored": true,
+      "restore_entries": 242,
+      "blur_restored": true,
+      "notification_restored": true,
+      "night_mode_restored": true
+    }
+  },
+  "failure_history": {
+    "report": "docs/verification/fe2-motion-2026-10-08/attempt-1-supported/report.json",
+    "native_exit_code": 1,
+    "passed": false,
+    "cold_method_run": false,
+    "reason": "Canvas visible assertion before visible paint; strict sampling now waits visible body/canvas; no production styling changed",
+    "restore_entries": 242,
+    "complete_restoration": true
+  },
+  "scope": "Real checkbox explicit true/false saving in two accounts; six encrypted/mirrored appearance prefs; actual new process locked login and password unlock, native system mode conflict, DOM reduced-motion marker and CSS computed duration; glass and composed copy/action pixel criteria retained",
+  "human_review": {
+    "supported": [
+      "cold-login.png",
+      "account-a-cold-system-dark.png",
+      "account-b-cold-system-dark.png"
+    ],
+    "fallback": [
+      "cold-login.png",
+      "account-a-cold-system-dark.png",
+      "account-b-cold-system-dark.png"
+    ],
+    "meaning": "Stable current screenshots only; not continuous-animation or every-frame proof"
+  },
+  "protected_build_inputs": {
+    "tauri/src-tauri/Cargo.toml": "a7917073d0ab8547e5b9c919980e8f66aec1a9e2da1328193076cac5a3eb03c0",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6"
+  },
+  "macos_last_observation": {
+    "at": "2026-10-08T01:25:52.055098+00:00",
+    "tool": "CUA fe2MacApp.getAXState",
+    "state": "Mac locked; existing manual unlock request remains unanswered, no unlock attempted"
+  },
+  "remaining": [
+    "Full macOS native matrix with current shared source rebuild after manual unlock",
+    "Old Android/WebView image not installed; local images API34/36/37 only",
+    "Nonempty native attachment/file/album/viewer notifications",
+    "Real nonzero cutout/multiwindow/other IME",
+    "Maintenance-busy first-use UX",
+    "iOS native capability/system bar/full account UI",
+    "Physical-device performance and continuous startup/animation proof"
+  ],
+  "private_backup_policy": "Private tar stays in /tmp; public files contain only explicit synthetic fixtures",
+  "task_count": {
+    "total": 14,
+    "complete": 8,
+    "pending": 6
+  },
+  "public_evidence_directory": "docs/verification/fe2-motion-2026-10-08",
+  "updated_at": "2026-10-08T01:25:52.055098+00:00"
+}

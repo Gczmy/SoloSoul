@@ -1,0 +1,459 @@
+:root {
+  /* Color tokens */
+  --bg-base: #fafaf8;
+  --bg-elevated: #ffffff;
+  --bg-toolbar: rgba(250, 250, 248, 0.8);
+  --bg-elevated-hover: #f6f5f2;
+  --bg-inset: #f0efec;
+  --bg-hover: #f0efec;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-tertiary: #9e9e9e;
+  --accent-primary: #5b7c99;
+  --accent-hover: #4a6a85;
+  --accent-warm: #c4925c;
+  --border-subtle: #ebeae6;
+  --border-focus: #5b7c99;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-color-sm: rgba(0, 0, 0, 0.04);
+  --shadow-color-md: rgba(0, 0, 0, 0.08);
+  --shadow-color-lg: rgba(0, 0, 0, 0.12);
+
+  /* Typography */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Noto Sans SC', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Transitions */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Plugin dashboard aliases */
+  --surface-elevated: var(--bg-elevated);
+  --surface-default: var(--bg-base);
+  --accent: var(--accent-primary);
+  --accent-subtle: var(--color-info-bg);
+  --success: var(--color-success-text);
+  --success-subtle: var(--color-success-bg);
+  --warning: var(--color-warning-text);
+  --warning-subtle: var(--color-warning-bg);
+  --danger: var(--color-error-text);
+  --danger-subtle: var(--color-error-bg);
+  --info: var(--color-info-text);
+  --info-subtle: var(--color-info-bg);
+  --danger-rgb: 192, 57, 43;
+  --warning-rgb: 212, 160, 23;
+
+  /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+  --error: var(--danger);
+  --bg-input: var(--bg-inset);
+  --bg-primary: var(--bg-base);
+  --bg-subtle: var(--bg-hover);
+  --border-hover: var(--border-focus);
+  --focus-ring: var(--accent-primary);
+  --accent-success: var(--success);
+  --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+/* Dark mode — only when explicitly selected or system preference (not plain :root) */
+@media (prefers-color-scheme: dark) {
+  [data-theme='system'] {
+    /* Warm dark palette — low contrast, cozy like Warp */
+    --bg-base: #1f1c18;
+    --bg-elevated: #2a2620;
+    --bg-toolbar: rgba(42, 38, 32, 0.92);
+    --bg-elevated-hover: #322d26;
+    --bg-inset: rgba(26, 23, 20, 0.5);
+    --bg-hover: #353029;
+    --bg-active: #423b33;
+    --text-primary: #ddd8c8;
+    --text-secondary: #a69d8a;
+    --text-tertiary: #7a7265;
+    --text-inverse: #1f1c18;
+    --text-accent: #a8bfd4;
+    --text-warm: #d4b88a;
+    --accent-primary: #7a9ab5;
+    --accent-hover: #8eafc8;
+    --accent-warm: #c4a574;
+    --accent-warm-hover: #d4b88a;
+    --border-subtle: #3d3831;
+    --border-default: #4a433b;
+    --border-strong: #5c5549;
+    --border-focus: #7a9ab5;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.35), 0 8px 16px rgba(0, 0, 0, 0.3);
+    --shadow-color-sm: rgba(0, 0, 0, 0.25);
+    --shadow-color-md: rgba(0, 0, 0, 0.35);
+    --shadow-color-lg: rgba(0, 0, 0, 0.45);
+
+    /* Plugin dashboard aliases */
+    --surface-elevated: var(--bg-elevated);
+    --surface-default: var(--bg-base);
+    --accent: var(--accent-primary);
+    --accent-subtle: var(--color-info-bg);
+    --success: var(--color-success-text);
+    --success-subtle: var(--color-success-bg);
+    --warning: var(--color-warning-text);
+    --warning-subtle: var(--color-warning-bg);
+    --danger: var(--color-error-text);
+    --danger-subtle: var(--color-error-bg);
+    --info: var(--color-info-text);
+    --info-subtle: var(--color-info-bg);
+    --danger-rgb: 224, 122, 110;
+    --warning-rgb: 230, 199, 128;
+
+    /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+    --error: var(--danger);
+    --bg-input: var(--bg-inset);
+    --bg-primary: var(--bg-base);
+    --bg-subtle: var(--bg-hover);
+    --border-hover: var(--border-focus);
+    --focus-ring: var(--accent-primary);
+    --accent-success: var(--success);
+    --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
+}
+
+/* Explicit dark mode (user-selected) */
+[data-theme='dark'] {
+  --bg-base: #1f1c18;
+  --bg-elevated: #2a2620;
+  --bg-toolbar: rgba(42, 38, 32, 0.92);
+  --bg-elevated-hover: #322d26;
+  --bg-inset: rgba(26, 23, 20, 0.5);
+  --bg-hover: #353029;
+  --bg-active: #423b33;
+  --text-primary: #ddd8c8;
+  --text-secondary: #a69d8a;
+  --text-tertiary: #7a7265;
+  --text-inverse: #1f1c18;
+  --text-accent: #a8bfd4;
+  --text-warm: #d4b88a;
+  --accent-primary: #7a9ab5;
+  --accent-hover: #8eafc8;
+  --accent-warm: #c4a574;
+  --accent-warm-hover: #d4b88a;
+  --border-subtle: #3d3831;
+  --border-default: #4a433b;
+  --border-strong: #5c5549;
+  --border-focus: #7a9ab5;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.35), 0 8px 16px rgba(0, 0, 0, 0.3);
+  --shadow-color-sm: rgba(0, 0, 0, 0.25);
+  --shadow-color-md: rgba(0, 0, 0, 0.35);
+  --shadow-color-lg: rgba(0, 0, 0, 0.45);
+
+  /* Plugin dashboard aliases */
+  --surface-elevated: var(--bg-elevated);
+  --surface-default: var(--bg-base);
+  --accent: var(--accent-primary);
+  --accent-subtle: var(--color-info-bg);
+  --success: var(--color-success-text);
+  --success-subtle: var(--color-success-bg);
+  --warning: var(--color-warning-text);
+  --warning-subtle: var(--color-warning-bg);
+  --danger: var(--color-error-text);
+  --danger-subtle: var(--color-error-bg);
+  --info: var(--color-info-text);
+  --info-subtle: var(--color-info-bg);
+  --danger-rgb: 224, 122, 110;
+  --warning-rgb: 230, 199, 128;
+
+  /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+  --error: var(--danger);
+  --bg-input: var(--bg-inset);
+  --bg-primary: var(--bg-base);
+  --bg-subtle: var(--bg-hover);
+  --border-hover: var(--border-focus);
+  --focus-ring: var(--accent-primary);
+  --accent-success: var(--success);
+  --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+/* Explicit light mode — prevents system dark from leaking through */
+[data-theme='light'] {
+  --bg-base: #fafaf8;
+  --bg-elevated: #ffffff;
+  --bg-toolbar: rgba(250, 250, 248, 0.8);
+  --bg-elevated-hover: #f6f5f2;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-tertiary: #9e9e9e;
+  --accent-primary: #5b7c99;
+  --accent-hover: #4a6a85;
+  --accent-warm: #c4925c;
+  --border-subtle: #ebeae6;
+  --border-focus: #5b7c99;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-color-sm: rgba(0, 0, 0, 0.04);
+  --shadow-color-md: rgba(0, 0, 0, 0.08);
+  --shadow-color-lg: rgba(0, 0, 0, 0.12);
+
+  /* Plugin dashboard aliases */
+  --surface-elevated: var(--bg-elevated);
+  --surface-default: var(--bg-base);
+  --accent: var(--accent-primary);
+  --accent-subtle: var(--color-info-bg);
+  --success: var(--color-success-text);
+  --success-subtle: var(--color-success-bg);
+  --warning: var(--color-warning-text);
+  --warning-subtle: var(--color-warning-bg);
+  --danger: var(--color-error-text);
+  --danger-subtle: var(--color-error-bg);
+  --info: var(--color-info-text);
+  --info-subtle: var(--color-info-bg);
+  --danger-rgb: 192, 57, 43;
+  --warning-rgb: 212, 160, 23;
+
+  /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+  --error: var(--danger);
+  --bg-input: var(--bg-inset);
+  --bg-primary: var(--bg-base);
+  --bg-subtle: var(--bg-hover);
+  --border-hover: var(--border-focus);
+  --focus-ring: var(--accent-primary);
+  --accent-success: var(--success);
+  --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+/* iOS WKWebView 的系统字体别名在部分运行时无法正确回退中文。
+   原生对照已确认 PingFang 可绘制；让中文字体先匹配，桌面/Android 字体栈不变。 */
+:root[data-platform='ios'] {
+  --font-sans: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-sans);
+}
+
+/* 表单控件默认不继承正文字体；iOS 的系统别名会让按钮中文显示成缺字方框。
+   零特异性只补浏览器默认值，保留组件显式指定的代码字体和其他字体。 */
+:where(:root[data-platform='ios']) :where(button, input, select, textarea) {
+  font-family: var(--font-sans);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* 禁用 Android WebView 默认触摸高亮（点击按钮时的蓝色方块） */
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  /* 移动端禁止双指缩放 */
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* WKWebView 在键盘出现时可滚动 overflow:hidden 的文档根。
+   固定根表面，滚动仅交给页面已有的内容容器；桌面和 Android 不受影响。 */
+html[data-platform='ios'],
+html[data-platform='ios'] body {
+  height: var(--viewport-height, 100vh);
+}
+html[data-platform='ios'] body {
+  position: fixed;
+  top: var(--ios-viewport-offset, 0px);
+  left: 0;
+  right: 0;
+}
+html[data-platform='ios'] #root {
+  height: 100%;
+}
+
+/* AppKit 的提高对比度设置不一定映射成 WebView 的 forced-colors。 */
+:root[data-high-contrast='true'] {
+  --border-subtle: var(--text-primary) !important;
+  --text-secondary: var(--text-primary) !important;
+  --text-tertiary: var(--text-primary) !important;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-subtle: var(--text-primary) !important;
+    --text-secondary: var(--text-primary) !important;
+    --text-tertiary: var(--text-primary) !important;
+  }
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 3px;
+}
+
+/* Hide native WebView2/Chromium password reveal button (overlaps custom Eye icon) */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear,
+input[type='password']::-webkit-textfield-decoration-container,
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-contacts-auto-fill-button {
+  display: none !important;
+}
+
+/* Android/iOS WebView 自动填充主题适配：系统自动填充服务填充输入框后，
+   Chromium 会给 autofill 元素强加默认白底并覆盖文字颜色，深色模式下与主题
+   不匹配（输入框一片惨白）。用 inset box-shadow 覆盖为输入框主题背景色，
+   并让文字/光标颜色跟随主题变量（深浅色自适应）。transition 大数值 hack
+   用于防止自动填充完成瞬间背景闪烁回默认色。 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-elevated) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Firefox 标准 autofill 伪类（同样强加浅色背景） */
+input:autofill,
+textarea:autofill,
+select:autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-elevated) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+}
+
+/* 移动端触控目标尺寸基线：按钮、类按钮元素至少 44×44px；
+   导航项、图标按钮、列表项等由各自组件 CSS Module 单独保证 */
+@media (max-width: 767px) {
+  button,
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ── release-notes-md：更新内容 Markdown 渲染样式（X001 提升为全局）──
+   原定义在 AboutPage 的 <style> 标签内，仅 AboutPage 挂载期间存在于 DOM——
+   UpdateBanner（AppRoutes 全局渲染）在任意页面点「查看更新内容」弹卡时
+   样式表不存在：h1/h2 回落 UA 默认大字号、链接默认蓝色、code/pre 无背景。
+   提升到全局后三个消费方（UpdateInfoCard / UpdateBanner / MandatoryUpdateOverlay）
+   渲染一致。 */
+.release-notes-md h1,
+.release-notes-md h2,
+.release-notes-md h3 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin: 8px 0 4px;
+}
+.release-notes-md h4,
+.release-notes-md h5,
+.release-notes-md h6 {
+  font-size: var(--text-caption);
+  font-weight: 600;
+  margin: 6px 0 3px;
+}
+.release-notes-md p {
+  margin: 0 0 6px;
+}
+.release-notes-md p:last-child {
+  margin-bottom: 0;
+}
+.release-notes-md ul,
+.release-notes-md ol {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+.release-notes-md li {
+  margin: 2px 0;
+}
+.release-notes-md strong {
+  font-weight: 600;
+}
+.release-notes-md code {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  background: rgba(128, 128, 128, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.release-notes-md pre {
+  background: var(--bg-toolbar);
+  padding: 8px 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 6px 0;
+}
+.release-notes-md pre code {
+  background: none;
+  padding: 0;
+}
+.release-notes-md a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .release-notes-md a:hover {
+    text-decoration: underline;
+  }
+}
+.release-notes-md blockquote {
+  border-left: 3px solid var(--accent-primary);
+  margin: 6px 0;
+  padding-left: 10px;
+  color: var(--text-secondary);
+}
+.release-notes-md hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 8px 0;
+}
+
+/* 附件描述/标签展开按钮（ToggleButton）桌面指针设备 hover 反馈——
+   X002: 仅 (hover:hover) and (pointer:fine) 生效，触摸设备不挂 hover 样式，
+   与「状态驱动展开高亮」互不干扰（安卓 WebView 触摸残留 mouseover 问题由
+   该 media 条件彻底规避）。 */
+@media (hover: hover) and (pointer: fine) {
+  .toggle-arrow-btn:hover {
+    color: var(--accent-primary);
+    background: var(--bg-hover);
+  }
+}

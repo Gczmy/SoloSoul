@@ -1,0 +1,18 @@
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* 移动端：操作随长表单滚动，避免固定操作栏与底部导航、键盘重叠。 */
+@media (max-width: 767px) {
+  .formActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .formActions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}

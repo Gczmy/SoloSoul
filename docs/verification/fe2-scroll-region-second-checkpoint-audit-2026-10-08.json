@@ -1,0 +1,7 @@
+{
+  "recorded_at": "2026-10-08T19:58:34.956087+00:00",
+  "passed": true,
+  "checked_files": 6120,
+  "mismatches": [],
+  "scope": "所有历史 evidence_sha256 与当前根 source_sha256；保留旧来源散列，不与新源码混比"
+}

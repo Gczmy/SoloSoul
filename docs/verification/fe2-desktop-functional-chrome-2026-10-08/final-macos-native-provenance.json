@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "pid": 15190,
+  "actual_process": "15190 /private/tmp/solosoul-fe2-macos-compact-sidebar-build-20261008/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul",
+  "binary_sha256": "818ba4df80409714b07dc8a342784e4318f67f8a6e21a0f7d36af0dc2caf20ed",
+  "root_mode": "0o700",
+  "binding_mode": "0o600",
+  "owned_open_paths": [
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/vault/acc_e50ad3aa16464b74/vault.db-shm",
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/vault/.lock",
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/app-data/logs/app.log",
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/plugins/.lock",
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/vault/acc_e50ad3aa16464b74/vault.db",
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/vault/acc_e50ad3aa16464b74/vault.db-wal",
+    "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-bda573b7e6c6401597a06faac48e6ff0/vault/acc_e50ad3aa16464b74/vault.db-shm"
+  ],
+  "formal_prefixes_checked": [
+    "/Users/zzc/.solosoul/",
+    "/Users/zzc/Library/Application Support/com.solosoul.app/",
+    "/Users/zzc/Library/Application Support/SoloSoul/"
+  ],
+  "formal_open_matches": [],
+  "public_encrypted_attachments": [
+    {
+      "path": "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3/3841cc17-f6b3-4485-9ba5-08f275203a48/FE2-public-notes.txt",
+      "bytes": 105,
+      "encrypted_magic": "SOLC",
+      "sha256": "3d79e8bec22377db367033c24dd9a4b8863c4191df0f440c8f7eb5a6dabaf533"
+    },
+    {
+      "path": "vault/attachments/f810059e-3ace-4838-8eee-4e231c35c4f3/8331ce59-d7bc-4e16-8401-2ca92f696712/FE2-public-quadrants.png",
+      "bytes": 852,
+      "encrypted_magic": "SOLC",
+      "sha256": "913821e63faed3aabfe594c5abea9c259f5ae6407e4624cfac4ffceaa10e56d7"
+    }
+  ],
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6\nBuildVersion:\t\t25G72\n",
+  "limitations": "lsof为采样；CUA标准启动不声称继承外部sandbox；不归档全部进程文件列表。"
+}

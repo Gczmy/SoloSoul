@@ -1,0 +1,23 @@
+10-07 21:39:13.383 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: PRE_ON_CREATE
+10-07 21:39:13.522 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: CREATED
+10-07 21:39:13.523 23846 23846 V ActivityScenario: Update currentActivityStage to CREATED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:39:13.523 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: STARTED
+10-07 21:39:13.523 23846 23846 V ActivityScenario: Update currentActivityStage to STARTED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:39:13.534 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: RESUMED
+10-07 21:39:13.534 23846 23846 V ActivityScenario: Update currentActivityStage to RESUMED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:39:13.815 23846 23846 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+10-07 21:39:13.815 23846 23846 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+10-07 21:40:10.715 23846 23846 V Tauri/Plugin: Tauri plugin: pluginId: notification, command: requestPermissions
+10-07 21:40:10.731 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: PAUSED
+10-07 21:40:10.731 23846 23846 V ActivityScenario: Update currentActivityStage to PAUSED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:40:10.863 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: RESUMED
+10-07 21:40:10.864 23846 23846 V ActivityScenario: Update currentActivityStage to RESUMED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:40:14.272 23846 23846 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+10-07 21:40:14.272 23846 23846 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+10-07 21:40:14.274 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: PAUSED
+10-07 21:40:14.274 23846 23846 V ActivityScenario: Update currentActivityStage to PAUSED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:40:14.955 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: STOPPED
+10-07 21:40:14.955 23846 23846 V ActivityScenario: Update currentActivityStage to STOPPED, currentActivity=com.solosoul.app.MainActivity@c9a4b92
+10-07 21:40:14.973 23846 23846 D LifecycleMonitor: Lifecycle status change: com.solosoul.app.MainActivity@c9a4b92 in: DESTROYED
+10-07 21:40:14.973 23846 23846 V ActivityScenario: Update currentActivityStage to DESTROYED, currentActivity=null
+10-07 21:40:15.049 23846 23921 I BpBinder: onLastStrongRef automatically unlinking death recipients: 

@@ -1,0 +1,43 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "keyboard",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791443730.056795,
+  "passed": false,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-editor-build-20261008/app-arm64-debug.apk",
+      "sha256": "9c6395c574bacd15a1658a56db81b42f25963a6b6b2a5d75e9b7348d764a8176"
+    },
+    {
+      "path": "/private/tmp/solosoul-fe2-android-current-editor-test-build-20261008/app-arm64-debug-androidTest.apk",
+      "sha256": "ed37fa9523af4d5abbf607eb4b7624f54b9c196d086b66af7942cfaee26ce9f1"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-android-current-editor-keyboard-supported-20261008/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "finishedAt": 1791443792.311553
+}

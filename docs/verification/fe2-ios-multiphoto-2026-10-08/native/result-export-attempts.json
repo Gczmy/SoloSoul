@@ -1,0 +1,12 @@
+{
+  "initial_sandbox_summary_exit_code": 64,
+  "initial_sandbox_attachments_exit_code": 64,
+  "reason": "xcresulttool could not write its local TestReport cache within sandbox",
+  "escalated_summary_exit_code": 0,
+  "escalated_attachments_exit_code": 0,
+  "device_inventory_exit_code": 0,
+  "native_test_exit_code": 0,
+  "driver_exit_code": 0,
+  "helper_build_exit_code": 0,
+  "not_a_product_or_native_test_failure": true
+}

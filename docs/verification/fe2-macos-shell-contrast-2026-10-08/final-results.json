@@ -1,0 +1,1203 @@
+{
+  "config": {
+    "configFile": "/tmp/solosoul-login-solid-20261008/final.config.cjs",
+    "rootDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/tmp/solosoul-login-solid-20261008/final-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "macos-glass.spec.ts",
+          "macos-preview-titlebar.spec.ts",
+          "login-method-layout.spec.ts",
+          "desktop-functional-colors.spec.ts"
+        ],
+        "timeout": 45000
+      },
+      {
+        "outputDir": "/tmp/solosoul-login-solid-20261008/final-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/zzc/PycharmProjects/SoloSoul/tauri/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "macos-glass.spec.ts",
+          "macos-preview-titlebar.spec.ts",
+          "login-method-layout.spec.ts",
+          "desktop-functional-colors.spec.ts"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/tmp/solosoul-login-solid-20261008/final-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 2,
+    "webServer": {
+      "command": "SOLOSOUL_VITE_HMR_PORT=1494 npm run dev -- --port 1493",
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "url": "http://localhost:1493",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "desktop-functional-colors.spec.ts",
+      "file": "desktop-functional-colors.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "macos warm-stone: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4698,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:38.158Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-78c0ca6f04f1a7171f68",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos soft-cream: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2361,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:43.266Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-13f4529113eff0fdf80b",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos warm-stone-dark: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2186,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:45.654Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-d47819d5513f6c2df4ac",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos deep-ocean: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2361,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:47.893Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-3639e6c0f74c3a25ed56",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows warm-stone: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1714,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:50.285Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-cfcb7e320c4a7d8ea8ba",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows soft-cream: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1959,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:52.004Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-63d3cc20c59411737cff",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows warm-stone-dark: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2405,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:53.973Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-f64573678cbb7ab084ae",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows deep-ocean: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3851,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:56.387Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-42022d92eb9e0a806022",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos warm-stone: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 4882,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:56.137Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-99abdd31b454bdf8f492",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos soft-cream: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 3058,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:01.688Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-7a494d9ab136bdfd1807",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos warm-stone-dark: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2711,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:04.768Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-11acc1c4705f6dce9d0c",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "macos deep-ocean: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2788,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:07.492Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-04b7a49539bdb9aa0f8a",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows warm-stone: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2046,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:10.295Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-b126f6592e9b167f8679",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows soft-cream: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1988,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:12.354Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-a35ca5a34c6bf7f4c03d",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows warm-stone-dark: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2554,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:14.352Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-c28fced02b8a73de7bb7",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "windows deep-ocean: functional labels remain neutral and navigation separates from content",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1833,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:16.920Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18372283511b741253f6-568fd70ef3aa601b0353",
+          "file": "desktop-functional-colors.spec.ts",
+          "line": 9,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "login-method-layout.spec.ts",
+      "file": "login-method-layout.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "android 390px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 4636,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:38.157Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6ImFuZHJvaWQiLCJ3aWR0aCI6MzkwLCJtZXRob2RzIjpbInBhc3N3b3JkIiwiYmlvbWV0cmljIiwicGluIl0sImhlaWdodHMiOls1MTEsNTExLDUxMV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-9a5b5b2bc79c36f3d7e8",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "android 320px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2061,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:43.204Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6ImFuZHJvaWQiLCJ3aWR0aCI6MzIwLCJtZXRob2RzIjpbInBhc3N3b3JkIiwiYmlvbWV0cmljIiwicGluIl0sImhlaWdodHMiOls1MTEsNTExLDUxMV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-1ccdec9f4c1762a133b0",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "ios 390px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1593,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:45.274Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6ImlvcyIsIndpZHRoIjozOTAsIm1ldGhvZHMiOlsicGFzc3dvcmQiLCJiaW9tZXRyaWMiLCJwaW4iXSwiaGVpZ2h0cyI6WzQ5OSw0OTksNDk5XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-1e1cd7324e0d943f0f24",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "macos 1100px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2512,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:46.883Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6Im1hY29zIiwid2lkdGgiOjExMDAsIm1ldGhvZHMiOlsicGFzc3dvcmQiLCJiaW9tZXRyaWMiLCJwaW4iXSwiaGVpZ2h0cyI6WzQ1Myw0NTMsNDUzXX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-e2b391e506e6fa240b3f",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "windows 1100px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1636,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:49.409Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6IndpbmRvd3MiLCJ3aWR0aCI6MTEwMCwibWV0aG9kcyI6WyJwYXNzd29yZCIsImJpb21ldHJpYyIsInBpbiJdLCJoZWlnaHRzIjpbNDQxLDQ0MSw0NDFdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-945eb8f9b2982c0b0c23",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "android 390px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2933,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:00.948Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6ImFuZHJvaWQiLCJ3aWR0aCI6MzkwLCJtZXRob2RzIjpbInBhc3N3b3JkIiwiYmlvbWV0cmljIiwicGluIl0sImhlaWdodHMiOls1MTEsNTExLDUxMV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-47382f39a05b1ce6c486",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "android 320px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2574,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:04.251Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6ImFuZHJvaWQiLCJ3aWR0aCI6MzIwLCJtZXRob2RzIjpbInBhc3N3b3JkIiwiYmlvbWV0cmljIiwicGluIl0sImhlaWdodHMiOls1MTEsNTExLDUxMV19"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-d50d6ac3159ab5322382",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "ios 390px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2375,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:06.836Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6ImlvcyIsIndpZHRoIjozOTAsIm1ldGhvZHMiOlsicGFzc3dvcmQiLCJiaW9tZXRyaWMiLCJwaW4iXSwiaGVpZ2h0cyI6WzQ5OSw0OTksNDk5XX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-b3e55ffdef3ac37d69ea",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "macos 1100px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1891,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:09.223Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6Im1hY29zIiwid2lkdGgiOjExMDAsIm1ldGhvZHMiOlsicGFzc3dvcmQiLCJiaW9tZXRyaWMiLCJwaW4iXSwiaGVpZ2h0cyI6WzQ1Myw0NTMsNDUzXX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-e7adb4f19ec4908b451f",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        },
+        {
+          "title": "windows 1100px: login methods stay compact and PIN stays inside the card",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1771,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:11.123Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "normal-card-heights",
+                      "contentType": "application/json",
+                      "body": "eyJwbGF0Zm9ybSI6IndpbmRvd3MiLCJ3aWR0aCI6MTEwMCwibWV0aG9kcyI6WyJwYXNzd29yZCIsImJpb21ldHJpYyIsInBpbiJdLCJoZWlnaHRzIjpbNDQxLDQ0MSw0NDFdfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "16e038a374b80a18b7ff-c80e4dcad489e263622e",
+          "file": "login-method-layout.spec.ts",
+          "line": 59,
+          "column": 3
+        }
+      ]
+    },
+    {
+      "title": "macos-glass.spec.ts",
+      "file": "macos-glass.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "light 登录普通面板收窄至80%并保留辅助功能回退",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1715,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:51.092Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5a1e6565c02ce6f25191-2dacbffb33fe69f7a3c8",
+          "file": "macos-glass.spec.ts",
+          "line": 103,
+          "column": 3
+        },
+        {
+          "title": "dark 登录普通面板收窄至80%并保留辅助功能回退",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2393,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:13:52.814Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5a1e6565c02ce6f25191-3590dcd11ee15aad993f",
+          "file": "macos-glass.spec.ts",
+          "line": 103,
+          "column": 3
+        },
+        {
+          "title": "light 登录普通面板收窄至80%并保留辅助功能回退",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2010,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:12.934Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5a1e6565c02ce6f25191-6a787282228ac5b096c2",
+          "file": "macos-glass.spec.ts",
+          "line": 103,
+          "column": 3
+        },
+        {
+          "title": "dark 登录普通面板收窄至80%并保留辅助功能回退",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1866,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:14:14.953Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5a1e6565c02ce6f25191-b80f403655b47d48ad42",
+          "file": "macos-glass.spec.ts",
+          "line": 103,
+          "column": 3
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-08T16:13:36.803Z",
+    "duration": 42050.822,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

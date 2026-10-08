@@ -1,0 +1,151 @@
+[package]
+name = "solo_soul"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+serde_json = { workspace = true }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-process = "2"
+tauri-plugin-os = "2"
+opener = { version = "0.7", features = ["reveal"] }
+
+# Workspace crates
+solosoul-crypto = { path = "../crates/solosoul-crypto" }
+solosoul-vault = { path = "../crates/solosoul-vault" }
+solosoul-sync = { path = "../crates/solosoul-sync" }
+solosoul-core = { path = "../crates/solosoul-core" }
+solosoul-plugin = { path = "../crates/solosoul-plugin" }
+
+# 序列化
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# 敏感数据内存安全清零
+zeroize = { workspace = true }
+
+# 错误处理
+anyhow = { workspace = true }
+
+# 异步
+tokio = { workspace = true }
+
+# 日志
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-appender = { workspace = true }
+
+# 时间
+chrono = { workspace = true }
+
+
+
+# 工具
+uuid = { workspace = true }
+hex = { workspace = true }
+base64 = { workspace = true }
+
+sha2 = { workspace = true }
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+# 文档导出 PDF：HTML → PDF 渲染（html feature 依赖 azul-layout + 纯 Rust fontconfig，
+# 跨平台；default-features 关闭以避免引入 images 相关重依赖，需显式开启 html）
+printpdf = { version = "0.12.5", default-features = false, features = ["html"] }
+image = { workspace = true }
+reqwest = { workspace = true }
+futures = "0.3"
+sys-locale = "0.3.2"
+dirs = "6.0.0"
+semver = "1.0"
+url = "2.5"
+minisign-verify = "0.2"
+
+# 插件系统 (Wasmtime 沙箱 + Host Functions) — 全平台支持（wasmtime 依赖在 solosoul-plugin crate 内声明；P012 方向 B 第④步后 src-tauri 已无直接使用，第⑤步移除死依赖）
+
+# 平台专属：移动端（Android/iOS）
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-biometric = "2"
+
+# 平台专属：桌面端（非 Android/iOS）
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-window-state = "2"
+tauri-plugin-updater = "2"
+mdns-sd = "0.11"
+dark-light = "2.0.0"
+
+# 本地 Embedding (ONNX Runtime) — 桌面端先行，移动端二期补齐
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.ort]
+workspace = true
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.tokenizers]
+version = "0.21"
+default-features = false
+features = ["onig"]
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.ndarray]
+workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
+window-vibrancy = "0.8.0"
+objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "NSColor", "NSAppearance", "NSSharingService", "NSView", "NSResponder", "NSWorkspace", "NSAccessibility", "NSLayoutConstraint", "NSEvent", "NSToolbar"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["NSString", "NSURL", "NSArray", "NSGeometry", "NSUserDefaults", "objc2-core-foundation"] }
+block2 = { version = "0.6", default-features = false, features = ["std"] }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
+objc2-ui-kit = { version = "0.3", default-features = false, features = ["std", "UIScrollView", "UIView"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+window-vibrancy = "0.8.0"
+windows = { version = "0.61.3", features = ["Globalization", "Win32_Foundation", "Win32_Globalization", "Win32_Graphics_Dwm", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell", "Win32_System_WinRT", "Win32_System_Registry", "Win32_UI_Accessibility", "ApplicationModel_DataTransfer", "Storage", "Storage_Streams", "Foundation"] }
+windows-collections = "0.2"
+webview2-com = { version = "=0.38.2", optional = true }
+windows-core = { version = "=0.61.2", optional = true }
+
+[dependencies.tempfile]
+version = "3"
+
+[dev-dependencies]
+async-trait = { workspace = true }
+rusqlite = { workspace = true }
+ring = "0.17"
+blake2 = "0.10"
+wat = "1.0"
+tauri = { version = "2", features = ["test"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+mobile = []
+native-perf = ["tauri/devtools", "dep:webview2-com", "dep:windows-core", "solosoul-core/native-perf"]
+# 仅 macOS debug 的完整客户端隔离验收，不扩展 Windows 性能工具。
+macos-ui-regression = []
+
+[lib]
+name = "solo_soul"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[example]]
+name = "create_account"
+path = "examples/create_account.rs"
+
+[[example]]
+name = "unlock_account"
+path = "examples/unlock_account.rs"
+
+[[bin]]
+name = "solo_soul"
+path = "src/main.rs"
+
+# HTTP client (LLM proxy)

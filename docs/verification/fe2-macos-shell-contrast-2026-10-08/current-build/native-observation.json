@@ -1,0 +1,22 @@
+{
+  "recorded_at": "2026-10-08T16:29:58.619220+00:00",
+  "process": {
+    "pid": 76080,
+    "executable": "/private/tmp/solosoul-fe2-macos-content-contrast-build-20261008/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul"
+  },
+  "binary_sha256": "8e62a0b1e08b5cb3f55663f9358bf34eacbe33c896d27a86e13b02cd26c795d2",
+  "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6\nBuildVersion:\t\t25G72\n",
+  "observed": [
+    "dark login: ordinary narrower card, no extra underlay, lighter shell",
+    "actual existing synthetic account unlocked to dark homepage: sidebar/topbar share login shell; content remains original dark base",
+    "actual appearance UI selected light; actual homepage shows pure white content surface and original light navigation shell"
+  ],
+  "scope": "Native CUA screenshot tool images only, not filesystem PNGs or continuous activation recording. Browser RGBA assertions independently verify source color equality.",
+  "last_ui_state": "User took control during cleanup and navigated to identity workspace. Last agent-selected theme was light; restoration to dark was rejected by UI state guards and is not claimed. No further native UI input sent.",
+  "not_verified": [
+    "native PIN or biometrics",
+    "continuous Dock/Stage Manager activation frames",
+    "actual traffic lights obscured by capture badge",
+    "full four-navigation/window-restore/accessibility/performance matrix"
+  ]
+}

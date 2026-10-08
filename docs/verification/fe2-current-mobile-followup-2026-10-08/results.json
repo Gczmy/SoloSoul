@@ -1,0 +1,55 @@
+{
+  "ios": {
+    "binary_sha256": "98280597fff53310efb49a8849556b5820d0a218a5262a429ae5c4d85f7f277f",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "theme_frames": 7,
+    "native_clock_min_contrast": 14.179529102820139,
+    "png": 16,
+    "private_entries_restored": 99
+  },
+  "android": {
+    "production_apk_sha256": "9c6395c574bacd15a1658a56db81b42f25963a6b6b2a5d75e9b7348d764a8176",
+    "keyboard_instrumentation_sha256": "c0e688fe4ba193cb1bf4c2124a3827d1f019e0dad7cd031098b55469b0dc9c02",
+    "insets_instrumentation_sha256": "3996695574d0aef888fed131ff66c2a30136511aa5f8c636a76292e0140e5a9f",
+    "api": 31,
+    "webview": "91.0.4472.114",
+    "keyboard_modes": 2,
+    "keyboard_each": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "stages": 16,
+      "png": 15
+    },
+    "insets_modes": [
+      {
+        "mode": "supported",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "stages": 19,
+        "png": 18
+      },
+      {
+        "mode": "fallback",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0,
+        "stages": 19,
+        "png": 18
+      }
+    ],
+    "preserved_initial_insets_failure": true,
+    "private_entries_restored_each": 2,
+    "runner_unit_tests": 34
+  },
+  "goal_tasks": {
+    "total": 14,
+    "complete": 8,
+    "pending_verification": 6
+  }
+}

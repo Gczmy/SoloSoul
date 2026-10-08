@@ -1,0 +1,59 @@
+Window: "SoloSoul · FE2 macOS 隔离验收", App: SoloSoulFE2Mac.
+0 standard window SoloSoul · FE2 macOS 隔离验收, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: SoloSoul, URL: tauri://localhost/
+			3 container
+				4 button (collapsed) 展开侧栏, Secondary Actions: Expand
+				5 heading 首页, Value: 1
+					6 text 首页
+				7 container 更多操作
+					8 button (collapsed) 指南, Secondary Actions: Expand
+			9 container 首页
+				10 image SoloSoul
+				11 button 首页
+				12 button 身份
+				13 button 旅行
+				14 button 财务
+				15 button 职业
+				16 button 文档
+				17 button 添加页面
+				18 button (collapsed) 工具, Secondary Actions: Expand
+				19 toggle button 锁定保险库, Value: off
+				20 button 设置
+			21 container
+				22 heading 欢迎回来，FE2 macOS 合成验收账户, Value: 2
+					23 text 欢迎回来，FE2 macOS 合成验收账户
+				24 text 您的个人数据保险库。所有数据已加密并本地存储。
+				25 heading 资料分区, Value: 2
+					26 text 资料分区
+				27 button 身份 个人信息、身份证、联系人
+				28 button 旅行 护照、签证、旅行记录
+				29 button 财务 银行账户、卡片、税务信息
+				30 button 职业 教育背景、工作经历、技能
+				31 button 文档 OCR 扫描导入的文档
+				32 heading 快捷入口, Value: 2
+					33 text 快捷入口
+				34 button 设置 管理账户、主题、安全与偏好设置
+				35 button 回收站 查看并管理已删除的对象，支持恢复或永久清理
+				36 button 搜索 全局搜索对象、资料、帮助文档
+				37 button 模板管理 创建、编辑与管理对象模板
+				38 button 附件管理 0 管理附件的上传、下载与回收站
+				39 button 照片集 0 浏览所有对象的所有照片
+				40 button 插件 管理本地插件市场
+				41 button OCR 扫描 扫描图片中的文字，快速提取并创建对象
+				42 button 导入导出 导出或导入加密 Vault 包
+				43 button 设备同步 在局域网内与附近设备同步 Vault 数据
+				44 button 帮助文档 快速了解功能、安全与使用指南
+				45 button AI 对话 与 AI 助手对话，获取建议与帮助
+	46 close button
+	47 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	48 minimize button
+49 menu bar
+	50 SoloSoulFE2Mac
+	51 File
+	52 Edit
+	53 View
+	54 Window
+	55 Help
+
+The focused UI element is 2 HTML content Description: SoloSoul, URL: tauri://localhost/

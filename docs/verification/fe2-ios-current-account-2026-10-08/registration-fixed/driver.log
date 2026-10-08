@@ -1,0 +1,25 @@
+device-inventory 0
+boot 0
+boot-status 0
+initial-appearance 0
+data-container 0
+installed-app 0
+Full private backup verified 99
+install-current-app 0
+current-installed-app 0
+current-data-container 0
+launch-current-app 0
+native-ui-test 65
+ERROR native-ui-test failed: 2026-10-08 06:21:40.913 xcodebuild[53354:246389092] [MT] IDETestOperationsObserverDebug: 73.787 elapsed -- Testing started completed.
+2026-10-08 06:21:40.914 xcodebuild[53354:246389092] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-08 06:21:40.914 xcodebuild[53354:246389092] [MT] IDETestOperationsObserverDebug: 73.787 sec, +73.787 sec -- end
+** TEST EXECUTE FAILED **
+
+
+terminate-tested-app 0
+restore-appearance 0
+restored-appearance 0
+uninstall-probe-host 0
+uninstall-probe-runner 0
+shutdown 0
+{"passed": false, "restored": true, "error": "native-ui-test failed: 2026-10-08 06:21:40.913 xcodebuild[53354:246389092] [MT] IDETestOperationsObserverDebug: 73.787 elapsed -- Testing started completed.\n2026-10-08 06:21:40.914 xcodebuild[53354:246389092] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start\n2026-10-08 06:21:40.914 xcodebuild[53354:246389092] [MT] IDETestOperationsObserverDebug: 73.787 sec, +73.787 sec -- end\n** TEST EXECUTE FAILED **\n\n", "restore_error": null, "simulator_shutdown_restored": true}

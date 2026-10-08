@@ -1,0 +1,27 @@
+Window: "SoloSoul · FE2 macOS 隔离验收", App: SoloSoulFE2Mac.
+0 standard window SoloSoul · FE2 macOS 隔离验收, Secondary Actions: Raise
+	1 scroll area
+		2 HTML content Description: SoloSoul, URL: tauri://localhost/login
+			3 image SoloSoul
+			4 heading SoloSoul, Value: 1
+				5 text SoloSoul
+			6 text 解锁保险库以继续
+			7 text FE2 macOS 合成验收账户
+			8 text acc_22d9df8f1c0547a2
+			9 container
+				10 text field (settable) 输入密码
+				11 button 查看密码提示
+				12 button 解锁
+			13 button 创建新账户
+			14 button 从其他设备恢复账户
+			15 button 主密码
+	16 close button
+	17 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	18 minimize button
+19 menu bar
+	20 SoloSoulFE2Mac
+	21 File
+	22 Edit
+	23 View
+	24 Window
+	25 Help

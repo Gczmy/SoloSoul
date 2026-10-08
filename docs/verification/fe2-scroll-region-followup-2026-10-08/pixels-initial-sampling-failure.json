@@ -1,0 +1,108 @@
+{
+  "scope": "实际浏览器截图滑块像素；合成几何场景，不代表原生客户端窗口恢复验收",
+  "passed": false,
+  "samples": [
+    {
+      "engine": "chromium",
+      "state": "all-axes",
+      "vertical_pixel": [
+        255,
+        255,
+        255
+      ],
+      "horizontal_pixel": [
+        255,
+        255,
+        255
+      ],
+      "expected_vertical": 17,
+      "expected_horizontal": 17,
+      "passed": false
+    },
+    {
+      "engine": "chromium",
+      "state": "vertical-only",
+      "vertical_pixel": [
+        255,
+        255,
+        255
+      ],
+      "horizontal_pixel": [
+        255,
+        255,
+        255
+      ],
+      "expected_vertical": 17,
+      "expected_horizontal": 198,
+      "passed": false
+    },
+    {
+      "engine": "chromium",
+      "state": "direct-thumb",
+      "vertical_pixel": [
+        255,
+        255,
+        255
+      ],
+      "horizontal_pixel": [
+        255,
+        255,
+        255
+      ],
+      "expected_vertical": 17,
+      "expected_horizontal": 17,
+      "passed": false
+    },
+    {
+      "engine": "webkit",
+      "state": "all-axes",
+      "vertical_pixel": [
+        17,
+        17,
+        17
+      ],
+      "horizontal_pixel": [
+        17,
+        17,
+        17
+      ],
+      "expected_vertical": 17,
+      "expected_horizontal": 17,
+      "passed": true
+    },
+    {
+      "engine": "webkit",
+      "state": "vertical-only",
+      "vertical_pixel": [
+        17,
+        17,
+        17
+      ],
+      "horizontal_pixel": [
+        198,
+        198,
+        198
+      ],
+      "expected_vertical": 17,
+      "expected_horizontal": 198,
+      "passed": true
+    },
+    {
+      "engine": "webkit",
+      "state": "direct-thumb",
+      "vertical_pixel": [
+        255,
+        255,
+        255
+      ],
+      "horizontal_pixel": [
+        17,
+        17,
+        17
+      ],
+      "expected_vertical": 17,
+      "expected_horizontal": 17,
+      "passed": false
+    }
+  ]
+}

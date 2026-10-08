@@ -1,0 +1,19 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "solo_soul",
+    "--lib",
+    "commands::window::macos::titlebar::tests"
+  ],
+  "cwd": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri",
+  "target": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/target",
+  "started_at": 1791491420.308285,
+  "passed": true,
+  "account_tests_requested": false,
+  "window_launched": false,
+  "exit_code": 0,
+  "finished_at": 1791491663.260436,
+  "two_requested_tests_passed": true
+}

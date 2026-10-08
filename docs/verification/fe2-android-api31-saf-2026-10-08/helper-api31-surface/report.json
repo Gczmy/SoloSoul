@@ -1,0 +1,32 @@
+{
+  "scope": "Temporary actual SAF instrumentation variant; current repaired production 38482124 APK remains frozen and unchanged; API31 system UI search key uses UiAutomation",
+  "passed": true,
+  "started_at": 1791459221.6407738,
+  "temporary_helper_sha256": "6541af74e9c06f2e196e6182e410f069bab1ccc41441b66b0385c164afa95fa4",
+  "command": [
+    "./gradlew",
+    ":app:assembleArm64DebugAndroidTest",
+    "-x",
+    ":app:rustBuildArm64Debug",
+    "--offline",
+    "--no-daemon"
+  ],
+  "exit_code": 0,
+  "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+  "apk_sha256": "cae94175e687f8957e6bc654cf166b91b5aaa8e01b21092deb155c9ebc309707",
+  "frozen_apk": "/tmp/solosoul-fe2-android-saf-test-build-api31-surface-20261008/app-arm64-debug-androidTest.apk",
+  "protected_inputs_restored": {
+    "tauri/Cargo.lock": true,
+    "tauri/Cargo.toml": true,
+    "tauri/src-tauri/Cargo.toml": true,
+    "tauri/src-tauri/gen/apple/project.yml": true,
+    "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+    "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+    "tauri/src-tauri/gen/apple/assets": true,
+    "tauri/src-tauri/gen/android/app/src/main/assets": true,
+    "tauri/src-tauri/gen/android/app/tauri.properties": true,
+    "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt": true
+  },
+  "source_differences_after_restore": [],
+  "finished_at": 1791459233.855519
+}

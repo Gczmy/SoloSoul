@@ -1,0 +1,201 @@
+[2m[WebServer] [22m(node:96533) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 25 tests using 1 worker
+
+(node:96541) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:96541) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/sidebar-tools.spec.ts:69:3 › left 展开侧栏悬停显示全部工具，入口及主导航不移动 (4.0s)
+  ✓   2 [chromium] › e2e/sidebar-tools.spec.ts:69:3 › right 展开侧栏悬停显示全部工具，入口及主导航不移动 (2.8s)
+  ✘   3 [chromium] › e2e/sidebar-tools.spec.ts:132:3 › left 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航 (30.0s)
+(node:96946) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:96946) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   4 [chromium] › e2e/sidebar-tools.spec.ts:132:3 › right 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航 (30.0s)
+(node:97239) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:97239) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   5 [chromium] › e2e/sidebar-tools.spec.ts:176:1 › 添加页面在折叠侧栏复用导航的提示卡片，展开后不重复显示提示 (30.0s)
+(node:97536) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:97536) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 [chromium] › e2e/sidebar-tools.spec.ts:197:5 › left 展开侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 (1.6s)
+  ✘   7 [chromium] › e2e/sidebar-tools.spec.ts:197:5 › left 折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 (30.0s)
+(node:97818) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:97818) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   8 [chromium] › e2e/sidebar-tools.spec.ts:197:5 › right 展开侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 (1.6s)
+  ✘   9 [chromium] › e2e/sidebar-tools.spec.ts:197:5 › right 折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 (30.0s)
+(node:98249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  10 [chromium] › e2e/sidebar-tools.spec.ts:259:3 › top 横向导航添加页面打开后位置固定，缩放后表单和操作保持可见 (2.6s)
+  ✓  11 [chromium] › e2e/sidebar-tools.spec.ts:259:3 › bottom 横向导航添加页面打开后位置固定，缩放后表单和操作保持可见 (2.5s)
+  ✓  12 [chromium] › e2e/sidebar-tools.spec.ts:341:5 › left 展开侧栏打开搜索后能再次点击搜索及直接切换卡片 (1.7s)
+  ✘  13 [chromium] › e2e/sidebar-tools.spec.ts:341:5 › left 折叠侧栏打开搜索后能再次点击搜索及直接切换卡片 (30.0s)
+(node:98592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  14 [chromium] › e2e/sidebar-tools.spec.ts:341:5 › right 展开侧栏打开搜索后能再次点击搜索及直接切换卡片 (1.8s)
+  ✘  15 [chromium] › e2e/sidebar-tools.spec.ts:341:5 › right 折叠侧栏打开搜索后能再次点击搜索及直接切换卡片 (2.7s)
+
+
+  1) [chromium] › e2e/sidebar-tools.spec.ts:132:3 › left 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航 ─────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      133 |     await setupSidebar(page, position);
+      134 |     const nav = page.locator('#desktop-navigation');
+    > 135 |     await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                              ^
+      136 |     const tools = nav.getByRole('button', { name: 'Tools', exact: true });
+      137 |     const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
+      138 |     const menu = nav.locator('[data-sidebar-tools]');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:135:78
+
+    Error Context: test-results/sidebar-tools-left-折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航-chromium/error-context.md
+
+  2) [chromium] › e2e/sidebar-tools.spec.ts:132:3 › right 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航 ────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      133 |     await setupSidebar(page, position);
+      134 |     const nav = page.locator('#desktop-navigation');
+    > 135 |     await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                              ^
+      136 |     const tools = nav.getByRole('button', { name: 'Tools', exact: true });
+      137 |     const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
+      138 |     const menu = nav.locator('[data-sidebar-tools]');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:135:78
+
+    Error Context: test-results/sidebar-tools-right-折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航-chromium/error-context.md
+
+  3) [chromium] › e2e/sidebar-tools.spec.ts:176:1 › 添加页面在折叠侧栏复用导航的提示卡片，展开后不重复显示提示 ──────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      179 |   const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
+      180 |   const identity = nav.getByRole('button', { name: 'Identity', exact: true });
+    > 181 |   await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                            ^
+      182 |   expect(await buttonAppearance(addPage)).toEqual(await buttonAppearance(identity));
+      183 |   await identity.hover();
+      184 |   const tooltip = page.locator('[role="tooltip"]');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:181:76
+
+    Error Context: test-results/sidebar-tools-添加页面在折叠侧栏复用导航的提示卡片，展开后不重复显示提示-chromium/error-context.md
+
+  4) [chromium] › e2e/sidebar-tools.spec.ts:197:5 › left 折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 ───────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      202 |       const nav = page.locator('#desktop-navigation');
+      203 |       if (collapsed)
+    > 204 |         await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                                  ^
+      205 |       const trigger = nav.getByRole('button', { name: 'Add Page', exact: true });
+      206 |       const triggerBounds = (await trigger.boundingBox())!;
+      207 |       await trigger.click();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:204:82
+
+    Error Context: test-results/sidebar-tools-left-折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作-chromium/error-context.md
+
+  5) [chromium] › e2e/sidebar-tools.spec.ts:197:5 › right 折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 ──────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      202 |       const nav = page.locator('#desktop-navigation');
+      203 |       if (collapsed)
+    > 204 |         await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                                  ^
+      205 |       const trigger = nav.getByRole('button', { name: 'Add Page', exact: true });
+      206 |       const triggerBounds = (await trigger.boundingBox())!;
+      207 |       await trigger.click();
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:204:82
+
+    Error Context: test-results/sidebar-tools-right-折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作-chromium/error-context.md
+
+  6) [chromium] › e2e/sidebar-tools.spec.ts:341:5 › left 折叠侧栏打开搜索后能再次点击搜索及直接切换卡片 ───────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      345 |       const nav = page.locator('#desktop-navigation');
+      346 |       if (collapsed)
+    > 347 |         await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                                  ^
+      348 |       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
+      349 |       const search = nav.getByRole('button', { name: 'Search', exact: true });
+      350 |       const input = page.getByPlaceholder('Search objects, profiles...');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:347:82
+
+    Error Context: test-results/sidebar-tools-left-折叠侧栏打开搜索后能再次点击搜索及直接切换卡片-chromium/error-context.md
+
+  7) [chromium] › e2e/sidebar-tools.spec.ts:341:5 › right 折叠侧栏打开搜索后能再次点击搜索及直接切换卡片 ──────────────────
+
+    Test was interrupted.
+
+    Error: locator.click: Test ended.
+    Call log:
+    [2m  - waiting for locator('#desktop-navigation').getByRole('button', { name: 'Collapse sidebar', exact: true })[22m
+
+
+      345 |       const nav = page.locator('#desktop-navigation');
+      346 |       if (collapsed)
+    > 347 |         await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          |                                                                                  ^
+      348 |       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
+      349 |       const search = nav.getByRole('button', { name: 'Search', exact: true });
+      350 |       const input = page.getByPlaceholder('Search objects, profiles...');
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/sidebar-tools.spec.ts:347:82
+
+    Error Context: test-results/sidebar-tools-right-折叠侧栏打开搜索后能再次点击搜索及直接切换卡片-chromium/error-context.md
+
+  6 failed
+    [chromium] › e2e/sidebar-tools.spec.ts:132:3 › left 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航 ──────────────────
+    [chromium] › e2e/sidebar-tools.spec.ts:132:3 › right 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航 ─────────────────
+    [chromium] › e2e/sidebar-tools.spec.ts:176:1 › 添加页面在折叠侧栏复用导航的提示卡片，展开后不重复显示提示 ───────────────────
+    [chromium] › e2e/sidebar-tools.spec.ts:197:5 › left 折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 ────────────────
+    [chromium] › e2e/sidebar-tools.spec.ts:197:5 › right 折叠侧栏添加页面向上利用空间，缩放后表单与图标仍可操作 ───────────────
+    [chromium] › e2e/sidebar-tools.spec.ts:341:5 › left 折叠侧栏打开搜索后能再次点击搜索及直接切换卡片 ────────────────────
+  1 interrupted
+    [chromium] › e2e/sidebar-tools.spec.ts:341:5 › right 折叠侧栏打开搜索后能再次点击搜索及直接切换卡片 ───────────────────
+  10 did not run
+  8 passed (3.4m)

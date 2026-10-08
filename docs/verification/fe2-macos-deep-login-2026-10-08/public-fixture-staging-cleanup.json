@@ -1,0 +1,19 @@
+{
+  "destination": "/Users/zzc/Downloads/SoloSoul-FE2-public-preview-20261008",
+  "public_fixture_files": [
+    {
+      "name": "FE2-public-note.txt",
+      "sha256": "06033a0fb24b1ae317d1de328277c7291cc0c7813bd94eff6dff2c05eeae85c4"
+    },
+    {
+      "name": "FE2-public-photo.png",
+      "sha256": "0bff987c7052d73778af3c87f25b3af957aa0052b5352ee5d8e4a2107ac8957c"
+    },
+    {
+      "name": "FE2-public-second.png",
+      "sha256": "a935ee563a5fc3048600b6e90e298c7ac5cbd0834a1f469e063de32317a91be8"
+    }
+  ],
+  "cleanup_verified": true,
+  "scope": "Removed only the three unchanged agent-staged public fixture copies and their owned empty directory; originals remain in /tmp"
+}

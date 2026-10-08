@@ -1,0 +1,53 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidHomeInstrumentedTest:
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: 1
+s_glBindAttribLocation: bind attrib 0 name position
+s_glBindAttribLocation: bind attrib 1 name color
+s_glBindAttribLocation: bind attrib 2 name localCoord
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidHomeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: 系统文件选择后附件列表可见: {"ready":false,"toasts":[{"text":"It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.\nBack Up Now\nx","time":60611.90000003576},{"text":"Object created\nx","time":60611.90000003576},{"text":"Upload failed, please try again: 附件落盘加密失败: 打开源文件失败: No such file or directory (os error 2)\nx","time":62957.90000003576}],"body":"Travel\nHome\nObjects\nTools\nSettings\nNew\nAll\nIdentity\nTravel\nFinancial\nProfessional\nDocuments\n1 object\nRecently updated\nBy name\nFE2 public object\nTravel · Visa\nFE2 public object\nTravel · Visa\nPlugin Bound\n · created: 2026-10-08 · updated: 2026-10-08\nCountry\nPublic\nPlugin Bound\nFE2 public country\nAttachments\n0\nEdit\nActive (0)\nTrash (0)\nNo attachments","observerAlive":true}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:256)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.seedActualSafFixtures(AndroidHomeInstrumentedTest.kt:125)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.seedPreviewFixtures(AndroidHomeInstrumentedTest.kt:768)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyNonemptyPreviews(AndroidHomeInstrumentedTest.kt:931)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyPopulatedContent(AndroidHomeInstrumentedTest.kt:704)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:1864)
+
+INSTRUMENTATION_STATUS: stream=
+Error in realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest):
+java.lang.AssertionError: 系统文件选择后附件列表可见: {"ready":false,"toasts":[{"text":"It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.\nBack Up Now\nx","time":60611.90000003576},{"text":"Object created\nx","time":60611.90000003576},{"text":"Upload failed, please try again: 附件落盘加密失败: 打开源文件失败: No such file or directory (os error 2)\nx","time":62957.90000003576}],"body":"Travel\nHome\nObjects\nTools\nSettings\nNew\nAll\nIdentity\nTravel\nFinancial\nProfessional\nDocuments\n1 object\nRecently updated\nBy name\nFE2 public object\nTravel · Visa\nFE2 public object\nTravel · Visa\nPlugin Bound\n · created: 2026-10-08 · updated: 2026-10-08\nCountry\nPublic\nPlugin Bound\nFE2 public country\nAttachments\n0\nEdit\nActive (0)\nTrash (0)\nNo attachments","observerAlive":true}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:256)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.seedActualSafFixtures(AndroidHomeInstrumentedTest.kt:125)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.seedPreviewFixtures(AndroidHomeInstrumentedTest.kt:768)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyNonemptyPreviews(AndroidHomeInstrumentedTest.kt:931)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyPopulatedContent(AndroidHomeInstrumentedTest.kt:704)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:1864)
+
+INSTRUMENTATION_STATUS: test=realHomePreservesGlassAndCopyAcrossLockUnlock
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 109.368
+There was 1 failure:
+1) realHomePreservesGlassAndCopyAcrossLockUnlock(com.solosoul.app.AndroidHomeInstrumentedTest)
+java.lang.AssertionError: 系统文件选择后附件列表可见: {"ready":false,"toasts":[{"text":"It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.\nBack Up Now\nx","time":60611.90000003576},{"text":"Object created\nx","time":60611.90000003576},{"text":"Upload failed, please try again: 附件落盘加密失败: 打开源文件失败: No such file or directory (os error 2)\nx","time":62957.90000003576}],"body":"Travel\nHome\nObjects\nTools\nSettings\nNew\nAll\nIdentity\nTravel\nFinancial\nProfessional\nDocuments\n1 object\nRecently updated\nBy name\nFE2 public object\nTravel · Visa\nFE2 public object\nTravel · Visa\nPlugin Bound\n · created: 2026-10-08 · updated: 2026-10-08\nCountry\nPublic\nPlugin Bound\nFE2 public country\nAttachments\n0\nEdit\nActive (0)\nTrash (0)\nNo attachments","observerAlive":true}
+	at com.solosoul.app.AndroidHomeInstrumentedTest.waitFor(AndroidHomeInstrumentedTest.kt:256)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.seedActualSafFixtures(AndroidHomeInstrumentedTest.kt:125)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.seedPreviewFixtures(AndroidHomeInstrumentedTest.kt:768)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyNonemptyPreviews(AndroidHomeInstrumentedTest.kt:931)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.verifyPopulatedContent(AndroidHomeInstrumentedTest.kt:704)
+	at com.solosoul.app.AndroidHomeInstrumentedTest.realHomePreservesGlassAndCopyAcrossLockUnlock(AndroidHomeInstrumentedTest.kt:1864)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

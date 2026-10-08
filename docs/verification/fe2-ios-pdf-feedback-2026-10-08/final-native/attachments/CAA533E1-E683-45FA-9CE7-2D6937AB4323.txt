@@ -1,0 +1,101 @@
+Attributes: Application, 0x118534110, pid: 52843, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x118534110, pid: 52843, label: 'SoloSoul'
+    Window (Main), 0x118556d10, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x118559bd0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x118559cf0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x118558490, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x118558070, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x11855a290, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x118559e10, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x118559f30, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11855a050, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x11855a170, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x11855a3b0, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul', Focused
+                          Other, 0x11855a4d0, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅', Focused
+                            Button, 0x11855a5f0, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回', Focused
+                            Other, 0x11855a710, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 1, Focused
+                              StaticText, 0x11855a830, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 身份, Focused
+                            Button, 0x11855a950, {{294.0, 63.0}, {44.0, 45.0}}, label: '+', Focused
+                            Button, 0x11855aa70, {{346.0, 63.0}, {44.0, 45.0}}, label: '更多操作', Focused
+                          Other, 0x11855ab90, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览', Focused
+                            Button, 0x11855acb0, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页', Focused
+                            Button, 0x11855add0, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置', Focused
+                            Button, 0x11855aef0, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面', Focused
+                            Button, 0x11855b010, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开', Focused
+                            Button, 0x11855b130, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库', Focused
+                          Other, 0x118430010, {{0.0, 0.0}, {402.0, 784.0}}, Focused
+                            Other, 0x118421440, {{0.0, 0.0}, {402.0, 10.0}}, Focused
+                            Other, 0x1184346c0, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要', Focused
+                              Button, 0x118433530, {{16.0, 126.0}, {76.0, 44.0}}, label: '身份', Focused
+                              Button, 0x118421af0, {{100.0, 126.0}, {76.0, 44.0}}, label: '旅行', Focused
+                              Button, 0x1184320f0, {{184.0, 126.0}, {76.0, 44.0}}, label: '财务', Focused
+                              Button, 0x118442580, {{268.0, 126.0}, {76.0, 44.0}}, label: '职业', Focused
+                              Button, 0x118421780, {{16.0, 178.0}, {76.0, 44.0}}, label: '文档', Focused
+                              Button, 0x11842db50, {{100.0, 178.0}, {56.0, 44.0}}, label: '清除', Focused
+                              TextField, 0x118441180, {{16.0, 250.0}, {370.0, 42.0}}, label: '搜索对象…', placeholderValue: '搜索对象…', value: 搜索对象…, Focused
+                              Button, 0x1184224e0, {{16.0, 316.0}, {370.0, 153.0}}, label: 'FE2 iOS public identity 身份 身份信息History (1) 1Attachments (1) 1EditMove to trash姓名:Public Person', Focused
+                              Other, 0x1043fdbf0, {{16.0, 274.0}, {370.0, 326.0}}, label: 'FE2 iOS public identity, 网页对话框', Focused
+                                Other, 0x11842e950, {{71.0, 291.0}, {250.0, 28.0}}, label: 'FE2 iOS public identity', value: 2, Focused
+                                  StaticText, 0x118430df0, {{71.0, 291.0}, {202.0, 28.0}}, label: 'FE2 iOS public identity', value: FE2 iOS public ide..., Focused
+                                StaticText, 0x11842f5b0, {{71.0, 324.0}, {21.0, 16.0}}, label: '身份', value: 身份, Focused
+                                StaticText, 0x11842f9d0, {{91.0, 324.0}, {12.0, 16.0}}, label: '·', value:  · , Focused
+                                StaticText, 0x118432ef0, {{102.0, 324.0}, {41.0, 16.0}}, label: '身份信息', value: 身份信息, Focused
+                                StaticText, 0x11842c790, {{142.0, 324.0}, {13.0, 16.0}}, label: '·', value:  · , Focused
+                                StaticText, 0x11842f190, {{154.0, 324.0}, {41.0, 16.0}}, label: '创建时间', value: 创建时间, Focused
+                                StaticText, 0x11842ed70, {{194.0, 324.0}, {7.0, 16.0}}, label: ':', value: : , Focused
+                                StaticText, 0x118415630, {{200.0, 324.0}, {58.0, 16.0}}, label: '2026-10-08', value: 2026-10-08, Focused
+                                StaticText, 0x11841f530, {{257.0, 324.0}, {13.0, 16.0}}, label: '·', value:  · , Focused
+                                StaticText, 0x11842c370, {{269.0, 324.0}, {41.0, 16.0}}, label: '更新时间', value: 更新时间, Focused
+                                StaticText, 0x118441d20, {{309.0, 324.0}, {4.0, 16.0}}, label: ':', value: :, Focused
+                                StaticText, 0x1184450b0, {{71.0, 347.0}, {58.0, 16.0}}, label: '2026-10-08', value: 2026-10-08, Focused
+                                Button, 0x118423150, {{320.0, 306.0}, {45.0, 44.0}}, label: '关闭', Focused
+                                StaticText, 0x118423270, {{70.0, 415.0}, {25.0, 19.0}}, label: '姓名', value: 姓名, Focused
+                                StaticText, 0x118423390, {{120.0, 417.0}, {21.0, 15.0}}, label: '公开', value: 公开, Focused
+                                Button, 0x1184234b0, {{307.0, 402.0}, {45.0, 45.0}}, Focused
+                                Other, 0x1184235d0, {{50.0, 450.0}, {302.0, 21.0}}, Focused
+                                  StaticText, 0x1184236f0, {{50.0, 450.0}, {90.0, 21.0}}, label: 'Public Person', value: Public Person, Focused
+                                Other, 0x118423810, {{37.0, 514.0}, {33.0, 33.0}}, Focused
+                                  Button, 0x118423930, {{37.0, 514.0}, {33.0, 33.0}}, label: '指南', Focused
+                                Button, 0x118423a50, {{164.0, 508.0}, {45.0, 45.0}}, label: '历史记录', Focused
+                                Button, 0x118423b70, {{216.0, 508.0}, {45.0, 45.0}}, label: '附件', Focused
+                                Button, 0x118423c90, {{268.0, 508.0}, {45.0, 45.0}}, label: '编辑', Focused
+                                Other, 0x118423db0, {{320.0, 508.0}, {45.0, 45.0}}, Focused
+                                  Button, 0x118423ed0, {{320.0, 508.0}, {45.0, 45.0}}, label: '删除', Focused
+                              Switch, 0x118423ff0, {{61.0, 328.0}, {71.0, 44.0}}, label: '活跃 (1)', value: 1, Focused
+                              Switch, 0x118424110, {{135.0, 328.0}, {87.0, 44.0}}, label: '回收站 (0)', value: 0, Focused
+                              Button, 0x118424230, {{271.0, 328.0}, {44.0, 44.0}}, label: '上传', Focused
+                              Button, 0x118424350, {{323.0, 328.0}, {44.0, 44.0}}, label: '关闭', Focused
+                              Switch, 0x118424470, {{29.0, 395.0}, {44.0, 44.0}}, label: '全选', value: 0, Focused
+                              StaticText, 0x118424590, {{81.0, 407.0}, {26.0, 20.0}}, label: '全选', value: 全选, Focused
+                              Switch, 0x1184246b0, {{29.0, 456.0}, {44.0, 44.0}}, label: 'FE2-public-document.pdf', value: 0, Focused
+                              Other, 0x1184247d0, {{103.0, 460.0}, {270.0, 20.0}}, Focused
+                                StaticText, 0x1184248f0, {{103.0, 460.0}, {162.0, 20.0}}, label: 'FE2-public-document.pdf', value: FE2-public-documen..., Focused
+                              StaticText, 0x118424a10, {{103.0, 480.0}, {32.0, 16.0}}, label: '2.7 KB', value: 2.7 KB, Focused
+                              StaticText, 0x118424b30, {{134.0, 480.0}, {12.0, 16.0}}, label: '·', value:  · , Focused
+                              StaticText, 0x118424c50, {{145.0, 480.0}, {50.0, 16.0}}, label: '2026/10/8', value: 2026/10/8, Focused
+                              Button, 0x118424d70, {{145.0, 508.0}, {44.0, 44.0}}, label: '预览', Focused
+                              Button, 0x118424e90, {{191.0, 508.0}, {44.0, 44.0}}, label: '下载', Focused
+                              Button, 0x118424fb0, {{237.0, 508.0}, {44.0, 44.0}}, label: '转发', Focused
+                              Button, 0x1184250d0, {{283.0, 508.0}, {44.0, 44.0}}, label: '编辑附件属性', Focused
+                              Button, 0x1184251f0, {{329.0, 508.0}, {44.0, 44.0}}, label: '删除', Focused
+                          StaticText, 0x118425510, {{257.0, 775.0}, {52.0, 20.0}}, label: '上传成功', value: 上传成功, Focused
+                          Button, 0x118426df0, {{321.0, 763.0}, {44.0, 44.0}}, label: '关闭', Focused
+                Other, 0x118426f10, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x118427030, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x118427150, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x118427270, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x118427390, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x1184274b0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x1184275d0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x1184276f0, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x11865e8f0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11865ea10, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11865eb30, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x118534110, pid: 52843, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x1046fab30, pid: 52843, label: 'SoloSoul'
+  }

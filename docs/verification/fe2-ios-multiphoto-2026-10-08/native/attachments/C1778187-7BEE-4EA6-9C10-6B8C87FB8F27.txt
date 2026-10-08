@@ -1,0 +1,149 @@
+Attributes: Application, 0x118c2c2d0, pid: 29716, label: 'SoloSoul'
+Element subtree:
+ →Application, 0x118c2c2d0, pid: 29716, label: 'SoloSoul'
+    Window (Main), 0x118c64540, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x118c655a0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x118c65180, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x118c659c0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x118c66000, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x118c64d60, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x118c64940, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x118c63f00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x118c63ae0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x118c636c0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x118c632a0, {{0.0, 0.0}, {402.0, 874.0}}, label: 'SoloSoul'
+                          Other, 0x118c62e80, {{0.0, 0.0}, {402.0, 110.0}}, label: '横幅'
+                            Button, 0x118c5aef0, {{20.0, 63.0}, {44.0, 45.0}}, label: '返回'
+                            Other, 0x118c66420, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 1
+                              StaticText, 0x118c66540, {{76.0, 75.0}, {28.0, 21.0}}, label: '身份', value: 身份
+                            Button, 0x118c66660, {{294.0, 63.0}, {44.0, 45.0}}, label: '+'
+                            Button, 0x118c66780, {{346.0, 63.0}, {44.0, 45.0}}, label: '更多操作'
+                          Other, 0x118c668a0, {{0.0, 784.0}, {402.0, 56.0}}, label: '首页, 导览'
+                            Button, 0x118c669c0, {{0.0, 785.0}, {81.0, 55.0}}, label: '首页'
+                            Button, 0x118c66ae0, {{80.0, 785.0}, {81.0, 55.0}}, label: '设置'
+                            Button, 0x118c66c00, {{179.0, 788.0}, {45.0, 49.0}}, label: '添加页面'
+                            Button, 0x118c66d20, {{241.0, 785.0}, {81.0, 55.0}}, label: '展开'
+                            Button, 0x118c66e40, {{321.0, 785.0}, {81.0, 55.0}}, label: '锁定保险库'
+                          Other, 0x118c66f60, {{0.0, 0.0}, {402.0, 784.0}}
+                            Other, 0x118c67080, {{0.0, 0.0}, {402.0, 10.0}}
+                            Other, 0x118c671a0, {{0.0, 110.0}, {402.0, 674.0}}, label: '主要'
+                              Button, 0x118c672c0, {{16.0, 126.0}, {76.0, 44.0}}, label: '身份'
+                              Button, 0x118c673e0, {{100.0, 126.0}, {76.0, 44.0}}, label: '旅行'
+                              Button, 0x118c67500, {{184.0, 126.0}, {76.0, 44.0}}, label: '财务'
+                              Button, 0x118c67620, {{268.0, 126.0}, {76.0, 44.0}}, label: '职业'
+                              Button, 0x118c67740, {{16.0, 178.0}, {76.0, 44.0}}, label: '文档'
+                              Button, 0x118c67860, {{100.0, 178.0}, {56.0, 44.0}}, label: '清除'
+                              TextField, 0x118c67980, {{16.0, 250.0}, {370.0, 42.0}}, label: '搜索对象…', placeholderValue: '搜索对象…', value: 搜索对象…
+                              Button, 0x118c67aa0, {{16.0, 316.0}, {370.0, 153.0}}, label: 'FE2 iOS public identity 身份 身份信息History (1) 1Attachments (3) 3EditMove to trash姓名:Public Person'
+                              Other, 0x118c67bc0, {{16.0, 274.0}, {370.0, 326.0}}, label: 'FE2 iOS public identity, 网页对话框'
+                                Other, 0x118c67ce0, {{71.0, 291.0}, {250.0, 28.0}}, label: 'FE2 iOS public identity', value: 2
+                                  StaticText, 0x118c67e00, {{71.0, 291.0}, {202.0, 28.0}}, label: 'FE2 iOS public identity', value: FE2 iOS public ide...
+                                StaticText, 0x118c67f20, {{71.0, 324.0}, {21.0, 16.0}}, label: '身份', value: 身份
+                                StaticText, 0x118c68040, {{91.0, 324.0}, {12.0, 16.0}}, label: '·', value:  · 
+                                StaticText, 0x118c68160, {{102.0, 324.0}, {41.0, 16.0}}, label: '身份信息', value: 身份信息
+                                StaticText, 0x118c68280, {{142.0, 324.0}, {13.0, 16.0}}, label: '·', value:  · 
+                                StaticText, 0x118c683a0, {{154.0, 324.0}, {41.0, 16.0}}, label: '创建时间', value: 创建时间
+                                StaticText, 0x118c684c0, {{194.0, 324.0}, {7.0, 16.0}}, label: ':', value: : 
+                                StaticText, 0x118c685e0, {{200.0, 324.0}, {58.0, 16.0}}, label: '2026-10-08', value: 2026-10-08
+                                StaticText, 0x118c68700, {{257.0, 324.0}, {13.0, 16.0}}, label: '·', value:  · 
+                                StaticText, 0x118c68820, {{269.0, 324.0}, {41.0, 16.0}}, label: '更新时间', value: 更新时间
+                                StaticText, 0x118c68940, {{309.0, 324.0}, {4.0, 16.0}}, label: ':', value: :
+                                StaticText, 0x118c68a60, {{71.0, 347.0}, {58.0, 16.0}}, label: '2026-10-08', value: 2026-10-08
+                                Button, 0x118c68b80, {{320.0, 306.0}, {45.0, 44.0}}, label: '关闭'
+                                StaticText, 0x118c68ca0, {{70.0, 415.0}, {25.0, 19.0}}, label: '姓名', value: 姓名
+                                StaticText, 0x118c68dc0, {{120.0, 417.0}, {21.0, 15.0}}, label: '公开', value: 公开
+                                Button, 0x118c68ee0, {{307.0, 402.0}, {45.0, 45.0}}
+                                Other, 0x118c69000, {{50.0, 450.0}, {302.0, 21.0}}
+                                  StaticText, 0x118c69120, {{50.0, 450.0}, {90.0, 21.0}}, label: 'Public Person', value: Public Person
+                                Other, 0x118c69240, {{37.0, 514.0}, {33.0, 33.0}}
+                                  Button, 0x118c69360, {{37.0, 514.0}, {33.0, 33.0}}, label: '指南'
+                                Button, 0x118c69480, {{164.0, 508.0}, {45.0, 45.0}}, label: '历史记录'
+                                Button, 0x118c695a0, {{216.0, 508.0}, {45.0, 45.0}}, label: '附件'
+                                Button, 0x118c696c0, {{268.0, 508.0}, {45.0, 45.0}}, label: '编辑'
+                                Other, 0x118c697e0, {{320.0, 508.0}, {45.0, 45.0}}
+                                  Button, 0x118c69900, {{320.0, 508.0}, {45.0, 45.0}}, label: '删除'
+                              Switch, 0x118c69a20, {{61.0, 187.0}, {74.0, 44.0}}, label: '活跃 (3)', value: 1
+                              Switch, 0x118c69b40, {{138.0, 187.0}, {86.0, 44.0}}, label: '回收站 (0)', value: 0
+                              Button, 0x118c69c60, {{271.0, 187.0}, {44.0, 44.0}}, label: '上传'
+                              Button, 0x118c69d80, {{323.0, 187.0}, {44.0, 44.0}}, label: '关闭'
+                              Switch, 0x118c69ea0, {{29.0, 254.0}, {44.0, 44.0}}, label: '全选', value: 0
+                              StaticText, 0x118c69fc0, {{81.0, 266.0}, {26.0, 20.0}}, label: '全选', value: 全选
+                              Button, 0x118c6a0e0, {{29.0, 315.0}, {344.0, 44.0}}, label: '照片集 2'
+                              Switch, 0x118c6a200, {{29.0, 371.0}, {44.0, 44.0}}, label: 'FE2-public-note.txt', value: 0
+                              Other, 0x118c6a320, {{103.0, 375.0}, {270.0, 20.0}}
+                                StaticText, 0x118c6a440, {{103.0, 375.0}, {124.0, 20.0}}, label: 'FE2-public-note.txt', value: FE2-public-note.txt
+                              StaticText, 0x118c6a560, {{103.0, 395.0}, {26.0, 16.0}}, label: '105 B', value: 105 B
+                              StaticText, 0x118c6a680, {{128.0, 395.0}, {13.0, 16.0}}, label: '·', value:  · 
+                              StaticText, 0x118c6a7a0, {{140.0, 395.0}, {50.0, 16.0}}, label: '2026/10/8', value: 2026/10/8
+                              Button, 0x118c6a8c0, {{145.0, 423.0}, {44.0, 44.0}}, label: '预览'
+                              Button, 0x118c6a9e0, {{191.0, 423.0}, {44.0, 44.0}}, label: '下载'
+                              Button, 0x118c6ab00, {{237.0, 423.0}, {44.0, 44.0}}, label: '转发'
+                              Button, 0x118c6ac20, {{283.0, 423.0}, {44.0, 44.0}}, label: '编辑附件属性'
+                              Button, 0x118c6ad40, {{329.0, 423.0}, {44.0, 44.0}}, label: '删除'
+                              Switch, 0x118c6ae60, {{29.0, 484.0}, {44.0, 44.0}}, label: 'FE2-public-photo.png', value: 0
+                              Other, 0x118c6b0d0, {{103.0, 488.0}, {270.0, 20.0}}
+                                StaticText, 0x118c6b1f0, {{103.0, 488.0}, {139.0, 20.0}}, label: 'FE2-public-photo.png', value: FE2-public-photo.png
+                              StaticText, 0x118c6b310, {{103.0, 508.0}, {32.0, 16.0}}, label: '2.4 KB', value: 2.4 KB
+                              StaticText, 0x118c6b430, {{134.0, 508.0}, {13.0, 16.0}}, label: '·', value:  · 
+                              StaticText, 0x118c6b550, {{146.0, 508.0}, {50.0, 16.0}}, label: '2026/10/8', value: 2026/10/8
+                              Button, 0x118c6b670, {{145.0, 536.0}, {44.0, 44.0}}, label: '预览'
+                              Button, 0x118c6b790, {{191.0, 536.0}, {44.0, 44.0}}, label: '下载'
+                              Button, 0x118c6b8b0, {{237.0, 536.0}, {44.0, 44.0}}, label: '转发'
+                              Button, 0x118c6b9d0, {{283.0, 536.0}, {44.0, 44.0}}, label: '编辑附件属性'
+                              Button, 0x118c6baf0, {{329.0, 536.0}, {44.0, 44.0}}, label: '删除'
+                              Switch, 0x118c6bc10, {{29.0, 597.0}, {44.0, 44.0}}, label: 'FE2-public-second.png', value: 0
+                              Other, 0x118c6bd30, {{103.0, 601.0}, {270.0, 20.0}}
+                                StaticText, 0x118c6be50, {{103.0, 601.0}, {148.0, 20.0}}, label: 'FE2-public-second.png', value: FE2-public-second....
+                              StaticText, 0x118c6bf70, {{103.0, 621.0}, {32.0, 16.0}}, label: '2.5 KB', value: 2.5 KB
+                              StaticText, 0x118c6c090, {{134.0, 621.0}, {13.0, 16.0}}, label: '·', value:  · 
+                              StaticText, 0x118c6c1b0, {{146.0, 621.0}, {50.0, 16.0}}, label: '2026/10/8', value: 2026/10/8
+                              Button, 0x118c6c2d0, {{145.0, 649.0}, {44.0, 44.0}}, label: '预览'
+                              Button, 0x118c6c3f0, {{191.0, 649.0}, {44.0, 44.0}}, label: '下载'
+                              Button, 0x118c6af80, {{237.0, 649.0}, {44.0, 44.0}}, label: '转发'
+                              Button, 0x118c6c730, {{283.0, 649.0}, {44.0, 44.0}}, label: '编辑附件属性'
+                              Button, 0x118c6c850, {{329.0, 649.0}, {44.0, 44.0}}, label: '删除'
+                              Button, 0x118c6c970, {{16.0, 72.0}, {44.0, 44.0}}, label: '返回'
+                              StaticText, 0x118c6ca90, {{92.0, 84.0}, {39.0, 20.0}}, label: '照片集', value: 照片集
+                              StaticText, 0x118c6cbb0, {{139.0, 85.0}, {8.0, 18.0}}, label: '2', value: 2
+                              Button, 0x118c6ccd0, {{342.0, 72.0}, {44.0, 44.0}}, label: '关闭'
+                              Button, 0x118c6cdf0, {{16.0, 137.0}, {90.0, 44.0}}, label: '时间倒序'
+                              Button, 0x118c6cf10, {{114.0, 137.0}, {73.0, 44.0}}, label: '分组方式'
+                              StaticText, 0x118c6d030, {{378.0, 150.0}, {8.0, 18.0}}, label: '2', value: 2
+                              Button, 0x118c6d150, {{16.0, 208.0}, {87.0, 87.0}}, label: 'FE2-public-second.png'
+                              Button, 0x118c6d270, {{110.0, 208.0}, {88.0, 87.0}}, label: 'FE2-public-photo.png', Focused
+                              Button, 0x118c6d390, {{14.0, 72.0}, {44.0, 44.0}}, label: '返回照片集'
+                              StaticText, 0x118c6d4b0, {{68.0, 84.0}, {148.0, 20.0}}, label: 'FE2-public-second.png', value: FE2-public-second....
+                              Other, 0x118c6d5d0, {{254.0, 85.0}, {27.0, 18.0}}, label: '1 / 2'
+                                StaticText, 0x118c6d6f0, {{254.0, 85.0}, {6.0, 18.0}}, label: '1', value: 1
+                                StaticText, 0x118c6d810, {{259.0, 85.0}, {14.0, 18.0}}, label: '/', value:  / 
+                                StaticText, 0x118c6d930, {{272.0, 85.0}, {8.0, 18.0}}, label: '2', value: 2
+                              Button, 0x118c6da50, {{290.0, 72.0}, {44.0, 44.0}}, label: '编辑附件属性'
+                              Button, 0x118c6db70, {{344.0, 72.0}, {44.0, 44.0}}, label: '关闭'
+                              Other, 0x118c6dc90, {{0.0, 127.0}, {402.0, 713.0}}
+                                Other, 0x118c6ddb0, {{0.0, 127.0}, {402.0, 713.0}}
+                                  Image, 0x118c6ded0, {{41.0, 363.0}, {320.0, 241.0}}, label: 'FE2-public-second.png'
+                                Button, 0x118c6dff0, {{12.0, 461.0}, {44.0, 45.0}}, label: '上一个'
+                                Button, 0x118c6e110, {{346.0, 461.0}, {44.0, 45.0}}, label: '下一个'
+                              Button, 0x118c6e230, {{94.0, 763.0}, {44.0, 44.0}}, label: '缩小'
+                              StaticText, 0x118c6e350, {{157.0, 775.0}, {22.0, 20.0}}, label: '100', value: 100
+                              StaticText, 0x118c6e470, {{178.0, 775.0}, {13.0, 20.0}}, label: '%', value: %
+                              Button, 0x118c6e590, {{210.0, 763.0}, {44.0, 44.0}}, label: '放大'
+                              Button, 0x118c6e6b0, {{264.0, 763.0}, {44.0, 44.0}}, label: '适应窗口'
+                Other, 0x118c6e7d0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x118c6e8f0, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x118c6ea10, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x118c6eb30, {{65.0, 868.0}, {272.0, 3.0}}
+                Other, 0x118c6ec50, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x118c6ed70, {{396.0, 65.0}, {3.0, 744.0}}
+                Other, 0x118c6ee90, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                  Other, 0x118c6efb0, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x118c6f0d0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x118c6f1f0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x118c6f310, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x118c2c2d0, pid: 29716, label: 'SoloSoul'
+Query chain:
+ →Find: Application 'com.solosoul.app'
+  Output: {
+    Application, 0x118c58610, pid: 29716, label: 'SoloSoul'
+  }

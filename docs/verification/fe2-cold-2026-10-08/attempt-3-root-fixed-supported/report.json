@@ -1,0 +1,65 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "scenario": "cold",
+  "startedAt": 1791420625.459611,
+  "passed": false,
+  "restored": true,
+  "nightModeBefore": "no",
+  "api": 34,
+  "abi": "arm64-v8a",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "819b14d1a444cebe2fdd2e6eb2cd2717c0e0d1ec2289bcf0fc99b642662ee1a3"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "2af4ed5744928f26da075447e95b9bc128dc0baeec4ed81369584347a6be717b"
+    }
+  ],
+  "backup": {
+    "path": "/private/tmp/solosoul-fe2-cold-20261008/fixed-supported/private-data-before.tar",
+    "sha256": "f3839bbc8a353599aeb1d30a5ce65eb426968a55d7a3cc4a041dbce9c876525b",
+    "entries": 242
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "account-a-custom-dark",
+    "account-b-custom-light",
+    "account-a-after-switch",
+    "account-b-after-switch",
+    "account-a-after-second-switch",
+    "account-preferences-isolated"
+  ],
+  "oldProcessAlreadyExited": true,
+  "oldProcessStopped": true,
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 242,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "nightModeRestored": true,
+  "finishedAt": 1791420764.888014
+}

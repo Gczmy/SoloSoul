@@ -1,0 +1,29 @@
+[2m[WebServer] [22m(node:63366) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 4 workers
+
+(node:63389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63390) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63387) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63390) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:63387) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 [mobile] › e2e/checkbox-platform.spec.ts:7:5 › ios light: checkbox touch target, mark and keyboard selection (3.2s)
+  ✓  2 [mobile] › e2e/checkbox-platform.spec.ts:7:5 › ios dark: checkbox touch target, mark and keyboard selection (3.2s)
+  ✓  3 [mobile] › e2e/login-method-layout.spec.ts:59:3 › ios 390px: login methods stay compact and PIN stays inside the card (3.4s)
+  ✓  1 [mobile] › e2e/native-theme.spec.ts:220:5 › RF-201 ios system：移动端跟随媒体并保留显式偏好 (3.5s)
+  ✓  5 [mobile] › e2e/native-theme.spec.ts:220:5 › RF-201 ios light：移动端跟随媒体并保留显式偏好 (1.7s)
+  ✓  6 [mobile] › e2e/native-theme.spec.ts:220:5 › RF-201 ios dark：移动端跟随媒体并保留显式偏好 (1.6s)
+
+  6 passed (7.4s)

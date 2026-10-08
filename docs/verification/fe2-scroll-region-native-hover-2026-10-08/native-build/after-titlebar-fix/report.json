@@ -1,0 +1,60 @@
+{
+  "scope": "Current source in isolated temporary workspace and APFS cloned target; no window launched",
+  "passed": true,
+  "started_at": 1791491117.335739,
+  "workspace": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace",
+  "target": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/target",
+  "synthetic_root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+  "window_launched": false,
+  "native_visual_passed": false,
+  "prior_frozen_bundle_untouched": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/SoloSoulFE2Mac.app",
+  "fixture_root_read_only": true,
+  "source_scope": "production frontend src/css, Rust sources/crates/build script, runtime scripts/public, Cargo/package/config/capabilities; e2e and standalone native-regression files may still be edited by another agent and are excluded from frozen hashes",
+  "command": [
+    "./node_modules/.bin/tauri",
+    "build",
+    "--debug",
+    "--features",
+    "macos-ui-regression",
+    "--config",
+    "src-tauri/tauri.macos-ui-regression.conf.json",
+    "--bundles",
+    "app"
+  ],
+  "exit_code": 0,
+  "app": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/workspace/tauri/target/debug/bundle/macos/SoloSoulFE2Mac.app",
+  "bundle_identifier": "com.solosoul.fe2.macos",
+  "bundle_version": "2.13.2",
+  "binary_sha256": "26cbfd224ab1c37bef6e0e9f272bba78962b41dbdb5ee818214d36dc4447a038",
+  "frozen_app": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008-titlebar/SoloSoulFE2Mac.app",
+  "binding_present": true,
+  "binding_path": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008-titlebar/SoloSoulFE2Mac.app/Contents/Resources/fe2-macos-root.txt",
+  "binding_root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+  "fixture_marker": {
+    "version": 1,
+    "root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-ab5da5ed6c344e8aba12409781dbd5c6",
+    "identifier": "com.solosoul.fe2.macos.ab5da5ed6c344e8aba12409781dbd5c6",
+    "account_id": "acc_e50ad3aa16464b74"
+  },
+  "protected_original_inputs_unchanged": {
+    "tauri/Cargo.lock": true,
+    "tauri/Cargo.toml": true,
+    "tauri/src-tauri/Cargo.toml": true,
+    "tauri/src-tauri/gen/apple/project.yml": true,
+    "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+    "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+    "tauri/src-tauri/gen/apple/assets": true,
+    "tauri/src-tauri/gen/android/app/src/main/assets": true,
+    "tauri/src-tauri/gen/android/app/tauri.properties": true
+  },
+  "first_frozen_artifacts_unchanged": {
+    "SoloSoulFE2Mac.app": true,
+    "report.json": true,
+    "source.json": true,
+    "fixture-preparation.json": true,
+    "build.log": true,
+    "run.py": true
+  },
+  "source_differences_after_build": [],
+  "finished_at": 1791491401.4008262
+}

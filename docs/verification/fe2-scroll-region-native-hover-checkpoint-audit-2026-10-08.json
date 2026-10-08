@@ -1,0 +1,8 @@
+{
+  "recorded_at": "2026-10-08T20:36:56.526936+00:00",
+  "passed": true,
+  "checked_files": 6437,
+  "current_source_entries": 173,
+  "mismatches": [],
+  "scope": "Current root source_sha256 plus all recursively declared evidence_sha256 maps. Historical source/build manifests retain original hashes; native repair remains pending visual reverification after manual unlock."
+}

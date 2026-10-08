@@ -1,0 +1,113 @@
+[2m[WebServer] [22m(node:76858) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 2 workers
+
+(node:76876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:47:30 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:47:30 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:47:31 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:47:31 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✘  2 [chromium] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding (3.2s)
+(node:76979) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76979) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (4.9s)
+[2m[WebServer] [22m4:47:33 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+(node:76995) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:76995) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:47:33 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:47:34 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:47:35 AM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://127.0.0.1:1459/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://127.0.0.1:1459/src/stores/updateStore.ts:94:65
+  ✘  4 [mobile] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding (1.3s)
+  ✓  3 [mobile] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions (3.5s)
+
+
+  1) [chromium] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions 
+
+    Error: locator.click: Error: strict mode violation: getByTestId('object-detail-modal').getByRole('button', { name: 'Back Up Now', exact: true }) resolved to 2 elements:
+        1) <button class="_actionBtn_1p7fy_110">Back Up Now</button> aka getByRole('button', { name: 'Back Up Now' }).nth(1)
+        2) <button class="_actionBtn_1p7fy_110">Back Up Now</button> aka getByRole('button', { name: 'Back Up Now' }).nth(3)
+
+    Call log:
+    [2m  - waiting for getByTestId('object-detail-modal').getByRole('button', { name: 'Back Up Now', exact: true })[22m
+
+
+      319 |   const detail = page.getByTestId('object-detail-modal');
+      320 |   await expect(detail.locator('[data-toast-container]')).toBeVisible();
+    > 321 |   await detail.getByRole('button', { name: 'Back Up Now', exact: true }).click();
+          |                                                                          ^
+      322 |   expect(await page.evaluate(() => (window as any).__toastActions)).toBe(1);
+      323 |   await expect(detail).toBeVisible();
+      324 |   await expect(toast).toHaveCount(0);
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:321:74
+
+    Error Context: ../../../../../tmp/solosoul-fe2-notification-final-browser-results-20261008/android-material-Android-r-61a01-et-without-covering-actions-chromium/error-context.md
+
+  2) [chromium] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: >= [32m20[39m
+    Received:    [31m0[39m
+
+      426 |     expect(boxes.length).toBeGreaterThanOrEqual(8);
+      427 |     for (const r of boxes) {
+    > 428 |       expect(r.left).toBeGreaterThanOrEqual(20);
+          |                      ^
+      429 |       expect(r.right).toBeLessThanOrEqual(width - 32);
+      430 |       expect(r.top).toBeGreaterThanOrEqual(24);
+      431 |       expect(r.bottom).toBeLessThanOrEqual(height - 28);
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:428:22
+
+    Error Context: ../../../../../tmp/solosoul-fe2-notification-final-browser-results-20261008/android-material-native-sa-63a08-ogin-without-double-padding-chromium/error-context.md
+
+  3) [mobile] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: >= [32m20[39m
+    Received:    [31m0[39m
+
+      426 |     expect(boxes.length).toBeGreaterThanOrEqual(8);
+      427 |     for (const r of boxes) {
+    > 428 |       expect(r.left).toBeGreaterThanOrEqual(20);
+          |                      ^
+      429 |       expect(r.right).toBeLessThanOrEqual(width - 32);
+      430 |       expect(r.top).toBeGreaterThanOrEqual(24);
+      431 |       expect(r.bottom).toBeLessThanOrEqual(height - 28);
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/android-material.spec.ts:428:22
+
+    Error Context: ../../../../../tmp/solosoul-fe2-notification-final-browser-results-20261008/android-material-native-sa-63a08-ogin-without-double-padding-mobile/error-context.md
+
+  3 failed
+    [chromium] › e2e/android-material.spec.ts:251:1 › Android reminders occupy layout and follow the active sheet without covering actions 
+    [chromium] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding 
+    [mobile] › e2e/android-material.spec.ts:389:1 › native safe-area lengths protect chrome, sheets and login without double padding 
+  1 passed (9.0s)

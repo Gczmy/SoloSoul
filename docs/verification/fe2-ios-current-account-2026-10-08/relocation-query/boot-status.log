@@ -1,0 +1,27 @@
+Monitoring boot status for SoloSoul RF201 (362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C).
+[2026-10-08 05:16:41 +0000] Status=2, isTerminal=NO, Elapsed=00:01.
+	Waiting on Data Migration
+		Reason:(null)
+		Migration Elapsed:00:00 seconds
+
+[2026-10-08 05:16:41 +0000] Status=4, isTerminal=NO, Elapsed=00:02.
+	Waiting on System App
+
+[2026-10-08 05:16:42 +0000] Status=4, isTerminal=NO, Elapsed=00:03.
+	Waiting on System App
+
+[2026-10-08 05:16:43 +0000] Status=4, isTerminal=NO, Elapsed=00:04.
+	Waiting on System App
+
+[2026-10-08 05:16:44 +0000] Status=4, isTerminal=NO, Elapsed=00:05.
+	Waiting on System App
+
+[2026-10-08 05:16:45 +0000] Status=4, isTerminal=NO, Elapsed=00:06.
+	Waiting on System App
+
+[2026-10-08 05:16:47 +0000] Status=4, isTerminal=NO, Elapsed=00:07.
+	Waiting on System App
+
+[2026-10-08 05:16:49 +0000] Status=4294967295, isTerminal=YES, Elapsed=00:09.
+	Finished
+

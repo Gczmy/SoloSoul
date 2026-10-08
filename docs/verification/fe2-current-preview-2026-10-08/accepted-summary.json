@@ -1,0 +1,70 @@
+[
+  {
+    "directory": "native-api34-supported",
+    "source_manifest": "source.json",
+    "passed": true,
+    "native_tests": 1,
+    "skipped": 0,
+    "records": 29,
+    "pngs": 25,
+    "runtime": {
+      "api": 34,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "113.0.5672.136",
+      "webViewVersionCode": 567263634
+    },
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "474846b7a031baa21c0ab27c013fa1981c9195c06e815e5da2f713c1a4a56c04"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "06f2c9639cd0f8714ac09229b6aef18560fbc04db3938a620a9d39cb4c24e637"
+      }
+    ],
+    "minimum_header_contrast": 4.6284365312035725,
+    "minimum_header_ink_pixels": 30,
+    "privateRestore": {
+      "entries": 242,
+      "allFileContentsLinksAndModesMatch": true
+    },
+    "actual_private_archive_inventory_match": true,
+    "blurRestored": true,
+    "notificationPermissionRestored": true
+  },
+  {
+    "directory": "native-api34-fallback",
+    "source_manifest": "source.json",
+    "passed": true,
+    "native_tests": 1,
+    "skipped": 0,
+    "records": 29,
+    "pngs": 25,
+    "runtime": {
+      "api": 34,
+      "webViewPackage": "com.google.android.webview",
+      "webViewVersion": "113.0.5672.136",
+      "webViewVersionCode": 567263634
+    },
+    "artifacts": [
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+        "sha256": "474846b7a031baa21c0ab27c013fa1981c9195c06e815e5da2f713c1a4a56c04"
+      },
+      {
+        "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+        "sha256": "06f2c9639cd0f8714ac09229b6aef18560fbc04db3938a620a9d39cb4c24e637"
+      }
+    ],
+    "minimum_header_contrast": 4.6284365312035725,
+    "minimum_header_ink_pixels": 30,
+    "privateRestore": {
+      "entries": 242,
+      "allFileContentsLinksAndModesMatch": true
+    },
+    "actual_private_archive_inventory_match": true,
+    "blurRestored": true,
+    "notificationPermissionRestored": true
+  }
+]

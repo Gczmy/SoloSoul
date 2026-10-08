@@ -1,0 +1,18 @@
+# 工具会话 74811 的 stdout 摘录，不是完整原始终端日志。
+Running 32 tests using 2 workers
+
+1) [chromium] › e2e/scroll-region.spec.ts:270:1 › text node updates and viewport resizing refresh overflow registration
+2) [webkit] › e2e/scroll-region.spec.ts:270:1 › text node updates and viewport resizing refresh overflow registration
+Error: expect(locator).not.toHaveAttribute() failed
+Locator: locator('#scroll-main')
+Expected: not have attribute
+Received: have attribute
+Timeout: 5000ms
+
+> 298 | await expect(page.locator('#scroll-main')).not.toHaveAttribute('data-scrollbar-region-y');
+
+2 failed
+30 passed (20.4s)
+
+# 原因与修正：新增 #dynamic-text-scroll 后，main > div:last 命中了临时区域，
+# 未缩短原正文。移除临时区域后再选择正文，最终 Chromium/WebKit 均通过。

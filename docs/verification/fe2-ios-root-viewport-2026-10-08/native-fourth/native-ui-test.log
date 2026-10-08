@@ -1,0 +1,388 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /tmp/solosoul-fe2-ios-visual-offset-geometry-ui-20261008/SoloSoulFE2UIProbe.xcodeproj -scheme Probe -destination "platform=iOS Simulator,id=362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C" -derivedDataPath /tmp/solosoul-fe2-ios-visual-offset-geometry-ui-20261008/DerivedData -parallel-testing-enabled NO -resultBundlePath /tmp/solosoul-fe2-ios-visual-offset-geometry-ui-20261008/probe.xcresult test-without-building CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Writing result bundle at path:
+	/tmp/solosoul-fe2-ios-visual-offset-geometry-ui-20261008/probe.xcresult
+
+2026-10-08 07:59:31.586887+0100 ProbeTests-Runner[43618:246855867] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-08 07:59:35.093.
+Test Suite 'ProbeTests.xctest' started at 2026-10-08 07:59:35.093.
+Test Suite 'ProbeTests' started at 2026-10-08 07:59:35.093.
+Test Case '-[ProbeTests.ProbeTests testCurrentProductionObjectAndMobileNavigation]' started.
+    t =     0.00s Start Test at 2026-10-08 07:59:35.094
+    t =     0.23s Set Up
+    t =     0.23s Open com.solosoul.app
+    t =     0.23s     Launch com.solosoul.app
+    t =     0.23s         Terminate com.solosoul.app:43544
+    t =     1.38s         Setting up automation session
+    t =     1.96s         Wait for com.solosoul.app to idle
+    t =     3.16s Waiting 30.0s for "下一步" Button to exist
+    t =     4.24s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     4.24s         Checking existence of `"下一步" Button`
+    t =     4.32s Find the "下一步" Button
+    t =     4.36s Tap "下一步" Button
+    t =     4.36s     Wait for com.solosoul.app to idle
+    t =     4.36s     Find the "下一步" Button
+    t =     4.38s     Check for interrupting elements affecting "下一步" Button
+    t =     4.41s     Synthesize event
+    t =     4.82s     Wait for com.solosoul.app to idle
+    t =     4.92s Waiting 30.0s for "下一步" Button to exist
+    t =     5.99s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     6.00s         Checking existence of `"下一步" Button`
+    t =     6.03s Find the "下一步" Button
+    t =     6.07s Tap "下一步" Button
+    t =     6.07s     Wait for com.solosoul.app to idle
+    t =     6.07s     Find the "下一步" Button
+    t =     6.10s     Check for interrupting elements affecting "下一步" Button
+    t =     6.13s     Synthesize event
+    t =     6.42s     Wait for com.solosoul.app to idle
+    t =     6.42s Waiting 30.0s for "下一步" Button to exist
+    t =     7.50s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     7.50s         Checking existence of `"下一步" Button`
+    t =     7.53s Find the "下一步" Button
+    t =     7.56s Tap "下一步" Button
+    t =     7.56s     Wait for com.solosoul.app to idle
+    t =     7.56s     Find the "下一步" Button
+    t =     7.58s     Check for interrupting elements affecting "下一步" Button
+    t =     7.60s     Synthesize event
+    t =     7.89s     Wait for com.solosoul.app to idle
+    t =     7.89s Waiting 30.0s for "下一步" Button to exist
+    t =     8.97s     Checking `Expect predicate `existsNoRetry == 1` for object "下一步" Button`
+    t =     8.97s         Checking existence of `"下一步" Button`
+    t =     9.01s Find the "下一步" Button
+    t =     9.04s Tap "下一步" Button
+    t =     9.04s     Wait for com.solosoul.app to idle
+    t =     9.04s     Find the "下一步" Button
+    t =     9.06s     Check for interrupting elements affecting "下一步" Button
+    t =     9.08s     Synthesize event
+    t =     9.37s     Wait for com.solosoul.app to idle
+    t =     9.38s Waiting 15.0s for "完成" Button to exist
+    t =    10.45s     Checking `Expect predicate `existsNoRetry == 1` for object "完成" Button`
+    t =    10.46s         Checking existence of `"完成" Button`
+    t =    10.50s Tap "完成" Button
+    t =    10.50s     Wait for com.solosoul.app to idle
+    t =    10.50s     Find the "完成" Button
+    t =    10.52s     Check for interrupting elements affecting "完成" Button
+    t =    10.54s     Synthesize event
+    t =    10.83s     Wait for com.solosoul.app to idle
+    t =    10.83s Waiting 30.0s for "不，创建新账户" Button to exist
+    t =    11.90s     Checking `Expect predicate `existsNoRetry == 1` for object "不，创建新账户" Button`
+    t =    11.90s         Checking existence of `"不，创建新账户" Button`
+    t =    11.95s Tap "不，创建新账户" Button
+    t =    11.95s     Wait for com.solosoul.app to idle
+    t =    11.95s     Find the "不，创建新账户" Button
+    t =    11.98s     Check for interrupting elements affecting "不，创建新账户" Button
+    t =    12.00s     Synthesize event
+    t =    12.28s     Wait for com.solosoul.app to idle
+    t =    12.29s Checking existence of `"账户名称" SecureTextField`
+    t =    12.32s Waiting 30.0s for "账户名称" TextField to exist
+    t =    13.39s     Checking `Expect predicate `existsNoRetry == 1` for object "账户名称" TextField`
+    t =    13.40s         Checking existence of `"账户名称" TextField`
+    t =    13.43s Find the Application 'com.solosoul.app'
+    t =    13.55s Added attachment named 'current-registration'
+    t =    13.55s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    13.69s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    13.71s Added attachment named 'current-registration-hierarchy'
+    t =    13.71s Tap "账户名称" TextField
+    t =    13.71s     Wait for com.solosoul.app to idle
+    t =    13.71s     Find the "账户名称" TextField
+    t =    13.73s     Check for interrupting elements affecting "账户名称" TextField
+    t =    13.75s     Synthesize event
+    t =    14.04s     Wait for com.solosoul.app to idle
+    t =    14.16s Type 'FE2 iOS public acc...' into "账户名称" TextField
+    t =    14.16s     Wait for com.solosoul.app to idle
+    t =    14.54s     Find the "账户名称" TextField
+    t =    14.61s     Check for interrupting elements affecting "账户名称" TextField
+    t =    14.64s     Synthesize event
+    t =    15.21s     Wait for com.solosoul.app to idle
+    t =    15.21s Checking existence of `"主密码" SecureTextField`
+    t =    15.26s Checking existence of `"主密码" TextField`
+    t =    15.30s Tap "主密码" TextField
+    t =    15.30s     Wait for com.solosoul.app to idle
+    t =    15.30s     Find the "主密码" TextField
+    t =    15.34s     Check for interrupting elements affecting "输入密码" TextField
+    t =    15.37s     Synthesize event
+    t =    15.66s     Wait for com.solosoul.app to idle
+    t =    15.79s Type 'FE2-public-test-20...' into "输入密码" TextField
+    t =    15.79s     Wait for com.solosoul.app to idle
+    t =    15.79s     Find the "输入密码" TextField
+    t =    15.84s     Check for interrupting elements affecting "输入密码" TextField
+    t =    15.86s     Synthesize event
+    t =    16.42s     Wait for com.solosoul.app to idle
+    t =    16.42s Checking existence of `"确认密码" SecureTextField`
+    t =    16.48s Checking existence of `"确认密码" TextField`
+    t =    16.51s Tap "确认密码" TextField
+    t =    16.51s     Wait for com.solosoul.app to idle
+    t =    16.51s     Find the "确认密码" TextField
+    t =    16.54s     Check for interrupting elements affecting "输入密码" TextField
+    t =    16.56s     Synthesize event
+    t =    16.85s     Wait for com.solosoul.app to idle
+    t =    16.97s Type 'FE2-public-test-20...' into "输入密码" TextField
+    t =    16.97s     Wait for com.solosoul.app to idle
+    t =    16.97s     Find the "输入密码" TextField
+    t =    17.02s     Check for interrupting elements affecting "输入密码" TextField
+    t =    17.05s     Synthesize event
+    t =    17.62s     Wait for com.solosoul.app to idle
+    t =    17.91s Waiting 60.0s for "首页" Button to exist
+    t =    18.99s     Checking `Expect predicate `existsNoRetry == 1` for object "首页" Button`
+    t =    18.99s         Checking existence of `"首页" Button`
+    t =    19.01s Find the "首页" Button
+    t =    19.03s Find the Application 'com.solosoul.app'
+    t =    19.14s Added attachment named 'current-created-home'
+    t =    19.14s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    19.30s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    19.33s Added attachment named 'current-created-home-hierarchy'
+    t =    29.33s Checking existence of `"展开" Button`
+    t =    29.37s Find the "展开" Button
+    t =    29.40s Tap "展开" Button
+    t =    29.40s     Wait for com.solosoul.app to idle
+    t =    29.41s     Find the "展开" Button
+    t =    29.43s     Check for interrupting elements affecting "展开" Button
+    t =    29.44s     Synthesize event
+    t =    29.74s     Wait for com.solosoul.app to idle
+    t =    29.74s Find the Application 'com.solosoul.app'
+    t =    29.85s Added attachment named 'expanded-mobile-navigation'
+    t =    29.85s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    30.05s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    30.08s Added attachment named 'expanded-mobile-navigation-hierarchy'
+    t =    30.08s Checking existence of `"收起" Button`
+    t =    30.10s Find the "收起" Button
+    t =    30.13s Tap "收起" Button
+    t =    30.13s     Wait for com.solosoul.app to idle
+    t =    30.13s     Find the "收起" Button
+    t =    30.15s     Check for interrupting elements affecting "收起" Button
+    t =    30.17s     Synthesize event
+    t =    30.46s     Wait for com.solosoul.app to idle
+    t =    30.47s Waiting 15.0s for Button (First Match) to exist
+    t =    31.54s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    31.54s         Checking existence of `Button (First Match)`
+    t =    31.57s Find the Button (First Match)
+    t =    31.60s Tap "身份个人信息、身份证、联系人" Button
+    t =    31.60s     Wait for com.solosoul.app to idle
+    t =    31.60s     Find the "身份个人信息、身份证、联系人" Button
+    t =    31.62s     Check for interrupting elements affecting "身份个人信息、身份证、联系人" Button
+    t =    31.64s     Synthesize event
+    t =    31.93s     Wait for com.solosoul.app to idle
+    t =    31.93s Find the Application 'com.solosoul.app'
+    t =    32.04s Added attachment named 'empty-identity-workspace'
+    t =    32.04s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    32.15s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    32.17s Added attachment named 'empty-identity-workspace-hierarchy'
+    t =    32.18s Waiting 20.0s for Button (First Match) to exist
+    t =    33.24s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    33.25s         Checking existence of `Button (First Match)`
+    t =    33.28s Find the Button (First Match)
+    t =    33.31s Tap "+" Button
+    t =    33.31s     Wait for com.solosoul.app to idle
+    t =    33.31s     Find the "+" Button
+    t =    33.33s     Check for interrupting elements affecting "+" Button
+    t =    33.35s     Synthesize event
+    t =    33.64s     Wait for com.solosoul.app to idle
+    t =    33.64s Find the Application 'com.solosoul.app'
+    t =    33.75s Added attachment named 'identity-template-editor'
+    t =    33.76s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    34.02s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    34.06s Added attachment named 'identity-template-editor-hierarchy'
+    t =    34.06s Waiting 20.0s for "身份信息" Switch to exist
+    t =    35.11s     Checking `Expect predicate `existsNoRetry == 1` for object "身份信息" Switch`
+    t =    35.11s         Checking existence of `"身份信息" Switch`
+    t =    35.15s Find the "身份信息" Switch
+    t =    35.19s Tap "身份信息" Switch
+    t =    35.19s     Wait for com.solosoul.app to idle
+    t =    35.19s     Find the "身份信息" Switch
+    t =    35.22s     Check for interrupting elements affecting "身份信息" Switch
+    t =    35.24s     Synthesize event
+    t =    35.54s     Wait for com.solosoul.app to idle
+    t =    35.54s Checking existence of `"对象名称" SecureTextField`
+    t =    35.57s Waiting 15.0s for "对象名称" TextField to exist
+    t =    36.62s     Checking `Expect predicate `existsNoRetry == 1` for object "对象名称" TextField`
+    t =    36.62s         Checking existence of `"对象名称" TextField`
+    t =    36.68s Tap "对象名称" TextField
+    t =    36.68s     Wait for com.solosoul.app to idle
+    t =    36.68s     Find the "对象名称" TextField
+    t =    36.71s     Check for interrupting elements affecting "输入名称" TextField
+    t =    36.73s     Synthesize event
+    t =    37.03s     Wait for com.solosoul.app to idle
+    t =    37.29s Type 'FE2 iOS public ide...' into "输入名称" TextField
+    t =    37.29s     Wait for com.solosoul.app to idle
+    t =    37.29s     Find the "输入名称" TextField
+    t =    37.36s     Check for interrupting elements affecting "输入名称" TextField
+    t =    37.40s     Synthesize event
+    t =    37.99s     Wait for com.solosoul.app to idle
+    t =    37.99s Find the Application 'com.solosoul.app'
+    t =    38.13s Added attachment named 'object-name-with-keyboard'
+    t =    38.13s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    38.52s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    38.59s Added attachment named 'object-name-with-keyboard-hierarchy'
+    t =    38.59s Waiting 5.0s for Keyboard (First Match) to exist
+    t =    39.64s     Checking `Expect predicate `existsNoRetry == 1` for object Keyboard (First Match)`
+    t =    39.64s         Checking existence of `Keyboard (First Match)`
+    t =    39.66s Find the "横幅" Other
+    t =    39.75s Checking existence of `TextField (First Match)`
+    t =    39.79s Find the "主要" Other
+    t =    39.87s Find the "首页" Button
+    t =    39.92s Find the "主要" Other
+    t =    40.00s Find the TextField (First Match)
+    t =    40.05s Find the "姓名 公开" TextField
+    t =    40.10s Find the Application 'com.solosoul.app'
+    t =    40.13s Find the Application 'com.solosoul.app'
+    t =    40.15s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    40.15s     Wait for com.solosoul.app to idle
+    t =    40.15s     Find the Application 'com.solosoul.app'
+    t =    40.18s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    40.22s     Synthesize event
+    t =    40.22s         Find the Application 'com.solosoul.app'
+    t =    40.25s         Find the Application 'com.solosoul.app'
+    t =    40.28s         Find the Application 'com.solosoul.app'
+    t =    40.30s         Find the Application 'com.solosoul.app'
+    t =    40.33s         Find the Application 'com.solosoul.app'
+    t =    40.89s     Wait for com.solosoul.app to idle
+    t =    42.66s Find the "主要" Other
+    t =    42.74s Find the "首页" Button
+    t =    42.81s Find the "主要" Other
+    t =    42.89s Find the "姓名 公开" TextField
+    t =    42.94s Find the Application 'com.solosoul.app'
+    t =    42.97s Find the Application 'com.solosoul.app'
+    t =    42.99s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    42.99s     Wait for com.solosoul.app to idle
+    t =    43.00s     Find the Application 'com.solosoul.app'
+    t =    43.02s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    43.05s     Synthesize event
+    t =    43.06s         Find the Application 'com.solosoul.app'
+    t =    43.08s         Find the Application 'com.solosoul.app'
+    t =    43.11s         Find the Application 'com.solosoul.app'
+    t =    43.13s         Find the Application 'com.solosoul.app'
+    t =    43.16s         Find the Application 'com.solosoul.app'
+    t =    43.73s     Wait for com.solosoul.app to idle
+    t =    45.40s Find the "主要" Other
+    t =    45.49s Find the "首页" Button
+    t =    45.54s Find the "主要" Other
+    t =    45.62s Find the "姓名 公开" TextField
+    t =    45.66s Find the Application 'com.solosoul.app'
+    t =    45.69s Find the Application 'com.solosoul.app'
+    t =    45.71s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    45.71s     Wait for com.solosoul.app to idle
+    t =    45.71s     Find the Application 'com.solosoul.app'
+    t =    45.74s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    45.77s     Synthesize event
+    t =    45.77s         Find the Application 'com.solosoul.app'
+    t =    45.80s         Find the Application 'com.solosoul.app'
+    t =    45.83s         Find the Application 'com.solosoul.app'
+    t =    45.85s         Find the Application 'com.solosoul.app'
+    t =    45.88s         Find the Application 'com.solosoul.app'
+    t =    46.44s     Wait for com.solosoul.app to idle
+    t =    46.56s Find the "主要" Other
+    t =    46.66s Find the "首页" Button
+    t =    46.71s Find the "主要" Other
+    t =    46.79s Find the "姓名 公开" TextField
+    t =    46.83s Find the Application 'com.solosoul.app'
+    t =    46.86s Find the Application 'com.solosoul.app'
+    t =    46.89s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    46.89s     Wait for com.solosoul.app to idle
+    t =    46.89s     Find the Application 'com.solosoul.app'
+    t =    46.92s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    46.95s     Synthesize event
+    t =    46.96s         Find the Application 'com.solosoul.app'
+    t =    46.98s         Find the Application 'com.solosoul.app'
+    t =    47.01s         Find the Application 'com.solosoul.app'
+    t =    47.04s         Find the Application 'com.solosoul.app'
+    t =    47.07s         Find the Application 'com.solosoul.app'
+    t =    47.64s     Wait for com.solosoul.app to idle
+    t =    47.64s Find the "主要" Other
+    t =    47.74s Find the "首页" Button
+    t =    47.79s Find the "主要" Other
+    t =    47.87s Find the "姓名 公开" TextField
+    t =    47.91s Find the Application 'com.solosoul.app'
+    t =    47.94s Find the Application 'com.solosoul.app'
+    t =    47.96s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    47.96s     Wait for com.solosoul.app to idle
+    t =    47.96s     Find the Application 'com.solosoul.app'
+    t =    47.99s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    48.02s     Synthesize event
+    t =    48.02s         Find the Application 'com.solosoul.app'
+    t =    48.05s         Find the Application 'com.solosoul.app'
+    t =    48.08s         Find the Application 'com.solosoul.app'
+    t =    48.10s         Find the Application 'com.solosoul.app'
+    t =    48.13s         Find the Application 'com.solosoul.app'
+    t =    48.70s     Wait for com.solosoul.app to idle
+    t =    48.71s Find the "主要" Other
+    t =    48.80s Find the "首页" Button
+    t =    48.86s Find the "主要" Other
+    t =    48.94s Find the "姓名 公开" TextField
+    t =    48.98s Find the Application 'com.solosoul.app'
+    t =    49.01s Find the Application 'com.solosoul.app'
+    t =    49.04s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    49.04s     Wait for com.solosoul.app to idle
+    t =    49.04s     Find the Application 'com.solosoul.app'
+    t =    49.07s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    49.10s     Synthesize event
+    t =    49.10s         Find the Application 'com.solosoul.app'
+    t =    49.13s         Find the Application 'com.solosoul.app'
+    t =    49.16s         Find the Application 'com.solosoul.app'
+    t =    49.18s         Find the Application 'com.solosoul.app'
+    t =    49.21s         Find the Application 'com.solosoul.app'
+    t =    49.78s     Wait for com.solosoul.app to idle
+    t =    49.79s Find the "主要" Other
+    t =    49.88s Find the "首页" Button
+    t =    49.93s Find the "主要" Other
+    t =    50.01s Find the "姓名 公开" TextField
+    t =    50.06s Find the Application 'com.solosoul.app'
+    t =    50.08s Find the Application 'com.solosoul.app'
+    t =    50.11s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    50.11s     Wait for com.solosoul.app to idle
+    t =    50.11s     Find the Application 'com.solosoul.app'
+    t =    50.13s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    50.17s     Synthesize event
+    t =    50.17s         Find the Application 'com.solosoul.app'
+    t =    50.19s         Find the Application 'com.solosoul.app'
+    t =    50.22s         Find the Application 'com.solosoul.app'
+    t =    50.24s         Find the Application 'com.solosoul.app'
+    t =    50.27s         Find the Application 'com.solosoul.app'
+    t =    50.83s     Wait for com.solosoul.app to idle
+    t =    50.84s Find the "主要" Other
+    t =    50.92s Find the "首页" Button
+    t =    50.97s Find the "主要" Other
+    t =    51.05s Find the "姓名 公开" TextField
+    t =    51.10s Find the Application 'com.solosoul.app'
+    t =    51.12s Find the Application 'com.solosoul.app'
+    t =    51.15s Press Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 306.5) for 0.1 seconds, then drag to Application 'com.solosoul.app'[0.00, 0.00] -> (201.0, 183.5) with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    51.15s     Wait for com.solosoul.app to idle
+    t =    51.15s     Find the Application 'com.solosoul.app'
+    t =    51.18s     Check for interrupting elements affecting "SoloSoul" Application
+    t =    51.21s     Synthesize event
+    t =    51.21s         Find the Application 'com.solosoul.app'
+    t =    51.24s         Find the Application 'com.solosoul.app'
+    t =    51.27s         Find the Application 'com.solosoul.app'
+    t =    51.29s         Find the Application 'com.solosoul.app'
+    t =    51.32s         Find the Application 'com.solosoul.app'
+    t =    51.88s     Wait for com.solosoul.app to idle
+    t =    51.89s Find the Application 'com.solosoul.app'
+    t =    52.04s Added attachment named 'public-name-before-focus'
+    t =    52.04s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    52.31s Requesting snapshot of accessibility hierarchy for app with pid 43683
+    t =    52.38s Added attachment named 'public-name-before-focus-hierarchy'
+    t =    52.38s Find the "姓名 公开" TextField
+    t =    52.43s Find the "主要" Other
+/tmp/solosoul-fe2-ios-visual-offset-geometry-ui-20261008/Tests/ProbeTests.swift:74: error: -[ProbeTests.ProbeTests testCurrentProductionObjectAndMobileNavigation] : XCTAssertGreaterThanOrEqual failed: ("-487.0") is less than ("110.0")
+    t =    52.54s Tear Down
+Test Case '-[ProbeTests.ProbeTests testCurrentProductionObjectAndMobileNavigation]' failed (52.815 seconds).
+Test Suite 'ProbeTests' failed at 2026-10-08 08:00:27.910.
+	 Executed 1 test, with 1 failure (0 unexpected) in 52.815 (52.817) seconds
+Test Suite 'ProbeTests.xctest' failed at 2026-10-08 08:00:27.911.
+	 Executed 1 test, with 1 failure (0 unexpected) in 52.815 (52.818) seconds
+Test Suite 'All tests' failed at 2026-10-08 08:00:27.911.
+	 Executed 1 test, with 1 failure (0 unexpected) in 52.815 (52.819) seconds
+
+Test session results, code coverage, and logs:
+	/tmp/solosoul-fe2-ios-visual-offset-geometry-ui-20261008/probe.xcresult
+
+Testing started
+2026-10-08 08:00:42.527 xcodebuild[43545:246855378] [MT] IDETestOperationsObserverDebug: 73.437 elapsed -- Testing started completed.
+2026-10-08 08:00:42.527 xcodebuild[43545:246855378] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-08 08:00:42.527 xcodebuild[43545:246855378] [MT] IDETestOperationsObserverDebug: 73.437 sec, +73.437 sec -- end
+** TEST EXECUTE FAILED **
+

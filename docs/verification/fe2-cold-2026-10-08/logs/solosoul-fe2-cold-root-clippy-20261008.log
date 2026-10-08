@@ -1,0 +1,11 @@
+    Checking tauri v2.11.2
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+    Checking tauri-plugin-fs v2.5.1
+    Checking tauri-plugin-shell v2.3.5
+    Checking tauri-plugin-updater v2.10.1
+    Checking tauri-plugin-window-state v2.4.1
+    Checking tauri-plugin-process v2.3.1
+    Checking tauri-plugin-os v2.3.2
+    Checking tauri-plugin-notification v2.3.3
+    Checking tauri-plugin-dialog v2.7.1
+    Finished `dev` profile [optimized + debuginfo] target(s) in 21.88s

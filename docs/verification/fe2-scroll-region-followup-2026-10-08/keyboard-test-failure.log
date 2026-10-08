@@ -1,0 +1,79 @@
+
+Running 28 tests using 2 workers
+
+(node:39151) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39152) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39151) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39152) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (2.0s)
+  ✓   3 [chromium] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted (334ms)
+  ✓   4 [chromium] › e2e/scroll-region.spec.ts:26:1 › keyboard focus does not override the current pointer scroll area (194ms)
+  ✓   5 [chromium] › e2e/scroll-region.spec.ts:34:1 › style-only overlay changes recompute the stationary pointer (260ms)
+  ✓   6 [chromium] › e2e/scroll-region.spec.ts:54:1 › an actually scrollable textarea takes the vertical wheel before the main area (167ms)
+  ✓   7 [chromium] › e2e/scroll-region.spec.ts:62:1 › window focus restores the stationary pointer region (183ms)
+  ✓   2 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar (3.3s)
+  ✓   8 [chromium] › e2e/scroll-region.spec.ts:71:1 › content becoming scrollable updates without moving the pointer (231ms)
+  ✓  10 [chromium] › e2e/scroll-region.spec.ts:89:1 › direct scrollbar hover stays effective and Tab enables keyboard navigation (200ms)
+(node:39194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar (2.6s)
+  ✓  11 [webkit] › e2e/history-keyboard.spec.ts:4:1 › 隐藏历史字段支持 Enter 和 Space，揭示前无原文 DOM (2.1s)
+  ✓  12 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar (2.4s)
+  ✓  13 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos light: password, localized counts, stable cached history and scoped scrollbar (3.0s)
+  ✓  14 [chromium] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar (2.3s)
+  ✓  16 [chromium] › e2e/object-ui-refinement.spec.ts:185:3 › android: long password stays clear of controls at 320px (985ms)
+  ✓  15 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › macos dark: password, localized counts, stable cached history and scoped scrollbar (3.0s)
+  ✓  17 [chromium] › e2e/object-ui-refinement.spec.ts:185:3 › ios: long password stays clear of controls at 320px (981ms)
+(node:39242) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39242) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  19 [webkit] › e2e/scroll-region.spec.ts:10:1 › horizontal child keeps the effective vertical parent highlighted (724ms)
+  ✓  20 [webkit] › e2e/scroll-region.spec.ts:26:1 › keyboard focus does not override the current pointer scroll area (409ms)
+  ✓  21 [webkit] › e2e/scroll-region.spec.ts:34:1 › style-only overlay changes recompute the stationary pointer (417ms)
+  ✓  18 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows light: password, localized counts, stable cached history and scoped scrollbar (2.6s)
+  ✓  22 [webkit] › e2e/scroll-region.spec.ts:54:1 › an actually scrollable textarea takes the vertical wheel before the main area (375ms)
+  ✓  24 [webkit] › e2e/scroll-region.spec.ts:62:1 › window focus restores the stationary pointer region (429ms)
+  ✓  25 [webkit] › e2e/scroll-region.spec.ts:71:1 › content becoming scrollable updates without moving the pointer (406ms)
+  ✓  23 [webkit] › e2e/object-ui-refinement.spec.ts:86:5 › windows dark: password, localized counts, stable cached history and scoped scrollbar (2.6s)
+  ✓  27 [webkit] › e2e/object-ui-refinement.spec.ts:185:3 › android: long password stays clear of controls at 320px (1.3s)
+  ✓  28 [webkit] › e2e/object-ui-refinement.spec.ts:185:3 › ios: long password stays clear of controls at 320px (1.3s)
+  ✘  26 [webkit] › e2e/scroll-region.spec.ts:89:1 › direct scrollbar hover stays effective and Tab enables keyboard navigation (5.4s)
+
+
+  1) [webkit] › e2e/scroll-region.spec.ts:89:1 › direct scrollbar hover stays effective and Tab enables keyboard navigation 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeFocused[2m([22m[2m)[22m failed
+
+    Locator:  locator('#main-focus')
+    Expected: focused
+    Received: inactive
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeFocused" with timeout 5000ms[22m
+    [2m  - waiting for locator('#main-focus')[22m
+    [2m    14 × locator resolved to <button id="main-focus">Main</button>[22m
+    [2m       - unexpected value "inactive"[22m
+
+
+      94 |   await page.locator('#side-focus').focus();
+      95 |   await page.keyboard.press('Tab');
+    > 96 |   await expect(page.locator('#main-focus')).toBeFocused();
+         |                                             ^
+      97 |   await expect(page.locator('#scroll-main')).toHaveAttribute('data-scrollbar-active-y', 'true');
+      98 |   await expect(page.locator('#scroll-sidebar')).not.toHaveAttribute(
+      99 |     'data-scrollbar-active',
+        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/scroll-region.spec.ts:96:45
+
+    Error Context: ../../../../../tmp/solosoul-scroll-region-final-results/scroll-region-direct-scrol-0dd9d-enables-keyboard-navigation-webkit/error-context.md
+
+  1 failed
+    [webkit] › e2e/scroll-region.spec.ts:89:1 › direct scrollbar hover stays effective and Tab enables keyboard navigation 
+  27 passed (22.2s)

@@ -1,0 +1,48 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "buttons": [
+        "",
+        "",
+        "",
+        "",
+        "New",
+        "View all",
+        "Identity0 objects",
+        "Travel0 objects",
+        "Financial0 objects",
+        "Professional0 objects",
+        "Documents0 objects",
+        ""
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "SoloSoul\nHome\nObjects\nTools\nSettings\nNew\nWelcome back, FE2 public visual test\n\nA place for every part of your life.\n\nMy vault\n\n0\nobjects\n\nLocal vault · Your data, your control\n\nData Sections\nView all\nIdentity\n0 objects\nTravel\n0 objects\nFinancial\n0 objects\nProfessional\n0 objects\nDocuments\n0 objects\nRecently updated\n\nNo objects yet",
+      "glass": "local",
+      "reduceMotion": "false",
+      "hidden": false,
+      "home": true,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "系统放大后文字不能被自身容器截断: {\"selector\":\".android-overview-copy strong\",\"found\":true,\"text\":\"0\",\"fontSize\":\"104px\",\"lineHeight\":\"104px\",\"glyph\":{\"x\":44,\"y\":523.672607421875,\"width\":59.41667175292969,\"height\":121.90478515625,\"right\":103.41667175292969,\"bottom\":645.577392578125},\"box\":{\"x\":44,\"y\":532.8154907226562,\"right\":103.41666793823242,\"bottom\":636.8154907226562},\"clippers\":[{\"tag\":\"SECTION\",\"classes\":\"android-overview\",\"clipX\":true,\"clipY\":true,\"box\":{\"x\":20,\"y\":444.0178527832031,\"right\":386.4761962890625,\"bottom\":758.4107055664062}},{\"tag\":\"MAIN\",\"classes\":\"_content_18ixn_12\",\"clipX\":true,\"clipY\":true,\"box\":{\"x\":0,\"y\":88.0297622680664,\"right\":412.19049072265625,\"bottom\":622.1607437133789}},{\"tag\":\"DIV\",\"classes\":\"_main_18ixn_17\",\"clipX\":true,\"clipY\":true,\"box\":{\"x\":0,\"y\":0,\"right\":412.19049072265625,\"bottom\":732.1904907226562}},{\"tag\":\"DIV\",\"classes\":\"_appShell_18ixn_1\",\"clipX\":true,\"clipY\":true,\"box\":{\"x\":0,\"y\":0,\"right\":412.19049072265625,\"bottom\":732.1904907226562}},{\"tag\":\"BODY\",\"classes\":\"\",\"clipX\":true,\"clipY\":true,\"box\":{\"x\":0,\"y\":0,\"right\":412.19049072265625,\"bottom\":732.1904907226562}},{\"tag\":\"HTML\",\"classes\":\"\",\"clipX\":true,\"clipY\":true,\"box\":{\"x\":0,\"y\":0,\"right\":412.19049072265625,\"bottom\":732.1904907226562}}],\"clipped\":true}",
+      "recordedAtMs": 1791433738662
+    }
+  ],
+  "processId": 22808,
+  "runtime": {
+    "api": 34,
+    "webViewPackage": "com.google.android.webview",
+    "webViewVersion": "113.0.5672.136",
+    "webViewVersionCode": 567263634
+  },
+  "directoryAttempts": 2,
+  "unlockAttempts": [],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "requestedFontScale": 2,
+  "scenario": "baseline",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

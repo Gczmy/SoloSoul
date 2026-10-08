@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-08",
+  "kind": "CUA 原生工具输出的人工核对记录，不是自动断言或导出截图",
+  "observed_binary_sha256": "6410ed9994f3c84ddbe71077817f6315007be2de59f04758c943e608db1cec3d",
+  "production_theme_source_changed": false,
+  "fixture_mismatch": {
+    "defaultLightTheme": "warm-stone",
+    "defaultDarkTheme": "warm-stone",
+    "persisted_theme": "dark",
+    "selected_radio": "深色 · 暖石",
+    "pixels": "浅色"
+  },
+  "resolution": "通过生产 UI 更多外观 → 暖石深，实际 radio 深色 · 暖石深=1，截图顶栏/侧栏/正文/卡片变深；随后选择浅色恢复并确认浅色=1及浅色图像。未注入DOM或替换IPC。",
+  "maintenance_feedback": "首次解锁返回保险库正在维护；随后真实点击解锁成功，保留首次现象，未绕过保护。",
+  "observed_navigation": [
+    "浅色左侧展开/收起（前一验收会话）",
+    "深色左侧与暖石深色板面板",
+    "深色右侧布局与工具展开",
+    "深色上方布局与工具展开",
+    "深色下方布局与工具展开",
+    "返回浅色左侧布局"
+  ],
+  "top_add_page": {
+    "open_tool": "expanded",
+    "after_input": "collapsed",
+    "before_rect_approx": [
+      584,
+      105,
+      238,
+      438
+    ],
+    "after_scroll_rect_approx": [
+      584,
+      105,
+      238,
+      438
+    ],
+    "scroll_evidence": "实际拖动图标滚动条，图标从通用/安全变为教育/生活/特色",
+    "cancel": "真实取消，草稿未提交"
+  },
+  "bottom_add_page": {
+    "open_tool": "expanded",
+    "after_input": "collapsed",
+    "before_rect_approx": [
+      16,
+      56,
+      1168,
+      693
+    ],
+    "after_scroll_rect_approx": [
+      16,
+      56,
+      1168,
+      693
+    ],
+    "scroll_evidence": "实际拖动图标滚动条，图标从通用变为工作/技术及特色",
+    "cancel": "真实取消，未创建页面"
+  },
+  "coordinate_units": "CUA1200x800截图中的大约像素边界，人工目测，不是DOM/像素自动测量",
+  "cua_limitations": [
+    "SCStreamErrorDomain -3811 捕捉失败为暂态；同一实例AX仍可读，未据此重启",
+    "部分截图只捕获后台台前调度缩略图；窗口Raise后取完整1200x800图像，不将缩略图计为全窗口通过",
+    "一次windowNotFoundAtPosition后重新绑定同一运行app并Raise，未停止其他进程",
+    "原生图像只在工具/会话输出，未导出PNG，无图像hash",
+    "系统捕捉紫色标识遮住交通灯像素，不能证明交通灯区域完整验收",
+    "仅稳定帧与实际动作，不证明连续动画、减少透明度/动效、性能、窄矮窗口或全部预览"
+  ],
+  "task_status": "14项，8完成、6待验证；目标继续"
+}

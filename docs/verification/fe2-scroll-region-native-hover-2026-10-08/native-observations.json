@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "task": "FE2-020",
+  "tool": "mcp__cua_repl",
+  "environment": "macOS native isolated SoloSoulFE2Mac.app with actual WKWebView",
+  "account_scope": "Existing synthetic account in isolated copied root; no formal account",
+  "native_screenshot_files_exported": false,
+  "native_rgb_pixels_measured": false,
+  "pointer_placement_method": "CUA clicks to position pointer; native mouse-move-only API unavailable",
+  "before_titlebar_fix": {
+    "binary_sha256": "6e386d811466df6afd116c1e708e594338e2dedeb14c96183a48ebf3cafebe69",
+    "app": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008/SoloSoulFE2Mac.app",
+    "launched": true,
+    "unlocked_existing_synthetic_account": true,
+    "observations": [
+      {"region": "main content", "observed_thumb": "black", "expected_thumb": "black", "passed": true},
+      {"region": "sidebar home button", "observed_main_thumb": "gray", "expected_main_thumb": "gray", "passed": true},
+      {"region": "main blank", "logical_point": [1100, 600], "observed_thumb": "black", "expected_thumb": "black", "passed": true},
+      {"region": "native titlebar blank", "logical_point": [1000, 25], "observed_main_thumb": "black", "expected_main_thumb": "gray", "passed": false}
+    ],
+    "exited_via_cua_super_q": true
+  },
+  "after_titlebar_fix": {
+    "binary_sha256": "26cbfd224ab1c37bef6e0e9f272bba78962b41dbdb5ee818214d36dc4447a038",
+    "app": "/tmp/solosoul-fe2-macos-scroll-hover-build-20261008-titlebar/SoloSoulFE2Mac.app",
+    "launched": true,
+    "unlocked_existing_synthetic_account": true,
+    "main_page_and_black_thumb_observed": true,
+    "attempted_titlebar_logical_point": [1000, 25],
+    "titlebar_result": "pending_manual_mac_unlock",
+    "interruption": "CUA reported Mac locked and automatic unlock failed; requested manual unlock",
+    "native_fix_verified": false
+  },
+  "status": "in_progress_pending_native_reverification_and_user_feedback"
+}

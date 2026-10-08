@@ -1,0 +1,137 @@
+[2m[WebServer] [22m(node:49452) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 36 tests using 2 workers
+
+(node:49473) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49473) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m4:52:45 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:46 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+  ✓   2 [chromium] › e2e/macos-glass.spec.ts:103:3 › light 登录卡片直接置于窗口背景并保留辅助功能回退 (3.1s)
+[2m[WebServer] [22m4:52:46 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   3 [chromium] › e2e/macos-glass.spec.ts:103:3 › dark 登录卡片直接置于窗口背景并保留辅助功能回退 (1.2s)
+(node:49564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android light reminders follow file preview, album and photo viewer (5.6s)
+[2m[WebServer] [22m4:52:49 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:49 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:50 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   4 [webkit] › e2e/macos-glass.spec.ts:103:3 › light 登录卡片直接置于窗口背景并保留辅助功能回退 (2.3s)
+  ✓   6 [webkit] › e2e/macos-glass.spec.ts:103:3 › dark 登录卡片直接置于窗口背景并保留辅助功能回退 (1.4s)
+  ✓   5 [chromium] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android dark reminders follow file preview, album and photo viewer (3.6s)
+[2m[WebServer] [22m4:52:53 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:52:53 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:54 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:54 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:52:54 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:52:54 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   8 [chromium] › e2e/macos-preview-titlebar.spec.ts:369:3 › Android light preview controls respect native safe-area lengths (3.1s)
+[2m[WebServer] [22m4:52:56 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:56 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:52:56 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓   7 [webkit] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android light reminders follow file preview, album and photo viewer (4.8s)
+  ✓   9 [chromium] › e2e/macos-preview-titlebar.spec.ts:369:3 › Android dark preview controls respect native safe-area lengths (2.3s)
+[2m[WebServer] [22m4:52:57 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:52:58 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:52:58 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:52:59 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  11 [chromium] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS light text preview preserves traffic lights and native hit regions (2.1s)
+  ✓  10 [webkit] › e2e/macos-preview-titlebar.spec.ts:230:3 › Android dark reminders follow file preview, album and photo viewer (3.8s)
+[2m[WebServer] [22m4:53:01 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:01 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:53:01 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:53:02 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  12 [chromium] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS light pdf preview preserves traffic lights and native hit regions (2.4s)
+  ✓  13 [webkit] › e2e/macos-preview-titlebar.spec.ts:369:3 › Android light preview controls respect native safe-area lengths (2.9s)
+[2m[WebServer] [22m4:53:03 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:04 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+  ✓  14 [chromium] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS light image preview preserves traffic lights and native hit regions (2.4s)
+[2m[WebServer] [22m4:53:05 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:53:05 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:06 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  15 [webkit] › e2e/macos-preview-titlebar.spec.ts:369:3 › Android dark preview controls respect native safe-area lengths (2.7s)
+  ✓  16 [chromium] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS dark text preview preserves traffic lights and native hit regions (2.1s)
+[2m[WebServer] [22m4:53:07 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:08 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  17 [webkit] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS light text preview preserves traffic lights and native hit regions (2.1s)
+  ✓  18 [chromium] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS dark pdf preview preserves traffic lights and native hit regions (2.1s)
+[2m[WebServer] [22m4:53:10 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:10 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  19 [webkit] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS light pdf preview preserves traffic lights and native hit regions (2.8s)
+  ✓  20 [chromium] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS dark image preview preserves traffic lights and native hit regions (2.4s)
+[2m[WebServer] [22m4:53:13 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:14 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  22 [chromium] › e2e/macos-preview-titlebar.spec.ts:482:1 › macOS photo viewer returns through album and restores each titlebar hit region (3.7s)
+  ✓  21 [webkit] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS light image preview preserves traffic lights and native hit regions (4.1s)
+[2m[WebServer] [22m4:53:16 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  23 [chromium] › e2e/macos-preview-titlebar.spec.ts:513:1 › macOS preview also removes the object attachment card backdrop from the traffic lights (2.4s)
+[2m[WebServer] [22m4:53:17 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  24 [webkit] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS dark text preview preserves traffic lights and native hit regions (3.6s)
+[2m[WebServer] [22m4:53:19 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  25 [chromium] › e2e/macos-preview-titlebar.spec.ts:543:3 › windows preview keeps its existing top spacing (1.5s)
+[2m[WebServer] [22m4:53:20 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:53:20 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1485/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1485/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m4:53:21 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:21 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  27 [chromium] › e2e/macos-preview-titlebar.spec.ts:543:3 › android preview keeps its existing top spacing (2.4s)
+  ✓  26 [webkit] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS dark pdf preview preserves traffic lights and native hit regions (3.8s)
+[2m[WebServer] [22m4:53:22 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  28 [chromium] › e2e/macos-preview-titlebar.spec.ts:560:3 › Windows light photo preview and album keep the AppBar surface (2.8s)
+[2m[WebServer] [22m4:53:25 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+[2m[WebServer] [22m4:53:25 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  29 [webkit] › e2e/macos-preview-titlebar.spec.ts:429:5 › macOS dark image preview preserves traffic lights and native hit regions (3.8s)
+  ✓  30 [chromium] › e2e/macos-preview-titlebar.spec.ts:560:3 › Windows dark photo preview and album keep the AppBar surface (2.5s)
+[2m[WebServer] [22m4:53:28 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  31 [webkit] › e2e/macos-preview-titlebar.spec.ts:482:1 › macOS photo viewer returns through album and restores each titlebar hit region (4.8s)
+[2m[WebServer] [22m4:53:33 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  32 [webkit] › e2e/macos-preview-titlebar.spec.ts:513:1 › macOS preview also removes the object attachment card backdrop from the traffic lights (2.4s)
+[2m[WebServer] [22m4:53:35 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  33 [webkit] › e2e/macos-preview-titlebar.spec.ts:543:3 › windows preview keeps its existing top spacing (1.7s)
+[2m[WebServer] [22m4:53:36 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:53:37 PM [vite] (client) [console.warn] [updater] android check failed: androidCheckForUpdate@http://localhost:1485/src/lib/updater.ts:177:11
+[2m[WebServer] [22m@http://localhost:1485/src/stores/updateStore.ts:94:92
+[2m[WebServer] [22m4:53:37 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  34 [webkit] › e2e/macos-preview-titlebar.spec.ts:543:3 › android preview keeps its existing top spacing (2.0s)
+[2m[WebServer] [22m4:53:39 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  35 [webkit] › e2e/macos-preview-titlebar.spec.ts:560:3 › Windows light photo preview and album keep the AppBar surface (2.4s)
+[2m[WebServer] [22m4:53:41 PM [vite] (client) [console.warn] [syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: undefined)
+  ✓  36 [webkit] › e2e/macos-preview-titlebar.spec.ts:560:3 › Windows dark photo preview and album keep the AppBar surface (2.5s)
+
+  36 passed (1.0m)

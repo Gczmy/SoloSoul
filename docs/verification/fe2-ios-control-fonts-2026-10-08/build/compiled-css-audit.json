@@ -1,0 +1,7 @@
+{
+  "recorded_at": 1791437673.238996,
+  "scope": "Actual latest Vite CSS output contains iOS-only control font rule; asset-level check, not native glyph acceptance",
+  "path": "tauri/dist/assets/bootstrapApp-svm5EgMB.css",
+  "sha256": "355e8d5c1ebfa4bff9f1bf1883acbcbc81393bdec980b6b2d7d383d8f916b7ac",
+  "fragment": ":where(:root[data-platform=ios]) :where(button,input,select,textarea){font-family:var(--font-sans)}*{box-sizing:border-box;-webkit-tap-highlight-color"
+}

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "prepare_exit_code": 0,
+  "preflight_exit_code": 0,
+  "owned_root_mode": "0700",
+  "binding_mode": "0600",
+  "binding_new_file": true,
+  "current_source_files": 106,
+  "source_build_current_identical": true,
+  "binary_sha256": "e811729b523619ef2b5ca6b0d2ce7f5e0e2f5dbc822af48d4eef1671e023ae27",
+  "bundle_identifier": "com.solosoul.fe2.macos",
+  "fixture_theme": "light",
+  "fixture_light_scheme": "warm-stone",
+  "fixture_dark_scheme": "warm-stone-dark",
+  "start_mode": "CUA standard app launch; explicit validated FE2 isolation; no external sandbox inherited",
+  "window_launched": false
+}
