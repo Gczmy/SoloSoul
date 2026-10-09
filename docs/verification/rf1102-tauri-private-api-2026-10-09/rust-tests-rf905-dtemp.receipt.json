@@ -1,0 +1,19 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "solo_soul",
+    "--features",
+    "native-perf",
+    "rf905",
+    "--",
+    "--nocapture"
+  ],
+  "pid": 8996,
+  "exitCode": 0,
+  "elapsedSeconds": 1730.224760699988,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

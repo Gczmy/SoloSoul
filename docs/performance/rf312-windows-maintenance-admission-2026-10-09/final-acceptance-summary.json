@@ -1,0 +1,51 @@
+{
+  "groups": [
+    {
+      "objects": 100,
+      "exitCode": 1,
+      "requested": 3,
+      "passed": 2,
+      "success": false,
+      "diagnostics": 3
+    },
+    {
+      "objects": 5000,
+      "exitCode": 1,
+      "requested": 3,
+      "passed": 2,
+      "success": false,
+      "diagnostics": 3
+    }
+  ],
+  "stageAccepted": false,
+  "counts": {
+    "rust-tests-default-dtemp": {
+      "passed": 1864,
+      "failed": 0,
+      "ignored": 3,
+      "suites": 25
+    },
+    "rust-tests-native-dtemp": {
+      "passed": 113,
+      "failed": 0,
+      "ignored": 0,
+      "suites": 6
+    },
+    "rust-tests-rf905-dtemp": {
+      "passed": 29,
+      "failed": 0,
+      "ignored": 0,
+      "suites": 6
+    }
+  },
+  "classes": [
+    "operations-active"
+  ],
+  "witnessKinds": [
+    "update-source-preferences"
+  ],
+  "firstSandboxGroups": {
+    "auth100": "1/3 attempted; prepare failed and cleanup verification stopped further samples",
+    "auth5000": "1/3 attempted; prepare failed and cleanup verification stopped further samples"
+  }
+}

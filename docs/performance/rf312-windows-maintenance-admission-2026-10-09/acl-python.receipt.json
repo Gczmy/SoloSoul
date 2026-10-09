@@ -1,0 +1,19 @@
+{
+  "command": [
+    "C:/Python314/python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "scripts",
+    "-p",
+    "test_check_acl_consistency.py"
+  ],
+  "exitCode": 0,
+  "tests": 12,
+  "passed": 12,
+  "failed": 0,
+  "tmpOnD": true
+}

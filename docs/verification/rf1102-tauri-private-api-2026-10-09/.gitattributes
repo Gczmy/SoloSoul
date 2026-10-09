@@ -1,0 +1,2 @@
+# Preserve evidence bytes, including original line endings, across checkouts.
+* -text

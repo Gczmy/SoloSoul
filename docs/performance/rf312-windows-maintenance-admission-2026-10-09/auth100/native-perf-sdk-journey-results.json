@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-sdk-input-performance",
+  "startedAt": "2026-10-09T20:39:23.550Z",
+  "samplesRequested": 3,
+  "nodeVersion": "v24.16.0",
+  "osRelease": "10.0.26100",
+  "exeSha256": "801281f2b4cd748c0269b1ac3a9cfa205bb2e3d6f82ed060006db7bdb13a170c",
+  "preflight": {
+    "present": true,
+    "marker": "windows-native-sdk-ui-journey-requested",
+    "limitation": "feature marker; not executable trust or signature verification"
+  },
+  "fixture": {
+    "accountId": "acc_rf312_100",
+    "accountName": "Performance Fixture",
+    "buildProfile": "release",
+    "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+    "expectedSearchMatches": 5,
+    "fixture": "deterministic-20th-object-property-match",
+    "generator": "solosoul-core/examples/perf_baseline",
+    "includesAttachments": false,
+    "includesOcrFixture": false,
+    "includesProfile": true,
+    "includesUiPreferences": true,
+    "kdf": {
+      "iterations": 3,
+      "memoryKiB": 65536,
+      "parallelism": 4
+    },
+    "objectCount": 100,
+    "schemaVersion": 1,
+    "scope": "synthetic-native-vault-fixture",
+    "searchQuery": "needle"
+  },
+  "sourceBefore": [
+    {
+      "path": ".lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "acc_rf312_100\\vault.db",
+      "sha256": "73d5c341ba753b4dea0182f50e7149632e23ded6a5719cbb9ac8dd516f6ded5b"
+    },
+    {
+      "path": "acc_rf312_100\\vault.db.pre_enc.bak",
+      "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+    },
+    {
+      "path": "accounts.bak",
+      "sha256": "91a5d6a4e5704a521d2669438fb08d0f11a605b6e4735873dffddeda9669c112"
+    },
+    {
+      "path": "accounts.json",
+      "sha256": "8862cdfafbb4d571afe10f00282aff74054b1e683b611422c1273401775a428c"
+    },
+    {
+      "path": "rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "ui_preferences.json",
+      "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+    }
+  ],
+  "samples": [
+    {
+      "index": 1,
+      "root": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100\\sample-001",
+      "success": false,
+      "phases": [],
+      "startedAt": "2026-10-09T20:39:23.859Z",
+      "prepare": {
+        "exitCode": 1,
+        "signal": null,
+        "error": null
+      },
+      "error": "Native SDK fixture preparation failed",
+      "cleanup": {
+        "cleanup": [],
+        "reason": "No verifiable owned process; no PID was terminated"
+      },
+      "ownedProcessExit": {
+        "exitCode": 1,
+        "signal": null,
+        "error": null
+      },
+      "cleanupIntegrity": {
+        "complete": false,
+        "reason": "Owned process cleanup or exit could not be fully verified; further samples were stopped"
+      },
+      "cleanupIncomplete": true,
+      "ownedChildHandleReleased": false,
+      "finishedAt": "2026-10-09T20:39:38.581Z"
+    }
+  ],
+  "memoryIntervalMs": null,
+  "definitions": {
+    "startup": "native runtime configuration to public login form plus two frames and SDK document binding; excludes OS spawn and includes SDK overhead",
+    "actions": "native Instant around fixed browser Input actions, visible end state, two frames and same-frame SDK checks; includes SDK overhead",
+    "memory": "verified owned Windows working sets before input and after journey; no peak-memory claim",
+    "ipc": "real Tauri fetch observer; names/counts only; invalid or changed prefix rejects sample",
+    "unmeasured": [
+      "OCR",
+      "attachment-preview",
+      "system-sleep",
+      "same-profile-warm-start",
+      "other-platforms"
+    ]
+  },
+  "stoppedReason": "Owned process cleanup or exit could not be fully verified; further samples were stopped",
+  "interrupted": false,
+  "finishedAt": "2026-10-09T20:39:38.583Z",
+  "sourceAfter": [
+    {
+      "path": ".lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "acc_rf312_100\\vault.db",
+      "sha256": "73d5c341ba753b4dea0182f50e7149632e23ded6a5719cbb9ac8dd516f6ded5b"
+    },
+    {
+      "path": "acc_rf312_100\\vault.db.pre_enc.bak",
+      "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+    },
+    {
+      "path": "accounts.bak",
+      "sha256": "91a5d6a4e5704a521d2669438fb08d0f11a605b6e4735873dffddeda9669c112"
+    },
+    {
+      "path": "accounts.json",
+      "sha256": "8862cdfafbb4d571afe10f00282aff74054b1e683b611422c1273401775a428c"
+    },
+    {
+      "path": "rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "ui_preferences.json",
+      "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+    }
+  ],
+  "sourceUnchanged": true,
+  "summary": [
+    {
+      "name": "startup",
+      "successfulSamples": 0,
+      "requestedSamples": 3,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "password-unlock",
+      "successfulSamples": 0,
+      "requestedSamples": 3,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "workspace",
+      "successfulSamples": 0,
+      "requestedSamples": 3,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "search-needle",
+      "successfulSamples": 0,
+      "requestedSamples": 3,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "application-lock",
+      "successfulSamples": 0,
+      "requestedSamples": 3,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "password-reunlock",
+      "successfulSamples": 0,
+      "requestedSamples": 3,
+      "medianMs": null,
+      "p95Ms": null
+    }
+  ],
+  "success": false
+}

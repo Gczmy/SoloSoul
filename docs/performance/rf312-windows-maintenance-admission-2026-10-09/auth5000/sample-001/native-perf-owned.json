@@ -1,0 +1,20 @@
+{
+  "appVersion": "2.13.2",
+  "fixture": null,
+  "fixtureSource": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+  "identifier": "com.solosoul.rf312perf.8ec7a9e4d0f3453c82308175ca999996",
+  "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\sandbox.{79600df4-0f4c-4704-8afd-0671c2f8a967}\\AC\\com.solosoul.rf312perf.8ec7a9e4d0f3453c82308175ca999996",
+  "nativePerfFeature": true,
+  "ownedPaths": [
+    "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000\\sample-001"
+  ],
+  "preparationStatus": "preparing",
+  "profile": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000\\sample-001\\profile",
+  "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Roaming\\com.solosoul.rf312perf.8ec7a9e4d0f3453c82308175ca999996",
+  "root": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000\\sample-001",
+  "runId": "8ec7a9e4d0f3453c82308175ca999996",
+  "schemaVersion": 1,
+  "scope": "windows-native-perf-owned",
+  "vault": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000\\sample-001\\vault",
+  "webview": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000\\sample-001\\webview"
+}

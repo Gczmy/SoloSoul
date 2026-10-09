@@ -1,0 +1,31 @@
+{
+  "atMs": 54828.853299999995,
+  "clockScope": "process-monotonic",
+  "commands": [
+    {
+      "atMs": 6416.7281,
+      "attemptId": 3,
+      "exitCode": 0,
+      "kind": "directory",
+      "osError": null,
+      "outcome": "success",
+      "stageToken": 14
+    },
+    {
+      "atMs": 6633.8956,
+      "attemptId": 3,
+      "exitCode": 0,
+      "kind": "file",
+      "osError": null,
+      "outcome": "success",
+      "stageToken": 16
+    }
+  ],
+  "invalidReasons": [],
+  "maxCommands": 64,
+  "pid": 9208,
+  "runId": "18b56c3a79fd4cd083d892ece6a70c2d",
+  "schemaVersion": 1,
+  "scope": "windows-native-permission-commands",
+  "valid": true
+}

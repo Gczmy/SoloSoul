@@ -1,0 +1,17 @@
+{
+  "command": [
+    "npx.cmd",
+    "prettier",
+    "--check",
+    "scripts/native-perf-auth-attribution.mjs",
+    "scripts/native-perf-auth-attribution.test.mjs",
+    "scripts/run-node-tests.mjs",
+    "scripts/native-perf-maintenance-contract.mjs",
+    "scripts/native-perf-maintenance.test.mjs"
+  ],
+  "pid": 15736,
+  "exitCode": 1,
+  "elapsedSeconds": 1.4780267000023741,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

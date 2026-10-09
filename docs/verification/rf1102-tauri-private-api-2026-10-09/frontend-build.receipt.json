@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npx.cmd",
+    "vite",
+    "build"
+  ],
+  "pid": 12564,
+  "exitCode": 0,
+  "elapsedSeconds": 8.686037899999064,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "-p",
+    "solosoul-core",
+    "--example",
+    "perf_baseline"
+  ],
+  "pid": 2592,
+  "exitCode": 0,
+  "elapsedSeconds": 886.0434689000103,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

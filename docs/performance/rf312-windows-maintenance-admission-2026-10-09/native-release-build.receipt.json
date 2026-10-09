@@ -1,0 +1,20 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "tauri",
+    "--",
+    "build",
+    "--config",
+    "src-tauri/tauri.native-perf.conf.json",
+    "--features",
+    "native-perf",
+    "--no-bundle",
+    "--ci"
+  ],
+  "pid": 25940,
+  "exitCode": 0,
+  "elapsedSeconds": 5033.9071578,
+  "sourceUnchanged": false,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

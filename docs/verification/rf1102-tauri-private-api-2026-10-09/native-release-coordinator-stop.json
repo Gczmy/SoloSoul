@@ -1,0 +1,14 @@
+{
+  "originalCoordinatorExitCode": 1,
+  "compilerExitCode": 0,
+  "stoppedAfter": "native-release-build",
+  "cause": "source-integrity guard detected CLI CRLF-to-LF rewrite in Cargo.toml",
+  "noNativeSampleLaunchedBeforeStop": true,
+  "resumeSkipsOnlyThreeCompletedCommands": [
+    "ipc-contract-check",
+    "ipc-contract-tests",
+    "native-release-build"
+  ],
+  "sourceIntegrityProof": "native-release-source-integrity.json",
+  "originalReceiptsAndLogsPreserved": true
+}

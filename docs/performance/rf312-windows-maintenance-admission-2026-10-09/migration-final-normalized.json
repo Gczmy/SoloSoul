@@ -1,0 +1,62 @@
+{
+  "files": [
+    {
+      "path": "tauri/scripts/native-perf-auth-attribution.mjs",
+      "normalizedSha256": "bcfa130caf60ec3885bda278b396c2fa2657ab8e99cfe897af02286f8bc3c5a6"
+    },
+    {
+      "path": "tauri/scripts/native-perf-auth-attribution.test.mjs",
+      "normalizedSha256": "56eb985a2d14639e2b89abeecd868be9615aea20f4ac29fca55b2fdb9e7b7dfe"
+    },
+    {
+      "path": "tauri/scripts/run-node-tests.mjs",
+      "normalizedSha256": "67046abfd7fdd1146007ec3d3a8c3e87d29fbba655dd3479b37cf6f8b8ac8219"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/auth.rs",
+      "normalizedSha256": "b5dc2f83f86622108be0adc4733033529263cbcf71fc8d3c7f6e29b1120d5818"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/update_preferences.rs",
+      "normalizedSha256": "293d552b20526241563de10e3718e21a791ce6e739d550ff1181f8b1c4187b33"
+    },
+    {
+      "path": "tauri/src-tauri/src/native_perf.rs",
+      "normalizedSha256": "21648c8d608e2e0386ea2cd03e5c8b18b2c1ef45f1d9bf2eacbe9cbc95bbc0b3"
+    },
+    {
+      "path": "tauri/src-tauri/src/native_perf/auth_trace.rs",
+      "normalizedSha256": "784d9085d1ec56b0661334e5774dd8bc7b724251baff9e10bcbb8e709c147f48"
+    },
+    {
+      "path": "tauri/src-tauri/src/native_perf/sdk_journey.rs",
+      "normalizedSha256": "83a668eafe36bd2a4799d234f8000a94eac019112f0fd298d50f4167d96fc1ed"
+    },
+    {
+      "path": "tauri/src-tauri/src/state/root_tasks.rs",
+      "normalizedSha256": "facd3d3dd1d993b2b81fb37525fbf3c45912a85315851a1c67f2c926c6632506"
+    },
+    {
+      "path": "tauri/scripts/native-perf-maintenance-contract.mjs",
+      "normalizedSha256": "b38c9eed522079d49246208376335450ecca1658e69dd3de49bf742b54f69d93"
+    },
+    {
+      "path": "tauri/scripts/native-perf-maintenance.test.mjs",
+      "normalizedSha256": "ab80ecfb69ccc86cb23340c3cc9588e6f280e8b0ceabed8c531fd9788f991239"
+    },
+    {
+      "path": "tauri/src-tauri/src/native_perf/maintenance_contract.rs",
+      "normalizedSha256": "29964506710b69967c5e5d8b5d053330706e7ea66e511d977aeb99102b4aae21"
+    },
+    {
+      "path": "tauri/src-tauri/src/native_perf/maintenance_trace.rs",
+      "normalizedSha256": "a3f43e89b79847ffeffbef54e25599368718f451b7d65216097fc127e30190c9"
+    }
+  ],
+  "normalizedEqual": true,
+  "CBackupReadOnly": true,
+  "DIndependentFixes": [
+    "tauri/src-tauri/tauri.conf.json",
+    "tauri/src-tauri/src/commands/fs.rs"
+  ]
+}

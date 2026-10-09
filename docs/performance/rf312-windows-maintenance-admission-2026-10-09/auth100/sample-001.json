@@ -1,0 +1,29 @@
+{
+  "index": 1,
+  "root": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100\\sample-001",
+  "success": false,
+  "phases": [],
+  "startedAt": "2026-10-09T20:39:23.859Z",
+  "prepare": {
+    "exitCode": 1,
+    "signal": null,
+    "error": null
+  },
+  "error": "Native SDK fixture preparation failed",
+  "cleanup": {
+    "cleanup": [],
+    "reason": "No verifiable owned process; no PID was terminated"
+  },
+  "ownedProcessExit": {
+    "exitCode": 1,
+    "signal": null,
+    "error": null
+  },
+  "cleanupIntegrity": {
+    "complete": false,
+    "reason": "Owned process cleanup or exit could not be fully verified; further samples were stopped"
+  },
+  "cleanupIncomplete": true,
+  "ownedChildHandleReleased": false,
+  "finishedAt": "2026-10-09T20:39:38.581Z"
+}

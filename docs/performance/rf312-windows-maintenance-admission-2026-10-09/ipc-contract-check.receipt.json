@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "check:contracts"
+  ],
+  "pid": 24144,
+  "exitCode": 0,
+  "elapsedSeconds": 78.40544309999677,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

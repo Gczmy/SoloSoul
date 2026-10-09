@@ -1,0 +1,26 @@
+{
+  "durationMs": 1061.1216,
+  "fromAtMs": 4097.70000000298,
+  "inputTrust": {
+    "pointer": 2,
+    "text": 1,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 15,
+    "commands": {
+      "desktop_prepare_update": 1,
+      "get_lock_pending": 1,
+      "login": 1,
+      "plugin:event|listen": 5,
+      "plugin:event|unlisten": 3,
+      "set_status_bar_style": 2,
+      "set_titlebar_color": 1,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "password-unlock",
+  "success": true,
+  "toAtMs": 10207.79999999702
+}

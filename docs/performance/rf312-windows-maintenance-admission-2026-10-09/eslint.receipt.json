@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "lint"
+  ],
+  "pid": 19224,
+  "exitCode": 0,
+  "elapsedSeconds": 29.141224499995587,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

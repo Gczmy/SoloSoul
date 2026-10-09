@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "check:pref-keys"
+  ],
+  "pid": 22452,
+  "exitCode": 0,
+  "elapsedSeconds": 0.575809299989487,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

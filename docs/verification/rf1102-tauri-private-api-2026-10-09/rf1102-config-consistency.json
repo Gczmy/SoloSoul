@@ -1,0 +1,35 @@
+{
+  "tauriVersion": "2.11.2",
+  "tauriBuildVersion": "2.6.2",
+  "commonDependencyFeatures": [
+    "macos-private-api"
+  ],
+  "platforms": {
+    "windows": {
+      "mergedMacOSPrivateApi": true,
+      "platformOverride": null,
+      "nativeExecutionProven": false
+    },
+    "macos": {
+      "mergedMacOSPrivateApi": true,
+      "platformOverride": true,
+      "nativeExecutionProven": false
+    },
+    "linux": {
+      "mergedMacOSPrivateApi": true,
+      "platformOverride": null,
+      "nativeExecutionProven": false
+    },
+    "android": {
+      "mergedMacOSPrivateApi": true,
+      "platformOverride": null,
+      "nativeExecutionProven": false
+    },
+    "ios": {
+      "mergedMacOSPrivateApi": true,
+      "platformOverride": null,
+      "nativeExecutionProven": false
+    }
+  },
+  "cargoLockUnchanged": true
+}

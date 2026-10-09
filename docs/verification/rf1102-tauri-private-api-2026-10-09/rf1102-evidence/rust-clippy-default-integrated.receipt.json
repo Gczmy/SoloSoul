@@ -1,0 +1,15 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "pid": 13104,
+  "exitCode": 101,
+  "elapsedSeconds": 55.55972950000432,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

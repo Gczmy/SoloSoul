@@ -1,0 +1,32 @@
+{
+  "atMs": 54828.853299999995,
+  "clockScope": "process-monotonic",
+  "coverage": [
+    "update-source-preferences",
+    "owned-blocking-worker"
+  ],
+  "failures": [
+    {
+      "atMs": 9801.109,
+      "attemptId": 7,
+      "errorClass": "operations-active",
+      "stageToken": 1,
+      "witnesses": [
+        {
+          "id": 6,
+          "kind": "update-source-preferences",
+          "startedAtMs": 9336.4187
+        }
+      ]
+    }
+  ],
+  "invalidReasons": [],
+  "maxActivities": 256,
+  "maxFailures": 64,
+  "pid": 9208,
+  "registeredActivities": 6,
+  "runId": "18b56c3a79fd4cd083d892ece6a70c2d",
+  "schemaVersion": 1,
+  "scope": "windows-native-maintenance-admission",
+  "valid": true
+}

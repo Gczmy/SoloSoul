@@ -1,0 +1,1932 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "date": "2026-10-09",
+  "baseHead": "895c86e785cb26fc69ceb9510660715511865b58",
+  "scope": "D-drive current-main integration",
+  "checks": {
+    "rust-format-dtemp": {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "pid": 22788,
+      "exitCode": 0,
+      "elapsedSeconds": 3.0379692999995314,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-clippy-default-dtemp": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 25760,
+      "exitCode": 0,
+      "elapsedSeconds": 152.64158260000113,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-tests-default-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "pid": 10472,
+      "exitCode": 0,
+      "elapsedSeconds": 3735.0253868,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 1864,
+        "failed": 0,
+        "ignored": 3,
+        "suites": 25
+      }
+    },
+    "rust-clippy-native-dtemp": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 10996,
+      "exitCode": 0,
+      "elapsedSeconds": 389.1816705000092,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-tests-native-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "native_perf::",
+        "--",
+        "--nocapture"
+      ],
+      "pid": 26268,
+      "exitCode": 0,
+      "elapsedSeconds": 3538.627948299996,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 113,
+        "failed": 0,
+        "ignored": 0,
+        "suites": 6
+      }
+    },
+    "rust-tests-rf905-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "rf905",
+        "--",
+        "--nocapture"
+      ],
+      "pid": 8996,
+      "exitCode": 0,
+      "elapsedSeconds": 1730.224760699988,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0,
+        "suites": 6
+      }
+    },
+    "frontend-tests-unrestricted": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "pid": 9856,
+      "exitCode": 0,
+      "elapsedSeconds": 171.91071039999952,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "frontend-tests": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "pid": 18588,
+      "exitCode": 1,
+      "elapsedSeconds": 28.623827999996138,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "typescript": {
+      "command": [
+        "npx.cmd",
+        "tsc",
+        "--noEmit"
+      ],
+      "pid": 21640,
+      "exitCode": 0,
+      "elapsedSeconds": 20.976176800002577,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "eslint": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "pid": 19224,
+      "exitCode": 0,
+      "elapsedSeconds": 29.141224499995587,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "node-format-final": {
+      "command": [
+        "npx.cmd",
+        "prettier",
+        "--check",
+        "scripts/native-perf-auth-attribution.mjs",
+        "scripts/native-perf-auth-attribution.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "scripts/native-perf-maintenance-contract.mjs",
+        "scripts/native-perf-maintenance.test.mjs"
+      ],
+      "pid": 2872,
+      "exitCode": 0,
+      "elapsedSeconds": 1.5935060999909183,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "node-format": {
+      "command": [
+        "npx.cmd",
+        "prettier",
+        "--check",
+        "scripts/native-perf-auth-attribution.mjs",
+        "scripts/native-perf-auth-attribution.test.mjs",
+        "scripts/run-node-tests.mjs",
+        "scripts/native-perf-maintenance-contract.mjs",
+        "scripts/native-perf-maintenance.test.mjs"
+      ],
+      "pid": 15736,
+      "exitCode": 1,
+      "elapsedSeconds": 1.4780267000023741,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "config-format": {
+      "command": [
+        "npx.cmd",
+        "prettier",
+        "--check",
+        "src-tauri/tauri.conf.json"
+      ],
+      "pid": 6720,
+      "exitCode": 0,
+      "elapsedSeconds": 0.971866299994872,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "markdown-boundary": {
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "pid": 20100,
+      "exitCode": 0,
+      "elapsedSeconds": 5.199006499999086,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "acl-consistency": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:acl"
+      ],
+      "pid": 12408,
+      "exitCode": 0,
+      "elapsedSeconds": 2.247036600005231,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "preference-keys": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:pref-keys"
+      ],
+      "pid": 22452,
+      "exitCode": 0,
+      "elapsedSeconds": 0.575809299989487,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "acl-python": {
+      "command": [
+        "C:/Python314/python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "tmpOnD": true
+    },
+    "native-release-build": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "tauri",
+        "--",
+        "build",
+        "--config",
+        "src-tauri/tauri.native-perf.conf.json",
+        "--features",
+        "native-perf",
+        "--no-bundle",
+        "--ci"
+      ],
+      "pid": 25940,
+      "exitCode": 0,
+      "elapsedSeconds": 5033.9071578,
+      "sourceUnchanged": false,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ipc-contract-check": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:contracts"
+      ],
+      "pid": 24144,
+      "exitCode": 0,
+      "elapsedSeconds": 78.40544309999677,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ipc-contract-tests": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "test:contracts"
+      ],
+      "pid": 25384,
+      "exitCode": 0,
+      "elapsedSeconds": 82.54024230000505,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ordinary-fixture-build": {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline"
+      ],
+      "pid": 2592,
+      "exitCode": 0,
+      "elapsedSeconds": 886.0434689000103,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ordinary-fixture-100-generate": {
+      "command": [
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target\\release\\examples\\perf_baseline.exe",
+        "--fixture-output",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+        "--objects",
+        "100"
+      ],
+      "pid": 23148,
+      "exitCode": 0,
+      "elapsedSeconds": 12.876691400000709,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ordinary-fixture-100-verify": {
+      "command": [
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target\\release\\examples\\perf_baseline.exe",
+        "--verify-fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100"
+      ],
+      "pid": 5880,
+      "exitCode": 0,
+      "elapsedSeconds": 0.6348909000080312,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ordinary-fixture-5000-generate": {
+      "command": [
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target\\release\\examples\\perf_baseline.exe",
+        "--fixture-output",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+        "--objects",
+        "5000"
+      ],
+      "pid": 4336,
+      "exitCode": 0,
+      "elapsedSeconds": 209.19882239999424,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "ordinary-fixture-5000-verify": {
+      "command": [
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target\\release\\examples\\perf_baseline.exe",
+        "--verify-fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000"
+      ],
+      "pid": 2740,
+      "exitCode": 0,
+      "elapsedSeconds": 0.8202120000059949,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "native-auth-100": {
+      "command": [
+        "node",
+        "scripts/native-perf-auth-attribution.mjs",
+        "--exe",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\bin\\solo_soul.exe",
+        "--fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+        "--output",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100",
+        "--samples",
+        "3"
+      ],
+      "pid": 24784,
+      "exitCode": 1,
+      "elapsedSeconds": 16.799960100004682,
+      "sourceUnchanged": true,
+      "exeSha256": "801281f2b4cd748c0269b1ac3a9cfa205bb2e3d6f82ed060006db7bdb13a170c",
+      "pdfiumOverrideInherited": false
+    },
+    "native-auth-5000": {
+      "command": [
+        "node",
+        "scripts/native-perf-auth-attribution.mjs",
+        "--exe",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\bin\\solo_soul.exe",
+        "--fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+        "--output",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000",
+        "--samples",
+        "3"
+      ],
+      "pid": 22332,
+      "exitCode": 1,
+      "elapsedSeconds": 2.4972543999901973,
+      "sourceUnchanged": true,
+      "exeSha256": "801281f2b4cd748c0269b1ac3a9cfa205bb2e3d6f82ed060006db7bdb13a170c",
+      "pdfiumOverrideInherited": false
+    },
+    "native-auth-100-unrestricted": {
+      "command": [
+        "node",
+        "scripts/native-perf-auth-attribution.mjs",
+        "--exe",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\bin\\solo_soul.exe",
+        "--fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+        "--output",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100-unrestricted",
+        "--samples",
+        "3"
+      ],
+      "pid": 25960,
+      "exitCode": 1,
+      "elapsedSeconds": 113.88759610000125,
+      "sourceUnchanged": true,
+      "exeSha256": "801281f2b4cd748c0269b1ac3a9cfa205bb2e3d6f82ed060006db7bdb13a170c",
+      "pdfiumOverrideInherited": false,
+      "sandbox": "unrestricted"
+    },
+    "native-auth-5000-unrestricted": {
+      "command": [
+        "node",
+        "scripts/native-perf-auth-attribution.mjs",
+        "--exe",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\bin\\solo_soul.exe",
+        "--fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+        "--output",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth5000-unrestricted",
+        "--samples",
+        "3"
+      ],
+      "pid": 12528,
+      "exitCode": 1,
+      "elapsedSeconds": 124.5309477999981,
+      "sourceUnchanged": true,
+      "exeSha256": "801281f2b4cd748c0269b1ac3a9cfa205bb2e3d6f82ed060006db7bdb13a170c",
+      "pdfiumOverrideInherited": false,
+      "sandbox": "unrestricted"
+    }
+  },
+  "records": [
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/acl-consistency.receipt.json",
+      "originalBytes": 244,
+      "originalSha256": "6f6ab1daaeca3960cb0ebb5c8c354ca1f3845ecc3dc995fa504f6993acde2992",
+      "storedBytes": 244,
+      "storedSha256": "6f6ab1daaeca3960cb0ebb5c8c354ca1f3845ecc3dc995fa504f6993acde2992"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/acl-consistency.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/acl-consistency.stdout.log.gz",
+      "originalBytes": 287,
+      "originalSha256": "4d95f68e1c6144e5e1c0e162661bbe928d2c07e1caabe6b94788fc5a98da49fa",
+      "storedBytes": 247,
+      "storedSha256": "6339e8124fb1e1e77844732c267364ef5279eb86437cfc6e547dcad72674086a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/acl-python.receipt.json",
+      "originalBytes": 270,
+      "originalSha256": "8c4c47441e5f9cbbd4e52311c281f94d7c1a854ed50b96d662b467e9ebcf317a",
+      "storedBytes": 270,
+      "storedSha256": "8c4c47441e5f9cbbd4e52311c281f94d7c1a854ed50b96d662b467e9ebcf317a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/acl-python.stderr.log.gz",
+      "originalBytes": 116,
+      "originalSha256": "813fa057d52a6240dc8906d3f55ad64f7dd540a1d773562e74ace2bad32c8da4",
+      "storedBytes": 60,
+      "storedSha256": "6bdfb536b60f3867c3f24b52d38f936ec8892d1500f3247fa4fce55e8fa225a3"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/acl-python.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/native-perf-auth-attribution-results.json",
+      "originalBytes": 63392,
+      "originalSha256": "86151ea4776ade2c797230a8d442b32a88497f5cf19563afb5fe4fbcd26b3028",
+      "storedBytes": 63392,
+      "storedSha256": "86151ea4776ade2c797230a8d442b32a88497f5cf19563afb5fe4fbcd26b3028"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/native-perf-sdk-journey-results.json.gz",
+      "originalBytes": 375335,
+      "originalSha256": "7a475bff2bda83997cd2c2fe595aee386fd26bfa5e4470692798b8fbde00cd4f",
+      "storedBytes": 27505,
+      "storedSha256": "7913fc4a05552dcab50764bf115e4683f7f2db6d944f83cb6e3d07ee968f1f6b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001.json",
+      "originalBytes": 92906,
+      "originalSha256": "b899ff8daeea6da140b22310866e95497fb4df2c5d82acb4df5deb224f7f2f71",
+      "storedBytes": 92906,
+      "storedSha256": "b899ff8daeea6da140b22310866e95497fb4df2c5d82acb4df5deb224f7f2f71"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-auth-attribution.json",
+      "originalBytes": 17069,
+      "originalSha256": "001126b3449f0e57cea63d58f9319bae24948c22f89f17285f4c59e106b8110b",
+      "storedBytes": 17069,
+      "storedSha256": "001126b3449f0e57cea63d58f9319bae24948c22f89f17285f4c59e106b8110b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-consumed.json",
+      "originalBytes": 250,
+      "originalSha256": "6c9ebfe5b291ffa0a7bab4e4c84e416168d0ac10247e0ab80acbc456e9b2f9d5",
+      "storedBytes": 250,
+      "storedSha256": "6c9ebfe5b291ffa0a7bab4e4c84e416168d0ac10247e0ab80acbc456e9b2f9d5"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-maintenance-admission.json",
+      "originalBytes": 420,
+      "originalSha256": "68e9232a332f32b5d19049a91ee15be5722eca5075c1103cd38d3f86283c6a30",
+      "storedBytes": 420,
+      "storedSha256": "68e9232a332f32b5d19049a91ee15be5722eca5075c1103cd38d3f86283c6a30"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-owned.json",
+      "originalBytes": 3242,
+      "originalSha256": "251730dc7731541c59f30f1dea394c25f9293271f1e49f06e27a6751b71a7dab",
+      "storedBytes": 3242,
+      "storedSha256": "251730dc7731541c59f30f1dea394c25f9293271f1e49f06e27a6751b71a7dab"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-permission-commands.json",
+      "originalBytes": 1010,
+      "originalSha256": "9f093c5aeb9e850ef7ab818f65cdd02b5b3bd2d4822050fdd810bbeafa4a10ad",
+      "storedBytes": 1010,
+      "storedSha256": "9f093c5aeb9e850ef7ab818f65cdd02b5b3bd2d4822050fdd810bbeafa4a10ad"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "68a73601cf4f7b0ad9e35672ff21c9266d613d17fc9720952e422dd2cc1c396f",
+      "storedBytes": 164,
+      "storedSha256": "68a73601cf4f7b0ad9e35672ff21c9266d613d17fc9720952e422dd2cc1c396f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-journey-bound.json",
+      "originalBytes": 561,
+      "originalSha256": "fae15464e68011da5d2401db4ce388546801e2399f09d75c6e0727a693090480",
+      "storedBytes": 561,
+      "storedSha256": "fae15464e68011da5d2401db4ce388546801e2399f09d75c6e0727a693090480"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-journey-requested.json",
+      "originalBytes": 342,
+      "originalSha256": "be9f488248d1eb1aa0b1a77fd1f25e2971cc5eb53353b6ca403a061160cbaa14",
+      "storedBytes": 342,
+      "storedSha256": "be9f488248d1eb1aa0b1a77fd1f25e2971cc5eb53353b6ca403a061160cbaa14"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-journey.json",
+      "originalBytes": 62259,
+      "originalSha256": "e95b40ae6d2086e7f7559bc2e18d39391360d10ee904a7384bff55c5fa6865ad",
+      "storedBytes": 62259,
+      "storedSha256": "e95b40ae6d2086e7f7559bc2e18d39391360d10ee904a7384bff55c5fa6865ad"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-phase-01.json",
+      "originalBytes": 819,
+      "originalSha256": "d6eb544e3579a8d00aef62c339726f4b92fec3a6a4f40aadb6012f25ff1326e9",
+      "storedBytes": 819,
+      "storedSha256": "d6eb544e3579a8d00aef62c339726f4b92fec3a6a4f40aadb6012f25ff1326e9"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-phase-02.json",
+      "originalBytes": 539,
+      "originalSha256": "61a5d5ce46c6957b48b15df80f64f4f55206c0c6aa396955969edded3627bfd0",
+      "storedBytes": 539,
+      "storedSha256": "61a5d5ce46c6957b48b15df80f64f4f55206c0c6aa396955969edded3627bfd0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-phase-03.json",
+      "originalBytes": 1206,
+      "originalSha256": "7a93aff7e44e22cfccc77d5ee25cc27026ab1aa74a9b6a3669ff7c1fae313c9f",
+      "storedBytes": 1206,
+      "storedSha256": "7a93aff7e44e22cfccc77d5ee25cc27026ab1aa74a9b6a3669ff7c1fae313c9f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-phase-04.json",
+      "originalBytes": 305,
+      "originalSha256": "5a4c09f6acb13c232990d022732a900cd66f7a5d05cd0a9b86ddbf0611bce5a7",
+      "storedBytes": 305,
+      "storedSha256": "5a4c09f6acb13c232990d022732a900cd66f7a5d05cd0a9b86ddbf0611bce5a7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-phase-05.json",
+      "originalBytes": 597,
+      "originalSha256": "c6473c65e0ffd07df01b29fb506131b701308ae8103ad7c0daa42374d5e8172b",
+      "storedBytes": 597,
+      "storedSha256": "c6473c65e0ffd07df01b29fb506131b701308ae8103ad7c0daa42374d5e8172b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-001/native-perf-sdk-phase-06.json",
+      "originalBytes": 764,
+      "originalSha256": "c6442e01c750e7f8afc91fdccbbc1fb6a234ff68adc6fa6037d3784c67ff4277",
+      "storedBytes": 764,
+      "storedSha256": "c6442e01c750e7f8afc91fdccbbc1fb6a234ff68adc6fa6037d3784c67ff4277"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002.json",
+      "originalBytes": 92897,
+      "originalSha256": "e06c76da6fd27f6515762973d20d451e5cab59113c82d2bf542ed568f4a675de",
+      "storedBytes": 92897,
+      "storedSha256": "e06c76da6fd27f6515762973d20d451e5cab59113c82d2bf542ed568f4a675de"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-auth-attribution.json",
+      "originalBytes": 17093,
+      "originalSha256": "c60b0f6bebfc8a027887ca3b9496ac402d7d17dca8776c0e5c0e9ab8580ef33a",
+      "storedBytes": 17093,
+      "storedSha256": "c60b0f6bebfc8a027887ca3b9496ac402d7d17dca8776c0e5c0e9ab8580ef33a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-consumed.json",
+      "originalBytes": 250,
+      "originalSha256": "6e7fe98761de34e760a18ba58d90c2bbe6b24e455678f33156ea73545ed4836f",
+      "storedBytes": 250,
+      "storedSha256": "6e7fe98761de34e760a18ba58d90c2bbe6b24e455678f33156ea73545ed4836f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-maintenance-admission.json",
+      "originalBytes": 412,
+      "originalSha256": "fcd7a685e1a493818836c079a2cd4867c21e70e264100aa035d726a939bc254a",
+      "storedBytes": 412,
+      "storedSha256": "fcd7a685e1a493818836c079a2cd4867c21e70e264100aa035d726a939bc254a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-owned.json",
+      "originalBytes": 3242,
+      "originalSha256": "24641cfd4e2b36d7f0f0be0e98a3a63e3aef3375c55256942d9963c102cdd8dd",
+      "storedBytes": 3242,
+      "storedSha256": "24641cfd4e2b36d7f0f0be0e98a3a63e3aef3375c55256942d9963c102cdd8dd"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-permission-commands.json",
+      "originalBytes": 994,
+      "originalSha256": "049663ea6af0399ab133759954ba091d311cea85437deb0df49c7ec73c615842",
+      "storedBytes": 994,
+      "storedSha256": "049663ea6af0399ab133759954ba091d311cea85437deb0df49c7ec73c615842"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "bb36e2538aa27e9d70e504be35078d868f2c89eff27cab354a94271cbef0dceb",
+      "storedBytes": 164,
+      "storedSha256": "bb36e2538aa27e9d70e504be35078d868f2c89eff27cab354a94271cbef0dceb"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-journey-bound.json",
+      "originalBytes": 561,
+      "originalSha256": "1b8c2ec98458af6d5734060f6e5ca166a03a19b600124ca8dcd976f81687ecf0",
+      "storedBytes": 561,
+      "storedSha256": "1b8c2ec98458af6d5734060f6e5ca166a03a19b600124ca8dcd976f81687ecf0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-journey-requested.json",
+      "originalBytes": 342,
+      "originalSha256": "0101da58d6c647135c11788a3c58d50f88f1526a78c97eac854c29e72f6d6093",
+      "storedBytes": 342,
+      "storedSha256": "0101da58d6c647135c11788a3c58d50f88f1526a78c97eac854c29e72f6d6093"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-journey.json",
+      "originalBytes": 62275,
+      "originalSha256": "acb22db0abe0005024033786d72d678e2e062d9773c7871391a2f63afbc19570",
+      "storedBytes": 62275,
+      "storedSha256": "acb22db0abe0005024033786d72d678e2e062d9773c7871391a2f63afbc19570"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-phase-01.json",
+      "originalBytes": 820,
+      "originalSha256": "9656dee09ee9eebce98772e41ca4342c120ce8a8f8f89a629bfa07aa9607d721",
+      "storedBytes": 820,
+      "storedSha256": "9656dee09ee9eebce98772e41ca4342c120ce8a8f8f89a629bfa07aa9607d721"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-phase-02.json",
+      "originalBytes": 541,
+      "originalSha256": "7bf5686c00f5358f425631a570d547dc8ac9847e62d6aac83ba96919d0178de3",
+      "storedBytes": 541,
+      "storedSha256": "7bf5686c00f5358f425631a570d547dc8ac9847e62d6aac83ba96919d0178de3"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-phase-03.json",
+      "originalBytes": 1193,
+      "originalSha256": "1027a204231a37cf57658b504ecc7fb90efa3d77f79cdb58c65b700703f170f0",
+      "storedBytes": 1193,
+      "storedSha256": "1027a204231a37cf57658b504ecc7fb90efa3d77f79cdb58c65b700703f170f0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-phase-04.json",
+      "originalBytes": 462,
+      "originalSha256": "c59a903d7411b4c02ee252eda0c1ec93487c7f064577530a6a5808d03447804f",
+      "storedBytes": 462,
+      "storedSha256": "c59a903d7411b4c02ee252eda0c1ec93487c7f064577530a6a5808d03447804f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-phase-05.json",
+      "originalBytes": 611,
+      "originalSha256": "3df25f66c5dd3c6cb637ea1bc9db9b96d8cc912898cac287e249a388aaff17d7",
+      "storedBytes": 611,
+      "storedSha256": "3df25f66c5dd3c6cb637ea1bc9db9b96d8cc912898cac287e249a388aaff17d7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-002/native-perf-sdk-phase-06.json",
+      "originalBytes": 552,
+      "originalSha256": "391d0f5d2c20797269ef34d6f3099b94105d051d218c2a8d014c03fe229fba74",
+      "storedBytes": 552,
+      "storedSha256": "391d0f5d2c20797269ef34d6f3099b94105d051d218c2a8d014c03fe229fba74"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003.json.gz",
+      "originalBytes": 137581,
+      "originalSha256": "ad2a12d3240ecafb36ff9c741b0cf3717a5e2a680412257eb68a98fd4086c6fb",
+      "storedBytes": 10006,
+      "storedSha256": "f59e791f7613a4156a347b9044dbaebf0742c539baa6a7975a104153edd71624"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-auth-attribution.json",
+      "originalBytes": 12195,
+      "originalSha256": "49bfa29ca2cc0cd7e79800326d57be76951d84e3c04236a13f9bfa537471f2e0",
+      "storedBytes": 12195,
+      "storedSha256": "49bfa29ca2cc0cd7e79800326d57be76951d84e3c04236a13f9bfa537471f2e0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-consumed.json",
+      "originalBytes": 249,
+      "originalSha256": "6fc1c4b1578262186104d0e3c391ead7850d2551ddec0bada1c22d1165b9f358",
+      "storedBytes": 249,
+      "storedSha256": "6fc1c4b1578262186104d0e3c391ead7850d2551ddec0bada1c22d1165b9f358"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-maintenance-admission.json",
+      "originalBytes": 695,
+      "originalSha256": "dc773c7767631230bb68cd596950ca31dfeeaeb17b56809957d2d8a77f401095",
+      "storedBytes": 695,
+      "storedSha256": "dc773c7767631230bb68cd596950ca31dfeeaeb17b56809957d2d8a77f401095"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-owned.json",
+      "originalBytes": 3242,
+      "originalSha256": "756979556bd162e2c9e542a26cce92cd3111c4fd637c02ab79e936069933d6ee",
+      "storedBytes": 3242,
+      "storedSha256": "756979556bd162e2c9e542a26cce92cd3111c4fd637c02ab79e936069933d6ee"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-permission-commands.json",
+      "originalBytes": 644,
+      "originalSha256": "96f073936abd26c945af9027c3f5bfaf19856b0ad52273ff7f7dcaa7722d8fc2",
+      "storedBytes": 644,
+      "storedSha256": "96f073936abd26c945af9027c3f5bfaf19856b0ad52273ff7f7dcaa7722d8fc2"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 163,
+      "originalSha256": "d00939b84523a70d35cc9cb9a40cfa118dc89ca46ea4f24e054189da21f95076",
+      "storedBytes": 163,
+      "storedSha256": "d00939b84523a70d35cc9cb9a40cfa118dc89ca46ea4f24e054189da21f95076"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-journey-bound.json",
+      "originalBytes": 560,
+      "originalSha256": "068bbe85672c1cd9452dfb42d0a19e8bbdfa3c9fb2cc9e36329c6f0f059158eb",
+      "storedBytes": 560,
+      "storedSha256": "068bbe85672c1cd9452dfb42d0a19e8bbdfa3c9fb2cc9e36329c6f0f059158eb"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-journey-requested.json",
+      "originalBytes": 341,
+      "originalSha256": "06d89530951a49b1591b66883746e37f62866e91950df5559583ceb329106c36",
+      "storedBytes": 341,
+      "storedSha256": "06d89530951a49b1591b66883746e37f62866e91950df5559583ceb329106c36"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-journey.json.gz",
+      "originalBytes": 117105,
+      "originalSha256": "949b7196a78a8bf1944e08ad43b49f019c590b32d1f22c3b48f616880fd46128",
+      "storedBytes": 7391,
+      "storedSha256": "3dff338493127c15941be16aed03ec870ec090d3a66d183bc07ab5e91db91b8a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-phase-01.json",
+      "originalBytes": 820,
+      "originalSha256": "7dfa68f07a58d8c60aafd6e781f193099a4217493747a027b2c9e59779c674ee",
+      "storedBytes": 820,
+      "storedSha256": "7dfa68f07a58d8c60aafd6e781f193099a4217493747a027b2c9e59779c674ee"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-phase-02.json",
+      "originalBytes": 540,
+      "originalSha256": "5ebb20c948c854316683b3968bcaaf6d0deb61b9d25b19e05003ae57c0e51b72",
+      "storedBytes": 540,
+      "storedSha256": "5ebb20c948c854316683b3968bcaaf6d0deb61b9d25b19e05003ae57c0e51b72"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-phase-03.json",
+      "originalBytes": 1206,
+      "originalSha256": "9f39abf1ec01dc30e65e972ddd23e9955f69137ba18fdf892113f00fb161513a",
+      "storedBytes": 1206,
+      "storedSha256": "9f39abf1ec01dc30e65e972ddd23e9955f69137ba18fdf892113f00fb161513a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-phase-04.json",
+      "originalBytes": 452,
+      "originalSha256": "bf62f277e7ee56ff2a1b6a6074e602c2d2076bd9d806e34557c44e194a1a75d0",
+      "storedBytes": 452,
+      "storedSha256": "bf62f277e7ee56ff2a1b6a6074e602c2d2076bd9d806e34557c44e194a1a75d0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100-unrestricted/sample-003/native-perf-sdk-phase-05.json",
+      "originalBytes": 609,
+      "originalSha256": "b214c74168f0a017ab2d7f6577a2051a723d03887101cb519afbf6d5c697b815",
+      "storedBytes": 609,
+      "storedSha256": "b214c74168f0a017ab2d7f6577a2051a723d03887101cb519afbf6d5c697b815"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100/native-perf-auth-attribution-results.json",
+      "originalBytes": 1117,
+      "originalSha256": "725bc1633b5ed4195222ee944efeca2846d6922278f58e761c2b0f54efd8e66e",
+      "storedBytes": 1117,
+      "storedSha256": "725bc1633b5ed4195222ee944efeca2846d6922278f58e761c2b0f54efd8e66e"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100/native-perf-sdk-journey-results.json",
+      "originalBytes": 6117,
+      "originalSha256": "5f93923f92d353f173f5d3fe52bc26e6155c1c184dcccce0aeef7df64c36f765",
+      "storedBytes": 6117,
+      "storedSha256": "5f93923f92d353f173f5d3fe52bc26e6155c1c184dcccce0aeef7df64c36f765"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100/sample-001.json",
+      "originalBytes": 765,
+      "originalSha256": "56803d11ffeb1b1d5317ed0aad158271ab2221e60636855913245bd5c8bd2375",
+      "storedBytes": 765,
+      "storedSha256": "56803d11ffeb1b1d5317ed0aad158271ab2221e60636855913245bd5c8bd2375"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth100/sample-001/native-perf-owned.json",
+      "originalBytes": 1181,
+      "originalSha256": "fcc5ee488fd9f3967c6694b8792bc5949e4c6f39789a44f6089e294207459973",
+      "storedBytes": 1181,
+      "storedSha256": "fcc5ee488fd9f3967c6694b8792bc5949e4c6f39789a44f6089e294207459973"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/native-perf-auth-attribution-results.json",
+      "originalBytes": 63422,
+      "originalSha256": "e1291eb483c597acf262539fb388986ae371d4c2714f0cef0fc407fef674d7c2",
+      "storedBytes": 63422,
+      "storedSha256": "e1291eb483c597acf262539fb388986ae371d4c2714f0cef0fc407fef674d7c2"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/native-perf-sdk-journey-results.json.gz",
+      "originalBytes": 374861,
+      "originalSha256": "253f5948c4a930f021b574d5789843a1929402579894c59c1e432cd62942c8ca",
+      "storedBytes": 28422,
+      "storedSha256": "ff7959e02fea7766f8face571e2318cdd448ef52186130295896a41693637122"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001.json",
+      "originalBytes": 92474,
+      "originalSha256": "81c0426cb872eb4526218e72022d8f13979d376b8813716b18d0128cc76dae21",
+      "storedBytes": 92474,
+      "storedSha256": "81c0426cb872eb4526218e72022d8f13979d376b8813716b18d0128cc76dae21"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-auth-attribution.json",
+      "originalBytes": 17178,
+      "originalSha256": "50be15407c7009bce54cd1ce0008e3d4f775722343c66cb26ca99afdebb1da95",
+      "storedBytes": 17178,
+      "storedSha256": "50be15407c7009bce54cd1ce0008e3d4f775722343c66cb26ca99afdebb1da95"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-consumed.json",
+      "originalBytes": 251,
+      "originalSha256": "09fd5ff47976ee75050ec4dad077c304c16eb34bc02b556e6644666733eabf16",
+      "storedBytes": 251,
+      "storedSha256": "09fd5ff47976ee75050ec4dad077c304c16eb34bc02b556e6644666733eabf16"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-maintenance-admission.json",
+      "originalBytes": 421,
+      "originalSha256": "8a84b7559fd16696459d050c333b1c6ff2424004e50dfe19bda871d1fae2fcd7",
+      "storedBytes": 421,
+      "storedSha256": "8a84b7559fd16696459d050c333b1c6ff2424004e50dfe19bda871d1fae2fcd7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-owned.json",
+      "originalBytes": 3258,
+      "originalSha256": "b0363b9b8f53789b85291f86c133c70eed88821543e26e06da4aff24edc0d3b2",
+      "storedBytes": 3258,
+      "storedSha256": "b0363b9b8f53789b85291f86c133c70eed88821543e26e06da4aff24edc0d3b2"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-permission-commands.json",
+      "originalBytes": 1004,
+      "originalSha256": "daf4642b86032a9a666dd96e887a0f11f4bce36afb0e502a8b7414f8cc690d9d",
+      "storedBytes": 1004,
+      "storedSha256": "daf4642b86032a9a666dd96e887a0f11f4bce36afb0e502a8b7414f8cc690d9d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "6d253714d0a4049d0294fd8f008b382aad98a1769477953a9f9066c956e64753",
+      "storedBytes": 164,
+      "storedSha256": "6d253714d0a4049d0294fd8f008b382aad98a1769477953a9f9066c956e64753"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-journey-bound.json",
+      "originalBytes": 562,
+      "originalSha256": "41318fb5836198bcd15ffd38737bf5e824b083a2fb85eef05391e8d971dfdae0",
+      "storedBytes": 562,
+      "storedSha256": "41318fb5836198bcd15ffd38737bf5e824b083a2fb85eef05391e8d971dfdae0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-journey-requested.json",
+      "originalBytes": 344,
+      "originalSha256": "20635b9ecf598ea07a39ce6b0e6b1beadb98a797fa07801472f3f628b7b451a0",
+      "storedBytes": 344,
+      "storedSha256": "20635b9ecf598ea07a39ce6b0e6b1beadb98a797fa07801472f3f628b7b451a0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-journey.json",
+      "originalBytes": 62095,
+      "originalSha256": "ea17da01f768f76dc4486fd67d4975249e439031eae8c09462eadf4197b2afdb",
+      "storedBytes": 62095,
+      "storedSha256": "ea17da01f768f76dc4486fd67d4975249e439031eae8c09462eadf4197b2afdb"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-phase-01.json",
+      "originalBytes": 818,
+      "originalSha256": "b18c58c9ca8439af31cb019a7c7395b9ba1d9f8b8ae760e4575d23e10e70fe2f",
+      "storedBytes": 818,
+      "storedSha256": "b18c58c9ca8439af31cb019a7c7395b9ba1d9f8b8ae760e4575d23e10e70fe2f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-phase-02.json",
+      "originalBytes": 539,
+      "originalSha256": "3c910ff9e85f33529c18333105b92b94808bd3906d1e6598a62dee1d1205141e",
+      "storedBytes": 539,
+      "storedSha256": "3c910ff9e85f33529c18333105b92b94808bd3906d1e6598a62dee1d1205141e"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-phase-03.json",
+      "originalBytes": 1138,
+      "originalSha256": "dbe20f8293ffbcc8642d1395df3b2519f2bf738637bdb8dc39005ca0b8371957",
+      "storedBytes": 1138,
+      "storedSha256": "dbe20f8293ffbcc8642d1395df3b2519f2bf738637bdb8dc39005ca0b8371957"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-phase-04.json",
+      "originalBytes": 307,
+      "originalSha256": "4674a1305f7275f6147d27bfa0fc989a5ad5154cd540cb859579932718238707",
+      "storedBytes": 307,
+      "storedSha256": "4674a1305f7275f6147d27bfa0fc989a5ad5154cd540cb859579932718238707"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-phase-05.json",
+      "originalBytes": 611,
+      "originalSha256": "98cffbfc4fe80fad0047b909bc56c7f972908882a1831da38b8fb4555b53b8a3",
+      "storedBytes": 611,
+      "storedSha256": "98cffbfc4fe80fad0047b909bc56c7f972908882a1831da38b8fb4555b53b8a3"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-001/native-perf-sdk-phase-06.json",
+      "originalBytes": 542,
+      "originalSha256": "083e54866ca86454a676182caac636ad2356b25ff852cbd41d8a63722658a018",
+      "storedBytes": 542,
+      "storedSha256": "083e54866ca86454a676182caac636ad2356b25ff852cbd41d8a63722658a018"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002.json.gz",
+      "originalBytes": 137453,
+      "originalSha256": "576cd2ad71c0a7adbff977da7fade80ceca8d6c5a4beca04fcffec200f6cf628",
+      "storedBytes": 10039,
+      "storedSha256": "57011d541678f0c19134343eddf955381ed0ace1191784eb40e24c909393a2f5"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-auth-attribution.json",
+      "originalBytes": 12240,
+      "originalSha256": "a26ed8abb72f78453e5e2779a6d6c922a50f72bda915b72f8b19a93f1098cb20",
+      "storedBytes": 12240,
+      "storedSha256": "a26ed8abb72f78453e5e2779a6d6c922a50f72bda915b72f8b19a93f1098cb20"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-consumed.json",
+      "originalBytes": 251,
+      "originalSha256": "3aba4a3f0e2e417eab83827c1b4f6e3cd01e34bba6e372ce17e77e30452bbf61",
+      "storedBytes": 251,
+      "storedSha256": "3aba4a3f0e2e417eab83827c1b4f6e3cd01e34bba6e372ce17e77e30452bbf61"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-maintenance-admission.json",
+      "originalBytes": 689,
+      "originalSha256": "92d0ca321856e3493f27f67c7ec1d338e74ee3d2ae0c221228e1930707ab4ce7",
+      "storedBytes": 689,
+      "storedSha256": "92d0ca321856e3493f27f67c7ec1d338e74ee3d2ae0c221228e1930707ab4ce7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-owned.json",
+      "originalBytes": 3258,
+      "originalSha256": "338ee7cb5baa42c95a716c4c3b9ba50f13eb912c6d6f2c312daa95aea3436c0d",
+      "storedBytes": 3258,
+      "storedSha256": "338ee7cb5baa42c95a716c4c3b9ba50f13eb912c6d6f2c312daa95aea3436c0d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-permission-commands.json",
+      "originalBytes": 654,
+      "originalSha256": "09942ebce2e5d9fd17a310fde9bf7129881ab34738cf0d38d020e3719c3ffb2d",
+      "storedBytes": 654,
+      "storedSha256": "09942ebce2e5d9fd17a310fde9bf7129881ab34738cf0d38d020e3719c3ffb2d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "6c048bc51f80166af75cd48eddf445ba50128691afb4df8b690b2892a7ecbcb1",
+      "storedBytes": 164,
+      "storedSha256": "6c048bc51f80166af75cd48eddf445ba50128691afb4df8b690b2892a7ecbcb1"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-journey-bound.json",
+      "originalBytes": 562,
+      "originalSha256": "359852572a9732421b061899fcc7859e391b8afa6bf856144fa23cd980483af8",
+      "storedBytes": 562,
+      "storedSha256": "359852572a9732421b061899fcc7859e391b8afa6bf856144fa23cd980483af8"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-journey-requested.json",
+      "originalBytes": 344,
+      "originalSha256": "8611d63542a822ebca76a711cc7adb6c74327b5da6115b97fb22f8692b0653ec",
+      "storedBytes": 344,
+      "storedSha256": "8611d63542a822ebca76a711cc7adb6c74327b5da6115b97fb22f8692b0653ec"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-journey.json.gz",
+      "originalBytes": 116962,
+      "originalSha256": "eaa5d542a1891edaf367bb79d93e7602229437898c308a47e7e7bbf8f42bb1a2",
+      "storedBytes": 7432,
+      "storedSha256": "21f484a1b24520a062f01207b23149aa1e7c8beeafcc114d5702318eb05dfc1d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-phase-01.json",
+      "originalBytes": 807,
+      "originalSha256": "4ba0104e7bb31c5e68af6f87c71f7af97d3d726933155933f976dea11cf70734",
+      "storedBytes": 807,
+      "storedSha256": "4ba0104e7bb31c5e68af6f87c71f7af97d3d726933155933f976dea11cf70734"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-phase-02.json",
+      "originalBytes": 529,
+      "originalSha256": "e8161cf32999b6ff90f7676d3aabc20e33eb10f4fe54a15269acedc840e70509",
+      "storedBytes": 529,
+      "storedSha256": "e8161cf32999b6ff90f7676d3aabc20e33eb10f4fe54a15269acedc840e70509"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-phase-03.json",
+      "originalBytes": 1147,
+      "originalSha256": "05640a6ac0e378bc04c7765b81193d97d700a38adca6cc5a72b5e3768d49e14b",
+      "storedBytes": 1147,
+      "storedSha256": "05640a6ac0e378bc04c7765b81193d97d700a38adca6cc5a72b5e3768d49e14b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-phase-04.json",
+      "originalBytes": 319,
+      "originalSha256": "88d5aa61c72d3b97635aa9accc79023881e7f43ed335f8abfeccb1bcdae1626d",
+      "storedBytes": 319,
+      "storedSha256": "88d5aa61c72d3b97635aa9accc79023881e7f43ed335f8abfeccb1bcdae1626d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-002/native-perf-sdk-phase-05.json",
+      "originalBytes": 621,
+      "originalSha256": "842be51f93248a0f0a5cbeca56dbff092bc8145a9fa2549246e2119d922c8e89",
+      "storedBytes": 621,
+      "storedSha256": "842be51f93248a0f0a5cbeca56dbff092bc8145a9fa2549246e2119d922c8e89"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003.json",
+      "originalBytes": 93128,
+      "originalSha256": "3716978222a54f78604704ab19a708aaaac173d51f4c9045848167712b399c67",
+      "storedBytes": 93128,
+      "storedSha256": "3716978222a54f78604704ab19a708aaaac173d51f4c9045848167712b399c67"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-auth-attribution.json",
+      "originalBytes": 17084,
+      "originalSha256": "cdc35b04636ae36f68d30a9cd659d0b9c1f9ebdbbe020fb60f4bf25b96c73685",
+      "storedBytes": 17084,
+      "storedSha256": "cdc35b04636ae36f68d30a9cd659d0b9c1f9ebdbbe020fb60f4bf25b96c73685"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-consumed.json",
+      "originalBytes": 251,
+      "originalSha256": "12c2099872f3722b6c284cffbd71749253931cd26e0e630b69a0ae3561df8751",
+      "storedBytes": 251,
+      "storedSha256": "12c2099872f3722b6c284cffbd71749253931cd26e0e630b69a0ae3561df8751"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-maintenance-admission.json",
+      "originalBytes": 412,
+      "originalSha256": "264604c798032f2f71673c836a43e805d50a2746ba965e5124f4a7c004a15263",
+      "storedBytes": 412,
+      "storedSha256": "264604c798032f2f71673c836a43e805d50a2746ba965e5124f4a7c004a15263"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-owned.json",
+      "originalBytes": 3258,
+      "originalSha256": "09eaf0faa52ee0c116a7ceac74e8c7fabb43ee38946a78e842dd7a3d0c1f4ee3",
+      "storedBytes": 3258,
+      "storedSha256": "09eaf0faa52ee0c116a7ceac74e8c7fabb43ee38946a78e842dd7a3d0c1f4ee3"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-permission-commands.json",
+      "originalBytes": 1011,
+      "originalSha256": "a16996c766204bcfa099555c14ec4f2aa4b2814e799e66226204089e90e5ff4b",
+      "storedBytes": 1011,
+      "storedSha256": "a16996c766204bcfa099555c14ec4f2aa4b2814e799e66226204089e90e5ff4b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "89297ee4667e9151f493909d909721edf78dc8bfc4994a2836671832db1d6962",
+      "storedBytes": 164,
+      "storedSha256": "89297ee4667e9151f493909d909721edf78dc8bfc4994a2836671832db1d6962"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-journey-bound.json",
+      "originalBytes": 562,
+      "originalSha256": "1708277c542f7f21daf88cfc93fdafc87ea1a6ef63e29a4cea775f2f56738138",
+      "storedBytes": 562,
+      "storedSha256": "1708277c542f7f21daf88cfc93fdafc87ea1a6ef63e29a4cea775f2f56738138"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-journey-requested.json",
+      "originalBytes": 344,
+      "originalSha256": "8391bc70f2019d4558991be1065df3b773420f424d07603ff6414ccd58225d7b",
+      "storedBytes": 344,
+      "storedSha256": "8391bc70f2019d4558991be1065df3b773420f424d07603ff6414ccd58225d7b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-journey.json",
+      "originalBytes": 62924,
+      "originalSha256": "3c928c61f5c2ac9a4944cff5a74083da54607765086e6c659678408abede407d",
+      "storedBytes": 62924,
+      "storedSha256": "3c928c61f5c2ac9a4944cff5a74083da54607765086e6c659678408abede407d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-phase-01.json",
+      "originalBytes": 818,
+      "originalSha256": "35217b08cf678c9d32a71677ae53588fae6811d0240e9887a0ece2226b39e282",
+      "storedBytes": 818,
+      "storedSha256": "35217b08cf678c9d32a71677ae53588fae6811d0240e9887a0ece2226b39e282"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-phase-02.json",
+      "originalBytes": 547,
+      "originalSha256": "fb1cbfdf7b113ef633c3d5b2dbb20494b042a6c3b2f585a44d2b07e6af8a7fd8",
+      "storedBytes": 547,
+      "storedSha256": "fb1cbfdf7b113ef633c3d5b2dbb20494b042a6c3b2f585a44d2b07e6af8a7fd8"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-phase-03.json",
+      "originalBytes": 1126,
+      "originalSha256": "42cb09835cd49f595bf159813befbecba4b844ea569281c129e25bab63e662b2",
+      "storedBytes": 1126,
+      "storedSha256": "42cb09835cd49f595bf159813befbecba4b844ea569281c129e25bab63e662b2"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-phase-04.json",
+      "originalBytes": 452,
+      "originalSha256": "bdb9d07545a86c1ba3ecb3fa7a97fbce8dc49d22da7bc4645bde2dfed09fa046",
+      "storedBytes": 452,
+      "storedSha256": "bdb9d07545a86c1ba3ecb3fa7a97fbce8dc49d22da7bc4645bde2dfed09fa046"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-phase-05.json",
+      "originalBytes": 599,
+      "originalSha256": "57e228c51f2ea99a3746a5fe79c2498ea7a4d9e6fc25ac6a46afe2991238d599",
+      "storedBytes": 599,
+      "storedSha256": "57e228c51f2ea99a3746a5fe79c2498ea7a4d9e6fc25ac6a46afe2991238d599"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000-unrestricted/sample-003/native-perf-sdk-phase-06.json",
+      "originalBytes": 730,
+      "originalSha256": "3f1a27d6fc2b68e544f66b0cb39554ff9516a4dd822f991571d599ae62628975",
+      "storedBytes": 730,
+      "storedSha256": "3f1a27d6fc2b68e544f66b0cb39554ff9516a4dd822f991571d599ae62628975"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000/native-perf-auth-attribution-results.json",
+      "originalBytes": 1119,
+      "originalSha256": "618bb4aef7b26fcf1a21dff4860802242d11fb9dbf663be29ea2706c7b3cc9cd",
+      "storedBytes": 1119,
+      "storedSha256": "618bb4aef7b26fcf1a21dff4860802242d11fb9dbf663be29ea2706c7b3cc9cd"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000/native-perf-sdk-journey-results.json",
+      "originalBytes": 6128,
+      "originalSha256": "d423070d8a3fd3db4e5ee4f2165c8602e75122f99e558167647b7bb976d88324",
+      "storedBytes": 6128,
+      "storedSha256": "d423070d8a3fd3db4e5ee4f2165c8602e75122f99e558167647b7bb976d88324"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000/sample-001.json",
+      "originalBytes": 766,
+      "originalSha256": "3bbff3f8755858542730bf092589fb09cbf70f09407fe3b990427c459b9dae61",
+      "storedBytes": 766,
+      "storedSha256": "3bbff3f8755858542730bf092589fb09cbf70f09407fe3b990427c459b9dae61"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/auth5000/sample-001/native-perf-owned.json",
+      "originalBytes": 1187,
+      "originalSha256": "f33320a92a3ba54186acd106a6924ee183303bc884f1bfbad074fb826dd50d23",
+      "storedBytes": 1187,
+      "storedSha256": "f33320a92a3ba54186acd106a6924ee183303bc884f1bfbad074fb826dd50d23"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/build-inputs-dtemp.json.gz",
+      "originalBytes": 232430,
+      "originalSha256": "5c375ded69cb2009563b8c358adbc76571c017ff62a12d65e578aa8ea0164724",
+      "storedBytes": 88359,
+      "storedSha256": "222f81b5d6fae5ea3ef87e5f9b26f25e42b0aeeff044421349f133818f522612"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/c-backup-post-validation.json",
+      "originalBytes": 3449,
+      "originalSha256": "878f1398e218fe98433783bb1b6a01ed715e1d17f2cfae1c32652922307fb2b0",
+      "storedBytes": 3449,
+      "storedSha256": "878f1398e218fe98433783bb1b6a01ed715e1d17f2cfae1c32652922307fb2b0"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/config-format.receipt.json",
+      "originalBytes": 279,
+      "originalSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072",
+      "storedBytes": 279,
+      "storedSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/config-format.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/config-format.stdout.log.gz",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "storedBytes": 82,
+      "storedSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/crate-verification.json",
+      "originalBytes": 96,
+      "originalSha256": "08d0030599764eb95d243693ea7d5e69610ae6fd5477ef1a9ceffba0510df0c6",
+      "storedBytes": 96,
+      "storedSha256": "08d0030599764eb95d243693ea7d5e69610ae6fd5477ef1a9ceffba0510df0c6"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/eslint.receipt.json",
+      "originalBytes": 240,
+      "originalSha256": "a61822ad05cad24cb1f34a143dee92cfb0b4065ddc96327e7e07ed562529ec8f",
+      "storedBytes": 240,
+      "storedSha256": "a61822ad05cad24cb1f34a143dee92cfb0b4065ddc96327e7e07ed562529ec8f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/eslint.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/eslint.stdout.log.gz",
+      "originalBytes": 260,
+      "originalSha256": "618ed2fe7c34a69d6afe846b2be2f0cbd34fb676136bc67b51488cd964908232",
+      "storedBytes": 221,
+      "storedSha256": "63cb513b60aa223320df5bee5e22e68411c329e34b234fc1c29dc11d11823256"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/final-acceptance-summary.json",
+      "originalBytes": 1035,
+      "originalSha256": "9c8ab6570164eb833ef4db4e77ea841883657d973c9ecf0147b7041656ad2448",
+      "storedBytes": 1035,
+      "storedSha256": "9c8ab6570164eb833ef4db4e77ea841883657d973c9ecf0147b7041656ad2448"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/final-source.json",
+      "originalBytes": 1698,
+      "originalSha256": "79f977c02dff2d2719ce0b997ea646692fc3eca737c4996ef2940aafa3db06ae",
+      "storedBytes": 1698,
+      "storedSha256": "79f977c02dff2d2719ce0b997ea646692fc3eca737c4996ef2940aafa3db06ae"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/fresh-fixtures-freeze.json",
+      "originalBytes": 1776,
+      "originalSha256": "f49d141c86b36bc5be785a5ed268135fa73d2816c3b3a50e5ba5dedd3913e2af",
+      "storedBytes": 1776,
+      "storedSha256": "f49d141c86b36bc5be785a5ed268135fa73d2816c3b3a50e5ba5dedd3913e2af"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/frontend-tests-unrestricted.receipt.json",
+      "originalBytes": 239,
+      "originalSha256": "a7b02a22d39f77686d7a96e838125f736650db12fe2fc71149b251045e84571c",
+      "storedBytes": 239,
+      "storedSha256": "a7b02a22d39f77686d7a96e838125f736650db12fe2fc71149b251045e84571c"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/frontend-tests-unrestricted.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/frontend-tests-unrestricted.stdout.log.gz",
+      "originalBytes": 23226,
+      "originalSha256": "3e454e2654526246b6da260fb40bee9cac4e916f3d0d6e06ebaad3941160e6ef",
+      "storedBytes": 9438,
+      "storedSha256": "5f7c0896f866bbbdcc5e856ca499ff7c5aa0be45eb0f9afbccff89bb5a30bee2"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/frontend-tests.receipt.json",
+      "originalBytes": 240,
+      "originalSha256": "2cfd964fc8b0cef8e177b4a4da4d0d79e03e3bf4614b9a1751c9ca7d7d0585fa",
+      "storedBytes": 240,
+      "storedSha256": "2cfd964fc8b0cef8e177b4a4da4d0d79e03e3bf4614b9a1751c9ca7d7d0585fa"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/frontend-tests.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/frontend-tests.stdout.log.gz",
+      "originalBytes": 28470,
+      "originalSha256": "22f7c99dfb6e8ffb39672208052089cfca5aef034240032e9ff7fe4c50afea57",
+      "storedBytes": 9914,
+      "storedSha256": "ce47bf4f25a3b4551ca93175062608adeb0e5dab99000441d02c1b878c47b594"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ipc-contract-check.receipt.json",
+      "originalBytes": 250,
+      "originalSha256": "fae7a7f1a746e60a0d884d775147d7276096c9656d35d8791899198295427de7",
+      "storedBytes": 250,
+      "storedSha256": "fae7a7f1a746e60a0d884d775147d7276096c9656d35d8791899198295427de7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ipc-contract-check.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ipc-contract-check.stdout.log.gz",
+      "originalBytes": 174,
+      "originalSha256": "c076d9890c40fccb46683b805d79fa42f80a3695b14f0f5d32b160bda3d87275",
+      "storedBytes": 150,
+      "storedSha256": "00817f89fc2b0db43f193853d5f66d83420c76b80089a6e8a2987f2a21b900f9"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ipc-contract-tests.receipt.json",
+      "originalBytes": 249,
+      "originalSha256": "780800fa302da1db31d2891a68ecb851ce13106d7bfbd90e45497eb462db65d5",
+      "storedBytes": 249,
+      "storedSha256": "780800fa302da1db31d2891a68ecb851ce13106d7bfbd90e45497eb462db65d5"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ipc-contract-tests.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ipc-contract-tests.stdout.log.gz",
+      "originalBytes": 2684,
+      "originalSha256": "2e75ffa045ab78dda76cf1873a35d288052bd102b7fa0fa4146931567a0f62bf",
+      "storedBytes": 1135,
+      "storedSha256": "df1e4243886a297dabc415639dafdafc16ac6a63babce12b647a96a0979604fa"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/markdown-boundary.receipt.json",
+      "originalBytes": 262,
+      "originalSha256": "84ca91481e49ea9340839834b263b2c464d9a814d3023189d105e36832fb3c01",
+      "storedBytes": 262,
+      "storedSha256": "84ca91481e49ea9340839834b263b2c464d9a814d3023189d105e36832fb3c01"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/markdown-boundary.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/markdown-boundary.stdout.log.gz",
+      "originalBytes": 93,
+      "originalSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "storedBytes": 110,
+      "storedSha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/migration-final-normalized.json",
+      "originalBytes": 2378,
+      "originalSha256": "402e0f1ae5e2e71fb63d1d713dd34ea5020543cb65e83f12a7b4310d420e7d02",
+      "storedBytes": 2378,
+      "storedSha256": "402e0f1ae5e2e71fb63d1d713dd34ea5020543cb65e83f12a7b4310d420e7d02"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/migration.json",
+      "originalBytes": 3679,
+      "originalSha256": "83152e20619eee0872ca4c564661f02ec2eeb2785c23fe423ee9083b0854aee8",
+      "storedBytes": 3679,
+      "storedSha256": "83152e20619eee0872ca4c564661f02ec2eeb2785c23fe423ee9083b0854aee8"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-100-unrestricted.receipt.json",
+      "originalBytes": 629,
+      "originalSha256": "17ca56ca0616ea0662170aeec1c8235cb655cd2f3b8c8e1726f89e2cb8f63c3e",
+      "storedBytes": 629,
+      "storedSha256": "17ca56ca0616ea0662170aeec1c8235cb655cd2f3b8c8e1726f89e2cb8f63c3e"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-100-unrestricted.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-100-unrestricted.stdout.log.gz",
+      "originalBytes": 344,
+      "originalSha256": "d9166d14be850231cc084d56b8829443d05eac75dda2cf892990a719361782f6",
+      "storedBytes": 179,
+      "storedSha256": "abc609d938667c25cd14918de5bf214195e6a9a1b006560e689d173aba1fde0e"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-100.receipt.json",
+      "originalBytes": 587,
+      "originalSha256": "5df17b3f873bfe5ad8223cf3c40916498d39d17e1d64b8335cfd628004c0201c",
+      "storedBytes": 587,
+      "storedSha256": "5df17b3f873bfe5ad8223cf3c40916498d39d17e1d64b8335cfd628004c0201c"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-100.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-100.stdout.log.gz",
+      "originalBytes": 268,
+      "originalSha256": "ac7ae486189df5136a8d781bd9b1f960eb6e48e25cb5a7c86d11b26a02b45398",
+      "storedBytes": 163,
+      "storedSha256": "da1fe4fd615ef84ba2849d17a0b5e0938f24ac67bcf95ab37221aeb2e53ea679"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-5000-unrestricted.receipt.json",
+      "originalBytes": 630,
+      "originalSha256": "55fe338d5b4e5ef1521e21e4a3fceea31312e9bc28b19829958c204f002df09a",
+      "storedBytes": 630,
+      "storedSha256": "55fe338d5b4e5ef1521e21e4a3fceea31312e9bc28b19829958c204f002df09a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-5000-unrestricted.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-5000-unrestricted.stdout.log.gz",
+      "originalBytes": 346,
+      "originalSha256": "c0f1a90cbca8a31c60642c2e969532708f313cc4996157916a73fe0907c147a7",
+      "storedBytes": 182,
+      "storedSha256": "569e8f011623e1e28eb59283b4b5291b26ff5e1af2e5f3c4718c855ea7bc7355"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-5000.receipt.json",
+      "originalBytes": 589,
+      "originalSha256": "e6f04342f36a00f6b1fa06bef80fb2fee5b2cc97b919b87e18856eb5cb94ac63",
+      "storedBytes": 589,
+      "storedSha256": "e6f04342f36a00f6b1fa06bef80fb2fee5b2cc97b919b87e18856eb5cb94ac63"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-5000.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-auth-5000.stdout.log.gz",
+      "originalBytes": 270,
+      "originalSha256": "85312bd033f26a626aeb685307bd7f212541c8edd5859568bab485441002cb0f",
+      "storedBytes": 165,
+      "storedSha256": "3d9b11322617c6e9eff1c5f1d83a9ad6fe85c7c33323df3357df78fcb2e3ad13"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-release-build.receipt.json",
+      "originalBytes": 388,
+      "originalSha256": "0527696638115f368ade8bf1c0353f2994535f6f14922081893e04c0cd537b47",
+      "storedBytes": 388,
+      "storedSha256": "0527696638115f368ade8bf1c0353f2994535f6f14922081893e04c0cd537b47"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-release-build.stderr.log.gz",
+      "originalBytes": 24469,
+      "originalSha256": "c893b24abbe468eb4615292ec822cbe0d5d71e1972c45bf084d7b7b235f15bfe",
+      "storedBytes": 6869,
+      "storedSha256": "a0c77ecd77f037b10aeeb615e13f023c0ceaa1dcfdd5dc6f48ba7127fa40994d"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-release-build.stdout.log.gz",
+      "originalBytes": 3595,
+      "originalSha256": "dd63a69d5b98e03b3f88a3433a94a8b2e8be6c7adf0547fa8cbfcfef62369b02",
+      "storedBytes": 1315,
+      "storedSha256": "dbf4d696daa306557f6091ce9143cfa1f05b0a8521fd7ec6d19d8a1fce2eb0d1"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-release-coordinator-stop.json",
+      "originalBytes": 472,
+      "originalSha256": "891117dcbabd8d69759a20a50e74427a9182bcc5aa95689d6d9a9bbef8764c09",
+      "storedBytes": 472,
+      "storedSha256": "891117dcbabd8d69759a20a50e74427a9182bcc5aa95689d6d9a9bbef8764c09"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/native-release-source-integrity.json",
+      "originalBytes": 611,
+      "originalSha256": "68183296fe8ec81034d80b39567dba0bf34415052d7e70d0e99440ef3f4349e2",
+      "storedBytes": 611,
+      "storedSha256": "68183296fe8ec81034d80b39567dba0bf34415052d7e70d0e99440ef3f4349e2"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/node-format-final.receipt.json",
+      "originalBytes": 482,
+      "originalSha256": "4cf463a216d4fcfadce7f2e04fa6057e848955fa892559f83ae5c24539b54e62",
+      "storedBytes": 482,
+      "storedSha256": "4cf463a216d4fcfadce7f2e04fa6057e848955fa892559f83ae5c24539b54e62"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/node-format-final.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/node-format-final.stdout.log.gz",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "storedBytes": 82,
+      "storedSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/node-format.receipt.json",
+      "originalBytes": 483,
+      "originalSha256": "38c3713a9e2e9f496bf1a4eeb0daa8f02c4e71d0d5b400573515ec6ac08a0339",
+      "storedBytes": 483,
+      "storedSha256": "38c3713a9e2e9f496bf1a4eeb0daa8f02c4e71d0d5b400573515ec6ac08a0339"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/node-format.stderr.log.gz",
+      "originalBytes": 312,
+      "originalSha256": "7e448d98cb41e938cb227a74a7241570cf1615431699df9d5b070a1fde435139",
+      "storedBytes": 157,
+      "storedSha256": "3330e2daa02d95584cf1789112440b423a8fed0c8a6114792ad2705d62d92688"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/node-format.stdout.log.gz",
+      "originalBytes": 23,
+      "originalSha256": "ebe82dad128d5e5d8936334ceac09492f3c60bd9e0b4a16cc7fd7075513b33de",
+      "storedBytes": 41,
+      "storedSha256": "e2feb428c4397c3ec024bf940a7b81a5e61469ac25d8cff2823015552f6771cc"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-100-generate.receipt.json",
+      "originalBytes": 436,
+      "originalSha256": "60b0dead30d399bcfcb8826b1e80c10d064c6a7a8580bcfa02d774b8f2f69b39",
+      "storedBytes": 436,
+      "storedSha256": "60b0dead30d399bcfcb8826b1e80c10d064c6a7a8580bcfa02d774b8f2f69b39"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-100-generate.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-100-generate.stdout.log.gz",
+      "originalBytes": 1934,
+      "originalSha256": "169d9d8602119743d658901a649eb245f41090ee21c1bcc362765e58a3eed1c0",
+      "storedBytes": 606,
+      "storedSha256": "e1c498a5783d98ff344fa0bce08d0c8bff9e3bec692f64e1d6cab2fe7bd48c74"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-100-verify.receipt.json",
+      "originalBytes": 407,
+      "originalSha256": "878cae820a61411b15792a4361d30638e94cc32376f34cd42471cfd0b82c1877",
+      "storedBytes": 407,
+      "storedSha256": "878cae820a61411b15792a4361d30638e94cc32376f34cd42471cfd0b82c1877"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-100-verify.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-100-verify.stdout.log.gz",
+      "originalBytes": 645,
+      "originalSha256": "f2cb74cdfc4bcb822c9995a035e799bd3e0836ddda40934f967fa0659bf63e17",
+      "storedBytes": 302,
+      "storedSha256": "ab1814b2b726c2d585994ce3ebcd7a419a89bb081e028eb88554fe069565fdde"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-5000-generate.receipt.json",
+      "originalBytes": 437,
+      "originalSha256": "1d10b060a2220a843f9c6f9cbcdd43efb84f988ce7f1187da5e09d162d950510",
+      "storedBytes": 437,
+      "storedSha256": "1d10b060a2220a843f9c6f9cbcdd43efb84f988ce7f1187da5e09d162d950510"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-5000-generate.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-5000-generate.stdout.log.gz",
+      "originalBytes": 1951,
+      "originalSha256": "ae4da8a66ebe12b4dea82132c1af6815d758b6d1094e805ae7d31dd9d0fffa1b",
+      "storedBytes": 612,
+      "storedSha256": "394268d5b78610d5b54ec81dec431e91646cc71cb6093ed43b1d80a09ac63148"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-5000-verify.receipt.json",
+      "originalBytes": 408,
+      "originalSha256": "c591c58a07c071335ed33739229646080345ff1688286f7e5e8f8569d414c0da",
+      "storedBytes": 408,
+      "storedSha256": "c591c58a07c071335ed33739229646080345ff1688286f7e5e8f8569d414c0da"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-5000-verify.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-5000-verify.stdout.log.gz",
+      "originalBytes": 652,
+      "originalSha256": "825fc660612d4c65bf485fc79df3b84c59bf014b7c739bebebac1ce0c93a986f",
+      "storedBytes": 305,
+      "storedSha256": "57825eaab436eabd300cb46fe2a31c71656e72a65be5d9050bd6bf7e4728f7e3"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-build.receipt.json",
+      "originalBytes": 328,
+      "originalSha256": "ee79f2bbaf1460c20c444d748133f1c7e2bd56ed760a245a909406458b5365e8",
+      "storedBytes": 328,
+      "storedSha256": "ee79f2bbaf1460c20c444d748133f1c7e2bd56ed760a245a909406458b5365e8"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-build.stderr.log.gz",
+      "originalBytes": 6426,
+      "originalSha256": "e3cf1dcaada2e22ca62f0c10827bdd669ae38a44782dc39ca7e0f1aaef7ccec7",
+      "storedBytes": 1862,
+      "storedSha256": "9625cb6c0093617c15c25ec5ab52d2a7317eebd056ccf78f7535c4d80bc08a93"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/ordinary-fixture-build.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/preference-keys.receipt.json",
+      "originalBytes": 250,
+      "originalSha256": "16a9794027d494b77fc1630395452967b18ea6f66f4e4f8e6cc304289fcbe7bf",
+      "storedBytes": 250,
+      "storedSha256": "16a9794027d494b77fc1630395452967b18ea6f66f4e4f8e6cc304289fcbe7bf"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/preference-keys.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/preference-keys.stdout.log.gz",
+      "originalBytes": 169,
+      "originalSha256": "108a5a292db9f29147ac67a2fe97eebedfddaa179e8d2fdfdb2477b8759dd796",
+      "storedBytes": 174,
+      "storedSha256": "21d75d624ab2bdec31c0ba322b9204750a1f439e528b96b3a7c899c46b2b1b7f"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/preparation.json",
+      "originalBytes": 4514,
+      "originalSha256": "b1b90912976ec01adebc9694bffa64f2333399bad4af358dc529d00554f8e360",
+      "storedBytes": 4514,
+      "storedSha256": "b1b90912976ec01adebc9694bffa64f2333399bad4af358dc529d00554f8e360"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/resource-migration.json",
+      "originalBytes": 21026,
+      "originalSha256": "bb232e7a83fad234dd457a84693a877daf6296ec8417e14f54ba0455aba2003c",
+      "storedBytes": 21026,
+      "storedSha256": "bb232e7a83fad234dd457a84693a877daf6296ec8417e14f54ba0455aba2003c"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/runtime-package.json",
+      "originalBytes": 32532,
+      "originalSha256": "164f498c7d4dca6d243c0260ef7e32f09400ee33e8c4828b6befdeb6ea588067",
+      "storedBytes": 32532,
+      "storedSha256": "164f498c7d4dca6d243c0260ef7e32f09400ee33e8c4828b6befdeb6ea588067"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-clippy-default-dtemp.receipt.json",
+      "originalBytes": 281,
+      "originalSha256": "70b89e9cd15dd181bbda7c55e86a709106226fdc570b2d62059db12c8223c992",
+      "storedBytes": 281,
+      "storedSha256": "70b89e9cd15dd181bbda7c55e86a709106226fdc570b2d62059db12c8223c992"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-clippy-default-dtemp.stderr.log.gz",
+      "originalBytes": 132,
+      "originalSha256": "c7aade0dc2ce88043b3cf988215ce684c1c7771e0c0459842e70fd68f4614111",
+      "storedBytes": 136,
+      "storedSha256": "706ed3eb37e6bc65cd678ff53c6c30c88c2d899e09e76392e45c0de2795806f7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-clippy-default-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-clippy-native-dtemp.receipt.json",
+      "originalBytes": 338,
+      "originalSha256": "ba70bfba9515505c75ca34a14d4a6207731d3e597d5065253751f0da1e776c09",
+      "storedBytes": 338,
+      "storedSha256": "ba70bfba9515505c75ca34a14d4a6207731d3e597d5065253751f0da1e776c09"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-clippy-native-dtemp.stderr.log.gz",
+      "originalBytes": 1063,
+      "originalSha256": "bf3c79cd2b573337f738777ce7c4d8059e7946892c9bd0098de6e547cea219be",
+      "storedBytes": 346,
+      "storedSha256": "65631e99fef0ffabb3d64d8cc909e2ceb6229ef1e723a72c99b6e781064d03f3"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-clippy-native-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-format-dtemp.receipt.json",
+      "originalBytes": 264,
+      "originalSha256": "fac003b388eb883f1de815196adc16f0773f2933d4449773edf04aca08d2e59a",
+      "storedBytes": 264,
+      "storedSha256": "fac003b388eb883f1de815196adc16f0773f2933d4449773edf04aca08d2e59a"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-format-dtemp.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-format-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-default-dtemp.receipt.json",
+      "originalBytes": 254,
+      "originalSha256": "13bfde05791a3c8d01cd2517503dd0783983a84cf4f2159a4a1a1e4d1e9b1270",
+      "storedBytes": 254,
+      "storedSha256": "13bfde05791a3c8d01cd2517503dd0783983a84cf4f2159a4a1a1e4d1e9b1270"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-default-dtemp.stderr.log.gz",
+      "originalBytes": 171940,
+      "originalSha256": "5cc7b0d467229317a7ec7d51ec414a944ab568968c70658759cc1955a2596c3b",
+      "storedBytes": 11294,
+      "storedSha256": "54b934c2ff894d7d1de319c6031965da6c0d179a4624124988b3d641499e2d41"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-default-dtemp.stdout.log.gz",
+      "originalBytes": 730127,
+      "originalSha256": "b19dd3a7d191a1930b33584908e037539112a57db8ef1d842b9e11f0f931fe6b",
+      "storedBytes": 67233,
+      "storedSha256": "636cd77c3b00c179cb4804364b156908710625aa172e4a7bdb0574620aa0cd4e"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-native-dtemp.receipt.json",
+      "originalBytes": 356,
+      "originalSha256": "24da57acbf22f86a4102328d07d8fad63447341cbb19d1d09a838020ff3eb18e",
+      "storedBytes": 356,
+      "storedSha256": "24da57acbf22f86a4102328d07d8fad63447341cbb19d1d09a838020ff3eb18e"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-native-dtemp.stderr.log.gz",
+      "originalBytes": 2223,
+      "originalSha256": "12a9c0734a10f47dd1b55a72499be59c0486008cbb9f158a7eec7d97bad351d1",
+      "storedBytes": 693,
+      "storedSha256": "a8b8f9b42a3db1a5a21ecac93e03f463478b9e69886601d0d650fcfbd5bcdbb9"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-native-dtemp.stdout.log.gz",
+      "originalBytes": 43417,
+      "originalSha256": "c4d28ad471079e262a54867e6e8dc0ab15c0f5426094b6d3447167dbfa223da0",
+      "storedBytes": 4442,
+      "storedSha256": "3dcc4086e9bd246fd66c00236572ac8ff3ab33f94029b593b7fafc9d3be0eac7"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-rf905-dtemp.receipt.json",
+      "originalBytes": 347,
+      "originalSha256": "133db83eea4e2767714be3286c96eb7914179493393032e8eda3ceea3cf8fdd6",
+      "storedBytes": 347,
+      "storedSha256": "133db83eea4e2767714be3286c96eb7914179493393032e8eda3ceea3cf8fdd6"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-rf905-dtemp.stderr.log.gz",
+      "originalBytes": 1539,
+      "originalSha256": "6564f08cc836cecb28582e966d90f1bf59f786df5edb9c03edede15eeb911161",
+      "storedBytes": 544,
+      "storedSha256": "671dda2d6dec90191ed96248a4558bf82dc1d00829832f0756825491d81e1310"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/rust-tests-rf905-dtemp.stdout.log.gz",
+      "originalBytes": 15059,
+      "originalSha256": "4cdc37257d62b579d9f428a7c2331e9dad8b53083c57f1e80578b81df03c6a95",
+      "storedBytes": 1740,
+      "storedSha256": "20b9bd02ea03b6451bc05f4b900a01b3ac77b4ebb364138bc2260109b347f853"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/tauri-cli-generated-Cargo.toml",
+      "originalBytes": 5244,
+      "originalSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+      "storedBytes": 5244,
+      "storedSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/toolchain.json",
+      "originalBytes": 155,
+      "originalSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9",
+      "storedBytes": 155,
+      "storedSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/typescript.receipt.json",
+      "originalBytes": 244,
+      "originalSha256": "392971a06b7a389db07608885b2d158be0d109101847afcb113c4c694877b51b",
+      "storedBytes": 244,
+      "storedSha256": "392971a06b7a389db07608885b2d158be0d109101847afcb113c4c694877b51b"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/typescript.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "performance/rf312-windows-maintenance-admission-2026-10-09/typescript.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  ],
+  "diagnosticOnly": true,
+  "performanceMetrics": null,
+  "taskClosed": false,
+  "stageAccepted": false,
+  "oldHomeTimeoutRootCauseEstablished": false
+}

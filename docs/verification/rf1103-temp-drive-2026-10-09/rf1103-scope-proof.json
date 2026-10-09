@@ -1,0 +1,34 @@
+{
+  "task": "RF-1103",
+  "baseHead": "895c86e785cb26fc69ceb9510660715511865b58",
+  "changedScope": "cfg(test) allowed_fs_bases only",
+  "nonTestCodeUnchanged": true,
+  "beforeSha256": "b0a892d6d3289c4ecb5dba3c41ee66a7ab4530b6091d4e36bd49b2283c97eae9",
+  "afterSha256": "a0afc3799f74c04cb1685193150f52ade145a8b610279d876593ee4273753b29",
+  "redRun": {
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--verbose"
+    ],
+    "pid": 18660,
+    "exitCode": 101,
+    "elapsedSeconds": 5833.836331600003,
+    "sourceUnchanged": true,
+    "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+  },
+  "affectedFailures": [
+    "rf026_path_rejection_precedes_session_and_worker_uses_resolved_path",
+    "test_fs_get_file_size",
+    "test_fs_read_file_as_data_url",
+    "test_fs_read_file_as_data_url_unknown_ext",
+    "test_fs_read_file_as_text",
+    "test_fs_read_image_preview_command",
+    "rejects_missing_file",
+    "rejects_non_pdf_extension",
+    "rejects_oversize_pdf",
+    "serves_pdf_inside_whitelist"
+  ],
+  "at": "2026-10-09T16:14:08.356709+00:00"
+}

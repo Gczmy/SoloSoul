@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npx.cmd",
+    "tsc",
+    "--noEmit"
+  ],
+  "pid": 21640,
+  "exitCode": 0,
+  "elapsedSeconds": 20.976176800002577,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

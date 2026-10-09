@@ -25,6 +25,15 @@ where
     F: FnOnce() -> T + Send + 'static,
 {
     let activity = begin_owned_root_activity(owner)?;
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let activity = {
+        let activity = Arc::new(activity);
+        crate::native_perf::auth_trace::register_activity(
+            crate::native_perf::maintenance_trace::ActivityKind::OwnedBlockingWorker,
+            &activity,
+        );
+        activity
+    };
     Ok(tauri::async_runtime::spawn_blocking(move || {
         let _activity = activity;
         work()
