@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "test"
+  ],
+  "pid": 18588,
+  "exitCode": 1,
+  "elapsedSeconds": 28.623827999996138,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

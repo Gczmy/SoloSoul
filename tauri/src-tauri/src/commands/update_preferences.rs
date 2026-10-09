@@ -107,6 +107,13 @@ impl SourcePreferences {
                 }
             };
         result._activity = Some(Arc::new(activity));
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        if let Some(activity) = &result._activity {
+            crate::native_perf::auth_trace::register_activity(
+                crate::native_perf::maintenance_trace::ActivityKind::UpdateSourcePreferences,
+                activity,
+            );
+        }
         result.cache = resolve_cache(&svc).ok();
         result.account = svc.get_vault_store().zip(svc.get_current_account());
         let stored = result.account.as_ref().and_then(|(vault, id)| {

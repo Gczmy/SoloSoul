@@ -105,9 +105,13 @@ pub async fn login(
         .as_ref()
         .and_then(|trace| trace.span("maintenance-admission"));
     // 排队前独占维护准入；旧监听真实退出后，同一许可交给实际密码 worker。
-    let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
-        std::sync::Arc::clone(&owner),
-    )?;
+    let maintenance =
+        solosoul_core::import_activity::begin_owned_root_maintenance(std::sync::Arc::clone(&owner));
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    if let (Err(error), Some(span)) = (&maintenance, &perf_admission) {
+        span.maintenance_rejected(error);
+    }
+    let maintenance = maintenance?;
     #[cfg(all(feature = "native-perf", target_os = "windows"))]
     crate::native_perf::auth_trace::complete(perf_admission);
     #[cfg(all(feature = "native-perf", target_os = "windows"))]

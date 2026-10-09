@@ -1,0 +1,11 @@
+{
+  "defaultBuild": false,
+  "inputMethod": "SDK-CDP-Input",
+  "objectCount": 100,
+  "pid": 21904,
+  "port": 57583,
+  "root": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100-unrestricted\\sample-001",
+  "runId": "d2e1bc0b3f714ea2a5f42e38d3d6374d",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-ui-journey-requested"
+}

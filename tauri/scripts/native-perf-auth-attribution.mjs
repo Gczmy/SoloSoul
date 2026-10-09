@@ -8,15 +8,21 @@ import { main as journeyMain } from './native-perf-sdk-journey.mjs';
 import { parseJourneyArgs } from './native-perf-memory.mjs';
 import { safeError, newJson, normalizeWindowsPath, validateInputs } from './native-perf-run.mjs';
 import { describeAuthAttribution } from './native-perf-auth-contract.mjs';
+import { checkMaintenanceAdmission } from './native-perf-maintenance-contract.mjs';
 export async function authBinaryPreflight(exe) {
-  const marker = Buffer.from('windows-native-auth-attribution');
+  const markers = ['windows-native-auth-attribution', 'windows-native-maintenance-admission'].map(
+    (name) => Buffer.from(name),
+  );
+  const seen = new Set();
+  const maxLength = Math.max(...markers.map((marker) => marker.length));
   let tail = Buffer.alloc(0);
   for await (const part of createReadStream(exe)) {
     const chunk = Buffer.concat([tail, part]);
-    if (chunk.includes(marker)) return true;
-    tail = chunk.subarray(Math.max(0, chunk.length - marker.length + 1));
+    for (const [index, marker] of markers.entries()) if (chunk.includes(marker)) seen.add(index);
+    if (seen.size === markers.length) return true;
+    tail = chunk.subarray(Math.max(0, chunk.length - maxLength + 1));
   }
-  throw Error('Authentication stage attribution requires a current nondefault binary');
+  throw Error('Authentication and maintenance attribution require a current nondefault binary');
 }
 export async function runAuthenticationJourney(args) {
   return journeyMain(args, 'sdk-input');
@@ -83,6 +89,21 @@ export async function main(args = process.argv.slice(2)) {
         throw Error('Diagnostic artifact path or bounds rejected');
       const raw = JSON.parse(await readFile(file, 'utf8'));
       item.diagnostic = describeAuthAttribution(raw, sample.owned, sample.bound);
+      const admissionFile = path.join(sample.root, 'native-perf-maintenance-admission.json'),
+        admissionStat = await lstat(admissionFile);
+      if (
+        !admissionStat.isFile() ||
+        admissionStat.isSymbolicLink() ||
+        admissionStat.size > 4194304 ||
+        normalizeWindowsPath(await realpath(admissionFile)) !== normalizeWindowsPath(admissionFile)
+      )
+        throw Error('Maintenance diagnostic artifact path or bounds rejected');
+      item.maintenance = checkMaintenanceAdmission(
+        JSON.parse(await readFile(admissionFile, 'utf8')),
+        raw,
+        sample.owned,
+        sample.bound,
+      );
       item.success =
         sample.success === true &&
         item.diagnostic.frontend.flows.length === 2 &&

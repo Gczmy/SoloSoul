@@ -1,0 +1,12 @@
+{
+  "command": [
+    "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target\\release\\examples\\perf_baseline.exe",
+    "--verify-fixture",
+    "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000"
+  ],
+  "pid": 2740,
+  "exitCode": 0,
+  "elapsedSeconds": 0.8202120000059949,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

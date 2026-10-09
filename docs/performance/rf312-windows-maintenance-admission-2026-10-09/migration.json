@@ -1,0 +1,43 @@
+{
+  "at": "2026-10-09T13:49:06.963630+00:00",
+  "repo": "D:\\SoloSoul",
+  "branch": "codex/rf312-maintenance-admission",
+  "baseHead": "895c86e785cb26fc69ceb9510660715511865b58",
+  "cHead": "2e7c1bd3cefdcb519641d9165a33a475356786df",
+  "sourceFiles": {
+    "tauri/scripts/native-perf-auth-attribution.mjs": "275c797e7ad6f7890a9e5c7bf39d498b6feef40aaeb1a2665e447aa6a4825c1c",
+    "tauri/scripts/native-perf-auth-attribution.test.mjs": "1ac89b2b0c48c3b8f717e0a8a9084e3dbd2b745cc348df7c0e8e863992d6f84e",
+    "tauri/scripts/run-node-tests.mjs": "f763bdca24751a91ef49b4383c97de3d25894db3c56b3f4683aeac65ea3a1e34",
+    "tauri/src-tauri/src/commands/auth.rs": "085ab550429c33838f847b1d23cafef205f1231c573c54ac7d16b2f39d457a9a",
+    "tauri/src-tauri/src/commands/update_preferences.rs": "901638217d0e79b94bef5e8619462540e31d8e47eba54c11dccb89b6b4ced902",
+    "tauri/src-tauri/src/native_perf.rs": "0976790455459d7c3bde9e468217750fbf5820a5f8cae62dead8b64719061753",
+    "tauri/src-tauri/src/native_perf/auth_trace.rs": "609651b647b5e3958928a84e33120dff591c1fd7233e1db36b17395c5f158571",
+    "tauri/src-tauri/src/native_perf/sdk_journey.rs": "1deeba96863204463ff34e5c7b0c64314f422d7bf7b1fdd3ae569b0ca4753563",
+    "tauri/src-tauri/src/state/root_tasks.rs": "caf010865b36d5fc86955b3714263e8b870caa312c41d985c5dd22c2671da52d",
+    "tauri/scripts/native-perf-maintenance-contract.mjs": "dbf983e620e13a00269188ac641797a740ab833b7647a42055da7e7bd6e8af0f",
+    "tauri/scripts/native-perf-maintenance.test.mjs": "80732559eb8aca60ace791947b1828ea538ddc64971fe80c9c67a1474d702b09",
+    "tauri/src-tauri/src/native_perf/maintenance_contract.rs": "95c0bf9295a56ce255bebfb3e91c1442f1854eba18088a986b1646093cb6e49a",
+    "tauri/src-tauri/src/native_perf/maintenance_trace.rs": "393ec0ae5082284c4e83516e0c8f7ff12c39334d160abb86de35cf47ca25acf5"
+  },
+  "sourceNormalizedEqual": true,
+  "cSourceFreeze": {
+    "tauri/src-tauri/src/native_perf/auth_trace.rs": "784d9085d1ec56b0661334e5774dd8bc7b724251baff9e10bcbb8e709c147f48",
+    "tauri/src-tauri/src/native_perf/sdk_journey.rs": "83a668eafe36bd2a4799d234f8000a94eac019112f0fd298d50f4167d96fc1ed",
+    "tauri/src-tauri/src/native_perf.rs": "21648c8d608e2e0386ea2cd03e5c8b18b2c1ef45f1d9bf2eacbe9cbc95bbc0b3",
+    "tauri/src-tauri/src/state/root_tasks.rs": "facd3d3dd1d993b2b81fb37525fbf3c45912a85315851a1c67f2c926c6632506",
+    "tauri/src-tauri/src/commands/auth.rs": "b5dc2f83f86622108be0adc4733033529263cbcf71fc8d3c7f6e29b1120d5818",
+    "tauri/src-tauri/src/commands/update_preferences.rs": "293d552b20526241563de10e3718e21a791ce6e739d550ff1181f8b1c4187b33",
+    "tauri/src-tauri/src/native_perf/maintenance_contract.rs": "29964506710b69967c5e5d8b5d053330706e7ea66e511d977aeb99102b4aae21",
+    "tauri/src-tauri/src/native_perf/maintenance_trace.rs": "a3f43e89b79847ffeffbef54e25599368718f451b7d65216097fc127e30190c9",
+    "tauri/scripts/native-perf-auth-attribution.mjs": "bcfa130caf60ec3885bda278b396c2fa2657ab8e99cfe897af02286f8bc3c5a6",
+    "tauri/scripts/native-perf-auth-attribution.test.mjs": "56eb985a2d14639e2b89abeecd868be9615aea20f4ac29fca55b2fdb9e7b7dfe",
+    "tauri/scripts/native-perf-maintenance-contract.mjs": "b38c9eed522079d49246208376335450ecca1658e69dd3de49bf742b54f69d93",
+    "tauri/scripts/native-perf-maintenance.test.mjs": "ab80ecfb69ccc86cb23340c3cc9588e6f280e8b0ceabed8c531fd9788f991239",
+    "tauri/scripts/run-node-tests.mjs": "67046abfd7fdd1146007ec3d3a8c3e87d29fbba655dd3479b37cf6f8b8ac8219"
+  },
+  "patchSha256": "ff3d5699705db381e453d3fe50cc731b9242fa4732f0e44d17fa2aa3618da0ef",
+  "mainReportPreservedRf1101": true,
+  "closedCount": "282/291",
+  "defaultGatesUnchanged": true,
+  "cSourceAndStashesNotModified": true
+}

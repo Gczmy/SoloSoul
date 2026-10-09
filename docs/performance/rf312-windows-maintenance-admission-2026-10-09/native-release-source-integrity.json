@@ -1,0 +1,14 @@
+{
+  "compilerExitCode": 0,
+  "originalReleaseReceiptPreserved": true,
+  "changedInputs": [
+    "tauri/src-tauri/Cargo.toml"
+  ],
+  "difference": "CRLF to LF only; Cargo semantic values and normalized source unchanged",
+  "frozenManifestSha256": "edff461c8e2cbeebef93e06a2f4f9af78839cfa5c3657f1677b63a8961151ece",
+  "cliManifestSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+  "normalizedManifestSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+  "manifestSemanticallyEqual": true,
+  "all1827InputsRestoredByteForByte": true,
+  "sourceFileCount": 1827
+}

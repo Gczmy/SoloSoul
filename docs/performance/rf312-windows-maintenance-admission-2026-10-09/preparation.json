@@ -1,0 +1,125 @@
+{
+  "at": "2026-10-09T14:00:04.193653+00:00",
+  "fixtures": [
+    {
+      "fixture": "vault100",
+      "path": ".lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "vault100",
+      "path": "accounts.bak",
+      "sha256": "549e5e0c0964d812f45f85c849aa66731c5f12449ae0fb26d814480642efa797"
+    },
+    {
+      "fixture": "vault100",
+      "path": "accounts.json",
+      "sha256": "f6328e2ade2daa052c2a0d66c5f2aeffba915421a3bf4ed3072639c5174c6521"
+    },
+    {
+      "fixture": "vault100",
+      "path": "rf312-media-fixture.json",
+      "sha256": "7494761aa50e11a0028fec0a721e53b1b41afc65eaf104f2c4843cb13b4813b0"
+    },
+    {
+      "fixture": "vault100",
+      "path": "ui_preferences.json",
+      "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+    },
+    {
+      "fixture": "vault100",
+      "path": "acc_rf312_100\\config.json",
+      "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+    },
+    {
+      "fixture": "vault100",
+      "path": "acc_rf312_100\\vault.db",
+      "sha256": "d6ceac18f5cd9731a5f2b8d330c0b042df3b500ff63f7b5140f51740b4681dda"
+    },
+    {
+      "fixture": "vault100",
+      "path": "acc_rf312_100\\vault.db.pre_enc.bak",
+      "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+    },
+    {
+      "fixture": "vault100",
+      "path": "attachments\\obj_perf_00000000\\att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a\\preview.txt",
+      "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+    },
+    {
+      "fixture": "vault100",
+      "path": "attachments\\obj_perf_00000000\\att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099\\scanned.pdf",
+      "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+    },
+    {
+      "fixture": "vault100",
+      "path": "attachments\\obj_perf_00000000\\att_903366b1-f067-42c2-ba7f-8b6b373fc1aa\\text_only.pdf",
+      "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+    },
+    {
+      "fixture": "vault100",
+      "path": "attachments\\obj_perf_00000000\\att_cbcad012-0bf7-41c8-9db7-bce1bde45f50\\ocr_test.png",
+      "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+    },
+    {
+      "fixture": "vault5000",
+      "path": ".lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "accounts.bak",
+      "sha256": "6aea4759be6922f61a28eb23092f6d0c2044893fe03583227cf06335b7db3233"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "accounts.json",
+      "sha256": "8bedd59cac9e92bc13fdec00cfb045b3a3a2e3ee011e9508c71d62e143f56eed"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "rf312-media-fixture.json",
+      "sha256": "b4f6fb30477cbd0a9d4d73c1176113f3848580a77e083763b652655e35982d12"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "ui_preferences.json",
+      "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "acc_rf312_5000\\config.json",
+      "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "acc_rf312_5000\\vault.db",
+      "sha256": "80eab6283da3d877a3bc46d68546688700dc84ece38a2d141a5491f508bfbc2e"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "acc_rf312_5000\\vault.db.pre_enc.bak",
+      "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "attachments\\obj_perf_00000000\\att_255b1fea-d898-4032-b9f2-50a5c4a2dead\\text_only.pdf",
+      "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "attachments\\obj_perf_00000000\\att_81c08e5c-21c5-4a99-a132-6cc36b9827ad\\preview.txt",
+      "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "attachments\\obj_perf_00000000\\att_8f446f8f-ca10-4658-93eb-a93756fba963\\scanned.pdf",
+      "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+    },
+    {
+      "fixture": "vault5000",
+      "path": "attachments\\obj_perf_00000000\\att_965411e7-6595-45f5-b972-1369c082ce00\\ocr_test.png",
+      "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-auth-attribution-group",
+  "diagnosticOnly": true,
+  "performanceMetrics": null,
+  "samplesRequested": 3,
+  "success": false,
+  "samples": [
+    {
+      "index": 1,
+      "root": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100\\sample-001",
+      "journeySuccess": false,
+      "success": false,
+      "error": "ENOENT: no such file or directory, lstat 'D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100\\sample-001\\native-perf-auth-attribution.json'"
+    }
+  ],
+  "definitions": {
+    "response": "Only Tauri-Response status header; no response body. Header arrival does not prove invoke Promise completion.",
+    "frontend": "Same document performance clock for request, headers, actual await completion and state write.",
+    "backend": "Separate process-monotonic clock; inclusive nested stage durations are not summed or subtracted from frontend durations.",
+    "pairing": "Per-command ordinal pairing only when both command streams are serial and their counts agree. Otherwise concurrency is explicitly ambiguous."
+  }
+}

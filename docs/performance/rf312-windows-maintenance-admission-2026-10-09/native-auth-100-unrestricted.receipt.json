@@ -1,0 +1,21 @@
+{
+  "command": [
+    "node",
+    "scripts/native-perf-auth-attribution.mjs",
+    "--exe",
+    "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\bin\\solo_soul.exe",
+    "--fixture",
+    "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+    "--output",
+    "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\auth100-unrestricted",
+    "--samples",
+    "3"
+  ],
+  "pid": 25960,
+  "exitCode": 1,
+  "elapsedSeconds": 113.88759610000125,
+  "sourceUnchanged": true,
+  "exeSha256": "801281f2b4cd748c0269b1ac3a9cfa205bb2e3d6f82ed060006db7bdb13a170c",
+  "pdfiumOverrideInherited": false,
+  "sandbox": "unrestricted"
+}

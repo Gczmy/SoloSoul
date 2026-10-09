@@ -524,7 +524,7 @@ impl Capture {
         {
             return Err("auth-document-replaced");
         }
-        let (backend, permissions) = super::auth_trace::snapshots(&self.config.run_id);
+        let (backend, permissions, maintenance) = super::auth_trace::snapshots(&self.config.run_id);
         if !super::auth_contract::backend(&backend, &self.config.run_id) {
             return Err("auth-backend-invalid");
         }
@@ -535,6 +535,20 @@ impl Capture {
             std::process::id(),
         ) {
             return Err("permission-diagnostic-invalid");
+        }
+        publish(
+            self.config.evidence_root(),
+            "native-perf-maintenance-admission.json",
+            &maintenance,
+        )
+        .map_err(|_| "maintenance-publication-failed")?;
+        if !super::maintenance_contract::valid(
+            &maintenance,
+            &backend,
+            &self.config.run_id,
+            std::process::id(),
+        ) {
+            return Err("maintenance-diagnostic-invalid");
         }
         publish(
             self.config.evidence_root(),

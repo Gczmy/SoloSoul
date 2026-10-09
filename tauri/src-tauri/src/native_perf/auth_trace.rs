@@ -45,6 +45,7 @@ struct PermissionRecord {
 }
 struct Records {
     permission_commands: Vec<PermissionRecord>,
+    maintenance: super::maintenance_trace::Records,
     clock: Instant,
     attempts: Vec<AttemptRecord>,
     invalid_reasons: Vec<&'static str>,
@@ -53,6 +54,7 @@ impl Records {
     fn new() -> Self {
         Self {
             permission_commands: Vec::new(),
+            maintenance: super::maintenance_trace::Records::default(),
             clock: Instant::now(),
             attempts: Vec::new(),
             invalid_reasons: Vec::new(),
@@ -271,7 +273,39 @@ impl UnlockObserver for Handle {
         });
     }
 }
+/// 仅采集显式隔离 root 的实际许可，正式账户/其他目录不登记。
+pub fn register_activity(
+    kind: super::maintenance_trace::ActivityKind,
+    guard: &Arc<solosoul_core::import_activity::RootActivityGuard>,
+) {
+    let Some(config) = RUNTIME.get().filter(|config| config.sdk_journey) else {
+        return;
+    };
+    let records = RECORDS.get_or_init(|| Arc::new(Mutex::new(Records::new())));
+    if let Ok(mut rows) = records.lock() {
+        let at = rows.at();
+        rows.maintenance.register(guard, kind, &config.vault, at);
+    }
+}
 impl Span {
+    pub fn maintenance_rejected(&self, error: &str) {
+        let Ok(mut rows) = self.handle.records.lock() else {
+            return;
+        };
+        let attempt = &rows.attempts[self.handle.index];
+        let stage = &attempt.stages[self.token as usize];
+        if !attempt.root_verified
+            || attempt.kind != "login"
+            || stage.name != "maintenance-admission"
+            || stage.outcome != "running"
+        {
+            rows.maintenance.invalidate("failure-stage-invalid");
+            return;
+        }
+        let (id, start) = (attempt.id, stage.started_at_ms);
+        let at = rows.at();
+        rows.maintenance.rejected(id, self.token, start, at, error);
+    }
     pub fn complete(mut self) {
         self.completed = true;
     }
@@ -286,8 +320,8 @@ pub fn complete(span: Option<Span>) {
         span.complete();
     }
 }
-// 两份诊断在同一把锁下捕获，使用同一时刻，避免部分 worker 更新导致错配。
-pub fn snapshots(run_id: &str) -> (Value, Value) {
+// 三份诊断在同一把锁下捕获，使用同一时刻，避免部分 worker 更新导致错配。
+pub fn snapshots(run_id: &str) -> (Value, Value, Value) {
     let records = RECORDS.get_or_init(|| Arc::new(Mutex::new(Records::new())));
     match records.lock() {
         Ok(rows) => snapshots_from(&rows, run_id),
@@ -296,10 +330,11 @@ pub fn snapshots(run_id: &str) -> (Value, Value) {
                 "clockScope":"process-monotonic","atMs":0.0,"valid":false,"invalidReasons":["trace-lock-poisoned"],"maxAttempts":MAX_ATTEMPTS,"maxStages":MAX_STAGES,"attempts":[]}),
             json!({"schemaVersion":1,"scope":"windows-native-permission-commands","runId":run_id,"pid":std::process::id(),
                 "clockScope":"process-monotonic","atMs":0.0,"valid":false,"invalidReasons":["trace-lock-poisoned"],"maxCommands":MAX_PERMISSION_COMMANDS,"commands":[]}),
+            super::maintenance_trace::Records::default().snapshot(run_id, 0.0, false),
         ),
     }
 }
-fn snapshots_from(rows: &Records, run_id: &str) -> (Value, Value) {
+fn snapshots_from(rows: &Records, run_id: &str) -> (Value, Value, Value) {
     let at = rows.at();
     let valid =
         rows.invalid_reasons.is_empty() && rows.attempts.iter().all(|row| row.root_verified);
@@ -310,6 +345,7 @@ fn snapshots_from(rows: &Records, run_id: &str) -> (Value, Value) {
         json!({"schemaVersion":1,"scope":"windows-native-permission-commands","runId":run_id,"pid":std::process::id(),
             "clockScope":"process-monotonic","atMs":at,"valid":valid,
             "invalidReasons":rows.invalid_reasons,"maxCommands":MAX_PERMISSION_COMMANDS,"commands":rows.permission_commands}),
+        rows.maintenance.snapshot(run_id, at, valid),
     )
 }
 
@@ -361,6 +397,37 @@ mod tests {
         Handle { records, index: 0 }
     }
     #[test]
+    fn maintenance_error_binds_current_verified_login_stage_only() {
+        let handle = permission_handle(true);
+        let span = handle.span("maintenance-admission").unwrap();
+        span.maintenance_rejected("IMPORT_OPERATIONS_ACTIVE");
+        drop(span);
+        let rows = handle.records.lock().unwrap();
+        let (backend, _, maintenance) = snapshots_from(&rows, "0123456789abcdef0123456789abcdef");
+        assert!(super::super::maintenance_contract::valid(
+            &maintenance,
+            &backend,
+            "0123456789abcdef0123456789abcdef",
+            std::process::id()
+        ));
+        assert_eq!(
+            maintenance["failures"][0]["errorClass"],
+            "operations-active"
+        );
+        drop(rows);
+        for (verified, name) in [(false, "maintenance-admission"), (true, "sync-disable")] {
+            let handle = permission_handle(verified);
+            handle
+                .span(name)
+                .unwrap()
+                .maintenance_rejected("IMPORT_OPERATIONS_ACTIVE");
+            let rows = handle.records.lock().unwrap();
+            let (_, _, maintenance) = snapshots_from(&rows, "public");
+            assert_eq!(maintenance["failures"], json!([]));
+            assert_eq!(maintenance["valid"], false);
+        }
+    }
+    #[test]
     fn permission_outcomes_bind_active_stage_and_capture_both_snapshots_atomically() {
         let handle = permission_handle(true);
         handle.permission(
@@ -382,8 +449,9 @@ mod tests {
         );
         handle.end(token, false);
         let rows = handle.records.lock().unwrap();
-        let (backend, permissions) = snapshots_from(&rows, "public-run-id");
+        let (backend, permissions, maintenance) = snapshots_from(&rows, "public-run-id");
         assert_eq!(backend["atMs"], permissions["atMs"]);
+        assert_eq!(backend["atMs"], maintenance["atMs"]);
         assert_eq!(
             backend["attempts"][0]["stages"][0]["outcome"],
             "interrupted"

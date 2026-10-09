@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "scripts/check-markdown-chunk-boundary.mjs"
+  ],
+  "pid": 20100,
+  "exitCode": 0,
+  "elapsedSeconds": 5.199006499999086,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

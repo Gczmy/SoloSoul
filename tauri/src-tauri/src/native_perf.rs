@@ -5,6 +5,8 @@ compile_error!("native-perf is supported only on Windows");
 mod auth_contract;
 pub mod auth_trace;
 mod fixture;
+mod maintenance_contract;
+pub mod maintenance_trace;
 mod media_fixture;
 mod permission_contract;
 #[cfg(test)]
@@ -47,7 +49,7 @@ const CHILD_DIRS: &[&str] = &[
 // RF-312：离线检查依赖完整字节标记。优化器可能把参数比较内联成机器指令，
 // 因此在预检入口保留不透明引用；仅此非默认功能的模块包含该标记块。
 #[used]
-static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested\0windows-native-sdk-pdf-target-diagnostic-requested\0windows-native-sdk-pdf-component-diagnostic-requested\0windows-native-sdk-pdf-structure-diagnostic-requested\0windows-native-sdk-pdf-first-page-requested\0windows-native-sdk-pdf-cipher-binding-requested\0windows-native-sdk-pdf-frame-stability-requested\0windows-native-sdk-ocr-journey-requested\0windows-native-auth-attribution";
+static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested\0windows-native-sdk-pdf-target-diagnostic-requested\0windows-native-sdk-pdf-component-diagnostic-requested\0windows-native-sdk-pdf-structure-diagnostic-requested\0windows-native-sdk-pdf-first-page-requested\0windows-native-sdk-pdf-cipher-binding-requested\0windows-native-sdk-pdf-frame-stability-requested\0windows-native-sdk-ocr-journey-requested\0windows-native-auth-attribution\0windows-native-maintenance-admission";
 
 static RUNTIME: OnceLock<RuntimeConfig> = OnceLock::new();
 

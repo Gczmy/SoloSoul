@@ -198,6 +198,15 @@ test('auth binary preflight rejects old build and accepts explicit marker across
       file,
       Buffer.concat([Buffer.alloc(65530), Buffer.from('windows-native-auth-attribution')]),
     );
+    await assert.rejects(authBinaryPreflight(file));
+    await writeFile(
+      file,
+      Buffer.concat([
+        Buffer.from('windows-native-auth-attribution'),
+        Buffer.alloc(65500),
+        Buffer.from('windows-native-maintenance-admission'),
+      ]),
+    );
     assert.equal(await authBinaryPreflight(file), true);
   } finally {
     await rm(root, { recursive: true, force: true });
