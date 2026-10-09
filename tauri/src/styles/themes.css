@@ -23,7 +23,8 @@
   --text-inverse: #ffffff;
   --text-accent: var(--accent-primary);
   --text-warm: var(--accent-warm);
-  --text-error: #c0392b;
+  /* 错误正文也用于半透明登录卡片，不能只按纯白表面选色。 */
+  --text-error: #a32f23;
   --text-success: #27ae60;
   --text-warning: #d4a017;
 

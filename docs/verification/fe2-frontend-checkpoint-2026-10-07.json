@@ -2,16 +2,16 @@
   "schema_version": 2,
   "task": "FE2",
   "date": "2026-10-07",
-  "updated_at": "2026-10-09",
+  "updated_at": "2026-10-09T10:20:51.049927+00:00",
   "baseline_commit": "8ccb7b38",
   "production_commit": "329f1ef0e",
   "scope": "资料精简后的当前摘要，记录归档后当前冻结隔离包深浅纯移动及普通拖拽人工确认与应用内续验；旧证据来源、失败结论和完整历史 checkpoint 保留。",
   "status": "in_progress",
   "task_counts": {
     "total": 21,
-    "complete": 15,
+    "complete": 17,
     "in_progress": 0,
-    "pending_validation": 6
+    "pending_validation": 4
   },
   "latest_checks": {
     "receipt": "docs/verification/fe2-push-checks-2026-10-08/receipt.json",
@@ -134,12 +134,12 @@
     }
   },
   "remaining_validation": [
-    "FE2-020已关闭：当前第二隔离包深浅纯移动区域切换和普通拖拽均由用户确认。当前浅色矮窗口独立工具区滚动、后台返回无闪黑及顶部/圆角也获用户确认；矮窗口登录仅实际主密码稳定布局覆盖。完整macOS材质/辅助功能/其他登录方式/全屏及性能仍保留在FE2-002～005/007，不扩成全矩阵通过。",
-    "全屏黑栏已实现修复：专项原生两次全屏/退出均为0/52pt，工具栏及表面实例稳定；用户手动解锁后，最终完整客户端深浅色全屏收起/展开侧栏、指南实际打开/关闭及退出顶栏对齐的稳定视图通过。纯悬停和普通拖拽已交还最终包请求用户确认；旧原生命中断言失败保留，连续视觉和完整原生矩阵未关闭。",
-    "macOS FE2-002～005 / 007：完整材质、顶栏及主动交通灯、各导航/菜单、登录方式、辅助功能/回退、窄矮窗口、Dock/台前调度连续恢复与实体性能仍需补验；旧照片缩放采集异常保留。 新导入合成照片100%及文本稳定视图已观察；旧附件路径属于测试数据不一致，不据此判产品预览回归。同句柄采集已恢复，新附件120%/144%/复位与照片查看器100%/120%/返回稳定视图通过；连续恢复和完整材质矩阵仍待验。",
+    "FE2-020已关闭：当前第二隔离包深浅纯移动区域切换和普通拖拽均由用户确认。当前浅色矮窗口独立工具区滚动、后台返回无闪黑及顶部/圆角也获用户确认；矮窗口登录仅实际主密码稳定布局覆盖。其余macOS辅助功能/其他登录方式/全屏及性能仍保留在FE2-004/005/007，不扩成全矩阵通过。",
+    "v4全屏进入黑条及退出顶栏高度缺陷已由用户确认修复成功并提交推送为f8a874ecd；取消/失败进入路径、旧原生命中断言失败、完整连续视觉和原生矩阵继续待验。",
+    "macOS FE2-004 / 005 / 007：FE2-002侧栏材质及FE2-003顶栏材质/通知边界已关闭；当前代码及隔离包实际更新横幅、导航切换、全屏/指南/退出/关闭通知、浅深色预览稳定视图与既有AppKit几何共同补证。登录其他方式/系统字号、完整辅助功能与账户切换（当前系统浅深色跟随及主密码锁定/解锁已补证）、连续Dock/台前调度恢复、失败全屏路径和实体性能仍待验。旧原生命中失败、采集异常和高对比品牌缺失人工区分保留，不将稳定视图认作逐帧或性能通过。系统辅助功能初值已恢复。",
     "Android FE2-014：API31 / WebView91 选择器返回后暗色预览的严格像素检查仍失败。真实导入/加密/解密和部分稳定帧有证据，诊断帧不得计作产品通过；完整旧引擎预览/fallback、其他 API/IME/字体/生命周期、多图/PDF/大附件、连续动画与实体性能待验。",
     "iOS FE2-014：现有真实选择器、非空预览、多图/返回和双账户主题结果绑定原包；PDF 系统打开失败与错误反馈可读已记录，不能称为 PDF 支持通过。其余生命周期/PIN/生物识别/分享/材质能力/版本/连续动画与实体性能待验。",
-    "Windows 原生合成器回归不在当前 macOS 环境完成；任务计数维持 21 项、15 完成、0 进行中、6 待验证。"
+    "Windows 原生合成器回归不在当前 macOS 环境完成；任务计数为21项、17完成、0进行中、4待验证。"
   ],
   "source_sha256_scope": "沿用 75f1c1594504dd6e09af57ff6debd25cccce03fa 原 checkpoint 的 174 项当前源文件冻结。历史构建与执行快照范围见原 checkpoint，未回溯升级；此资料清理未修改产品、测试或原生适配代码。；其后全屏修复的当前源码散列见 macos_fullscreen_fix.source_sha256，旧 source_sha256 保持原证据绑定，不把旧全量检查改绑到修复包。",
   "source_sha256": {
@@ -151,7 +151,7 @@
     "tauri/e2e/fixtures/scrollRegion.html": "8610d6aa30926d75c3fda400a69dc399ac9e7640c335ce5ca6ae8d86edc88f1d",
     "tauri/e2e/fixtures/scrollRegionHarness.tsx": "21a434375fdfc03316821fd745ba2955bca2dbd869cefa899e998447c98aefcf",
     "tauri/e2e/history-keyboard.spec.ts": "783d384c06b77f1df0b146b39e27c9c2d32bc8f71c29776aaadfe080dcadd67b",
-    "tauri/e2e/login-method-layout.spec.ts": "dfe3ac92eda02450d73e9e205fd5f1396c8ab94a92d8a4364242df61272c34ca",
+    "tauri/e2e/login-method-layout.spec.ts": "621d71adf17e7c672e6c3d228ec9ddada1180ed1cad2255aa79111472ab808d4",
     "tauri/e2e/macos-glass.spec.ts": "f6ebd8c9d45d3696220b9ab050ca3ed8f8834b1c5715c566a90b55be6654bd58",
     "tauri/e2e/macos-preview-titlebar.spec.ts": "091acedb5f2b71d65cbc19fb3eba9fe34d1ca3ada486ebe4c6916d8b3ffcf2af",
     "tauri/e2e/macos-titlebar.spec.ts": "4caa6dd520a35a800e9f054a0cec6585a93ca171d9c9d19096813eb806329f0a",
@@ -291,9 +291,9 @@
     "tauri/src/locales/zh-CN/common.json": "3bb0e5679730c0921c5962eba24bdf6e7a357db8ef181d586ee07541958064ce",
     "tauri/src/locales/zh-CN/settings.json": "30ffb1e29299f867460345ce3ddf8dca7023ee69968aa04650316611da97b25a",
     "tauri/src/main.tsx": "047fd8bca658d5d6a541150c053318ac4987b210948aa109284623f799bd3b83",
-    "tauri/src/pages/auth/LoginAccountSelector.tsx": "91d544cdb65340a2e3a077dbc716f05d65d92b598abec5d0b34e517ecfd83a42",
+    "tauri/src/pages/auth/LoginAccountSelector.tsx": "349ed8464e2f0d507beb816e290e3a56874d40934a3c9e40e2197a58842b970c",
     "tauri/src/pages/auth/LoginBiometricView.tsx": "fbb8a78554cf5448f7a0264d04be0916355f8d567a41ccd73bcae749780c9210",
-    "tauri/src/pages/auth/LoginIconBar.tsx": "b4266c9a316fd9e0d42a7b790472ac480e517aee4867cf8382f61b24827636aa",
+    "tauri/src/pages/auth/LoginIconBar.tsx": "6b9695f7f378fadfc7fd6135f8c951e07a601a40e063d0f3a79abee5e1ecec65",
     "tauri/src/pages/auth/LoginPage.module.css": "3fedf1150b6b47719d24a2230f293673a78ad2eca52b70d007f68010f81b6692",
     "tauri/src/pages/auth/LoginPage.tsx": "9c3375097dfa126871ce2c7dea715db775a5a41158101f00f6f33170406c7698",
     "tauri/src/pages/auth/LoginPasswordView.tsx": "5463a91ab1fe6c179c35172ff70b8f942a52dbb85822080998a5c1abe611e724",
@@ -316,7 +316,8 @@
     "tauri/src/styles/tokens.css": "992d1b6d3ba84ba00c769566ad2d376c87ff99a7a6c27713d25ae711c9c0817a",
     "tauri/src/styles/windows-material.css": "25b9019060a291e3bab022b1111fb2453258c95716a9617c6c33830dad349786",
     "tauri/vite.config.ts": "32c47fe6dc2bea97c2409e9b0dce2bfba86976cfa413b90f585ffcdc86222f91",
-    "tauri/vitest.config.ts": "771327b021add81dac0b4d16c64d56985278e4be96b34227c63c06f6de978e63"
+    "tauri/vitest.config.ts": "771327b021add81dac0b4d16c64d56985278e4be96b34227c63c06f6de978e63",
+    "tauri/src/pages/auth/LoginIconBar.module.css": "5753041f5273de2bdd3586ccbd5374ab8839fa5ed9739d6a893ce55d81efc4e3"
   },
   "external_evidence_archive": {
     "index": "docs/verification/fe2-evidence-index-2026-10-08.json",
@@ -649,6 +650,1467 @@
       "source_changes_since_tested_build": [],
       "commit_and_push_authorized": true,
       "full_FE2_matrix_closed": false
+    }
+  },
+  "macos_system_accessibility": {
+    "date": "2026-10-09",
+    "temporary_changes_authorized": true,
+    "permission_question": "answered",
+    "human_authorization": "允许临时切换，验收后恢复",
+    "changes_executed": true,
+    "initial": {
+      "reduce_transparency": false,
+      "increase_contrast": false,
+      "reduce_motion": false
+    },
+    "restored": {
+      "reduce_transparency": false,
+      "increase_contrast": false,
+      "reduce_motion": false
+    },
+    "restoration_verified": true,
+    "verification_method": "actual System Settings AX switch values; reduce motion on Motion page, other two on Display page",
+    "client_bundle": "/tmp/solosoul-fe2-macos-fullscreen-fix-20261009-v4/SoloSoulFE2Mac.app",
+    "client_binary_sha256": "07361e5d0732b4ec83eb450e43839eb64639a37ee7e882dce4be894c0c4d1738",
+    "observations": {
+      "reduce_motion": "enabled and restored; actual keyboard focus/Return expanded tools menu; stable menu readable; no continuous timing measurement",
+      "reduce_transparency": "enabled and restored; live solid shell/menu in light and dark; actual dark lock/login readable; disabling restored normal shell",
+      "increase_contrast": "enabled and restored; OS forces reduce transparency on and disables its switch; light login and light/dark home readable with stronger boundaries; OS restores reduce transparency off when contrast disabled",
+      "dark_login_anomaly": "native screenshot shows image, SoloSoul heading, method key icon absent while AX retains them; reproduced from an intact dark login by toggling contrast on; persists in next screenshot after contrast off; light contrast login previously intact. Product painting vs capture artifact unresolved; requested human visual confirmation",
+      "actual_unlock": "existing public synthetic password, successful; no credentials changed"
+    },
+    "input_and_capture_limits": [
+      "native tool button click and AX Expand did not keep tools expanded; keyboard focus/Return did; not counted as pure-hover evidence",
+      "one native capture pipe interruption recovered on same handle; no app restart",
+      "screenshots only in tool outputs, no exported pixel/continuous-frame evidence"
+    ],
+    "formal_data_accessed": false,
+    "credentials_changed": false,
+    "full_matrix_passed": false,
+    "pending_human_input": "previous frozen-v4 visibility observation not yet answered; current app has changed to long-name fix and light home, so current view alone cannot resolve old capture anomaly",
+    "documentation": "tauri/native-regression/macos-client/README.md",
+    "followup": "same frozen v4: title/icons seen intact before new toggle; Raise alone did not fully restore; actual resize while high contrast still on restored all icons; restored contrast and transparency off again. Cause remains unresolved; no full pass.",
+    "current_package_followup": {
+      "client_bundle": "/tmp/solosoul-fe2-macos-login-long-name-20261009/SoloSoulFE2Mac.app",
+      "client_binary_sha256": "10337dbe74e5e1a7977672cf6c9e008929b8de104325a3f8a9f12e03f0d59323",
+      "actual_dark_login_before_toggle": "brand image, heading and method key visible in stable native screenshot",
+      "increase_contrast_toggle": "actual System Settings on; reduce transparency automatically on and disabled; next native screenshot again lacks brand image, heading and method key while AX retains them",
+      "native_inspector": "opened built-in Web Inspector using existing debug shortcut; Elements shows data-theme=dark, data-native-material=solid, data-high-contrast=true; image remains in DOM with display:block and 48px width/height; screenshot with inspector has visible heading/image",
+      "diagnostic_limit": "readonly Console expression input observed but no reliable evaluation result; Computed panel observed only inherited variables, not visibility/opacity. No claim to have measured missing-state computed style, image decode or compositor cause. A later screenshot showed full login while AX still included inspector, so capture/window-selection mismatch also remains possible",
+      "system_restoration": "actual Display AX: increase contrast off and reduce transparency off; actual Motion AX: reduce motion off",
+      "client_restoration": "inspector closed; actual existing public synthetic password unlock successful; application theme restored light; left-expanded home with original synthetic account name visible",
+      "product_changes_this_followup": false,
+      "human_visual_confirmation_received": false,
+      "full_matrix_passed": false,
+      "native_images_exported": false
+    },
+    "keyboard_package_followup": {
+      "initial_and_final": {
+        "reduce_transparency": false,
+        "increase_contrast": false,
+        "reduce_motion": false
+      },
+      "real_operations": "Motion off read; enable contrast (OS forces transparency on), then disable contrast and transparency; final Display AX confirms both off",
+      "dark_login": "Brand/title/key intact in this stable contrast-enabled sample; actual click then four Tabs yields visible white method focus ring. Focused element not emitted in that contrast-stage AX sample",
+      "prior_anomaly_closed": false,
+      "limit": "One positive sample cannot resolve earlier repeated missing brand/title/key capture or distinguish redraw versus capture fault; manual visual answer still needed"
+    }
+  },
+  "long_account_name_revision": {
+    "date": "2026-10-09",
+    "scope": "FE2-004 single-account long unbroken name rendering; full macOS matrix remains pending",
+    "trigger": "actual synthetic account renamed to a 91-character unbroken ASCII name; dark login clipped it at card right edge",
+    "production_change": "LoginAccountSelector account-name text wraps anywhere; account ID ellipsis, card geometry and authentication logic unchanged",
+    "source": {
+      "manifest": {
+        "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/source.json",
+        "bytes": 166247,
+        "sha256": "b94c0a0d232cae137fa8359f6e65a821dd99d946a65ec10c67740dcee39c1f1c"
+      },
+      "files": 1370,
+      "current_differences": [],
+      "production_differences_from_v4": [
+        "tauri/src/pages/auth/LoginAccountSelector.tsx"
+      ]
+    },
+    "build": {
+      "passed": true,
+      "bundle": "/tmp/solosoul-fe2-macos-login-long-name-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "10337dbe74e5e1a7977672cf6c9e008929b8de104325a3f8a9f12e03f0d59323",
+      "report": {
+        "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/report.json",
+        "bytes": 2812,
+        "sha256": "fcab13a62bf55e610e40164738f255cc35c1be9d4dc19813a7ca3aba0633d925"
+      },
+      "protected_original_inputs_unchanged": true,
+      "frozen_v4_unchanged": true
+    },
+    "checks": {
+      "before_browser": {
+        "failed": 4,
+        "scope": "macOS light/dark Chromium/WebKit; real text had only one overflowing line",
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/before.log",
+          "bytes": 7550,
+          "sha256": "7ebcd5eb5b2ec8b0653e8886147a9aab2bbdbf606861099cab2fce500d7488f9"
+        }
+      },
+      "browser": {
+        "passed": 26,
+        "scope": "all four platform styles; light/dark long-name, normal/24px text, existing three login methods",
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/after.log",
+          "bytes": 7299,
+          "sha256": "a8caa14be5cc5de9ea66f082d143b4cd3bc57eb16052942e6aeb650ec70189b3"
+        }
+      },
+      "controls_followup": {
+        "passed": 16,
+        "scope": "long-name subset; input, submit, recovery and PIN controls scroll into viewport with actual hit testing; not 16 additional unique cases",
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/controls-after.log",
+          "bytes": 4663,
+          "sha256": "75af0e2bbc3ea3b290676cdce14c5717866121a3bb6fa0db7b80248bb8ce3326"
+        }
+      },
+      "typescript": "passed; explicit command exit 0",
+      "targeted_eslint": "passed before Vitest in && chain",
+      "format": "passed",
+      "vitest": {
+        "passed": 6,
+        "files": 2,
+        "log": {
+          "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/frontend-checks-retry.log",
+          "bytes": 229,
+          "sha256": "eedb6d79e9fd25f208476eb583c61d9480a6cb9832039e8b66e7ad83070fe05d"
+        }
+      },
+      "preserved_environment_failures": [
+        {
+          "reason": "sandbox prevented localhost server bind EPERM; allowed local-server retry ran the four expected product failures",
+          "log": {
+            "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/before-environment.log",
+            "bytes": 1543,
+            "sha256": "66964f888096e9e312df0b166d3adef9a98d1ccb46868e8a72ec961098e5af47"
+          }
+        },
+        {
+          "reason": "Node experimental host localStorage conflicted with jsdom; disabled host experimental webstorage, same six tests passed",
+          "log": {
+            "path": "/tmp/solosoul-fe2-macos-login-long-name-20261009/frontend-checks.log",
+            "bytes": 1564,
+            "sha256": "639af3f501f3ab82a027b54992f8e09c1fa2212c3ba37222e4d7e95e262a19e9"
+          }
+        }
+      ]
+    },
+    "native": {
+      "verified_pid": 61650,
+      "verified_process_binary": "/private/tmp/solosoul-fe2-macos-login-long-name-20261009/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul",
+      "launch": "standard LaunchServices, no external run.py sandbox inherited",
+      "actual_rename_lock_unlock": true,
+      "dark_and_light_short_login": "passed observed stable native views: full 91-character name wraps into four lines; input, submit, recovery and method icon visible",
+      "wrong_password": "one intentional public invalid password; actual error text/red border visible, followed by existing-password unlock",
+      "original_account_name_restored": true,
+      "initial_light_theme_left_expanded_navigation_restored": true,
+      "native_font_size_setting_changed": false,
+      "formal_data_accessed": false,
+      "credentials_changed": false,
+      "screenshot_scope": "tool output only; no exported native PNG or pixel/continuous-animation proof",
+      "latest_ui": "light short windowed home; left expanded; original synthetic account name"
+    },
+    "high_contrast_followup": {
+      "client": "frozen v4; not this new bundle",
+      "result": "missing captured icons reproduced after contrast toggle; existing selected heading could repaint while image/key remained absent; actual resize under contrast on restored icons without toggling contrast off; capture/painting cause unresolved",
+      "system_switches_restored": true,
+      "full_accessibility_passed": false
+    },
+    "committed": false,
+    "pushed": false,
+    "full_goal_completed": false
+  },
+  "keyboard_focus_revision": {
+    "date": "2026-10-09",
+    "problem": "Real native Tab focuses the login method button but selected border alone has no distinct keyboard focus indicator; inline outline:none suppresses it",
+    "change": "Shared login method button has focus-visible inset outline; high contrast uses primary black/white text color; forced colors uses Highlight. Dimensions, hover expansion and authentication handlers unchanged",
+    "source_sha256": {
+      "tauri/src/pages/auth/LoginIconBar.tsx": "6b9695f7f378fadfc7fd6135f8c951e07a601a40e063d0f3a79abee5e1ecec65",
+      "tauri/src/pages/auth/LoginIconBar.module.css": "5753041f5273de2bdd3586ccbd5374ab8839fa5ed9739d6a893ce55d81efc4e3",
+      "tauri/e2e/login-method-layout.spec.ts": "b246d69afc12430b22769aef569435b10fcfd363ed1834e535ede764d55065f0"
+    },
+    "external_evidence_root": "/tmp/solosoul-fe2-login-keyboard-focus-20261009",
+    "evidence_sha256": {
+      "before-environment.log": "340febbc564241fb4444a6c66b49a61af807ace32c5dbfd01db463b06e6328a6",
+      "before.log": "ede6295b1129ad4b4512701da8a52850d272f28c9582c521a995a1e13fd1ea85",
+      "before-webkit-option-tab.log": "7fa6e35c6f472319605b743e2db087d2ddaccc2ba4a436e683d419482336478f",
+      "after.log": "e05af61b6d3f5fd31dd178ee63566dd586bade1048ba64388be9d4b72c8d321b",
+      "high-contrast-after.log": "97bd5b8af1e33868b766a81ae15d35901eed64192f72081b99aab8dab7870e56",
+      "lint.log": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "test.log": "8a9263f088aa6af7c220b37ba2bb5b0a257aada00b3c9492f7b9c0c57d047fb3",
+      "build.py": "eda705b3223e8a192368b36611e14e2a109c09806cd09d9b53eb811636e52a0c",
+      "build.log": "cee736a9521ddd66bf45fa034265d6961c7b46f259f426060a27a3e7d958d1c1",
+      "report.json": "669d1c68ff9f014101893d7f0507574a5019791dc13d9144380993c51221ce90",
+      "source.json": "31750cfcd189b8ad29ee7f55538b2ac53ede70bc86e18da6bb82e99a4cc01c8a"
+    },
+    "checks": {
+      "before": "Chromium macOS light fails distinct focus indicator; initial WebKit default Tab skips buttons; with Safari Option-Tab same indicator assertion fails. Original results retained",
+      "after_layout": {
+        "passed": 42,
+        "failed": 0,
+        "engines": [
+          "chromium",
+          "webkit"
+        ],
+        "scope": "Four platform styles, light/dark, long names, three method layout and real keyboard focus/activation; browser mocks are not native authentication"
+      },
+      "after_high_contrast": {
+        "passed": 16,
+        "failed": 0,
+        "scope": "Same keyboard subset with extra high contrast DOM marker check; not 16 additional independent scenarios nor native system setting validation"
+      },
+      "typescript_exit_code": 0,
+      "lint_exit_code": 0,
+      "lint_existing_warnings": 1,
+      "unit": {
+        "vitest_files_passed": 260,
+        "vitest_tests_passed": 2344,
+        "node_passed": 192,
+        "node_skipped": 25,
+        "node_failed": 0,
+        "exit_code": 0,
+        "environment": "NODE_OPTIONS=--no-experimental-webstorage"
+      },
+      "targeted_unit_passed": 8
+    },
+    "build": {
+      "passed": true,
+      "app": "/tmp/solosoul-fe2-login-keyboard-focus-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "ab4b756073c7b3e50fc8e546743040268178686b66cfe845a4e3bd69d3d32a6a",
+      "source_manifest_count": 1371,
+      "production_difference_from_long_name_build": [
+        "tauri/src/pages/auth/LoginIconBar.module.css",
+        "tauri/src/pages/auth/LoginIconBar.tsx"
+      ],
+      "platform_inputs_unchanged": true,
+      "v4_frozen_artifacts_unchanged": true
+    },
+    "native": {
+      "old_bundle_quit_verified": true,
+      "new_bundle_launched_via_native_ui": true,
+      "light_tab_focus": "Actual Tab traversal reaches Master password; stable screenshot shows clear inset ring unlike old package; same button size and position visually retained",
+      "activation_attempt": "Return interrupted by Mac lock; not counted as native activation pass",
+      "dark_focus": "pending manual Mac unlock",
+      "last_confirmed_client_state": "light windowed login, original synthetic account, Master password focused",
+      "system_settings_changed_this_revision": false,
+      "credentials_changed": false,
+      "formal_data_accessed": false,
+      "screenshots_exported": false,
+      "continuous_frames_measured": false,
+      "resumed_native_focus": {
+        "dark_master_password": "Actual five Tab presses from login body reach Master password; AX focused button and stable blue inset focus ring observed",
+        "existing_password_unlock": "Actual unlock using existing public synthetic fixture password; no credential changes",
+        "pin_touch_id": "Not configured in the isolated fixture; real native setup/authentication still pending human handoff"
+      }
+    },
+    "overall_full_matrix_passed": false,
+    "repository_commit_push": false
+  },
+  "keyboard_focus_compatibility_review": {
+    "date": "2026-10-09",
+    "goal_previous_turn_classification": "progress: real focus defect fixed, browser and light native proof added",
+    "native_state_rechecked": "same current keyboard-focus app handle reports Mac locked; manual unlock question remains pending; no relaunch or credential attempts",
+    "forced_colors_check": {
+      "passed": 2,
+      "failed": 0,
+      "engine": "chromium",
+      "scope": "Windows platform style, light/dark, app high contrast plus forced-colors active; actual computed outline color equals system Highlight; browser-only, not Windows native or macOS system proof",
+      "log": "/tmp/solosoul-fe2-login-keyboard-focus-20261009/forced-colors-check.log",
+      "log_sha256": "48cda9723b53da48685ccd427742875c343ee08eb4c1b847bf1aa130776d2fdf"
+    },
+    "source_sha256": {
+      "tauri/e2e/login-method-layout.spec.ts": "621d71adf17e7c672e6c3d228ec9ddada1180ed1cad2255aa79111472ab808d4",
+      "docs/macos-glass-surfaces.md": "db8a59ba7d47227f6ea7df00581e27085aa250b02b289df4b814d8866b1cbc5b"
+    },
+    "normative_backfill": "macos-glass-surfaces.md now specifies full long-name wrapping vs ID ellipsis, short-window reachability, inset keyboard focus and high contrast/forced-color semantics, partial native scope and unresolved repaint/capture anomaly; labels initial evidence as historical",
+    "production_source_matches_keyboard_bundle": true,
+    "product_changes_this_review": false,
+    "full_matrix_passed": false,
+    "commit_push": false
+  },
+  "macos_navigation_material_completion": {
+    "date": "2026-10-09",
+    "task_closed": "FE2-002",
+    "basis": "Current complete native client material scenes plus existing navigation, toggle and anchored-menu positioning regression evidence; only the sidebar material/navigation task closes",
+    "source_binding": {
+      "app": "/tmp/solosoul-fe2-login-keyboard-focus-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "ab4b756073c7b3e50fc8e546743040268178686b66cfe845a4e3bd69d3d32a6a",
+      "process_pid_observed": 72744,
+      "process_path_observed": "/private/tmp/solosoul-fe2-login-keyboard-focus-20261009/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul",
+      "production_source_manifest_count": 1371,
+      "production_source_matches_worktree": true,
+      "platform_inputs_and_v4_frozen_artifacts_unchanged": true
+    },
+    "native_material_scenes": [
+      {
+        "theme": "dark",
+        "navigation": "left",
+        "sidebar": "expanded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "dark",
+        "navigation": "left",
+        "sidebar": "folded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "dark",
+        "navigation": "right",
+        "sidebar": "expanded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "dark",
+        "navigation": "right",
+        "sidebar": "folded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "dark",
+        "navigation": "top",
+        "sidebar": "horizontal",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "dark",
+        "navigation": "bottom",
+        "sidebar": "horizontal",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "light",
+        "navigation": "left",
+        "sidebar": "expanded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "light",
+        "navigation": "left",
+        "sidebar": "folded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "light",
+        "navigation": "right",
+        "sidebar": "expanded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "light",
+        "navigation": "right",
+        "sidebar": "folded",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "light",
+        "navigation": "top",
+        "sidebar": "horizontal",
+        "tools": "expanded",
+        "stable_view": "passed"
+      },
+      {
+        "theme": "light",
+        "navigation": "bottom",
+        "sidebar": "horizontal",
+        "tools": "expanded",
+        "stable_view": "passed"
+      }
+    ],
+    "actual_operations": "Appearance settings select each position/theme; native sidebar toggle and tools button used; stable shell tint and menu material remain coherent. Horizontal navigation has no fold toggle",
+    "native_dom_check": {
+      "method": "Existing debug Web Inspector; Elements search selects the sole sidebar-menu node; actual Computed view",
+      "theme": "light",
+      "native_material": "liquid-glass",
+      "high_contrast": false,
+      "menu_background_color": "rgba(0, 0, 0, 0)",
+      "menu_background_image": "none",
+      "limit": "Inspector reduced viewport closes menu (data-open=false, inert). Open-state CSS changes visibility/opacity/clip/transition, not the material background. This is material fallback verification, not full open-menu geometry measurement"
+    },
+    "resumed_native_focus": {
+      "dark_master_password": "Actual five Tab presses from login body reach Master password; AX focused button and stable blue inset focus ring observed",
+      "existing_password_unlock": "Actual unlock using existing public synthetic fixture password; no credential changes",
+      "pin_touch_id": "Not configured in the isolated fixture; real native setup/authentication still pending human handoff"
+    },
+    "active_preview_followup": {
+      "theme": "dark",
+      "file": "Valid resumed text attachment readable; colored active traffic lights and full coherent top strip visible",
+      "gallery": "Valid resumed photo visible; known old fixture thumbnail path failure retained",
+      "photo": "Valid resumed photo actual 100% to 120% zoom, return to gallery and close; stable full top and readable bottom toolbar",
+      "window_activation": "Real Window menu selects this exact window via exposed makeKeyAndOrderFront: item; no private API or relaunch",
+      "limits": "Tiny tilted image capture and transient capture interruption retained; stable same-handle recovery does not prove continuous frames"
+    },
+    "system_accessibility_followup": {
+      "initial_and_final": {
+        "reduce_transparency": false,
+        "increase_contrast": false,
+        "reduce_motion": false
+      },
+      "real_operations": "Motion off read; enable contrast (OS forces transparency on), then disable contrast and transparency; final Display AX confirms both off",
+      "dark_login": "Brand/title/key intact in this stable contrast-enabled sample; actual click then four Tabs yields visible white method focus ring. Focused element not emitted in that contrast-stage AX sample",
+      "prior_anomaly_closed": false,
+      "limit": "One positive sample cannot resolve earlier repeated missing brand/title/key capture or distinguish redraw versus capture fault; manual visual answer still needed"
+    },
+    "capture_scope": "Native screenshots only in conversation tool output; no exported original PNG/RGB, geometry measurements or continuous frames",
+    "final_ui": "Light windowed home, left expanded, tools closed, original synthetic account name; inspector and previews closed",
+    "formal_data_accessed": false,
+    "credentials_changed": false,
+    "product_changes_this_continuation": false,
+    "full_native_matrix_passed": false,
+    "commit_push": false,
+    "remaining_tasks": [
+      "FE2-003",
+      "FE2-004",
+      "FE2-005",
+      "FE2-007",
+      "FE2-014"
+    ]
+  },
+  "macos_light_preview_followup": {
+    "date": "2026-10-09",
+    "app": "/tmp/solosoul-fe2-login-keyboard-focus-20261009/SoloSoulFE2Mac.app",
+    "binary_sha256": "ab4b756073c7b3e50fc8e546743040268178686b66cfe845a4e3bd69d3d32a6a",
+    "theme": "light",
+    "window_operations": "Actual exposed zoom-the-window action enlarges window; guide visible at far right, opens and closes. Same action restores original short window",
+    "gallery": "Actual home photo entry opens gallery; resumed photo thumbnail visible, old fixture path failure retained",
+    "photo": "Open valid resumed photo; actual Window menu selects exact current window, active colored traffic lights visible. Full width top strip coherent, controls clear of lights. Actual 100% to 120% zoom with readable lower toolbar; return to gallery, close",
+    "text": "Actual global attachment page opens resumed text attachment; synthetic text readable, active lights visible, coherent full width top strip; close and return home",
+    "final_ui": "Light windowed home at original size; left expanded, tools closed, original synthetic account name, no guide/gallery/viewer/file/inspector open",
+    "limits": "Stable native tool screenshots; no original exported pixels, quantitative geometry or continuous timing. No update notification present in this real fixture, so native notification boundary still unverified",
+    "product_changes": false,
+    "credentials_changed": false,
+    "formal_data_accessed": false,
+    "commit_push": false,
+    "task_closed": null,
+    "remaining_scope": "FE2-003 full topbar/notification/native geometry checks retained"
+  },
+  "macos_notification_topbar_completion": {
+    "date": "2026-10-09",
+    "task_closed": "FE2-003",
+    "host": {
+      "os": "macOS 26.6",
+      "build": "25G72"
+    },
+    "purpose": "Complete the missing real native updater-notification boundary in the current full client; no installer download or installation",
+    "build": {
+      "passed": true,
+      "test_version": "2.13.1",
+      "production_version": "2.13.2",
+      "app": "/tmp/solosoul-fe2-macos-update-banner-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "4c21e2c6fe28f3e913f353bddefc24704e4ef85c7f13c525d9ab0e4f460005b9",
+      "source_inputs": {
+        "path": "/tmp/solosoul-fe2-macos-update-banner-20261009/source.json",
+        "sha256": "8eef9bd58ec0a8b634e81f78297dc5af56845b1b49e7a3215683fa91aec0e42d"
+      },
+      "build_report": {
+        "path": "/tmp/solosoul-fe2-macos-update-banner-20261009/report.json",
+        "sha256": "6b67524078e3aee8b8e4602ff8337891a43b3180d5ffebc10fb6add49d6f19de"
+      },
+      "build_log": {
+        "path": "/tmp/solosoul-fe2-macos-update-banner-20261009/build.log",
+        "sha256": "691e9879c20cd36fca3398e4e9ac065e2f38401aef726ddc0110a539b4dbc0fb"
+      },
+      "recipe": {
+        "path": "/tmp/solosoul-fe2-macos-update-banner-20261009/build.py",
+        "sha256": "d6d07c296351c5a81877e674a12ebdcfba2376aea42a0c0db68cb8e86f54d8ea"
+      },
+      "source_scope": "1371 current repository production inputs frozen before copying. Build-time recipe overrides temporary tauri/Cargo.toml and tauri/src-tauri/tauri.conf.json to 2.13.1; temporary generated Cargo.lock follows that workspace version. Source manifest describes original inputs, not an unmodified-version binary",
+      "temporary_metadata_restored": true,
+      "original_platform_inputs_unchanged": true,
+      "previous_keyboard_bundle_and_evidence_unchanged": true,
+      "product_code_changed": false
+    },
+    "process_binding": {
+      "old_keyboard_pid_72744_exited": true,
+      "notification_bundle_pid": 75552,
+      "notification_bundle_exited": true,
+      "restored_keyboard_pid": 76769,
+      "restored_binary_sha256": "ab4b756073c7b3e50fc8e546743040268178686b66cfe845a4e3bd69d3d32a6a"
+    },
+    "update_metadata": {
+      "latest_version_observed": "2.13.2",
+      "method": "Unmodified production updater check, real released metadata; native AX shows available notification and actual buttons",
+      "release_reference": "https://github.com/Gczmy/SoloSoul/releases/tag/v2.13.2",
+      "synthetic_response_injected": false
+    },
+    "native_observations": {
+      "notification": "Occupies its own row inside content surface; body starts below, shared top and active lights remain clear; short window text/buttons readable",
+      "matrix": "Light/dark left and right expanded/folded, upper/lower horizontal navigation stable notification views; actual settings and toggle operations",
+      "notes": "Actual update-notes dialog opens; AX contains real table/rows/cells. Container wheel had no visible effect; actual scrollbar drag shows full download table with file names wrapping within modal; Escape closes",
+      "fullscreen": "Light actual fullscreen with notification, guide at far right opens/closes, shortcut exits. Immediate exit sample has lights higher than web controls; subsequent actual sidebar toggle stable view shows aligned lights and full top/corners. This does not certify each animation frame",
+      "dismiss": "Actual notification close removes its row; body returns to original top, shared top remains intact",
+      "user_control": "Two attempted clicks interrupted by user control; latest AX reread before continuing. First interruption was resumed against freshly observed toggle; second settings attempt after original-package restoration did not run",
+      "minimize_attempt_before_test_build": "AX click followed by disabled resize menu items and successful same-window menu return; minimized state not explicitly exposed, not counted as a verified minimize/restore or traffic-light hit pass"
+    },
+    "completion_basis": "Current native notification matrix plus unchanged v4 AppKit 52pt lifecycle/geometry evidence, current-package active light/dark file/gallery/photo full-top views and actual guide/toggle actions. Closes topbar material/boundary task only",
+    "limits": [
+      "Legacy default native hit assertions remain failed records; system hosting view and last event class require actual-event distinction, no speculative product patch or weakened assertion",
+      "Continuous recovery, animation frames, cancelled/failed fullscreen and performance remain FE2-007",
+      "PIN/Touch ID, system text size and complete accessibility/account/system-theme transitions remain FE2-004/005",
+      "Native screenshots only tool output; no exported original pixels/quantitative new geometry"
+    ],
+    "final_ui": "Original current-version keyboard package, light windowed home, left expanded, tools closed, original synthetic account; no guide, update notification or preview open",
+    "system_settings_changed": false,
+    "credentials_changed": false,
+    "formal_data_accessed": false,
+    "download_or_install_attempted": false,
+    "commit_push": false,
+    "remaining_tasks": [
+      "FE2-004",
+      "FE2-005",
+      "FE2-007",
+      "FE2-014"
+    ]
+  },
+  "macos_system_theme_lock_listener_revision": {
+    "date": "2026-10-09",
+    "scope": "FE2-004/005/007 subset; no whole-task closure",
+    "initial_system_appearance": "dark",
+    "human_authorization": "允许临时切换，验收后恢复深色",
+    "original_package": {
+      "app": "/tmp/solosoul-fe2-login-keyboard-focus-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "ab4b756073c7b3e50fc8e546743040268178686b66cfe845a4e3bd69d3d32a6a",
+      "observations": [
+        "Actual following-system selected; dark-to-light settings view, light lock/login and existing synthetic-password unlock succeeded",
+        "Hide action, Window menu return, Raise and actual pointer lock attempt did not restore input; inactive stable screenshot is not verified foreground return or continuous recovery",
+        "PID 76769 terminated after native Quit. Human opened old package again (PID85360); it remained at login and was normally quit; absence verified before new-package login"
+      ]
+    },
+    "root_cause": "Rust lock-state plugin registers Android Kotlin listener commands only. Shared hook attempted addPluginListener on macOS; native console reported lock-state.registerListener not allowed. Plugin not found.",
+    "correction": "Gate only Android plugin listener registration with preloaded isAndroidSync. Keep idle/background locking and pending queries; no desktop OS screen-lock listener is added or claimed.",
+    "checks": {
+      "useAutoLock_vitest": {
+        "files": 1,
+        "passed": 20,
+        "exit_code": 0
+      },
+      "platform_vitest": {
+        "files": 2,
+        "passed": 13,
+        "exit_code": 0
+      },
+      "typescript_exit_code": 0,
+      "related_eslint_exit_code": 0,
+      "prior_full_suites_not_relabelled": true
+    },
+    "build": {
+      "passed": true,
+      "app": "/tmp/solosoul-fe2-macos-lock-listener-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "f84e84bdf35f5c03007fa00aea385c7845762b242dfb80ccf17720c399feff5e",
+      "version": "2.13.2",
+      "source_inputs": {
+        "path": "/tmp/solosoul-fe2-macos-lock-listener-20261009/source.json",
+        "sha256": "c0693d0f6e6465f2684cd5ec4e30cc2993380639c818ef6957ab624ab2e15f1d"
+      },
+      "report": {
+        "path": "/tmp/solosoul-fe2-macos-lock-listener-20261009/report.json",
+        "sha256": "4ecdd3f04ec5ec6298707a1c6afc568395b3f068499febe5d2e83efbece8d1d2"
+      },
+      "log": {
+        "path": "/tmp/solosoul-fe2-macos-lock-listener-20261009/build.log",
+        "sha256": "0bf3e20a7da4977e4662b6f66544d052c3d70a7487e1e2701d784a40617bc662"
+      },
+      "recipe": {
+        "path": "/tmp/solosoul-fe2-macos-lock-listener-20261009/build.py",
+        "sha256": "8d0e87bfe7994a83ffa93ba5ac539c16c5791e52c1f26bd41053751c26d63ac5"
+      },
+      "source_count": 1371,
+      "changed_inputs_since_keyboard_package": [
+        "tauri/src/hooks/useAutoLock.test.ts",
+        "tauri/src/hooks/useAutoLock.ts"
+      ],
+      "protected_original_inputs_unchanged": {
+        "tauri/Cargo.lock": true,
+        "tauri/Cargo.toml": true,
+        "tauri/src-tauri/Cargo.toml": true,
+        "tauri/src-tauri/gen/apple/project.yml": true,
+        "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+        "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+        "tauri/src-tauri/gen/apple/assets": true,
+        "tauri/src-tauri/gen/android/app/src/main/assets": true,
+        "tauri/src-tauri/gen/android/app/tauri.properties": true
+      },
+      "previous_frozen_bundle_unchanged": {
+        "SoloSoulFE2Mac.app": true,
+        "report.json": true,
+        "source.json": true,
+        "build.log": true,
+        "run.py": true
+      }
+    },
+    "new_package_startup": {
+      "pid_verified": 85702,
+      "system_alert": "macOS reported previous unexpected quit while reopening windows. Do not infer cause or attribute it to this fix. First Don’t Reopen click had no effect; user requested retry, second click dismissed alert and reached actual login.",
+      "first_get_app_timeout_preserved": true,
+      "human_control_interruption": "First credential action interrupted, state reread at login; next actual unlock succeeded. No interrupted action counted as passed."
+    },
+    "new_package_native": {
+      "following_system_actual_radio_verified": true,
+      "dark_existing_password_unlock_and_lock_unlock_cycle": true,
+      "light_existing_password_lock_unlock_cycle": true,
+      "actual_system_dark_light_dark_with_live_client_updates": true,
+      "native_console_error_removed_in_observed_session": true,
+      "console_read_only_result": {
+        "platform": "macos",
+        "theme": "dark",
+        "nativeMaterial": "liquid-glass",
+        "visibility": "visible"
+      },
+      "remaining_console_warning": "[TAURI] Couldn't find callback id 3539187355. This might happen when the app is reloaded while Rust is running an asynchronous operation.",
+      "warning_not_diagnosed_or_suppressed": true,
+      "actual_os_screen_lock_tested": false,
+      "dock_stage_manager_continuous_recovery_passed": false,
+      "screenshots_exported": false,
+      "rgb_or_continuous_frames_measured": false
+    },
+    "restoration": {
+      "system_dark_selected_final_ax": true,
+      "system_liquid_glass_clear_unchanged": true,
+      "system_text_size_unchanged": true,
+      "account_light_selected_actual_radio": true,
+      "last_view": "New package light home, left expanded, tools closed, inspector closed, original synthetic account; system dark",
+      "credentials_changed": false,
+      "formal_account_accessed": false
+    },
+    "remaining": [
+      "Human PIN/Touch ID configuration or scope response pending",
+      "Native enlarged text not covered by supported-app system Text Size list",
+      "Full accessibility/account transition matrix, old native hit assertions, continuous recovery/fullscreen failure paths and actual performance remain pending",
+      "Android/iOS FE2-014 matrices remain pending"
+    ],
+    "repository_actions": {
+      "commit": false,
+      "push": false,
+      "release": false
+    }
+  },
+  "macos_native_capability_sample": {
+    "date": "2026-10-09",
+    "bound_app": "/tmp/solosoul-fe2-login-keyboard-focus-20261009/SoloSoulFE2Mac.app",
+    "bound_binary_sha256": "ab4b756073c7b3e50fc8e546743040268178686b66cfe845a4e3bd69d3d32a6a",
+    "text_size_panel": {
+      "preferred_size_observed": 4,
+      "apps_list_read": true,
+      "solosoul_listed": false,
+      "size_or_app_setting_modified": false,
+      "scope": "Actual macOS supported-app text-size panel capability only; does not close native enlarged text requirement"
+    },
+    "webview_read_only_navigation_sample": {
+      "types": [
+        "event",
+        "first-input",
+        "largest-contentful-paint",
+        "mark",
+        "measure",
+        "navigation",
+        "paint",
+        "resource"
+      ],
+      "dom_content_loaded_ms": 67,
+      "load_ms": 143,
+      "duration_ms": 143,
+      "theme": "dark",
+      "nativeMaterial": "liquid-glass",
+      "longtask_supported": false,
+      "scope": "One actual WKWebView navigation sample, not end-to-end startup/auth latency, comparison baseline, frame rate or performance pass"
+    },
+    "native_menu_zoom": "Actual View menu offered only Toggle Full Screen; no page/font zoom command",
+    "measurement_source": "Native Web Inspector Console, read-only Performance API; no state injection or payload access"
+  },
+  "macos_login_error_contrast_revision": {
+    "recorded_at": "2026-10-09T10:51:06.916398+00:00",
+    "scope": "共享密码/PIN错误文本可读性修正；真实macOS普通浅深色及系统增强对比度样本。完整登录/辅助功能/恢复/性能矩阵继续待验。",
+    "changes": [
+      "PasswordInput错误文字与边框、LoginPasswordView补充错误和PinEntryCard错误文字使用text-error语义变量",
+      "浅色text-error加深至#a32f23；深色#e07a6e不变；危险操作按钮色不变",
+      "系统增强对比度的text-error使用text-primary；未改变认证、凭据或掩码流程"
+    ],
+    "native_before": {
+      "app": "/tmp/solosoul-fe2-macos-lock-listener-20261009/SoloSoulFE2Mac.app",
+      "binary_sha256": "f84e84bdf35f5c03007fa00aea385c7845762b242dfb80ccf17720c399feff5e",
+      "theme": "dark",
+      "system_increase_contrast": true,
+      "foreground_rgb": [
+        192,
+        57,
+        43
+      ],
+      "card_rgb": [
+        42,
+        38,
+        32
+      ],
+      "contrast_ratio": 2.764976007563727,
+      "observation": "真实系统增强对比度与降低透明度开启；无效公开合成密码错误仍使用accent-danger；品牌本次样本可见，不关闭历史采集缺失异常"
+    },
+    "build": {
+      "evidence_root": "/tmp/solosoul-fe2-login-error-contrast-20261009-v2",
+      "binary_sha256": "bf1638344dcf4089a21f53aece97f3b6cd7598c96a25b13274d591a12766d3f3",
+      "source_manifest_sha256": "d04dbf31fae94ea66e765bd95d53884c94c0dc90623299320411fe0315783f72",
+      "report_sha256": "0644b0399f26b4c9122cd5608c912756645aeb4c8b85adafc6941c35d722fe79",
+      "build_log_sha256": "c8fb6689daea9d45727307d700138321dfa09a4d0aa4896b956f1b52282275c4",
+      "passed": true,
+      "source_files": 1371,
+      "current_source_differences": [],
+      "changes_vs_previous_package": [
+        "tauri/src/components/forms/PasswordInput.tsx",
+        "tauri/src/components/forms/PinEntryCard.tsx",
+        "tauri/src/pages/auth/LoginPasswordView.tsx",
+        "tauri/src/styles/global.css",
+        "tauri/src/styles/themes.css"
+      ],
+      "original_platform_inputs_unchanged": true,
+      "earlier_frozen_artifacts_unchanged": true
+    },
+    "checks": {
+      "evidence_root": "/tmp/solosoul-fe2-login-error-contrast-20261009",
+      "final_login_layout": {
+        "engines": [
+          "chromium",
+          "webkit"
+        ],
+        "passed": 58,
+        "failed": 0,
+        "new_contrast_cases": 16,
+        "scope": "macOS/Windows/Android/iOS普通与高对比浏览器样式；实际渲染背景1px测量。PIN仅mock，不是原生配置"
+      },
+      "related_vitest": {
+        "files": 4,
+        "passed": 28
+      },
+      "full_vitest_before_final_light_css_token": {
+        "files": 260,
+        "passed": 2346,
+        "scope": "最后一次仅浅色CSS变量加深前通过，不升级为最终全量复跑"
+      },
+      "final_node": {
+        "passed": 192,
+        "skipped": 25,
+        "failed": 0
+      },
+      "final_theme_vitest": {
+        "files": 2,
+        "passed": 34
+      },
+      "lint": {
+        "exit_code": 0,
+        "existing_warning": "syncStore.ts:838 unused event"
+      },
+      "logs_sha256": {
+        "before-environment.log": "008ffd47379b8a9bfaa5136272cfc4f0d7a327522b38cff8fc3c453b77f1f4c5",
+        "before.log": "98bb4a0595c5a5ad4a501ca60fbdcc0e0a860f5c2a8a5c88ff5e29cc8e549c8d",
+        "after.log": "53d77a3d87798411c3891ad1bfce4823c370db37cd94af21249a30a73f4c4114",
+        "pixel-after.log": "7b1b4bcd2e588fcd198e3bdc3ba73684d06ddc3d50df76c024135263888398ea",
+        "final.log": "50154053c059bcd45f37b8079a3214e6bd9764a3056dba2b4c34283f4ba452bb",
+        "related-vitest.log": "36a6a6dbb4a96c692c3ab59430e2eb28d98fcec422b832ac9028855bf48eb5f4",
+        "full-test.log": "e5276f23a697102a4bb04f9cb58328cae7ec1a3f4f37f0455030afab717e3ba1",
+        "final-node.log": "51287f23c9a4241c86618b0a4618801c9740bee58a3b98b6ef0cf1e1aa434133",
+        "theme-vitest.log": "e93d6fed856c1647b4542322f39a50a30029ca829e6daad659be6f1a30bd7969",
+        "lint.log": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859"
+      }
+    },
+    "failures_retained": [
+      "初次脚本路径错误未创建源码或测试产物；第一次浏览器启动被本机回环权限阻止",
+      "初次16失败包含8个真实深色低对比、8个多alert定位错误；修正测试遍历所有alert",
+      "54通过/4失败为Android背景测量误把透明层当作实色；改为真实渲染背景像素",
+      "14通过/2失败揭示Android浅色真实对比3.8076；加深语义错误颜色后最终58通过",
+      "中间修正包构建通过但未启动，不能计为原生验收"
+    ],
+    "native_after": {
+      "app": "/tmp/solosoul-fe2-login-error-contrast-20261009-v2/SoloSoulFE2Mac.app",
+      "binary_uuid": "63607f24-8d8b-3605-bc1b-f7a078ab5ca0",
+      "pid_verified": 2794,
+      "light_normal_error_rgb": [
+        163,
+        47,
+        35
+      ],
+      "dark_normal_error_rgb": [
+        224,
+        122,
+        110
+      ],
+      "dark_normal_card_rgb": [
+        42,
+        38,
+        32
+      ],
+      "dark_normal_contrast_ratio": 5.140115530279296,
+      "dark_high_contrast_error_rgb": [
+        255,
+        255,
+        255
+      ],
+      "dark_high_contrast_card_rgb": [
+        42,
+        38,
+        32
+      ],
+      "dark_high_contrast_ratio": 15.03705221746749,
+      "light_high_contrast": "真实系统AX开启，截图文字为黑色且品牌/账户名可见；未读取该状态的计算颜色",
+      "dark_high_contrast": "真实系统AX开启；只读Inspector确认dark/highContrast=true、text-error=#ffffff；品牌/账户名及错误提示可见",
+      "main_password_unlocks": 2,
+      "pin_or_touch_id_configured": false,
+      "evidence_type": "实际原生UI操作、会话截图、Inspector只读计算颜色；没有导出原生像素或逐帧测量",
+      "console_warning": "仍见未定位的异步callback警告，未称零警告"
+    },
+    "recovery_retry": {
+      "user_authorized_dont_reopen": true,
+      "initial_click_process_disappeared": true,
+      "crash_report": "/Users/zzc/Library/Logs/DiagnosticReports/solo_soul-2026-10-09-114538.ips",
+      "crash_binary_uuid_matches_final": true,
+      "exception": "SIGABRT / panic_cannot_unwind / tao::did_finish_launching",
+      "old_package_present_pid": 98478,
+      "old_package_quit_via_normal_menu": true,
+      "old_pid_absent_verified": true,
+      "final_started_successfully_after_old_exit": true,
+      "note": "共用隔离夹具的旧进程确实存在；退出后新包正常启动。未取得原panic payload，不把进程冲突当成已证明的具体panic根因，也不关闭连续恢复验收"
+    },
+    "restored": {
+      "system_increase_contrast": false,
+      "system_reduce_transparency": false,
+      "reduce_motion_initial_off_untouched_this_turn": true,
+      "system_appearance": "dark，先前恢复值本轮未改",
+      "liquid_glass": "透明，未改",
+      "synthetic_account_theme": "light",
+      "view": "首页，左侧展开，工具与Inspector关闭",
+      "credentials_unchanged": true
+    },
+    "task_counts": {
+      "total": 21,
+      "complete": 17,
+      "in_progress": 0,
+      "pending_validation": 4
+    },
+    "remaining": [
+      "FE2-004：原生PIN/Touch ID与放大文字",
+      "FE2-005：完整辅助功能与账户主题矩阵及历史采集异常区分",
+      "FE2-007：完整命中/恢复/连续合成/性能",
+      "FE2-014：Android/iOS原生矩阵与性能"
+    ],
+    "repository_actions": {
+      "commit": false,
+      "push": false,
+      "release": false
+    }
+  },
+  "macos_account_theme_switch_revision": {
+    "recorded_at": "2026-10-09T11:08:16.156613+00:00",
+    "scope": "FE2-005 真实账户外观切换子场景，完整辅助功能、前后台和性能矩阵未关闭",
+    "implementation": "macOS debug隔离入口新增可选双合成账户准备命令；默认单账户不变。第二身份明确记录于marker；拒绝未知账户、重复ID、改名和孤儿目录；生产前端/认证流程本轮未改。",
+    "source_files_changed_this_turn": [
+      "tauri/src-tauri/src/lib.rs",
+      "tauri/src-tauri/src/macos_ui_regression.rs",
+      "tauri/native-regression/macos-client/run.py",
+      "tauri/native-regression/macos-client/README.md"
+    ],
+    "build": {
+      "evidence_root": "/tmp/solosoul-fe2-macos-account-switch-20261009",
+      "binary_sha256": "4c4f5364251d89959ac5568f60c9d2b31f8779877bf9f26883b8838d6d7150e5",
+      "source_manifest_sha256": "62fc0b81e58627736ed285c9c40936070523be844ea1cea0499fe264b8ab9e8c",
+      "source_files": 1371,
+      "current_source_differences": [],
+      "changes_vs_previous_package": [
+        "tauri/src-tauri/src/lib.rs",
+        "tauri/src-tauri/src/macos_ui_regression.rs"
+      ],
+      "exit_code": 0,
+      "nine_original_platform_inputs_unchanged": true,
+      "prior_contrast_package_unchanged": true,
+      "new_root_created": true,
+      "report_correction": "原runner沿用了旧包的fixture_root_read_only标签；本次只创建全新双账户根，不是只读新夹具。构建/来源/二进制结果不变。",
+      "window_launched_by_build": false
+    },
+    "checks": {
+      "fixture_tests": {
+        "passed": 9,
+        "failed": 0,
+        "filtered_out": 785,
+        "scope": "macos_ui_regression::tests，3项新增验证身份边界与两个公开合成账户的实际Vault解锁，非完整Rust测试"
+      },
+      "clippy": {
+        "exit_code": 0,
+        "scope": "solo_soul --features macos-ui-regression --lib --tests --no-deps -D warnings"
+      },
+      "rustfmt": {
+        "exit_code": 0,
+        "scope": "两个修改的Rust文件"
+      },
+      "launcher_syntax": {
+        "passed": true
+      },
+      "old_fixture_preflight": {
+        "exit_code": 0,
+        "old_fixture_unchanged": true,
+        "old_fixture_files": 16,
+        "window_launched": false
+      },
+      "evidence_sha256": {
+        "build.log": "ef0ba3288f60418219b24584b9c785e89e7dbfd2a247813093b667009dba86eb",
+        "report.json": "7b3f123e84b986289aa6b809342a5287e03fcaa92658a6e0aee9ef7997803cd9",
+        "preflight.log": "4e59f1b525cd2f67e3c04a5849af5a3780ca21187d7ffd6b3afba8f34436b089",
+        "fixture-tests.log": "0bc00f903ebdc484e962a485660072c2364c42348ab7524ac32e9ddae34c5572",
+        "fixture-tests-result.json": "f02c64ac1b4510f10761dbb616fe667820e80a422f9f1384b71c8014d76f5c6e",
+        "fixture-clippy.log": "1c081840f4bdf51fd6537f65b1eb3229b6e8e6971c8b16a8d728aef95b78cfe5",
+        "fixture-clippy-result.json": "79279a221cf7ffbd2403280ae6ded1d29f032fc560bb7f173cdbac0e81a858f1",
+        "old-fixture-preflight.log": "e7cc4d984d318cf3416c51fa117a7768675b0b39f0372a48c60c0f59ba45baad",
+        "old-fixture-preflight-result.json": "0be02c5a1814cd4bf5e4d17ccda17b5cca23da1db1e35d0b93e9d07768d658f9"
+      }
+    },
+    "native": {
+      "pid_verified": 10349,
+      "app": "/tmp/solosoul-fe2-macos-account-switch-20261009/SoloSoulFE2Mac.app",
+      "fixture": {
+        "version": 1,
+        "root": "/private/var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/solosoul-fe2-macos-aa9106b0dbea4de3b8994d143898603c",
+        "identifier": "com.solosoul.fe2.macos.aa9106b0dbea4de3b8994d143898603c",
+        "account_id": "acc_10d91d12fdd244a6",
+        "second_account_id": "acc_6700948ea4f24355"
+      },
+      "startup": "旧对比修正包通过正常Quit退出、PID2794停止核对；新包标准CUA启动成功，没有恢复提示",
+      "account_a": {
+        "name": "FE2 macOS 合成验收账户",
+        "theme_saved": "light"
+      },
+      "account_b": {
+        "name": "FE2 macOS 外观切换账户",
+        "theme_saved": "dark"
+      },
+      "actual_unlocks": 5,
+      "sequence": [
+        "A实际密码解锁，外观深色再浅色保存A偏好",
+        "锁定、原生账户下拉选择B、实际密码解锁，保存B深色",
+        "锁定、选择A、实际解锁：浅色首页，未被B深色覆盖",
+        "真实系统增强对比度开启，降低透明度强制开启，浅色A首页内容与边框可读",
+        "保持系统高对比开启，锁定、选择B、实际解锁：深色B首页内容与边框可读",
+        "恢复系统两开关关闭，Inspector真实Elements确认dark/liquid-glass/highContrast=false/reduceMotion=false",
+        "关闭Inspector，锁定、选择A、实际解锁：浅色首页"
+      ],
+      "evidence_type": "CUA实际原生UI操作、系统AX、会话稳定截图和Elements。未导出原生像素、未量化连续帧或性能",
+      "scope_limits": [
+        "切换后稳定视图通过，不宣称每帧无闪烁或所有主题排列通过",
+        "高对比B首页可读，但该开启状态未取得Inspector计算样式；关闭后实际Elements补证",
+        "两账户在新隔离根；此前单账户含附件夹具保持不变",
+        "账户不同主题经实际切换恢复；本轮未重新启动进程验证跨进程偏好持久性"
+      ]
+    },
+    "interruptions": [
+      "最小化按钮首操作遇用户接管，重读后尝试仍无明确最小化状态；Dock控制超时。未计为恢复通过，未重复启动应用",
+      "系统高对比期间屏幕捕捉连接失败，两句柄同报SCStreamError -3811；暂请求人工恢复，稍后同句柄恢复后由工具实际关闭两开关并AX核对。此前菜单/键盘操作延迟执行，重读状态后关闭Inspector，未重启"
+    ],
+    "restored": {
+      "increase_contrast": false,
+      "reduce_transparency": false,
+      "reduce_motion": "原值关闭，本轮未改；Elements核对false",
+      "system_appearance": "深色，未改",
+      "liquid_glass": "透明，系统档位未改",
+      "account_a": "浅色首页，左侧展开，工具和Inspector关闭",
+      "account_b": "保留本次独立夹具的深色对照偏好",
+      "real_account_or_credentials_touched": false
+    },
+    "task_counts": {
+      "total": 21,
+      "complete": 17,
+      "in_progress": 0,
+      "pending_validation": 4
+    },
+    "goal_continuation_audit": {
+      "previous_turn": "progress：修正登录错误色、完成原生补验并记录恢复重试",
+      "current_turn": "progress：补双合成账户入口、9项测试/Clippy/构建通过，真实普通与系统高对比账户切换取得新证据",
+      "completion_proven": false,
+      "blocking_threshold_met": false,
+      "remaining": "FE2-004/005/007完整macOS矩阵；随后FE2-014移动原生矩阵，不缩小目标"
+    },
+    "repository_actions": {
+      "commit": false,
+      "push": false,
+      "release": false
+    }
+  },
+  "macos_native_timeline_sample": {
+    "date": "2026-10-09",
+    "scope": "Actual macOS complete debug client, synthetic empty account A, saved light theme, expanded left sidebar; CUA-driven native Web Inspector recording. Not a performance pass.",
+    "binary_sha256": "4c4f5364251d89959ac5568f60c9d2b31f8779877bf9f26883b8838d6d7150e5",
+    "production_source_count": 1371,
+    "source_differences": [],
+    "local_recording": "/tmp/solosoul-fe2-macos-native-timeline-20261009/light-full-ui-screenshots-recording.json",
+    "recording_sha256": "41e3377327a8b8885805cf1524d13a610f0b093b227c6068d1d3222319c6f034",
+    "recording_bytes": 17193073,
+    "format_version": 1,
+    "export_verified": true,
+    "export_handoff": "Save panel produced blank native screenshots / remained disabled; user reported saved, file exists, valid JSON and hash verified. No restart or recording loss.",
+    "duration_seconds": 66.2080867914483,
+    "instrument_types": [
+      "timeline-record-type-screenshots",
+      "timeline-record-type-network",
+      "timeline-record-type-layout",
+      "timeline-record-type-script",
+      "timeline-record-type-rendering-frame",
+      "timeline-record-type-cpu"
+    ],
+    "record_counts": {
+      "timeline-record-type-cpu": 132,
+      "timeline-record-type-script": 1638,
+      "timeline-record-type-rendering-frame": 87,
+      "timeline-record-type-layout": 630,
+      "timeline-record-type-screenshots": 87,
+      "timeline-record-type-network": 1
+    },
+    "viewport_pixels": [
+      1200,
+      800
+    ],
+    "verified_actions": [
+      "sidebar collapse",
+      "sidebar expand",
+      "tools menu open",
+      "tools menu close"
+    ],
+    "scroll_attempt": "A native down scroll was attempted; AX and screenshot showed no displacement. Not counted as verified scrolling.",
+    "selected_ui_frame_measurements_ms": [
+      {
+        "frame": 6,
+        "relative_start_seconds": 17.66978,
+        "total": 56.04,
+        "script": 26.14,
+        "layout": 2.092,
+        "paint": 8.943,
+        "other": 18.87
+      },
+      {
+        "frame": 24,
+        "relative_start_seconds": 22.58572,
+        "total": 42.52,
+        "script": 12.55,
+        "layout": 0.042,
+        "paint": 11.29,
+        "other": 18.65
+      }
+    ],
+    "highest_individual_script_event_ms": 24.251415859907866,
+    "highest_individual_script_event": "event-dispatched click; nested microtasks overlap and are not summed",
+    "cpu_record_max_percent": 47.79999923706055,
+    "javascript_sampling": {
+      "stack_trace_count": 59,
+      "sampling_duration_sum_ms": 58.74820798262954,
+      "geometry_leaf_sampling_ms": 13.994687365368009,
+      "boundary": "Samples use timestamp 0 and minified locations; no exact peak-to-source mapping or exhaustive time attribution. Current dist filenames differ from recorded assets; no mapping asserted."
+    },
+    "screenshots": {
+      "count": 87,
+      "selected_extracted_frames": [
+        1,
+        6,
+        34,
+        67,
+        73,
+        87
+      ],
+      "reviewed_frames": [
+        6,
+        67,
+        73
+      ],
+      "scope": "WKWebView content, does not capture native titlebar/traffic lights or prove foreground restoration."
+    },
+    "interpretation": "Frame total includes Other remainder and gaps between work. Long intervals are not proven JavaScript stalls. Screenshots enabled; recording overhead and no baseline prevent FPS/performance acceptance. Frame 6/24 are selected sidebar samples, not global maxima.",
+    "restored_state": "Inspector returned to bottom docking then closed. App had auto-locked while export was pending; existing public synthetic password unlocked A successfully. Actual AX and full screenshot show light home, expanded left sidebar and tools closed. No system settings/credentials changed in this recording turn.",
+    "task_counts": {
+      "total": 21,
+      "complete": 17,
+      "in_progress": 0,
+      "pending_validation": 4
+    },
+    "remaining": [
+      "baseline and repeat profiles with instrumentation overhead controlled",
+      "continuous native foreground/fullscreen recovery frames",
+      "full native PIN/Touch ID and enlarged text",
+      "remaining accessibility/account theme combinations",
+      "mobile native matrix and device performance"
+    ],
+    "product_changes_this_turn": false,
+    "committed_or_pushed": false
+  },
+  "macos_tools_measure_revision": {
+    "date": "2026-10-09",
+    "scope": "Measured macOS tools/side-navigation layout optimization; existing two-account synthetic root; not complete FE2-007 performance acceptance",
+    "change": "Keep ResizeObserver/resize listener across state changes; do not clear then restore tools clipping height on each toggle; skip unchanged CSS writes; omit unnecessary nav/padding reads while brand row exists; explicitly remeasure on nav-position changes. Geometry and animation styles unchanged.",
+    "before_no_screenshots": {
+      "scope": "Before tools measurement optimization: same frozen complete macOS debug client / A light / 1200x800 / CUA actions, screenshots instrument disabled, other enabled instruments unchanged",
+      "binary_sha256": "4c4f5364251d89959ac5568f60c9d2b31f8779877bf9f26883b8838d6d7150e5",
+      "path": "/tmp/solosoul-fe2-macos-native-timeline-20261009/light-full-ui-no-screenshots-recording.json",
+      "bytes": 1777946,
+      "sha256": "ed997b1e1dd2843f684a7752c942463011238dcd180dae7c38948fa2ba6ea7c0",
+      "duration_seconds": 72.13177520874888,
+      "record_counts": {
+        "timeline-record-type-cpu": 144,
+        "timeline-record-type-rendering-frame": 234,
+        "timeline-record-type-script": 2969,
+        "timeline-record-type-layout": 1662,
+        "timeline-record-type-network": 2
+      },
+      "instruments": [
+        "timeline-record-type-network",
+        "timeline-record-type-layout",
+        "timeline-record-type-script",
+        "timeline-record-type-rendering-frame",
+        "timeline-record-type-cpu"
+      ],
+      "actions": [
+        {
+          "action": "collapse-1",
+          "event_relative_seconds": 10.672757499851286,
+          "click_event_ms": 30.84220876917243,
+          "frame": 7,
+          "frame_total_ms": 53.29558299854398
+        },
+        {
+          "action": "expand-1",
+          "event_relative_seconds": 22.739346416667104,
+          "click_event_ms": 15.260166488587856,
+          "frame": 22,
+          "frame_total_ms": 35.79000011086464
+        },
+        {
+          "action": "collapse-2",
+          "event_relative_seconds": 26.739604957867414,
+          "click_event_ms": 10.666208807379007,
+          "frame": 42,
+          "frame_total_ms": 26.546125300228596
+        },
+        {
+          "action": "expand-2",
+          "event_relative_seconds": 32.97263012453914,
+          "click_event_ms": 10.863250587135553,
+          "frame": 59,
+          "frame_total_ms": 29.907458927482367
+        },
+        {
+          "action": "collapse-3",
+          "event_relative_seconds": 37.68911412451416,
+          "click_event_ms": 9.140667039901018,
+          "frame": 79,
+          "frame_total_ms": 23.679375648498535
+        },
+        {
+          "action": "expand-3",
+          "event_relative_seconds": 43.32278812490404,
+          "click_event_ms": 11.256541591137648,
+          "frame": 94,
+          "frame_total_ms": 31.80462494492531
+        },
+        {
+          "action": "tools-open-1",
+          "event_relative_seconds": 48.19343808339909,
+          "click_event_ms": 0.9561250917613506,
+          "frame": 112,
+          "frame_total_ms": 18.12708331272006
+        },
+        {
+          "action": "tools-close-1",
+          "event_relative_seconds": 52.2127905418165,
+          "click_event_ms": 4.304833710193634,
+          "frame": 143,
+          "frame_total_ms": 21.68674999848008
+        },
+        {
+          "action": "tools-open-2",
+          "event_relative_seconds": 58.992504708468914,
+          "click_event_ms": 0.6998749449849129,
+          "frame": 173,
+          "frame_total_ms": 15.907291322946548
+        },
+        {
+          "action": "tools-close-2",
+          "event_relative_seconds": 62.941429124679416,
+          "click_event_ms": 3.513542003929615,
+          "frame": 204,
+          "frame_total_ms": 35.50325054675341
+        }
+      ],
+      "cpu_max_percent": 18.600000381469727,
+      "boundaries": [
+        "No screenshots recorded; actual native AX confirms action sequence",
+        "First sidebar click remains costly with screenshots off; no exclusive screenshot or glass root cause asserted",
+        "Frame total includes Other and gaps; no FPS acceptance",
+        "Only empty synthetic home; not full object/preview/recovery performance"
+      ],
+      "restoration": "Screenshots instrument reenabled and verified in enabled list; bottom docking restored and Inspector closed; native AX confirms A home / left expanded / tools closed; system preferences unchanged"
+    },
+    "after_no_screenshots": {
+      "path": "/tmp/solosoul-fe2-macos-native-timeline-20261009/light-full-ui-tools-measure-after-no-screenshots.json",
+      "sha256": "5a27dd493cb6e0b2bf15e6258deb544d826001dae751295b0d56b5ce97ae5dbb",
+      "bytes": 1200949,
+      "binary_sha256": "1f68c205aef271c621b7e360bd5a8eb53a2451621ebfbe276a9326bf35afe717",
+      "duration_seconds": 66.68735358351842,
+      "record_counts": {
+        "timeline-record-type-cpu": 133,
+        "timeline-record-type-script": 1925,
+        "timeline-record-type-rendering-frame": 212,
+        "timeline-record-type-layout": 1137,
+        "timeline-record-type-network": 1
+      },
+      "instruments": [
+        "timeline-record-type-network",
+        "timeline-record-type-layout",
+        "timeline-record-type-script",
+        "timeline-record-type-rendering-frame",
+        "timeline-record-type-cpu"
+      ],
+      "actions": [
+        {
+          "action": "collapse-1",
+          "event_relative_seconds": 13.134236166719347,
+          "click_event_ms": 24.346124846488237,
+          "frame": 6,
+          "frame_total_ms": 42.57362522184849
+        },
+        {
+          "action": "expand-1",
+          "event_relative_seconds": 17.483598958235234,
+          "click_event_ms": 11.578083969652653,
+          "frame": 22,
+          "frame_total_ms": 27.612333185970783
+        },
+        {
+          "action": "collapse-2",
+          "event_relative_seconds": 21.833653542213142,
+          "click_event_ms": 9.408291429281235,
+          "frame": 33,
+          "frame_total_ms": 23.291874676942825
+        },
+        {
+          "action": "expand-2",
+          "event_relative_seconds": 26.916933875530958,
+          "click_event_ms": 11.174374725669622,
+          "frame": 44,
+          "frame_total_ms": 27.14979089796543
+        },
+        {
+          "action": "collapse-3",
+          "event_relative_seconds": 32.05137995816767,
+          "click_event_ms": 11.445666663348675,
+          "frame": 55,
+          "frame_total_ms": 28.020957950502634
+        },
+        {
+          "action": "expand-3",
+          "event_relative_seconds": 36.86702020885423,
+          "click_event_ms": 11.407124809920788,
+          "frame": 74,
+          "frame_total_ms": 26.533707976341248
+        },
+        {
+          "action": "tools-open-1",
+          "event_relative_seconds": 41.419103250373155,
+          "click_event_ms": 0.8285832591354847,
+          "frame": 88,
+          "frame_total_ms": 16.312291845679283
+        },
+        {
+          "action": "tools-close-1",
+          "event_relative_seconds": 45.41786725027487,
+          "click_event_ms": 2.067292109131813,
+          "frame": 119,
+          "frame_total_ms": 19.08295787870884
+        },
+        {
+          "action": "tools-open-2",
+          "event_relative_seconds": 50.91910379147157,
+          "click_event_ms": 0.705166719853878,
+          "frame": 150,
+          "frame_total_ms": 17.321166582405567
+        },
+        {
+          "action": "tools-close-2",
+          "event_relative_seconds": 55.26667516678572,
+          "click_event_ms": 2.151291351765394,
+          "frame": 182,
+          "frame_total_ms": 17.899957951158285
+        }
+      ],
+      "cpu_max_percent": 16.399999618530273,
+      "all_geometry_leaf_sampling_ms": 32.893062403425574
+    },
+    "frozen_build": {
+      "report": "/tmp/solosoul-fe2-macos-tools-measure-20261009/report.json",
+      "source_manifest": "/tmp/solosoul-fe2-macos-tools-measure-20261009/source.json",
+      "exit_code": 0,
+      "binary_sha256": "1f68c205aef271c621b7e360bd5a8eb53a2451621ebfbe276a9326bf35afe717",
+      "source_count": 1371,
+      "source_delta_from_before": [
+        "tauri/src/components/layout/SecondaryActionBar.tsx"
+      ],
+      "current_sources_match": true,
+      "protected_platform_inputs_unchanged": {
+        "tauri/Cargo.lock": true,
+        "tauri/Cargo.toml": true,
+        "tauri/src-tauri/Cargo.toml": true,
+        "tauri/src-tauri/gen/apple/project.yml": true,
+        "tauri/src-tauri/gen/apple/solo_soul.xcodeproj": true,
+        "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist": true,
+        "tauri/src-tauri/gen/apple/assets": true,
+        "tauri/src-tauri/gen/android/app/src/main/assets": true,
+        "tauri/src-tauri/gen/android/app/tauri.properties": true
+      },
+      "prior_frozen_package_files_unchanged": {
+        "SoloSoulFE2Mac.app": true,
+        "report.json": true,
+        "source.json": true,
+        "build.log": true,
+        "run.py": true
+      },
+      "fixture_scope": "Existing aa910… fixture read-only preflight during build; no new root/accounts created. Real launch/unlock afterwards may update synthetic runtime files."
+    },
+    "checks": {
+      "typescript": {
+        "exit_code": 0
+      },
+      "eslint_changed_file": {
+        "exit_code": 0
+      },
+      "prettier_changed_file": {
+        "exit_code": 0
+      },
+      "sidebar_tools_e2e": {
+        "passed": 49,
+        "failed": 0,
+        "exit_code": 0,
+        "log": "/tmp/solosoul-fe2-macos-native-timeline-20261009/tools-e2e.log",
+        "scope": "Chromium + WebKit; Chromium-only CDP media test excluded from WebKit; actual hit tests, clipping sweep frames, small windows, keyboard, reduced motion, horizontal card anchoring",
+        "first_attempt": "Sandbox loopback bind EPERM; no tests executed. Escalated local rerun passed."
+      }
+    },
+    "native_lifecycle": {
+      "old_pid": 10349,
+      "old_pid_absent_after_normal_quit": true,
+      "new_pid": 31180,
+      "new_path_verified": "/private/tmp/solosoul-fe2-macos-tools-measure-20261009/SoloSoulFE2Mac.app/Contents/MacOS/solo_soul",
+      "no_recovery_prompt_observed": true,
+      "startup_selected_account": "B; manually selected A using actual native dropdown, Return committed selection",
+      "actual_public_password_unlock": true,
+      "no_concurrent_old_client": true
+    },
+    "comparison_boundary": "Both debug-client profiles use same A/light/1200x800 and same ordered six sidebar/four tools clicks without screenshot instrument; timing gaps, fresh process and sampling differ. First click 30.842 -> 24.346ms; warm clicks partly improve/partly vary; two menu-close clicks 4.305/3.514 -> 2.067/2.151ms. CPU max 18.6 -> 16.4 is a sample observation, not proof of stable percentage gain. No pre-FE2 baseline, release-mode/dense-data/full recovery performance pass.",
+    "source_attribution": "Matched pre-change frozen workspace dist bootstrapApp-Bkze90eo.js; sampled getBoundingClientRect callers at line82/3653 (SecondaryActionBar), line82/34488 (AppShell), line10/107411 (useScrollingNavLabel). Source mapping is by inspected generated code, not an exact peak timestamp attribution.",
+    "restored_state": "Screenshots instrument restored enabled in both old/new Inspector sessions. New Inspector returned to bottom docking and closed; native AX shows A home/left expanded/tools closed. No OS settings or credentials changed.",
+    "task_counts": {
+      "total": 21,
+      "complete": 17,
+      "in_progress": 0,
+      "pending_validation": 4
+    },
+    "remaining": [
+      "full native login methods/enlarged text",
+      "remaining accessibility/account/foreground matrix",
+      "continuous recovery and broader performance",
+      "mobile native/device matrix"
+    ],
+    "committed_or_pushed": false
+  },
+  "macos_tools_accessibility_followup": {
+    "date": "2026-10-09",
+    "scope": "Actual latest complete macOS debug client input hit tests and OS Reduce Motion propagation; partial FE2-005/007 matrix",
+    "package": "/tmp/solosoul-fe2-macos-tools-measure-20261009/SoloSoulFE2Mac.app",
+    "binary_sha256": "1f68c205aef271c621b7e360bd5a8eb53a2451621ebfbe276a9326bf35afe717",
+    "production_source_count": 1371,
+    "current_sources_match": true,
+    "account": "Synthetic A / acc_10d91d12fdd244a6 / light / 1200x800",
+    "input_checks": {
+      "search_open": "Native tools button -> Search; field focused per actual AX",
+      "search_coordinate_filter": "Fresh full screenshot -> coordinate [389,180] identity chip; actual AX adds no-results text. Filter selection, not route navigation.",
+      "search_escape": "Search field/menu removed; tools aria collapsed.",
+      "body_coordinate_navigation": "Fresh full screenshot -> coordinate [490,247] home Identity card; actual URL workspace?section=identity and empty object page",
+      "back": "Native Return button -> home; original layout and tool collapsed state restored."
+    },
+    "system_initial": {
+      "increase_contrast": false,
+      "reduce_transparency": false,
+      "reduce_motion": false
+    },
+    "authorized_temporary_motion_change": true,
+    "actual_motion_setting": "System Settings -> Accessibility -> Motion -> AX_REDUCE_MOTION: off -> on, verified actual AX",
+    "readonly_inspector_result": {
+      "nativeReduceMotion": "true",
+      "userReduceMotion": "false",
+      "mediaReduceMotion": true,
+      "menuTransition": "0.00001s",
+      "zoneTransition": "0.00001s"
+    },
+    "native_motion_on_checks": [
+      "actual tools open -> 10 actions present",
+      "actual tools close -> actions removed / collapsed",
+      "Inspector closed -> full home AX restored"
+    ],
+    "restoration": {
+      "status": "restored_actual_ax",
+      "last_verified_reduce_motion": false,
+      "increase_contrast_last_verified": false,
+      "reduce_transparency_last_verified": false,
+      "historical_blocker": "Mac locked during restoration; user manually unlocked. Same System Settings handle then restored AX_REDUCE_MOTION on -> off and verified actual AX.",
+      "new_client_restart": false,
+      "other_system_settings_changed": false
+    },
+    "boundaries": [
+      "Actual light-account Reduce Motion off/on/off round trip completed; full matrix remains pending",
+      "Stable views/AX and computed transition durations do not prove continuous frame/recovery behavior",
+      "Full login methods/enlarged native text, independent Reduce Transparency, broader theme/recovery matrix and continuous frames remain pending",
+      "No product source changes or rerun tests in this followup"
+    ],
+    "task_counts": {
+      "total": 21,
+      "complete": 17,
+      "in_progress": 0,
+      "pending_validation": 4
+    },
+    "committed_or_pushed": false,
+    "readonly_inspector_after_restore": {
+      "nativeReduceMotion": "false",
+      "userReduceMotion": "false",
+      "mediaReduceMotion": false,
+      "menuTransition": "0.42s, 0.3s, 0s",
+      "zoneTransition": "0.42s"
+    },
+    "dark_account_motion_roundtrip": {
+      "account": "Synthetic B / acc_6700948ea4f24355 / dark",
+      "system_ax": "off -> on -> off, actual AX_REDUCE_MOTION verified",
+      "tools_open": "Actual AX expanded with all 10 actions; screenshot was a stable sample, not continuous animation proof",
+      "tools_close": "Actual AX collapsed before Inspector opened",
+      "readonly_on": {
+        "theme": "dark",
+        "nativeReduceMotion": "true",
+        "mediaReduceMotion": true,
+        "menuTransition": "0.00001s",
+        "zoneTransition": "0.00001s"
+      },
+      "readonly_off": {
+        "theme": "dark",
+        "nativeReduceMotion": "false",
+        "mediaReduceMotion": false,
+        "menuTransition": "0.42s, 0.3s, 0s",
+        "zoneTransition": "0.42s"
+      },
+      "final_client_state": "Inspector closed, B locked, actual native selector -> A and existing public synthetic password -> A home / left expanded / tools closed",
+      "unresolved_console_warning": "Unlocated Tauri callback warning still present; not a zero-warning claim"
     }
   }
 }

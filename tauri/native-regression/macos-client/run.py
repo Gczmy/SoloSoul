@@ -52,7 +52,9 @@ def check_sandbox():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--prepare", action="store_true")
+    prepare = parser.add_mutually_exclusive_group()
+    prepare.add_argument("--prepare", action="store_true")
+    prepare.add_argument("--prepare-account-switch", action="store_true", help="新建双合成账户夹具以验收账户外观切换")
     parser.add_argument("--check-sandbox", action="store_true")
     parser.add_argument("--bind", action="store_true", help="绑定测试 bundle，随后可由电脑控制工具标准启动")
     parser.add_argument("--root", type=Path)
@@ -64,10 +66,11 @@ def main():
         return
     if not BINARY.is_file():
         parser.error("请先按 README 构建 SoloSoulFE2Mac.app")
-    if arguments.prepare:
+    if arguments.prepare or arguments.prepare_account_switch:
         if arguments.root:
             parser.error("prepare 只创建新根，不接受已有 root")
-        result = subprocess.run([str(BINARY), "--fe2-macos-prepare"], check=False)
+        flag = "--fe2-macos-prepare-account-switch" if arguments.prepare_account_switch else "--fe2-macos-prepare"
+        result = subprocess.run([str(BINARY), flag], check=False)
         raise SystemExit(result.returncode)
     if not arguments.root:
         parser.error("必须指定 --root；不能回退到正式客户端")

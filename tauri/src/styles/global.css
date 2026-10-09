@@ -300,6 +300,8 @@ html[data-platform='ios'] #root {
   --border-subtle: var(--text-primary) !important;
   --text-secondary: var(--text-primary) !important;
   --text-tertiary: var(--text-primary) !important;
+  /* 错误已由明确文字表达；提高对比度时使用黑白前景，不能沿用危险按钮底色。 */
+  --text-error: var(--text-primary) !important;
 }
 
 @media (prefers-contrast: more) {
@@ -307,6 +309,7 @@ html[data-platform='ios'] #root {
     --border-subtle: var(--text-primary) !important;
     --text-secondary: var(--text-primary) !important;
     --text-tertiary: var(--text-primary) !important;
+    --text-error: var(--text-primary) !important;
   }
 }
 

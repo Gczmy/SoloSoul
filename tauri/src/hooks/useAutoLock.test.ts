@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
+vi.mock('@/lib/platform', () => ({ isAndroidSync: vi.fn(() => true) }));
+
 // Mock settingsStore 的模块级依赖（@tauri-apps/api/core 已在 test/setup.ts 全局 mock）
 vi.mock('@/lib/theme', () => ({
   applyTheme: vi.fn(),
@@ -17,6 +19,7 @@ import { useAutoLock } from './useAutoLock';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
+import { isAndroidSync } from '@/lib/platform';
 
 const MIN = 60_000;
 
@@ -43,6 +46,7 @@ function setAutoLockOnBackground(enabled: boolean) {
 describe('useAutoLock', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.mocked(isAndroidSync).mockReturnValue(true);
     vi.mocked(invoke).mockResolvedValue(undefined);
     vi.mocked(addPluginListener).mockResolvedValue({ unregister: vi.fn() } as never);
     useAuthStore.setState({ isAuthenticated: true });
@@ -195,6 +199,23 @@ describe('useAutoLock', () => {
     // addPluginListener 回调直接收 payload，不是 { payload: ... } 包装
     handler!({ locked: true });
 
+    expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('非 Android 平台不注册移动锁屏监听，但保留闲置锁定', () => {
+    vi.mocked(isAndroidSync).mockReturnValue(false);
+    renderHook(() => useAutoLock());
+    expect(addPluginListener).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(6 * MIN);
+    expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('桌面端不注册 Android 锁屏监听，但保留切后台锁定', () => {
+    vi.mocked(isAndroidSync).mockReturnValue(false);
+    renderHook(() => useAutoLock());
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(addPluginListener).not.toHaveBeenCalled();
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 

@@ -66,10 +66,7 @@ export function LoginPasswordView({
         />
         {/* 输入框已预留密码错误行；额外错误仅在发生时占位，避免叠加空白。 */}
         {displayError && (
-          <div
-            role="alert"
-            style={{ color: 'var(--accent-danger)', fontSize: 'var(--text-body-sm)' }}
-          >
+          <div role="alert" style={{ color: 'var(--text-error)', fontSize: 'var(--text-body-sm)' }}>
             {displayError}
           </div>
         )}

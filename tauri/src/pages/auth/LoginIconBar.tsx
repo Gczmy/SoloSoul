@@ -3,6 +3,8 @@
  * 两阶段悬停（边框/颜色立即高亮，文字/展开延迟 300ms）与选中态由父组件状态驱动，
  * 本组件仅做展示与事件转发。
  */
+import styles from './LoginIconBar.module.css';
+
 export interface LoginMethodOption {
   id: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
   icon: React.ReactNode;
@@ -48,6 +50,7 @@ export function LoginIconBar({
         return (
           <button
             key={method.id}
+            className={styles.methodButton}
             aria-label={method.label}
             onClick={() => onIconClick(method)}
             onMouseEnter={() => onIconEnter(method.id)}
@@ -84,7 +87,6 @@ export function LoginIconBar({
                   ? 'all 0.25s ease'
                   : 'all 0.25s ease, max-width 0.01s linear 0.2s',
               flexShrink: 0,
-              outline: 'none',
             }}
           >
             <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>

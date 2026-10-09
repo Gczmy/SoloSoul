@@ -1,0 +1,19 @@
+.methodButton {
+  outline: none;
+}
+
+.methodButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  /* 图标栏裁剪展开文字，焦点环放在按钮内部，避免被父容器裁掉。 */
+  outline-offset: -3px;
+}
+
+:global(html[data-high-contrast='true']) .methodButton:focus-visible {
+  outline-color: var(--text-primary);
+}
+
+@media (forced-colors: active) {
+  .methodButton:focus-visible {
+    outline-color: Highlight;
+  }
+}

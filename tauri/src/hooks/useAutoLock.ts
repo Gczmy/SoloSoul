@@ -8,6 +8,7 @@ import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 import { logger } from '@/lib/logger';
+import { isAndroidSync } from '@/lib/platform';
 
 /** 视为用户活动的事件（被动监听，不干扰交互） */
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart'] as const;
@@ -211,15 +212,18 @@ export function useAutoLock(): void {
     };
 
     let screenLockedListener: PluginListener | null = null;
-    addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', handleScreenLocked)
-      .then((l) => {
-        if (!active) {
-          void l.unregister().catch(() => {});
-          return;
-        }
-        screenLockedListener = l;
-      })
-      .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
+    // registerListener 由 Android Kotlin 插件提供；桌面端/iOS 的 Rust 句柄仅提供 no-op 查询。
+    // 应用挂载前已预加载平台缓存，避免在这些平台调用不存在的移动插件命令。
+    if (isAndroidSync())
+      addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', handleScreenLocked)
+        .then((l) => {
+          if (!active) {
+            void l.unregister().catch(() => {});
+            return;
+          }
+          screenLockedListener = l;
+        })
+        .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
 
     // 启动/认证后立即拉取一次，并在此后每次回到前台时拉取
     pullLockPending();

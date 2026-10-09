@@ -102,7 +102,9 @@ export function PinEntryCard({
           </div>
         )}
         {pinError && (
-          <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
+          <div style={{ color: 'var(--text-error)', fontSize: 'var(--text-body-sm)' }}>
+            {pinError}
+          </div>
         )}
       </div>
     </div>

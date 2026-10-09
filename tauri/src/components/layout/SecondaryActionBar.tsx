@@ -70,33 +70,44 @@ export function SecondaryActionBar({
 
   // 展开和折叠侧栏共用向上浮出的工具菜单，不挤压分类区或移动触发按钮。
   // 高度以实际导航起点和工具入口之间的空间为准，小窗口才滚动。
+  const measureTools = useCallback(() => {
+    const wrapper = wrapperRef.current;
+    const nav = wrapper?.closest('nav');
+    const menu = menuRef.current;
+    if (!wrapper || !nav || !menu) return;
+    const brand = nav.querySelector(`.${styles.brandHeader}`);
+    // 折叠后品牌行不再存在，仍需避让侧栏上方的原生交通灯与顶部留白。
+    const top =
+      brand?.getBoundingClientRect().bottom ??
+      nav.getBoundingClientRect().top + parseFloat(getComputedStyle(nav).paddingTop || '0');
+    const height = Math.max(0, Math.floor(wrapper.getBoundingClientRect().top - top - 8));
+    const coverHeight = `${menu.getBoundingClientRect().height}px`;
+    // 集中读取几何后再写入；相同裁剪高度不反复使样式失效。
+    setAvailableHeight(height);
+    if (nav.style.getPropertyValue('--tools-cover-height') !== coverHeight) {
+      nav.style.setProperty('--tools-cover-height', coverHeight);
+    }
+  }, []);
+
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current;
     const nav = wrapper?.closest('nav');
     const menu = menuRef.current;
     if (!wrapper || !nav || !menu) return;
-    const measure = () => {
-      const brand = nav.querySelector(`.${styles.brandHeader}`);
-      // 折叠后品牌行不再存在，仍需避让侧栏上方的原生交通灯与顶部留白。
-      const contentTop =
-        nav.getBoundingClientRect().top + parseFloat(getComputedStyle(nav).paddingTop || '0');
-      const top = brand?.getBoundingClientRect().bottom ?? contentTop;
-      setAvailableHeight(Math.max(0, Math.floor(wrapper.getBoundingClientRect().top - top - 8)));
-      // 只裁去被菜单实际覆盖的导航内容，透明表面直接使用窗口底层玻璃。
-      nav.style.setProperty('--tools-cover-height', `${menu.getBoundingClientRect().height}px`);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
+    // 菜单常驻DOM，开关和侧栏折叠无需重建监听或暂时清空裁剪高度。
+    const observer = new ResizeObserver(measureTools);
     observer.observe(nav);
     observer.observe(wrapper);
     observer.observe(menu);
-    window.addEventListener('resize', measure);
+    window.addEventListener('resize', measureTools);
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', measure);
+      window.removeEventListener('resize', measureTools);
       nav.style.removeProperty('--tools-cover-height');
     };
-  }, [sidebarExpanded, expanded]);
+  }, [measureTools]);
+
+  useLayoutEffect(measureTools, [measureTools, sidebarExpanded, expanded, sidebarPosition]);
 
   useLayoutEffect(() => {
     if (!expanded && contentRef.current?.contains(document.activeElement)) {

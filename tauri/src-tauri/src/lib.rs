@@ -394,8 +394,15 @@ fn dispatch_ipc(invoke: tauri::ipc::Invoke<tauri::Wry>) -> bool {
 pub fn run() {
     #[cfg(feature = "macos-ui-regression")]
     let regression = {
-        if std::env::args().any(|arg| arg == "--fe2-macos-prepare") {
-            match macos_ui_regression::prepare() {
+        let prepare_account_switch =
+            std::env::args().any(|arg| arg == "--fe2-macos-prepare-account-switch");
+        if prepare_account_switch || std::env::args().any(|arg| arg == "--fe2-macos-prepare") {
+            let prepared = if prepare_account_switch {
+                macos_ui_regression::prepare_account_switch()
+            } else {
+                macos_ui_regression::prepare()
+            };
+            match prepared {
                 Ok(root) => println!("{}", root.display()),
                 Err(error) => {
                     eprintln!("macOS UI regression prepare failed: {error}");

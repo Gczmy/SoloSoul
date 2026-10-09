@@ -52,7 +52,7 @@ export function LoginAccountSelector({
               textAlign: 'left',
             }}
           >
-            <div>{accounts[0]?.name}</div>
+            <div style={{ overflowWrap: 'anywhere' }}>{accounts[0]?.name}</div>
             <div
               style={{
                 fontSize: 'var(--text-badge)',

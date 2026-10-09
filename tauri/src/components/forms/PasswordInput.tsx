@@ -199,7 +199,7 @@ export function SecurePasswordInput({
             // 内联变量赋值压过类 hover 赋值，四态优先级（error > focus > hover > default）与旧 isHovered 逻辑等价；
             // disabled 内联写基值作守卫（div 无 :disabled 伪类），hover 视觉不生效。
             '--pif-border-color': error
-              ? 'var(--accent-danger, #dc2626)'
+              ? 'var(--text-error, #dc2626)'
               : isFocused
                 ? 'var(--accent-primary)'
                 : disabled
@@ -370,7 +370,7 @@ export function SecurePasswordInput({
               key={`${error}-${errorTick}`}
               style={{
                 fontSize: 'var(--text-caption)',
-                color: 'var(--accent-danger, #dc2626)',
+                color: 'var(--text-error, #dc2626)',
                 animation: 'fadeInSlideDown 0.25s ease-out',
               }}
             >
@@ -385,7 +385,7 @@ export function SecurePasswordInput({
             key={error}
             style={{
               fontSize: 'var(--text-caption)',
-              color: 'var(--accent-danger, #dc2626)',
+              color: 'var(--text-error, #dc2626)',
               animation: 'fadeInSlideDown 0.25s ease-out',
             }}
           >

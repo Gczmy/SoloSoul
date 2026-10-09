@@ -10,6 +10,7 @@ pub(crate) const BUNDLE_IDENTIFIER: &str = "com.solosoul.fe2.macos";
 const MARKER: &str = "fe2-macos-owned.json";
 const PREFIX: &str = "solosoul-fe2-macos-";
 const ACCOUNT_NAME: &str = "FE2 macOS 合成验收账户";
+const SECOND_ACCOUNT_NAME: &str = "FE2 macOS 外观切换账户";
 // 公开合成测试凭据，不用于真实账户，也不写日志 / marker。
 const PASSWORD: &str = "FE2-Mac-Synthetic-2026!";
 
@@ -19,6 +20,8 @@ pub(crate) struct Configuration {
     root: PathBuf,
     pub(crate) identifier: String,
     account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    second_account_id: Option<String>,
 }
 
 static CONFIG: OnceLock<Configuration> = OnceLock::new();
@@ -44,6 +47,14 @@ fn private_file(path: &Path, contents: &[u8]) -> Result<(), String> {
 }
 
 pub(crate) fn prepare() -> Result<PathBuf, String> {
+    prepare_fixture(false)
+}
+
+pub(crate) fn prepare_account_switch() -> Result<PathBuf, String> {
+    prepare_fixture(true)
+}
+
+fn prepare_fixture(account_switch: bool) -> Result<PathBuf, String> {
     let temporary = std::env::temp_dir()
         .canonicalize()
         .map_err(|error| error.to_string())?;
@@ -59,6 +70,21 @@ pub(crate) fn prepare() -> Result<PathBuf, String> {
         .as_str()
         .ok_or("合成账户创建结果缺少 id")?
         .to_owned();
+    let second_account_id = if account_switch {
+        let account = service.create_account(
+            SECOND_ACCOUNT_NAME,
+            PASSWORD,
+            Some("仅用于 FE2 账户外观切换验收"),
+        )?;
+        Some(
+            account["id"]
+                .as_str()
+                .ok_or("第二合成账户创建结果缺少 id")?
+                .to_owned(),
+        )
+    } else {
+        None
+    };
     service.lock();
     drop(service);
     private_file(
@@ -70,6 +96,7 @@ pub(crate) fn prepare() -> Result<PathBuf, String> {
         root: root.clone(),
         identifier: format!("{BUNDLE_IDENTIFIER}.{id}"),
         account_id,
+        second_account_id,
     };
     private_file(
         &root.join(MARKER),
@@ -126,9 +153,22 @@ fn validate(root: &Path) -> Result<Configuration, String> {
     )
     .map_err(|error| error.to_string())?;
     let accounts = accounts.as_array().ok_or("验收账户列表格式无效")?;
-    if accounts.len() != 1
-        || accounts[0]["id"] != configuration.account_id
-        || accounts[0]["name"] != ACCOUNT_NAME
+    // 双账户也只允许 marker 中明确列出的合成身份；旧单账户 marker 保持兼容。
+    let mut expected = vec![(configuration.account_id.as_str(), ACCOUNT_NAME)];
+    if let Some(second_id) = configuration.second_account_id.as_deref() {
+        if second_id == configuration.account_id {
+            return Err("验收 marker 的账户 id 重复".into());
+        }
+        expected.push((second_id, SECOND_ACCOUNT_NAME));
+    }
+    if accounts.len() != expected.len()
+        || expected.iter().any(|(id, name)| {
+            accounts
+                .iter()
+                .filter(|account| account["id"] == *id && account["name"] == *name)
+                .count()
+                != 1
+        })
     {
         return Err("验收目录包含非夹具账户".into());
     }
@@ -137,7 +177,7 @@ fn validate(root: &Path) -> Result<Configuration, String> {
         let name = entry.file_name();
         let name = name.to_string_lossy();
         if (name.starts_with("acc_") || name.starts_with("acc-"))
-            && name != configuration.account_id
+            && !expected.iter().any(|(id, _)| name == *id)
         {
             return Err("验收目录包含非夹具账户目录".into());
         }
@@ -248,6 +288,56 @@ mod tests {
         assert_eq!(preferences["theme"], "light");
         assert_eq!(preferences["defaultLightTheme"], "warm-stone");
         assert_eq!(preferences["defaultDarkTheme"], "warm-stone-dark");
+        assert!(configuration.second_account_id.is_none());
+        let marker: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(fixture.0.join(MARKER)).unwrap()).unwrap();
+        assert!(marker.get("second_account_id").is_none());
+    }
+
+    #[test]
+    fn account_switch_fixture_has_two_unlockable_synthetic_accounts() {
+        let fixture = Fixture(prepare_account_switch().unwrap());
+        let configuration = validate(&fixture.0).unwrap();
+        let service =
+            solosoul_core::VaultService::try_with_base_path(fixture.0.join("vault")).unwrap();
+        service.load_accounts();
+        assert_eq!(service.list_accounts().len(), 2);
+        assert!(!service.is_unlocked());
+        for id in [
+            configuration.account_id.as_str(),
+            configuration.second_account_id.as_deref().unwrap(),
+        ] {
+            service.unlock(id, PASSWORD).unwrap();
+            service.lock();
+            assert!(!service.is_unlocked());
+        }
+    }
+
+    #[test]
+    fn account_switch_fixture_rejects_foreign_identity_and_extra_directory() {
+        let fixture = Fixture(prepare_account_switch().unwrap());
+        let path = fixture.0.join("vault/accounts.json");
+        let original = std::fs::read(&path).unwrap();
+        let mut accounts: serde_json::Value = serde_json::from_slice(&original).unwrap();
+        accounts[1]["name"] = serde_json::json!("Other");
+        std::fs::write(&path, serde_json::to_vec(&accounts).unwrap()).unwrap();
+        assert!(validate(&fixture.0).unwrap_err().contains("非夹具账户"));
+        std::fs::write(&path, original).unwrap();
+        std::fs::create_dir(fixture.0.join("vault/acc_orphan")).unwrap();
+        assert!(validate(&fixture.0).unwrap_err().contains("非夹具账户目录"));
+    }
+
+    #[test]
+    fn account_switch_fixture_rejects_duplicate_marker_identity() {
+        let fixture = Fixture(prepare_account_switch().unwrap());
+        let mut configuration = validate(&fixture.0).unwrap();
+        configuration.second_account_id = Some(configuration.account_id.clone());
+        std::fs::write(
+            fixture.0.join(MARKER),
+            serde_json::to_vec(&configuration).unwrap(),
+        )
+        .unwrap();
+        assert!(validate(&fixture.0).unwrap_err().contains("id 重复"));
     }
 
     #[test]
