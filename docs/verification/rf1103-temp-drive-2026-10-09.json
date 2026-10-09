@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1103",
+  "date": "2026-10-09",
+  "baseHead": "895c86e785cb26fc69ceb9510660715511865b58",
+  "scope": "D-drive current-main integration",
+  "checks": {
+    "rust-format-dtemp": {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "pid": 22788,
+      "exitCode": 0,
+      "elapsedSeconds": 3.0379692999995314,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-clippy-default-dtemp": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 25760,
+      "exitCode": 0,
+      "elapsedSeconds": 152.64158260000113,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-tests-default-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "pid": 10472,
+      "exitCode": 0,
+      "elapsedSeconds": 3735.0253868,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 1864,
+        "failed": 0,
+        "ignored": 3,
+        "suites": 25
+      }
+    },
+    "rust-clippy-native-dtemp": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 10996,
+      "exitCode": 0,
+      "elapsedSeconds": 389.1816705000092,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-tests-native-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "native_perf::",
+        "--",
+        "--nocapture"
+      ],
+      "pid": 26268,
+      "exitCode": 0,
+      "elapsedSeconds": 3538.627948299996,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 113,
+        "failed": 0,
+        "ignored": 0,
+        "suites": 6
+      }
+    },
+    "rust-tests-rf905-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "rf905",
+        "--",
+        "--nocapture"
+      ],
+      "pid": 8996,
+      "exitCode": 0,
+      "elapsedSeconds": 1730.224760699988,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0,
+        "suites": 6
+      }
+    },
+    "rust-tests-default-ready": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "pid": 18660,
+      "exitCode": 101,
+      "elapsedSeconds": 5833.836331600003,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 773,
+        "failed": 10,
+        "ignored": 0,
+        "suites": 1
+      }
+    }
+  },
+  "records": [
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/build-inputs-dtemp.json.gz",
+      "originalBytes": 232430,
+      "originalSha256": "5c375ded69cb2009563b8c358adbc76571c017ff62a12d65e578aa8ea0164724",
+      "storedBytes": 88359,
+      "storedSha256": "222f81b5d6fae5ea3ef87e5f9b26f25e42b0aeeff044421349f133818f522612"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/build-inputs-ready.json.gz",
+      "originalBytes": 232430,
+      "originalSha256": "036d83e9506609b002b2aabda2a45c4afe1c13cea4fdf2f2a2f066d38648f12a",
+      "storedBytes": 88358,
+      "storedSha256": "d152b88f003f33f800fa140c3e8a3a3c508b4eb35c6bbe3126263518b48cc207"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rf1103-before-fs.rs.gz",
+      "originalBytes": 32616,
+      "originalSha256": "b0a892d6d3289c4ecb5dba3c41ee66a7ab4530b6091d4e36bd49b2283c97eae9",
+      "storedBytes": 9299,
+      "storedSha256": "504a04d898ec5559aabe723620743c3bbc99c368e5bfd641edac8070cfc89bc6"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rf1103-scope-proof.json",
+      "originalBytes": 1097,
+      "originalSha256": "7e390f7f46a5e386cc650db13e204ac6c936bd09daec1d8f53a13b54e15eb58b",
+      "storedBytes": 1097,
+      "storedSha256": "7e390f7f46a5e386cc650db13e204ac6c936bd09daec1d8f53a13b54e15eb58b"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-clippy-default-dtemp.receipt.json",
+      "originalBytes": 281,
+      "originalSha256": "70b89e9cd15dd181bbda7c55e86a709106226fdc570b2d62059db12c8223c992",
+      "storedBytes": 281,
+      "storedSha256": "70b89e9cd15dd181bbda7c55e86a709106226fdc570b2d62059db12c8223c992"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-clippy-default-dtemp.stderr.log.gz",
+      "originalBytes": 132,
+      "originalSha256": "c7aade0dc2ce88043b3cf988215ce684c1c7771e0c0459842e70fd68f4614111",
+      "storedBytes": 136,
+      "storedSha256": "706ed3eb37e6bc65cd678ff53c6c30c88c2d899e09e76392e45c0de2795806f7"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-clippy-default-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-clippy-native-dtemp.receipt.json",
+      "originalBytes": 338,
+      "originalSha256": "ba70bfba9515505c75ca34a14d4a6207731d3e597d5065253751f0da1e776c09",
+      "storedBytes": 338,
+      "storedSha256": "ba70bfba9515505c75ca34a14d4a6207731d3e597d5065253751f0da1e776c09"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-clippy-native-dtemp.stderr.log.gz",
+      "originalBytes": 1063,
+      "originalSha256": "bf3c79cd2b573337f738777ce7c4d8059e7946892c9bd0098de6e547cea219be",
+      "storedBytes": 346,
+      "storedSha256": "65631e99fef0ffabb3d64d8cc909e2ceb6229ef1e723a72c99b6e781064d03f3"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-clippy-native-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-format-dtemp.receipt.json",
+      "originalBytes": 264,
+      "originalSha256": "fac003b388eb883f1de815196adc16f0773f2933d4449773edf04aca08d2e59a",
+      "storedBytes": 264,
+      "storedSha256": "fac003b388eb883f1de815196adc16f0773f2933d4449773edf04aca08d2e59a"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-format-dtemp.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-format-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-default-dtemp.receipt.json",
+      "originalBytes": 254,
+      "originalSha256": "13bfde05791a3c8d01cd2517503dd0783983a84cf4f2159a4a1a1e4d1e9b1270",
+      "storedBytes": 254,
+      "storedSha256": "13bfde05791a3c8d01cd2517503dd0783983a84cf4f2159a4a1a1e4d1e9b1270"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-default-dtemp.stderr.log.gz",
+      "originalBytes": 171940,
+      "originalSha256": "5cc7b0d467229317a7ec7d51ec414a944ab568968c70658759cc1955a2596c3b",
+      "storedBytes": 11294,
+      "storedSha256": "54b934c2ff894d7d1de319c6031965da6c0d179a4624124988b3d641499e2d41"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-default-dtemp.stdout.log.gz",
+      "originalBytes": 730127,
+      "originalSha256": "b19dd3a7d191a1930b33584908e037539112a57db8ef1d842b9e11f0f931fe6b",
+      "storedBytes": 67233,
+      "storedSha256": "636cd77c3b00c179cb4804364b156908710625aa172e4a7bdb0574620aa0cd4e"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-default-ready.receipt.json",
+      "originalBytes": 261,
+      "originalSha256": "f0e0263cffe5e73a167a807c76ead0d8a0014f1f02b97d8c541a8c08562c9fcc",
+      "storedBytes": 261,
+      "storedSha256": "f0e0263cffe5e73a167a807c76ead0d8a0014f1f02b97d8c541a8c08562c9fcc"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-default-ready.stderr.log.gz",
+      "originalBytes": 1080384,
+      "originalSha256": "749fff195fc0e40a635e01f9bf3aab28c0ef63fcb92dd5161b28b8c119f858fd",
+      "storedBytes": 116841,
+      "storedSha256": "c88883ce40367a91578bd9aa47ccf5afa5e40040da1d3b04b2da7fb6f224f7eb"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-default-ready.stdout.log.gz",
+      "originalBytes": 412348,
+      "originalSha256": "f7221a470687bf686df8c99ec65a9230ddc2834af9d464c87118a14a0df9399f",
+      "storedBytes": 35609,
+      "storedSha256": "3209f0c0a1fe04d263e37a41eb64f33ae4df778bc3c6808c92340933f6799ba9"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-native-dtemp.receipt.json",
+      "originalBytes": 356,
+      "originalSha256": "24da57acbf22f86a4102328d07d8fad63447341cbb19d1d09a838020ff3eb18e",
+      "storedBytes": 356,
+      "storedSha256": "24da57acbf22f86a4102328d07d8fad63447341cbb19d1d09a838020ff3eb18e"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-native-dtemp.stderr.log.gz",
+      "originalBytes": 2223,
+      "originalSha256": "12a9c0734a10f47dd1b55a72499be59c0486008cbb9f158a7eec7d97bad351d1",
+      "storedBytes": 693,
+      "storedSha256": "a8b8f9b42a3db1a5a21ecac93e03f463478b9e69886601d0d650fcfbd5bcdbb9"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-native-dtemp.stdout.log.gz",
+      "originalBytes": 43417,
+      "originalSha256": "c4d28ad471079e262a54867e6e8dc0ab15c0f5426094b6d3447167dbfa223da0",
+      "storedBytes": 4442,
+      "storedSha256": "3dcc4086e9bd246fd66c00236572ac8ff3ab33f94029b593b7fafc9d3be0eac7"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-rf905-dtemp.receipt.json",
+      "originalBytes": 347,
+      "originalSha256": "133db83eea4e2767714be3286c96eb7914179493393032e8eda3ceea3cf8fdd6",
+      "storedBytes": 347,
+      "storedSha256": "133db83eea4e2767714be3286c96eb7914179493393032e8eda3ceea3cf8fdd6"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-rf905-dtemp.stderr.log.gz",
+      "originalBytes": 1539,
+      "originalSha256": "6564f08cc836cecb28582e966d90f1bf59f786df5edb9c03edede15eeb911161",
+      "storedBytes": 544,
+      "storedSha256": "671dda2d6dec90191ed96248a4558bf82dc1d00829832f0756825491d81e1310"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/rust-tests-rf905-dtemp.stdout.log.gz",
+      "originalBytes": 15059,
+      "originalSha256": "4cdc37257d62b579d9f428a7c2331e9dad8b53083c57f1e80578b81df03c6a95",
+      "storedBytes": 1740,
+      "storedSha256": "20b9bd02ea03b6451bc05f4b900a01b3ac77b4ebb364138bc2260109b347f853"
+    },
+    {
+      "path": "verification/rf1103-temp-drive-2026-10-09/toolchain.json",
+      "originalBytes": 155,
+      "originalSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9",
+      "storedBytes": 155,
+      "storedSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9"
+    }
+  ],
+  "status": "complete"
+}

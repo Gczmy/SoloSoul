@@ -125,15 +125,17 @@ fn desktop_fs_bases(home: &Path, vault_base: Option<&Path>) -> Vec<PathBuf> {
     bases
 }
 
-/// During tests, allow any absolute path by using the filesystem root as the
-/// base. This keeps unit tests simple while still exercising path logic.
+/// During tests, allow paths on the temporary directory's filesystem root.
+/// This keeps fixtures on any drive usable while still exercising path logic.
 #[cfg(test)]
 fn allowed_fs_bases<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<Vec<PathBuf>, String> {
-    Ok(vec![PathBuf::from(if cfg!(windows) {
-        "C:\\"
-    } else {
-        "/"
-    })])
+    let temp = std::env::temp_dir();
+    let root = temp
+        .ancestors()
+        .last()
+        .filter(|root| root.is_absolute())
+        .ok_or("Test temporary directory must have an absolute filesystem root")?;
+    Ok(vec![root.to_path_buf()])
 }
 
 /// R012: reject paths that contain parent-dir references, which could escape the
