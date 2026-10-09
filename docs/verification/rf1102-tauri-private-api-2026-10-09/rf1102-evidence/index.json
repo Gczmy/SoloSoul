@@ -1,0 +1,79 @@
+{
+  "task": "RF-1102",
+  "status": "validation-in-progress",
+  "baseHead": "895c86e785cb26fc69ceb9510660715511865b58",
+  "records": [
+    {
+      "path": "rf1102-before-tauri.conf.json",
+      "originalSha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899",
+      "storedSha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899",
+      "originalBytes": 3175
+    },
+    {
+      "path": "rf1102-config-consistency.json",
+      "originalSha256": "74bcc163cc21f6bfe8d8c07b356be4bb6d9dfe07501eff6cbe0d845ff2388475",
+      "storedSha256": "74bcc163cc21f6bfe8d8c07b356be4bb6d9dfe07501eff6cbe0d845ff2388475",
+      "originalBytes": 817
+    },
+    {
+      "path": "rust-clippy-default.receipt.json",
+      "originalSha256": "ad78402f88b5c10e78868699f37f28f8fd981c1d6736a7482481d21f98c86d30",
+      "storedSha256": "ad78402f88b5c10e78868699f37f28f8fd981c1d6736a7482481d21f98c86d30",
+      "originalBytes": 281
+    },
+    {
+      "path": "rust-clippy-default.stderr.log.gz",
+      "originalSha256": "37c45e695e6f931b03de0bbee3658811f7b39d2428fb5581193766a22fb79262",
+      "storedSha256": "b9a663899ae2877d319e30d7aff324a345e91c3229efb74fb9ae10767ecc5e26",
+      "originalBytes": 22962
+    },
+    {
+      "path": "rust-clippy-default-integrated.receipt.json",
+      "originalSha256": "c87581b7de3b27b3eed29e7fe7f863d31b2a98b5b6bc3312b36065531ee302cc",
+      "storedSha256": "c87581b7de3b27b3eed29e7fe7f863d31b2a98b5b6bc3312b36065531ee302cc",
+      "originalBytes": 282
+    },
+    {
+      "path": "rust-clippy-default-integrated.stderr.log.gz",
+      "originalSha256": "304a4b46f9677a65344822f8f84a081ffbe2449950c9d4bb38c10ae0e27af36d",
+      "storedSha256": "ed8acf287d4266c0746b5752ea3ecfb52c306bffb14653da7872328da1e02467",
+      "originalBytes": 777
+    },
+    {
+      "path": "rust-clippy-default-ready.receipt.json",
+      "originalSha256": "06fb178831463412457b15a4d98ba681051c7b3c57fb1677f8849190a9aced41",
+      "storedSha256": "06fb178831463412457b15a4d98ba681051c7b3c57fb1677f8849190a9aced41",
+      "originalBytes": 280
+    },
+    {
+      "path": "rust-clippy-default-ready.stderr.log.gz",
+      "originalSha256": "f0ef950455b4f014396d9ee22f7feeb3e4479b9e888c778600650722f5e31a61",
+      "storedSha256": "861752165aa14c149431c44f91479b87f0df27479f24f33b86f6991b66aadbf3",
+      "originalBytes": 221
+    },
+    {
+      "path": "config-format.receipt.json",
+      "originalSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072",
+      "storedSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072",
+      "originalBytes": 279
+    },
+    {
+      "path": "config-format.stdout.log.gz",
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "storedSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "originalBytes": 66
+    },
+    {
+      "path": "frontend-build.receipt.json",
+      "originalSha256": "64978e6909c6abf43c1a915f7d1daad6827bdf787197abce17a3c266f363764f",
+      "storedSha256": "64978e6909c6abf43c1a915f7d1daad6827bdf787197abce17a3c266f363764f",
+      "originalBytes": 241
+    },
+    {
+      "path": "toolchain.json",
+      "originalSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9",
+      "storedSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9",
+      "originalBytes": 155
+    }
+  ]
+}

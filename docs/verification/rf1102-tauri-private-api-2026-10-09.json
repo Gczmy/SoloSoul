@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1102",
+  "date": "2026-10-09",
+  "baseHead": "895c86e785cb26fc69ceb9510660715511865b58",
+  "scope": "D-drive current-main integration",
+  "checks": {
+    "rust-format-dtemp": {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "pid": 22788,
+      "exitCode": 0,
+      "elapsedSeconds": 3.0379692999995314,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-clippy-default-dtemp": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 25760,
+      "exitCode": 0,
+      "elapsedSeconds": 152.64158260000113,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-tests-default-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "pid": 10472,
+      "exitCode": 0,
+      "elapsedSeconds": 3735.0253868,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 1864,
+        "failed": 0,
+        "ignored": 3,
+        "suites": 25
+      }
+    },
+    "rust-clippy-native-dtemp": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 10996,
+      "exitCode": 0,
+      "elapsedSeconds": 389.1816705000092,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "rust-tests-native-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "native_perf::",
+        "--",
+        "--nocapture"
+      ],
+      "pid": 26268,
+      "exitCode": 0,
+      "elapsedSeconds": 3538.627948299996,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 113,
+        "failed": 0,
+        "ignored": 0,
+        "suites": 6
+      }
+    },
+    "rust-tests-rf905-dtemp": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "rf905",
+        "--",
+        "--nocapture"
+      ],
+      "pid": 8996,
+      "exitCode": 0,
+      "elapsedSeconds": 1730.224760699988,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "counts": {
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0,
+        "suites": 6
+      }
+    },
+    "native-release-build": {
+      "command": [
+        "npm.cmd",
+        "run",
+        "tauri",
+        "--",
+        "build",
+        "--config",
+        "src-tauri/tauri.native-perf.conf.json",
+        "--features",
+        "native-perf",
+        "--no-bundle",
+        "--ci"
+      ],
+      "pid": 25940,
+      "exitCode": 0,
+      "elapsedSeconds": 5033.9071578,
+      "sourceUnchanged": false,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "config-format": {
+      "command": [
+        "npx.cmd",
+        "prettier",
+        "--check",
+        "src-tauri/tauri.conf.json"
+      ],
+      "pid": 6720,
+      "exitCode": 0,
+      "elapsedSeconds": 0.971866299994872,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    },
+    "frontend-build": {
+      "command": [
+        "npx.cmd",
+        "vite",
+        "build"
+      ],
+      "pid": 12564,
+      "exitCode": 0,
+      "elapsedSeconds": 8.686037899999064,
+      "sourceUnchanged": true,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+    }
+  },
+  "records": [
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/build-inputs-dtemp.json.gz",
+      "originalBytes": 232430,
+      "originalSha256": "5c375ded69cb2009563b8c358adbc76571c017ff62a12d65e578aa8ea0164724",
+      "storedBytes": 88359,
+      "storedSha256": "222f81b5d6fae5ea3ef87e5f9b26f25e42b0aeeff044421349f133818f522612"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/config-format.receipt.json",
+      "originalBytes": 279,
+      "originalSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072",
+      "storedBytes": 279,
+      "storedSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/config-format.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/config-format.stdout.log.gz",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "storedBytes": 82,
+      "storedSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/frontend-build.receipt.json",
+      "originalBytes": 241,
+      "originalSha256": "64978e6909c6abf43c1a915f7d1daad6827bdf787197abce17a3c266f363764f",
+      "storedBytes": 241,
+      "storedSha256": "64978e6909c6abf43c1a915f7d1daad6827bdf787197abce17a3c266f363764f"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/frontend-build.stderr.log.gz",
+      "originalBytes": 1811,
+      "originalSha256": "595714ed13b0a18ee00831fa671934098d200162c93f4ef2d79f7944f90e82c1",
+      "storedBytes": 786,
+      "storedSha256": "512b753f756db8a2c5b8b67c5e122551edb36d1db69feafc60f4d7341290309d"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/frontend-build.stdout.log.gz",
+      "originalBytes": 3334,
+      "originalSha256": "b1151805554af51fa752594b3c4ddf0ae8ca5809cfb311974bcf10c7950fab1d",
+      "storedBytes": 1114,
+      "storedSha256": "51007e43f38dcae2f7cdb1f8f84ab27d4052b4f022056f6a5a459e3abdc7d487"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/native-release-build.receipt.json",
+      "originalBytes": 388,
+      "originalSha256": "0527696638115f368ade8bf1c0353f2994535f6f14922081893e04c0cd537b47",
+      "storedBytes": 388,
+      "storedSha256": "0527696638115f368ade8bf1c0353f2994535f6f14922081893e04c0cd537b47"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/native-release-build.stderr.log.gz",
+      "originalBytes": 24469,
+      "originalSha256": "c893b24abbe468eb4615292ec822cbe0d5d71e1972c45bf084d7b7b235f15bfe",
+      "storedBytes": 6869,
+      "storedSha256": "a0c77ecd77f037b10aeeb615e13f023c0ceaa1dcfdd5dc6f48ba7127fa40994d"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/native-release-build.stdout.log.gz",
+      "originalBytes": 3595,
+      "originalSha256": "dd63a69d5b98e03b3f88a3433a94a8b2e8be6c7adf0547fa8cbfcfef62369b02",
+      "storedBytes": 1315,
+      "storedSha256": "dbf4d696daa306557f6091ce9143cfa1f05b0a8521fd7ec6d19d8a1fce2eb0d1"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/native-release-coordinator-stop.json",
+      "originalBytes": 472,
+      "originalSha256": "891117dcbabd8d69759a20a50e74427a9182bcc5aa95689d6d9a9bbef8764c09",
+      "storedBytes": 472,
+      "storedSha256": "891117dcbabd8d69759a20a50e74427a9182bcc5aa95689d6d9a9bbef8764c09"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/native-release-source-integrity.json",
+      "originalBytes": 611,
+      "originalSha256": "68183296fe8ec81034d80b39567dba0bf34415052d7e70d0e99440ef3f4349e2",
+      "storedBytes": 611,
+      "storedSha256": "68183296fe8ec81034d80b39567dba0bf34415052d7e70d0e99440ef3f4349e2"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-before-tauri.conf.json",
+      "originalBytes": 3175,
+      "originalSha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899",
+      "storedBytes": 3175,
+      "storedSha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-config-consistency.json",
+      "originalBytes": 817,
+      "originalSha256": "74bcc163cc21f6bfe8d8c07b356be4bb6d9dfe07501eff6cbe0d845ff2388475",
+      "storedBytes": 817,
+      "storedSha256": "74bcc163cc21f6bfe8d8c07b356be4bb6d9dfe07501eff6cbe0d845ff2388475"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/config-format.receipt.json",
+      "originalBytes": 279,
+      "originalSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072",
+      "storedBytes": 279,
+      "storedSha256": "bfa53df3dda7c7b7821fd3aa37df3e5d19359b8befd739ac19d0db4f6e4b2072"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/config-format.stdout.log.gz",
+      "originalBytes": 82,
+      "originalSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "storedBytes": 82,
+      "storedSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/frontend-build.receipt.json",
+      "originalBytes": 241,
+      "originalSha256": "64978e6909c6abf43c1a915f7d1daad6827bdf787197abce17a3c266f363764f",
+      "storedBytes": 241,
+      "storedSha256": "64978e6909c6abf43c1a915f7d1daad6827bdf787197abce17a3c266f363764f"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/index.json",
+      "originalBytes": 3403,
+      "originalSha256": "b09fa94d94ea04fcef70aa85afe43c7f72fe77f029c83c6e51a34c3efa95c937",
+      "storedBytes": 3403,
+      "storedSha256": "b09fa94d94ea04fcef70aa85afe43c7f72fe77f029c83c6e51a34c3efa95c937"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rf1102-before-tauri.conf.json",
+      "originalBytes": 3175,
+      "originalSha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899",
+      "storedBytes": 3175,
+      "storedSha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rf1102-config-consistency.json",
+      "originalBytes": 817,
+      "originalSha256": "74bcc163cc21f6bfe8d8c07b356be4bb6d9dfe07501eff6cbe0d845ff2388475",
+      "storedBytes": 817,
+      "storedSha256": "74bcc163cc21f6bfe8d8c07b356be4bb6d9dfe07501eff6cbe0d845ff2388475"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rust-clippy-default-integrated.receipt.json",
+      "originalBytes": 282,
+      "originalSha256": "c87581b7de3b27b3eed29e7fe7f863d31b2a98b5b6bc3312b36065531ee302cc",
+      "storedBytes": 282,
+      "storedSha256": "c87581b7de3b27b3eed29e7fe7f863d31b2a98b5b6bc3312b36065531ee302cc"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rust-clippy-default-integrated.stderr.log.gz",
+      "originalBytes": 398,
+      "originalSha256": "ed8acf287d4266c0746b5752ea3ecfb52c306bffb14653da7872328da1e02467",
+      "storedBytes": 398,
+      "storedSha256": "ed8acf287d4266c0746b5752ea3ecfb52c306bffb14653da7872328da1e02467"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rust-clippy-default-ready.receipt.json",
+      "originalBytes": 280,
+      "originalSha256": "06fb178831463412457b15a4d98ba681051c7b3c57fb1677f8849190a9aced41",
+      "storedBytes": 280,
+      "storedSha256": "06fb178831463412457b15a4d98ba681051c7b3c57fb1677f8849190a9aced41"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rust-clippy-default-ready.stderr.log.gz",
+      "originalBytes": 175,
+      "originalSha256": "861752165aa14c149431c44f91479b87f0df27479f24f33b86f6991b66aadbf3",
+      "storedBytes": 175,
+      "storedSha256": "861752165aa14c149431c44f91479b87f0df27479f24f33b86f6991b66aadbf3"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rust-clippy-default.receipt.json",
+      "originalBytes": 281,
+      "originalSha256": "ad78402f88b5c10e78868699f37f28f8fd981c1d6736a7482481d21f98c86d30",
+      "storedBytes": 281,
+      "storedSha256": "ad78402f88b5c10e78868699f37f28f8fd981c1d6736a7482481d21f98c86d30"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/rust-clippy-default.stderr.log.gz",
+      "originalBytes": 6498,
+      "originalSha256": "b9a663899ae2877d319e30d7aff324a345e91c3229efb74fb9ae10767ecc5e26",
+      "storedBytes": 6498,
+      "storedSha256": "b9a663899ae2877d319e30d7aff324a345e91c3229efb74fb9ae10767ecc5e26"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rf1102-evidence/toolchain.json",
+      "originalBytes": 155,
+      "originalSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9",
+      "storedBytes": 155,
+      "storedSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-clippy-default-dtemp.receipt.json",
+      "originalBytes": 281,
+      "originalSha256": "70b89e9cd15dd181bbda7c55e86a709106226fdc570b2d62059db12c8223c992",
+      "storedBytes": 281,
+      "storedSha256": "70b89e9cd15dd181bbda7c55e86a709106226fdc570b2d62059db12c8223c992"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-clippy-default-dtemp.stderr.log.gz",
+      "originalBytes": 132,
+      "originalSha256": "c7aade0dc2ce88043b3cf988215ce684c1c7771e0c0459842e70fd68f4614111",
+      "storedBytes": 136,
+      "storedSha256": "706ed3eb37e6bc65cd678ff53c6c30c88c2d899e09e76392e45c0de2795806f7"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-clippy-default-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-clippy-native-dtemp.receipt.json",
+      "originalBytes": 338,
+      "originalSha256": "ba70bfba9515505c75ca34a14d4a6207731d3e597d5065253751f0da1e776c09",
+      "storedBytes": 338,
+      "storedSha256": "ba70bfba9515505c75ca34a14d4a6207731d3e597d5065253751f0da1e776c09"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-clippy-native-dtemp.stderr.log.gz",
+      "originalBytes": 1063,
+      "originalSha256": "bf3c79cd2b573337f738777ce7c4d8059e7946892c9bd0098de6e547cea219be",
+      "storedBytes": 346,
+      "storedSha256": "65631e99fef0ffabb3d64d8cc909e2ceb6229ef1e723a72c99b6e781064d03f3"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-clippy-native-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-format-dtemp.receipt.json",
+      "originalBytes": 264,
+      "originalSha256": "fac003b388eb883f1de815196adc16f0773f2933d4449773edf04aca08d2e59a",
+      "storedBytes": 264,
+      "storedSha256": "fac003b388eb883f1de815196adc16f0773f2933d4449773edf04aca08d2e59a"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-format-dtemp.stderr.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-format-dtemp.stdout.log.gz",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-default-dtemp.receipt.json",
+      "originalBytes": 254,
+      "originalSha256": "13bfde05791a3c8d01cd2517503dd0783983a84cf4f2159a4a1a1e4d1e9b1270",
+      "storedBytes": 254,
+      "storedSha256": "13bfde05791a3c8d01cd2517503dd0783983a84cf4f2159a4a1a1e4d1e9b1270"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-default-dtemp.stderr.log.gz",
+      "originalBytes": 171940,
+      "originalSha256": "5cc7b0d467229317a7ec7d51ec414a944ab568968c70658759cc1955a2596c3b",
+      "storedBytes": 11294,
+      "storedSha256": "54b934c2ff894d7d1de319c6031965da6c0d179a4624124988b3d641499e2d41"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-default-dtemp.stdout.log.gz",
+      "originalBytes": 730127,
+      "originalSha256": "b19dd3a7d191a1930b33584908e037539112a57db8ef1d842b9e11f0f931fe6b",
+      "storedBytes": 67233,
+      "storedSha256": "636cd77c3b00c179cb4804364b156908710625aa172e4a7bdb0574620aa0cd4e"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-native-dtemp.receipt.json",
+      "originalBytes": 356,
+      "originalSha256": "24da57acbf22f86a4102328d07d8fad63447341cbb19d1d09a838020ff3eb18e",
+      "storedBytes": 356,
+      "storedSha256": "24da57acbf22f86a4102328d07d8fad63447341cbb19d1d09a838020ff3eb18e"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-native-dtemp.stderr.log.gz",
+      "originalBytes": 2223,
+      "originalSha256": "12a9c0734a10f47dd1b55a72499be59c0486008cbb9f158a7eec7d97bad351d1",
+      "storedBytes": 693,
+      "storedSha256": "a8b8f9b42a3db1a5a21ecac93e03f463478b9e69886601d0d650fcfbd5bcdbb9"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-native-dtemp.stdout.log.gz",
+      "originalBytes": 43417,
+      "originalSha256": "c4d28ad471079e262a54867e6e8dc0ab15c0f5426094b6d3447167dbfa223da0",
+      "storedBytes": 4442,
+      "storedSha256": "3dcc4086e9bd246fd66c00236572ac8ff3ab33f94029b593b7fafc9d3be0eac7"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-rf905-dtemp.receipt.json",
+      "originalBytes": 347,
+      "originalSha256": "133db83eea4e2767714be3286c96eb7914179493393032e8eda3ceea3cf8fdd6",
+      "storedBytes": 347,
+      "storedSha256": "133db83eea4e2767714be3286c96eb7914179493393032e8eda3ceea3cf8fdd6"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-rf905-dtemp.stderr.log.gz",
+      "originalBytes": 1539,
+      "originalSha256": "6564f08cc836cecb28582e966d90f1bf59f786df5edb9c03edede15eeb911161",
+      "storedBytes": 544,
+      "storedSha256": "671dda2d6dec90191ed96248a4558bf82dc1d00829832f0756825491d81e1310"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/rust-tests-rf905-dtemp.stdout.log.gz",
+      "originalBytes": 15059,
+      "originalSha256": "4cdc37257d62b579d9f428a7c2331e9dad8b53083c57f1e80578b81df03c6a95",
+      "storedBytes": 1740,
+      "storedSha256": "20b9bd02ea03b6451bc05f4b900a01b3ac77b4ebb364138bc2260109b347f853"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/tauri-cli-generated-Cargo.toml",
+      "originalBytes": 5244,
+      "originalSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+      "storedBytes": 5244,
+      "storedSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810"
+    },
+    {
+      "path": "verification/rf1102-tauri-private-api-2026-10-09/toolchain.json",
+      "originalBytes": 155,
+      "originalSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9",
+      "storedBytes": 155,
+      "storedSha256": "14b0ca030adb6bebec1f6199747b690d54a7e118e1d2471e3424e5179dbc08f9"
+    }
+  ],
+  "status": "complete"
+}

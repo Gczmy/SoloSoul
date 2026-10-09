@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--features",
+    "native-perf",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "pid": 10996,
+  "exitCode": 0,
+  "elapsedSeconds": 389.1816705000092,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp"
+}

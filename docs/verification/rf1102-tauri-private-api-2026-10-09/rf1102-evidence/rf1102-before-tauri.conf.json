@@ -10,7 +10,6 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "SoloSoul",
@@ -35,7 +34,12 @@
     "active": true,
     "category": "Productivity",
     "copyright": "(c) 2026 SoloSoul",
-    "targets": ["dmg", "app", "appimage", "nsis"],
+    "targets": [
+      "dmg",
+      "app",
+      "appimage",
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -57,7 +61,10 @@
         "sidebarImage": "./bundles/nsis/assets/welcome-sidebar.bmp",
         "headerImage": "./bundles/nsis/assets/header-install.bmp",
         "uninstallerHeaderImage": "./bundles/nsis/assets/header-uninstall.bmp",
-        "languages": ["SimpChinese", "English"],
+        "languages": [
+          "SimpChinese",
+          "English"
+        ],
         "displayLanguageSelector": true
       }
     },
