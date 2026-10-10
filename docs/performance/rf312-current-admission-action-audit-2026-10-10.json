@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "current-login-maintenance-rejection-local-action-audit",
+  "at": "2026-10-10T04:04:26.430Z",
+  "diagnosticOnly": true,
+  "performanceMetrics": null,
+  "sourceFiles": {
+    "tauri/src-tauri/src/commands/auth.rs": "085ab550429c33838f847b1d23cafef205f1231c573c54ac7d16b2f39d457a9a",
+    "tauri/src-tauri/src/commands/update_preferences.rs": "63d20bf06d5bdca43573f33ea00f39aeb5e49ea8ea59e9f403fb7f9b807d54e0",
+    "tauri/crates/solosoul-core/src/import_activity.rs": "39b01e9b451f264a3714910fde5a1696943fdd343fc5c9e09f9dd135bb3eba16",
+    "tauri/src-tauri/src/native_perf/maintenance_trace.rs": "393ec0ae5082284c4e83516e0c8f7ff12c39334d160abb86de35cf47ca25acf5",
+    "tauri/scripts/native-perf-auth-contract.mjs": "6c558156d1acf1e7ea7d62fe59249519507c92172909a8c35b4dbe8b802b282b",
+    "tauri/scripts/native-perf-maintenance-contract.mjs": "dbf983e620e13a00269188ac641797a740ab833b7647a42055da7e7bd6e8af0f"
+  },
+  "archive": {
+    "path": "docs/verification/rf121-windows-theme-binding-2026-10-10/raw.tar.gz",
+    "sha256": "46ccb687143d15dd5f8d1f663512d945cf2eb78b337c4648f781629e3d640fd9",
+    "evidenceFiles": {
+      "round-1/actual100/sample-001/native-perf-sdk-journey.json": "ade5714c53036a8ab57bfc5dc7dad0f5d59d046c998588108b29c0bcc77980f4",
+      "round-1/actual100/sample-001/native-perf-auth-attribution.json": "709df12ec9a9d3548b7627fae49b0de77c81ef0a81e3e7693704723918b9cdb9",
+      "round-1/actual100/sample-001/native-perf-maintenance-admission.json": "084c634247221a54a4975b17ce1b0a162085d03a9222b115c578199ea41898c4"
+    }
+  },
+  "currentFailure": {
+    "runId": "6524e3ec473d40e8a0ccd9a9ff687931",
+    "pid": 8720,
+    "flowId": 2,
+    "reply": {
+      "command": "login",
+      "invokeSeq": 515,
+      "status": "tauri-error",
+      "headersDelayMs": 9.700000017881393,
+      "promiseWaitMs": 10.400000005958645,
+      "afterHeadersToAwaitMs": 0.5
+    },
+    "pair": {
+      "invokeSeq": 515,
+      "attemptId": 7
+    },
+    "backendAttempt": {
+      "endedAtMs": 11461.2338,
+      "id": 7,
+      "kind": "login",
+      "outcome": "interrupted",
+      "rootVerified": true,
+      "stages": [
+        {
+          "endedAtMs": 11461.0306,
+          "name": "root-read",
+          "outcome": "completed",
+          "startedAtMs": 11461.0296,
+          "durationMs": 0.0010000000002037268
+        },
+        {
+          "endedAtMs": 11461.2333,
+          "name": "maintenance-admission",
+          "outcome": "interrupted",
+          "startedAtMs": 11461.0314,
+          "durationMs": 0.20190000000002328
+        }
+      ],
+      "startedAtMs": 11461.0293,
+      "durationMs": 0.20449999999982538
+    },
+    "maintenanceFailure": {
+      "atMs": 11461.232,
+      "attemptId": 7,
+      "errorClass": "operations-active",
+      "stageToken": 1,
+      "witnesses": [
+        {
+          "id": 8,
+          "kind": "update-source-preferences",
+          "startedAtMs": 11066.086200000002
+        }
+      ]
+    },
+    "nativeReason": "probe-timeout",
+    "failedStep": "home",
+    "category": "login-maintenance-admission-rejected",
+    "kdfStarted": false,
+    "fullActivityCoverage": false,
+    "sourcePreferenceReadOrWriteDistinguished": false,
+    "sourcePreferenceExclusiveCauseProven": false,
+    "historicalHomeTimeoutRootCauseProven": false
+  },
+  "sourceReview": {
+    "networkLeasePreviouslyReleased": true,
+    "actualReadAndWriteLeasesPreserved": true,
+    "admissionRejectsActiveOperations": true,
+    "businessChangeJustifiedByThisEvidence": false
+  },
+  "environment": {
+    "windows": {
+      "at": "2026-10-10T04:00:47.545131+00:00",
+      "callerPid": 200,
+      "callerSessionId": 1,
+      "activeConsoleSessionId": 2,
+      "userNamesRead": false,
+      "pixelsRead": 0,
+      "inputEventsSent": 0,
+      "systemSettingsChanged": false,
+      "connectionState": 4,
+      "connectionStateName": "Disconnected",
+      "inputDesktopAvailable": false,
+      "inputDesktopError": 5
+    },
+    "android": {
+      "at": "2026-10-10T04:02:34.498053+00:00",
+      "serverPid": 23652,
+      "serverPort": 49307,
+      "privateServer": true,
+      "userAvdsModified": false,
+      "appsInstalledOrLaunched": 0,
+      "queryExitCode": 0,
+      "stdout": "List of devices attached\r\n\r\n",
+      "stderr": "",
+      "ownedServerExitCode": 1,
+      "ownedServerExited": true
+    },
+    "installedEmulatorPathsChecked": [
+      "D:/andriod_studio_sdk/emulator/emulator.exe",
+      "C:/Users/40299571/ss-android/sdk/emulator/emulator.exe"
+    ],
+    "installedEmulatorPresent": false,
+    "adbTemporaryHomeRemoved": true,
+    "macosHostProvided": false,
+    "iosKeychainDeferredByUser": true
+  },
+  "nextActions": [
+    {
+      "task": "RF-121",
+      "requirement": "actual Windows theme/pixel binding and window matrix",
+      "condition": "restore the same Codex Windows session and unlock it",
+      "locallyExecutableNow": false
+    },
+    {
+      "task": "RF-312",
+      "requirement": "repeat failure investigation/current warm startup/sleep and native performance",
+      "condition": "active native graphical session, then preserve successful and failed repeated samples",
+      "locallyExecutableNow": false
+    },
+    {
+      "task": "RF-112",
+      "requirement": "isolated macOS lock recovery",
+      "condition": "macOS host and isolated user or VM",
+      "locallyExecutableNow": false
+    },
+    {
+      "task": "RF-121 / FE2-004/005/007/014",
+      "requirement": "remaining native macOS/mobile scenes",
+      "condition": "corresponding native hosts/devices; current ADB inventory is empty",
+      "locallyExecutableNow": false
+    },
+    {
+      "task": "RF-122～127",
+      "requirement": "dependent surface migrations",
+      "condition": "close RF-121 first and observe subsequent task dependencies",
+      "locallyExecutableNow": false
+    }
+  ],
+  "rf312Closed": false,
+  "rf121Closed": false,
+  "rf112Closed": false,
+  "goalComplete": false
+}
