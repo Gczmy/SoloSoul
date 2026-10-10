@@ -1,0 +1,116 @@
+{
+  "at": "2026-10-10T20:28:02.175829+00:00",
+  "rows": [
+    {
+      "mode": "supported",
+      "originalReceipt": {
+        "mode": "supported",
+        "command": [
+          "node",
+          "scripts/android-native-regression.mjs",
+          "--adb",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+          "--serial",
+          "emulator-5586",
+          "--avd",
+          "SoloSoul_RF121_20261010",
+          "--apk",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+          "--test-apk",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug-androidTest.apk",
+          "--output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\supported",
+          "--mode",
+          "supported"
+        ],
+        "exitCode": 1,
+        "accepted": false,
+        "elapsedSeconds": 42.60005110001657,
+        "expectedTests": 13,
+        "observedTests": 5,
+        "successes": 4,
+        "restorationErrorsAbsent": true,
+        "sourceAndApkHashesUnchanged": true,
+        "settingsBefore": {
+          "disableWindowBlurs": "null",
+          "nightMode": "Night mode: no"
+        },
+        "settingsAfter": {
+          "disableWindowBlurs": "null",
+          "nightMode": "Night mode: no"
+        },
+        "dedicatedAvdIdentityConfirmedAfter": true,
+        "reportSha256": "91fccec7334878e67cd40f6c5b3ef049d3360531fb125e9fa8d69be1cc223fd8"
+      },
+      "reportSha256": "91fccec7334878e67cd40f6c5b3ef049d3360531fb125e9fa8d69be1cc223fd8",
+      "identicalScreenshots": true,
+      "screenshots": [
+        {
+          "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\supported\\device-files\\rf121-card-light-default.png",
+          "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2"
+        },
+        {
+          "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\supported\\device-files\\rf121-card-light-floating.png",
+          "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2"
+        }
+      ]
+    },
+    {
+      "mode": "fallback",
+      "originalReceipt": {
+        "mode": "fallback",
+        "command": [
+          "node",
+          "scripts/android-native-regression.mjs",
+          "--adb",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+          "--serial",
+          "emulator-5586",
+          "--avd",
+          "SoloSoul_RF121_20261010",
+          "--apk",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+          "--test-apk",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug-androidTest.apk",
+          "--output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\fallback",
+          "--mode",
+          "fallback"
+        ],
+        "exitCode": 1,
+        "accepted": false,
+        "elapsedSeconds": 20.75484109998797,
+        "expectedTests": 11,
+        "observedTests": 3,
+        "successes": 2,
+        "restorationErrorsAbsent": true,
+        "sourceAndApkHashesUnchanged": true,
+        "settingsBefore": {
+          "disableWindowBlurs": "null",
+          "nightMode": "Night mode: no"
+        },
+        "settingsAfter": {
+          "disableWindowBlurs": "null",
+          "nightMode": "Night mode: no"
+        },
+        "dedicatedAvdIdentityConfirmedAfter": true,
+        "reportSha256": "f309bb83f7db638b121eacc7552606bd87e0b85ebfcd5411a15e6faf0bd717a9"
+      },
+      "reportSha256": "f309bb83f7db638b121eacc7552606bd87e0b85ebfcd5411a15e6faf0bd717a9",
+      "identicalScreenshots": true,
+      "screenshots": [
+        {
+          "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\fallback\\device-files\\rf121-card-light-default.png",
+          "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2"
+        },
+        {
+          "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\fallback\\device-files\\rf121-card-light-floating.png",
+          "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2"
+        }
+      ]
+    }
+  ],
+  "observed": "DOM identifies scrolled floating surface; default and floating native screenshots remain byte-identical",
+  "diagnosisPendingActualRerun": true,
+  "primaryApiReference": "https://developer.android.com/reference/android/webkit/WebView#postVisualStateCallback(long,android.webkit.WebView.VisualStateCallback)"
+}

@@ -3,6 +3,8 @@ package com.solosoul.app
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.provider.Settings
+import android.view.ViewTreeObserver
+import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -36,12 +38,45 @@ class AndroidCardSurfaceInstrumentedTest {
             return {scrolled: true};
         })())""")
         instrumentation.uiAutomation.waitForIdle(350, 3000)
+        // DOM 滚动完成不代表原生合成帧已更新；等待该视觉状态后的实际绘制。
+        val painted = CountDownLatch(1)
+        scenario.onActivity {
+            val view = it.webView
+            assertTrue("Screenshot requires an attached, visible, focused WebView",
+                view.isAttachedToWindow && view.isShown && view.hasWindowFocus())
+            view.postVisualStateCallback(System.nanoTime(), object : WebView.VisualStateCallback() {
+                override fun onComplete(requestId: Long) {
+                    val observer = view.viewTreeObserver
+                    val drawn = object : ViewTreeObserver.OnDrawListener {
+                        override fun onDraw() {
+                            // onDraw 中不能移除监听器；下一次主线程任务确认绘制已返回。
+                            view.post {
+                                if (observer.isAlive) observer.removeOnDrawListener(this)
+                                painted.countDown()
+                            }
+                        }
+                    }
+                    observer.addOnDrawListener(drawn)
+                    view.invalidate()
+                }
+            })
+        }
+        assertTrue("WebView must draw the requested visual state", painted.await(10, TimeUnit.SECONDS))
+        instrumentation.uiAutomation.waitForIdle(350, 3000)
         val point = evaluate(scenario, """JSON.stringify((() => {
             const card = document.querySelector('[data-ui-card="$surface"]');
             const rect = card.getBoundingClientRect();
+            const probe = document.createElement('span');
+            probe.style.backgroundColor = '$surface' === 'floating'
+                ? 'var(--md-surface-high, var(--bg-inset))' : 'var(--bg-elevated)';
+            document.documentElement.append(probe);
+            const expectedBackground = getComputedStyle(probe).backgroundColor;
+            probe.remove();
             return {x: rect.left + 16, y: rect.top + 12, viewportWidth: innerWidth,
-                background: getComputedStyle(card).backgroundColor};
+                background: getComputedStyle(card).backgroundColor, expectedBackground};
         })())""")
+        assertEquals("Visible card must settle to the real theme token: $point",
+            point.getString("expectedBackground"), point.getString("background"))
         var ratio = 0.0
         val location = IntArray(2)
         scenario.onActivity {
@@ -86,7 +121,12 @@ class AndroidCardSurfaceInstrumentedTest {
                 scenario.onActivity {
                     assertTrue(it.reports.isEmpty())
                     // 中性正文 Card 的默认表面；不伪装成 Android 原生弹窗材质或辅助功能矩阵。
-                    it.webView.evaluateJavascript("window.__runCardSample('$theme', {material:'solid',reduceMotion:false,highContrast:false}, 'android')", null)
+                    it.webView.evaluateJavascript("""(() => {
+                        window.__runCardSample('$theme', {material:'solid',reduceMotion:false,highContrast:false}, 'android');
+                        // 在本次主题提交中计算样式，启动过渡；不能等300ms后首次采样才启动。
+                        for (const card of document.querySelectorAll('[data-ui-card]'))
+                            getComputedStyle(card).backgroundColor;
+                    })()""", null)
                 }
                 var raw: String? = null
                 val reportDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(6)
@@ -95,6 +135,7 @@ class AndroidCardSurfaceInstrumentedTest {
                     if (raw == null) Thread.sleep(30)
                 }
                 val report = JSONObject(requireNotNull(raw) { "Actual paint-frame report missing" })
+                File(context.getExternalFilesDir(null), "rf121-card-$theme-dom.json").writeText(report.toString(2))
                 assertFalse("Paint timeout cannot pass", report.has("error"))
                 assertEquals(theme, report.getString("theme"))
                 assertFalse(report.getBoolean("pageOverflow"))
@@ -104,7 +145,7 @@ class AndroidCardSurfaceInstrumentedTest {
                     val card = cards.getJSONObject(index)
                     assertTrue(card.getBoolean("visible"))
                     assertFalse(card.getBoolean("overflow"))
-                    assertEquals(card.getString("expectedBackground"), card.getString("background"))
+                    // 逐张滚入视口并完成原生绘制后，capture仍严格核对主题token与像素。
                     assertNotEquals(card.getString("background"), card.getString("color"))
                     assertEquals(if (index == 0) "default" else "floating", card.getString("surface"))
                 }

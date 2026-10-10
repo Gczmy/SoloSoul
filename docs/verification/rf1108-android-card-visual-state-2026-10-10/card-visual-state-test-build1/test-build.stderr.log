@@ -1,0 +1,2 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=D:\SoloSoul\build\android-native-feasibility-20261010\java-home -Djava.io.tmpdir=D:\SoloSoul\build\android-native-feasibility-20261010\tmp
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.

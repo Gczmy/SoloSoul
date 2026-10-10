@@ -1,0 +1,38 @@
+{
+  "theme": "dark",
+  "appearance": {
+    "material": "solid",
+    "reduceMotion": false,
+    "highContrast": false
+  },
+  "expectedBackground": "rgb(42, 38, 32)",
+  "cards": [
+    {
+      "surface": "default",
+      "background": "rgb(42, 38, 32)",
+      "expectedBackground": "rgb(42, 38, 32)",
+      "backdropFilter": "none",
+      "color": "rgb(255, 255, 255)",
+      "width": 296,
+      "height": 393,
+      "overflow": false,
+      "visible": true
+    },
+    {
+      "surface": "floating",
+      "background": "rgb(42, 38, 32)",
+      "expectedBackground": "rgb(42, 38, 32)",
+      "backdropFilter": "none",
+      "color": "rgb(255, 255, 255)",
+      "width": 296,
+      "height": 516,
+      "overflow": false,
+      "visible": true
+    }
+  ],
+  "pageOverflow": false,
+  "viewport": {
+    "width": 360,
+    "height": 800
+  }
+}

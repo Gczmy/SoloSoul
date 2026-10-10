@@ -1,0 +1,13 @@
+{
+  "exitCode": 0,
+  "elapsedSeconds": 0.9084355999948457,
+  "sourceUnchanged": true,
+  "command": [
+    "C:\\Users\\40299571\\ss-android\\jdk\\bin\\java.exe",
+    "-jar",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\lib\\apksigner.jar",
+    "verify",
+    "--verbose",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\card-visual-state-test-build2\\app-x86_64-debug-androidTest.apk"
+  ]
+}

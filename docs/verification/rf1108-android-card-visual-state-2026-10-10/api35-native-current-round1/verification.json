@@ -1,0 +1,88 @@
+{
+  "accepted": false,
+  "results": [
+    {
+      "mode": "supported",
+      "command": [
+        "node",
+        "scripts/android-native-regression.mjs",
+        "--adb",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+        "--serial",
+        "emulator-5586",
+        "--avd",
+        "SoloSoul_RF121_20261010",
+        "--apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+        "--test-apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug-androidTest.apk",
+        "--output",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\supported",
+        "--mode",
+        "supported"
+      ],
+      "exitCode": 1,
+      "accepted": false,
+      "elapsedSeconds": 42.60005110001657,
+      "expectedTests": 13,
+      "observedTests": 5,
+      "successes": 4,
+      "restorationErrorsAbsent": true,
+      "sourceAndApkHashesUnchanged": true,
+      "settingsBefore": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "settingsAfter": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "91fccec7334878e67cd40f6c5b3ef049d3360531fb125e9fa8d69be1cc223fd8"
+    },
+    {
+      "mode": "fallback",
+      "command": [
+        "node",
+        "scripts/android-native-regression.mjs",
+        "--adb",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+        "--serial",
+        "emulator-5586",
+        "--avd",
+        "SoloSoul_RF121_20261010",
+        "--apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+        "--test-apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug-androidTest.apk",
+        "--output",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-round1\\fallback",
+        "--mode",
+        "fallback"
+      ],
+      "exitCode": 1,
+      "accepted": false,
+      "elapsedSeconds": 20.75484109998797,
+      "expectedTests": 11,
+      "observedTests": 3,
+      "successes": 2,
+      "restorationErrorsAbsent": true,
+      "sourceAndApkHashesUnchanged": true,
+      "settingsBefore": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "settingsAfter": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "f309bb83f7db638b121eacc7552606bd87e0b85ebfcd5411a15e6faf0bd717a9"
+    }
+  ],
+  "scope": "API35 existing 13 supported and 11 fallback native instrumentation methods",
+  "homeMatrixAccepted": false,
+  "api31Accepted": false,
+  "physicalDeviceAccepted": false,
+  "at": "2026-10-10T20:19:36.130574+00:00"
+}

@@ -1,0 +1,1090 @@
+{
+  "members": [
+    {
+      "path": "api35-native-current-round1/fallback/device-files/glass-fallback.png",
+      "sha256": "5afa96591c4e542d0b7a83bcc1764001da044ab72512370ad77e83bce5671676",
+      "bytes": 10749
+    },
+    {
+      "path": "api35-native-current-round1/fallback/device-files/glass-native-disabled.png",
+      "sha256": "3bf0f23f117de5840afa496d71d24d62dd1010aafa30f0f09f87fe0859ca65c9",
+      "bytes": 89255
+    },
+    {
+      "path": "api35-native-current-round1/fallback/device-files/glass-native-enabled.png",
+      "sha256": "6a554973db26035d9907badc23647dab52ba4d6c4b44b07dcb20efbec403429d",
+      "bytes": 164167
+    },
+    {
+      "path": "api35-native-current-round1/fallback/device-files/native-environment.json",
+      "sha256": "eb08ce14e844bf68a7549d614374c56065873b6ea8cc577b51e10bad394a1de9",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-current-round1/fallback/device-files/rf121-card-light-default.png",
+      "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2",
+      "bytes": 216996
+    },
+    {
+      "path": "api35-native-current-round1/fallback/device-files/rf121-card-light-floating.png",
+      "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2",
+      "bytes": 216996
+    },
+    {
+      "path": "api35-native-current-round1/fallback/lightAndDarkCardsRenderWithoutOverflow-failure.png",
+      "sha256": "ea4c68e61821d05d1b13c932162c06789e2dfcce94c246373f53212f203b2227",
+      "bytes": 748624
+    },
+    {
+      "path": "api35-native-current-round1/fallback/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "2162341a71d995c7bf73c7694800a2f4de72fad18f6437b33937c8ce9b9d4d03",
+      "bytes": 2610
+    },
+    {
+      "path": "api35-native-current-round1/fallback/report.json",
+      "sha256": "f309bb83f7db638b121eacc7552606bd87e0b85ebfcd5411a15e6faf0bd717a9",
+      "bytes": 1409
+    },
+    {
+      "path": "api35-native-current-round1/fallback/unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu.log",
+      "sha256": "f118411c7ef6a9fa2c2539c813ff4796bcc29ea95c614a88c5074f9aa825d7b5",
+      "bytes": 832
+    },
+    {
+      "path": "api35-native-current-round1/fallback/verifiesRequestedEnvironment.log",
+      "sha256": "9b1ef692fb39c2e73735b60b019c29a15251e058b2dcc2e800ac080242ed6c0f",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-current-round1/fallback.live.json",
+      "sha256": "fb9b47dffab5a4782f44231dea06ad295381d9836bc8450463afc68d21f98734",
+      "bytes": 695
+    },
+    {
+      "path": "api35-native-current-round1/fallback.receipt.json",
+      "sha256": "31c1c182758becde8a8d67c84172cb4ed1c72c38baf3b6d9ae831a4dea1c34b3",
+      "bytes": 1236
+    },
+    {
+      "path": "api35-native-current-round1/fallback.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-current-round1/fallback.stdout.log",
+      "sha256": "f309bb83f7db638b121eacc7552606bd87e0b85ebfcd5411a15e6faf0bd717a9",
+      "bytes": 1409
+    },
+    {
+      "path": "api35-native-current-round1/input-proof.json",
+      "sha256": "db3a8595db1fd6df7ff7d817037bcb28538f2518da3a027ef70256fc38a06e42",
+      "bytes": 234092
+    },
+    {
+      "path": "api35-native-current-round1/supported/cancelledRequestCannotReopenAndBackCancelDoesNotNavigate.log",
+      "sha256": "50abedd6e984065ae7311ab81587cff391c3c9b8ebeb755f7c9ef04b7497f492",
+      "bytes": 836
+    },
+    {
+      "path": "api35-native-current-round1/supported/device-files/glass-native-disabled.png",
+      "sha256": "3bf0f23f117de5840afa496d71d24d62dd1010aafa30f0f09f87fe0859ca65c9",
+      "bytes": 89255
+    },
+    {
+      "path": "api35-native-current-round1/supported/device-files/glass-native-enabled.png",
+      "sha256": "6a554973db26035d9907badc23647dab52ba4d6c4b44b07dcb20efbec403429d",
+      "bytes": 164167
+    },
+    {
+      "path": "api35-native-current-round1/supported/device-files/native-environment.json",
+      "sha256": "4e887b4fb5ee46061eeb9f3047cce4f77df38401e672e71237ce8f6e5ca19903",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-current-round1/supported/device-files/rf121-card-light-default.png",
+      "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2",
+      "bytes": 216996
+    },
+    {
+      "path": "api35-native-current-round1/supported/device-files/rf121-card-light-floating.png",
+      "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2",
+      "bytes": 216996
+    },
+    {
+      "path": "api35-native-current-round1/supported/lightAndDarkCardsRenderWithoutOverflow-failure.png",
+      "sha256": "a95649e77495e00ebf4cc2e4c8885400b18587b422125597466b134991247bf6",
+      "bytes": 749494
+    },
+    {
+      "path": "api35-native-current-round1/supported/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "e930c947cb5f06b66f02eb84ea76e648aeffe1bb9ff364cc56fc9e629ff300cf",
+      "bytes": 2610
+    },
+    {
+      "path": "api35-native-current-round1/supported/nativeMenuSelectsExactlyOnceAndPauseCancels.log",
+      "sha256": "f9f871c93f578710e6945f2096a8c4355bea750eaac5b83cb45ef56f3099444f",
+      "bytes": 810
+    },
+    {
+      "path": "api35-native-current-round1/supported/report.json",
+      "sha256": "91fccec7334878e67cd40f6c5b3ef049d3360531fb125e9fa8d69be1cc223fd8",
+      "bytes": 1747
+    },
+    {
+      "path": "api35-native-current-round1/supported/systemDisablingBlurKeepsExistingMenuReadable.log",
+      "sha256": "9c2328d9a35c29eded6b4047cc9b64ded9d179ab6ff79232b214a8e261c582c9",
+      "bytes": 812
+    },
+    {
+      "path": "api35-native-current-round1/supported/verifiesRequestedEnvironment.log",
+      "sha256": "0da23bb671e1056a18e5f94fce9e8f92c9d999c45f88332198de685e4f8fc911",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-current-round1/supported.live.json",
+      "sha256": "e56448e26a5807d9924b5846018371861ff4592c6b7b72111b921e5a067e4e4a",
+      "bytes": 697
+    },
+    {
+      "path": "api35-native-current-round1/supported.receipt.json",
+      "sha256": "2ca4d8a4b2f7bea8ba99958138bc138eeb43566c3c0a6706e419b44b5e99c07f",
+      "bytes": 1239
+    },
+    {
+      "path": "api35-native-current-round1/supported.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-current-round1/supported.stdout.log",
+      "sha256": "91fccec7334878e67cd40f6c5b3ef049d3360531fb125e9fa8d69be1cc223fd8",
+      "bytes": 1747
+    },
+    {
+      "path": "api35-native-current-round1/verification.json",
+      "sha256": "1403867fe999007dd58f5b15eba7cbf64954a50f612ec1124cebe1ce2b996198",
+      "bytes": 3057
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/glass-fallback.png",
+      "sha256": "b70045b73421ea7227bc68dffa616b13c44f1d86a70ea9d47f0b964c176ad828",
+      "bytes": 11663
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/glass-native-disabled.png",
+      "sha256": "5b4155161babc762b9f75f1d20b94da024fef660be8e9692cff00a6e4ffb221e",
+      "bytes": 89566
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/glass-native-enabled.png",
+      "sha256": "02f5229e301d2e391780eabd35e02f0ba1f63e3dc1841731f396809a4c390b56",
+      "bytes": 164011
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/native-environment.json",
+      "sha256": "eb08ce14e844bf68a7549d614374c56065873b6ea8cc577b51e10bad394a1de9",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/rf121-android-card-surfaces.json",
+      "sha256": "f5ed982122878188dae5b8077850659f39952ee702009a0a9c905e11d5664bf2",
+      "bytes": 2858
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/rf121-card-dark-default.png",
+      "sha256": "8cc3a2bc1c6394e7bf6ccb8e9e1ab638ba5719f406f34fd1b49d1a5238e4a94e",
+      "bytes": 217410
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/rf121-card-dark-floating.png",
+      "sha256": "a1e8bc9588b3493445f050f5bfcfd687e25a389a00b13085449dbbb9928b83cd",
+      "bytes": 227342
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/rf121-card-light-default.png",
+      "sha256": "2bd52be5ddd9aff6d41d3ba742499907130f83dc9c35409ad944c30778ac6f45",
+      "bytes": 217709
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/device-files/rf121-card-light-floating.png",
+      "sha256": "287299fd437cdf7e7eb63ccf43ca2f886a39f051bd73b20a49ce1566fc51ff71",
+      "bytes": 225727
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "1fee13c8f158f61013f045480aaab7c4c2931261a970c8f23397ca79157f57e2",
+      "bytes": 818
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/report.json",
+      "sha256": "0263ca3f3ba2e81079a32ceed8d84bc3a020c268a95efc91ecc8b5bc9e35a88c",
+      "bytes": 1630
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing-failure.png",
+      "sha256": "8901d4db26d6947f811be85e48a6efb43a5b933172508f4a42f7979b27f27eec",
+      "bytes": 750458
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing.log",
+      "sha256": "2dfedbea08c4433d2c026801321be756b89b1ca377b65a43c4c84fab1894c102",
+      "bytes": 2950
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu.log",
+      "sha256": "f8a2f304775607c21141b060ce3df8347ed73ea984ed152255518bcc705d71bc",
+      "bytes": 832
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback/verifiesRequestedEnvironment.log",
+      "sha256": "04d6b8228abda70fcd71cd2af1ed7c66f5108020c12bdcab215aa2855347023d",
+      "bytes": 779
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback.live.json",
+      "sha256": "0ccd28b9e57ef07c1df3d852a61a47180065cfa6ad974ed99c0932c5f500928d",
+      "bytes": 707
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback.receipt.json",
+      "sha256": "5c806e831885fbaa850990e670295af2aed9be844d9143d44c6578109a35bba6",
+      "bytes": 1248
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-visual-state-round2/fallback.stdout.log",
+      "sha256": "0263ca3f3ba2e81079a32ceed8d84bc3a020c268a95efc91ecc8b5bc9e35a88c",
+      "bytes": 1630
+    },
+    {
+      "path": "api35-native-visual-state-round2/input-proof.json",
+      "sha256": "4e9d99625ece5a5dbd5d71c8a997e65c1998544378998d4e05384dbda9e76b1d",
+      "bytes": 234099
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/cancelledRequestCannotReopenAndBackCancelDoesNotNavigate.log",
+      "sha256": "94d603382c41fc0436115ed3b48527027c4b3e34375d16a3dd0bce9391a4313d",
+      "bytes": 836
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/device-files/glass-fallback.png",
+      "sha256": "5afa96591c4e542d0b7a83bcc1764001da044ab72512370ad77e83bce5671676",
+      "bytes": 10749
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/device-files/glass-native-disabled.png",
+      "sha256": "5b4155161babc762b9f75f1d20b94da024fef660be8e9692cff00a6e4ffb221e",
+      "bytes": 89566
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/device-files/glass-native-enabled.png",
+      "sha256": "02f5229e301d2e391780eabd35e02f0ba1f63e3dc1841731f396809a4c390b56",
+      "bytes": 164011
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/device-files/native-environment.json",
+      "sha256": "4e887b4fb5ee46061eeb9f3047cce4f77df38401e672e71237ce8f6e5ca19903",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/device-files/rf121-card-light-default.png",
+      "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2",
+      "bytes": 216996
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/device-files/rf121-card-light-floating.png",
+      "sha256": "86c4425e72ac268d682e64afacf2210fa74bf7409edb020884ba643fe273ace2",
+      "bytes": 216996
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/lightAndDarkCardsRenderWithoutOverflow-failure.png",
+      "sha256": "47f55689fc1e469c11904b555ec013d8ffa4b06ef813219619b5a2191291cfc1",
+      "bytes": 748943
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "668c53c0f192d024c5d22385d1d492c7762396c17d7debf6a40237b3ca4020b2",
+      "bytes": 2109
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/nativeMenuSelectsExactlyOnceAndPauseCancels.log",
+      "sha256": "48924d51aa6812f33b066466deda4361a380bc7ba9fb7a8679dfdf4b4ee959d6",
+      "bytes": 810
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/report.json",
+      "sha256": "f18a018b5092ccd29fe6c467d085c68c9fa1429a64083bb79c281df32e425940",
+      "bytes": 1757
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/systemDisablingBlurKeepsExistingMenuReadable.log",
+      "sha256": "c42cd434b85816f24b3a73d186795ce69a7403756f5a9831bff22737db95fb55",
+      "bytes": 812
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported/verifiesRequestedEnvironment.log",
+      "sha256": "71efb4c1626137fe8793792e97460572a6fb43de563ac22f1151c79c54f50592",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported.live.json",
+      "sha256": "ce21c584164582760b2a6af4018adcfcb11a5d67d96857068e10d2cbe50eff53",
+      "bytes": 709
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported.receipt.json",
+      "sha256": "6fb99438da18a297bbc3f12fd24ad9f253390ae3b7ac48353c50bc1c1ce0a1da",
+      "bytes": 1251
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-visual-state-round2/supported.stdout.log",
+      "sha256": "f18a018b5092ccd29fe6c467d085c68c9fa1429a64083bb79c281df32e425940",
+      "bytes": 1757
+    },
+    {
+      "path": "api35-native-visual-state-round2/verification.json",
+      "sha256": "2dbab597b6b2cc904adad01e68c3645aeab1956bf1e2e81ea59b72c55f19320e",
+      "bytes": 3081
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/glass-fallback.png",
+      "sha256": "7787038383e0353ee698b2bdccbe99615f93b898fa801e8aed10050d58d3089f",
+      "bytes": 11349
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/glass-native-disabled.png",
+      "sha256": "4199dc054dc5483cf21dc0bacf67638c162fcb93ca761d4463a4911adaa29d61",
+      "bytes": 89630
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/glass-native-enabled.png",
+      "sha256": "a1cbae50374a508b22cc3fc862ae95fdc52125a38f1955f2e72b4f5d6ae58b8d",
+      "bytes": 164052
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/native-environment.json",
+      "sha256": "eb08ce14e844bf68a7549d614374c56065873b6ea8cc577b51e10bad394a1de9",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-android-card-surfaces.json",
+      "sha256": "f5ed982122878188dae5b8077850659f39952ee702009a0a9c905e11d5664bf2",
+      "bytes": 2858
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-card-dark-default.png",
+      "sha256": "4b6d505edd6d94a4de1fb7f27611cda25d643908654035b0bad5c651f86a725c",
+      "bytes": 217208
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-card-dark-dom.json",
+      "sha256": "fba7c732b68722bdb93e5f134bbb698031ac38e9acea76582b4e3fa9d1dd14a0",
+      "bytes": 833
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-card-dark-floating.png",
+      "sha256": "0ea80cda52120741e9642cc079bbb4edeea17328d3c6a572364b71f60eb1440b",
+      "bytes": 227239
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-card-light-default.png",
+      "sha256": "f21c2738e3b851f587c0db89ec07881d569ba83cd958309542c9f17262486f98",
+      "bytes": 217445
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-card-light-dom.json",
+      "sha256": "1a43bebf8a28bf0843d7bb09a09323d65a60a23dfccf2632c4754c733a317269",
+      "bytes": 843
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/device-files/rf121-card-light-floating.png",
+      "sha256": "bd4f3754ffd85e5ca4d8e7f550205f819b73aefde90b618f62f877b3f9495362",
+      "bytes": 225510
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/lightAndDarkCardsRenderWithoutOverflow-failure.png",
+      "sha256": "9ae4e0e906c12a3a5322806f4c0ea0e559cad111806b75b723d0b25eb3890604",
+      "bytes": 749172
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "d1d1e30a746239720c9cb3d4e78ffd794aae11536ace5ad5bcf76102a9cda4ac",
+      "bytes": 3888
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/report.json",
+      "sha256": "49eb9ad739fe6feffb14246feb43697ed6a0554ce6a85f41b46b27674312ff19",
+      "bytes": 1418
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu.log",
+      "sha256": "15b1feb0b5f23532f79a4a7c9a6cc6fc315459eaaa9f1e2e11d2d5207d84166d",
+      "bytes": 832
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback/verifiesRequestedEnvironment.log",
+      "sha256": "d0c402b60b2ac38f0decac788c2c8c0c947373c4ecb9884eba3e224705f7d9c2",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback.live.json",
+      "sha256": "72c27a3ef7acaf847b4f6a6d960d2c156e6aa1ff146204b4b4cc8aa125530f81",
+      "bytes": 707
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback.receipt.json",
+      "sha256": "6fbcdb3422c7ba88cf91c0088fecb47c0745f66e94c9d3446076359b465a4a15",
+      "bytes": 1248
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-visual-state-round3/fallback.stdout.log",
+      "sha256": "49eb9ad739fe6feffb14246feb43697ed6a0554ce6a85f41b46b27674312ff19",
+      "bytes": 1418
+    },
+    {
+      "path": "api35-native-visual-state-round3/input-proof.json",
+      "sha256": "b241c25abb6591cbc8b1f7ff66825b790f98964645d7e24bfa3e6d39ef505a04",
+      "bytes": 234099
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/cancelledRequestCannotReopenAndBackCancelDoesNotNavigate.log",
+      "sha256": "869b3450da3159a2252ea17629858239485bd4f6ec12b9e0ca483860a9ef8874",
+      "bytes": 836
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/glass-fallback.png",
+      "sha256": "b70045b73421ea7227bc68dffa616b13c44f1d86a70ea9d47f0b964c176ad828",
+      "bytes": 11663
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/glass-native-disabled.png",
+      "sha256": "4199dc054dc5483cf21dc0bacf67638c162fcb93ca761d4463a4911adaa29d61",
+      "bytes": 89630
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/glass-native-enabled.png",
+      "sha256": "a1cbae50374a508b22cc3fc862ae95fdc52125a38f1955f2e72b4f5d6ae58b8d",
+      "bytes": 164052
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/native-environment.json",
+      "sha256": "4e887b4fb5ee46061eeb9f3047cce4f77df38401e672e71237ce8f6e5ca19903",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-android-card-surfaces.json",
+      "sha256": "f5ed982122878188dae5b8077850659f39952ee702009a0a9c905e11d5664bf2",
+      "bytes": 2858
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-card-dark-default.png",
+      "sha256": "4b6d505edd6d94a4de1fb7f27611cda25d643908654035b0bad5c651f86a725c",
+      "bytes": 217208
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-card-dark-dom.json",
+      "sha256": "fba7c732b68722bdb93e5f134bbb698031ac38e9acea76582b4e3fa9d1dd14a0",
+      "bytes": 833
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-card-dark-floating.png",
+      "sha256": "0ea80cda52120741e9642cc079bbb4edeea17328d3c6a572364b71f60eb1440b",
+      "bytes": 227239
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-card-light-default.png",
+      "sha256": "f21c2738e3b851f587c0db89ec07881d569ba83cd958309542c9f17262486f98",
+      "bytes": 217445
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-card-light-dom.json",
+      "sha256": "54681888a5d96ecfba665636820888e375c8f2282d3edc14bf7da48ef46f3d5f",
+      "bytes": 843
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/device-files/rf121-card-light-floating.png",
+      "sha256": "bd4f3754ffd85e5ca4d8e7f550205f819b73aefde90b618f62f877b3f9495362",
+      "bytes": 225510
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "663726935703d0156eed0f7d9f440299ea82c0b833d4cd1b00bcf21edd64c0e5",
+      "bytes": 818
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/nativeMenuSelectsExactlyOnceAndPauseCancels.log",
+      "sha256": "7f03cf363767a654cb8da2a2eda6734c656ca917e5b78ac930fad426295bbf0c",
+      "bytes": 810
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/report.json",
+      "sha256": "5a8134302b099469adb1e5bbf0e7b840bc8be966dc711c803c7cb830d0bda3ae",
+      "bytes": 1970
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing-failure.png",
+      "sha256": "7a096c2d7565952430322c3392170fef9903c337c07af91e5d36a37b1cfa841f",
+      "bytes": 749071
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing.log",
+      "sha256": "e55fa06191a0546ecc6c8926879e08e4ce8f055bfe5e57ffb1bf69ea8ae65563",
+      "bytes": 2950
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/systemDisablingBlurKeepsExistingMenuReadable.log",
+      "sha256": "77c7bb6f2f757d0d725d02598c266b3d194936a06f21eec8115e8c73cfab1ab5",
+      "bytes": 812
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported/verifiesRequestedEnvironment.log",
+      "sha256": "d4e9360c2419e76ea6d4c9131d802237d23de8ac2c13ffc020115aea417c8fbb",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported.live.json",
+      "sha256": "991df4da67cec65ac4400582377fc69fd42047a8ed17e2ea86d59ff040b78c6a",
+      "bytes": 709
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported.receipt.json",
+      "sha256": "ca0ba12decd548aed448899571d2d0d79087194348bf7f7bf7bc8a044b2b6451",
+      "bytes": 1251
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-visual-state-round3/supported.stdout.log",
+      "sha256": "5a8134302b099469adb1e5bbf0e7b840bc8be966dc711c803c7cb830d0bda3ae",
+      "bytes": 1970
+    },
+    {
+      "path": "api35-native-visual-state-round3/verification.json",
+      "sha256": "4bc7b0cc4469b882d1c91fdecb51ba1e1ddf1932946a80afbf04ffc595901af2",
+      "bytes": 3081
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/glass-fallback.png",
+      "sha256": "6260c8f3f3cc17712e36cc06633040d15d55da2f8dfba99525b9d1de69cf1449",
+      "bytes": 11552
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/glass-native-disabled.png",
+      "sha256": "9cca0d686242863023eeeed8298cae221653b143281d7e7e1203471b76253d5e",
+      "bytes": 90138
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/glass-native-enabled.png",
+      "sha256": "f954dfd06855614ccccc9254f8b9ad0c5d5fc4148f28cfd1815c4cb231b53456",
+      "bytes": 164405
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/native-environment.json",
+      "sha256": "eb08ce14e844bf68a7549d614374c56065873b6ea8cc577b51e10bad394a1de9",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-android-card-surfaces.json",
+      "sha256": "ded425ca9e895aec65a93e3cb7280b7619dc67cd398d9c2c1d3c4b82b3d90a23",
+      "bytes": 3060
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-card-dark-default.png",
+      "sha256": "756e6592f5f288b508ef20499c4a7d33b5851afbb4914104f951b6305f2c1b60",
+      "bytes": 217292
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-card-dark-dom.json",
+      "sha256": "fba7c732b68722bdb93e5f134bbb698031ac38e9acea76582b4e3fa9d1dd14a0",
+      "bytes": 833
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-card-dark-floating.png",
+      "sha256": "0c53b30842fa6380a26969dcb58e8621fa4b76e3543c4843d68fe304726e3d95",
+      "bytes": 227165
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-card-light-default.png",
+      "sha256": "bb6e0f04e945c6a90a6a17f57b1b8148bd42172d0ea9d2166b22d75ac4c4eadc",
+      "bytes": 217612
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-card-light-dom.json",
+      "sha256": "54681888a5d96ecfba665636820888e375c8f2282d3edc14bf7da48ef46f3d5f",
+      "bytes": 843
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/device-files/rf121-card-light-floating.png",
+      "sha256": "920f410b6c0926bf56fd39bf4da3519dba8b47c7d4f0b5f23f30f25b892a3ca1",
+      "bytes": 225588
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "ee77b3cc56ebe38d0adeaa6fbeabbcf07a570e6eb263e8afa36089e539bc29c7",
+      "bytes": 817
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/report.json",
+      "sha256": "967e53cda31e29b4fdfa335f8f761fb77ee6e072a7aa918fd15ee346f8f64176",
+      "bytes": 1629
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing-failure.png",
+      "sha256": "9b290c5a563506e84e731b4416a1343facf22adfcf7e95cda761c0d55107ad98",
+      "bytes": 749122
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing.log",
+      "sha256": "b58d36a8964e84e61da23fa6af905019e4db0129c7d92da1823259d29bcc84a7",
+      "bytes": 2949
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu.log",
+      "sha256": "6dcedaca41d5d358896aeb8540ffad19e1343ebb93b6d3f9c7a7f1d169b7c0b1",
+      "bytes": 832
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback/verifiesRequestedEnvironment.log",
+      "sha256": "fc2b276c1c147aff45df7be50aecade6148b0c9f72926c73b185447b59b23bfc",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback.live.json",
+      "sha256": "15d9cdd8d0af01a7f8cf30f9ea4b0ac5c157614e74fef653bd9c820749a5ca2c",
+      "bytes": 707
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback.receipt.json",
+      "sha256": "58b153d3b0ca1a9043021f75ba3c3b1291ac9c198a577f5551d9132f51d83601",
+      "bytes": 1249
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-visual-state-round4/fallback.stdout.log",
+      "sha256": "967e53cda31e29b4fdfa335f8f761fb77ee6e072a7aa918fd15ee346f8f64176",
+      "bytes": 1629
+    },
+    {
+      "path": "api35-native-visual-state-round4/input-proof.json",
+      "sha256": "407c013bab85f3dd1cd16244cd6f4889bb292db15e1af2bd4070a328295ba23f",
+      "bytes": 234099
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/cancelledRequestCannotReopenAndBackCancelDoesNotNavigate.log",
+      "sha256": "e2da2ae800dfdb8a999e375a0ed5685cfcda9b343b5c06a1a92a1b9ac33034a8",
+      "bytes": 836
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/glass-fallback.png",
+      "sha256": "7787038383e0353ee698b2bdccbe99615f93b898fa801e8aed10050d58d3089f",
+      "bytes": 11349
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/glass-native-disabled.png",
+      "sha256": "9cca0d686242863023eeeed8298cae221653b143281d7e7e1203471b76253d5e",
+      "bytes": 90138
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/glass-native-enabled.png",
+      "sha256": "f954dfd06855614ccccc9254f8b9ad0c5d5fc4148f28cfd1815c4cb231b53456",
+      "bytes": 164405
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/native-environment.json",
+      "sha256": "4e887b4fb5ee46061eeb9f3047cce4f77df38401e672e71237ce8f6e5ca19903",
+      "bytes": 64
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-android-card-surfaces.json",
+      "sha256": "ded425ca9e895aec65a93e3cb7280b7619dc67cd398d9c2c1d3c4b82b3d90a23",
+      "bytes": 3060
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-card-dark-default.png",
+      "sha256": "756e6592f5f288b508ef20499c4a7d33b5851afbb4914104f951b6305f2c1b60",
+      "bytes": 217292
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-card-dark-dom.json",
+      "sha256": "fba7c732b68722bdb93e5f134bbb698031ac38e9acea76582b4e3fa9d1dd14a0",
+      "bytes": 833
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-card-dark-floating.png",
+      "sha256": "0c53b30842fa6380a26969dcb58e8621fa4b76e3543c4843d68fe304726e3d95",
+      "bytes": 227165
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-card-light-default.png",
+      "sha256": "bb6e0f04e945c6a90a6a17f57b1b8148bd42172d0ea9d2166b22d75ac4c4eadc",
+      "bytes": 217612
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-card-light-dom.json",
+      "sha256": "54681888a5d96ecfba665636820888e375c8f2282d3edc14bf7da48ef46f3d5f",
+      "bytes": 843
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/device-files/rf121-card-light-floating.png",
+      "sha256": "920f410b6c0926bf56fd39bf4da3519dba8b47c7d4f0b5f23f30f25b892a3ca1",
+      "bytes": 225588
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/lightAndDarkCardsRenderWithoutOverflow.log",
+      "sha256": "f9d4048d15b4d828fdac43168543feefd0823d2923c10cb909730883450c4c4c",
+      "bytes": 818
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/nativeMenuSelectsExactlyOnceAndPauseCancels.log",
+      "sha256": "0e2e4c038ead7a66d2bb2c5481ca78be47480610811a705d45ca42d9d7e8964a",
+      "bytes": 810
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/report.json",
+      "sha256": "fc9bcce924028301954de58afeaf929831844e66c22d90883e8bc9e696a8d78c",
+      "bytes": 1970
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing-failure.png",
+      "sha256": "9b290c5a563506e84e731b4416a1343facf22adfcf7e95cda761c0d55107ad98",
+      "bytes": 749122
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing.log",
+      "sha256": "a6b79a15091589154717ebdb7a12a80e9ae0b900304d3f9b28d0f1e8e6f44b2e",
+      "bytes": 2949
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/systemDisablingBlurKeepsExistingMenuReadable.log",
+      "sha256": "0f2d45ae2a4467d0d010c3be2d47d5842e5c6a4e83052d095a5a58e7b780deaa",
+      "bytes": 812
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported/verifiesRequestedEnvironment.log",
+      "sha256": "7254eb2980f9f36d2196f48906d4e4ab66a8d5c368660ffc520585e4abe38db5",
+      "bytes": 780
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported.live.json",
+      "sha256": "24ad5fe8c2dfada8fbc302f0dcc7cb90047d944aa081364e571ed1555137c6ae",
+      "bytes": 709
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported.receipt.json",
+      "sha256": "00fe96c4975d223591e0e23e3df44cd31e33555bea13d1b6519af0d6d1147419",
+      "bytes": 1252
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "api35-native-visual-state-round4/supported.stdout.log",
+      "sha256": "fc9bcce924028301954de58afeaf929831844e66c22d90883e8bc9e696a8d78c",
+      "bytes": 1970
+    },
+    {
+      "path": "api35-native-visual-state-round4/verification.json",
+      "sha256": "e46d96c95b11d9ae52490f004bbda77bb0f03524ab4d8b4ff40c077a0b8c79c3",
+      "bytes": 3083
+    },
+    {
+      "path": "card-visual-state-test-build1/current-apks.json",
+      "sha256": "b5ead14df94607b5ed1a1b035fdf83c9cac37e8dd6c93ef22f6d63ec0353ed36",
+      "bytes": 234402
+    },
+    {
+      "path": "card-visual-state-test-build1/input-proof.json",
+      "sha256": "a6409557b6de08ee1f7c12745d0d17462b142936f49ed32c8c9cf8242e5cd383",
+      "bytes": 233087
+    },
+    {
+      "path": "card-visual-state-test-build1/original-failure-observation.json",
+      "sha256": "4a8d5c8dab5377ee523b5ef1793d4244ae5bd48e430a21ba8b7c910a89523f4d",
+      "bytes": 4955
+    },
+    {
+      "path": "card-visual-state-test-build1/test-badging.live.json",
+      "sha256": "95e5a84e6651a67cab2ee44cefdec510be4853e199a927dd2e00795aed64f75a",
+      "bytes": 293
+    },
+    {
+      "path": "card-visual-state-test-build1/test-badging.receipt.json",
+      "sha256": "837267fd879628c66d80c779983118fa97b741f1f8a4f738ecffcf89e16f898b",
+      "bytes": 361
+    },
+    {
+      "path": "card-visual-state-test-build1/test-badging.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "card-visual-state-test-build1/test-badging.stdout.log",
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747",
+      "bytes": 685
+    },
+    {
+      "path": "card-visual-state-test-build1/test-build.live.json",
+      "sha256": "f575c6e29c1ed914539b8cd8b2a4b19787774b3ef97f874d644513345f74a373",
+      "bytes": 419
+    },
+    {
+      "path": "card-visual-state-test-build1/test-build.receipt.json",
+      "sha256": "85a78d60916b686781b7f5b7850b136f3fccecea3dff9a3c1d6442be791e8675",
+      "bytes": 487
+    },
+    {
+      "path": "card-visual-state-test-build1/test-build.stderr.log",
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152",
+      "bytes": 431
+    },
+    {
+      "path": "card-visual-state-test-build1/test-build.stdout.log",
+      "sha256": "c260bea0607809d5e039e292706ce636d0d8063c67d45423df32803598c07bd7",
+      "bytes": 14384
+    },
+    {
+      "path": "card-visual-state-test-build1/test-signature.live.json",
+      "sha256": "83d968b9b025df038bb0566f5607894b2959bd89741e46a5e5d3e748c5a9d662",
+      "bytes": 378
+    },
+    {
+      "path": "card-visual-state-test-build1/test-signature.receipt.json",
+      "sha256": "008b844a70557273480a54add72e16103b87b7a77e68407915c79287d393a8df",
+      "bytes": 446
+    },
+    {
+      "path": "card-visual-state-test-build1/test-signature.stderr.log",
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce",
+      "bytes": 180
+    },
+    {
+      "path": "card-visual-state-test-build1/test-signature.stdout.log",
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09",
+      "bytes": 351
+    },
+    {
+      "path": "card-visual-state-test-build2/current-apks.json",
+      "sha256": "85a2d532d103a6c7e2b8f972c18ecd841172afe052875377c44d59bbd72275ae",
+      "bytes": 234402
+    },
+    {
+      "path": "card-visual-state-test-build2/input-proof.json",
+      "sha256": "bec9ac22e01ae658de12e852a0ede454a14b71c718bec3817e5888bc6f0eef93",
+      "bytes": 233087
+    },
+    {
+      "path": "card-visual-state-test-build2/test-badging.live.json",
+      "sha256": "b23b9ff8e2e64efec8bde792db07411696ac0cfdb8ece0a5091d50c9c82f3445",
+      "bytes": 294
+    },
+    {
+      "path": "card-visual-state-test-build2/test-badging.receipt.json",
+      "sha256": "f54feeb6f6122337d4a37e5ac054613c31acd2152fad4082f696431b2801e637",
+      "bytes": 362
+    },
+    {
+      "path": "card-visual-state-test-build2/test-badging.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "card-visual-state-test-build2/test-badging.stdout.log",
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747",
+      "bytes": 685
+    },
+    {
+      "path": "card-visual-state-test-build2/test-build.live.json",
+      "sha256": "1157e8563fa43c8094696a6e2244bee2ca5d9f61ad64df9c84ef6c25e7311bc4",
+      "bytes": 419
+    },
+    {
+      "path": "card-visual-state-test-build2/test-build.receipt.json",
+      "sha256": "e0bd0d6035b936d6c58b65d1bc493ffc5ee60f7c5ddc560191c96640880edecd",
+      "bytes": 486
+    },
+    {
+      "path": "card-visual-state-test-build2/test-build.stderr.log",
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152",
+      "bytes": 431
+    },
+    {
+      "path": "card-visual-state-test-build2/test-build.stdout.log",
+      "sha256": "68d4df433deb1953e91637600747295a66e502ec1b6cfb9f9724d45e2e4aee06",
+      "bytes": 14384
+    },
+    {
+      "path": "card-visual-state-test-build2/test-signature.live.json",
+      "sha256": "ac7f7473530f7f4e35a35d97b829b42fbca27cb0a0cd0c564534ffcf66a851c2",
+      "bytes": 378
+    },
+    {
+      "path": "card-visual-state-test-build2/test-signature.receipt.json",
+      "sha256": "7be07d65014d5c0e5de5c3d0fabd0efd148a754e222e865c0c2884fbff099c4b",
+      "bytes": 446
+    },
+    {
+      "path": "card-visual-state-test-build2/test-signature.stderr.log",
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce",
+      "bytes": 180
+    },
+    {
+      "path": "card-visual-state-test-build2/test-signature.stdout.log",
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09",
+      "bytes": 351
+    },
+    {
+      "path": "card-visual-state-test-build2/webview-gpu-blocklist.log",
+      "sha256": "118ddf49ade85ffb97159cd2add2becd1425781bca1c3d0821caad1572390775",
+      "bytes": 1140
+    },
+    {
+      "path": "card-visual-state-test-build2/webview-gpu-blocklist.receipt.json",
+      "sha256": "6fb394320e2f937ff0ddac1f5784d266fbde67e6dd53f2ffaf582355741a00aa",
+      "bytes": 394
+    },
+    {
+      "path": "card-visual-state-test-build3/current-apks.json",
+      "sha256": "8188f482e5f84bd520d00a39611fc1cd0171fe8ee299d93ce6719b652e6b0b7b",
+      "bytes": 234402
+    },
+    {
+      "path": "card-visual-state-test-build3/input-proof.json",
+      "sha256": "94089f9fb3a2cca5be35fafe9fcc3d3c6974a3a395ac6e97c3cb786eb3b6524b",
+      "bytes": 233087
+    },
+    {
+      "path": "card-visual-state-test-build3/test-badging.live.json",
+      "sha256": "487581edd810a27a06ddc0f5016b1129437a3fc556c0c2474fc3dac93b351013",
+      "bytes": 294
+    },
+    {
+      "path": "card-visual-state-test-build3/test-badging.receipt.json",
+      "sha256": "cb087a756c8e85b2bbe0bd74a4006387982679a48ef50a5e12406edb9f47c433",
+      "bytes": 362
+    },
+    {
+      "path": "card-visual-state-test-build3/test-badging.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "card-visual-state-test-build3/test-badging.stdout.log",
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747",
+      "bytes": 685
+    },
+    {
+      "path": "card-visual-state-test-build3/test-build.live.json",
+      "sha256": "bf8906c06f9dba8d554e591d21e8a50be5634df11ae4cd4e8523806538f039a9",
+      "bytes": 419
+    },
+    {
+      "path": "card-visual-state-test-build3/test-build.receipt.json",
+      "sha256": "66aa0c9400298d6abc35597d06f6b82db3062f967cf46becda04c492c5e75c2c",
+      "bytes": 485
+    },
+    {
+      "path": "card-visual-state-test-build3/test-build.stderr.log",
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152",
+      "bytes": 431
+    },
+    {
+      "path": "card-visual-state-test-build3/test-build.stdout.log",
+      "sha256": "0e4eda7e319b1ec40c7138b52def58ab5dd5efdb65baa71f96155f30487f4432",
+      "bytes": 14384
+    },
+    {
+      "path": "card-visual-state-test-build3/test-signature.live.json",
+      "sha256": "a3d8fee0655df6d8b68230c9eec3ada6525b7c2237f7051fa54e6c0dc523ac83",
+      "bytes": 378
+    },
+    {
+      "path": "card-visual-state-test-build3/test-signature.receipt.json",
+      "sha256": "3bf3d977a89e244445b4fe6a178b527b2963b2b82ce0bf77ec69e75dce6bf0d4",
+      "bytes": 446
+    },
+    {
+      "path": "card-visual-state-test-build3/test-signature.stderr.log",
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce",
+      "bytes": 180
+    },
+    {
+      "path": "card-visual-state-test-build3/test-signature.stdout.log",
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09",
+      "bytes": 351
+    },
+    {
+      "path": "drivers/verify-api35-native-current.py",
+      "sha256": "42d826861182258f9ed0f299c90bb51d4a539d816773ce970a37e6978472d924",
+      "bytes": 5776
+    },
+    {
+      "path": "drivers/verify-api35-card-visual-state.py",
+      "sha256": "a7945c2f7d282cc9dfad8be94e4489eb45140bed24eaabff343236ba5be7705e",
+      "bytes": 5795
+    },
+    {
+      "path": "drivers/verify-api35-card-visual-state3.py",
+      "sha256": "50ec27a8890b5911d38b660d754dc2456be4810900c93ddd92e5541a65cedd35",
+      "bytes": 5900
+    },
+    {
+      "path": "drivers/verify-api35-card-visual-state4.py",
+      "sha256": "a28a729ef516ab252d053ecb11e3c6265afc569f6e3c286e4a8c9d0dce3f06b9",
+      "bytes": 5900
+    },
+    {
+      "path": "drivers/rebuild-card-visual-state-test.py",
+      "sha256": "7ab2bcc0bd2f9180cb7c3c66f88fd1731e11eb2fb8742c29250d3c9a62831886",
+      "bytes": 4930
+    },
+    {
+      "path": "drivers/rebuild-card-visual-state-test2.py",
+      "sha256": "6d91d303c62a04f82dc767925eee1981eb2c066e4dacb52dbe742719858397ee",
+      "bytes": 5007
+    },
+    {
+      "path": "drivers/rebuild-card-visual-state-test3.py",
+      "sha256": "3181f6bf5ec8b1462cf687ef077569c2f1b95d4066972a84fee92028b8072ba9",
+      "bytes": 5007
+    },
+    {
+      "path": "drivers/private-device-process-identities.json",
+      "sha256": "0466b33d2eacd48019304086ef49cfbdeca2ee40a206fd73ffdc1c092cf94796",
+      "bytes": 1059
+    },
+    {
+      "path": "drivers/verify-session-20261010-2133.json",
+      "sha256": "baa0f896a7d762838604d15b8bde89ddf18c8545e0cf6f9457ba50c709844b4e",
+      "bytes": 352
+    }
+  ],
+  "count": 216,
+  "readBackVerified": true,
+  "excludedLargeFiles": [
+    "APK pairs remain in ignored local build directories with SHA-bound receipts"
+  ],
+  "privateAccountsOrBackupsIncluded": false
+}
