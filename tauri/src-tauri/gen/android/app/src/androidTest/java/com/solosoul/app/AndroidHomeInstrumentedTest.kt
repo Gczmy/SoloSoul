@@ -37,6 +37,7 @@ class AndroidHomeInstrumentedTest {
     private lateinit var evidence: File
     private var directoryAttempts = 0
     private val unlockAttempts = JSONArray()
+    private val previewReminderRenewals = JSONArray()
     private var notificationPrompts = 0
     private var overlayChecks = false
     private var keyboardChecks = false
@@ -57,6 +58,7 @@ class AndroidHomeInstrumentedTest {
                 .put("webViewPackage", provider?.packageName).put("webViewVersion", provider?.versionName)
                 .put("webViewVersionCode", provider?.longVersionCode))
             .put("directoryAttempts", directoryAttempts).put("unlockAttempts", unlockAttempts)
+            .put("previewReminderRenewals", previewReminderRenewals)
             .put("notificationPrompts", notificationPrompts).put("motionPreferenceChecks", motionChecks)
             .put("requestedFontScale", requestedFontScale ?: JSONObject.NULL)
             .put("fontMenuBeforeDetail", requestedFontScale != null)
@@ -725,7 +727,11 @@ class AndroidHomeInstrumentedTest {
             val geometry = it.optJSONObject("imageRect")?.toString()
             val stable = geometry != null && geometry == previousImageGeometry
             previousImageGeometry = geometry
-            (kind !in listOf("image","viewer") || stable) && it.optBoolean("visible") && it.optBoolean("settled") && it.optString("theme") == (if (dark) "dark" else "light") &&
+            val toastReady = it.optInt("toastCount") == 1 &&
+                listOf("toastInPanel","toastInFlow","toastVisible","toastHittable").all { key -> it.optBoolean(key) }
+            val notificationReady = if (notificationKind == "none") it.optInt("toastCount") == 0 || toastReady
+                else toastReady && it.optBoolean(if (notificationKind == "saved") "savedNotification" else "backupReminder")
+            notificationReady && (kind !in listOf("image","viewer") || stable) && it.optBoolean("visible") && it.optBoolean("settled") && it.optString("theme") == (if (dark) "dark" else "light") &&
                 (if (kind == "text") it.optString("preText").contains("FE2 public preview text") else if (kind in listOf("image", "album", "viewer")) it.optBoolean("imageDecoded") else it.optString("text").contains("FE2-public-notes.txt"))
         }
         assertFalse(result.toString(), result.getBoolean("overflow"))
@@ -776,6 +782,14 @@ class AndroidHomeInstrumentedTest {
         }
         if (kind == "text") {
             val count = countInk(result.getJSONObject("textRect"),result.getString("textColor"))
+            if (count < 20) {
+                record(JSONObject(result.toString()).put("stage", "failure-preview-text-pixels")
+                    .put("expectedStage", stage).put("textInkPixels", count)
+                    .put("nativeViewport", native).put("afterScreenshot", js(scenario, expression)))
+                File(evidence, "$stage-pixel-failure.png").outputStream().use {
+                    frame.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+            }
             assertTrue("解密文本必须在最终合成帧中有实际文字像素", count>=20)
             result.put("textInkPixels",count)
         }
@@ -810,25 +824,86 @@ class AndroidHomeInstrumentedTest {
         record(result)
     }
 
+    /** 为每个限时提醒场景重置仅公开账户的夹具，再执行真实锁定/主密码解锁。 */
+    private fun renewPublicBackupReminder(scenario: ActivityScenario<MainActivity>) {
+        js(scenario, """(() => {window.fe2InsetsReminder={pending:true};
+          const invoke=window.__TAURI_INTERNALS__.invoke;
+          invoke('vault_list_accounts',{}).then(async accounts=>{
+            if(accounts.length!==1||accounts[0].name!=='FE2 public visual test')throw Error('not isolated public account');
+            await invoke('user_data_update_preference',{payload:{accountId:accounts[0].id,preferences:{lastBackupReminderAt:0}}});
+            const prefs=await invoke('user_data_get_preferences',{accountId:accounts[0].id});
+            if(prefs.lastBackupReminderAt!==0)throw Error('reminder fixture not persisted');
+            window.fe2InsetsReminder={persisted:true};
+          }).catch(error=>window.fe2InsetsReminder={error:String(error)});
+          return JSON.stringify({started:true});})()""")
+        val fixture=waitFor(scenario,"仅公开账户提醒夹具落盘","JSON.stringify(window.fe2InsetsReminder||{})") {
+            it.optBoolean("persisted") || it.has("error")
+        }
+        assertFalse("公开提醒夹具失败: $fixture",fixture.has("error"))
+        lockToPassword(scenario)
+        unlockPublicVisualAccount(scenario)
+        waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({present:[...document.querySelectorAll('[data-shell-notifications] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
+            it.optBoolean("present")
+        }
+    }
+
+    /** 每次在未过期的生产提醒下重新进入对象附件，避免多次截图耗尽同一8秒提醒。 */
+    private fun reopenPreviewWithBackupReminder(scenario: ActivityScenario<MainActivity>) {
+        val panel = "[data-macos-glass-backdrop][style*='z-index: 5100'] > [data-macos-glass='panel']"
+        val state = js(scenario, "JSON.stringify({attachments:!!document.querySelector(\"$panel\"),detail:!!document.querySelector('[data-testid=object-detail-modal]')})")
+        assertTrue("提醒复验须从公开对象详情进入", state.getBoolean("detail"))
+        if (state.getBoolean("attachments")) {
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+            waitFor(scenario,"提醒复验返回详情","JSON.stringify({attachments:!!document.querySelector(\"$panel\"),detail:!!document.querySelector('[data-testid=object-detail-modal]')})") {
+                !it.optBoolean("attachments") && it.optBoolean("detail")
+            }
+        }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+        waitFor(scenario,"提醒复验返回对象列表","JSON.stringify({detail:!!document.querySelector('[data-testid=object-detail-modal]'),card:!!document.querySelector('[data-testid=workspace-object-card]')})") {
+            !it.optBoolean("detail") && it.optBoolean("card")
+        }
+        waitFor(scenario,"上一轮真实通知自然到期","JSON.stringify({present:!!document.querySelector('[data-toast-container]')})") {
+            !it.optBoolean("present")
+        }
+        renewPublicBackupReminder(scenario)
+        val category = js(scenario, """(() => {const b=[...document.querySelectorAll('.android-category button')].find(e=>e.querySelector('strong')?.textContent==='Travel');b?.click();return JSON.stringify({clicked:!!b})})()""")
+        assertTrue("实际返回公开对象分类", category.getBoolean("clicked"))
+        waitFor(scenario,"公开对象列表重新就绪","JSON.stringify({card:!!document.querySelector('[data-testid=workspace-object-card]')})") { it.optBoolean("card") }
+        clickSelector(scenario,"[data-testid='workspace-object-card'] .android-row-button")
+        waitFor(scenario,"公开对象详情重新就绪","JSON.stringify({detail:!!document.querySelector('[data-testid=object-detail-modal]')})") { it.optBoolean("detail") }
+        clickSelector(scenario,".android-object-detail-footer button[aria-label^='Attachments']")
+        waitFor(scenario,"重新加载真实加密附件列表","JSON.stringify({text:!!document.querySelector(\"button[aria-haspopup='dialog'][aria-label*='FE2-public-notes.txt']\"),image:!!document.querySelector(\"button[aria-haspopup='dialog'][aria-label*='FE2-public-quadrants.png']\")})") {
+            it.optBoolean("text") && it.optBoolean("image")
+        }
+        previewReminderRenewals.put(JSONObject().put("unlockAttempt", unlockAttempts.length())
+            .put("realLockUnlock",true).put("recordedAtMs",System.currentTimeMillis()))
+    }
+
     private fun verifyNonemptyPreviews(scenario: ActivityScenario<MainActivity>, dark: Boolean, seed: Boolean) {
         if (seed) seedPreviewFixtures(scenario)
         val suffix = if (dark) "dark" else "light"
         val panel = "[data-macos-glass-backdrop][style*='z-index: 5100'] > [data-macos-glass='panel']"
-        clickSelector(scenario, ".android-object-detail-footer button[aria-label^='Attachments']")
+        if (dark) reopenPreviewWithBackupReminder(scenario)
+        else clickSelector(scenario, ".android-object-detail-footer button[aria-label^='Attachments']")
         capturePreview(scenario,"nonempty-attachments-$suffix",panel,dark,"attachments")
         for ((file,kind) in listOf("FE2-public-notes.txt" to "text", "FE2-public-quadrants.png" to "image")) {
+            if (dark) reopenPreviewWithBackupReminder(scenario)
             clickSelector(scenario,"button[aria-haspopup='dialog'][aria-label*='$file']")
             clickText(scenario,"Preview")
             capturePreview(scenario,"file-preview-$kind-$suffix","[data-testid='attachment-preview-overlay']",dark,kind)
             clickSelector(scenario,"[data-testid='attachment-preview-overlay'] button[aria-label='Back']")
             waitFor(scenario,"文件返回非空附件", "JSON.stringify({preview:!!document.querySelector('[data-testid=attachment-preview-overlay]')})") { !it.optBoolean("preview") }
         }
+        if (dark) reopenPreviewWithBackupReminder(scenario)
         val album = js(scenario, """(() => {const b=[...document.querySelectorAll('button')].find(b=>[...b.querySelectorAll('span')].some(s=>s.textContent.trim()==='Photo Album'));b?.click();return JSON.stringify({clicked:!!b})})()""")
         assertTrue("点击带数量的真实相册入口",album.getBoolean("clicked"))
         capturePreview(scenario,"photo-album-$suffix","[data-testid='photo-album-overlay']",dark,"album")
         clickSelector(scenario,"[data-testid='photo-album-grid'] [role='button'][aria-label='FE2-public-quadrants.png']")
         waitFor(scenario,"懒加载查看器实际就绪", "JSON.stringify({ready:[...document.querySelectorAll('[data-testid=photo-viewer] button')].some(b=>b.title==='Edit Attachment Attributes'),decoded:[...document.querySelectorAll('[data-testid=photo-viewer] img')].some(i=>i.complete&&i.naturalWidth===320)})") { it.optBoolean("ready") && it.optBoolean("decoded") }
-        // 原提醒自然到期；真实编辑公开描述，由保存操作产生新通知，不修改计时。
+        waitFor(scenario,"保存通知复验前原提醒自然到期","JSON.stringify({backup:[...document.querySelectorAll('[data-toast-container] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
+            !it.optBoolean("backup")
+        }
+        // 真实编辑公开描述，由保存操作产生新通知，不修改两种提醒的计时。
         clickSelector(scenario,"[data-testid='photo-viewer'] button[title='Edit Attachment Attributes']")
         waitFor(scenario,"真实附件属性编辑", "JSON.stringify({editor:!!document.querySelector('[role=dialog] textarea')})") { it.optBoolean("editor") }
         val edited = js(scenario, """(() => {const e=document.querySelector('[role=dialog] textarea');if(!e)return JSON.stringify({edited:false});
@@ -950,25 +1025,7 @@ class AndroidHomeInstrumentedTest {
         // 公开合成账户的首次解锁提醒已在前面的对象场景自然到期。
         // 只重置其加密提醒时间，再经真实锁定/密码解锁触发生产的8秒提醒；
         // 不注入Toast、不修改duration，也不替换通知或登录处理器。
-        js(scenario, """(() => {window.fe2InsetsReminder={pending:true};
-          const invoke=window.__TAURI_INTERNALS__.invoke;
-          invoke('vault_list_accounts',{}).then(async accounts=>{
-            if(accounts.length!==1||accounts[0].name!=='FE2 public visual test')throw Error('not isolated public account');
-            await invoke('user_data_update_preference',{payload:{accountId:accounts[0].id,preferences:{lastBackupReminderAt:0}}});
-            const prefs=await invoke('user_data_get_preferences',{accountId:accounts[0].id});
-            if(prefs.lastBackupReminderAt!==0)throw Error('reminder fixture not persisted');
-            window.fe2InsetsReminder={persisted:true};
-          }).catch(error=>window.fe2InsetsReminder={error:String(error)});
-          return JSON.stringify({started:true});})()""")
-        val fixture=waitFor(scenario,"仅公开账户提醒夹具落盘","JSON.stringify(window.fe2InsetsReminder||{})") {
-            it.optBoolean("persisted") || it.has("error")
-        }
-        assertFalse("公开提醒夹具失败: $fixture",fixture.has("error"))
-        lockToPassword(scenario)
-        unlockPublicVisualAccount(scenario)
-        waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({present:[...document.querySelectorAll('[data-shell-notifications] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
-            it.optBoolean("present")
-        }
+        renewPublicBackupReminder(scenario)
         val portrait = captureInsets(scenario,"safe-home-portrait",login=false)
         var original = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         scenario.onActivity { activity -> original=activity.requestedOrientation;activity.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
