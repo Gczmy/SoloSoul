@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1104",
+  "scope": "windows-native-maintenance-regression",
+  "diagnosticOnly": true,
+  "performanceMetrics": null,
+  "accepted": true,
+  "sampleCount": 6,
+  "exeSha256": "62c67208b195b6f738f6dce120914fa9f27e9cb0bc2024c086b61fedc016bd42",
+  "sourceManifestSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+  "rf312TaskClosed": false,
+  "oldHomeTimeoutRootCauseEstablished": false,
+  "samples": [
+    {
+      "objects": 100,
+      "index": 1,
+      "accepted": true,
+      "journeySuccess": true,
+      "authenticationFlowOutcomes": [
+        "finished",
+        "finished"
+      ],
+      "maintenanceFailures": [],
+      "registeredActivities": 11,
+      "runId": "9b766359a5024802a79c963784629131",
+      "pid": 23440,
+      "artifactSha256": {
+        "native-perf-auth-attribution.json": "ebaafb6270804e7242c7bcf2106c9faa463bcb9d99cce038f7007c720bab054b",
+        "native-perf-maintenance-admission.json": "af0ded627b0f7f1f66f7350519c99ccd3faee501333776187d5b49e384323ede"
+      }
+    },
+    {
+      "objects": 100,
+      "index": 2,
+      "accepted": true,
+      "journeySuccess": true,
+      "authenticationFlowOutcomes": [
+        "finished",
+        "finished"
+      ],
+      "maintenanceFailures": [],
+      "registeredActivities": 11,
+      "runId": "95922fca414346b5a0c9a9fe7895ec77",
+      "pid": 29584,
+      "artifactSha256": {
+        "native-perf-auth-attribution.json": "ac5277a4f9dc6f2fdef0de5ad61283c6f5823be4c15edc8113c381578ee48b88",
+        "native-perf-maintenance-admission.json": "27b2d0073db6a5aa5554ecd1a17ee668ff8e9efe647a0077f5408c65956492a9"
+      }
+    },
+    {
+      "objects": 100,
+      "index": 3,
+      "accepted": true,
+      "journeySuccess": true,
+      "authenticationFlowOutcomes": [
+        "finished",
+        "finished"
+      ],
+      "maintenanceFailures": [],
+      "registeredActivities": 11,
+      "runId": "080f1ec339ea433db142bf485ee27f4b",
+      "pid": 22592,
+      "artifactSha256": {
+        "native-perf-auth-attribution.json": "f526561d3930573f54b19216cda89b02e8af8d17d9e95000df101708686aeda3",
+        "native-perf-maintenance-admission.json": "90fa18145791064ed28ddff2fe82677da2bffd666805e815f9f33438a9230770"
+      }
+    },
+    {
+      "objects": 5000,
+      "index": 1,
+      "accepted": true,
+      "journeySuccess": true,
+      "authenticationFlowOutcomes": [
+        "finished",
+        "finished"
+      ],
+      "maintenanceFailures": [],
+      "registeredActivities": 11,
+      "runId": "5877463f2aab433b8923c009c0c32f41",
+      "pid": 10620,
+      "artifactSha256": {
+        "native-perf-auth-attribution.json": "423b0590e9f7ff39107a09ebac73cd760935b4ea28fb9e832b46845c8a072912",
+        "native-perf-maintenance-admission.json": "a8fe78a83cd36548e835477bfc7ed165c69787cc861c52dbdc7a34693636af6f"
+      }
+    },
+    {
+      "objects": 5000,
+      "index": 2,
+      "accepted": true,
+      "journeySuccess": true,
+      "authenticationFlowOutcomes": [
+        "finished",
+        "finished"
+      ],
+      "maintenanceFailures": [],
+      "registeredActivities": 12,
+      "runId": "d517213a8f6c43038631d4daa4f6de3d",
+      "pid": 12272,
+      "artifactSha256": {
+        "native-perf-auth-attribution.json": "55056a5a4311b13a6d625e603f00d80d03a85db2443eda065874c588332e2a27",
+        "native-perf-maintenance-admission.json": "99f6e9c663deb6ed6893bbc475742cf52d8265e194a8723c203dfc0817fe3d03"
+      }
+    },
+    {
+      "objects": 5000,
+      "index": 3,
+      "accepted": true,
+      "journeySuccess": true,
+      "authenticationFlowOutcomes": [
+        "finished",
+        "finished"
+      ],
+      "maintenanceFailures": [],
+      "registeredActivities": 11,
+      "runId": "4c7728536c84466c894c2d30c9af66d2",
+      "pid": 15380,
+      "artifactSha256": {
+        "native-perf-auth-attribution.json": "b1142ac99b697e3fe0c39a798b859f6e1a0f9bdc672724484dc2c208d15f7e71",
+        "native-perf-maintenance-admission.json": "283a14479d5e1774713d431445e51f83149a6ae03ece6612c5699cabcf4844f0"
+      }
+    }
+  ]
+}

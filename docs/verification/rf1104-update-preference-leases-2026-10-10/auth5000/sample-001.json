@@ -1,0 +1,3432 @@
+{
+  "index": 1,
+  "root": "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001",
+  "success": true,
+  "phases": [
+    {
+      "durationMs": 6995.6808,
+      "fromAtMs": 0,
+      "inputTrust": {
+        "pointer": 0,
+        "text": 0,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 34,
+        "commands": {
+          "biometric_check_availability": 2,
+          "check_has_account": 2,
+          "desktop_prepare_update": 1,
+          "dismiss_lock_mask": 1,
+          "get_platform_capabilities": 1,
+          "get_system_locale": 1,
+          "ocr_get_model_status": 1,
+          "ocr_install_bundled_model_with_progress": 1,
+          "pin_check_availability": 1,
+          "plugin:event|listen": 10,
+          "plugin:event|unlisten": 3,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 3,
+          "show_main_window": 1,
+          "ui_get_preferences": 2,
+          "vault_list_accounts": 2
+        },
+        "reason": null
+      },
+      "name": "startup",
+      "success": true,
+      "toAtMs": 6048.5
+    },
+    {
+      "durationMs": 482.2843,
+      "fromAtMs": 6048.5,
+      "inputTrust": {
+        "pointer": 2,
+        "text": 1,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 19,
+        "commands": {
+          "attachment_count_stats": 1,
+          "desktop_prepare_update": 1,
+          "get_lock_pending": 1,
+          "login": 1,
+          "plugin:event|listen": 5,
+          "plugin:event|unlisten": 1,
+          "profile_load": 1,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 1,
+          "sync_get_auto_status": 1,
+          "sync_get_ui_prefs_sync": 1,
+          "user_data_get_preferences": 1,
+          "vault_check_directory": 1,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "password-unlock",
+      "success": true,
+      "toAtMs": 10838.09999999404
+    },
+    {
+      "durationMs": 915.2833999999999,
+      "fromAtMs": 10838.09999999404,
+      "inputTrust": {
+        "pointer": 4,
+        "text": 1,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 34,
+        "commands": {
+          "backup_list": 1,
+          "biometric_check_availability": 1,
+          "export_get_scope_tree": 1,
+          "get_vault_stats": 1,
+          "llm_get_config": 1,
+          "llm_get_providers": 1,
+          "object_list": 3,
+          "object_trash_list": 1,
+          "ocr_get_active_tier": 1,
+          "ocr_get_model_status": 3,
+          "ocr_list_available_tiers": 1,
+          "plugin:event|listen": 1,
+          "plugin:event|unlisten": 1,
+          "plugin_list_all": 1,
+          "plugin_list_installed": 1,
+          "sync_get_auto_status": 1,
+          "sync_get_status": 1,
+          "sync_get_ui_prefs_sync": 1,
+          "sync_list_conflicts": 1,
+          "sync_listen_addr": 1,
+          "template_list": 2,
+          "ui_update_preference": 7,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "workspace",
+      "success": true,
+      "toAtMs": 11796.90000000596
+    },
+    {
+      "durationMs": 567.4724,
+      "fromAtMs": 12415.59999999404,
+      "inputTrust": {
+        "pointer": 7,
+        "text": 2,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 5,
+        "commands": {
+          "backup_list": 1,
+          "search_unified": 1,
+          "ui_get_preferences": 1,
+          "user_data_get_preferences": 1,
+          "user_data_update_preference": 1
+        },
+        "reason": null
+      },
+      "name": "search-needle",
+      "success": true,
+      "toAtMs": 12989.40000000596
+    },
+    {
+      "durationMs": 97.4733,
+      "fromAtMs": 12989.40000000596,
+      "inputTrust": {
+        "pointer": 8,
+        "text": 2,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 15,
+        "commands": {
+          "biometric_check_availability": 1,
+          "check_has_account": 1,
+          "desktop_prepare_update": 1,
+          "dismiss_lock_mask": 1,
+          "lock": 1,
+          "plugin:event|listen": 1,
+          "plugin:event|unlisten": 5,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 1,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "application-lock",
+      "success": true,
+      "toAtMs": 13172.40000000596
+    },
+    {
+      "durationMs": 563.6229999999999,
+      "fromAtMs": 13172.40000000596,
+      "inputTrust": {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 19,
+        "commands": {
+          "attachment_count_stats": 1,
+          "desktop_prepare_update": 1,
+          "get_lock_pending": 1,
+          "login": 1,
+          "plugin:event|listen": 5,
+          "plugin:event|unlisten": 1,
+          "profile_load": 1,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 1,
+          "sync_get_auto_status": 1,
+          "sync_get_ui_prefs_sync": 1,
+          "user_data_get_preferences": 1,
+          "vault_check_directory": 1,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "password-reunlock",
+      "success": true,
+      "toAtMs": 13871.70000001788
+    }
+  ],
+  "startedAt": "2026-10-10T01:50:12.987Z",
+  "prepare": {
+    "exitCode": 0,
+    "signal": null,
+    "error": null
+  },
+  "owned": {
+    "appVersion": "2.13.2",
+    "fixture": {
+      "accountId": "acc_rf312_5000",
+      "files": [
+        {
+          "relativePath": "acc_rf312_5000\\config.json",
+          "sha256": "c52b9fec69c30111945638c0505000b777e212905803bb2091042918c6018d1e"
+        },
+        {
+          "relativePath": "acc_rf312_5000\\vault.db",
+          "sha256": "06724aad1bb29b1754faf2a650352d12ff2a871f501606aeab34e02e64b583a5"
+        },
+        {
+          "relativePath": "accounts.json",
+          "sha256": "ceb7139f40ebcb844d1555b8285357d24e670d748e5f97312c10548f4821a4ba"
+        },
+        {
+          "relativePath": "rf312-fixture.json",
+          "sha256": "0dd4292f5b5e245edc8956c0c1a0111115243d68e69f3e5c95b05ce28b6d95e0"
+        },
+        {
+          "relativePath": "ui_preferences.json",
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "marker": {
+        "accountId": "acc_rf312_5000",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 250,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 5000,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "objectCount": 5000,
+      "searchMatches": 250
+    },
+    "fixtureSource": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+    "identifier": "com.solosoul.rf312perf.5877463f2aab433b8923c009c0c32f41",
+    "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.5877463f2aab433b8923c009c0c32f41",
+    "nativePerfFeature": true,
+    "ownedPaths": [
+      "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001",
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.5877463f2aab433b8923c009c0c32f41",
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.5877463f2aab433b8923c009c0c32f41"
+    ],
+    "preparationStatus": "ready",
+    "profile": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\profile",
+    "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.5877463f2aab433b8923c009c0c32f41",
+    "root": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001",
+    "runId": "5877463f2aab433b8923c009c0c32f41",
+    "schemaVersion": 1,
+    "scope": "windows-native-perf-owned",
+    "vault": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\vault",
+    "webview": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview"
+  },
+  "port": 62343,
+  "processId": 10620,
+  "bound": {
+    "binding": {
+      "frameCreatedEvents": 0,
+      "loaderId": "8E18C42C1AC1C4F115F9A10A54E08DAC",
+      "mainFrameId": "9248A1B58A67A75006F5A58722349076",
+      "navigationEvents": 0,
+      "source": "http://tauri.localhost/login",
+      "timeOriginMs": null
+    },
+    "browserPid": 27920,
+    "pid": 10620,
+    "port": 62343,
+    "root": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001",
+    "runId": "5877463f2aab433b8923c009c0c32f41",
+    "schemaVersion": 1,
+    "scope": "windows-native-sdk-ui-bound",
+    "timeOriginMs": 1791597016588.7
+  },
+  "beforeSnapshot": {
+    "observedAt": "2026-10-10T01:50:24.122Z",
+    "collectionMs": 995.1239000000005,
+    "workingSetBytes": 565092352,
+    "reason": null,
+    "userDataDirectoryMatches": true,
+    "browserDataChecks": [
+      {
+        "pid": 27920,
+        "apiUserDataFolder": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview",
+        "expectedBrowserDataDirectory": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview\\EBWebView",
+        "matchesExpected": true,
+        "actualBrowserDataDirectory": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview\\EBWebView",
+        "reason": null
+      }
+    ],
+    "browserDataFilesystem": {
+      "valid": true,
+      "reason": null
+    },
+    "processCount": 9,
+    "processes": [
+      {
+        "pid": 10620,
+        "parentPid": 25772,
+        "creationMs": 1791597015541,
+        "executableName": "solo_soul.exe",
+        "workingSetBytes": 70131712,
+        "privateBytes": 19030016,
+        "cpuMs": 453.125,
+        "reason": null
+      },
+      {
+        "pid": 27920,
+        "parentPid": 10620,
+        "creationMs": 1791597015717,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 162668544,
+        "privateBytes": 71536640,
+        "cpuMs": 1421.875,
+        "reason": null
+      },
+      {
+        "pid": 26984,
+        "parentPid": 27920,
+        "creationMs": 1791597016245,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 20914176,
+        "privateBytes": 7995392,
+        "cpuMs": 62.5,
+        "reason": null
+      },
+      {
+        "pid": 26508,
+        "parentPid": 27920,
+        "creationMs": 1791597023320,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 45191168,
+        "privateBytes": 17752064,
+        "cpuMs": 218.75,
+        "reason": null
+      },
+      {
+        "pid": 23612,
+        "parentPid": 27920,
+        "creationMs": 1791597016203,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 95727616,
+        "privateBytes": 68440064,
+        "cpuMs": 640.625,
+        "reason": null
+      },
+      {
+        "pid": 9008,
+        "parentPid": 27920,
+        "creationMs": 1791597015940,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 10203136,
+        "privateBytes": 2465792,
+        "cpuMs": 31.25,
+        "reason": null
+      },
+      {
+        "pid": 29336,
+        "parentPid": 27920,
+        "creationMs": 1791597023320,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 22851584,
+        "privateBytes": 8048640,
+        "cpuMs": 31.25,
+        "reason": null
+      },
+      {
+        "pid": 28300,
+        "parentPid": 27920,
+        "creationMs": 1791597016207,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 41127936,
+        "privateBytes": 13041664,
+        "cpuMs": 234.375,
+        "reason": null
+      },
+      {
+        "pid": 6620,
+        "parentPid": 27920,
+        "creationMs": 1791597016460,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 96276480,
+        "privateBytes": 52965376,
+        "cpuMs": 578.125,
+        "reason": null
+      }
+    ]
+  },
+  "beforeProcessDiagnostics": {
+    "mode": "live",
+    "listeners": [],
+    "liveQueriesPerformed": true,
+    "success": true,
+    "scope": "windows-native-perf-process-diagnostics",
+    "identityVerified": true,
+    "listenersReason": null,
+    "reason": null,
+    "schemaVersion": 1,
+    "processes": [
+      {
+        "parentPid": 25772,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\bin\\solo_soul.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "root",
+        "version": {
+          "fileVersion": "2.13.2",
+          "productVersion": "2.13.2",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": null,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": "Not applicable to the host root process",
+          "address": null,
+          "observedDirectory": null,
+          "userDataDirectoryMatched": null
+        },
+        "pid": 10620,
+        "creationMs": 1791597015541,
+        "identityMatched": true
+      },
+      {
+        "parentPid": 10620,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.62\\msedgewebview2.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "browser",
+        "version": {
+          "fileVersion": "154.0.4258.62",
+          "productVersion": "154.0.4258.62",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": 62343,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": null,
+          "address": "127.0.0.1",
+          "observedDirectory": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview\\EBWebView",
+          "userDataDirectoryMatched": true
+        },
+        "pid": 27920,
+        "creationMs": 1791597015717,
+        "identityMatched": true
+      }
+    ]
+  },
+  "consumed": {
+    "pid": 10620,
+    "port": 62343,
+    "root": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001",
+    "runId": "5877463f2aab433b8923c009c0c32f41",
+    "schemaVersion": 1,
+    "scope": "windows-native-perf-consumed"
+  },
+  "nativeProof": {
+    "binding": {
+      "frameCreatedEvents": 0,
+      "loaderId": "8E18C42C1AC1C4F115F9A10A54E08DAC",
+      "mainFrameId": "9248A1B58A67A75006F5A58722349076",
+      "navigationEvents": 0,
+      "source": "http://tauri.localhost/login",
+      "timeOriginMs": null
+    },
+    "browserPid": 27920,
+    "calls": [
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Input.insertText",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Input.insertText",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Input.insertText",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Input.dispatchMouseEvent",
+      "Input.dispatchMouseEvent",
+      "Runtime.evaluate",
+      "Page.getFrameTree",
+      "Runtime.evaluate",
+      "Page.getFrameTree"
+    ],
+    "elapsedMs": 8566.2074,
+    "failedStep": null,
+    "inputMethod": "SDK-CDP-Input",
+    "ipcAll": {
+      "attempts": 533,
+      "commands": {
+        "attachment_count_batch": 1,
+        "attachment_count_stats": 3,
+        "backup_list": 2,
+        "biometric_check_availability": 4,
+        "check_has_account": 3,
+        "desktop_prepare_update": 4,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 1,
+        "get_lock_pending": 2,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 1,
+        "llm_get_config": 1,
+        "llm_get_providers": 1,
+        "lock": 1,
+        "login": 2,
+        "object_list": 3,
+        "object_trash_list": 1,
+        "ocr_get_active_tier": 1,
+        "ocr_get_model_status": 4,
+        "ocr_install_bundled_model_with_progress": 1,
+        "ocr_list_available_tiers": 1,
+        "pin_check_availability": 1,
+        "plugin:event|listen": 224,
+        "plugin:event|unlisten": 213,
+        "plugin_list_all": 1,
+        "plugin_list_installed": 1,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 8,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 1,
+        "sync_get_auto_status": 3,
+        "sync_get_status": 1,
+        "sync_get_ui_prefs_sync": 3,
+        "sync_list_conflicts": 1,
+        "sync_listen_addr": 1,
+        "template_list": 2,
+        "ui_get_preferences": 3,
+        "ui_update_preference": 7,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 6
+      },
+      "reason": null
+    },
+    "lastProbe": {
+      "atMs": 13871.70000001788,
+      "frameCount": 0,
+      "href": "http://tauri.localhost/",
+      "inputTrust": {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      "observer": {
+        "commands": [
+          {
+            "atMs": 5462.300000011921,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 5563.700000017881,
+            "command": "get_system_locale"
+          },
+          {
+            "atMs": 5564.9000000059605,
+            "command": "show_main_window"
+          },
+          {
+            "atMs": 5570.0999999940395,
+            "command": "get_platform_capabilities"
+          },
+          {
+            "atMs": 5596.0999999940395,
+            "command": "ui_get_preferences"
+          },
+          {
+            "atMs": 5603.700000017881,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 5604.300000011921,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 5645.5999999940395,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 5646.4000000059605,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5647.0999999940395,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5903.9000000059605,
+            "command": "check_has_account"
+          },
+          {
+            "atMs": 5905.200000017881,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5905.9000000059605,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5906.4000000059605,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5906.800000011921,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5908.4000000059605,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 5909.4000000059605,
+            "command": "ui_get_preferences"
+          },
+          {
+            "atMs": 5909.9000000059605,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 5915.700000017881,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5916.5999999940395,
+            "command": "desktop_prepare_update"
+          },
+          {
+            "atMs": 5925.4000000059605,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 5928.700000017881,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5931.4000000059605,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5932,
+            "command": "ocr_install_bundled_model_with_progress"
+          },
+          {
+            "atMs": 5934.700000017881,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 5941.5999999940395,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 5942.200000017881,
+            "command": "dismiss_lock_mask"
+          },
+          {
+            "atMs": 5942.700000017881,
+            "command": "check_has_account"
+          },
+          {
+            "atMs": 5943.200000017881,
+            "command": "biometric_check_availability"
+          },
+          {
+            "atMs": 5944.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 5976,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 5978,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 5986.9000000059605,
+            "command": "biometric_check_availability"
+          },
+          {
+            "atMs": 5987.5,
+            "command": "pin_check_availability"
+          },
+          {
+            "atMs": 10424.70000001788,
+            "command": "login"
+          },
+          {
+            "atMs": 10755.30000001192,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 10757.70000001788,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 10758.59999999404,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 10762.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 10763,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 10764,
+            "command": "get_lock_pending"
+          },
+          {
+            "atMs": 10801.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 10803.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 10803.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 10804.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 10809.20000001788,
+            "command": "desktop_prepare_update"
+          },
+          {
+            "atMs": 10818.40000000596,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 10834.5,
+            "command": "profile_load"
+          },
+          {
+            "atMs": 10835,
+            "command": "user_data_get_preferences"
+          },
+          {
+            "atMs": 10835.5,
+            "command": "sync_get_auto_status"
+          },
+          {
+            "atMs": 10835.70000001788,
+            "command": "sync_get_ui_prefs_sync"
+          },
+          {
+            "atMs": 10836.09999999404,
+            "command": "attachment_count_stats"
+          },
+          {
+            "atMs": 10837.20000001788,
+            "command": "vault_check_directory"
+          },
+          {
+            "atMs": 10841.30000001192,
+            "command": "ocr_get_active_tier"
+          },
+          {
+            "atMs": 10844.30000001192,
+            "command": "ocr_list_available_tiers"
+          },
+          {
+            "atMs": 10844.90000000596,
+            "command": "get_vault_stats"
+          },
+          {
+            "atMs": 10845.09999999404,
+            "command": "backup_list"
+          },
+          {
+            "atMs": 10845.90000000596,
+            "command": "export_get_scope_tree"
+          },
+          {
+            "atMs": 10846.30000001192,
+            "command": "llm_get_config"
+          },
+          {
+            "atMs": 10846.59999999404,
+            "command": "llm_get_providers"
+          },
+          {
+            "atMs": 10847,
+            "command": "template_list"
+          },
+          {
+            "atMs": 10847.30000001192,
+            "command": "object_trash_list"
+          },
+          {
+            "atMs": 10847.80000001192,
+            "command": "plugin_list_all"
+          },
+          {
+            "atMs": 10848.30000001192,
+            "command": "plugin_list_installed"
+          },
+          {
+            "atMs": 10848.70000001788,
+            "command": "sync_get_status"
+          },
+          {
+            "atMs": 10849.20000001788,
+            "command": "sync_listen_addr"
+          },
+          {
+            "atMs": 10849.59999999404,
+            "command": "sync_get_auto_status"
+          },
+          {
+            "atMs": 10849.90000000596,
+            "command": "sync_get_ui_prefs_sync"
+          },
+          {
+            "atMs": 10850.20000001788,
+            "command": "sync_list_conflicts"
+          },
+          {
+            "atMs": 10852.20000001788,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 10852.59999999404,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 10853,
+            "command": "ocr_get_model_status"
+          },
+          {
+            "atMs": 10876.09999999404,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 10904.90000000596,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 10952.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 10953.90000000596,
+            "command": "biometric_check_availability"
+          },
+          {
+            "atMs": 10954.40000000596,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 10955.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 10978.80000001192,
+            "command": "template_list"
+          },
+          {
+            "atMs": 10979.30000001192,
+            "command": "object_list"
+          },
+          {
+            "atMs": 10988,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 10991.09999999404,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 10993.90000000596,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 11050.70000001788,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 11051.30000001192,
+            "command": "object_list"
+          },
+          {
+            "atMs": 11053.59999999404,
+            "command": "ui_update_preference"
+          },
+          {
+            "atMs": 11057.5,
+            "command": "object_list"
+          },
+          {
+            "atMs": 11801.70000001788,
+            "command": "snapshot_count_batch"
+          },
+          {
+            "atMs": 11803,
+            "command": "attachment_count_batch"
+          },
+          {
+            "atMs": 11804.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11804.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11804.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11805.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11805.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11806.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11806.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11807.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11807.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11808.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11808.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11809.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11809.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11810.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11810.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11811.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11811.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11812.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11812.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11813.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11813.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11814.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11814.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11815.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11815.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11816.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11816.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11816.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11817.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11817.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11818.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11818.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11819.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11819.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11820.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11820.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11821,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11821.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11822.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11822.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11823,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11823.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11823.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11824.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11824.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11825.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11825.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11826.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11826.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11826.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11845.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11846.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11846.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11847.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11847.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11848.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11848.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11849.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11849.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11850.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11850.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11851.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11852.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11853.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11853.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11854.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11855.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11856.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11857.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11857.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11858.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11859,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11859.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11860.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11861,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11861.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11959.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11961,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11961.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11963,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11971.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11972.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11973.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11974,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11974.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11975.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11976.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11976.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11977.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11978.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11985.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11985.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11986.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11986.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11986.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11987.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11988,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11988.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11989.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11989.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11990.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 11999.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12002.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12002.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12002.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12003.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12003.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12004.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12004.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12005,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12005.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12006.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12006.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12007,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12007.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12008,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12008.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12009,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12009.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12009.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12010.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12010.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12010.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12011,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12011.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12011.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12097.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12136.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12137.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12152.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12152.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12153.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12156.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12162.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12163.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12163.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12164.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12164.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12165.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12165.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12166.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12166.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12167.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12172.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12174.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12175.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12175.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12175.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12176.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12176.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12177.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12178.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12178.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12180.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12181,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12182.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12183.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12184,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12184.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12185,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12185.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12186.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12187.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12188.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12188.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12189.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12189.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12190,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12190.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12191.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12192.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12193.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12193.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12194.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12195.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12195.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12196.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12197.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12197.59999999404,
+            "command": "attachment_count_stats"
+          },
+          {
+            "atMs": 12202.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12205.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12205.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12209.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12214.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12218.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12219.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12219.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12220.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12223.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12224.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12224.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12225.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12226.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12228,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12231.09999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12231.80000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12232.40000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12233.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12234,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12234.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12236.30000001192,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12236.90000000596,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12237.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12237.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12238,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12238.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12239.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12239.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12240.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12240.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12241.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12241.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12242.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12242.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12244.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12244.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12245.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12245.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12248.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12248.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12249.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12249.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12250.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12250.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12251.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12251.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12252.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12252.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12253.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12253.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12254,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12254.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12254.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12255.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12255.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12256.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12256.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12256.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12257.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12258,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12258.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12258.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12259.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12259.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12260.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12261,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12261.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12262.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12262.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12263.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12263.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12264,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12264.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12265.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12266,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12266.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12267,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12267.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12268.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12269.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12269.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12270.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12271.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12271.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12272.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12272.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12272.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12273.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12273.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12273.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12274.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12274.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12274.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12275.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12275.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12276,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12276.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12276.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12277.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12277.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12278,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12278.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12278.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12279.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12279.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12280.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12280.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12281.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12281.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12281.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12282.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12282.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12282.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12283.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12288.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12288.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12289.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12289.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12290.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12290.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12291.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12291.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12292.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12292.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12293.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12294,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12294.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12299.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12300,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12300.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12301,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12301.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12301.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12304.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12306.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12307.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12307.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12308.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12312,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12312.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12312.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12313.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12313.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12314,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12314.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12321,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12325.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12325.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12326.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12326.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12331.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12331.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12332.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12332.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12352.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12353.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 12363.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12363.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12364,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12364.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12364.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12364.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12365.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12365.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12365.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12366.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12366.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12367.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12368.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12368.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12369.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12369.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12370.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12370.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12370.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12371,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12371.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12372.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12372.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12372.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12373.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12373.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12374.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12374.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12375.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12376,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12376.5,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12376.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12379.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12380.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12380.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12380.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12382.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12382.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12382.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12383.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12393.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12393.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12393.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12394.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12394.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12395,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12395.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12395.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12395.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12396.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12396.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12396.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12397.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12397.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12397.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12397.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12398.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12398.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12399.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12399.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12399.80000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12400.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12400.40000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12400.59999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12400.90000000596,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12401.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12401.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12402,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 12768.30000001192,
+            "command": "user_data_get_preferences"
+          },
+          {
+            "atMs": 12776,
+            "command": "backup_list"
+          },
+          {
+            "atMs": 12781.09999999404,
+            "command": "ui_get_preferences"
+          },
+          {
+            "atMs": 12786.40000000596,
+            "command": "user_data_update_preference"
+          },
+          {
+            "atMs": 12807.09999999404,
+            "command": "search_unified"
+          },
+          {
+            "atMs": 13107.30000001192,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 13108.5,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 13109.40000000596,
+            "command": "lock"
+          },
+          {
+            "atMs": 13123.70000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 13124.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 13126.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 13127.30000001192,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 13132.20000001788,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 13133.09999999404,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 13133.59999999404,
+            "command": "dismiss_lock_mask"
+          },
+          {
+            "atMs": 13134.09999999404,
+            "command": "check_has_account"
+          },
+          {
+            "atMs": 13134.59999999404,
+            "command": "biometric_check_availability"
+          },
+          {
+            "atMs": 13135.5,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 13136.30000001192,
+            "command": "desktop_prepare_update"
+          },
+          {
+            "atMs": 13139.20000001788,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 13383.40000000596,
+            "command": "login"
+          },
+          {
+            "atMs": 13813.70000001788,
+            "command": "vault_list_accounts"
+          },
+          {
+            "atMs": 13817.09999999404,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 13817.70000001788,
+            "command": "set_status_bar_style"
+          },
+          {
+            "atMs": 13821.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 13821.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 13822.20000001788,
+            "command": "get_lock_pending"
+          },
+          {
+            "atMs": 13839.09999999404,
+            "command": "plugin:event|unlisten"
+          },
+          {
+            "atMs": 13840.59999999404,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 13841.20000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 13841.70000001788,
+            "command": "plugin:event|listen"
+          },
+          {
+            "atMs": 13845,
+            "command": "desktop_prepare_update"
+          },
+          {
+            "atMs": 13850,
+            "command": "set_titlebar_color"
+          },
+          {
+            "atMs": 13865.5,
+            "command": "profile_load"
+          },
+          {
+            "atMs": 13866,
+            "command": "user_data_get_preferences"
+          },
+          {
+            "atMs": 13866.59999999404,
+            "command": "sync_get_auto_status"
+          },
+          {
+            "atMs": 13867.30000001192,
+            "command": "sync_get_ui_prefs_sync"
+          },
+          {
+            "atMs": 13868,
+            "command": "attachment_count_stats"
+          },
+          {
+            "atMs": 13870.80000001192,
+            "command": "vault_check_directory"
+          }
+        ],
+        "installedAtMs": 3940.400000005961,
+        "invalidReasons": [],
+        "maxEvents": 16384,
+        "observedCount": 533,
+        "runId": "5877463f2aab433b8923c009c0c32f41",
+        "schemaVersion": 1,
+        "scope": "windows-native-tauri-invoke-observer",
+        "timeOriginMs": 1791597016588.7,
+        "total": 533,
+        "valid": true
+      },
+      "origin": "http://tauri.localhost",
+      "outcome": "ready",
+      "rootPresent": true,
+      "runId": "5877463f2aab433b8923c009c0c32f41",
+      "schemaVersion": 1,
+      "scope": "windows-native-sdk-ui-probe",
+      "step": "home",
+      "target": null,
+      "timeOriginMs": 1791597016588.7
+    },
+    "objectCount": 5000,
+    "phases": [
+      {
+        "durationMs": 6995.6808,
+        "fromAtMs": 0,
+        "inputTrust": {
+          "pointer": 0,
+          "text": 0,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 34,
+          "commands": {
+            "biometric_check_availability": 2,
+            "check_has_account": 2,
+            "desktop_prepare_update": 1,
+            "dismiss_lock_mask": 1,
+            "get_platform_capabilities": 1,
+            "get_system_locale": 1,
+            "ocr_get_model_status": 1,
+            "ocr_install_bundled_model_with_progress": 1,
+            "pin_check_availability": 1,
+            "plugin:event|listen": 10,
+            "plugin:event|unlisten": 3,
+            "set_status_bar_style": 2,
+            "set_titlebar_color": 3,
+            "show_main_window": 1,
+            "ui_get_preferences": 2,
+            "vault_list_accounts": 2
+          },
+          "reason": null
+        },
+        "name": "startup",
+        "success": true,
+        "toAtMs": 6048.5
+      },
+      {
+        "durationMs": 482.2843,
+        "fromAtMs": 6048.5,
+        "inputTrust": {
+          "pointer": 2,
+          "text": 1,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 19,
+          "commands": {
+            "attachment_count_stats": 1,
+            "desktop_prepare_update": 1,
+            "get_lock_pending": 1,
+            "login": 1,
+            "plugin:event|listen": 5,
+            "plugin:event|unlisten": 1,
+            "profile_load": 1,
+            "set_status_bar_style": 2,
+            "set_titlebar_color": 1,
+            "sync_get_auto_status": 1,
+            "sync_get_ui_prefs_sync": 1,
+            "user_data_get_preferences": 1,
+            "vault_check_directory": 1,
+            "vault_list_accounts": 1
+          },
+          "reason": null
+        },
+        "name": "password-unlock",
+        "success": true,
+        "toAtMs": 10838.09999999404
+      },
+      {
+        "durationMs": 915.2833999999999,
+        "fromAtMs": 10838.09999999404,
+        "inputTrust": {
+          "pointer": 4,
+          "text": 1,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 34,
+          "commands": {
+            "backup_list": 1,
+            "biometric_check_availability": 1,
+            "export_get_scope_tree": 1,
+            "get_vault_stats": 1,
+            "llm_get_config": 1,
+            "llm_get_providers": 1,
+            "object_list": 3,
+            "object_trash_list": 1,
+            "ocr_get_active_tier": 1,
+            "ocr_get_model_status": 3,
+            "ocr_list_available_tiers": 1,
+            "plugin:event|listen": 1,
+            "plugin:event|unlisten": 1,
+            "plugin_list_all": 1,
+            "plugin_list_installed": 1,
+            "sync_get_auto_status": 1,
+            "sync_get_status": 1,
+            "sync_get_ui_prefs_sync": 1,
+            "sync_list_conflicts": 1,
+            "sync_listen_addr": 1,
+            "template_list": 2,
+            "ui_update_preference": 7,
+            "vault_list_accounts": 1
+          },
+          "reason": null
+        },
+        "name": "workspace",
+        "success": true,
+        "toAtMs": 11796.90000000596
+      },
+      {
+        "durationMs": 567.4724,
+        "fromAtMs": 12415.59999999404,
+        "inputTrust": {
+          "pointer": 7,
+          "text": 2,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 5,
+          "commands": {
+            "backup_list": 1,
+            "search_unified": 1,
+            "ui_get_preferences": 1,
+            "user_data_get_preferences": 1,
+            "user_data_update_preference": 1
+          },
+          "reason": null
+        },
+        "name": "search-needle",
+        "success": true,
+        "toAtMs": 12989.40000000596
+      },
+      {
+        "durationMs": 97.4733,
+        "fromAtMs": 12989.40000000596,
+        "inputTrust": {
+          "pointer": 8,
+          "text": 2,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 15,
+          "commands": {
+            "biometric_check_availability": 1,
+            "check_has_account": 1,
+            "desktop_prepare_update": 1,
+            "dismiss_lock_mask": 1,
+            "lock": 1,
+            "plugin:event|listen": 1,
+            "plugin:event|unlisten": 5,
+            "set_status_bar_style": 2,
+            "set_titlebar_color": 1,
+            "vault_list_accounts": 1
+          },
+          "reason": null
+        },
+        "name": "application-lock",
+        "success": true,
+        "toAtMs": 13172.40000000596
+      },
+      {
+        "durationMs": 563.6229999999999,
+        "fromAtMs": 13172.40000000596,
+        "inputTrust": {
+          "pointer": 10,
+          "text": 3,
+          "untrusted": 0
+        },
+        "ipc": {
+          "attempts": 19,
+          "commands": {
+            "attachment_count_stats": 1,
+            "desktop_prepare_update": 1,
+            "get_lock_pending": 1,
+            "login": 1,
+            "plugin:event|listen": 5,
+            "plugin:event|unlisten": 1,
+            "profile_load": 1,
+            "set_status_bar_style": 2,
+            "set_titlebar_color": 1,
+            "sync_get_auto_status": 1,
+            "sync_get_ui_prefs_sync": 1,
+            "user_data_get_preferences": 1,
+            "vault_check_directory": 1,
+            "vault_list_accounts": 1
+          },
+          "reason": null
+        },
+        "name": "password-reunlock",
+        "success": true,
+        "toAtMs": 13871.70000001788
+      }
+    ],
+    "pid": 10620,
+    "port": 62343,
+    "reason": null,
+    "root": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001",
+    "runId": "5877463f2aab433b8923c009c0c32f41",
+    "schemaVersion": 1,
+    "scope": "windows-native-sdk-ui-journey",
+    "success": true,
+    "timeOriginMs": 1791597016588.7,
+    "unmeasured": [
+      "OCR",
+      "attachment-preview",
+      "system-sleep",
+      "same-profile-warm-start",
+      "other-platforms"
+    ]
+  },
+  "afterSnapshot": {
+    "observedAt": "2026-10-10T01:50:31.745Z",
+    "collectionMs": 928.6821000000018,
+    "workingSetBytes": 756133888,
+    "reason": null,
+    "userDataDirectoryMatches": true,
+    "browserDataChecks": [
+      {
+        "pid": 27920,
+        "apiUserDataFolder": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview",
+        "expectedBrowserDataDirectory": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview\\EBWebView",
+        "matchesExpected": true,
+        "actualBrowserDataDirectory": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview\\EBWebView",
+        "reason": null
+      }
+    ],
+    "browserDataFilesystem": {
+      "valid": true,
+      "reason": null
+    },
+    "processCount": 8,
+    "processes": [
+      {
+        "pid": 10620,
+        "parentPid": 25772,
+        "creationMs": 1791597015541,
+        "executableName": "solo_soul.exe",
+        "workingSetBytes": 79405056,
+        "privateBytes": 25354240,
+        "cpuMs": 1625,
+        "reason": null
+      },
+      {
+        "pid": 27920,
+        "parentPid": 10620,
+        "creationMs": 1791597015717,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 173326336,
+        "privateBytes": 77393920,
+        "cpuMs": 2531.25,
+        "reason": null
+      },
+      {
+        "pid": 26984,
+        "parentPid": 27920,
+        "creationMs": 1791597016245,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 21000192,
+        "privateBytes": 8003584,
+        "cpuMs": 62.5,
+        "reason": null
+      },
+      {
+        "pid": 23612,
+        "parentPid": 27920,
+        "creationMs": 1791597016203,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 112082944,
+        "privateBytes": 84205568,
+        "cpuMs": 1437.5,
+        "reason": null
+      },
+      {
+        "pid": 9008,
+        "parentPid": 27920,
+        "creationMs": 1791597015940,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 10227712,
+        "privateBytes": 2510848,
+        "cpuMs": 31.25,
+        "reason": null
+      },
+      {
+        "pid": 29336,
+        "parentPid": 27920,
+        "creationMs": 1791597023320,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 22913024,
+        "privateBytes": 8077312,
+        "cpuMs": 31.25,
+        "reason": null
+      },
+      {
+        "pid": 28300,
+        "parentPid": 27920,
+        "creationMs": 1791597016207,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 41607168,
+        "privateBytes": 13381632,
+        "cpuMs": 437.5,
+        "reason": null
+      },
+      {
+        "pid": 6620,
+        "parentPid": 27920,
+        "creationMs": 1791597016460,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 295571456,
+        "privateBytes": 243900416,
+        "cpuMs": 3218.75,
+        "reason": null
+      }
+    ]
+  },
+  "afterProcessDiagnostics": {
+    "mode": "live",
+    "listeners": [],
+    "liveQueriesPerformed": true,
+    "success": true,
+    "scope": "windows-native-perf-process-diagnostics",
+    "identityVerified": true,
+    "listenersReason": null,
+    "reason": null,
+    "schemaVersion": 1,
+    "processes": [
+      {
+        "parentPid": 25772,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\bin\\solo_soul.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "root",
+        "version": {
+          "fileVersion": "2.13.2",
+          "productVersion": "2.13.2",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": null,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": "Not applicable to the host root process",
+          "address": null,
+          "observedDirectory": null,
+          "userDataDirectoryMatched": null
+        },
+        "pid": 10620,
+        "creationMs": 1791597015541,
+        "identityMatched": true
+      },
+      {
+        "parentPid": 10620,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.62\\msedgewebview2.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "browser",
+        "version": {
+          "fileVersion": "154.0.4258.62",
+          "productVersion": "154.0.4258.62",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": 62343,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": null,
+          "address": "127.0.0.1",
+          "observedDirectory": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000\\sample-001\\webview\\EBWebView",
+          "userDataDirectoryMatched": true
+        },
+        "pid": 27920,
+        "creationMs": 1791597015717,
+        "identityMatched": true
+      }
+    ]
+  },
+  "ipcAll": {
+    "attempts": 533,
+    "commands": [
+      {
+        "command": "set_titlebar_color",
+        "attempts": 6
+      },
+      {
+        "command": "get_system_locale",
+        "attempts": 1
+      },
+      {
+        "command": "show_main_window",
+        "attempts": 1
+      },
+      {
+        "command": "get_platform_capabilities",
+        "attempts": 1
+      },
+      {
+        "command": "ui_get_preferences",
+        "attempts": 3
+      },
+      {
+        "command": "set_status_bar_style",
+        "attempts": 8
+      },
+      {
+        "command": "ocr_get_model_status",
+        "attempts": 4
+      },
+      {
+        "command": "plugin:event|listen",
+        "attempts": 224
+      },
+      {
+        "command": "check_has_account",
+        "attempts": 3
+      },
+      {
+        "command": "vault_list_accounts",
+        "attempts": 6
+      },
+      {
+        "command": "desktop_prepare_update",
+        "attempts": 4
+      },
+      {
+        "command": "ocr_install_bundled_model_with_progress",
+        "attempts": 1
+      },
+      {
+        "command": "dismiss_lock_mask",
+        "attempts": 2
+      },
+      {
+        "command": "biometric_check_availability",
+        "attempts": 4
+      },
+      {
+        "command": "plugin:event|unlisten",
+        "attempts": 213
+      },
+      {
+        "command": "pin_check_availability",
+        "attempts": 1
+      },
+      {
+        "command": "login",
+        "attempts": 2
+      },
+      {
+        "command": "get_lock_pending",
+        "attempts": 2
+      },
+      {
+        "command": "profile_load",
+        "attempts": 2
+      },
+      {
+        "command": "user_data_get_preferences",
+        "attempts": 3
+      },
+      {
+        "command": "sync_get_auto_status",
+        "attempts": 3
+      },
+      {
+        "command": "sync_get_ui_prefs_sync",
+        "attempts": 3
+      },
+      {
+        "command": "attachment_count_stats",
+        "attempts": 3
+      },
+      {
+        "command": "vault_check_directory",
+        "attempts": 2
+      },
+      {
+        "command": "ocr_get_active_tier",
+        "attempts": 1
+      },
+      {
+        "command": "ocr_list_available_tiers",
+        "attempts": 1
+      },
+      {
+        "command": "get_vault_stats",
+        "attempts": 1
+      },
+      {
+        "command": "backup_list",
+        "attempts": 2
+      },
+      {
+        "command": "export_get_scope_tree",
+        "attempts": 1
+      },
+      {
+        "command": "llm_get_config",
+        "attempts": 1
+      },
+      {
+        "command": "llm_get_providers",
+        "attempts": 1
+      },
+      {
+        "command": "template_list",
+        "attempts": 2
+      },
+      {
+        "command": "object_trash_list",
+        "attempts": 1
+      },
+      {
+        "command": "plugin_list_all",
+        "attempts": 1
+      },
+      {
+        "command": "plugin_list_installed",
+        "attempts": 1
+      },
+      {
+        "command": "sync_get_status",
+        "attempts": 1
+      },
+      {
+        "command": "sync_listen_addr",
+        "attempts": 1
+      },
+      {
+        "command": "sync_list_conflicts",
+        "attempts": 1
+      },
+      {
+        "command": "ui_update_preference",
+        "attempts": 7
+      },
+      {
+        "command": "object_list",
+        "attempts": 3
+      },
+      {
+        "command": "snapshot_count_batch",
+        "attempts": 1
+      },
+      {
+        "command": "attachment_count_batch",
+        "attempts": 1
+      },
+      {
+        "command": "user_data_update_preference",
+        "attempts": 1
+      },
+      {
+        "command": "search_unified",
+        "attempts": 1
+      },
+      {
+        "command": "lock",
+        "attempts": 1
+      }
+    ],
+    "reason": null
+  },
+  "cleanup": {
+    "cleanup": [
+      {
+        "status": "terminated",
+        "pid": 29336
+      },
+      {
+        "status": "already-exited",
+        "pid": 26508
+      },
+      {
+        "status": "terminated",
+        "pid": 6620
+      },
+      {
+        "status": "terminated",
+        "pid": 26984
+      },
+      {
+        "status": "terminated",
+        "pid": 28300
+      },
+      {
+        "status": "terminated",
+        "pid": 23612
+      },
+      {
+        "status": "terminated",
+        "pid": 9008
+      },
+      {
+        "status": "terminated",
+        "pid": 27920
+      },
+      {
+        "status": "terminated",
+        "pid": 10620
+      }
+    ],
+    "unverifiedDescendants": false
+  },
+  "ownedProcessExit": {
+    "exitCode": 4294967295,
+    "signal": null,
+    "error": null
+  },
+  "cleanupIntegrity": {
+    "complete": true,
+    "reason": null
+  },
+  "finishedAt": "2026-10-10T01:50:36.385Z"
+}

@@ -1,0 +1,26 @@
+{
+  "durationMs": 471.798,
+  "fromAtMs": 8610.300000011921,
+  "inputTrust": {
+    "pointer": 10,
+    "text": 3,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 13,
+    "commands": {
+      "desktop_prepare_update": 1,
+      "get_lock_pending": 1,
+      "login": 1,
+      "plugin:event|listen": 5,
+      "plugin:event|unlisten": 1,
+      "set_status_bar_style": 2,
+      "set_titlebar_color": 1,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "password-reunlock",
+  "success": true,
+  "toAtMs": 9289.69999998808
+}

@@ -1,0 +1,2061 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1104",
+  "date": "2026-10-10",
+  "baseHead": "32b771e335f75510c1c4756faa3feb64014ba78f",
+  "scope": "Update preference activity lifetime, stale-session persistence and Windows native re-unlock regression",
+  "validationAccepted": true,
+  "commitStillRequired": true,
+  "sourceManifestSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+  "sourceFileCount": 1827,
+  "toolchain": {
+    "node --version": "v24.16.0",
+    "rustc --version": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cargo --version": "cargo 1.96.0 (30a34c682 2026-05-25)"
+  },
+  "checks": {
+    "regression-green": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "commands::update_preferences::tests",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 30548,
+        "exitCode": 0,
+        "elapsedSeconds": 631.6257545999979,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:56:26.353123+00:00"
+      },
+      "testTotals": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "rust-format": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "fmt",
+          "--check"
+        ],
+        "pid": 3292,
+        "exitCode": 0,
+        "elapsedSeconds": 4.233334599994123,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:56:34.514527+00:00"
+      },
+      "testTotals": null
+    },
+    "rust-clippy-default": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 3468,
+        "exitCode": 0,
+        "elapsedSeconds": 109.27474509998865,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:58:25.198177+00:00"
+      },
+      "testTotals": null
+    },
+    "rust-tests-default": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--verbose"
+        ],
+        "pid": 27572,
+        "exitCode": 0,
+        "elapsedSeconds": 3557.3894929000235,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T00:58:00.521185+00:00"
+      },
+      "testTotals": {
+        "passed": 1871,
+        "failed": 0,
+        "ignored": 3
+      }
+    },
+    "rust-clippy-native": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--features",
+          "native-perf",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 2480,
+        "exitCode": 0,
+        "elapsedSeconds": 375.9521792999876,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:04:19.116152+00:00"
+      },
+      "testTotals": null
+    },
+    "rust-tests-native": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "native_perf::",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 7512,
+        "exitCode": 0,
+        "elapsedSeconds": 793.7317391000106,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:17:55.593593+00:00"
+      },
+      "testTotals": {
+        "passed": 113,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "rust-tests-rf905": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "rf905",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 26128,
+        "exitCode": 0,
+        "elapsedSeconds": 110.47897070000181,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:19:47.434859+00:00"
+      },
+      "testTotals": {
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "rust-tests-preferences-native": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "commands::update_preferences::tests",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 29920,
+        "exitCode": 0,
+        "elapsedSeconds": 15.589214100007666,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:20:21.955071+00:00"
+      },
+      "testTotals": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "regression-red": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "rf1104_pending_source_selection",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 10596,
+        "exitCode": 101,
+        "elapsedSeconds": 1100.4373362000042,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:35:03.407150+00:00"
+      },
+      "scope": "Initial test compilation error; not the defect red regression"
+    },
+    "regression-red-fixed": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "rf1104_pending_source_selection",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 25592,
+        "exitCode": 101,
+        "elapsedSeconds": 542.2885954999947,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:44:42.751499+00:00"
+      },
+      "testTotals": {
+        "passed": 0,
+        "failed": 1,
+        "ignored": 0
+      }
+    },
+    "native-release-build": {
+      "receipt": {
+        "command": [
+          "npm.cmd",
+          "run",
+          "tauri",
+          "--",
+          "build",
+          "--config",
+          "src-tauri/tauri.native-perf.conf.json",
+          "--features",
+          "native-perf",
+          "--no-bundle",
+          "--ci"
+        ],
+        "pid": 30636,
+        "exitCode": 0,
+        "elapsedSeconds": 1705.9948399999994,
+        "sourceUnchanged": false,
+        "changedSourceFiles": [
+          "tauri/src-tauri/Cargo.toml"
+        ],
+        "pdfiumOverrideInherited": false,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:48:52.597854+00:00"
+      }
+    },
+    "native-auth-100": {
+      "receipt": {
+        "command": [
+          "node",
+          "scripts/native-perf-auth-attribution.mjs",
+          "--exe",
+          "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\bin\\solo_soul.exe",
+          "--fixture",
+          "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+          "--output",
+          "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100",
+          "--samples",
+          "3"
+        ],
+        "pid": 27264,
+        "exitCode": 0,
+        "elapsedSeconds": 71.33015180000803,
+        "sourceUnchanged": true,
+        "changedSourceFiles": [],
+        "pdfiumOverrideInherited": false,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:50:10.605558+00:00"
+      }
+    },
+    "native-auth-5000": {
+      "receipt": {
+        "command": [
+          "node",
+          "scripts/native-perf-auth-attribution.mjs",
+          "--exe",
+          "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\bin\\solo_soul.exe",
+          "--fixture",
+          "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+          "--output",
+          "D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth5000",
+          "--samples",
+          "3"
+        ],
+        "pid": 25772,
+        "exitCode": 0,
+        "elapsedSeconds": 63.363048200000776,
+        "sourceUnchanged": true,
+        "changedSourceFiles": [],
+        "pdfiumOverrideInherited": false,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:51:15.427213+00:00"
+      }
+    }
+  },
+  "targetedAcceptanceScope": {
+    "task": "RF-1104",
+    "scope": "Reviewed requirement-to-test mapping for the actual passing targeted suite",
+    "sourceFile": "tauri/src-tauri/src/commands/update_preferences.rs",
+    "sourceSha256": "63d20bf06d5bdca43573f33ea00f39aeb5e49ea8ea59e9f403fb7f9b807d54e0",
+    "targetedReceiptSha256": "f621549c8ed1a33f034b5543b4d71428ef5056c20f4560d17ae3f5b0e3795bf7",
+    "requirements": [
+      {
+        "requirement": "Network selection must not retain maintenance admission; same-account re-unlock rejects late writes even while the old Store remains alive",
+        "passingTests": [
+          "rf1104_pending_source_selection_does_not_block_password_reunlock"
+        ],
+        "sourceTestLines": {
+          "rf1104_pending_source_selection_does_not_block_password_reunlock": 399
+        }
+      },
+      {
+        "requirement": "Actual synchronous file work retains its activity permit until it finishes",
+        "passingTests": [
+          "rf1104_actual_cache_write_retains_activity_until_file_work_finishes"
+        ],
+        "sourceTestLines": {
+          "rf1104_actual_cache_write_retains_activity_until_file_work_finishes": 932
+        }
+      },
+      {
+        "requirement": "Original service release, different root, same-path replacement and maintenance busy reject late cache writes",
+        "passingTests": [
+          "rf1104_pending_cache_does_not_keep_service_or_directory_owned",
+          "rf1104_late_cache_write_rejects_maintenance_busy_and_replaced_root",
+          "rf1104_same_path_replacement_cannot_revive_old_cache_request"
+        ],
+        "sourceTestLines": {
+          "rf1104_pending_cache_does_not_keep_service_or_directory_owned": 746,
+          "rf1104_late_cache_write_rejects_maintenance_busy_and_replaced_root": 766,
+          "rf1104_same_path_replacement_cannot_revive_old_cache_request": 797
+        }
+      },
+      {
+        "requirement": "Account switching preserves both account profile bytes/versions and the public cache",
+        "passingTests": [
+          "rf1104_account_switch_rejects_late_account_and_cache_write"
+        ],
+        "sourceTestLines": {
+          "rf1104_account_switch_rejects_late_account_and_cache_write": 815
+        }
+      },
+      {
+        "requirement": "Normal post-network account/cache persistence, login-before-account cache behavior and busy-load protection remain effective",
+        "passingTests": [
+          "rf905_network_delayed_preferences_reacquire_original_store_for_real_write",
+          "rf905_locked_source_preferences_preserve_global_cache_with_owned_admission",
+          "rf905_busy_preferences_never_fallback_to_unowned_cache_or_old_store"
+        ],
+        "sourceTestLines": {
+          "rf905_network_delayed_preferences_reacquire_original_store_for_real_write": 693,
+          "rf905_locked_source_preferences_preserve_global_cache_with_owned_admission": 622,
+          "rf905_busy_preferences_never_fallback_to_unowned_cache_or_old_store": 655
+        }
+      },
+      {
+        "requirement": "Reopening preserves both channels and other settings; unchanged preferences do not advance the profile version; concurrent channels merge",
+        "passingTests": [
+          "preferences_survive_reopen_and_preserve_other_settings_and_account_isolation",
+          "rf1104_concurrent_source_channels_preserve_account_and_cache_preferences"
+        ],
+        "sourceTestLines": {
+          "preferences_survive_reopen_and_preserve_other_settings_and_account_isolation": 565,
+          "rf1104_concurrent_source_channels_preserve_account_and_cache_preferences": 873
+        }
+      },
+      {
+        "requirement": "Preferred/expired/disallowed source handling and bounded preferred head start remain unchanged",
+        "passingTests": [
+          "successful_preferred_source_skips_other_requests",
+          "failed_or_stale_preferred_source_cannot_block_new_version",
+          "stalled_preferred_source_has_bounded_head_start",
+          "expired_and_disallowed_sources_are_not_prioritized"
+        ],
+        "sourceTestLines": {
+          "successful_preferred_source_skips_other_requests": 477,
+          "failed_or_stale_preferred_source_cannot_block_new_version": 492,
+          "stalled_preferred_source_has_bounded_head_start": 515,
+          "expired_and_disallowed_sources_are_not_prioritized": 536
+        }
+      }
+    ],
+    "targetedTestCount": 15,
+    "fullRustAndFreshNativeJourneyAcceptanceRequiredSeparately": true,
+    "rf312TaskClosed": false
+  },
+  "native": {
+    "schemaVersion": 1,
+    "task": "RF-1104",
+    "scope": "windows-native-maintenance-regression",
+    "diagnosticOnly": true,
+    "performanceMetrics": null,
+    "accepted": true,
+    "sampleCount": 6,
+    "exeSha256": "62c67208b195b6f738f6dce120914fa9f27e9cb0bc2024c086b61fedc016bd42",
+    "sourceManifestSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+    "rf312TaskClosed": false,
+    "oldHomeTimeoutRootCauseEstablished": false,
+    "samples": [
+      {
+        "objects": 100,
+        "index": 1,
+        "accepted": true,
+        "journeySuccess": true,
+        "authenticationFlowOutcomes": [
+          "finished",
+          "finished"
+        ],
+        "maintenanceFailures": [],
+        "registeredActivities": 11,
+        "runId": "9b766359a5024802a79c963784629131",
+        "pid": 23440,
+        "artifactSha256": {
+          "native-perf-auth-attribution.json": "ebaafb6270804e7242c7bcf2106c9faa463bcb9d99cce038f7007c720bab054b",
+          "native-perf-maintenance-admission.json": "af0ded627b0f7f1f66f7350519c99ccd3faee501333776187d5b49e384323ede"
+        }
+      },
+      {
+        "objects": 100,
+        "index": 2,
+        "accepted": true,
+        "journeySuccess": true,
+        "authenticationFlowOutcomes": [
+          "finished",
+          "finished"
+        ],
+        "maintenanceFailures": [],
+        "registeredActivities": 11,
+        "runId": "95922fca414346b5a0c9a9fe7895ec77",
+        "pid": 29584,
+        "artifactSha256": {
+          "native-perf-auth-attribution.json": "ac5277a4f9dc6f2fdef0de5ad61283c6f5823be4c15edc8113c381578ee48b88",
+          "native-perf-maintenance-admission.json": "27b2d0073db6a5aa5554ecd1a17ee668ff8e9efe647a0077f5408c65956492a9"
+        }
+      },
+      {
+        "objects": 100,
+        "index": 3,
+        "accepted": true,
+        "journeySuccess": true,
+        "authenticationFlowOutcomes": [
+          "finished",
+          "finished"
+        ],
+        "maintenanceFailures": [],
+        "registeredActivities": 11,
+        "runId": "080f1ec339ea433db142bf485ee27f4b",
+        "pid": 22592,
+        "artifactSha256": {
+          "native-perf-auth-attribution.json": "f526561d3930573f54b19216cda89b02e8af8d17d9e95000df101708686aeda3",
+          "native-perf-maintenance-admission.json": "90fa18145791064ed28ddff2fe82677da2bffd666805e815f9f33438a9230770"
+        }
+      },
+      {
+        "objects": 5000,
+        "index": 1,
+        "accepted": true,
+        "journeySuccess": true,
+        "authenticationFlowOutcomes": [
+          "finished",
+          "finished"
+        ],
+        "maintenanceFailures": [],
+        "registeredActivities": 11,
+        "runId": "5877463f2aab433b8923c009c0c32f41",
+        "pid": 10620,
+        "artifactSha256": {
+          "native-perf-auth-attribution.json": "423b0590e9f7ff39107a09ebac73cd760935b4ea28fb9e832b46845c8a072912",
+          "native-perf-maintenance-admission.json": "a8fe78a83cd36548e835477bfc7ed165c69787cc861c52dbdc7a34693636af6f"
+        }
+      },
+      {
+        "objects": 5000,
+        "index": 2,
+        "accepted": true,
+        "journeySuccess": true,
+        "authenticationFlowOutcomes": [
+          "finished",
+          "finished"
+        ],
+        "maintenanceFailures": [],
+        "registeredActivities": 12,
+        "runId": "d517213a8f6c43038631d4daa4f6de3d",
+        "pid": 12272,
+        "artifactSha256": {
+          "native-perf-auth-attribution.json": "55056a5a4311b13a6d625e603f00d80d03a85db2443eda065874c588332e2a27",
+          "native-perf-maintenance-admission.json": "99f6e9c663deb6ed6893bbc475742cf52d8265e194a8723c203dfc0817fe3d03"
+        }
+      },
+      {
+        "objects": 5000,
+        "index": 3,
+        "accepted": true,
+        "journeySuccess": true,
+        "authenticationFlowOutcomes": [
+          "finished",
+          "finished"
+        ],
+        "maintenanceFailures": [],
+        "registeredActivities": 11,
+        "runId": "4c7728536c84466c894c2d30c9af66d2",
+        "pid": 15380,
+        "artifactSha256": {
+          "native-perf-auth-attribution.json": "b1142ac99b697e3fe0c39a798b859f6e1a0f9bdc672724484dc2c208d15f7e71",
+          "native-perf-maintenance-admission.json": "283a14479d5e1774713d431445e51f83149a6ae03ece6612c5699cabcf4844f0"
+        }
+      }
+    ]
+  },
+  "records": [
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/.gitattributes",
+      "source": "generated: Git evidence byte-preservation rule",
+      "originalBytes": 138,
+      "originalSha256": "66732c072d6f9b85f1bb7f648be392f954dd80f5da0f5fe4fad840f1c15af1ab",
+      "storedBytes": 138,
+      "storedSha256": "66732c072d6f9b85f1bb7f648be392f954dd80f5da0f5fe4fad840f1c15af1ab"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/acceptance-scope-review.json",
+      "source": "acceptance-scope-review.json",
+      "originalBytes": 4315,
+      "originalSha256": "d679e797b1fdce4504564c40b9cbe46afd018951f20e81d312de3d6116caf11d",
+      "storedBytes": 4315,
+      "storedSha256": "d679e797b1fdce4504564c40b9cbe46afd018951f20e81d312de3d6116caf11d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/advance-after-rust.py",
+      "source": "advance-after-rust.py",
+      "originalBytes": 517,
+      "originalSha256": "29ac4c73e034df81b067411af5ee2fbcbd15e6b06314b6f9e64145912afb2d92",
+      "storedBytes": 517,
+      "storedSha256": "29ac4c73e034df81b067411af5ee2fbcbd15e6b06314b6f9e64145912afb2d92"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/apply-and-run-green.py",
+      "source": "apply-and-run-green.py",
+      "originalBytes": 809,
+      "originalSha256": "52e167dfc430c54ad0258bee9ffddf88d9f3330f853e9f16f357d7363a9795fd",
+      "storedBytes": 809,
+      "storedSha256": "52e167dfc430c54ad0258bee9ffddf88d9f3330f853e9f16f357d7363a9795fd"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/audit-red-input.py",
+      "source": "audit-red-input.py",
+      "originalBytes": 1438,
+      "originalSha256": "9b4ea8b619a7383981d0cf7c1346a3d432626842e59985040df43352f82993da",
+      "storedBytes": 1438,
+      "storedSha256": "9b4ea8b619a7383981d0cf7c1346a3d432626842e59985040df43352f82993da"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/native-perf-auth-attribution-results.json",
+      "source": "auth100/native-perf-auth-attribution-results.json",
+      "originalBytes": 69889,
+      "originalSha256": "f2aabc4fb8f23c4094dfc9fb0d068bef25d3701ba89dc6e1864516aaed895ec7",
+      "storedBytes": 69889,
+      "storedSha256": "f2aabc4fb8f23c4094dfc9fb0d068bef25d3701ba89dc6e1864516aaed895ec7"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/native-perf-sdk-journey-results.json.gz",
+      "source": "auth100/native-perf-sdk-journey-results.json",
+      "originalBytes": 321850,
+      "originalSha256": "419160f79ee65b043fce3d3c6036948d821922d4296b5c1ab88c5e3742ef3951",
+      "storedBytes": 26008,
+      "storedSha256": "8d1c248e3075089eac0e6d7f6061a6f6be5b1ab51e52819b0b82db7ff7d82ee2"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-auth-attribution.json",
+      "source": "auth100/sample-001/native-perf-auth-attribution.json",
+      "originalBytes": 17089,
+      "originalSha256": "ebaafb6270804e7242c7bcf2106c9faa463bcb9d99cce038f7007c720bab054b",
+      "storedBytes": 17089,
+      "storedSha256": "ebaafb6270804e7242c7bcf2106c9faa463bcb9d99cce038f7007c720bab054b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-consumed.json",
+      "source": "auth100/sample-001/native-perf-consumed.json",
+      "originalBytes": 245,
+      "originalSha256": "4f34149510fd3bba8282ba9f10f1440dee39c9809ffce46c31e7c19a01e8101c",
+      "storedBytes": 245,
+      "storedSha256": "4f34149510fd3bba8282ba9f10f1440dee39c9809ffce46c31e7c19a01e8101c"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-maintenance-admission.json",
+      "source": "auth100/sample-001/native-perf-maintenance-admission.json",
+      "originalBytes": 412,
+      "originalSha256": "af0ded627b0f7f1f66f7350519c99ccd3faee501333776187d5b49e384323ede",
+      "storedBytes": 412,
+      "storedSha256": "af0ded627b0f7f1f66f7350519c99ccd3faee501333776187d5b49e384323ede"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-owned.json",
+      "source": "auth100/sample-001/native-perf-owned.json",
+      "originalBytes": 3217,
+      "originalSha256": "986b533664d5a51b0258669c0db2053a501612cb71f9e2a14ba542c14ff14d04",
+      "storedBytes": 3217,
+      "storedSha256": "986b533664d5a51b0258669c0db2053a501612cb71f9e2a14ba542c14ff14d04"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-permission-commands.json",
+      "source": "auth100/sample-001/native-perf-permission-commands.json",
+      "originalBytes": 1001,
+      "originalSha256": "043a0590c0ee0ac67b5e6e730b46fc656df4f57c899b5207fe2894d721a1c936",
+      "storedBytes": 1001,
+      "storedSha256": "043a0590c0ee0ac67b5e6e730b46fc656df4f57c899b5207fe2894d721a1c936"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "auth100/sample-001/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "633c1e56756f8663ff83ff32c56fed8da0bc4305aa814490bbcf156806687bc8",
+      "storedBytes": 164,
+      "storedSha256": "633c1e56756f8663ff83ff32c56fed8da0bc4305aa814490bbcf156806687bc8"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "auth100/sample-001/native-perf-sdk-journey-bound.json",
+      "originalBytes": 556,
+      "originalSha256": "3121ecc5e9c774a6dbff180adb288fad34f087f1798dc536d82403c2df70ef0d",
+      "storedBytes": 556,
+      "storedSha256": "3121ecc5e9c774a6dbff180adb288fad34f087f1798dc536d82403c2df70ef0d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "auth100/sample-001/native-perf-sdk-journey-requested.json",
+      "originalBytes": 337,
+      "originalSha256": "3fc7bf797470e42c2b2c494c185b5d6f1f9fb794742e51ef8aa9106c1cf78e19",
+      "storedBytes": 337,
+      "storedSha256": "3fc7bf797470e42c2b2c494c185b5d6f1f9fb794742e51ef8aa9106c1cf78e19"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-journey.json",
+      "source": "auth100/sample-001/native-perf-sdk-journey.json",
+      "originalBytes": 62071,
+      "originalSha256": "ff81a4362a50883b7ee85edd98967ecf0f00f798a4ff55324ccd9660ab8db18d",
+      "storedBytes": 62071,
+      "storedSha256": "ff81a4362a50883b7ee85edd98967ecf0f00f798a4ff55324ccd9660ab8db18d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-phase-01.json",
+      "source": "auth100/sample-001/native-perf-sdk-phase-01.json",
+      "originalBytes": 819,
+      "originalSha256": "bcf8d27b6c5b7535edbccdbd90f69d0d7ad598dd5eb03861d6a870f7f2059492",
+      "storedBytes": 819,
+      "storedSha256": "bcf8d27b6c5b7535edbccdbd90f69d0d7ad598dd5eb03861d6a870f7f2059492"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-phase-02.json",
+      "source": "auth100/sample-001/native-perf-sdk-phase-02.json",
+      "originalBytes": 739,
+      "originalSha256": "858f9b539103d83f41141621572d0d5b9944759faa45134f091b5b2f8b68b8ce",
+      "storedBytes": 739,
+      "storedSha256": "858f9b539103d83f41141621572d0d5b9944759faa45134f091b5b2f8b68b8ce"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-phase-03.json",
+      "source": "auth100/sample-001/native-perf-sdk-phase-03.json",
+      "originalBytes": 1072,
+      "originalSha256": "4e5ec710a2e0d8572f327bbfbe3fadad81c312d03b91133537ba1260edc79b72",
+      "storedBytes": 1072,
+      "storedSha256": "4e5ec710a2e0d8572f327bbfbe3fadad81c312d03b91133537ba1260edc79b72"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-phase-04.json",
+      "source": "auth100/sample-001/native-perf-sdk-phase-04.json",
+      "originalBytes": 307,
+      "originalSha256": "bbb7c9bcc85dd1f62ee4e3bc5d1b9230998d3dfdbc4874e5651c85a90213ecb6",
+      "storedBytes": 307,
+      "storedSha256": "bbb7c9bcc85dd1f62ee4e3bc5d1b9230998d3dfdbc4874e5651c85a90213ecb6"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-phase-05.json",
+      "source": "auth100/sample-001/native-perf-sdk-phase-05.json",
+      "originalBytes": 586,
+      "originalSha256": "315df296b4f2d943208a5642956dd4e9eb11dae682fd46d1ca06837d1a68a72d",
+      "storedBytes": 586,
+      "storedSha256": "315df296b4f2d943208a5642956dd4e9eb11dae682fd46d1ca06837d1a68a72d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001/native-perf-sdk-phase-06.json",
+      "source": "auth100/sample-001/native-perf-sdk-phase-06.json",
+      "originalBytes": 695,
+      "originalSha256": "5e647b13017dec0c51b74f617ba78830adfbb3f3837fb75a80c56e593170c58b",
+      "storedBytes": 695,
+      "storedSha256": "5e647b13017dec0c51b74f617ba78830adfbb3f3837fb75a80c56e593170c58b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-001.json",
+      "source": "auth100/sample-001.json",
+      "originalBytes": 92614,
+      "originalSha256": "0dcb07934d75dcdaadf4a398b00efd68961bd785cd1b6b59117f9aa6513bc32b",
+      "storedBytes": 92614,
+      "storedSha256": "0dcb07934d75dcdaadf4a398b00efd68961bd785cd1b6b59117f9aa6513bc32b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-auth-attribution.json",
+      "source": "auth100/sample-002/native-perf-auth-attribution.json",
+      "originalBytes": 17097,
+      "originalSha256": "ac5277a4f9dc6f2fdef0de5ad61283c6f5823be4c15edc8113c381578ee48b88",
+      "storedBytes": 17097,
+      "storedSha256": "ac5277a4f9dc6f2fdef0de5ad61283c6f5823be4c15edc8113c381578ee48b88"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-consumed.json",
+      "source": "auth100/sample-002/native-perf-consumed.json",
+      "originalBytes": 245,
+      "originalSha256": "b261a63561398ed0ff59564d215bf9d9c585c5c43982d699f152b1122ab8a047",
+      "storedBytes": 245,
+      "storedSha256": "b261a63561398ed0ff59564d215bf9d9c585c5c43982d699f152b1122ab8a047"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-maintenance-admission.json",
+      "source": "auth100/sample-002/native-perf-maintenance-admission.json",
+      "originalBytes": 413,
+      "originalSha256": "27b2d0073db6a5aa5554ecd1a17ee668ff8e9efe647a0077f5408c65956492a9",
+      "storedBytes": 413,
+      "storedSha256": "27b2d0073db6a5aa5554ecd1a17ee668ff8e9efe647a0077f5408c65956492a9"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-owned.json",
+      "source": "auth100/sample-002/native-perf-owned.json",
+      "originalBytes": 3217,
+      "originalSha256": "ff210d7d753f2383338fa852a7c70dfc58ab71099015bc71655f6d49e66ac24c",
+      "storedBytes": 3217,
+      "storedSha256": "ff210d7d753f2383338fa852a7c70dfc58ab71099015bc71655f6d49e66ac24c"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-permission-commands.json",
+      "source": "auth100/sample-002/native-perf-permission-commands.json",
+      "originalBytes": 1012,
+      "originalSha256": "a853872a36673f50b0e47dc3bf2b0a165d6baba16863e32b2b7ea35b7adf0352",
+      "storedBytes": 1012,
+      "storedSha256": "a853872a36673f50b0e47dc3bf2b0a165d6baba16863e32b2b7ea35b7adf0352"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "auth100/sample-002/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "d7451ab52c770a2ecf97ef8b3352f0efe5566479806e0974e08d000ec9582803",
+      "storedBytes": 164,
+      "storedSha256": "d7451ab52c770a2ecf97ef8b3352f0efe5566479806e0974e08d000ec9582803"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "auth100/sample-002/native-perf-sdk-journey-bound.json",
+      "originalBytes": 556,
+      "originalSha256": "84678535ca896cccc8f57edbcb142207d70889f6325d60233a5dc369fb41737f",
+      "storedBytes": 556,
+      "storedSha256": "84678535ca896cccc8f57edbcb142207d70889f6325d60233a5dc369fb41737f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "auth100/sample-002/native-perf-sdk-journey-requested.json",
+      "originalBytes": 337,
+      "originalSha256": "a29861f0c9b16107061c62b02a354039975e3b6c77b158fe5c0dbf1b91c5614c",
+      "storedBytes": 337,
+      "storedSha256": "a29861f0c9b16107061c62b02a354039975e3b6c77b158fe5c0dbf1b91c5614c"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-journey.json",
+      "source": "auth100/sample-002/native-perf-sdk-journey.json",
+      "originalBytes": 61538,
+      "originalSha256": "58c55d17b1a82f6f45cd52b339d13f39b4a1d7e63b254a13bf61970b584debc5",
+      "storedBytes": 61538,
+      "storedSha256": "58c55d17b1a82f6f45cd52b339d13f39b4a1d7e63b254a13bf61970b584debc5"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-phase-01.json",
+      "source": "auth100/sample-002/native-perf-sdk-phase-01.json",
+      "originalBytes": 806,
+      "originalSha256": "8a6b61ce724f691b5f494edea21e4d76883eb1dbd9f87f26918e4203157c40a6",
+      "storedBytes": 806,
+      "storedSha256": "8a6b61ce724f691b5f494edea21e4d76883eb1dbd9f87f26918e4203157c40a6"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-phase-02.json",
+      "source": "auth100/sample-002/native-perf-sdk-phase-02.json",
+      "originalBytes": 759,
+      "originalSha256": "e9c39ba89170f05fd8f30b78c51a07eb59a3ad2740b03c089d9d38e11c13293d",
+      "storedBytes": 759,
+      "storedSha256": "e9c39ba89170f05fd8f30b78c51a07eb59a3ad2740b03c089d9d38e11c13293d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-phase-03.json",
+      "source": "auth100/sample-002/native-perf-sdk-phase-03.json",
+      "originalBytes": 1030,
+      "originalSha256": "7c521b50f064d89f6f350704db3dec0e7f22c82dd81fe4ef51df31541397735b",
+      "storedBytes": 1030,
+      "storedSha256": "7c521b50f064d89f6f350704db3dec0e7f22c82dd81fe4ef51df31541397735b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-phase-04.json",
+      "source": "auth100/sample-002/native-perf-sdk-phase-04.json",
+      "originalBytes": 319,
+      "originalSha256": "0442cefb93e317150c475209523d6f91d776d5be20d9d6722995e00de6078afd",
+      "storedBytes": 319,
+      "storedSha256": "0442cefb93e317150c475209523d6f91d776d5be20d9d6722995e00de6078afd"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-phase-05.json",
+      "source": "auth100/sample-002/native-perf-sdk-phase-05.json",
+      "originalBytes": 620,
+      "originalSha256": "d86ed7ab06076f445c1be8844b7fa82b647b24c8444117d15293a443eaab24f4",
+      "storedBytes": 620,
+      "storedSha256": "d86ed7ab06076f445c1be8844b7fa82b647b24c8444117d15293a443eaab24f4"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002/native-perf-sdk-phase-06.json",
+      "source": "auth100/sample-002/native-perf-sdk-phase-06.json",
+      "originalBytes": 540,
+      "originalSha256": "ed7d7654a57b3004e1bcf733162105cf06f9a5b63cfbf3e2ca467355e0a93890",
+      "storedBytes": 540,
+      "storedSha256": "ed7d7654a57b3004e1bcf733162105cf06f9a5b63cfbf3e2ca467355e0a93890"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-002.json",
+      "source": "auth100/sample-002.json",
+      "originalBytes": 91249,
+      "originalSha256": "03b22764980441ee20f4589da7721bccac802d075ef1049bd52a19760516debe",
+      "storedBytes": 91249,
+      "storedSha256": "03b22764980441ee20f4589da7721bccac802d075ef1049bd52a19760516debe"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-auth-attribution.json",
+      "source": "auth100/sample-003/native-perf-auth-attribution.json",
+      "originalBytes": 17149,
+      "originalSha256": "f526561d3930573f54b19216cda89b02e8af8d17d9e95000df101708686aeda3",
+      "storedBytes": 17149,
+      "storedSha256": "f526561d3930573f54b19216cda89b02e8af8d17d9e95000df101708686aeda3"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-consumed.json",
+      "source": "auth100/sample-003/native-perf-consumed.json",
+      "originalBytes": 245,
+      "originalSha256": "e3fd64c8252d4f2a0eede71837d6f039139865c673b5af53ed46783161529145",
+      "storedBytes": 245,
+      "storedSha256": "e3fd64c8252d4f2a0eede71837d6f039139865c673b5af53ed46783161529145"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-maintenance-admission.json",
+      "source": "auth100/sample-003/native-perf-maintenance-admission.json",
+      "originalBytes": 413,
+      "originalSha256": "90fa18145791064ed28ddff2fe82677da2bffd666805e815f9f33438a9230770",
+      "storedBytes": 413,
+      "storedSha256": "90fa18145791064ed28ddff2fe82677da2bffd666805e815f9f33438a9230770"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-owned.json",
+      "source": "auth100/sample-003/native-perf-owned.json",
+      "originalBytes": 3217,
+      "originalSha256": "1945db9c3aeb17ffed519a296107b6d78d36a534fabb88464ac911c908f2e803",
+      "storedBytes": 3217,
+      "storedSha256": "1945db9c3aeb17ffed519a296107b6d78d36a534fabb88464ac911c908f2e803"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-permission-commands.json",
+      "source": "auth100/sample-003/native-perf-permission-commands.json",
+      "originalBytes": 1011,
+      "originalSha256": "fecc32d9fc56c9edbb4bc7204a8878eca5c9df6cdfb22f7dbc5f1e55a566d3b4",
+      "storedBytes": 1011,
+      "storedSha256": "fecc32d9fc56c9edbb4bc7204a8878eca5c9df6cdfb22f7dbc5f1e55a566d3b4"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "auth100/sample-003/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "331d85ee96fcebb48e0be195cf8d779feae4a5ee102e194a7f41d7b158908fe7",
+      "storedBytes": 164,
+      "storedSha256": "331d85ee96fcebb48e0be195cf8d779feae4a5ee102e194a7f41d7b158908fe7"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "auth100/sample-003/native-perf-sdk-journey-bound.json",
+      "originalBytes": 556,
+      "originalSha256": "a03fafbb120878f39de94b49aad167adb0c2e05ceeb497d4704502fcc7e13b74",
+      "storedBytes": 556,
+      "storedSha256": "a03fafbb120878f39de94b49aad167adb0c2e05ceeb497d4704502fcc7e13b74"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "auth100/sample-003/native-perf-sdk-journey-requested.json",
+      "originalBytes": 337,
+      "originalSha256": "235cf45e6b7ef33e32ccff1669a7c5a48e9645de13d49d0cf9c93c033ef3e6de",
+      "storedBytes": 337,
+      "storedSha256": "235cf45e6b7ef33e32ccff1669a7c5a48e9645de13d49d0cf9c93c033ef3e6de"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-journey.json",
+      "source": "auth100/sample-003/native-perf-sdk-journey.json",
+      "originalBytes": 61902,
+      "originalSha256": "7d0e5f290fbf0894ba3ab1059971c6677e3d61bd28535ec09825a8c56c219f19",
+      "storedBytes": 61902,
+      "storedSha256": "7d0e5f290fbf0894ba3ab1059971c6677e3d61bd28535ec09825a8c56c219f19"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-phase-01.json",
+      "source": "auth100/sample-003/native-perf-sdk-phase-01.json",
+      "originalBytes": 819,
+      "originalSha256": "4ff874053525fd4f7308f44fd2e37f98f07e974e81bee87ccd6a38b2e3b48434",
+      "storedBytes": 819,
+      "storedSha256": "4ff874053525fd4f7308f44fd2e37f98f07e974e81bee87ccd6a38b2e3b48434"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-phase-02.json",
+      "source": "auth100/sample-003/native-perf-sdk-phase-02.json",
+      "originalBytes": 782,
+      "originalSha256": "2b0e487101045980ed662087ab43d49ece44f2942ee9141e7c58583c17b92535",
+      "storedBytes": 782,
+      "storedSha256": "2b0e487101045980ed662087ab43d49ece44f2942ee9141e7c58583c17b92535"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-phase-03.json",
+      "source": "auth100/sample-003/native-perf-sdk-phase-03.json",
+      "originalBytes": 1074,
+      "originalSha256": "00f325d9ea5e26ab25e251f4b1ebc69fe873ea58eedfef5cc79559db7d98f531",
+      "storedBytes": 1074,
+      "storedSha256": "00f325d9ea5e26ab25e251f4b1ebc69fe873ea58eedfef5cc79559db7d98f531"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-phase-04.json",
+      "source": "auth100/sample-003/native-perf-sdk-phase-04.json",
+      "originalBytes": 329,
+      "originalSha256": "160ded6ae8876eeeee196afee8e62c8311c18968b19aa7513a5036cd0341070f",
+      "storedBytes": 329,
+      "storedSha256": "160ded6ae8876eeeee196afee8e62c8311c18968b19aa7513a5036cd0341070f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-phase-05.json",
+      "source": "auth100/sample-003/native-perf-sdk-phase-05.json",
+      "originalBytes": 610,
+      "originalSha256": "05067165fea4107f91fcb6381ae84d3e4709e5602c61b5f24a9fb4772349edb6",
+      "storedBytes": 610,
+      "storedSha256": "05067165fea4107f91fcb6381ae84d3e4709e5602c61b5f24a9fb4772349edb6"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003/native-perf-sdk-phase-06.json",
+      "source": "auth100/sample-003/native-perf-sdk-phase-06.json",
+      "originalBytes": 552,
+      "originalSha256": "f399ba05cc844439072fb9bf64f7669ecf99f8afd8f26d9159244fb4c23d10be",
+      "storedBytes": 552,
+      "storedSha256": "f399ba05cc844439072fb9bf64f7669ecf99f8afd8f26d9159244fb4c23d10be"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth100/sample-003.json",
+      "source": "auth100/sample-003.json",
+      "originalBytes": 92330,
+      "originalSha256": "5b97c72e145a2e6db82c61f6ad62cff299f915e8087ca39331b3a6f119c58cba",
+      "storedBytes": 92330,
+      "storedSha256": "5b97c72e145a2e6db82c61f6ad62cff299f915e8087ca39331b3a6f119c58cba"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/native-perf-auth-attribution-results.json",
+      "source": "auth5000/native-perf-auth-attribution-results.json",
+      "originalBytes": 69811,
+      "originalSha256": "6a4b1ad78dc59ce5080794f289e7ea28a2ccbe38e24eaceb37ef5128fb7262e9",
+      "storedBytes": 69811,
+      "storedSha256": "6a4b1ad78dc59ce5080794f289e7ea28a2ccbe38e24eaceb37ef5128fb7262e9"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/native-perf-sdk-journey-results.json.gz",
+      "source": "auth5000/native-perf-sdk-journey-results.json",
+      "originalBytes": 331149,
+      "originalSha256": "41a57cc8e7d727e41f0b08aa11fb5de6f4e696766c388aae7c1f6c0f8a826f18",
+      "storedBytes": 26618,
+      "storedSha256": "63a54b04913dbc202c52269153101666890bcae5b8c6acb06fe48645d3a59984"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-auth-attribution.json",
+      "source": "auth5000/sample-001/native-perf-auth-attribution.json",
+      "originalBytes": 17136,
+      "originalSha256": "423b0590e9f7ff39107a09ebac73cd760935b4ea28fb9e832b46845c8a072912",
+      "storedBytes": 17136,
+      "storedSha256": "423b0590e9f7ff39107a09ebac73cd760935b4ea28fb9e832b46845c8a072912"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-consumed.json",
+      "source": "auth5000/sample-001/native-perf-consumed.json",
+      "originalBytes": 246,
+      "originalSha256": "19d6f2f9b3ba426b6b00a904cefeffecdbd1e8e67b0eb1767f493deb3ddfb882",
+      "storedBytes": 246,
+      "storedSha256": "19d6f2f9b3ba426b6b00a904cefeffecdbd1e8e67b0eb1767f493deb3ddfb882"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-maintenance-admission.json",
+      "source": "auth5000/sample-001/native-perf-maintenance-admission.json",
+      "originalBytes": 413,
+      "originalSha256": "a8fe78a83cd36548e835477bfc7ed165c69787cc861c52dbdc7a34693636af6f",
+      "storedBytes": 413,
+      "storedSha256": "a8fe78a83cd36548e835477bfc7ed165c69787cc861c52dbdc7a34693636af6f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-owned.json",
+      "source": "auth5000/sample-001/native-perf-owned.json",
+      "originalBytes": 3233,
+      "originalSha256": "b255af0c6721ff0bc6b757972cd6fc7ef43864faed88292f32e5cdf5f27fb9dd",
+      "storedBytes": 3233,
+      "storedSha256": "b255af0c6721ff0bc6b757972cd6fc7ef43864faed88292f32e5cdf5f27fb9dd"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-permission-commands.json",
+      "source": "auth5000/sample-001/native-perf-permission-commands.json",
+      "originalBytes": 1004,
+      "originalSha256": "24ee8ac3bb96b19154e6c8834ea3fede86ee3f5740b177f021edd99cb2bc421f",
+      "storedBytes": 1004,
+      "storedSha256": "24ee8ac3bb96b19154e6c8834ea3fede86ee3f5740b177f021edd99cb2bc421f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "auth5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "99fcdb76de7510edf3ef1e7ebed7f66c22a967aea168521a03262d359ee43241",
+      "storedBytes": 164,
+      "storedSha256": "99fcdb76de7510edf3ef1e7ebed7f66c22a967aea168521a03262d359ee43241"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "auth5000/sample-001/native-perf-sdk-journey-bound.json",
+      "originalBytes": 557,
+      "originalSha256": "383faffce4503760befb7878e118f2d0a05c17219ae4cba8e33825962a0d180e",
+      "storedBytes": 557,
+      "storedSha256": "383faffce4503760befb7878e118f2d0a05c17219ae4cba8e33825962a0d180e"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "auth5000/sample-001/native-perf-sdk-journey-requested.json",
+      "originalBytes": 339,
+      "originalSha256": "9d1a1279251d74751c860cca30cb49c6457ab4d93b00bbc6679822901159c4f2",
+      "storedBytes": 339,
+      "storedSha256": "9d1a1279251d74751c860cca30cb49c6457ab4d93b00bbc6679822901159c4f2"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-journey.json",
+      "source": "auth5000/sample-001/native-perf-sdk-journey.json",
+      "originalBytes": 63151,
+      "originalSha256": "7055ebf802445b9ad353749f2113201752432923fb42547e39dbfa0ffd55f8e4",
+      "storedBytes": 63151,
+      "storedSha256": "7055ebf802445b9ad353749f2113201752432923fb42547e39dbfa0ffd55f8e4"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-phase-01.json",
+      "source": "auth5000/sample-001/native-perf-sdk-phase-01.json",
+      "originalBytes": 808,
+      "originalSha256": "383720d5978d0dd6d6b89d84d354eaa7a08e7a6193efeb1016fd91589fe9a69f",
+      "storedBytes": 808,
+      "storedSha256": "383720d5978d0dd6d6b89d84d354eaa7a08e7a6193efeb1016fd91589fe9a69f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-phase-02.json",
+      "source": "auth5000/sample-001/native-perf-sdk-phase-02.json",
+      "originalBytes": 728,
+      "originalSha256": "bfbb149c98401dd89ae207fc0a714b08524b807289f9d220e6ca5f47fedaec5b",
+      "storedBytes": 728,
+      "storedSha256": "bfbb149c98401dd89ae207fc0a714b08524b807289f9d220e6ca5f47fedaec5b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-phase-03.json",
+      "source": "auth5000/sample-001/native-perf-sdk-phase-03.json",
+      "originalBytes": 1014,
+      "originalSha256": "7a794ac0ca1d2129dc1c87bf16c62bb2ef0e237f54114ed043a2ba7533c33f4c",
+      "storedBytes": 1014,
+      "storedSha256": "7a794ac0ca1d2129dc1c87bf16c62bb2ef0e237f54114ed043a2ba7533c33f4c"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-phase-04.json",
+      "source": "auth5000/sample-001/native-perf-sdk-phase-04.json",
+      "originalBytes": 452,
+      "originalSha256": "52095d29977c494db6e5c5b6267de041a5670624a76fb8259847cc4b42e43608",
+      "storedBytes": 452,
+      "storedSha256": "52095d29977c494db6e5c5b6267de041a5670624a76fb8259847cc4b42e43608"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-phase-05.json",
+      "source": "auth5000/sample-001/native-perf-sdk-phase-05.json",
+      "originalBytes": 610,
+      "originalSha256": "026cf4d24a3ed12a8e940d63c264de27a7bf447d48f146158a74f672636f3a16",
+      "storedBytes": 610,
+      "storedSha256": "026cf4d24a3ed12a8e940d63c264de27a7bf447d48f146158a74f672636f3a16"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001/native-perf-sdk-phase-06.json",
+      "source": "auth5000/sample-001/native-perf-sdk-phase-06.json",
+      "originalBytes": 751,
+      "originalSha256": "0eba072b18594eaebfd3061b378a50136bb5a37849e386559deffc1f27e018f4",
+      "storedBytes": 751,
+      "storedSha256": "0eba072b18594eaebfd3061b378a50136bb5a37849e386559deffc1f27e018f4"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-001.json",
+      "source": "auth5000/sample-001.json",
+      "originalBytes": 94002,
+      "originalSha256": "3005838e6f2180307f42bf9ddb47134c6a7b373b0c6143e5d73387712b6b11ec",
+      "storedBytes": 94002,
+      "storedSha256": "3005838e6f2180307f42bf9ddb47134c6a7b373b0c6143e5d73387712b6b11ec"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-auth-attribution.json",
+      "source": "auth5000/sample-002/native-perf-auth-attribution.json",
+      "originalBytes": 17076,
+      "originalSha256": "55056a5a4311b13a6d625e603f00d80d03a85db2443eda065874c588332e2a27",
+      "storedBytes": 17076,
+      "storedSha256": "55056a5a4311b13a6d625e603f00d80d03a85db2443eda065874c588332e2a27"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-consumed.json",
+      "source": "auth5000/sample-002/native-perf-consumed.json",
+      "originalBytes": 246,
+      "originalSha256": "524510d8bf95e415b213a7b7943c45d543e17cf0ee1d79119805548fb31d161e",
+      "storedBytes": 246,
+      "storedSha256": "524510d8bf95e415b213a7b7943c45d543e17cf0ee1d79119805548fb31d161e"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-maintenance-admission.json",
+      "source": "auth5000/sample-002/native-perf-maintenance-admission.json",
+      "originalBytes": 413,
+      "originalSha256": "99f6e9c663deb6ed6893bbc475742cf52d8265e194a8723c203dfc0817fe3d03",
+      "storedBytes": 413,
+      "storedSha256": "99f6e9c663deb6ed6893bbc475742cf52d8265e194a8723c203dfc0817fe3d03"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-owned.json",
+      "source": "auth5000/sample-002/native-perf-owned.json",
+      "originalBytes": 3233,
+      "originalSha256": "328d6241e8ab49d4ca021fc53b4b53b7045adab43a73f90b103ee7d4a0ebfed7",
+      "storedBytes": 3233,
+      "storedSha256": "328d6241e8ab49d4ca021fc53b4b53b7045adab43a73f90b103ee7d4a0ebfed7"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-permission-commands.json",
+      "source": "auth5000/sample-002/native-perf-permission-commands.json",
+      "originalBytes": 991,
+      "originalSha256": "24c0e2bfc3548e8bb90a97ad7814bed95575dac01cf98a895e2ec9fbbfb578ec",
+      "storedBytes": 991,
+      "storedSha256": "24c0e2bfc3548e8bb90a97ad7814bed95575dac01cf98a895e2ec9fbbfb578ec"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "auth5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 163,
+      "originalSha256": "3a24c47c1711a7563c125180ec0c9a698f019f482f5e34d37d476b480d5bb719",
+      "storedBytes": 163,
+      "storedSha256": "3a24c47c1711a7563c125180ec0c9a698f019f482f5e34d37d476b480d5bb719"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "auth5000/sample-002/native-perf-sdk-journey-bound.json",
+      "originalBytes": 556,
+      "originalSha256": "f0aeffca594931f5545131ae4f46f16a3729633e9a047158d69cadf2521829ce",
+      "storedBytes": 556,
+      "storedSha256": "f0aeffca594931f5545131ae4f46f16a3729633e9a047158d69cadf2521829ce"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "auth5000/sample-002/native-perf-sdk-journey-requested.json",
+      "originalBytes": 339,
+      "originalSha256": "5520dfa1682e45bf7dd811424c028b9e5a95cd463721062ecff27985f45f6759",
+      "storedBytes": 339,
+      "storedSha256": "5520dfa1682e45bf7dd811424c028b9e5a95cd463721062ecff27985f45f6759"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-journey.json",
+      "source": "auth5000/sample-002/native-perf-sdk-journey.json",
+      "originalBytes": 63073,
+      "originalSha256": "ee6f1d2c5f517ac33199f99109c0965cf6c4909b1fa8dd72b77697aa4e5540ad",
+      "storedBytes": 63073,
+      "storedSha256": "ee6f1d2c5f517ac33199f99109c0965cf6c4909b1fa8dd72b77697aa4e5540ad"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-phase-01.json",
+      "source": "auth5000/sample-002/native-perf-sdk-phase-01.json",
+      "originalBytes": 806,
+      "originalSha256": "97455a6f3503e8b732349191240e1e27c630d8572e3c9b233eb3fb636386d8ab",
+      "storedBytes": 806,
+      "storedSha256": "97455a6f3503e8b732349191240e1e27c630d8572e3c9b233eb3fb636386d8ab"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-phase-02.json",
+      "source": "auth5000/sample-002/native-perf-sdk-phase-02.json",
+      "originalBytes": 746,
+      "originalSha256": "8c8fdc085f5dc14977cea26af76a4dd95271ece6f6949767fbe70a813c890539",
+      "storedBytes": 746,
+      "storedSha256": "8c8fdc085f5dc14977cea26af76a4dd95271ece6f6949767fbe70a813c890539"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-phase-03.json",
+      "source": "auth5000/sample-002/native-perf-sdk-phase-03.json",
+      "originalBytes": 1070,
+      "originalSha256": "630f01be2ea29f64a9c3af507213dcee588eb348bb167f2fd6ab2112c5fadb8b",
+      "storedBytes": 1070,
+      "storedSha256": "630f01be2ea29f64a9c3af507213dcee588eb348bb167f2fd6ab2112c5fadb8b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-phase-04.json",
+      "source": "auth5000/sample-002/native-perf-sdk-phase-04.json",
+      "originalBytes": 438,
+      "originalSha256": "7b87ebd1ecd1dec87025bb57ac3d7c9c5ed7cebd804f1a0fa6e84a0170b911a6",
+      "storedBytes": 438,
+      "storedSha256": "7b87ebd1ecd1dec87025bb57ac3d7c9c5ed7cebd804f1a0fa6e84a0170b911a6"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-phase-05.json",
+      "source": "auth5000/sample-002/native-perf-sdk-phase-05.json",
+      "originalBytes": 597,
+      "originalSha256": "c6a9a734b944372858d57d904dac1865512fe864dbfb861d436138f32f2e39c5",
+      "storedBytes": 597,
+      "storedSha256": "c6a9a734b944372858d57d904dac1865512fe864dbfb861d436138f32f2e39c5"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002/native-perf-sdk-phase-06.json",
+      "source": "auth5000/sample-002/native-perf-sdk-phase-06.json",
+      "originalBytes": 759,
+      "originalSha256": "42eeff1245575fd95fc1662d8f944d0e432cd84297688dc2cb43a46fb382ec2f",
+      "storedBytes": 759,
+      "storedSha256": "42eeff1245575fd95fc1662d8f944d0e432cd84297688dc2cb43a46fb382ec2f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-002.json",
+      "source": "auth5000/sample-002.json",
+      "originalBytes": 93986,
+      "originalSha256": "c9691caf6c428a87e5247c98ef9bf6045919faed20559d198211749e1d7222db",
+      "storedBytes": 93986,
+      "storedSha256": "c9691caf6c428a87e5247c98ef9bf6045919faed20559d198211749e1d7222db"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-auth-attribution.json",
+      "source": "auth5000/sample-003/native-perf-auth-attribution.json",
+      "originalBytes": 17050,
+      "originalSha256": "b1142ac99b697e3fe0c39a798b859f6e1a0f9bdc672724484dc2c208d15f7e71",
+      "storedBytes": 17050,
+      "storedSha256": "b1142ac99b697e3fe0c39a798b859f6e1a0f9bdc672724484dc2c208d15f7e71"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-consumed.json",
+      "source": "auth5000/sample-003/native-perf-consumed.json",
+      "originalBytes": 246,
+      "originalSha256": "27ef91a87d399562bda0a09601e374146639378286a401afb1b1d0fbb7169419",
+      "storedBytes": 246,
+      "storedSha256": "27ef91a87d399562bda0a09601e374146639378286a401afb1b1d0fbb7169419"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-maintenance-admission.json",
+      "source": "auth5000/sample-003/native-perf-maintenance-admission.json",
+      "originalBytes": 421,
+      "originalSha256": "283a14479d5e1774713d431445e51f83149a6ae03ece6612c5699cabcf4844f0",
+      "storedBytes": 421,
+      "storedSha256": "283a14479d5e1774713d431445e51f83149a6ae03ece6612c5699cabcf4844f0"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-owned.json",
+      "source": "auth5000/sample-003/native-perf-owned.json",
+      "originalBytes": 3233,
+      "originalSha256": "8f4a4c514028ace1eb135f9b1073af72da574647ff9e31f6184ff2a1cb2e4947",
+      "storedBytes": 3233,
+      "storedSha256": "8f4a4c514028ace1eb135f9b1073af72da574647ff9e31f6184ff2a1cb2e4947"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-permission-commands.json",
+      "source": "auth5000/sample-003/native-perf-permission-commands.json",
+      "originalBytes": 1001,
+      "originalSha256": "ee7864c40fc84f4177363409af33b961212a6737d4db056a60c5f9c922ac31a0",
+      "storedBytes": 1001,
+      "storedSha256": "ee7864c40fc84f4177363409af33b961212a6737d4db056a60c5f9c922ac31a0"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "auth5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "originalBytes": 164,
+      "originalSha256": "eb0b5bfe7327c07b093746e906107d6522c817fdcb509def088d8798eec1c366",
+      "storedBytes": 164,
+      "storedSha256": "eb0b5bfe7327c07b093746e906107d6522c817fdcb509def088d8798eec1c366"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "auth5000/sample-003/native-perf-sdk-journey-bound.json",
+      "originalBytes": 557,
+      "originalSha256": "ca41c8ffee62d0bd400512b73c80830f6316a42c43fd246ce04a44a6d57ca2aa",
+      "storedBytes": 557,
+      "storedSha256": "ca41c8ffee62d0bd400512b73c80830f6316a42c43fd246ce04a44a6d57ca2aa"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "auth5000/sample-003/native-perf-sdk-journey-requested.json",
+      "originalBytes": 339,
+      "originalSha256": "3efcfc3000f18bc1d834cc3535e81bb715fd557f2e80dc43a489283e74b3871a",
+      "storedBytes": 339,
+      "storedSha256": "3efcfc3000f18bc1d834cc3535e81bb715fd557f2e80dc43a489283e74b3871a"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-journey.json",
+      "source": "auth5000/sample-003/native-perf-sdk-journey.json",
+      "originalBytes": 64826,
+      "originalSha256": "08ff27e8dd968caf9bd04288447eced9d09a5da79df11941c18284162c89e262",
+      "storedBytes": 64826,
+      "storedSha256": "08ff27e8dd968caf9bd04288447eced9d09a5da79df11941c18284162c89e262"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-phase-01.json",
+      "source": "auth5000/sample-003/native-perf-sdk-phase-01.json",
+      "originalBytes": 806,
+      "originalSha256": "0ea17decb5133f031f7ed1d4a84ef0ebac325df4db32a56544dd3f1951c9d3e2",
+      "storedBytes": 806,
+      "storedSha256": "0ea17decb5133f031f7ed1d4a84ef0ebac325df4db32a56544dd3f1951c9d3e2"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-phase-02.json",
+      "source": "auth5000/sample-003/native-perf-sdk-phase-02.json",
+      "originalBytes": 725,
+      "originalSha256": "9e15ef588c2a2bf2a2467ca8d03d9b11f8804b9e883d5db1b909aec0a1451114",
+      "storedBytes": 725,
+      "storedSha256": "9e15ef588c2a2bf2a2467ca8d03d9b11f8804b9e883d5db1b909aec0a1451114"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-phase-03.json",
+      "source": "auth5000/sample-003/native-perf-sdk-phase-03.json",
+      "originalBytes": 1004,
+      "originalSha256": "31935e26eedaff3aa567b91e6b5eb6ced137ec5104a1eeee6e24ef2370d9a7fb",
+      "storedBytes": 1004,
+      "storedSha256": "31935e26eedaff3aa567b91e6b5eb6ced137ec5104a1eeee6e24ef2370d9a7fb"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-phase-04.json",
+      "source": "auth5000/sample-003/native-perf-sdk-phase-04.json",
+      "originalBytes": 450,
+      "originalSha256": "487ad26422f16233503fb846c74ade255e0722d13f85399bfe349d7202d13dac",
+      "storedBytes": 450,
+      "storedSha256": "487ad26422f16233503fb846c74ade255e0722d13f85399bfe349d7202d13dac"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-phase-05.json",
+      "source": "auth5000/sample-003/native-perf-sdk-phase-05.json",
+      "originalBytes": 596,
+      "originalSha256": "e96211242a03d34e24f1174fdf25e1c0d56ca0a86867c4941c50e08e9fc73348",
+      "storedBytes": 596,
+      "storedSha256": "e96211242a03d34e24f1174fdf25e1c0d56ca0a86867c4941c50e08e9fc73348"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003/native-perf-sdk-phase-06.json",
+      "source": "auth5000/sample-003/native-perf-sdk-phase-06.json",
+      "originalBytes": 1178,
+      "originalSha256": "173548f8b9d511a2ea217a24280219ee689908aef385103173198581e1c06c6e",
+      "storedBytes": 1178,
+      "storedSha256": "173548f8b9d511a2ea217a24280219ee689908aef385103173198581e1c06c6e"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/auth5000/sample-003.json",
+      "source": "auth5000/sample-003.json",
+      "originalBytes": 96318,
+      "originalSha256": "7f58a219c04d3d5eb47db8e2a6f4bf7d92cf4eeea2cac52506f999d575d1c345",
+      "storedBytes": 96318,
+      "storedSha256": "7f58a219c04d3d5eb47db8e2a6f4bf7d92cf4eeea2cac52506f999d575d1c345"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/before/update_preferences.rs.gz",
+      "source": "before/update_preferences.rs",
+      "originalBytes": 27365,
+      "originalSha256": "e07073090cd631a5189e5e9835e5c3b0ff906959a5fe9e69578c3527a3311d57",
+      "storedBytes": 6354,
+      "storedSha256": "bec60d39d6861b40a9f5e2752cf76a66b4bfbbcaf6a043d3151c7fedcf9e8909"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/close-report.py",
+      "source": "close-report.py",
+      "originalBytes": 5952,
+      "originalSha256": "6ae92439bef1e71fee81e342cb515027ce9e3722968ff1a402e82bc77ca08d0f",
+      "storedBytes": 5952,
+      "storedSha256": "6ae92439bef1e71fee81e342cb515027ce9e3722968ff1a402e82bc77ca08d0f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/final-source-proof.json",
+      "source": "final-source-proof.json",
+      "originalBytes": 470,
+      "originalSha256": "e597341e457e3649cc371cea831462c57a73d38631e0b14d7cc512df280714c7",
+      "storedBytes": 470,
+      "storedSha256": "e597341e457e3649cc371cea831462c57a73d38631e0b14d7cc512df280714c7"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/fixture-input-hashes.json",
+      "source": "fixture-input-hashes.json",
+      "originalBytes": 1555,
+      "originalSha256": "dc236ff29d58650e50620c0ef3071335a0ab234291e66c30c9ca7e2cf7779a07",
+      "storedBytes": 1555,
+      "storedSha256": "dc236ff29d58650e50620c0ef3071335a0ab234291e66c30c9ca7e2cf7779a07"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/implement.py",
+      "source": "implement.py",
+      "originalBytes": 7318,
+      "originalSha256": "f37099664373138b1cbec93fcfa8df96f1ce9f35297b2fcc67139554135ed527",
+      "storedBytes": 7318,
+      "storedSha256": "f37099664373138b1cbec93fcfa8df96f1ce9f35297b2fcc67139554135ed527"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/initial/update_preferences.rs.gz",
+      "source": "initial/update_preferences.rs",
+      "originalBytes": 27261,
+      "originalSha256": "6d11eae91fb7c2c14adc90fc6a1ae038ae4727add93b3e9b39fbf670427a1d2d",
+      "storedBytes": 6324,
+      "storedSha256": "f2265484d4ab32f87d7fd90ed828d4a602dee44e32150a92aabf3f0a22910499"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-auth-100.receipt.json",
+      "source": "native-auth-100.receipt.json",
+      "originalBytes": 671,
+      "originalSha256": "f5be2a23184065050b023ef004d2d114f3eff2230b8fc47ad9bef4f5c118c40b",
+      "storedBytes": 671,
+      "storedSha256": "f5be2a23184065050b023ef004d2d114f3eff2230b8fc47ad9bef4f5c118c40b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-auth-100.stderr.log.gz",
+      "source": "native-auth-100.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-auth-100.stdout.log.gz",
+      "source": "native-auth-100.stdout.log",
+      "originalBytes": 334,
+      "originalSha256": "55018b8e9fceea1ead60c79d2d7893fef4ec302a0d4194c5bf4c9f9f9b3daba7",
+      "storedBytes": 178,
+      "storedSha256": "e0932691f7c24007e2dabc9bcfa9409773d241806d964153fe365445a06cbff0"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-auth-5000.receipt.json",
+      "source": "native-auth-5000.receipt.json",
+      "originalBytes": 674,
+      "originalSha256": "fc0444560e8b701152cd8ff8134895f853f1aacfea9e3695a65d455867b8937d",
+      "storedBytes": 674,
+      "storedSha256": "fc0444560e8b701152cd8ff8134895f853f1aacfea9e3695a65d455867b8937d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-auth-5000.stderr.log.gz",
+      "source": "native-auth-5000.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-auth-5000.stdout.log.gz",
+      "source": "native-auth-5000.stdout.log",
+      "originalBytes": 336,
+      "originalSha256": "8b9a3dc9ded61ad0ecba028e38cc3d748a1135a6b7e04978f03fc8f9f0e57a98",
+      "storedBytes": 179,
+      "storedSha256": "da319ba16d3b7147c9a15015b858b9a5d9cc6dab665954d05c3eb8477b30c648"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-release-build.receipt.json",
+      "source": "native-release-build.receipt.json",
+      "originalBytes": 538,
+      "originalSha256": "005d915e9e007e054cbeec2e34912deb8e15fecc9d5f3e513c052757955283f9",
+      "storedBytes": 538,
+      "storedSha256": "005d915e9e007e054cbeec2e34912deb8e15fecc9d5f3e513c052757955283f9"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-release-build.stderr.log.gz",
+      "source": "native-release-build.stderr.log",
+      "originalBytes": 2804,
+      "originalSha256": "6212b3e6ced8e5881a2f36484bf3b3f437c357e8de407401f6f86178e59d77b1",
+      "storedBytes": 1240,
+      "storedSha256": "a35d4ea5baba51e609533261720dc5d025202031a3390eaa1a63391ab8d02741"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-release-build.stdout.log.gz",
+      "source": "native-release-build.stdout.log",
+      "originalBytes": 3595,
+      "originalSha256": "06fbde67fe790bb31040eb54b44f0b35196fe22d5bd5c408285cc00453eec654",
+      "storedBytes": 1315,
+      "storedSha256": "0f7f5421bab8211b11d1e32a22687fa2e39edc0683127a0bfd1cfdccba5bed93"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/native-validation.json",
+      "source": "native-validation.json",
+      "originalBytes": 4038,
+      "originalSha256": "0d58304d27f775f7ec235a7754ab7877bd5e03d4aa626b3a9f41e963d1ca988a",
+      "storedBytes": 4038,
+      "storedSha256": "0d58304d27f775f7ec235a7754ab7877bd5e03d4aa626b3a9f41e963d1ca988a"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/package-evidence.py",
+      "source": "package-evidence.py",
+      "originalBytes": 8142,
+      "originalSha256": "05b398882d537d901e7d8dc649573ffff6f96a4abe8752376a8e655e40394725",
+      "storedBytes": 8142,
+      "storedSha256": "05b398882d537d901e7d8dc649573ffff6f96a4abe8752376a8e655e40394725"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-default-complete.py",
+      "source": "record-default-complete.py",
+      "originalBytes": 2484,
+      "originalSha256": "1055f851133b6f2e7004840fa3f9c30ec31d6f8a5a6d44062e32c8c62aa4bdd0",
+      "storedBytes": 2484,
+      "storedSha256": "1055f851133b6f2e7004840fa3f9c30ec31d6f8a5a6d44062e32c8c62aa4bdd0"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-green.py",
+      "source": "record-green.py",
+      "originalBytes": 1948,
+      "originalSha256": "dc02fe6efca9dd4728756a1a2fb1ee7bda5158034b27f0e09cd1ccaf83ebc160",
+      "storedBytes": 1948,
+      "storedSha256": "dc02fe6efca9dd4728756a1a2fb1ee7bda5158034b27f0e09cd1ccaf83ebc160"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-native-build.py",
+      "source": "record-native-build.py",
+      "originalBytes": 2972,
+      "originalSha256": "e42b0bc50b52440e31544d27331ac0a016cf2e028c51eaa6b1531f446765a6fb",
+      "storedBytes": 2972,
+      "storedSha256": "e42b0bc50b52440e31544d27331ac0a016cf2e028c51eaa6b1531f446765a6fb"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-native-clippy.py",
+      "source": "record-native-clippy.py",
+      "originalBytes": 1545,
+      "originalSha256": "7bd2c96661b784396217a22d3ab405ca9d79bb032100571f6abe707448ed7529",
+      "storedBytes": 1545,
+      "storedSha256": "7bd2c96661b784396217a22d3ab405ca9d79bb032100571f6abe707448ed7529"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-progress.py",
+      "source": "record-progress.py",
+      "originalBytes": 2220,
+      "originalSha256": "f6a9f6fe21994e55ad8453a4807682252d6d91c417a1e384fcd503322ae90c46",
+      "storedBytes": 2220,
+      "storedSha256": "f6a9f6fe21994e55ad8453a4807682252d6d91c417a1e384fcd503322ae90c46"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-required-check-progress.py",
+      "source": "record-required-check-progress.py",
+      "originalBytes": 1802,
+      "originalSha256": "e6bd2ff1a9fa182ee333301da93ff846b93a2ecd429ef32969ed8f2ac282d50d",
+      "storedBytes": 1802,
+      "storedSha256": "e6bd2ff1a9fa182ee333301da93ff846b93a2ecd429ef32969ed8f2ac282d50d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/record-rust-validation.py",
+      "source": "record-rust-validation.py",
+      "originalBytes": 2256,
+      "originalSha256": "31711a8831ace3338967a42f332257da0bda99668e98478d4b470924477946c6",
+      "storedBytes": 2256,
+      "storedSha256": "31711a8831ace3338967a42f332257da0bda99668e98478d4b470924477946c6"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/red-input-audit.json",
+      "source": "red-input-audit.json",
+      "originalBytes": 414,
+      "originalSha256": "f1e378eeab87ebeac9ebf85a31a8842fcd2572a67f9a061c12a3d4ded2c6b166",
+      "storedBytes": 414,
+      "storedSha256": "f1e378eeab87ebeac9ebf85a31a8842fcd2572a67f9a061c12a3d4ded2c6b166"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/register-task.py",
+      "source": "register-task.py",
+      "originalBytes": 3520,
+      "originalSha256": "2f4c289a949bf1897f1f2d62d00b5286a2f3b4d5f60a031cc1acb73e48f4b3d6",
+      "storedBytes": 3520,
+      "storedSha256": "2f4c289a949bf1897f1f2d62d00b5286a2f3b4d5f60a031cc1acb73e48f4b3d6"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-green.receipt.json",
+      "source": "regression-green.receipt.json",
+      "originalBytes": 417,
+      "originalSha256": "f621549c8ed1a33f034b5543b4d71428ef5056c20f4560d17ae3f5b0e3795bf7",
+      "storedBytes": 417,
+      "storedSha256": "f621549c8ed1a33f034b5543b4d71428ef5056c20f4560d17ae3f5b0e3795bf7"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-green.sources.json.gz",
+      "source": "regression-green.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-green.stderr.log.gz",
+      "source": "regression-green.stderr.log",
+      "originalBytes": 270,
+      "originalSha256": "7010ff89442431d1db78be6184f4018ee1a82195f84113aff46a3fc80f451bc5",
+      "storedBytes": 219,
+      "storedSha256": "f93026564194141740d5eab0e9bb2e0791430102923efb3319574dee32c6a02e"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-green.stdout.log.gz",
+      "source": "regression-green.stdout.log",
+      "originalBytes": 7527,
+      "originalSha256": "688e72152eadff7652dd8938ecae0d8084e107d63039be535700660fec592382",
+      "storedBytes": 912,
+      "storedSha256": "7896ba2916531f25f3dd9c441af31e699ba968b3cd66409a8221a452285fcff5"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red-fixed.receipt.json",
+      "source": "regression-red-fixed.receipt.json",
+      "originalBytes": 415,
+      "originalSha256": "61a5515eab90819ff077504ebe5720ece3e533808667b462c6366d76124b3ad0",
+      "storedBytes": 415,
+      "storedSha256": "61a5515eab90819ff077504ebe5720ece3e533808667b462c6366d76124b3ad0"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red-fixed.sources.json.gz",
+      "source": "regression-red-fixed.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "b26bf9f31f43321381c0bf75a6fa3904b738fbb56bedf92ed273d27000bd628c",
+      "storedBytes": 88135,
+      "storedSha256": "2c1dc0d1a221856ad023d5197770cc2d9de343ac747b4716495d85793cbb2d96"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red-fixed.stderr.log.gz",
+      "source": "regression-red-fixed.stderr.log",
+      "originalBytes": 691,
+      "originalSha256": "a21d1ce370e0a48e5c9f9f143eefd9924f945036962e2e2e1b5af871873fb87a",
+      "storedBytes": 488,
+      "storedSha256": "ca980384bef25c7f631c3cb1b5f084f3536ad44610380ceacbce1cc4b13a91e5"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red-fixed.stdout.log.gz",
+      "source": "regression-red-fixed.stdout.log",
+      "originalBytes": 1012,
+      "originalSha256": "ce9bb42ee5daeb02aede9dd37765b9dc8352af7971c5c165cb41de8b0e3c15ed",
+      "storedBytes": 332,
+      "storedSha256": "7bb47fbf3a36314b1ad28162fbc7f562af1503ff7232955c2e5587e66ebda90c"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red.receipt.json",
+      "source": "regression-red.receipt.json",
+      "originalBytes": 402,
+      "originalSha256": "f18d255f49c890360dd00389c711f849ee6665133fb1e1ba8f910567528b9518",
+      "storedBytes": 402,
+      "storedSha256": "f18d255f49c890360dd00389c711f849ee6665133fb1e1ba8f910567528b9518"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red.sources.json.gz",
+      "source": "regression-red.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "fdde3af402b2413a652f0b8b5b0bd4e302049c31c95dae8e35ed151134bd05f8",
+      "storedBytes": 88133,
+      "storedSha256": "39a6897f35a1348135c5610de68cecf4aceaa6f0d11649e4b934e973565683fc"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red.stderr.log.gz",
+      "source": "regression-red.stderr.log",
+      "originalBytes": 1432,
+      "originalSha256": "027d7c850c48ede46fb28da41c089a88bcfaf1f0d9bb865663d6b333390878fc",
+      "storedBytes": 682,
+      "storedSha256": "7ed1f28138d0253aeb8eb5634b4275fd8a4dd2a309ed5e6c2bfb1385494f2a36"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/regression-red.stdout.log.gz",
+      "source": "regression-red.stdout.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/release-Cargo-after.toml",
+      "source": "release-Cargo-after.toml",
+      "originalBytes": 5244,
+      "originalSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+      "storedBytes": 5244,
+      "storedSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/release-Cargo-before.toml",
+      "source": "release-Cargo-before.toml",
+      "originalBytes": 5395,
+      "originalSha256": "edff461c8e2cbeebef93e06a2f4f9af78839cfa5c3657f1677b63a8961151ece",
+      "storedBytes": 5395,
+      "storedSha256": "edff461c8e2cbeebef93e06a2f4f9af78839cfa5c3657f1677b63a8961151ece"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/release-manifest-newline-parity.json",
+      "source": "release-manifest-newline-parity.json",
+      "originalBytes": 366,
+      "originalSha256": "364a6dd27ef70c61bd123f24d8001f592c62dd79301da0ddf9cf6b61be936152",
+      "storedBytes": 366,
+      "storedSha256": "364a6dd27ef70c61bd123f24d8001f592c62dd79301da0ddf9cf6b61be936152"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/review-acceptance-scope.py",
+      "source": "review-acceptance-scope.py",
+      "originalBytes": 4037,
+      "originalSha256": "6efcf6a1eaa7bcf188573bad12f4e362b58a29dfc9c39fd6ed2ce0564649bfd5",
+      "storedBytes": 4037,
+      "storedSha256": "6efcf6a1eaa7bcf188573bad12f4e362b58a29dfc9c39fd6ed2ce0564649bfd5"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/run-check.py",
+      "source": "run-check.py",
+      "originalBytes": 2204,
+      "originalSha256": "780a5840c7e0e8bb58b2b8e2425c609d78e6ee95ab88cea69d450916d224297a",
+      "storedBytes": 2204,
+      "storedSha256": "780a5840c7e0e8bb58b2b8e2425c609d78e6ee95ab88cea69d450916d224297a"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/run-native-validation.py",
+      "source": "run-native-validation.py",
+      "originalBytes": 8058,
+      "originalSha256": "967bbeed4c5faabf572cd3569ec52cce4e8acdfcb22c644f6bccf63c25137a9d",
+      "storedBytes": 8058,
+      "storedSha256": "967bbeed4c5faabf572cd3569ec52cce4e8acdfcb22c644f6bccf63c25137a9d"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/run-rust-suite.py",
+      "source": "run-rust-suite.py",
+      "originalBytes": 1980,
+      "originalSha256": "ae1004a90af28712ad009d30a275860cce1beab2db4bc50813e05d566bb4232f",
+      "storedBytes": 1980,
+      "storedSha256": "ae1004a90af28712ad009d30a275860cce1beab2db4bc50813e05d566bb4232f"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/runtime-package.json",
+      "source": "runtime-package.json",
+      "originalBytes": 33386,
+      "originalSha256": "5bec015747c24ed6e2bf16f3c4aeae972b2d3e10b9fa97969f43575bbf094a83",
+      "storedBytes": 33386,
+      "storedSha256": "5bec015747c24ed6e2bf16f3c4aeae972b2d3e10b9fa97969f43575bbf094a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-default.receipt.json",
+      "source": "rust-clippy-default.receipt.json",
+      "originalBytes": 340,
+      "originalSha256": "6ddace87df6cb6a7c697ac2faecc5c57768003441359231f0bc64118a4e7f3cc",
+      "storedBytes": 340,
+      "storedSha256": "6ddace87df6cb6a7c697ac2faecc5c57768003441359231f0bc64118a4e7f3cc"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-default.sources.json.gz",
+      "source": "rust-clippy-default.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-default.stderr.log.gz",
+      "source": "rust-clippy-default.stderr.log",
+      "originalBytes": 132,
+      "originalSha256": "05c42c50e374f00ef0c548dde8037fa0df75b8545677ec4a243d0b4fca68ba3a",
+      "storedBytes": 136,
+      "storedSha256": "03d5567c5bb004a2d948a94714d978a8b11abbcae69e7d9edcbc48f77fb8d9ab"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-default.stdout.log.gz",
+      "source": "rust-clippy-default.stdout.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-native.receipt.json",
+      "source": "rust-clippy-native.receipt.json",
+      "originalBytes": 400,
+      "originalSha256": "9d8908994fc60112509ba6b1a29af35fd64fb32c9ff7b871bc85cc437870190c",
+      "storedBytes": 400,
+      "storedSha256": "9d8908994fc60112509ba6b1a29af35fd64fb32c9ff7b871bc85cc437870190c"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-native.sources.json.gz",
+      "source": "rust-clippy-native.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-native.stderr.log.gz",
+      "source": "rust-clippy-native.stderr.log",
+      "originalBytes": 132,
+      "originalSha256": "502667f772fbfe33f9000d9ee72dc8858f601ab99422111092cdbe32e21993a4",
+      "storedBytes": 136,
+      "storedSha256": "354f0feb41e9481ccc6a7a936d6465d434546382f234e97ab65fd7051bb337cb"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-clippy-native.stdout.log.gz",
+      "source": "rust-clippy-native.stdout.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-format.receipt.json",
+      "source": "rust-format.receipt.json",
+      "originalBytes": 296,
+      "originalSha256": "3bd04fd28723c64cc5a87d1738c7fd4a990fe9361eae27d13694ab99536eeb31",
+      "storedBytes": 296,
+      "storedSha256": "3bd04fd28723c64cc5a87d1738c7fd4a990fe9361eae27d13694ab99536eeb31"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-format.sources.json.gz",
+      "source": "rust-format.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-format.stderr.log.gz",
+      "source": "rust-format.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-format.stdout.log.gz",
+      "source": "rust-format.stdout.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 20,
+      "storedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-default.receipt.json",
+      "source": "rust-tests-default.receipt.json",
+      "originalBytes": 318,
+      "originalSha256": "6d7f5526776693a47d42a84fd19b1f30b97906b689059fb4b56e132fe65c6910",
+      "storedBytes": 318,
+      "storedSha256": "6d7f5526776693a47d42a84fd19b1f30b97906b689059fb4b56e132fe65c6910"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-default.sources.json.gz",
+      "source": "rust-tests-default.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-default.stderr.log.gz",
+      "source": "rust-tests-default.stderr.log",
+      "originalBytes": 164097,
+      "originalSha256": "a36472c947d15d3ea4552baba892ee661eb84ccb734b26d39fdac06a6bd564c2",
+      "storedBytes": 11284,
+      "storedSha256": "d4549dd501ed4cd36f0e30e70ea4931a45758f0dd1e42fda7a5d8e2f23376d25"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-default.stdout.log.gz",
+      "source": "rust-tests-default.stdout.log",
+      "originalBytes": 735107,
+      "originalSha256": "570305be8658a015dd4d509e98c7ff68eb340026050368fd4497d9460e2bcede",
+      "storedBytes": 67557,
+      "storedSha256": "a1e69e5ed8dc35c0800e81800f628416629bb4505412abe39fa72ade48da38fe"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-native.receipt.json",
+      "source": "rust-tests-native.receipt.json",
+      "originalBytes": 433,
+      "originalSha256": "cfa56ca1ccb613acebf57c685b9ce6f0c8ea8bb0ac70d8dc537a7560fcc3dcb8",
+      "storedBytes": 433,
+      "storedSha256": "cfa56ca1ccb613acebf57c685b9ce6f0c8ea8bb0ac70d8dc537a7560fcc3dcb8"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-native.sources.json.gz",
+      "source": "rust-tests-native.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-native.stderr.log.gz",
+      "source": "rust-tests-native.stderr.log",
+      "originalBytes": 270,
+      "originalSha256": "9f0046efb14af673d8816eed79e8ec30a74dbd49b15acf7e646c45bc93d3e4cf",
+      "storedBytes": 220,
+      "storedSha256": "b0a2715e6038abccd79a77df7a09cc18259b912c10eb031d770b5ef1db3966c1"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-native.stdout.log.gz",
+      "source": "rust-tests-native.stdout.log",
+      "originalBytes": 42994,
+      "originalSha256": "4a5be78b7248d863c2df4e7146b4c0e1fb8ab71c5ca59ac3eacb68ce914512fb",
+      "storedBytes": 4401,
+      "storedSha256": "ba11e791d9d6e6e53b25a7edfc448bd3a137077f7c6f00769bda823c04e773b8"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-preferences-native.receipt.json",
+      "source": "rust-tests-preferences-native.receipt.json",
+      "originalBytes": 457,
+      "originalSha256": "9ac719b86121ff1dc100eed3b7ed48b8b734c849dd198f0ac0d1ca266078a4d5",
+      "storedBytes": 457,
+      "storedSha256": "9ac719b86121ff1dc100eed3b7ed48b8b734c849dd198f0ac0d1ca266078a4d5"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-preferences-native.sources.json.gz",
+      "source": "rust-tests-preferences-native.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-preferences-native.stderr.log.gz",
+      "source": "rust-tests-preferences-native.stderr.log",
+      "originalBytes": 207,
+      "originalSha256": "6b1a8fe685f3e5390f839b00d4b751f02a1e1833505739296768fc9882b2c009",
+      "storedBytes": 188,
+      "storedSha256": "ea27e458de3221d23a7955ee29c9251edd1c6907ebfdf173e413522412641640"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-preferences-native.stdout.log.gz",
+      "source": "rust-tests-preferences-native.stdout.log",
+      "originalBytes": 7528,
+      "originalSha256": "b5f02356d899975c22415b28d87f7db237d8ca3fdd2b4b8accb9db175f43ec05",
+      "storedBytes": 932,
+      "storedSha256": "6bf53c36e1b9b9b713f6a866bef29f4b3bd8b8cb30d08f839e6deef82b5ca0ca"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-rf905.receipt.json",
+      "source": "rust-tests-rf905.receipt.json",
+      "originalBytes": 427,
+      "originalSha256": "7d6d38b5e810b15fe5c5d706fb963ccc25e76272f5590e7fa5817a4840f767a8",
+      "storedBytes": 427,
+      "storedSha256": "7d6d38b5e810b15fe5c5d706fb963ccc25e76272f5590e7fa5817a4840f767a8"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-rf905.sources.json.gz",
+      "source": "rust-tests-rf905.sources.json",
+      "originalBytes": 230387,
+      "originalSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+      "storedBytes": 88133,
+      "storedSha256": "1afebd3894ae1c37ce3af9d66dcbb94410e1344ed136731aed5280ee83446a83"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-rf905.stderr.log.gz",
+      "source": "rust-tests-rf905.stderr.log",
+      "originalBytes": 208,
+      "originalSha256": "91e2347034f6a1cf41229d61fc23ba3b9c81e7021fd370938e4db334496622f0",
+      "storedBytes": 186,
+      "storedSha256": "d8e9748a9435eb7c6c5d1b5a4acebd0e7074fd53323a7c74d0bc80a048b6b738"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-tests-rf905.stdout.log.gz",
+      "source": "rust-tests-rf905.stdout.log",
+      "originalBytes": 14491,
+      "originalSha256": "0b0d916886b5da6b2623889ba2c642938e8af3e04ee7c386607e7487dcec0cde",
+      "storedBytes": 1720,
+      "storedSha256": "040f68309a52be097b982ebd0da8555e851efe1a91afd09cf17d4a11cee25838"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/rust-validation.json",
+      "source": "rust-validation.json",
+      "originalBytes": 5347,
+      "originalSha256": "90a29112028176b9b443810ffb10e6e78da4854b9b4c58198f69b3781604b4b0",
+      "storedBytes": 5347,
+      "storedSha256": "90a29112028176b9b443810ffb10e6e78da4854b9b4c58198f69b3781604b4b0"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/update-tests.py",
+      "source": "update-tests.py",
+      "originalBytes": 13554,
+      "originalSha256": "f619424800955a081a28df1068785630e24e865032de74b022831b107baf0c19",
+      "storedBytes": 13554,
+      "storedSha256": "f619424800955a081a28df1068785630e24e865032de74b022831b107baf0c19"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/verify-native-results.mjs",
+      "source": "verify-native-results.mjs",
+      "originalBytes": 4293,
+      "originalSha256": "e4b1a19f42c2b52ca5c2ecef365863455f951919038fe98d9e40c18a3804d099",
+      "storedBytes": 4293,
+      "storedSha256": "e4b1a19f42c2b52ca5c2ecef365863455f951919038fe98d9e40c18a3804d099"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/verify-rust-results.py",
+      "source": "verify-rust-results.py",
+      "originalBytes": 4211,
+      "originalSha256": "e905103988a3167f6596070533343f159cfda7255da873af072c09424f1f8e7b",
+      "storedBytes": 4211,
+      "storedSha256": "e905103988a3167f6596070533343f159cfda7255da873af072c09424f1f8e7b"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/verify-staged-scope.py",
+      "source": "verify-staged-scope.py",
+      "originalBytes": 5049,
+      "originalSha256": "aefef4582cd7305cb263b6ab71c0d10c338561f9329d9eb7b39bd23847ede028",
+      "storedBytes": 5049,
+      "storedSha256": "aefef4582cd7305cb263b6ab71c0d10c338561f9329d9eb7b39bd23847ede028"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/policy-before/evidence-attributes.txt",
+      "source": "generated: initial evidence byte-preservation rule, before CRLF whitespace recognition",
+      "originalBytes": 74,
+      "originalSha256": "fc5f35184132cd763c9688bccd9341016a5d27094c9f2ec1ab39ea4530088f68",
+      "storedBytes": 74,
+      "storedSha256": "fc5f35184132cd763c9688bccd9341016a5d27094c9f2ec1ab39ea4530088f68"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/policy-before/package-evidence.py",
+      "source": "package-evidence.py before CRLF whitespace recognition",
+      "originalBytes": 8068,
+      "originalSha256": "f9ceb18d6cd220043deaf3f65c7f988747130c64ad3230983b3216976e421607",
+      "storedBytes": 8068,
+      "storedSha256": "f9ceb18d6cd220043deaf3f65c7f988747130c64ad3230983b3216976e421607"
+    },
+    {
+      "path": "verification/rf1104-update-preference-leases-2026-10-10/preserve-crlf-evidence.py",
+      "source": "preserve-crlf-evidence.py",
+      "originalBytes": 4024,
+      "originalSha256": "75a3df8c1c52d64c0abd0a5dd55be0306ae32fa335e67f7be57acd5adea7b695",
+      "storedBytes": 4024,
+      "storedSha256": "75a3df8c1c52d64c0abd0a5dd55be0306ae32fa335e67f7be57acd5adea7b695"
+    }
+  ],
+  "rf312TaskClosed": false,
+  "oldHomeTimeoutRootCauseEstablished": false,
+  "excludedArtifacts": [
+    "Executables",
+    "DLLs",
+    "models",
+    "Vault databases",
+    "application caches"
+  ],
+  "evidenceBytePolicy": {
+    "textConversionDisabled": true,
+    "crlfRecognizedAsLineEnding": true,
+    "whitespaceRules": [
+      "blank-at-eol",
+      "blank-at-eof",
+      "space-before-tab",
+      "cr-at-eol"
+    ],
+    "originalDiagnosticFilesUnmodified": true,
+    "initialGeneratedPolicyAndArchiveHelperPreservedUnder": "policy-before/"
+  }
+}

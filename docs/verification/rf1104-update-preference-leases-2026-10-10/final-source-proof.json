@@ -1,0 +1,12 @@
+{
+  "scope": "All frozen RF-1104 source inputs; report and evidence are separately reviewed",
+  "sourceManifestSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+  "sourceFileCount": 1827,
+  "allInputsStillMatch": true,
+  "at": "2026-10-10T01:52:47.091201+00:00",
+  "toolchain": {
+    "node --version": "v24.16.0",
+    "rustc --version": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cargo --version": "cargo 1.96.0 (30a34c682 2026-05-25)"
+  }
+}

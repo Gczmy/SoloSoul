@@ -1,0 +1,18 @@
+{
+  "atMs": 8596.181400000001,
+  "clockScope": "process-monotonic",
+  "coverage": [
+    "update-source-preferences",
+    "owned-blocking-worker"
+  ],
+  "failures": [],
+  "invalidReasons": [],
+  "maxActivities": 256,
+  "maxFailures": 64,
+  "pid": 15380,
+  "registeredActivities": 11,
+  "runId": "4c7728536c84466c894c2d30c9af66d2",
+  "schemaVersion": 1,
+  "scope": "windows-native-maintenance-admission",
+  "valid": true
+}

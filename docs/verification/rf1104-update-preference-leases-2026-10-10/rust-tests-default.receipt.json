@@ -1,0 +1,14 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--verbose"
+  ],
+  "pid": 27572,
+  "exitCode": 0,
+  "elapsedSeconds": 3557.3894929000235,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+  "at": "2026-10-10T00:58:00.521185+00:00"
+}

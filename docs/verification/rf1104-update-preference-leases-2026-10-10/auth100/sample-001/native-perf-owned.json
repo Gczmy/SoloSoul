@@ -1,0 +1,70 @@
+{
+  "appVersion": "2.13.2",
+  "fixture": {
+    "accountId": "acc_rf312_100",
+    "files": [
+      {
+        "relativePath": "acc_rf312_100\\config.json",
+        "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+      },
+      {
+        "relativePath": "acc_rf312_100\\vault.db",
+        "sha256": "73d5c341ba753b4dea0182f50e7149632e23ded6a5719cbb9ac8dd516f6ded5b"
+      },
+      {
+        "relativePath": "accounts.json",
+        "sha256": "0b2002531a472a70ed42a79fba78648c4bea97336970f4a5caccffc56ed59374"
+      },
+      {
+        "relativePath": "rf312-fixture.json",
+        "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+      },
+      {
+        "relativePath": "ui_preferences.json",
+        "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+      }
+    ],
+    "marker": {
+      "accountId": "acc_rf312_100",
+      "accountName": "Performance Fixture",
+      "buildProfile": "release",
+      "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+      "expectedSearchMatches": 5,
+      "fixture": "deterministic-20th-object-property-match",
+      "generator": "solosoul-core/examples/perf_baseline",
+      "includesAttachments": false,
+      "includesOcrFixture": false,
+      "includesProfile": true,
+      "includesUiPreferences": true,
+      "kdf": {
+        "iterations": 3,
+        "memoryKiB": 65536,
+        "parallelism": 4
+      },
+      "objectCount": 100,
+      "schemaVersion": 1,
+      "scope": "synthetic-native-vault-fixture",
+      "searchQuery": "needle"
+    },
+    "objectCount": 100,
+    "searchMatches": 5
+  },
+  "fixtureSource": "\\\\?\\D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+  "identifier": "com.solosoul.rf312perf.9b766359a5024802a79c963784629131",
+  "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.9b766359a5024802a79c963784629131",
+  "nativePerfFeature": true,
+  "ownedPaths": [
+    "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100\\sample-001",
+    "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.9b766359a5024802a79c963784629131",
+    "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.9b766359a5024802a79c963784629131"
+  ],
+  "preparationStatus": "ready",
+  "profile": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100\\sample-001\\profile",
+  "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.9b766359a5024802a79c963784629131",
+  "root": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100\\sample-001",
+  "runId": "9b766359a5024802a79c963784629131",
+  "schemaVersion": 1,
+  "scope": "windows-native-perf-owned",
+  "vault": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100\\sample-001\\vault",
+  "webview": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100\\sample-001\\webview"
+}

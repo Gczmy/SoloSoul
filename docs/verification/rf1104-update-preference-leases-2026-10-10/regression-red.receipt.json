@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "solo_soul",
+    "rf1104_pending_source_selection",
+    "--",
+    "--nocapture"
+  ],
+  "pid": 10596,
+  "exitCode": 101,
+  "elapsedSeconds": 1100.4373362000042,
+  "sourceUnchanged": true,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+  "at": "2026-10-09T23:35:03.407150+00:00"
+}

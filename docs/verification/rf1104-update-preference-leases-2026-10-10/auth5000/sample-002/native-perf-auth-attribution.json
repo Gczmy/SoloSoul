@@ -1,0 +1,626 @@
+{
+  "backend": {
+    "atMs": 8164.3957,
+    "attempts": [
+      {
+        "endedAtMs": 0.2407,
+        "id": 1,
+        "kind": "accounts-refresh",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 0.0193,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 0.004
+          },
+          {
+            "endedAtMs": 0.0196,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 0.0195
+          },
+          {
+            "endedAtMs": 0.2173,
+            "name": "accounts-list",
+            "outcome": "completed",
+            "startedAtMs": 0.0205
+          }
+        ],
+        "startedAtMs": 0.0009
+      },
+      {
+        "endedAtMs": 26.5471,
+        "id": 2,
+        "kind": "accounts-refresh",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 26.261599999999998,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 26.2428
+          },
+          {
+            "endedAtMs": 26.262,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 26.2619
+          },
+          {
+            "endedAtMs": 26.5207,
+            "name": "accounts-list",
+            "outcome": "completed",
+            "startedAtMs": 26.263
+          }
+        ],
+        "startedAtMs": 26.2425
+      },
+      {
+        "endedAtMs": 5020.6227,
+        "id": 3,
+        "kind": "login",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 4692.662399999999,
+            "name": "root-read",
+            "outcome": "completed",
+            "startedAtMs": 4692.661
+          },
+          {
+            "endedAtMs": 4692.8414,
+            "name": "maintenance-admission",
+            "outcome": "completed",
+            "startedAtMs": 4692.663299999999
+          },
+          {
+            "endedAtMs": 4692.8634,
+            "name": "sync-disable",
+            "outcome": "completed",
+            "startedAtMs": 4692.8460000000005
+          },
+          {
+            "endedAtMs": 4692.8827,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 4692.8634999999995
+          },
+          {
+            "endedAtMs": 4692.8849,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 4692.883099999999
+          },
+          {
+            "endedAtMs": 4953.3278,
+            "name": "core-unlock",
+            "outcome": "completed",
+            "startedAtMs": 4692.885
+          },
+          {
+            "endedAtMs": 4692.97,
+            "name": "recovery",
+            "outcome": "completed",
+            "startedAtMs": 4692.9127
+          },
+          {
+            "endedAtMs": 4693.1343,
+            "name": "precheck",
+            "outcome": "completed",
+            "startedAtMs": 4692.9706
+          },
+          {
+            "endedAtMs": 4693.2412,
+            "name": "master-config",
+            "outcome": "completed",
+            "startedAtMs": 4693.1366
+          },
+          {
+            "endedAtMs": 4819.0634,
+            "name": "kdf",
+            "outcome": "completed",
+            "startedAtMs": 4693.2415
+          },
+          {
+            "endedAtMs": 4819.0843,
+            "name": "verify",
+            "outcome": "completed",
+            "startedAtMs": 4819.0688
+          },
+          {
+            "endedAtMs": 4951.1098,
+            "name": "account-write-call",
+            "outcome": "completed",
+            "startedAtMs": 4819.084400000001
+          },
+          {
+            "endedAtMs": 4819.146,
+            "name": "account-manifest-serialize",
+            "outcome": "completed",
+            "startedAtMs": 4819.1227
+          },
+          {
+            "endedAtMs": 4819.4375,
+            "name": "account-directory-create",
+            "outcome": "completed",
+            "startedAtMs": 4819.1461
+          },
+          {
+            "endedAtMs": 4862.4104,
+            "name": "account-directory-permission",
+            "outcome": "completed",
+            "startedAtMs": 4819.4382000000005
+          },
+          {
+            "endedAtMs": 4897.397599999999,
+            "name": "account-manifest-atomic-write",
+            "outcome": "completed",
+            "startedAtMs": 4862.410699999999
+          },
+          {
+            "endedAtMs": 4951.1088,
+            "name": "account-manifest-permission",
+            "outcome": "completed",
+            "startedAtMs": 4897.4072
+          },
+          {
+            "endedAtMs": 4953.139,
+            "name": "vault-open",
+            "outcome": "completed",
+            "startedAtMs": 4951.1101
+          },
+          {
+            "endedAtMs": 4953.231900000001,
+            "name": "session-publish",
+            "outcome": "completed",
+            "startedAtMs": 4953.1395
+          },
+          {
+            "endedAtMs": 4953.3264,
+            "name": "pin-reset-call",
+            "outcome": "completed",
+            "startedAtMs": 4953.2321
+          },
+          {
+            "endedAtMs": 5020.5168,
+            "name": "audit-call",
+            "outcome": "completed",
+            "startedAtMs": 4953.3278
+          },
+          {
+            "endedAtMs": 5020.622399999999,
+            "name": "cleanup-dispatch",
+            "outcome": "completed",
+            "startedAtMs": 5020.608499999999
+          }
+        ],
+        "startedAtMs": 4692.6606
+      },
+      {
+        "endedAtMs": 5025.0695,
+        "id": 4,
+        "kind": "accounts-refresh",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 5024.8311,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 5024.7947
+          },
+          {
+            "endedAtMs": 5024.8315,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 5024.8314
+          },
+          {
+            "endedAtMs": 5025.0286,
+            "name": "accounts-list",
+            "outcome": "completed",
+            "startedAtMs": 5024.8324999999995
+          }
+        ],
+        "startedAtMs": 5024.7944
+      },
+      {
+        "endedAtMs": 5297.4496,
+        "id": 5,
+        "kind": "accounts-refresh",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 5297.2080000000005,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 5297.1955
+          },
+          {
+            "endedAtMs": 5297.2083999999995,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 5297.2083
+          },
+          {
+            "endedAtMs": 5297.431600000001,
+            "name": "accounts-list",
+            "outcome": "completed",
+            "startedAtMs": 5297.2095
+          }
+        ],
+        "startedAtMs": 5297.1931
+      },
+      {
+        "endedAtMs": 7376.7289,
+        "id": 6,
+        "kind": "accounts-refresh",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 7376.2002999999995,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 7376.129
+          },
+          {
+            "endedAtMs": 7376.2007,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 7376.2006
+          },
+          {
+            "endedAtMs": 7376.6915,
+            "name": "accounts-list",
+            "outcome": "completed",
+            "startedAtMs": 7376.201499999999
+          }
+        ],
+        "startedAtMs": 7376.1287
+      },
+      {
+        "endedAtMs": 7998.2345,
+        "id": 7,
+        "kind": "login",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 7596.102,
+            "name": "root-read",
+            "outcome": "completed",
+            "startedAtMs": 7596.1011
+          },
+          {
+            "endedAtMs": 7596.2379,
+            "name": "maintenance-admission",
+            "outcome": "completed",
+            "startedAtMs": 7596.1028
+          },
+          {
+            "endedAtMs": 7596.2411,
+            "name": "sync-disable",
+            "outcome": "completed",
+            "startedAtMs": 7596.2384
+          },
+          {
+            "endedAtMs": 7596.2571,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 7596.2411999999995
+          },
+          {
+            "endedAtMs": 7596.2579000000005,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 7596.2572
+          },
+          {
+            "endedAtMs": 7823.6831999999995,
+            "name": "core-unlock",
+            "outcome": "completed",
+            "startedAtMs": 7596.258
+          },
+          {
+            "endedAtMs": 7596.2922,
+            "name": "recovery",
+            "outcome": "completed",
+            "startedAtMs": 7596.259599999999
+          },
+          {
+            "endedAtMs": 7596.3907,
+            "name": "precheck",
+            "outcome": "completed",
+            "startedAtMs": 7596.2923
+          },
+          {
+            "endedAtMs": 7596.4712,
+            "name": "master-config",
+            "outcome": "completed",
+            "startedAtMs": 7596.391
+          },
+          {
+            "endedAtMs": 7712.8746,
+            "name": "kdf",
+            "outcome": "completed",
+            "startedAtMs": 7596.4715
+          },
+          {
+            "endedAtMs": 7712.8849,
+            "name": "verify",
+            "outcome": "completed",
+            "startedAtMs": 7712.8786
+          },
+          {
+            "endedAtMs": 7822.0531,
+            "name": "account-write-call",
+            "outcome": "completed",
+            "startedAtMs": 7712.885
+          },
+          {
+            "endedAtMs": 7712.8947,
+            "name": "account-manifest-serialize",
+            "outcome": "completed",
+            "startedAtMs": 7712.891799999999
+          },
+          {
+            "endedAtMs": 7713.0957,
+            "name": "account-directory-create",
+            "outcome": "completed",
+            "startedAtMs": 7712.8948
+          },
+          {
+            "endedAtMs": 7753.6211,
+            "name": "account-directory-permission",
+            "outcome": "completed",
+            "startedAtMs": 7713.0962
+          },
+          {
+            "endedAtMs": 7788.2598,
+            "name": "account-manifest-atomic-write",
+            "outcome": "completed",
+            "startedAtMs": 7753.6214
+          },
+          {
+            "endedAtMs": 7822.0517,
+            "name": "account-manifest-permission",
+            "outcome": "completed",
+            "startedAtMs": 7788.2609
+          },
+          {
+            "endedAtMs": 7823.4728000000005,
+            "name": "vault-open",
+            "outcome": "completed",
+            "startedAtMs": 7822.0535
+          },
+          {
+            "endedAtMs": 7823.5226999999995,
+            "name": "session-publish",
+            "outcome": "completed",
+            "startedAtMs": 7823.4735
+          },
+          {
+            "endedAtMs": 7823.681299999999,
+            "name": "pin-reset-call",
+            "outcome": "completed",
+            "startedAtMs": 7823.5229
+          },
+          {
+            "endedAtMs": 7998.165300000001,
+            "name": "audit-call",
+            "outcome": "completed",
+            "startedAtMs": 7823.6834
+          },
+          {
+            "endedAtMs": 7998.233799999999,
+            "name": "cleanup-dispatch",
+            "outcome": "completed",
+            "startedAtMs": 7998.2249
+          }
+        ],
+        "startedAtMs": 7596.1008
+      },
+      {
+        "endedAtMs": 8002.0674,
+        "id": 8,
+        "kind": "accounts-refresh",
+        "outcome": "completed",
+        "rootVerified": true,
+        "stages": [
+          {
+            "endedAtMs": 8001.8081999999995,
+            "name": "blocking-queue",
+            "outcome": "completed",
+            "startedAtMs": 8001.7879
+          },
+          {
+            "endedAtMs": 8001.808499999999,
+            "name": "worker-vault-read",
+            "outcome": "completed",
+            "startedAtMs": 8001.8084
+          },
+          {
+            "endedAtMs": 8002.0309,
+            "name": "accounts-list",
+            "outcome": "completed",
+            "startedAtMs": 8001.809700000001
+          }
+        ],
+        "startedAtMs": 8001.7875
+      }
+    ],
+    "clockScope": "process-monotonic",
+    "invalidReasons": [],
+    "maxAttempts": 64,
+    "maxStages": 128,
+    "runId": "d517213a8f6c43038631d4daa4f6de3d",
+    "schemaVersion": 1,
+    "scope": "windows-native-auth-backend",
+    "valid": true
+  },
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "9A72C829D6B13D9F25C0F0BE0FF884FF",
+    "mainFrameId": "CD739285BF880F416555B36CE86EEE88",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/",
+    "timeOriginMs": null
+  },
+  "frontend": {
+    "atMs": 10050.80000001192,
+    "flows": [
+      {
+        "events": [
+          {
+            "atMs": 6577.5,
+            "stage": "started"
+          },
+          {
+            "atMs": 6577.600000023842,
+            "stage": "login-await-start"
+          },
+          {
+            "atMs": 6911.4000000059605,
+            "stage": "login-await-ok"
+          },
+          {
+            "atMs": 6911.4000000059605,
+            "stage": "accounts-await-start"
+          },
+          {
+            "atMs": 6915.600000023842,
+            "stage": "accounts-await-ok"
+          },
+          {
+            "atMs": 6915.700000017881,
+            "stage": "state-set-start"
+          },
+          {
+            "atMs": 6918.300000011921,
+            "stage": "state-set-done"
+          },
+          {
+            "atMs": 6918.300000011921,
+            "stage": "finished"
+          }
+        ],
+        "id": 1
+      },
+      {
+        "events": [
+          {
+            "atMs": 9483.600000023842,
+            "stage": "started"
+          },
+          {
+            "atMs": 9483.600000023842,
+            "stage": "login-await-start"
+          },
+          {
+            "atMs": 9888.90000000596,
+            "stage": "login-await-ok"
+          },
+          {
+            "atMs": 9889,
+            "stage": "accounts-await-start"
+          },
+          {
+            "atMs": 9892.40000000596,
+            "stage": "accounts-await-ok"
+          },
+          {
+            "atMs": 9892.40000000596,
+            "stage": "state-set-start"
+          },
+          {
+            "atMs": 9894.30000001192,
+            "stage": "state-set-done"
+          },
+          {
+            "atMs": 9894.30000001192,
+            "stage": "finished"
+          }
+        ],
+        "id": 2
+      }
+    ],
+    "invalidReasons": [],
+    "invokeCount": 555,
+    "maxFlows": 64,
+    "maxReplies": 128,
+    "replies": [
+      {
+        "command": "vault_list_accounts",
+        "headersAtMs": 1899.5,
+        "invokeSeq": 18,
+        "startedAtMs": 1879.600000023842,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "vault_list_accounts",
+        "headersAtMs": 1926.7000000178816,
+        "invokeSeq": 26,
+        "startedAtMs": 1913.4000000059605,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "login",
+        "headersAtMs": 6911,
+        "invokeSeq": 35,
+        "startedAtMs": 6577.800000011921,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "vault_list_accounts",
+        "headersAtMs": 6915.300000011921,
+        "invokeSeq": 36,
+        "startedAtMs": 6911.5,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "vault_list_accounts",
+        "headersAtMs": 7203.100000023842,
+        "invokeSeq": 77,
+        "startedAtMs": 7175.700000017881,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "vault_list_accounts",
+        "headersAtMs": 9273,
+        "invokeSeq": 508,
+        "startedAtMs": 9257.100000023842,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "login",
+        "headersAtMs": 9888.600000023842,
+        "invokeSeq": 515,
+        "startedAtMs": 9483.70000001788,
+        "status": "tauri-ok"
+      },
+      {
+        "command": "vault_list_accounts",
+        "headersAtMs": 9892.20000001788,
+        "invokeSeq": 516,
+        "startedAtMs": 9889.100000023842,
+        "status": "tauri-ok"
+      }
+    ],
+    "runId": "d517213a8f6c43038631d4daa4f6de3d",
+    "schemaVersion": 1,
+    "scope": "windows-native-auth-observer",
+    "timeOriginMs": 1791597039440.0,
+    "valid": true
+  },
+  "pid": 12272,
+  "runId": "d517213a8f6c43038631d4daa4f6de3d",
+  "schemaVersion": 1,
+  "scope": "windows-native-auth-attribution",
+  "timeOriginMs": 1791597039440.0
+}

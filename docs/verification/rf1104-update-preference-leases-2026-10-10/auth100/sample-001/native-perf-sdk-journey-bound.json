@@ -1,0 +1,18 @@
+{
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "2236C25AACB4E193C43682414ABF4E30",
+    "mainFrameId": "D04ED51D82077EF6E45BC3D75BDC3834",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/login",
+    "timeOriginMs": null
+  },
+  "browserPid": 23436,
+  "pid": 23440,
+  "port": 52532,
+  "root": "\\\\?\\D:\\SoloSoul\\build\\rf1104-update-preferences-20261010\\auth100\\sample-001",
+  "runId": "9b766359a5024802a79c963784629131",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-ui-bound",
+  "timeOriginMs": 1791596957399.5
+}

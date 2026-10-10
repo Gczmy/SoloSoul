@@ -1,0 +1,25 @@
+{
+  "command": [
+    "npm.cmd",
+    "run",
+    "tauri",
+    "--",
+    "build",
+    "--config",
+    "src-tauri/tauri.native-perf.conf.json",
+    "--features",
+    "native-perf",
+    "--no-bundle",
+    "--ci"
+  ],
+  "pid": 30636,
+  "exitCode": 0,
+  "elapsedSeconds": 1705.9948399999994,
+  "sourceUnchanged": false,
+  "changedSourceFiles": [
+    "tauri/src-tauri/Cargo.toml"
+  ],
+  "pdfiumOverrideInherited": false,
+  "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+  "at": "2026-10-10T01:48:52.597854+00:00"
+}
