@@ -68,7 +68,7 @@ function fixture(generation = 1) {
     success: true,
     reason: null,
     failedStep: null,
-    calls: ['Runtime.evaluate', 'Page.getFrameTree'],
+    calls: ['Runtime.evaluate', 'Page.getFrameTree', 'Runtime.evaluate', 'Page.getFrameTree'],
     phases: [
       {
         name: 'startup',
@@ -113,6 +113,21 @@ test('startup accepts readonly pairs with native duration distinct from capture 
   assert.equal(checkStartup(first.proof, owned, first.bound, 1, owner).phases[0].durationMs, 500);
   assert.equal(checkStartup(warm.proof, owned, warm.bound, 2, warmId).elapsedMs, 25);
   checkPair(first.proof, warm.proof);
+});
+test('startup accepts fixed authentication diagnostic tail and rejects missing or repeated guards', () => {
+  const { proof, bound } = fixture();
+  const calls = ['Runtime.evaluate', 'Page.getFrameTree', 'Runtime.evaluate', 'Page.getFrameTree'];
+  proof.calls = calls;
+  assert.equal(checkStartup(proof, owned, bound, 1, owner), proof);
+  for (const invalid of [
+    calls.slice(0, 2),
+    calls.slice(0, 3),
+    [...calls, ...calls.slice(2)],
+    [...calls.slice(0, 2), 'Page.getFrameTree', 'Runtime.evaluate'],
+    [...calls.slice(0, 2), 'Input.insertText', 'Page.getFrameTree'],
+  ]) {
+    assert.throws(() => checkStartup({ ...proof, calls: invalid }, owned, bound, 1, owner));
+  }
 });
 test('startup rejects input, failure, old journey format and unsupported fields', () => {
   for (const mutate of [

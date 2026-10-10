@@ -144,7 +144,13 @@ fn validate_prime(proof: &Value, owned: &OwnedManifest) -> Result<(), String> {
         || proof["success"] != true
         || !proof["reason"].is_null()
         || !proof["failedStep"].is_null()
-        || proof["calls"] != json!(["Runtime.evaluate", "Page.getFrameTree"])
+        || proof["calls"]
+            != json!([
+                "Runtime.evaluate",
+                "Page.getFrameTree",
+                "Runtime.evaluate",
+                "Page.getFrameTree"
+            ])
         || proof["startup"] != json!(launch(&owned.root, &owned.run_id, 1))
         || proof["unmeasured"] != unmeasured(1)
         || !finite(&proof["elapsedMs"], 300000.0)

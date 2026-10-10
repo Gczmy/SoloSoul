@@ -120,7 +120,12 @@ export function checkStartup(value, owned, bound, generation, launchId) {
     value.reason !== null ||
     value.failedStep !== null ||
     value.inputMethod !== 'SDK-CDP-read-only' ||
-    !eq(value.calls, ['Runtime.evaluate', 'Page.getFrameTree']) ||
+    !eq(value.calls, [
+      'Runtime.evaluate',
+      'Page.getFrameTree',
+      'Runtime.evaluate',
+      'Page.getFrameTree',
+    ]) ||
     value.pid !== bound.pid ||
     value.browserPid !== bound.browserPid ||
     value.pid === value.browserPid ||
