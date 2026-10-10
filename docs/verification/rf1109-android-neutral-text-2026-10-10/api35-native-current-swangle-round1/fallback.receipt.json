@@ -1,0 +1,39 @@
+{
+  "mode": "fallback",
+  "command": [
+    "node",
+    "scripts/android-native-regression.mjs",
+    "--adb",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+    "--serial",
+    "emulator-5586",
+    "--avd",
+    "SoloSoul_RF121_20261010",
+    "--apk",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+    "--test-apk",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk",
+    "--output",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-current-swangle-round1\\fallback",
+    "--mode",
+    "fallback"
+  ],
+  "exitCode": 1,
+  "accepted": false,
+  "elapsedSeconds": 31.97679089999292,
+  "expectedTests": 11,
+  "observedTests": 4,
+  "successes": 3,
+  "restorationErrorsAbsent": true,
+  "sourceAndApkHashesUnchanged": true,
+  "settingsBefore": {
+    "disableWindowBlurs": "null",
+    "nightMode": "Night mode: no"
+  },
+  "settingsAfter": {
+    "disableWindowBlurs": "null",
+    "nightMode": "Night mode: no"
+  },
+  "dedicatedAvdIdentityConfirmedAfter": true,
+  "reportSha256": "dea43091c21a13c55244c7e466bfdfacf3b943b744232779b802768b2b1a0d7a"
+}

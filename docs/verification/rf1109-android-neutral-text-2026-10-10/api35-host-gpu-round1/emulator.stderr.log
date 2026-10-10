@@ -1,0 +1,2 @@
+(anonymous namespace)::WglExtensionsDispatch::init: Could not find wglGetExtensionsString! arbFound 0 listarbNull/empty 1 0 extFound 0 extNull/empty 1 0 remote 1
+OpenGL Core Profile not supported.

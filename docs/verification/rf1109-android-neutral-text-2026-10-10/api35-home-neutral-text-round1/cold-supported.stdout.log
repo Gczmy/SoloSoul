@@ -1,0 +1,45 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF121_20261010",
+  "mode": "supported",
+  "scenario": "cold",
+  "motionPreferenceChecks": true,
+  "startedAt": 1791666170.4990602,
+  "passed": false,
+  "restored": true,
+  "requestedFontScale": null,
+  "nightModeBefore": "no",
+  "api": 35,
+  "abi": "x86_64",
+  "notificationPermissionBefore": {
+    "granted": false,
+    "flags": [
+      "USER_SENSITIVE_WHEN_DENIED",
+      "USER_SENSITIVE_WHEN_GRANTED"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+      "sha256": "4f84d60e7740b9804ced6080e09cb35421a89f1d3c02de2faaecdede676da003"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk",
+      "sha256": "9f2097d2da5d2b8d517544a50f200f2753faa4d160752fe38e0c60cca027f4e5"
+    }
+  ],
+  "backup": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-neutral-text-round1\\cold-supported\\private-data-before.tar",
+    "sha256": "f378e4816394756a0726745768cd33fb71ed69e587a99610a8dd338c4ee8f109",
+    "entries": 248
+  },
+  "error": "Missing exact successful one-test native report; skips are failures",
+  "restoreVerification": {
+    "entries": 248,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "notificationPermissionRestored": true,
+  "nightModeRestored": true,
+  "finishedAt": 1791666230.5136545
+}

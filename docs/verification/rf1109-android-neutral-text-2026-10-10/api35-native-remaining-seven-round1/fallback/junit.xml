@@ -1,0 +1,1 @@
+<testsuite name="android-fallback" tests="1" failures="1" skipped="0"><testcase classname="AndroidThemeInstrumentedTest" name="systemThemeFollowsLightDarkLight" time="47.855"><failure message="Native test failed or skipped"/></testcase></testsuite>

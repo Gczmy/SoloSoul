@@ -1,0 +1,93 @@
+{
+  "records": [
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 15; Android SDK built for x86_64 Build\/AE3A.240806.019; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/124.0.6367.219 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": true,
+        "dynamicViewport": true
+      },
+      "theme": "light",
+      "glass": "local",
+      "reduceMotion": "false",
+      "background": "#fafaf6",
+      "surface": "#fdfcf9",
+      "foreground": "#111111",
+      "accent": "#5b7c99",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(17, 17, 17)",
+      "copyRect": {
+        "x": 44,
+        "y": 255.1953125,
+        "width": 217.8203125,
+        "height": 124.796875,
+        "right": 261.8203125,
+        "bottom": 379.9921875
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 360,
+      "overflow": false,
+      "navigationBackground": "rgba(253, 252, 249, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "stage": "local-light",
+      "screenshotWidth": 720,
+      "screenshotHeight": 1600,
+      "copyInkPixels": 156,
+      "webViewScale": 2,
+      "recordedAtMs": 1791666119148
+    },
+    {
+      "path": "\/",
+      "buttons": [
+        "",
+        "",
+        "",
+        "",
+        "New",
+        "View all",
+        "Identity0 objects",
+        "Travel0 objects",
+        "Financial0 objects",
+        "Professional0 objects",
+        "Documents0 objects",
+        ""
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "SoloSoul\nHome\nObjects\nTools\nSettings\nNew\nWelcome back, FE2 public visual test\n\nA place for every part of your life.\n\nMy vault\n\n0\nobjects\n\nLocal vault · Your data, your control\n\nData Sections\nView all\nIdentity\n0 objects\nTravel\n0 objects\nFinancial\n0 objects\nProfessional\n0 objects\nDocuments\n0 objects\nRecently updated\n\nNo objects yet",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "hidden": false,
+      "home": true,
+      "alerts": [],
+      "stage": "failure",
+      "reason": "enhanced-light: {\"path\":\"\\\/\",\"home\":true,\"userAgent\":\"Mozilla\\\/5.0 (Linux; Android 15; Android SDK built for x86_64 Build\\\/AE3A.240806.019; wv) AppleWebKit\\\/537.36 (KHTML, like Gecko) Version\\\/4.0 Chrome\\\/124.0.6367.219 Mobile Safari\\\/537.36\",\"cssSupport\":{\"backdropFilter\":true,\"colorMix\":true,\"dynamicViewport\":true},\"theme\":\"light\",\"glass\":\"enhanced\",\"reduceMotion\":\"false\",\"background\":\"#fafaf6\",\"surface\":\"#fdfcf9\",\"foreground\":\"#111111\",\"accent\":\"#5b7c99\",\"count\":\"0\",\"copyText\":\"My vault0objectsLocal vault · Your data, your control\",\"copyVisible\":true,\"name\":\"Welcome back, FE2 public visual test\",\"copyColor\":\"rgb(17, 17, 17)\",\"copyRect\":{\"x\":44,\"y\":255.1953125,\"width\":154.2734375,\"height\":147.1953125,\"right\":198.2734375,\"bottom\":402.390625},\"artRect\":{\"x\":202.125,\"y\":231.1953125,\"width\":131.875,\"height\":195.1953125,\"right\":334,\"bottom\":426.390625},\"ready\":false,\"canvasVisible\":false,\"canvasWidth\":300,\"canvasHeight\":150,\"viewportWidth\":360,\"overflow\":false,\"navigationBackground\":\"rgba(253, 252, 249, 0.9)\",\"navigationBackdrop\":\"blur(16px) saturate(1.08)\",\"navCount\":4}",
+      "recordedAtMs": 1791666164970
+    }
+  ],
+  "processId": 5696,
+  "runtime": {
+    "api": 35,
+    "webViewPackage": "com.android.webview",
+    "webViewVersion": "124.0.6367.219",
+    "webViewVersionCode": 636771907
+  },
+  "directoryAttempts": 1,
+  "unlockAttempts": [],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "requestedFontScale": null,
+  "fontMenuBeforeDetail": false,
+  "scenario": "baseline",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}

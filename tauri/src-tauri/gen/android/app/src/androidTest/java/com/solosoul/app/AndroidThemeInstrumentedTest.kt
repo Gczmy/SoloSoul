@@ -85,14 +85,14 @@ class AndroidThemeInstrumentedTest {
     ) {
         val expected = if (customSchemes) {
             if (theme == "light") mapOf("background" to "#f6f8fa", "surface" to "#ffffff",
-                "foreground" to "#1f2328", "accent" to "#112233")
+                "foreground" to "#111111", "accent" to "#112233")
             else mapOf("background" to "#1a211d", "surface" to "#242d28",
-                "foreground" to "#d6ddd8", "accent" to "#112233")
+                "foreground" to "#ffffff", "accent" to "#112233")
         } else {
             if (theme == "light") mapOf("background" to "#fafaf6", "surface" to "#fdfcf9",
-                "foreground" to "#1f1c18", "accent" to "#5b7c99")
+                "foreground" to "#111111", "accent" to "#5b7c99")
             else mapOf("background" to "#1f1c18", "surface" to "#2a2620",
-                "foreground" to "#ddd8c8", "accent" to "#7a9ab5")
+                "foreground" to "#ffffff", "accent" to "#7a9ab5")
         }
         val expectedInk = if (customSchemes) "#ffffff" else "#000000"
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45)

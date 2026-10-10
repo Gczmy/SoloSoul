@@ -257,7 +257,7 @@ class AndroidHomeInstrumentedTest {
                 navigationChannels.size == 4 && navigationChannels[3].trim().toDouble() >= 0.85))
         assertEquals(if (dark) "#1f1c18" else "#fafaf6", result.getString("background"))
         assertEquals(if (dark) "#2a2620" else "#fdfcf9", result.getString("surface"))
-        assertEquals(if (dark) "#ddd8c8" else "#1f1c18", result.getString("foreground"))
+        assertEquals(if (dark) "#ffffff" else "#111111", result.getString("foreground"))
         if (enhanced) {
             assertTrue("实际首页画布必须可见", result.getBoolean("canvasVisible"))
             assertTrue(result.getInt("canvasWidth") > 0 && result.getInt("canvasHeight") > 0)
@@ -1246,7 +1246,7 @@ class AndroidHomeInstrumentedTest {
                                accountCount: Int): JSONObject {
         val background = if (dark) "#1a211d" else "#f6f8fa"
         val surface = if (dark) "#242d28" else "#ffffff"
-        val foreground = if (dark) "#d6ddd8" else "#1f2328"
+        val foreground = if (dark) "#ffffff" else "#111111"
         val expression = """(() => {const state=JSON.parse($home),s=getComputedStyle(document.documentElement);
           const link=document.querySelector('.android-section-heading .android-text-button');
           const rgb=c=>c.startsWith('#')?[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)):c.match(/[\d.]+/g).slice(0,3).map(Number);

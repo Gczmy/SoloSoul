@@ -1,0 +1,205 @@
+{
+  "booted": true,
+  "attempts": [
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 0.20719109999481589
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 2.2647873999958392
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 4.321474299998954
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 6.5172456999716815
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 8.582957099977648
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 10.681312699976843
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 13.021499499998754
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 15.103174999996554
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 17.189149899990298
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 19.534041999984765
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 21.594885099999374
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 23.652331699995557
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 25.747205899999244
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 27.82533599997987
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 29.93729929998517
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 32.45480169999064
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 34.61994799997774
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 36.86178039998049
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 39.0163783999742
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 41.10417849998339
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 43.21006829998805
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 45.349864099989645
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 47.4952150999743
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 49.593205599987414
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 51.74019259997294
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 53.82546459999867
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 55.91754729999229
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 58.08769549999852
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 60.19414529998903
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 62.29778459999943
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 64.45537369998056
+    },
+    {
+      "exitCode": 0,
+      "value": "",
+      "elapsedSeconds": 66.56177729999763
+    },
+    {
+      "exitCode": 0,
+      "value": "1",
+      "elapsedSeconds": 68.65497139998479
+    }
+  ],
+  "elapsedSeconds": 68.65497449997929,
+  "pid": 23228,
+  "command": [
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe",
+    "-avd",
+    "SoloSoul_RF121_20261010",
+    "-port",
+    "5586",
+    "-accel",
+    "on",
+    "-gpu",
+    "swangle",
+    "-memory",
+    "2048",
+    "-cores",
+    "2",
+    "-no-window",
+    "-no-snapshot",
+    "-no-audio",
+    "-no-boot-anim"
+  ],
+  "applicationAcceptance": false,
+  "physicalDevicePerformanceAccepted": false,
+  "previousFailuresPreserved": true,
+  "settingsBefore": {
+    "blur": "null",
+    "night": "Night mode: no"
+  },
+  "settingsAfter": {
+    "blur": "null",
+    "night": "Night mode: no"
+  },
+  "dedicatedAvdIdentityConfirmed": true,
+  "avdConfigUnchanged": true,
+  "at": "2026-10-10T20:53:53.049486+00:00"
+}

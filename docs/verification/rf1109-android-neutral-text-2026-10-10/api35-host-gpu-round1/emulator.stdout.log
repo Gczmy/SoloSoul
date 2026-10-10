@@ -1,0 +1,60 @@
+INFO         | Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)
+INFO         | Graphics backend: gfxstream
+INFO         | Found systemPath D:\SoloSoul\build\android-native-feasibility-20261010\sdk\system-images\android-35\default\x86_64\
+INFO         | Increasing RAM size to 2560MB
+INFO         | IPv4 server found: 143.117.6.66
+INFO         | Ignore IPv6 address: 609f:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 609f:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 609f:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 8b0:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 8b0:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 8b0:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: e8b5:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: e8b5:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: e8b5:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: bc:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: bc:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: bc:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 18c2:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 18c2:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 18c2:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 38c8:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 38c8:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 38c8:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 20ce:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 20ce:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: 20ce:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: b8d5:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: b8d5:1cc3:e001:0:609f:1cc3:e001:0
+INFO         | Ignore IPv6 address: b8d5:1cc3:e001:0:609f:1cc3:e001:0
+##############################################################################
+##                        WARNING - ACTION REQUIRED                         ##
+##  Consider using the '-metrics-collection' flag to help improve the       ##
+##  emulator by sending anonymized usage data. Or use the '-no-metrics'     ##
+##  flag to bypass this warning and turn off the metrics collection.        ##
+##  In a future release this warning will turn into a one-time blocking     ##
+##  prompt to ask for explicit user input regarding metrics collection.     ##
+##                                                                          ##
+##  Please see '-help-metrics-collection' for more details. You can use     ##
+##  '-metrics-to-file' or '-metrics-to-console' flags to see what type of   ##
+##  data is being collected by emulator as part of usage statistics.        ##
+##############################################################################
+INFO         | Guest GLES Driver: Auto (ext controls)
+ERROR        | Your GPU cannot be used for hardware rendering. Consider using software rendering.
+INFO         | emuglConfig_init: vulkan_mode_selected:host gles_mode_selected:host
+INFO         | emuglConfig_get_vulkan_hardware_gpu_support_info: Found physical GPU 'Intel(R) UHD Graphics 630', type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, apiVersion: 1.3.215, driverVersion: 0.404.2141
+
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasCompatibleHypervisor
+INFO         |      Ok: Hypervisor compatibility to run avd: `SoloSoul_RF121_20261010` are met
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `SoloSoul_RF121_20261010` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `SoloSoul_RF121_20261010` are passed
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `SoloSoul_RF121_20261010` are met
+INFO         | Storing crashdata in: D:\SoloSoul\build\android-native-feasibility-20261010\tmp\\AndroidEmulator\emu-crash-37.2.12.db, detection is enabled for process: 14420
+INFO         | Initializing gfxstream backend
+INFO         | startOpenglesRendererImpl: gpu info
+INFO         | 
+INFO         | Disabling implicit Vulk

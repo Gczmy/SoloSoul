@@ -1,0 +1,8 @@
+--------- beginning of main
+10-10 21:55:31.357  2975  2999 E chromium: [1010/215531.357295:ERROR:variations_seed_loader.cc(37)] Seed missing signature.
+10-10 21:55:31.357  2975  2999 I chromium: [1010/215531.357745:INFO:variations_seed_loader.cc(66)] Failed to open file for reading.: No such file or directory (2)
+10-10 21:55:31.692  3001  3028 W chromium: [WARNING:runtime_features.cc(694)] SharedStorage for M118+ cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI,SharedStorageAPIM118 in addition.
+10-10 21:55:31.926  2975  3026 W chromium: [WARNING:display_webview.cc(32)] WebView overlays are enabled!
+10-10 21:55:32.323  3001  3028 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-10 21:55:32.381  3001  3028 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-10 21:55:32.385  3001  3028 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom

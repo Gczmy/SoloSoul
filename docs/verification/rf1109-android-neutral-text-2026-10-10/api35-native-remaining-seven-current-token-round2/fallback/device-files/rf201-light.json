@@ -1,0 +1,50 @@
+[
+  {
+    "platform": "android",
+    "theme": "light",
+    "darkMedia": false,
+    "mounted": true,
+    "startupGone": true,
+    "background": "#fafaf6",
+    "surface": "#fdfcf9",
+    "foreground": "#111111",
+    "accent": "#5b7c99",
+    "materialContainer": "#eaeded",
+    "materialInk": "#000000",
+    "statusBarLight": true,
+    "navigationBarLight": true,
+    "stage": "light-light"
+  },
+  {
+    "platform": "android",
+    "theme": "light",
+    "darkMedia": true,
+    "mounted": true,
+    "startupGone": true,
+    "background": "#fafaf6",
+    "surface": "#fdfcf9",
+    "foreground": "#111111",
+    "accent": "#5b7c99",
+    "materialContainer": "#eaeded",
+    "materialInk": "#000000",
+    "statusBarLight": true,
+    "navigationBarLight": true,
+    "stage": "light-dark"
+  },
+  {
+    "platform": "android",
+    "theme": "light",
+    "darkMedia": false,
+    "mounted": true,
+    "startupGone": true,
+    "background": "#fafaf6",
+    "surface": "#fdfcf9",
+    "foreground": "#111111",
+    "accent": "#5b7c99",
+    "materialContainer": "#eaeded",
+    "materialInk": "#000000",
+    "statusBarLight": true,
+    "navigationBarLight": true,
+    "stage": "light-light-again"
+  }
+]
