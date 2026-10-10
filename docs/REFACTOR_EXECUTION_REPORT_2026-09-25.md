@@ -7474,6 +7474,22 @@ git commit -m "<任务卡的提交标题>"
 - 原生采样前置实际读到会话1 Disconnected、OpenInputDesktop错误5，驱动exit1；未启动测试应用，0个样本，不放宽桌面门禁、不覆盖此前失败。原件保留在 build/rf312-warm-current-20261010/after-rf1106/desktop-preflight-stop.json；本项保持进行中。
 - Android交叉编译探针实际exit0，旧120秒超时记录保留。当前改动只属于非默认Windows诊断，不进入默认Android产品；独立默认Debug x86_64 APK构建已启动，工具链和缓存优先D盘，尚未进行设备验收。
 
+### Android私有设备就绪与生成文件核对（2026-10-10）
+
+- 初次私有ADB启动把tcp:127.0.0.1:5049视为远程主机而拒绝，未启动模拟器；原stderr及失败回执保留。依据本机ADB帮助改用tcp:localhost:5049后，专用SoloSoul_RF121_20261010/emulator-5586启动通过，实际API35/x86_64与AVD名称一致，WHPX运行；OpenGL ES3.0后端为SwiftShader，Vulkan为llvmpipe，不作为真机GPU性能证据。设备就绪回执为 build/android-native-feasibility-20261010/boot-private-avd-local-socket.receipt.json，产品应用仍未安装或验收。
+- APK构建仍在编译Rust依赖，未据此关闭RF-121/312或FE2。构建生成的三张NSIS位图、Cargo.toml、tauri.properties和搜索索引已按冻结SHA保存前后字节；属性/索引语义不变，NSIS像素不同但不在Androidbundle.resources映射中。将等待构建终止，再严格核对当前SHA并恢复六文件，不覆写活跃构建，不混入修复提交。
+- 后续只读检查确认API35设备在线、开机完成；compositor背景模糊属性为1，disable_window_blurs未设置，夜间模式为no，字体缩放为1.0。这些是设备初始状态，仍须由真实WindowManager和逐项instrumentation证明玻璃支持及产品行为。pm path查询未安装应用返回exit1/空输出，首次探针因此停止；保留该失败后，第二次分别记录各查询实际退出码，未把包不存在当作应用回归结果。原件为 build/android-native-feasibility-20261010/api35-readonly-settings-20261010-2014.json；未启动应用或改变系统设置。
+- Android编译实际发现 Core `process_lock.rs:26` 的 `lock_path` 未使用警告：该变量在桌面条件编译块外创建，移动端占位分支不使用它。修复应给该声明加上与桌面锁相同的条件编译，不改变移动端单实例策略或桌面排他锁行为。证据保存于 build/android-native-feasibility-20261010/android-process-lock-unused-warning.json；当前仅完成定位，尚未修复或验收，也未执行iOS编译。待现有冻结来源的构建/设备验证完成后，按独立问题修复、验证并提交。
+- 同一Android编译实际发现 Sync `workers.rs` 两个警告，涉及 `reopen`、`wait_stopping` 和仅由 `reopen` 使用的 `is_finished`。桌面 `manager` 已由平台条件编译排除在移动端之外，移动端服务没有调用这三项，但方法定义仍编译进移动端；应按现有桌面条件编译约束这三个私有方法，共享与移动端的停止、等待和目录许可行为保持。来源和原始警告定位保存在 build/android-native-feasibility-20261010/android-sync-desktop-method-warnings.json；尚未修改或验收，待当前冻结来源验证结束后作为独立问题处理，不能将仅定位的警告计为已关闭。
+- 主应用又实际报告9个Android警告，位置为 Recovery、Discovery、Window 和 Setup。桌面辅助功能轮询、注册表刷新及相关导入/常量应跟随其调用者的平台条件；Recovery已有返回None的移动端广告回退函数，却仅在桌面编译调用，不能直接删除移动端回退或改动注入AppHandle的命令签名来消除警告。正常mDNS类型常量还有既有跨平台协议一致性测试使用，后续约束声明时须保留测试用途。4文件来源及9项警告保存在 build/android-native-feasibility-20261010/android-main-app-cfg-warnings.json；当前仅完成审查，不代表修复通过，仍需结束冻结来源验证后分项实施和提交。
+
+### Android编译结束与完整资源打包恢复（2026-10-10）
+
+- Rust dev编译实际完成，耗时88分27秒，生成91,808,568字节的x86_64 ELF共享库；指纹启用custom-protocol/default，未启用native-perf。Tauri Android命令随后创建JNI符号链接被Windows拒绝，真实exit1；原驱动又因六个生成文件变化触发来源断言，真实exit1。主命令/驱动的失败及原日志保留，不计APK成功；确认原构建句柄终止后，严格按先前捕获SHA恢复六个文件，1830项来源重新一致。
+- 首个复制库打包方案在资源预检时发现现有assets受Git管理，驱动exit1，尚未复制JNI、写入/删除资源或启动Gradle；失败记录及当时驱动保存在 build/android-native-feasibility-20261010/current-apks-recovery1/。进一步核实源assets有97个文件，其中8份合法的既有文档未列入当前89项运行资源清单，全部保留，不删除或排除。
+- 新方案在D盘私有打包目录保留完整97份原始assets，按当前主/Android资源配置叠加89项运行资源及清单；搜索索引使用已捕获的构建时字节，JSON与恢复后的源索引等价。通过临时Gradle初始化脚本仅改变main assets的输入位置，全部源assets保持原字节；JNI采用已编译共享库的逐字复制，排除仅负责重复Rust构建/符号链接的Gradle任务，Java/Kotlin、应用与instrumentation仍正常完整编译。Gradle 8.14.3实际下载完成，打包队列已启动；原件为 build/android-native-feasibility-20261010/current-apks-recovery2/，当前未产生APK验收或设备通过结果，未更改系统设置。
+- 后续Gradle应用打包实际exit0（9分36秒），instrumentation打包实际exit0（3分10秒）；两份badging和签名核验均exit0。冻结应用APK为126,790,163字节、测试APK为1,679,146字节；APK内JNI库SHA与实际Rust产物一致，89份运行资源、清单及8份既有额外文档逐字核验，97份原始assets和1830项来源保持。构建恢复队列实际exit0，原Tauri符号链接失败仍为exit1，不改写为成功。完整默认Debug x86_64 APK对记录为 build/android-native-feasibility-20261010/current-apks-recovery2/current-apks.json；API35专用模拟器上的13项支持/11项降级原生回归已经启动，尚未据此验收设备、首页矩阵或API31历史问题。
+
 ### RF-1108 Android卡片截图等待原生绘制（2026-10-10）
 
 - 首轮支持组4/13、降级组2/11成功后均在浮动卡片失败；两张不同卡片的原生截图逐字相同，DOM滚动不等于系统合成已经呈现。加入视觉提交/实际绘制等待后，还复现初始DOM报告采到未进入视口的浮动卡片过渡前颜色；中间两轮真实失败和原件全部保留。
@@ -7545,3 +7561,11 @@ git commit -m "<任务卡的提交标题>"
 - 原离线回归改用当前真实冷启动/生命周期快照以及RF-1114真实账户快照，34项全部通过；错误颜色、动画交付、原生系统模式、Activity/WebView重建、操作像素/命中与缺失冷启动阶段仍拒绝。API31无通知权限适用性，相关快照验收明确使用false；历史记录不改写。
 - [结构化证据](verification/rf1113-account-cold-text-2026-10-10.json)及原件索引保存完整失败与通过、编译/签名/身份、离线回归及实际来源；不归档私有备份TAR或APK。不据此关闭API35/WebGL或完整跨平台RF-121；一项独立提交，不推送。
 - Git暂存时外层Python脚本仅发生CRLF→LF规范化，逐字校验除此之外无差异；结构化证据分别保存实际执行原字节SHA与Git规范化SHA，不以规范化摘要冒充实际运行输入。
+
+### RF-121 当前程序的Windows原生材质补验进展（2026-10-11）
+
+- 会话1最新复测Active且输入桌面可访问，无须切换会话2。Android本轮账户/冷启动和离线回归由RF-1113/1114独立提交；真实恢复完成后按精确微秒出生时间、路径和命令行关闭专用模拟器与私有ADB，没有关闭其他进程。初次停止因JSON日期自动转换丢失小数安全拒绝，保留原日期字符串后精确匹配再关闭，没有放宽PID身份门禁。
+- 当前Windows Release程序SHA为1e453a3c9b31503d1c5943b494caa2da7e4b369ac9012b30b7e593a73e301dab；相对上轮绑定仅3个Android测试/外部脚本变化，1830项来源逐一绑定，Windows Rust/前端/资源输入保持。首次3组捕获被辅助程序目录前缀门禁拒绝，整个驱动exit1，保留全部失败。按原有规则在D盘允许目录逐字复制当前程序及全部94项资源，未修改辅助程序或路径/进程门禁。
+- 新一轮3组完整SDK原生旅程均exit0，每组均取得同一PID/出生时间、主frame/loader、真实DOM时钟及截图前后稳定状态绑定的WGC窗口帧，独立Node校验通过；实际转换的3帧均逐张检查：浅色首页、展开侧栏、96 DPI下文字与四类表面可区分，没有空白或整窗黑屏。3帧均有真实OCR安装完成通知；固定四类表面稳定不等于整页过渡行为已通过。
+- 新旧两轮终止及身份核验后，清理48个明确归属的临时缓存目录、6个重解析链接，核对54项实际进程身份，保留207项测试Vault与根证据，所有保留字节SHA不变；未删除公共源fixture或其他进程/账户内容。
+- [结构化证据](verification/rf121-current-native-progress-2026-10-11.json)和原件索引保存当前程序绑定、原目录门禁失败、实际窗口帧、独立校验及缓存清理，亦归档初始Android完整资源打包恢复来源；不包含私有Vault、备份TAR、可执行程序或APK。RF-121仍待完整原生矩阵，不将DOM mica标签或单一浅色WGC帧当作DWM属性回读、深色/折叠、缩放、恢复、辅助功能或macOS验证；下一步仍有Windows真实设置场景与已定位Android条件编译警告可本地推进。

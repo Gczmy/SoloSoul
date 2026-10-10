@@ -1,0 +1,1214 @@
+{
+  "members": [
+    {
+      "path": "android/android-main-app-cfg-warnings.json",
+      "bytes": 3553,
+      "sha256": "649118d06dc73f4577979d19b70d9f7596267d85e87030c8d21bb951f924f4f1"
+    },
+    {
+      "path": "android/android-process-lock-unused-warning.json",
+      "bytes": 1219,
+      "sha256": "42f445a2b33e78d6013d73a346b50ba2e3493716db76fa057c6128c638e4403c"
+    },
+    {
+      "path": "android/android-sync-desktop-method-warnings.json",
+      "bytes": 1963,
+      "sha256": "7f034747995426d8443ac341fad1f92e42a2be87a8febb5061256bfca8fc434f"
+    },
+    {
+      "path": "android/api31-owned-processes-stopped-after-rf1113.json",
+      "bytes": 1816,
+      "sha256": "dcb86d0d094e8e1692e19bd1a4c1da546904bc44d21113be59c031ec5cad74bd"
+    },
+    {
+      "path": "android/initial-full-apk/current-apks.json",
+      "bytes": 234290,
+      "sha256": "79db68991ac2aaa6e6e1ae38e6bd1a3ffaad67d02f41ec7fa52310135481bf5b"
+    },
+    {
+      "path": "android/initial-full-apk/input-proof.json",
+      "bytes": 279552,
+      "sha256": "95f9340807a1074c89a4f7e36e69eee3673043cbeefadd486d256ae1aa8a636a"
+    },
+    {
+      "path": "android/initial-full-apk/main-badging.live.json",
+      "bytes": 275,
+      "sha256": "629fe68b2853ed89c3b46795f08c21ab52d83499b2075030fbd847935b029e89"
+    },
+    {
+      "path": "android/initial-full-apk/main-badging.receipt.json",
+      "bytes": 637,
+      "sha256": "b3f80ed8345fae903d08e20caa386e0edfc0b1d73ffbe29a1ecff0175a663d68"
+    },
+    {
+      "path": "android/initial-full-apk/main-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "android/initial-full-apk/main-badging.stdout.log",
+      "bytes": 6681,
+      "sha256": "1f16811ac3c9aa5fc6e3ca973356dccbf9b7e4649a45e1f05ebbf35a09b6db89"
+    },
+    {
+      "path": "android/initial-full-apk/main-build.live.json",
+      "bytes": 408,
+      "sha256": "ee4c7f57388ca8908148bcf87e8bbf70891d2755fc58329048adb4afc8eebda4"
+    },
+    {
+      "path": "android/initial-full-apk/main-build.receipt.json",
+      "bytes": 770,
+      "sha256": "0a46934e52713bf74020897863fb4777f6cb072269a62c47bf626d3559016c2c"
+    },
+    {
+      "path": "android/initial-full-apk/main-build.stderr.log",
+      "bytes": 975,
+      "sha256": "bb72511f333f41cb650e5825ea1132c0b4f5289902a143b8b1de3d155726c1b7"
+    },
+    {
+      "path": "android/initial-full-apk/main-build.stdout.log",
+      "bytes": 18372,
+      "sha256": "0146ba0d0e00b5f64f1d6210d678da4609f19d0d2e8343458b353ec23e9744d9"
+    },
+    {
+      "path": "android/initial-full-apk/main-signature.live.json",
+      "bytes": 360,
+      "sha256": "0c872be590f69388e1cb07c843b33282557216ca887aba11e84e9bf973b0b691"
+    },
+    {
+      "path": "android/initial-full-apk/main-signature.receipt.json",
+      "bytes": 722,
+      "sha256": "950e9a1138c24f7a1c2d978d6a2647ccd1d08576ae3306d28753fa94a26cb673"
+    },
+    {
+      "path": "android/initial-full-apk/main-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "android/initial-full-apk/main-signature.stdout.log",
+      "bytes": 351,
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09"
+    },
+    {
+      "path": "android/initial-full-apk/original-source-assets.json",
+      "bytes": 12822,
+      "sha256": "7d704c29aa37527d9e6ad1ee427b914ff5cb40acec1b79b5cbb497195410bac5"
+    },
+    {
+      "path": "android/initial-full-apk/private-packaging-assets.init.gradle",
+      "bytes": 308,
+      "sha256": "9d6755db5c26cb29b9d5991dea427cc0055393739bbd971eb3aa2c599cdd3bc1"
+    },
+    {
+      "path": "android/initial-full-apk/test-badging.live.json",
+      "bytes": 287,
+      "sha256": "6f792fd4fff6a5d048267d14060f3423d02b2619cdd624256badc968efc4f4b4"
+    },
+    {
+      "path": "android/initial-full-apk/test-badging.receipt.json",
+      "bytes": 650,
+      "sha256": "fbde38e92864cd23a75362a8c31aa302695a2fba2e7c6a88689aa720eff4f2b6"
+    },
+    {
+      "path": "android/initial-full-apk/test-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "android/initial-full-apk/test-badging.stdout.log",
+      "bytes": 685,
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747"
+    },
+    {
+      "path": "android/initial-full-apk/test-build.live.json",
+      "bytes": 420,
+      "sha256": "1440fea5cd9ef6c7c7f0e768b05fca8152df53211cdd94b87037fd738c875ef2"
+    },
+    {
+      "path": "android/initial-full-apk/test-build.receipt.json",
+      "bytes": 783,
+      "sha256": "f33746e79b58f11d62ad1a35b4f30062cb4e9d69f1f9a6186438efe400492afc"
+    },
+    {
+      "path": "android/initial-full-apk/test-build.stderr.log",
+      "bytes": 703,
+      "sha256": "e775712beee31b5813fdb905cb380321ad81ae4cdb95b5469713426c0c2d5fa1"
+    },
+    {
+      "path": "android/initial-full-apk/test-build.stdout.log",
+      "bytes": 14872,
+      "sha256": "571907a6e81856b065796f3ca5e6e0fff3fe0ddf5970d5f22bf04b40a8a6e970"
+    },
+    {
+      "path": "android/initial-full-apk/test-signature.live.json",
+      "bytes": 372,
+      "sha256": "792a4910a03b4449427a0f0b75f61fd3762187f045cfb0e77ff9daaefc6b2fb0"
+    },
+    {
+      "path": "android/initial-full-apk/test-signature.receipt.json",
+      "bytes": 735,
+      "sha256": "bcec16cfb65114dd391ce0c3c3e2646dd60fed78ca746b582265139bc9f4897c"
+    },
+    {
+      "path": "android/initial-full-apk/test-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "android/initial-full-apk/test-signature.stdout.log",
+      "bytes": 351,
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09"
+    },
+    {
+      "path": "android/verify-session-20261010-reconnected-final.json",
+      "bytes": 319,
+      "sha256": "649dc13254d1235449152dfa28b4228005c928faec69e44da137b0407f691daa"
+    },
+    {
+      "path": "android/verify-session-20261011-after-account-cold-fixes.json",
+      "bytes": 319,
+      "sha256": "65f4a0fb54a68fd7e96a32da96a789714759250ecbcaef2b0763ea536f6bef7c"
+    },
+    {
+      "path": "windows/application-logs-current-20261011/accepted-round2/100/sample-001/app.log",
+      "bytes": 2591,
+      "sha256": "17780a42e65c5dcfbff6e5e83b2db2f877d088f7b036038439343249a17fb694"
+    },
+    {
+      "path": "windows/application-logs-current-20261011/accepted-round2/100/sample-002/app.log",
+      "bytes": 2591,
+      "sha256": "9ebf58f704c4e9782e8abc67f8ea331ddc6fadff02c7521b56592867dcebbed8"
+    },
+    {
+      "path": "windows/application-logs-current-20261011/accepted-round2/100/sample-003/app.log",
+      "bytes": 2591,
+      "sha256": "d38f5d63a689eed002a615d8cbc2391e681db943692d8c6603a0176682441301"
+    },
+    {
+      "path": "windows/application-logs-current-20261011/failed-original/100/sample-001/app.log",
+      "bytes": 2579,
+      "sha256": "e759b72855b0f9eee5ed6325e8ada4fbfbfb1ad4e822e3f64b7b7643b881307c"
+    },
+    {
+      "path": "windows/application-logs-current-20261011/failed-original/100/sample-002/app.log",
+      "bytes": 2579,
+      "sha256": "8638f6b4310f00d94da29764dc4fdf5609b627e3eb6fe150ac06291fa2aa2d6c"
+    },
+    {
+      "path": "windows/application-logs-current-20261011/failed-original/100/sample-003/app.log",
+      "bytes": 2579,
+      "sha256": "dfd4a3384c4286d13f743e3034a65f7fd7f836835e7ba2c745167190510ad499"
+    },
+    {
+      "path": "windows/drivers/cleanup-current-owned-20261011.ps1",
+      "bytes": 9948,
+      "sha256": "9f759d05885fab15b0d9512af6ac5b6a51aeb21c8b3fa1a63d1200eba8834239"
+    },
+    {
+      "path": "windows/drivers/current-20261011-owned-runtime-copy.json",
+      "bytes": 515,
+      "sha256": "ba4faf145f227df2025245fa3d2ea5d624b74a7372c8c5cbe80a148f218999ba"
+    },
+    {
+      "path": "windows/drivers/current-20261011-source-provenance.json",
+      "bytes": 1450,
+      "sha256": "5a3b99d14da2847e0d47a9bf1b44b1486a1c6d2e9f251acbccc8cd073dd5443f"
+    },
+    {
+      "path": "windows/drivers/current-cache-cleanup-20261011-preflight.json",
+      "bytes": 68154,
+      "sha256": "49d6e071a0d587151f38c3c09cb566932c27ae04a80bf98e3b97bb0ba7080f1f"
+    },
+    {
+      "path": "windows/drivers/current-cache-cleanup-20261011.json",
+      "bytes": 68295,
+      "sha256": "f1a02edc526101b45dc8da0875d1dff38e9cc79666ca14d749644e6279197a78"
+    },
+    {
+      "path": "windows/drivers/current-cache-cleanup-plan-20261011.json",
+      "bytes": 27518,
+      "sha256": "61f9c5330ad434f51e629a17e4b9a9f0c432e3ca9beb0d5ac1052b02b02ee2df"
+    },
+    {
+      "path": "windows/drivers/render-current-light-bindings-20261011.py",
+      "bytes": 2051,
+      "sha256": "f3f339e1b12bb60872cd6769325ca5322af3402c76bec80b8584541b6cb89a88"
+    },
+    {
+      "path": "windows/drivers/run-current-light-bindings-20261011-round2.py",
+      "bytes": 12720,
+      "sha256": "ef48e8a4400d00b9101d70abdf890a6ce28bc2cf7590d109913a800e88ae47a7"
+    },
+    {
+      "path": "windows/drivers/run-current-light-bindings-20261011.py",
+      "bytes": 12705,
+      "sha256": "433876dd46f27e8e4183afdf461e20dccd51745ff796bda82c4a5f6486c85e1e"
+    },
+    {
+      "path": "windows/drivers/runtime-package-current-20261011-round2.json",
+      "bytes": 36677,
+      "sha256": "e63cd03142e7d1e0af877c2a5e42e16ee667d9d2256c927b720e6dda16c5b64c"
+    },
+    {
+      "path": "windows/drivers/runtime-package-current-20261011.json",
+      "bytes": 36392,
+      "sha256": "3ee0e17002eea51b76d0bb6e33566b14c3a681affcf68070c28f9c7b3b2f9f8d"
+    },
+    {
+      "path": "windows/drivers/sources-current-20261011.json",
+      "bytes": 228919,
+      "sha256": "5b1f0ed476c32da4f1b1a563fb1ab561c276196af948b421aa533ea092456fc8"
+    },
+    {
+      "path": "windows/drivers/verify-current-light-bindings-20261011.mjs",
+      "bytes": 11584,
+      "sha256": "0faf3bc3afffc7d9e88c580b93503f7f00575cf6f8c7f91ef083e241a935e342"
+    },
+    {
+      "path": "windows/helper/owned-window.rs",
+      "bytes": 23604,
+      "sha256": "fed4fddcbbd0bc415d3e09e97f2f2c24648487f631b86f92563794314f96e2de"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100.live.json",
+      "bytes": 519,
+      "sha256": "0c8375d34b2051a3048f143b82a1f3e1590cf8cdae5cde023daa07bd5aa9ff44"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100.receipt.json",
+      "bytes": 704,
+      "sha256": "cd5145e21f09b5b538803dd216d8d7d7d10ddd3a579f34ba732a3243aa95036a"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100.stdout.log",
+      "bytes": 424,
+      "sha256": "cf835635176e6f78cfc1d7209abecccba01f8dde9ea5723f568401d7b447fc4a"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/native-perf-auth-attribution-results.json",
+      "bytes": 69894,
+      "sha256": "97ebf5c16fc8cc35a7277165048ff656f2aeedc746cfebca72904435e6730dc8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/native-perf-sdk-journey-results.json",
+      "bytes": 330988,
+      "sha256": "54fe96e943e9747afc4c12ed825ddd3f39ccca67a9583a78eb71d2b1cec5c559"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001.json",
+      "bytes": 93920,
+      "sha256": "82cb727c6df6998fe7339624066b0e5c8048c3192af9721e876322fc00c47085"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-auth-attribution.json",
+      "bytes": 17140,
+      "sha256": "88c04354ffcd367abfdafe69b413234e033e77bcd024299fa60a63189efa8294"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-consumed.json",
+      "bytes": 290,
+      "sha256": "c69da33a39d5f8bfbef7d8beefce529cc8e522794e0ee66e2448c90075f06aa8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "47c684e0c1f5249a9c60465e4e1fe6db62fc55b24778556eb36efbe0ce49ffc6"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-owned.json",
+      "bytes": 3447,
+      "sha256": "30fec8539a74a9143f0bd2b4e06bee227209567ba568c54004909d7b7bb22981"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-permission-commands.json",
+      "bytes": 994,
+      "sha256": "ea48f3ca03d92faf53f542218afb406af9ba9f6bb762d4ecfe66d2fd8bff4eec"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "7840b9ff3ed3c4653f721f0bb46510cb7b861cef403acf431c8c3dae6d8df6fa"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 601,
+      "sha256": "14e7baac343b9248e67d00dee085c97db82109b8e85710032fce30d162f3bab1"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 382,
+      "sha256": "69944f1aa46bc38e28ad93ee8ee597158e4d2cfd03105d3edae9acd1e4f381f9"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-journey.json",
+      "bytes": 62644,
+      "sha256": "4ce07803a83bad1eadf8bd7df14252685ca896a5c8899dfedbcd5f958bb33399"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 829,
+      "sha256": "491cdf23b5fa92bfcca212986578a2a0434287d82b27290cf3b9d70a100baf60"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 527,
+      "sha256": "42cd1541189894d8a57ef76aae5b5d11cf89b784e5d4383800916a324f43a171"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 1190,
+      "sha256": "358eb3e950ea47866962e8ff26a139282f400735bcd1f3f04eb826df66aa45b6"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 317,
+      "sha256": "9a9e31a22a9785b2045624b7e6aabaee7a57750e8930005cd153e271c90e34ab"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-phase-05.json",
+      "bytes": 609,
+      "sha256": "a7d17c22fe66101481f69b0580007c4370df022aa46e5e4d7015ddf6b55c5215"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-sdk-phase-06.json",
+      "bytes": 707,
+      "sha256": "3c99a7cf096a67d94e5b888ec70a07ecea72df36d63b975f7ab2de2fe86d3d3b"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-surface-after.json",
+      "bytes": 2847,
+      "sha256": "89b98c54364170db4fd1a9a5cdd62acc057fd844704fae9fc3667834b461abc2"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-surface-before.json",
+      "bytes": 2578,
+      "sha256": "962d69a08edb0a098c6bab2834ef505eaddf9fa240b8438677eb34c7c54eb209"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-surface-done.json",
+      "bytes": 370,
+      "sha256": "82bf2c49a19188a508d8bad8fb39d4c9370c566dcfc9a3b90ab4652019dbc48a"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/native-perf-surface-request.json",
+      "bytes": 202,
+      "sha256": "87a64825335aaa1840800ba10ec597e6b1502616420589186e2dc017c7136d0e"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/rf121-wgc-light-visible.bgra",
+      "bytes": 4000256,
+      "sha256": "4017f5b26be44b5bfd353ce4a0ea5dade35fb766318272e442ac559cab8740ba"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/rf121-wgc-light-visible.json",
+      "bytes": 1344,
+      "sha256": "1ba200eba4301817dc4e6b3b3924d079fda7fef9902b27553699ee0e1e376dec"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/rf121-window-inventory-light-visible.json",
+      "bytes": 3253,
+      "sha256": "a5ec0e660e14f12a17de64a044e48fccec60d73cc1d8fbf7903df5c9d07ad495"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/surface-capture.receipt.json",
+      "bytes": 568,
+      "sha256": "fb2d8483b89e3c61dd5acb600ae7a907683be0c7b0c0363205ea2a17f1dc3c47"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/surface-capture.stderr.log",
+      "bytes": 90,
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/surface-capture.stdout.log",
+      "bytes": 1122,
+      "sha256": "eaa481201c1a9a5424e388ffb385619e37173b7859f87ab2263a728970b46b12"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/surface-identity.json",
+      "bytes": 166,
+      "sha256": "f06ad2bef37b2040c4cd13a4fe2802a788daca1c5b810c0c5a46ab98eea6d36b"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-001/surface-identity.stdout.log",
+      "bytes": 154,
+      "sha256": "02d9b93b3c70cfe9f958767f718926940330c1fba5c437125729ed0ffa8156b8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002.json",
+      "bytes": 97040,
+      "sha256": "6b8f3b2c7e6a92f3be2068892b0da8d09e71d5c3c69066b393f44adf1a05d8e0"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-auth-attribution.json",
+      "bytes": 17118,
+      "sha256": "4dfca7015a34939ff2becb0adb826e491f41f17c766e521a2c4e285e8c0cd6e8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-consumed.json",
+      "bytes": 291,
+      "sha256": "c66b18a6a2c5914b5a7f0944a3c5f4dbcdb18cd62710390b9d7e48c03e8805bb"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "d2fed731eec47bd09a3e36739cc17da210f2385ad8649de7f27d34119a6d8387"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-owned.json",
+      "bytes": 3447,
+      "sha256": "708aad2ff0509723a67f858539fc1117030da376fb123234f9af66d3ba47e851"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-permission-commands.json",
+      "bytes": 1001,
+      "sha256": "4381ace1f0f7c5e848677e2fda30b488b7d14b59b4b8346a554f2c36ee3710fd"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "2e9137bde27da7e85bd5149eb16a8ea8f47d2ce20c148f27e5d21aaa202387a3"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 601,
+      "sha256": "11c9fbc1722169596926872cc21b422c23787fa8940d9aa6c5dfbf2d8359b1d8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 383,
+      "sha256": "4313aafec0a44d410b109ff7640f0988c19f7b612a75d48262b520528037e9f0"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-journey.json",
+      "bytes": 65054,
+      "sha256": "f808f95bb0bc3f3ae5c5df212f07114a6b37828cb873522878155dfb114cf95b"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 808,
+      "sha256": "02f3ee4bd75f3598c222cc872b093ee6455f2365ba9fb4742d21a8e588d03ede"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 526,
+      "sha256": "e124e7d81a074c741c2fa027308a5cac3896f3781dd5006828c736819a17c747"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 1195,
+      "sha256": "b314eca991d709061302ba472dad31bda180e97de04a992c50269e0402630c86"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 308,
+      "sha256": "036fc0172655448c1cf1aa86071fb0e8f094360412bd8fd384e09a877c999280"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-phase-05.json",
+      "bytes": 609,
+      "sha256": "d28237a7670940cd51bf91c9fa3ec0fe15f7e17945228bc2784519c3e2c49b7a"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-sdk-phase-06.json",
+      "bytes": 1193,
+      "sha256": "72967be994ee48a8a4f87a47b4e3c548db089b59da5fe1ad3cb513c867b27d86"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-surface-after.json",
+      "bytes": 2846,
+      "sha256": "f1f89b59f738d99f383c93ca23454a89c79cba6b263933b763739357ed844056"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-surface-before.json",
+      "bytes": 2589,
+      "sha256": "1b39cfcb6241609a6045493239228a3d36ab80983e9760e6a3f09fa5882939a8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-surface-done.json",
+      "bytes": 370,
+      "sha256": "b332b77eefc2f66741511b0f72bc7b646c5092c2644d82f63ffa91ee6d937ac3"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/native-perf-surface-request.json",
+      "bytes": 202,
+      "sha256": "1835cd38dd27e46dfc719bd200d0cf03ca2d6ddccddaed5244edb373a34740c4"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/rf121-wgc-light-visible.bgra",
+      "bytes": 4000256,
+      "sha256": "4017f5b26be44b5bfd353ce4a0ea5dade35fb766318272e442ac559cab8740ba"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/rf121-wgc-light-visible.json",
+      "bytes": 1345,
+      "sha256": "78c311dab56f86ddcc49627e5c9e771d8aa9cc11c91ab2f96dab135a37cb0614"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/rf121-window-inventory-light-visible.json",
+      "bytes": 3252,
+      "sha256": "8efd80db81883562d4821f86573dce377540ed3e8aeabf4ba064ab347cf0ccf4"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/surface-capture.receipt.json",
+      "bytes": 570,
+      "sha256": "fc784e91e9ef4dda5b27d8296caf607fd160eeebf64989706fb8d8baf24a51a8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/surface-capture.stderr.log",
+      "bytes": 90,
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/surface-capture.stdout.log",
+      "bytes": 1123,
+      "sha256": "b05237ef8f364622b258e9a8023ab511f0328a63adb7383df0c8a5d74aaf7989"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/surface-identity.json",
+      "bytes": 167,
+      "sha256": "426857305ed682cb2acb7066157182ce58c8f055a7acbecb2273af64917b581c"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-002/surface-identity.stdout.log",
+      "bytes": 155,
+      "sha256": "2e3e1e34475481b06eaec960156165fc8128688484e5b81c4435d5518993544e"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003.json",
+      "bytes": 93580,
+      "sha256": "1c9c051cfb71b2e7ea961a128d453d754b3e2659a4bd4d61a14e494258b670b5"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-auth-attribution.json",
+      "bytes": 17092,
+      "sha256": "3905f334cb5beeb21209a3931e5312df9309ce559d0992aef3362a6aee5ef467"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-consumed.json",
+      "bytes": 291,
+      "sha256": "28a84b901fead2ba0c8634fc1f565660ad5d477838f4171e018b9cf176c1b8e2"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "0293a88d79bdb1b50de41e77f3ae3ff39108ff1183f158d0fdbf169a2c774992"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-owned.json",
+      "bytes": 3447,
+      "sha256": "64c173259dd274593d143667821997ccce8e5f358a27f33181467a1ea1daf3dc"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-permission-commands.json",
+      "bytes": 1003,
+      "sha256": "585bc0b1e39d2e747987903dbde2b1a2875ca6d96f724fcde6f00b5447f70bc6"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "cf8c6e002ed976f9cae0ff2a895b57da3bf5d34db85fbfe5195b113771e6bab7"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 602,
+      "sha256": "6a5b92dd2d9ecab596b2f2ae759aee1aa3654c0461938901219a30e06f33402e"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 383,
+      "sha256": "50f75e306901a84c0284faec8919c78b14949f1c8faa3bd0c15f1d9dd8d8e760"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-journey.json",
+      "bytes": 62417,
+      "sha256": "90223be35dbbced50d48598601fd89c404e6dbc384f171f5d7023486f97634cb"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 808,
+      "sha256": "dc208cc45ea5996f93afbbd70a124abc51b601e88ad19a3301e4800f103091af"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 528,
+      "sha256": "2809223d2a77f4fc3f28d1567cd43af95aa6834244aa453b88f33875075891f8"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 1138,
+      "sha256": "566fb45e37c86a0a84bc91f7d05e16abc8ace19def703e62fd197b1b7407c6e2"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 306,
+      "sha256": "863dd2c3f3b91960149c55455c71dbf5035ce2e35712e586110ece630f176582"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-phase-05.json",
+      "bytes": 599,
+      "sha256": "2cf1095ef80dfa95917d71cbc9f8c42dfb7f8e7aaea736127a5cdda1792456e3"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-sdk-phase-06.json",
+      "bytes": 697,
+      "sha256": "cf589ab18d931d3a3a8f315d04d4671dbb8dfc4242793aaa8387b9e4e9b266e2"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-surface-after.json",
+      "bytes": 2848,
+      "sha256": "79336032e8db6715073d8a486ad188cbe1623354b4cee0bc80e50e9a95c55195"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-surface-before.json",
+      "bytes": 2590,
+      "sha256": "022a5fcee4db1e52c9cbcdac93032bd12836d01caaa1f07f3a25bb55fe7c6352"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-surface-done.json",
+      "bytes": 371,
+      "sha256": "93da5423f67ee3597e99499a3a8873fc0dbc67ff2a7bd4c949c0d7566fd8e259"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/native-perf-surface-request.json",
+      "bytes": 203,
+      "sha256": "7928ed77f2c9b09e71f401093f9cb0ac6f2e32d843cc8db634fcfcc62677ce88"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/rf121-wgc-light-visible.bgra",
+      "bytes": 4000256,
+      "sha256": "4017f5b26be44b5bfd353ce4a0ea5dade35fb766318272e442ac559cab8740ba"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/rf121-wgc-light-visible.json",
+      "bytes": 1346,
+      "sha256": "a2a3a92ea07ffb7713ef2fcd0bd97de2eceb05e42dc1680630aeefe454411b50"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/rf121-window-inventory-light-visible.json",
+      "bytes": 3259,
+      "sha256": "a12066a49866f99784b85de033bac2ae0350484a808e8365f18ebcca1f310a02"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/surface-capture.receipt.json",
+      "bytes": 569,
+      "sha256": "021ab9f43058c05ee243a857e4be1137e2b75373c460e3caead262698aa44049"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/surface-capture.stderr.log",
+      "bytes": 90,
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/surface-capture.stdout.log",
+      "bytes": 1124,
+      "sha256": "81f480e7c375b37ccd09e2542855aea17800d99a4afc8c7bbb523154ac182d60"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/surface-identity.json",
+      "bytes": 167,
+      "sha256": "8ce1a5ad1b5d0ad5f40f6848c11ab31e9837c847e47d0f092d49f74e787d8d9c"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/actual100/sample-003/surface-identity.stdout.log",
+      "bytes": 155,
+      "sha256": "8388d1f29bbc00bc9bd61288ba8ec8096f1af93d4bd7b11f4177e34ef2339258"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/capture-results.json",
+      "bytes": 2235,
+      "sha256": "01def3137b61967fc7532c136a98a64f48ef9303b9ffe3127f64866b0cef9b2e"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/input-proof.json",
+      "bytes": 38913,
+      "sha256": "23fb736fea7a35a720a4f5fd4466f82128f29114d5acfa52f84b416e4e44b658"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/rendered-captures.json",
+      "bytes": 1593,
+      "sha256": "780e8ccd91b2afac99697e44605db04465cbfc026480c2c568de0d1a81969068"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/surface-sample-001.json",
+      "bytes": 610,
+      "sha256": "5798c6549cb7450081d09dd80c9ee333114a1db1505f14ef65c0282c5b9074df"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/surface-sample-001.png",
+      "bytes": 72559,
+      "sha256": "23fff265c626c8a7a25f96ae3c31e19c10ed32e22d51dfe64b327d2b3453c852"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/surface-sample-002.json",
+      "bytes": 611,
+      "sha256": "c38973b48f9f32607a6d9f17ae3645a52e0ad9c583b8e049f59bd62f5fe2d154"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/surface-sample-002.png",
+      "bytes": 72559,
+      "sha256": "23fff265c626c8a7a25f96ae3c31e19c10ed32e22d51dfe64b327d2b3453c852"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/surface-sample-003.json",
+      "bytes": 611,
+      "sha256": "fc58e8647fd417d5f8a696bab39dce740b002a20f18000bea517e5228a726f01"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/surface-sample-003.png",
+      "bytes": 72559,
+      "sha256": "23fff265c626c8a7a25f96ae3c31e19c10ed32e22d51dfe64b327d2b3453c852"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/validation.json",
+      "bytes": 20152,
+      "sha256": "a3f744f1b1af29b1f8da2700275574647c57c3b5a6241efc43595fe2d934eb3b"
+    },
+    {
+      "path": "windows/ss-rf121-composed-window-current-20261011-round2/visual-review.json",
+      "bytes": 2145,
+      "sha256": "bdaf6d890abf8e7b2f6787483b7eeb0b08a136d8d6e92f188224a1a158adb5b7"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100.live.json",
+      "bytes": 508,
+      "sha256": "10f4e97a8b338f49b6de16324f574d2a7f1535d81665e825aa270c0c880d2966"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100.receipt.json",
+      "bytes": 693,
+      "sha256": "a5713fea82d38c0f390900af47e9a6c3f15508a61d25a7297d0cf7b96e72bd61"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100.stdout.log",
+      "bytes": 408,
+      "sha256": "d5b3cba0d9b658d34e0aac8eaa2395f558ed0de2a71c470ad32189738f28b1f4"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/native-perf-auth-attribution-results.json",
+      "bytes": 69860,
+      "sha256": "5f6004005c55ca0c4200bc7b1596a2436cf1ca0c6ebd39ae19bb75d3ae679767"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/native-perf-sdk-journey-results.json",
+      "bytes": 283364,
+      "sha256": "93b34766b214c66650e317b3b09926965b45d9a855541c45ab9c18147bec239c"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001.json",
+      "bytes": 81599,
+      "sha256": "5ac152223520252fe07e31d071fc0d2d066013098e840c5d3f2c2e391dbcc0c7"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-auth-attribution.json",
+      "bytes": 17152,
+      "sha256": "839be2994924b861d4ab40bdac8fe154b41b9dd1afdc481f792112b9296ebb0f"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-consumed.json",
+      "bytes": 283,
+      "sha256": "b13dd97964c4c7bf2fcbbc89ccb5f49cbae9d5c06427566944c83ff0d69765dc"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "b0c551acc4b921f454eb7a3dc79b4ddbb2a727fe97a1f27d7c2f41b0f9344a9e"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-owned.json",
+      "bytes": 3407,
+      "sha256": "db1b6333455fafe55fb081e417721a6f2e18d9d6a5ae368bdf60a9ecc981392b"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-permission-commands.json",
+      "bytes": 1019,
+      "sha256": "e55d4bb52465ee6041743ccd43c9a1f304b5765b7b5fb160a0be4010809e62c6"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "f62a30f810d8adeb66e5b18006d544441967de186944275de579a5b55d7aa497"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 594,
+      "sha256": "47a7d06fb59f26f5e9bef8bdadeb7f53e0cc87321fd64f841385b2f8dfedb22c"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 375,
+      "sha256": "0b64e8bafe3d7ea6273e515d42280f475197cf7addf6d327708b32063bf9c636"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-journey.json",
+      "bytes": 64571,
+      "sha256": "a346313a0991040c5aae4c5d449bad32b11e0956d8abdff2b48bdfa6549aca0a"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "2c3368be86db31b5f7d88653314cefb0c51dc6e59e3e07c5371a2a6304fe64df"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 538,
+      "sha256": "8a7bbc9cc75b23d71e06f58395b2bdb01ee0673537691213520392357c2601ce"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 1195,
+      "sha256": "143c6ad020e9f8ed0c499cc03d135c840f0cc10c15d78268d1d2e7221e533a42"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 305,
+      "sha256": "1023399461942985f1bc62f8af8c517e3767fc47899c357579c2843a9a38d1b2"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-phase-05.json",
+      "bytes": 598,
+      "sha256": "27f030f51f544b186d0658ceb0ee1327529a70fb515f90d3907888012d684831"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-sdk-phase-06.json",
+      "bytes": 1193,
+      "sha256": "aa9b423bd8d66fb3868f999c9a37063118b9803d235a9c9316a05e340c6278ce"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-surface-before.json",
+      "bytes": 2588,
+      "sha256": "a8fc83236558dd5719b03d8c5709b493baed8411f0463d153f2c50048f33c9c4"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/native-perf-surface-request.json",
+      "bytes": 203,
+      "sha256": "ddad3b53dd68f803ed255d8d33a6906d21aaed3e5656aeb5931c5efe9bedce02"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/surface-capture.receipt.json",
+      "bytes": 558,
+      "sha256": "c0800d2e1610e131c2be9137ddfd04114f365609f1474c2899afb96a4da787fd"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/surface-capture.stderr.log",
+      "bytes": 50,
+      "sha256": "f57a25502c0c86ae02b28df5bfc301b56bb085ac4433c446f2da5c13ab029819"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/surface-capture.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/surface-identity.json",
+      "bytes": 164,
+      "sha256": "653acfa7009af4474a13d69d6125f002bbff77a33b3b0dede82e37640fa7d8f5"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-001/surface-identity.stdout.log",
+      "bytes": 152,
+      "sha256": "c0124b5a6fc644b9bcb4c920e636af2ba711d260b0ec154faaffb9bdf9b1d236"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002.json",
+      "bytes": 78696,
+      "sha256": "3a392158611a68c018b16429fd7eb60b15ef6c124e945c76d5b4873c5533f517"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-auth-attribution.json",
+      "bytes": 17045,
+      "sha256": "f3e4080c79b5eddf5d3e6db79210499c3286b55a8a68490dac2c1387ce00f7a0"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-consumed.json",
+      "bytes": 283,
+      "sha256": "853cf119899a726564f277c0efe17d52a977c1fc5d1312773b8dabdb53668b00"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "14ec4c838858df37446725e5246ce131fddacba5fbc953eb3220c91bf731e16a"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-owned.json",
+      "bytes": 3407,
+      "sha256": "724c05f2097ff5c54b0f25c3532fe4a37c2e6553850352fa79ee7e82e3354cdb"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-permission-commands.json",
+      "bytes": 1012,
+      "sha256": "a4898efc4b343b8a8a24798127da66f70280811457f609e99acd89adb0d8fb64"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "c412246df1722d5ab1f6fb7d68cb6565ffb8c7a2a7ec1e758df6863c4049af44"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 593,
+      "sha256": "8e3ee9bbfdd2f9675a4a3ba3c82254c50366548d57cf3d38fe28e5f47651d79a"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 375,
+      "sha256": "dfb2c2c72ab2352d63e0661a54e1b71690c7cc8b3244e4a459094daed11abe20"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-journey.json",
+      "bytes": 61898,
+      "sha256": "252fb927502ac6744294a4306ee4eb8c6b23b5758034a27eb5d9e1178a9aff6d"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "d0dfa3afaff10e4df3ed631ccd6e55915fbc5b9c41ab5deaf81c049e1451cdb5"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 773,
+      "sha256": "efdc905368ed9761c0f0fc5218ad6da95118675f66b9a73cdea99999dc1367d7"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 1075,
+      "sha256": "015cea097899248cbba0439c39970b30155b535acd331020e1a926e8b5697da3"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 317,
+      "sha256": "7bde3af9c19fbc2b789421ed560a65c39253b8e857a52552fc0d79afff65bc33"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-phase-05.json",
+      "bytes": 610,
+      "sha256": "1a075d73de96ee1efe7e1cc198b00143106e976260328dd31566a7fccb85ffc8"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-sdk-phase-06.json",
+      "bytes": 541,
+      "sha256": "47b0be2c69d1a406156dbddba08b1e62d8522291cbc77caafd7277e3b6b0501d"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-surface-before.json",
+      "bytes": 2588,
+      "sha256": "cf4272933d733c6cf5c0429b772b3fd03fe1a1554ef45e564cccbb7d7c90c625"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/native-perf-surface-request.json",
+      "bytes": 202,
+      "sha256": "011626776a01dfe002422f81d396e2d0967de931334f0484a9b8a9bd5d171a4d"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/surface-capture.receipt.json",
+      "bytes": 559,
+      "sha256": "584cd87c55be006a5fd204f1672cd02ea423711060effb50b0c13bc346d58c8a"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/surface-capture.stderr.log",
+      "bytes": 50,
+      "sha256": "f57a25502c0c86ae02b28df5bfc301b56bb085ac4433c446f2da5c13ab029819"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/surface-capture.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/surface-identity.json",
+      "bytes": 164,
+      "sha256": "6a348b6850d53bce6b4a7a55f39a7b688e387059fc9a2db04899e692bf3d1a90"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-002/surface-identity.stdout.log",
+      "bytes": 152,
+      "sha256": "a1287a89ae3f4fda9fc1e3df8d57e0abcbd4d4403586e7dbcf9ef72715ebc094"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003.json",
+      "bytes": 83049,
+      "sha256": "267157d3f05ce6813697937d131d641c0a8d036f8fc1ee1be751d99bacc22823"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-auth-attribution.json",
+      "bytes": 17090,
+      "sha256": "8add35819b29c1e927b1a51b53982beae1f88c82136c5ffacb99ff94bc9ee5b6"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-consumed.json",
+      "bytes": 282,
+      "sha256": "176f7391ecb3689430e2d18c74935b680043a44c5b9aea41dda1dc8b06071728"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "8bfe36445bbbd63d482434e09a6b399f809ec43e9f93c6a2561141c99ef4d1d2"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-owned.json",
+      "bytes": 3407,
+      "sha256": "7f2aed6ee5d40365c1314668044811b56e14cd6ab448268d27ddd8092f6f14a9"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-permission-commands.json",
+      "bytes": 1003,
+      "sha256": "e3268eca030abb987cbe1bef93331791d2edb0325f9b47c1a4d65ddc3b3c5a24"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "ce758d0225b28b334d60bcf3bd1f2bd5a77ed31eef5d2ae27bce77216a4fd50a"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 593,
+      "sha256": "0857d98cc527b418e20d2d070a6734a0acfd3f33958757192221f8c9b5c628b0"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 374,
+      "sha256": "2c4f2028024bcd09937dd16a02c91054a72f15b98eafa402aed280fe5355d147"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-journey.json",
+      "bytes": 65946,
+      "sha256": "8bbe7ee4855eed103764df47e0c9d2171217de4f3f2d655307456f56ee96474c"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 829,
+      "sha256": "5f616572b7b57f60fb14d77b93f7d0fbe73da2cfdba05448cf3f1c2972d3efc2"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 549,
+      "sha256": "25ca55e8ab5d7db25859e34f921b9e23038fdfed1634a1c96163036065d35dcd"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 1206,
+      "sha256": "52f9f17040bea8556bcc4d47a0fc0079cf3b3a41652dfa002bef967458999b61"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 329,
+      "sha256": "5b3fed70008ab988f4f83c23d7e974ec4fd2cb81a041f506124fd466d2bb12bb"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-phase-05.json",
+      "bytes": 610,
+      "sha256": "8afdb895ac551f5b01c2f980ce34ea34c4431fc8367af0f9cdcf01b6c2953dcf"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-sdk-phase-06.json",
+      "bytes": 1250,
+      "sha256": "6e0e02be1247a16cc5683034837a9e02b43e05f831fc7e432d63a490706a3402"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-surface-before.json",
+      "bytes": 2588,
+      "sha256": "ae41d7068b19a98ea7bb928c12d3b12fc665cba2b29b514cdf79a02e2a57b8ef"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/native-perf-surface-request.json",
+      "bytes": 202,
+      "sha256": "f3e70e2c07221453ed760d8a4ff701281f14e20c12fb715bd7fbef4e1a39bfcd"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/surface-capture.receipt.json",
+      "bytes": 558,
+      "sha256": "ef02d5b6fafafa828754d53ecf614dae49bf44ab0a6ed96dc46210387af8df3e"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/surface-capture.stderr.log",
+      "bytes": 50,
+      "sha256": "f57a25502c0c86ae02b28df5bfc301b56bb085ac4433c446f2da5c13ab029819"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/surface-capture.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/surface-identity.json",
+      "bytes": 163,
+      "sha256": "c5aaf7476b374b56fb462f54a5f2590a951c9292f7c237f15615d80c279eb164"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/actual100/sample-003/surface-identity.stdout.log",
+      "bytes": 151,
+      "sha256": "7d9b85ce0b29187984b1456cf2361de2f639f2bfca2962b448c865e2331994fa"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/capture-results.json",
+      "bytes": 2429,
+      "sha256": "6eecde362ca05fd685fed63a318c0a543eb8fd194c6594d544d2c7ba2cdda5b2"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/input-proof.json",
+      "bytes": 38628,
+      "sha256": "ce4359a9ee40f9983fe10af6e49f4eda43d6c519bf604e3894c0c12ef19742b0"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/surface-sample-001.json",
+      "bytes": 699,
+      "sha256": "b1a179ef3eed5e02e8257a0c0cd604f52083e333c142538e86f6f7279999ab05"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/surface-sample-002.json",
+      "bytes": 699,
+      "sha256": "bc42055b6687968a74d9c3960077c0d7236e2eab13b5fb31d1454bc2dc1ee770"
+    },
+    {
+      "path": "windows/ss-rf121-current-light-bindings-20261011/surface-sample-003.json",
+      "bytes": 699,
+      "sha256": "d7374a2673fb184049f53b1af4724047649642e29fc28dd22273484f2148c311"
+    }
+  ],
+  "count": 241,
+  "archiveSha256": "7a7569d15a18e4f31286797b661c8ba3d51a7ee7854f74e66a87463c74dc8fa5",
+  "readBackVerified": true,
+  "privateVaultsAndBackupTarsIncluded": false,
+  "executableOrApkBytesIncluded": false
+}
