@@ -77,6 +77,8 @@ pub(super) struct SourcePreferences {
     // 网络等待不保活 Store、目录或活动许可；返回后重新验证原身份。
     service: Weak<RwLock<solosoul_core::VaultService>>,
     owner: Weak<solosoul_vault::root_owner::VaultRootOwner>,
+    #[cfg(test)]
+    activity_started: Option<std::sync::mpsc::Sender<()>>,
 }
 
 fn preference_activity(
@@ -109,6 +111,8 @@ impl SourcePreferences {
             account_value: None,
             service: Weak::new(),
             owner: Weak::new(),
+            #[cfg(test)]
+            activity_started: None,
         }
     }
 
@@ -203,6 +207,10 @@ impl SourcePreferences {
         let Ok(_activity) = preference_activity(owner) else {
             return;
         };
+        #[cfg(test)]
+        if let Some(started) = &self.activity_started {
+            let _ = started.send(());
+        }
         if let Some(account) = &self.account {
             let Some(original) = account.vault.upgrade() else {
                 return;
@@ -936,7 +944,9 @@ mod tests {
         let cache = dir.path().join("ui_preferences.json");
         let before = br#"{"theme":"dark"}"#;
         std::fs::write(&cache, before).unwrap();
-        let prefs = SourcePreferences::load_for_service(&service, |_| Ok(cache.clone()));
+        let mut prefs = SourcePreferences::load_for_service(&service, |_| Ok(cache.clone()));
+        let (started_tx, started_rx) = std::sync::mpsc::channel();
+        prefs.activity_started = Some(started_tx);
         drop(solosoul_core::import_activity::begin_owned_root_maintenance(owner.clone()).unwrap());
         let file_lock = UI_PREFS_LOCK.lock().unwrap();
         let writer = std::thread::spawn(move || {
@@ -946,19 +956,20 @@ mod tests {
                 true,
             );
         });
-        let deadline = std::time::Instant::now() + Duration::from_secs(5);
-        // 只读观察实际 worker 保活，避免轮询维护许可抢在 worker 前占用准入。
-        while Arc::strong_count(&owner) == 2 && std::time::Instant::now() < deadline {
-            std::thread::sleep(Duration::from_millis(10));
-        }
-        std::thread::sleep(Duration::from_millis(10));
-        let blocked = solosoul_core::import_activity::begin_owned_root_maintenance(owner.clone())
-            .err()
-            .as_deref()
-            == Some("IMPORT_OPERATIONS_ACTIVE");
+        // 引用升级早于许可取得；只在实际许可取得后观察被文件锁阻塞的 worker。
+        let started = started_rx.recv_timeout(Duration::from_secs(5));
+        let blocked = started.is_ok()
+            && solosoul_core::import_activity::begin_owned_root_maintenance(owner.clone())
+                .err()
+                .as_deref()
+                == Some("IMPORT_OPERATIONS_ACTIVE");
         let while_blocked = std::fs::read(&cache).unwrap();
         drop(file_lock);
         writer.join().unwrap();
+        assert!(
+            started.is_ok(),
+            "actual worker must reach activity admission"
+        );
         assert!(
             blocked,
             "actual file work must retain its own root activity permit"

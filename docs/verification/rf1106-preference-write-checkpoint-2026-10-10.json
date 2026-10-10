@@ -1,0 +1,353 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1106",
+  "accepted": true,
+  "initialEvidence": {
+    "task": "RF-1106",
+    "originalExitCode": 101,
+    "originalPassed": 789,
+    "originalFailed": 1,
+    "failedMethod": "rf1104_actual_cache_write_retains_activity_until_file_work_finishes",
+    "sourceBeforeSha256": "63d20bf06d5bdca43573f33ea00f39aeb5e49ea8ea59e9f403fb7f9b807d54e0",
+    "sourceAfterSha256": "5539948ba158452a352cfd40b9463222beb2ca27856ba310ba5794bbdfef6da5",
+    "observedFailure": "actual file work must retain its own root activity permit",
+    "causeAssessment": "Owner upgrade precedes admission; reference count and 10ms sleep do not establish an admitted worker",
+    "rf1105SourceFilesPreserved": true,
+    "at": "2026-10-10T15:08:17.587308+00:00"
+  },
+  "checks": {
+    "rf1107-format-check": {
+      "pid": 17100,
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.796400999999605,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T16:09:50.532074+00:00",
+      "originalCheck": "rf1107-format-check",
+      "executedAgainForArchive": false
+    },
+    "rf1107-download-tests": {
+      "pid": 29732,
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::update_download::tests",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 352.4556840999867,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T16:15:43.066695+00:00",
+      "testTotals": {
+        "passed": 18,
+        "failed": 0,
+        "ignored": 0
+      },
+      "originalCheck": "rf1107-download-tests",
+      "executedAgainForArchive": false
+    },
+    "rf1107-default-workspace": {
+      "pid": 31416,
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4051.6403299999947,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T17:23:15.326360+00:00",
+      "testTotals": {
+        "passed": 1871,
+        "failed": 0,
+        "ignored": 3
+      },
+      "originalCheck": "rf1107-default-workspace",
+      "executedAgainForArchive": false
+    },
+    "rf1107-clippy-default": {
+      "pid": 9516,
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 153.13152970001101,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T17:25:48.578013+00:00",
+      "originalCheck": "rf1107-clippy-default",
+      "executedAgainForArchive": false
+    },
+    "rf1107-clippy-native": {
+      "pid": 31304,
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 43.16222800000105,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T17:26:31.833887+00:00",
+      "originalCheck": "rf1107-clippy-native",
+      "executedAgainForArchive": false
+    },
+    "rf1107-native-regression": {
+      "pid": 26928,
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "--features",
+        "native-perf",
+        "native_perf::",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 785.9759085999976,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T17:39:38.074535+00:00",
+      "testTotals": {
+        "passed": 121,
+        "failed": 0,
+        "ignored": 0
+      },
+      "originalCheck": "rf1107-native-regression",
+      "executedAgainForArchive": false
+    },
+    "rf1107-native-preferences": {
+      "pid": 15564,
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "--features",
+        "native-perf",
+        "commands::update_preferences::tests",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 59.24383970000781,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+        "tauri/src-tauri/src/commands/update_download.rs": "a11146b9b515cc8e97fe9779f8209dfb9dc13292e47f345a20b6b09fc4aed42c"
+      },
+      "at": "2026-10-10T17:40:37.610742+00:00",
+      "testTotals": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0
+      },
+      "originalCheck": "rf1107-native-preferences",
+      "executedAgainForArchive": false
+    },
+    "rf1106-default-preferences": {
+      "pid": 30392,
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::update_preferences::tests",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 560.2774291000096,
+      "sourceFiles": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1"
+      },
+      "sourceUnchanged": true,
+      "sourceFilesAfter": {
+        "tauri/scripts/native-perf-startup.mjs": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec",
+        "tauri/scripts/native-perf-startup.test.mjs": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e",
+        "tauri/src-tauri/src/native_perf/startup.rs": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8",
+        "tauri/src-tauri/src/native_perf/preflight_tests.rs": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70",
+        "tauri/src-tauri/src/commands/update_preferences.rs": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1"
+      },
+      "at": "2026-10-10T15:23:17.745555+00:00",
+      "testTotals": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0
+      },
+      "executedAgainForArchive": false,
+      "reuseScope": "Same five source hashes; the additional RF-1107 change is confined to a separate test module. Current full workspace also exercises all preferences tests."
+    }
+  },
+  "productionParity": {
+    "task": "RF-1106",
+    "productPrefixEqualAfterExcludingTestOnlyInsertions": true,
+    "removedBlocks": [
+      "    #[cfg(test)]\n    activity_started: Option<std::sync::mpsc::Sender<()>>,\n",
+      "            #[cfg(test)]\n            activity_started: None,\n",
+      "        #[cfg(test)]\n        if let Some(started) = &self.activity_started {\n            let _ = started.send(());\n        }\n"
+    ],
+    "testWaitSeconds": 5,
+    "sleepAndReferenceCountInferenceRemoved": true,
+    "sourceAfterSha256": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1"
+  },
+  "sourceManifestSha256": "d9d88a4bee1ea6db20842af6eb38c990f1585ba7c1faeeafc8a6349bae2784a2",
+  "sourceBeforeSha256": "63d20bf06d5bdca43573f33ea00f39aeb5e49ea8ea59e9f403fb7f9b807d54e0",
+  "sourceAfterSha256": "d47d4d196652f579b7da5c9db9d614a2fab6af8dfe5385a67703195f9df133a1",
+  "archive": {
+    "path": "docs/verification/rf1106-preference-write-checkpoint-2026-10-10",
+    "archiveSha256": "7bc8a24e49741fb1f827e2e6968abe87df4e6535fe71d90c2afdacd94d4f0226",
+    "archiveBytes": 591733,
+    "memberCount": 83,
+    "readbackAllMembersVerified": true
+  },
+  "failedChecksPreserved": true,
+  "checksBoundToCurrentSixSources": true,
+  "otherFixesCommittedTogether": false,
+  "rf1105Closed": false,
+  "rf112Closed": false,
+  "rf121Closed": false,
+  "rf312Closed": false,
+  "at": "2026-10-10T17:42:44.751115+00:00"
+}
