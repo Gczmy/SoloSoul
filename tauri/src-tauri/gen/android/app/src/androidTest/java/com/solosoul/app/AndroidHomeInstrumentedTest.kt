@@ -258,6 +258,7 @@ class AndroidHomeInstrumentedTest {
         assertEquals(if (dark) "#1f1c18" else "#fafaf6", result.getString("background"))
         assertEquals(if (dark) "#2a2620" else "#fdfcf9", result.getString("surface"))
         assertEquals(if (dark) "#ffffff" else "#111111", result.getString("foreground"))
+        assertEquals(if (dark) "rgb(255, 255, 255)" else "rgb(17, 17, 17)", result.getString("copyColor"))
         if (enhanced) {
             assertTrue("实际首页画布必须可见", result.getBoolean("canvasVisible"))
             assertTrue(result.getInt("canvasWidth") > 0 && result.getInt("canvasHeight") > 0)
@@ -305,7 +306,7 @@ class AndroidHomeInstrumentedTest {
         val top = (location[1] + copy.getDouble("y") * scale).toInt().coerceIn(0, bitmap.height - 1)
         val right = (location[0] + copy.getDouble("right") * scale).toInt().coerceIn(left + 1, bitmap.width)
         val bottom = (location[1] + copy.getDouble("bottom") * scale).toInt().coerceIn(top + 1, bitmap.height)
-        val target = if (dark) intArrayOf(221, 216, 200) else intArrayOf(31, 28, 24)
+        val target = if (dark) intArrayOf(255, 255, 255) else intArrayOf(17, 17, 17)
         var inkPixels = 0
         for (y in top until bottom) for (x in left until right) {
             val pixel = bitmap.getPixel(x, y)
