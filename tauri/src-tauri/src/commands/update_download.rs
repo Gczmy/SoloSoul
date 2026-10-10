@@ -992,7 +992,29 @@ mod tests {
         let path = dir.path().join("update.part");
         let mut configuration = policy();
         configuration.idle_timeout = Duration::from_secs(2);
-        let started = Instant::now();
+        // 总耗时还包含测速和磁盘同步；直接检查低速分支，不能用它推断停流。
+        let rejection_path = dir.path().join("low-speed.part");
+        let client = client(&configuration).unwrap();
+        let selected = probe(&client, &slow.url, &configuration).await.unwrap();
+        let mut cache = load_cache(&rejection_path, "signed-1", &configuration).unwrap();
+        let error = transfer(
+            &client,
+            &selected,
+            &rejection_path,
+            &mut cache,
+            &configuration,
+            &|_| {},
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(error, "下载源持续低速");
+        assert!(cache.downloaded > 0 && cache.downloaded < PACKAGE_SIZE as u64);
+        assert_eq!(
+            std::fs::read(rejection_path).unwrap(),
+            package()[..cache.downloaded as usize]
+        );
+
+        // 另外保持真实自动换源的端到端断言，备用源必须续传已有前缀。
         download_with_policy(
             &[slow.url.clone(), fast.url.clone()],
             &path,
@@ -1002,7 +1024,6 @@ mod tests {
         )
         .await
         .unwrap();
-        assert!(started.elapsed() < Duration::from_secs(1));
         assert!(fast.transfer_requests()[0].start > 0);
         assert_eq!(std::fs::read(path).unwrap(), package());
     }
