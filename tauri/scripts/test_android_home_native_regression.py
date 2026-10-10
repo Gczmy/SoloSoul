@@ -251,7 +251,7 @@ class HomeRunnerTests(unittest.TestCase):
             runner.verify_evidence(json.loads((failed / 'device-files/report.json').read_text()), 'previews')
 
     def test_actual_motion_matrix_rejects_wrong_preference_delivery_and_duration(self):
-        root = Path(__file__).parents[2] / 'docs/verification/fe2-motion-2026-10-08/native-supported'
+        root = Path(__file__).parents[2] / 'docs/verification/rf1113-account-cold-text-2026-10-10/current-native/cold-supported'
         accepted = json.loads((root / 'cold-device-files/report.json').read_text())
         runner.verify_evidence(accepted, 'cold', True)
         changes = [
@@ -272,15 +272,16 @@ class HomeRunnerTests(unittest.TestCase):
             runner.verify_evidence(invalid, 'cold', True)
 
     def test_previous_cold_report_does_not_prove_motion_or_partial_acceptance(self):
-        path = Path(__file__).parents[2] / 'docs/verification/fe2-cold-2026-10-08/final-supported/cold-device-files/report.json'
+        path = Path(__file__).parents[2] / 'docs/verification/rf1113-account-cold-text-2026-10-10/current-native/cold-plain-supported/cold-device-files/report.json'
         old = json.loads(path.read_text())
         runner.verify_evidence(old, 'cold')
         with self.assertRaisesRegex(RuntimeError, 'reduced-motion'):
             runner.verify_evidence(old, 'cold', True)
         report = json.loads((path.parent.parent / 'report.json').read_text())
-        self.assertTrue(runner.verification_passed(report, True))
+        # 当前真实快照来自API31，不适用Android13通知权限。
+        self.assertTrue(runner.verification_passed(report, False))
         report['motionPreferenceChecks'] = True
-        self.assertFalse(runner.verification_passed(report, True))
+        self.assertFalse(runner.verification_passed(report, False))
 
     def test_cold_previous_process_can_be_already_exited_but_not_another_process(self):
         self.assertTrue(runner.validate_previous_process('', 8044))
@@ -309,7 +310,7 @@ class HomeRunnerTests(unittest.TestCase):
             runner.verify_native(text)
 
     def test_actual_lifecycle_rejects_missing_recreation_and_wrong_native_mode(self):
-        accepted = json.loads((Path(__file__).parents[2] / 'docs/verification/fe2-lifecycle-2026-10-08/native-supported/device-files/report.json').read_text())
+        accepted = json.loads((Path(__file__).parents[2] / 'docs/verification/rf1113-account-cold-text-2026-10-10/current-native/lifecycle-supported/device-files/report.json').read_text())
         runner.verify_evidence(accepted, 'lifecycle')
         for stage, mutate in [
             ('account-a-after-activity-recreate', lambda row: row.update(activityRecreated=False)),
@@ -371,8 +372,13 @@ class HomeRunnerTests(unittest.TestCase):
                 runner.verify_evidence(json.loads(path.read_text()), 'insets')
 
     def test_actual_account_acceptance_rejects_unreadable_or_missing_action_pixels(self):
-        accepted = json.loads((Path(__file__).parents[2] / "docs/verification/fe2-accounts-2026-10-07/contrast-native-supported/device-files/report.json").read_text())
+        accepted = json.loads((Path(__file__).parents[2] / "docs/verification/rf1114-account-frame-stability-2026-10-10/current-native/accounts-supported/device-files/report.json").read_text())
         runner.verify_evidence(accepted, 'accounts')
+        for stage, foreground in [('account-a-after-switch', '#d6ddd8'), ('account-b-after-switch', '#1f2328')]:
+            invalid = json.loads(json.dumps(accepted))
+            next(row for row in invalid['records'] if row['stage'] == stage)['foreground'] = foreground
+            with self.subTest(stage=stage), self.assertRaises(RuntimeError):
+                runner.verify_evidence(invalid, 'accounts')
         for key, value in [('contrast', 1.0), ('inkPixels', 0), ('visible', False), ('hittable', False)]:
             invalid = json.loads(json.dumps(accepted))
             next(row for row in invalid['records'] if row['stage'] == 'account-a-after-switch')['action'][key] = value

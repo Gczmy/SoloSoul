@@ -423,7 +423,7 @@ def verify_evidence(evidence, scenario, motion=False, *, require_preview_bars=Fa
                 or login.get('path') != '/login' or login.get('home') or not login.get('locked')
                 or not login.get('passwordRequired') or login.get('accountCount') != 2
                 or login.get('theme') != 'dark' or login.get('glass') != 'enhanced'
-                or login.get('background') != '#1a211d' or login.get('foreground') != '#d6ddd8'
+                or login.get('background') != '#1a211d' or login.get('foreground') != '#ffffff'
                 or login.get('accent') != '#112233' or (motion and login.get('reduceMotion') != 'true')):
             raise RuntimeError('Missing actual new-process locked startup')
     if scenario in ('accounts', 'lifecycle', 'cold'):
@@ -459,7 +459,7 @@ def verify_evidence(evidence, scenario, motion=False, *, require_preview_bars=Fa
                     or record.get('theme') != prefs['theme'] or record.get('glass') != prefs['androidGlass']
                     or record.get('accent') != prefs['customAccentHex'] or record.get('surface') != surface
                     or record.get('background') != ('#1a211d' if dark else '#f6f8fa')
-                    or record.get('foreground') != ('#d6ddd8' if dark else '#1f2328')
+                    or record.get('foreground') != ('#ffffff' if dark else '#111111')
                     or record.get('primaryInk') != ('#ffffff' if dark else '#000000')
                     or record.get('liquidBase') != surface or record.get('count') != ('1' if dark else '0')
                     or bars.get('statusBarLight') is not (not dark) or bars.get('navigationBarLight') is not (not dark)

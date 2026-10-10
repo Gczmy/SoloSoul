@@ -1702,7 +1702,7 @@ class AndroidHomeInstrumentedTest {
                     it.optJSONArray("buttons")?.toString()?.contains("Unlock") == true &&
                     it.optBoolean("passwordRequired") && it.optInt("accountCount") == 2 &&
                     it.optString("theme") == "dark" && it.optString("glass") == "enhanced" &&
-                    it.optString("background") == "#1a211d" && it.optString("foreground") == "#d6ddd8" &&
+                    it.optString("background") == "#1a211d" && it.optString("foreground") == "#ffffff" &&
                     it.optString("accent") == "#112233" &&
                     (!motionChecks || it.optString("reduceMotion") == "true")
             }

@@ -1,0 +1,499 @@
+{
+  "records": [
+    {
+      "path": "\/login",
+      "buttons": [
+        "",
+        "Unlock",
+        "Create a new account",
+        "Restore from another device",
+        "Master password"
+      ],
+      "mounted": true,
+      "startupGone": true,
+      "platform": "android",
+      "text": "SoloSoul\n\nUnlock your vault to continue\n\nFE2 public visual test · acc_6ffa943872154b6c\nFE2 public second account · acc_c3c73db021be44e7\nUnlock\nCreate a new account\nRestore from another device\nMaster password",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "hidden": false,
+      "home": false,
+      "alerts": [],
+      "theme": "dark",
+      "background": "#1a211d",
+      "foreground": "#ffffff",
+      "accent": "#112233",
+      "accountCount": 2,
+      "passwordRequired": true,
+      "stage": "cold-login",
+      "previousProcessId": 12881,
+      "processId": 13172,
+      "locked": true,
+      "recordedAtMs": 1791673389979
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; Android SDK built for x86_64 Build\/SE1A.220826.006.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1a211d",
+      "surface": "#242d28",
+      "foreground": "#ffffff",
+      "accent": "#112233",
+      "count": "1",
+      "copyText": "My vault1objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(255, 255, 255)",
+      "copyRect": {
+        "x": 44,
+        "y": 254,
+        "width": 154.2734375,
+        "height": 146,
+        "right": 198.2734375,
+        "bottom": 400
+      },
+      "artRect": {
+        "x": 202.125,
+        "y": 230,
+        "width": 131.875,
+        "height": 194,
+        "right": 334,
+        "bottom": 424
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 198,
+      "canvasHeight": 291,
+      "viewportWidth": 360,
+      "overflow": false,
+      "navigationBackground": "rgba(36, 45, 40, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "primaryInk": "#ffffff",
+      "action": {
+        "color": "rgb(138, 147, 155)",
+        "contrast": 5.259082618914598,
+        "hittable": true,
+        "visible": true,
+        "textRect": {
+          "x": 240.9609375,
+          "y": 462.5,
+          "right": 296,
+          "bottom": 481.5
+        },
+        "rgb": [
+          138,
+          147,
+          155
+        ],
+        "inkPixels": 504
+      },
+      "liquidBase": "#242d28",
+      "motionEffect": {
+        "navigationTransition": "0s",
+        "systemReduced": false
+      },
+      "navBackdrop": "blur(16px) saturate(1.08)",
+      "framePreparations": [
+        {
+          "beforeCopy": {
+            "x": 44,
+            "y": 254,
+            "width": 154.2734375,
+            "height": 146,
+            "right": 198.2734375,
+            "bottom": 400
+          },
+          "afterCopy": {
+            "x": 44,
+            "y": 254,
+            "width": 154.2734375,
+            "height": 146,
+            "right": 198.2734375,
+            "bottom": 400
+          },
+          "beforeAction": {
+            "color": "rgb(138, 147, 155)",
+            "contrast": 5.259082618914598,
+            "hittable": true,
+            "visible": true,
+            "textRect": {
+              "x": 240.9609375,
+              "y": 462.5,
+              "right": 296,
+              "bottom": 481.5
+            },
+            "rgb": [
+              138,
+              147,
+              155
+            ]
+          },
+          "afterAction": {
+            "color": "rgb(138, 147, 155)",
+            "contrast": 5.259082618914598,
+            "hittable": true,
+            "visible": true,
+            "textRect": {
+              "x": 240.9609375,
+              "y": 462.5,
+              "right": 296,
+              "bottom": 481.5
+            },
+            "rgb": [
+              138,
+              147,
+              155
+            ],
+            "inkPixels": 504
+          },
+          "stable": true
+        }
+      ],
+      "stage": "account-a-cold-system-light",
+      "accountId": "acc_6ffa943872154b6c",
+      "accountName": "FE2 public visual test",
+      "savedPreferences": {
+        "theme": "dark",
+        "defaultDarkTheme": "forest-night",
+        "accentColor": "custom",
+        "customAccentHex": "#112233",
+        "androidGlass": "enhanced"
+      },
+      "copyInkPixels": 3316,
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": false
+      },
+      "systemNightMode": false,
+      "recordedAtMs": 1791673394547
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; Android SDK built for x86_64 Build\/SE1A.220826.006.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "dark",
+      "glass": "enhanced",
+      "reduceMotion": "false",
+      "background": "#1a211d",
+      "surface": "#242d28",
+      "foreground": "#ffffff",
+      "accent": "#112233",
+      "count": "1",
+      "copyText": "My vault1objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public visual test",
+      "copyColor": "rgb(255, 255, 255)",
+      "copyRect": {
+        "x": 44,
+        "y": 254,
+        "width": 154.2734375,
+        "height": 146,
+        "right": 198.2734375,
+        "bottom": 400
+      },
+      "artRect": {
+        "x": 202.125,
+        "y": 230,
+        "width": 131.875,
+        "height": 194,
+        "right": 334,
+        "bottom": 424
+      },
+      "ready": true,
+      "canvasVisible": true,
+      "canvasWidth": 198,
+      "canvasHeight": 291,
+      "viewportWidth": 360,
+      "overflow": false,
+      "navigationBackground": "rgba(36, 45, 40, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "primaryInk": "#ffffff",
+      "action": {
+        "color": "rgb(138, 147, 155)",
+        "contrast": 5.259082618914598,
+        "hittable": true,
+        "visible": true,
+        "textRect": {
+          "x": 240.9609375,
+          "y": 462.5,
+          "right": 296,
+          "bottom": 481.5
+        },
+        "rgb": [
+          138,
+          147,
+          155
+        ],
+        "inkPixels": 504
+      },
+      "liquidBase": "#242d28",
+      "motionEffect": {
+        "navigationTransition": "0s",
+        "systemReduced": false
+      },
+      "navBackdrop": "blur(16px) saturate(1.08)",
+      "framePreparations": [
+        {
+          "beforeCopy": {
+            "x": 44,
+            "y": 254,
+            "width": 154.2734375,
+            "height": 146,
+            "right": 198.2734375,
+            "bottom": 400
+          },
+          "afterCopy": {
+            "x": 44,
+            "y": 254,
+            "width": 154.2734375,
+            "height": 146,
+            "right": 198.2734375,
+            "bottom": 400
+          },
+          "beforeAction": {
+            "color": "rgb(138, 147, 155)",
+            "contrast": 5.259082618914598,
+            "hittable": true,
+            "visible": true,
+            "textRect": {
+              "x": 240.9609375,
+              "y": 462.5,
+              "right": 296,
+              "bottom": 481.5
+            },
+            "rgb": [
+              138,
+              147,
+              155
+            ]
+          },
+          "afterAction": {
+            "color": "rgb(138, 147, 155)",
+            "contrast": 5.259082618914598,
+            "hittable": true,
+            "visible": true,
+            "textRect": {
+              "x": 240.9609375,
+              "y": 462.5,
+              "right": 296,
+              "bottom": 481.5
+            },
+            "rgb": [
+              138,
+              147,
+              155
+            ],
+            "inkPixels": 504
+          },
+          "stable": true
+        }
+      ],
+      "stage": "account-a-cold-system-dark",
+      "accountId": "acc_6ffa943872154b6c",
+      "accountName": "FE2 public visual test",
+      "savedPreferences": {
+        "theme": "dark",
+        "defaultDarkTheme": "forest-night",
+        "accentColor": "custom",
+        "customAccentHex": "#112233",
+        "androidGlass": "enhanced"
+      },
+      "copyInkPixels": 3316,
+      "systemBars": {
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "nightMode": true
+      },
+      "systemNightMode": true,
+      "recordedAtMs": 1791673395636
+    },
+    {
+      "path": "\/",
+      "home": true,
+      "userAgent": "Mozilla\/5.0 (Linux; Android 12; Android SDK built for x86_64 Build\/SE1A.220826.006.A1; wv) AppleWebKit\/537.36 (KHTML, like Gecko) Version\/4.0 Chrome\/91.0.4472.114 Mobile Safari\/537.36",
+      "cssSupport": {
+        "backdropFilter": true,
+        "colorMix": false,
+        "dynamicViewport": false
+      },
+      "theme": "light",
+      "glass": "local",
+      "reduceMotion": "false",
+      "background": "#f6f8fa",
+      "surface": "#ffffff",
+      "foreground": "#111111",
+      "accent": "#ffee00",
+      "count": "0",
+      "copyText": "My vault0objectsLocal vault · Your data, your control",
+      "copyVisible": true,
+      "name": "Welcome back, FE2 public second account",
+      "copyColor": "rgb(17, 17, 17)",
+      "copyRect": {
+        "x": 44,
+        "y": 254,
+        "width": 217.8203125,
+        "height": 124,
+        "right": 261.8203125,
+        "bottom": 378
+      },
+      "artRect": null,
+      "ready": false,
+      "canvasVisible": false,
+      "viewportWidth": 360,
+      "overflow": false,
+      "navigationBackground": "rgba(255, 255, 255, 0.9)",
+      "navigationBackdrop": "blur(16px) saturate(1.08)",
+      "navCount": 4,
+      "primaryInk": "#000000",
+      "action": {
+        "color": "rgb(124, 116, 0)",
+        "contrast": 4.529314742972726,
+        "hittable": true,
+        "visible": true,
+        "textRect": {
+          "x": 240.9609375,
+          "y": 440.5,
+          "right": 296,
+          "bottom": 459.5
+        },
+        "rgb": [
+          124,
+          116,
+          0
+        ],
+        "inkPixels": 475
+      },
+      "liquidBase": "#ffffff",
+      "motionEffect": {
+        "navigationTransition": "0s",
+        "systemReduced": false
+      },
+      "navBackdrop": "blur(16px) saturate(1.08)",
+      "framePreparations": [
+        {
+          "beforeCopy": {
+            "x": 44,
+            "y": 254,
+            "width": 217.8203125,
+            "height": 124,
+            "right": 261.8203125,
+            "bottom": 378
+          },
+          "afterCopy": {
+            "x": 44,
+            "y": 254,
+            "width": 217.8203125,
+            "height": 124,
+            "right": 261.8203125,
+            "bottom": 378
+          },
+          "beforeAction": {
+            "color": "rgb(124, 116, 0)",
+            "contrast": 4.529314742972726,
+            "hittable": true,
+            "visible": true,
+            "textRect": {
+              "x": 240.9609375,
+              "y": 440.5,
+              "right": 296,
+              "bottom": 459.5
+            },
+            "rgb": [
+              124,
+              116,
+              0
+            ]
+          },
+          "afterAction": {
+            "color": "rgb(124, 116, 0)",
+            "contrast": 4.529314742972726,
+            "hittable": true,
+            "visible": true,
+            "textRect": {
+              "x": 240.9609375,
+              "y": 440.5,
+              "right": 296,
+              "bottom": 459.5
+            },
+            "rgb": [
+              124,
+              116,
+              0
+            ],
+            "inkPixels": 475
+          },
+          "stable": true
+        }
+      ],
+      "stage": "account-b-cold-system-dark",
+      "accountId": "acc_c3c73db021be44e7",
+      "accountName": "FE2 public second account",
+      "savedPreferences": {
+        "theme": "light",
+        "defaultLightTheme": "clean-slate",
+        "accentColor": "custom",
+        "customAccentHex": "#ffee00",
+        "androidGlass": "local"
+      },
+      "copyInkPixels": 3937,
+      "systemBars": {
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "nightMode": true
+      },
+      "systemNightMode": true,
+      "recordedAtMs": 1791673398079
+    },
+    {
+      "stage": "account-preferences-isolated",
+      "accountCount": 2,
+      "aRetainsObjectCount": true,
+      "bRemainsEmpty": true,
+      "savedPreferencesUnchanged": true,
+      "recordedAtMs": 1791673398088
+    }
+  ],
+  "processId": 13172,
+  "runtime": {
+    "api": 31,
+    "webViewPackage": "com.android.webview",
+    "webViewVersion": "91.0.4472.114",
+    "webViewVersionCode": 447211456
+  },
+  "directoryAttempts": 0,
+  "unlockAttempts": [
+    {
+      "accountName": "FE2 public visual test",
+      "attempt": 1,
+      "result": "home"
+    },
+    {
+      "accountName": "FE2 public second account",
+      "attempt": 1,
+      "result": "home"
+    }
+  ],
+  "previewReminderRenewals": [],
+  "notificationPrompts": 0,
+  "motionPreferenceChecks": false,
+  "requestedFontScale": null,
+  "fontMenuBeforeDetail": false,
+  "scenario": "cold",
+  "scope": "production UI bootstrap\/appearance\/lock\/password unlock, encrypted preferences, populated home\/editor\/list\/detail\/actions and Android system back, two public accounts with distinct saved themes\/materials\/accents, repeated UI switch, system bars and composed home pixels, real process-cold startup\/login\/password unlock\/system theme",
+  "cleanup": "external driver must force-stop and restore full private data backup"
+}
