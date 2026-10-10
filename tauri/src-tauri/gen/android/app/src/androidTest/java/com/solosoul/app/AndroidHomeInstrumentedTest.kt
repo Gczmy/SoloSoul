@@ -329,7 +329,8 @@ class AndroidHomeInstrumentedTest {
     /** 放大后内容可以滚动，使用实际触屏滑动把目标带入阅读区。 */
     private fun scrollTypographyIntoView(scenario: ActivityScenario<MainActivity>,
                                          targetSelector: String = ".android-overview",
-                                         viewportSelector: String = "[data-shell-content]") {
+                                         viewportSelector: String = "[data-shell-content]",
+                                         avoidSelector: String = "") {
         val geometry = js(scenario, """(() => {
           const card=document.querySelector(${JSONObject.quote(targetSelector)}),main=document.querySelector(${JSONObject.quote(viewportSelector)});
           // 概览在大字号下可能高于视口；只将本次测量的标题与数量带入阅读区。
@@ -338,9 +339,11 @@ class AndroidHomeInstrumentedTest {
             [...document.querySelectorAll('.android-overview-copy > p:first-child,.android-overview-copy strong')].map(e=>{
               const range=document.createRange();range.selectNodeContents(e);return range.getBoundingClientRect();}):[];
           const r=textRects.length===2?{top:Math.min(...textRects.map(r=>r.top)),bottom:Math.max(...textRects.map(r=>r.bottom))}:card?.getBoundingClientRect(),
-            m=main?.getBoundingClientRect();
+            m=main?.getBoundingClientRect(),avoidSelector=${JSONObject.quote(avoidSelector)},
+            avoid=avoidSelector?document.querySelector(avoidSelector)?.getBoundingClientRect():null;
+          const bottom=avoid&&r&&r.right>avoid.x&&r.left<avoid.right?Math.min(m.bottom,avoid.top):m?.bottom;
           return JSON.stringify({found:!!r&&!!m,cardTop:r?.top,cardBottom:r?.bottom,
-            mainTop:m?.top,mainBottom:m?.bottom,width:innerWidth});
+            mainTop:m?.top,mainBottom:bottom,width:innerWidth});
         })()""")
         assertTrue("必须有生产滚动区域和目标", geometry.getBoolean("found"))
         // 原生手势起始移动会被 touch slop 消耗，留 24 CSS px 的阅读余量，
@@ -1299,6 +1302,15 @@ class AndroidHomeInstrumentedTest {
         return result
     }
 
+    private fun recordAccountFailure(scenario: ActivityScenario<MainActivity>, stage: String,
+                                     result: JSONObject, expression: String, bitmap: Bitmap? = null) {
+        val frame = bitmap ?: screenshot(scenario)
+        File(evidence, "$stage.png").outputStream().use { frame.compress(Bitmap.CompressFormat.PNG,100,it) }
+        record(JSONObject(result.toString()).put("stage",stage)
+            .put("afterScreenshot",js(scenario,expression)).put("nativeViewport",nativeViewport(scenario)))
+        if (bitmap == null) frame.recycle()
+    }
+
     private fun captureAccount(scenario: ActivityScenario<MainActivity>, stage: String, name: String,
                                dark: Boolean, enhanced: Boolean, count: String, expectedPrefs: JSONObject,
                                accountCount: Int): JSONObject {
@@ -1321,7 +1333,7 @@ class AndroidHomeInstrumentedTest {
             motionEffect:{navigationTransition:getComputedStyle(document.querySelector('.android-navigation')).transitionDuration,
               systemReduced:matchMedia('(prefers-reduced-motion: reduce)').matches},
             navBackdrop:getComputedStyle(document.querySelector('.android-navigation')).backdropFilter});})()"""
-        val result = waitFor(scenario, stage, expression) {
+        var result = waitFor(scenario, stage, expression) {
             val bars = accountBars(scenario)
             it.optBoolean("home") && it.optString("name").contains(name) && it.optString("count") == count &&
                 it.optString("theme") == (if (dark) "dark" else "light") &&
@@ -1333,6 +1345,35 @@ class AndroidHomeInstrumentedTest {
                 (!enhanced || (it.optBoolean("ready") && it.optBoolean("canvasVisible"))) &&
                 (!motionChecks || it.optString("reduceMotion") == dark.toString())
         }
+        val saved = readAccountPreferences(scenario, name, expectedPrefs, accountCount)
+        // 解锁提醒会改变首页布局；只重采几何变化的帧，像素断言仍只执行一次。
+        val frameDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45)
+        var frame: Bitmap? = null
+        val framePreparations = JSONArray()
+        do {
+            result = js(scenario, expression)
+            val currentAction = result.optJSONObject("action")
+            if (currentAction?.optBoolean("visible") == true && currentAction.optBoolean("hittable")) {
+                val candidate = screenshot(scenario)
+                val after = js(scenario, expression)
+                val stable = listOf("name","count","theme","glass","reduceMotion","background","surface",
+                    "foreground","accent","copyRect","copyColor","action").all {
+                    result.opt(it).toString() == after.opt(it).toString()
+                }
+                framePreparations.put(JSONObject().put("beforeCopy",result.opt("copyRect"))
+                    .put("afterCopy",after.opt("copyRect")).put("beforeAction",result.opt("action"))
+                    .put("afterAction",after.opt("action")).put("stable",stable))
+                if (stable) { result = after; frame = candidate; break }
+                candidate.recycle()
+            } else {
+                framePreparations.put(JSONObject().put("actionBeforeScroll",currentAction))
+                scrollTypographyIntoView(scenario,".android-section-heading",avoidSelector=".android-fab")
+            }
+        } while (System.nanoTime() < frameDeadline)
+        if (frame == null) recordAccountFailure(scenario,"failure-account-stable-frame",
+            JSONObject(result.toString()).put("framePreparations",framePreparations),expression)
+        val bitmap = requireNotNull(frame) { "账户操作必须可见可命中，且截图前后几何稳定: $framePreparations" }
+        result.put("framePreparations",framePreparations)
         if (motionChecks && dark) {
             val durations = result.getJSONObject("motionEffect").getString("navigationTransition").split(',')
                 .map { value -> val text=value.trim(); if(text.endsWith("ms"))text.removeSuffix("ms").toDouble()/1000 else text.removeSuffix("s").toDouble() }
@@ -1344,14 +1385,14 @@ class AndroidHomeInstrumentedTest {
         assertEquals(if (dark) "#ffffff" else "#000000", result.getString("primaryInk"))
         val action = result.getJSONObject("action")
         assertTrue("无填色首页操作文字应对比实际底色至少 4.5", action.getDouble("contrast") >= 4.5)
+        if (!action.getBoolean("visible") || !action.getBoolean("hittable"))
+            recordAccountFailure(scenario,"failure-account-action-hit",result,expression)
         assertTrue("首页操作应完整可见且可命中", action.getBoolean("visible") && action.getBoolean("hittable"))
         if (enhanced) {
             assertTrue("当前账户增强画布应可见", result.getBoolean("canvasVisible"))
             assertTrue("当前账户装饰仍需与正文分区", result.getJSONObject("copyRect").getDouble("right") <=
                 result.getJSONObject("artRect").getDouble("x") + 1)
         } else assertTrue("局部档位不保留上一账户的画布", result.isNull("artRect"))
-        val saved = readAccountPreferences(scenario, name, expectedPrefs, accountCount)
-        val bitmap = screenshot(scenario)
         val native = nativeViewport(scenario)
         val scale = native.getDouble("webViewWidthPx") / result.getDouble("viewportWidth")
         val copy = result.getJSONObject("copyRect")
@@ -1381,6 +1422,8 @@ class AndroidHomeInstrumentedTest {
                        android.graphics.Color.green(pixel)-actionRgb.getInt(1),
                        android.graphics.Color.blue(pixel)-actionRgb.getInt(2)).all { kotlin.math.abs(it) <= 8 }) actionInkPixels++
         }
+        if (actionInkPixels < 20) recordAccountFailure(scenario,"failure-account-action-pixels",
+            JSONObject(result.toString()).put("actionInkPixels",actionInkPixels),expression,bitmap)
         assertTrue("最终合成帧必须有可读的首页操作文字像素", actionInkPixels >= 20)
         action.put("inkPixels", actionInkPixels)
         File(evidence, "$stage.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }

@@ -1,0 +1,954 @@
+{
+  "members": [
+    {
+      "path": "drivers/archive-rf1114-final.py",
+      "bytes": 8927,
+      "sha256": "4094fc3abc065deff7b7350aaac99416c710f7150150e40c5939239f9024fafe"
+    },
+    {
+      "path": "drivers/rebuild-rf1114-account-diagnostic.py",
+      "bytes": 5212,
+      "sha256": "459a5ec052d01568c3242eea562d712ada06edd4289395bc2824b24756ad8f35"
+    },
+    {
+      "path": "drivers/rebuild-rf1114-account-stable-frame.py",
+      "bytes": 5234,
+      "sha256": "73eec9f1f7293092e06e0cbf955ffcaa58597fbab5a5c4682e8813b1f4456516"
+    },
+    {
+      "path": "drivers/verify-rf1114-account-diagnostic.py",
+      "bytes": 5465,
+      "sha256": "5ca430a1047f97d1647641d24329ad737f6baae62869eadf23e429e7b6a4c55b"
+    },
+    {
+      "path": "drivers/verify-rf1114-account-stable-frame.py",
+      "bytes": 5473,
+      "sha256": "81a5a5982beafd5ab5ed88370733e0ebcf908213520d938ee92bc438771d1156"
+    },
+    {
+      "path": "drivers/verify-session-reconnected.json",
+      "bytes": 319,
+      "sha256": "649dc13254d1235449152dfa28b4228005c928faec69e44da137b0407f691daa"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported.live.json",
+      "bytes": 821,
+      "sha256": "9cc97f7a2723992562ec641feb244e5500a1eec8832703d99979ee99a7743a9e"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported.receipt.json",
+      "bytes": 584,
+      "sha256": "15b6ad7e889ca71f9a6f92f042aa987187b1205df5cc092a1fa11acecbef9fa3"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported.stderr.log",
+      "bytes": 343,
+      "sha256": "152294ceb62f6b02f39af2af7ad45d63987b9dd9a74b5a0524db820afdee3f46"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported.stdout.log",
+      "bytes": 1372,
+      "sha256": "0b13de380dfa181dc775ae332a7036446df2e702e052d9fe018917b4fbadb1c8"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/account-a-after-switch.png",
+      "bytes": 122600,
+      "sha256": "412952d16d183419e7e757bfa122c1578eec714e30c4ffb9f68bd17e70724bec"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/account-a-custom-dark.png",
+      "bytes": 122600,
+      "sha256": "412952d16d183419e7e757bfa122c1578eec714e30c4ffb9f68bd17e70724bec"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/account-b-after-switch.png",
+      "bytes": 104380,
+      "sha256": "3e465dabe1ae00ac4362b530a20e991be256fbb88c2701ed99708ac6a42c8f02"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/account-b-custom-light.png",
+      "bytes": 104575,
+      "sha256": "64b33aae17a315e3b5c0b4b3468e3927c90a8d87e5414213fd8006a01284e29a"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130415,
+      "sha256": "cf85e25e8b365ef2f35be4a22d9f9bfe7e91d0a148e040053378f0c7cfe381f7"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/enhanced-dark.png",
+      "bytes": 130270,
+      "sha256": "3fc6fc265f64b9f33d51de74a9b87ccd02678f504932fa9d980dd35544366988"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/enhanced-light.png",
+      "bytes": 129399,
+      "sha256": "27ab31456d158dd7c53e600c71236a436dc4b35bf1d748a1a8b07d5db01eb9ab"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/failure.png",
+      "bytes": 135178,
+      "sha256": "0283685da5ed4f21f7f18c6127386e7b53bac125c9497821e2096ad9462fce44"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/local-light.png",
+      "bytes": 101511,
+      "sha256": "9583dc07494790e7c6fcd8e7e69b314134063673d74050a7feaf767bfea15e1d"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/object-actions-dark.png",
+      "bytes": 106671,
+      "sha256": "1c261d69998c8270411f70947e3697bd5d9cfca048b8f5b860fc26bdcf6f4e17"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/object-detail-dark.png",
+      "bytes": 111806,
+      "sha256": "26298633a799064d9297ad579885c35609237757115cb5f52e031dec43f4dc55"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/object-editor-dark.png",
+      "bytes": 100770,
+      "sha256": "40c1886ef06b1b615228e9a729b41369038631bda939ac5682330ef895396ea8"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/object-list-after-system-back.png",
+      "bytes": 82350,
+      "sha256": "9370556e329605165597238b4d5ce2fd2b6544d120525e6eb93419b6f04cf09e"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/object-list-dark.png",
+      "bytes": 119110,
+      "sha256": "20433a136f7a1dfa13f0790b6d7d320935a9378c6a73c14f2123ebbaba28e91d"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/populated-enhanced-dark.png",
+      "bytes": 129252,
+      "sha256": "a963551c8042db864117eb4a5b04a94e27262deb1eba1548706e71f1e85340cb"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/populated-enhanced-light.png",
+      "bytes": 128173,
+      "sha256": "67b4d005ad8111c84dc4c487f5cb15084f58c4d8adee250daa8618f3e571f359"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/device-files/report.json",
+      "bytes": 42239,
+      "sha256": "1853a1c4b30a624c917e88970c086947e06387eb3b4091bcfb07aa90f909a2b0"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/junit.xml",
+      "bytes": 533,
+      "sha256": "070bd0dd7447ba42c1cb97a39f8901b10f5004255c56fa8822af6571be6850a7"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/native.log",
+      "bytes": 2740,
+      "sha256": "0c170bc84e9d5644a09f54f01e351013be1ad7911d2c816830f661c6cc0442d5"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/cold-supported/report.json",
+      "bytes": 1372,
+      "sha256": "0b13de380dfa181dc775ae332a7036446df2e702e052d9fe018917b4fbadb1c8"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/input-proof.json",
+      "bytes": 235904,
+      "sha256": "34cbb9bdc04bc431f7541c1b9d188806bb672664072cbf28dbbfbd4389ab503f"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round1/verification.json",
+      "bytes": 939,
+      "sha256": "f3a9974e763ef5c8c05f4e10111927f3818eaf1c9ebbbf0b967f47cf4f4d175d"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported.live.json",
+      "bytes": 821,
+      "sha256": "308f375734d1badd5badb7530966dae7b7b61fe766aab92558e99a8c451072f9"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported.receipt.json",
+      "bytes": 585,
+      "sha256": "a168b24f7e5c3795236da681ee9e46a31b1cf427e0d77a20ad41c246587f1853"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported.stderr.log",
+      "bytes": 342,
+      "sha256": "c6236b1e1926f1f0752b7dadc0ddbdda41fc586e0b768dc0064db8d41916260b"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported.stdout.log",
+      "bytes": 1372,
+      "sha256": "1a4fb24ec344899b00a42235c810b9086c513be79acda92b45b719b0f23d29e7"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/account-a-after-switch.png",
+      "bytes": 122245,
+      "sha256": "a2f335ebd08e444686167c43dc32a6b62bbc41c79243f8dcfbba55d37a6f98c7"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/account-a-custom-dark.png",
+      "bytes": 122278,
+      "sha256": "070fe6005363a677bc29664c384e87f82e93699d7bbcbfbfcf56edcaf60bdec5"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/account-b-custom-light.png",
+      "bytes": 104106,
+      "sha256": "4f4cc69d38ee955aac51253a71648e30792ed6e7407a6f6036684dfaf3ba871d"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130044,
+      "sha256": "ad310d514320da9a3970726f86dbbd822c63a4539864ebf8169c559d6ad46b52"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/enhanced-dark.png",
+      "bytes": 129849,
+      "sha256": "81083728595d52a0d387bae57dcb22f9f0300ead2d54c4409454cc4222ce686d"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/enhanced-light.png",
+      "bytes": 129108,
+      "sha256": "1375b9f2dedb63310cd5e0bb2c9c3592007df4086b846ff749a8f514a4c83976"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/failure.png",
+      "bytes": 114700,
+      "sha256": "10f49f4187a4be94b70ac7013f3370cec06b541bf2d7a04fcfee3f02553dfe94"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/local-light.png",
+      "bytes": 101166,
+      "sha256": "ee009e1144d1d98f36d05474f8e6be53233b157ebbf7fbb62d019e4114afd842"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/object-actions-dark.png",
+      "bytes": 106172,
+      "sha256": "baf07f03454c57f2f7dfc4095342f638ceec5a0a61db69717093a9171472760c"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/object-detail-dark.png",
+      "bytes": 117562,
+      "sha256": "9d42310cfdb9b9a63516de6ffb04bdb27c17042074c364dcd2b221eaeef8f6fc"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/object-editor-dark.png",
+      "bytes": 100400,
+      "sha256": "d4ccdab4968d755fffc3d0bf0b7476cb6b2f658a205b4ad29afdc4ffa5414a28"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/object-list-after-system-back.png",
+      "bytes": 110511,
+      "sha256": "91175aee668f5dc06682276aadb042c3a430881d1a8b4a1ed7d1047a89c43992"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/object-list-dark.png",
+      "bytes": 118724,
+      "sha256": "0d71dacc6b59c525f5eea368fd753be80ee7881071d7ea608690d56a1c4ea613"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/populated-enhanced-dark.png",
+      "bytes": 128865,
+      "sha256": "e3cd4b692fc7665db8ae7559209331f647043ae051e5f164400a38e247af443c"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/populated-enhanced-light.png",
+      "bytes": 127892,
+      "sha256": "ae195e8235f45c91f60137decde44acb77953e6e7321fa73b24627bdbc49a58f"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/device-files/report.json",
+      "bytes": 39599,
+      "sha256": "f5ee4fecd2b0e2ae98c853e21827248e2f223b36c6d85c2f99ec58ff00e4ada2"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/junit.xml",
+      "bytes": 533,
+      "sha256": "070bd0dd7447ba42c1cb97a39f8901b10f5004255c56fa8822af6571be6850a7"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/native.log",
+      "bytes": 2794,
+      "sha256": "6b87f469acf5438db13933f6cb12145afea0a925a75c45f0668a093bd155972c"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/cold-supported/report.json",
+      "bytes": 1372,
+      "sha256": "1a4fb24ec344899b00a42235c810b9086c513be79acda92b45b719b0f23d29e7"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/input-proof.json",
+      "bytes": 235904,
+      "sha256": "34cbb9bdc04bc431f7541c1b9d188806bb672664072cbf28dbbfbd4389ab503f"
+    },
+    {
+      "path": "rf1113-cold-login-red-native-round2/verification.json",
+      "bytes": 940,
+      "sha256": "e48a3425c8f8a220527a813c95bed551d4f2f26a66a8045b19e6896aa33427d5"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback.live.json",
+      "bytes": 798,
+      "sha256": "694890bc9bbe0b42cb3db9ce743e2fd99027713da7e0ac58ba5cf9617af76872"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback.receipt.json",
+      "bytes": 586,
+      "sha256": "408dbc6edf05a0e8395c18f09ce8a60679b2b93ee5810358a9f54711b21a148e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback.stderr.log",
+      "bytes": 349,
+      "sha256": "e35150ed6f2f679d70df8c19f5b94676a599b205302cd7229de75d8f8b6a7c36"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback.stdout.log",
+      "bytes": 1819,
+      "sha256": "c050f409f1c0ab7676540459e8a71b678caa844d14b8a04b69e8ddd6b67c82ac"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/account-a-after-second-switch.png",
+      "bytes": 122199,
+      "sha256": "6b28e83a9423bc8aa92f8fc75d141d52f7ac064e094ca9f343f1bcc63075be8e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/account-a-after-switch.png",
+      "bytes": 122199,
+      "sha256": "6b28e83a9423bc8aa92f8fc75d141d52f7ac064e094ca9f343f1bcc63075be8e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/account-a-custom-dark.png",
+      "bytes": 122199,
+      "sha256": "6b28e83a9423bc8aa92f8fc75d141d52f7ac064e094ca9f343f1bcc63075be8e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/account-b-after-switch.png",
+      "bytes": 104378,
+      "sha256": "c84e8b9415156548a9fa910050583298e04f07e5f3331065cb4a8db7a999f11e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/account-b-custom-light.png",
+      "bytes": 104229,
+      "sha256": "e923a25bbc055a3c6627a71226272fdfd29e798073e4556fce5b9ba9e59445c3"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130209,
+      "sha256": "0618a4cbdba66dd3b6c0c1642e8e5e4c213b00857d0b5ae96795a9333e8ebd78"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/enhanced-dark.png",
+      "bytes": 130089,
+      "sha256": "14d87334aa8c7cfbf29591e78007f9d0caedb9af9b77182162070fa72e7ae4ca"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/enhanced-light.png",
+      "bytes": 129221,
+      "sha256": "31c47aac5e59acd23068478eb957b7de04cc71ea7a381712b98bae287b3fc9de"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/local-light.png",
+      "bytes": 101012,
+      "sha256": "019fdf6f635b595dd850f23f9983979e3b503792fc6443c77b258b7477ac782d"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/object-actions-dark.png",
+      "bytes": 106414,
+      "sha256": "b2c4e6246bafdf9d4214c4ea0e594e067fca7b305e44ea14baf06ebf2fd032aa"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/object-detail-dark.png",
+      "bytes": 117719,
+      "sha256": "f6a4eae3f9b22feca88dd6e76c77899dbd359bcc12a3c0f81c5b30d5aafd5183"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/object-editor-dark.png",
+      "bytes": 100554,
+      "sha256": "1769ebdea23fe2388c38c86f1982fca3b17878a04b81ac317bc5445cb031969e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/object-list-after-system-back.png",
+      "bytes": 110697,
+      "sha256": "819fffae64c3f200ee977f11bb55b71e30f91d7160c7003c2fd5788a5d4173db"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/object-list-dark.png",
+      "bytes": 118893,
+      "sha256": "3c25deb0b9fa960c24336eb80cb467e7a8963439efb3bc2887703ea3953a1aa8"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/populated-enhanced-dark.png",
+      "bytes": 129043,
+      "sha256": "1ef4613c7724eda41b2056511cc22502186ebaa07c618d13c4b0443d0e290871"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/populated-enhanced-light.png",
+      "bytes": 128004,
+      "sha256": "53fd03bdfd9f61b9db5f8a3bea930833dfe02baf00910fce45b463ebbac6d52c"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/device-files/report.json",
+      "bytes": 43524,
+      "sha256": "23b2e14fd6955323fd8b25ac9b3ac7d26634263403826cbacb14df2ac38cc5fd"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/native.log",
+      "bytes": 945,
+      "sha256": "8e4046cb8d513b3f8cad5bcc328e2a731a6146f16d74f33b32fffb29c5ba5496"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-fallback/report.json",
+      "bytes": 1819,
+      "sha256": "c050f409f1c0ab7676540459e8a71b678caa844d14b8a04b69e8ddd6b67c82ac"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported.live.json",
+      "bytes": 800,
+      "sha256": "3e511bbdf1890685c56c8da692c33a3b38eaae63dfaaa8201a44e854213ffd8b"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported.receipt.json",
+      "bytes": 588,
+      "sha256": "246c3bd5a1b3f97b16445d6d5a031ed7fc0b68f3b592637843acb94157a3e89e"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported.stderr.log",
+      "bytes": 350,
+      "sha256": "3282621d27979a5ca15bd98c3751b587410d1cf4852cb3e76b32cc241a6845f7"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported.stdout.log",
+      "bytes": 1323,
+      "sha256": "b5db2c29aa4d241571945f5409b4a65083f4e2023184edd20a09af66198ce5d4"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/account-a-after-switch.png",
+      "bytes": 121906,
+      "sha256": "decb4dc06649abfcd9512a6b8d88838f527411e45dad8a6cd448b290366b8c14"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/account-a-custom-dark.png",
+      "bytes": 122085,
+      "sha256": "9f579c8a882b429edc1107e3177f48fc3ce84cf89f6e83270a127b30debe700d"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/account-b-custom-light.png",
+      "bytes": 103964,
+      "sha256": "c0c526618f5220235c045d63b85d562b2a210e14a953a94e2cf5c1a3c013cb2b"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 129924,
+      "sha256": "5c723eadc2d58e8dc431c28cd6b243a185b775508f7ba8208f93dff477437f6a"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/enhanced-dark.png",
+      "bytes": 129775,
+      "sha256": "9114ae8f7d2ff145f304ca722c2618a34ad2bee097fba7950e3614e1b17f45de"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/enhanced-light.png",
+      "bytes": 128993,
+      "sha256": "97851ec87a5457277e1ed5d02ed5062a7c102c15267460bfae90435dde7bbd9a"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/failure-account-action-pixels.png",
+      "bytes": 115136,
+      "sha256": "a3e08d307512ddd1a5ab015c6767207b3d7360077b997c6fc0272f69e858e438"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/failure.png",
+      "bytes": 114951,
+      "sha256": "f801e5836bf4a511060371521cb6a6ea8f11f0413deaf312e03b2482b978dc90"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/local-light.png",
+      "bytes": 101012,
+      "sha256": "019fdf6f635b595dd850f23f9983979e3b503792fc6443c77b258b7477ac782d"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/object-actions-dark.png",
+      "bytes": 106032,
+      "sha256": "cdfecc2eafada42269d6c687e82f9347e9a6df8e98fe0a5e176179816d5e9a14"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/object-detail-dark.png",
+      "bytes": 117465,
+      "sha256": "ffa9772e1ecf62f69e7abe93986b1a9bf72cb4d8a6d0d000899fe1ca07133f1f"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/object-editor-dark.png",
+      "bytes": 100279,
+      "sha256": "e3fe020b576273ce213927209cfdf47c23eb075268fa0fb213f0e6f0fcdb628f"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/object-list-after-system-back.png",
+      "bytes": 110420,
+      "sha256": "0ec2a7e0953513778955e9a554b5e5c00cf4c445eb428c0f376940f4b7e67b7b"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/object-list-dark.png",
+      "bytes": 118600,
+      "sha256": "e6dd1d3e9d47dac95b3179de53b630a5ba9475c979f8ee68022bc69523c03271"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/populated-enhanced-dark.png",
+      "bytes": 128778,
+      "sha256": "5a19b62a35be2f5261f72b52449f8c20330bebfc1fcec6a7e893c85444f2f612"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/populated-enhanced-light.png",
+      "bytes": 127767,
+      "sha256": "369d649b7c2120f0d4f52969c6d0ea8bad5b54aa96ff34d4a5b950afd340e9b3"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/device-files/report.json",
+      "bytes": 43967,
+      "sha256": "bff2d6d9141d90f6de0ab5ca6568df1b2d4cc10e275dedd8e189bed65abbc88f"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/junit.xml",
+      "bytes": 332,
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/native.log",
+      "bytes": 2794,
+      "sha256": "f0d167fe386625eb3c9dbb3fb5634fd2fd77f1be51bd2145b06fff57a216fdbb"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/accounts-supported/report.json",
+      "bytes": 1323,
+      "sha256": "b5db2c29aa4d241571945f5409b4a65083f4e2023184edd20a09af66198ce5d4"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/input-proof.json",
+      "bytes": 235900,
+      "sha256": "b8a22e1c500d84ccbe4e85b71423a9cf4a1e1aa138ab13d784b7bf9745feccc4"
+    },
+    {
+      "path": "rf1114-account-diagnostic-native-round1/verification.json",
+      "bytes": 1618,
+      "sha256": "5a597f0c6551af7a93cd0eec1225eec4e80cdb9832d430c77661f2ce7b645040"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/current-apks.json",
+      "bytes": 234729,
+      "sha256": "6bcc1248e2f4b2828458e57bb04803c9ffbbb130518406b884634094d5756066"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/input-proof.json",
+      "bytes": 233080,
+      "sha256": "7d20d34c79ef49694a74989690464e1cacb718c89d33e7a08d461fde4549c083"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-badging.live.json",
+      "bytes": 302,
+      "sha256": "36b356c2786c6f52750199eed4318824ee97591c7bea75343eaca0881cc55373"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-badging.receipt.json",
+      "bytes": 370,
+      "sha256": "fee4b0d71e2cbfc721e9a95facdbd199b85e3b94df44de9be3397363245cc257"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-badging.stdout.log",
+      "bytes": 685,
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-build.live.json",
+      "bytes": 436,
+      "sha256": "25afd1ca477e95877efbcfe09d1e2241ba5547d6adbfdd4b85a2444578b925e6"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-build.receipt.json",
+      "bytes": 504,
+      "sha256": "1cc6b0733ff9a63fa48c5c4fc6506386a2a76f7c1cd84ddc004656d7cd211be2"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-build.stderr.log",
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-build.stdout.log",
+      "bytes": 14732,
+      "sha256": "59297dbe9c4d950099a182b4996bf64b841ac1dd0d7e8e963ca56955be12c538"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-signature.live.json",
+      "bytes": 386,
+      "sha256": "335cc704dabbf2d249823769f348088ff721403c3012491c7cd709c02bcc4a1a"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-signature.receipt.json",
+      "bytes": 454,
+      "sha256": "02e6bcba8ffbe735f4475aa44884baa84ebefd2dc91b0273d478ceb42ad2d4e3"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "rf1114-account-diagnostic-test-build1/test-signature.stdout.log",
+      "bytes": 351,
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback.live.json",
+      "bytes": 802,
+      "sha256": "14a1426af4ebe92e93ee18293da94588a1b13bc80260b54756e2cfb30d83eeee"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback.receipt.json",
+      "bytes": 586,
+      "sha256": "9e85a43ee09c58cb0bf89b8d09ca7c0ec4576536d48b3df321f026eeafea92cc"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback.stderr.log",
+      "bytes": 351,
+      "sha256": "93563b4f6d3b4dde1037186e9eab365eaaca5ca4bb73e7699860fc6e223cacad"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback.stdout.log",
+      "bytes": 1824,
+      "sha256": "348bdbd85cd2c2c89cec1cbf6bf31ac827d05121daeedb56bfc4601aa106e29e"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/account-a-after-second-switch.png",
+      "bytes": 122197,
+      "sha256": "c801a1d36221ddd626258ed17e0ec96a5bbf642d43b233a23eb6949ad4e3e153"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/account-a-after-switch.png",
+      "bytes": 122197,
+      "sha256": "c801a1d36221ddd626258ed17e0ec96a5bbf642d43b233a23eb6949ad4e3e153"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/account-a-custom-dark.png",
+      "bytes": 122378,
+      "sha256": "e7dd92eaa28395c6053b0f71eb9bb96548ef543cb0ebd9b0624e5b9431d8b5bc"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/account-b-after-switch.png",
+      "bytes": 104211,
+      "sha256": "a85c95699febfb8b1fa567d535abd65fe0d4095080cee8132e71f3ecd74c05c8"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/account-b-custom-light.png",
+      "bytes": 104211,
+      "sha256": "a85c95699febfb8b1fa567d535abd65fe0d4095080cee8132e71f3ecd74c05c8"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130211,
+      "sha256": "18f9f95fe933db2946be5b6bfae8c87eb6d2292b115e17cc8f1bf4b994cde4b8"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/enhanced-dark.png",
+      "bytes": 130038,
+      "sha256": "532ea07c6aab90e4d3e09c568c3e594988c757da0a778527c3e69e26d1bd5543"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/enhanced-light.png",
+      "bytes": 129216,
+      "sha256": "2e720fa34f9186819f4c3a02e253ca093ce799651424c9d0e0e10f4354f63173"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/local-light.png",
+      "bytes": 101314,
+      "sha256": "c053b2a9ad29152cde8c2e8ae11128e8f0a4ed594ae96c7d1fe139765cf77de8"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/object-actions-dark.png",
+      "bytes": 106430,
+      "sha256": "ab8dacc48a50c242414a9c6670379933946f258fc5f47ed53446ad11f45e8a05"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/object-detail-dark.png",
+      "bytes": 117715,
+      "sha256": "94ab11a9bd961be2b9a861fb631a080063d11fdf0f5fbcb8f7ac3132dbc6d274"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/object-editor-dark.png",
+      "bytes": 100557,
+      "sha256": "761bd4b27e76116d5da50cdce8ad258b1fa8a16e600f9d752cfcba5352cebea9"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/object-list-after-system-back.png",
+      "bytes": 82160,
+      "sha256": "a675780176eb6fe4272c9233cd2e5da626a396a49ce9773e3f954afd921f34fd"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/object-list-dark.png",
+      "bytes": 118891,
+      "sha256": "75adb6cb56cddeb944aea56333684d439305b2946813a2c1c740289bb90eafb3"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/populated-enhanced-dark.png",
+      "bytes": 129054,
+      "sha256": "c525f1818a6928c4b920e7911d2995259bf347c86d03eded1d7d2e9756ac9e3d"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/populated-enhanced-light.png",
+      "bytes": 127976,
+      "sha256": "88efdc0a0ca852a0e8f522f03a9b3854e2b5a37a2319058fcb651a48c75356b0"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/device-files/report.json",
+      "bytes": 50429,
+      "sha256": "e36c988314ba6c991639143a6fc1a7a6bbfa92eb7daceadff620df718e3f07be"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/native.log",
+      "bytes": 944,
+      "sha256": "52a401f020a52f1a82731fd9aba23cbf9705974922dd927aaafb4e6bda99d55c"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-fallback/report.json",
+      "bytes": 1824,
+      "sha256": "348bdbd85cd2c2c89cec1cbf6bf31ac827d05121daeedb56bfc4601aa106e29e"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported.live.json",
+      "bytes": 804,
+      "sha256": "331069e2a8c283bd505a6a257aec5cbfa557641d711d9042775910e2cd262e1e"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported.receipt.json",
+      "bytes": 587,
+      "sha256": "344d333d10ae5683582a81678f22c1df7fb534e009f7fb8a8982bdbf02a7703e"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported.stderr.log",
+      "bytes": 352,
+      "sha256": "1276333fd57a481fce2d9a6ee44b1a69b807d18afaf57e766365575f8f5df246"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported.stdout.log",
+      "bytes": 1826,
+      "sha256": "776600cc320b135db6f966007c9b98c9750df1874575d09ea8c7dce5d9ab3e1c"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/account-a-after-second-switch.png",
+      "bytes": 145405,
+      "sha256": "e090cca6784ee0db42fdfe421f5bcb202e5216c0cf40402003d75054721f8bce"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/account-a-after-switch.png",
+      "bytes": 121840,
+      "sha256": "119f484319027625c9d9d38e3643f0469eba26c1228dd08ea44c65465adbcb4b"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/account-a-custom-dark.png",
+      "bytes": 121811,
+      "sha256": "1e788ee14caef35d62855dc2bcd41acbf6c9921c4a832ed3033611b63fd3c72c"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/account-b-after-switch.png",
+      "bytes": 119216,
+      "sha256": "fd71b93b3416387b153ebeb0b19b1f1e0465eeb241248ce502898069d596f2d2"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/account-b-custom-light.png",
+      "bytes": 103827,
+      "sha256": "52f4b9eb61cbafdacb11fac1be2c9af090482917c74ca70519e356a629db72cf"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 129805,
+      "sha256": "b216e525d5f1c6aaebff4f68db5c9972c735a2b22d3a9d325cf415d9894a4484"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/enhanced-dark.png",
+      "bytes": 129711,
+      "sha256": "78b83c1da58547bfe96d8d6e1fd84edb75e9acf79229f410397aa431a030fe8f"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/enhanced-light.png",
+      "bytes": 128869,
+      "sha256": "f8a4fbf45b48e3b3b61a1c8a4f85f54d45224a14217c65b7b3a29177ccd5fb22"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/local-light.png",
+      "bytes": 100872,
+      "sha256": "ddcdba237615d5aec6976ab644c57deeccb04e1cc4518fece0c480a2c81e3c3d"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/object-actions-dark.png",
+      "bytes": 105902,
+      "sha256": "2e5e52a11015b6cf01d7f80ef4054737f039863100ee46aea79996d2bbbe91ce"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/object-detail-dark.png",
+      "bytes": 117359,
+      "sha256": "be579e3587f269ffdb2216f36a396d7d7ea48fc46dbe6b7d00cc5c50509ef9fe"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/object-editor-dark.png",
+      "bytes": 100181,
+      "sha256": "2951045ed7013bfe40ab0e570fd0677a9a7525d797b951d0f53d162ebbbfaeed"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/object-list-after-system-back.png",
+      "bytes": 110332,
+      "sha256": "5608860eaa0e4bae7530e47366287924833f4e0316643cd1e1e85a66187019c4"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/object-list-dark.png",
+      "bytes": 118489,
+      "sha256": "cab59b901612a5cafc5c8f5e9846ba5fc418ed31abb4e6a56b60fa7d5fc3dc43"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/populated-enhanced-dark.png",
+      "bytes": 128684,
+      "sha256": "3f123619c9485fbd3b5c7a02a97f30b5bf103bd30a2b3da17310f8bec1b11796"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/populated-enhanced-light.png",
+      "bytes": 127648,
+      "sha256": "a1000e5f2ed1ae2fc43ffef1adc77f903823bf89cf9dac05d87003bc85d8e427"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/device-files/report.json",
+      "bytes": 52017,
+      "sha256": "c41f85a8c3924a2ab0ed130ef9e51456893feec5d6a6202c0b163d19d110c375"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/native.log",
+      "bytes": 945,
+      "sha256": "ef422fff6ec59c3511bd8070bf075ad1ef4bade6c2fc13188d46ed78b40957ea"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/accounts-supported/report.json",
+      "bytes": 1826,
+      "sha256": "776600cc320b135db6f966007c9b98c9750df1874575d09ea8c7dce5d9ab3e1c"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/input-proof.json",
+      "bytes": 235902,
+      "sha256": "93d0a6ac24ebb5eada8a250bc5833a988b4ed6f8cd1f96c383ec92f02438ad8f"
+    },
+    {
+      "path": "rf1114-account-stable-frame-native-round2/verification.json",
+      "bytes": 1616,
+      "sha256": "cbee98d48975afa4b40a77e3e63d61454ca0b00102604ef8fa97a3602f8ab4d8"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/current-apks.json",
+      "bytes": 234731,
+      "sha256": "aeee3c3673c01610237a88a506b0fbe6f60372798efedd1e1586d3a31db71c24"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/input-proof.json",
+      "bytes": 233080,
+      "sha256": "78ca3923c4546b33091e799d1bf1e22131d92b9894d993d794139f1a1fd79b71"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-badging.live.json",
+      "bytes": 304,
+      "sha256": "52255b84fcfbff6f006c848886f423a9edb86354b243b3b14d84e053dbedee13"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-badging.receipt.json",
+      "bytes": 372,
+      "sha256": "f35b38511fc2b218e13a855698d0cea18ecd0f8ab2f611e0c411074688e054f8"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-badging.stdout.log",
+      "bytes": 685,
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-build.live.json",
+      "bytes": 436,
+      "sha256": "b71221c6755f6179236f89899ac8a029e78bbcec6e1667f063866bcd4ac20cbb"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-build.receipt.json",
+      "bytes": 503,
+      "sha256": "3affd64980db3576ba980ed8e99318a10d907917260f9aeec1c79bbcd6a31904"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-build.stderr.log",
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-build.stdout.log",
+      "bytes": 15270,
+      "sha256": "1def8b94639ef9e0302bf27bff2fa402f42c2c4c89a45ad391ad685c005ff07d"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-signature.live.json",
+      "bytes": 388,
+      "sha256": "84f19a6c65e9682c5840cab214e88919e88034c6b424350f096e9ed91379f587"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-signature.receipt.json",
+      "bytes": 456,
+      "sha256": "cc3b9ebc796c40085dacbf0f05c3bc65fb7aeae7c6f59a3dcad9a9506c1b8a22"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "rf1114-account-stable-frame-test-build2/test-signature.stdout.log",
+      "bytes": 351,
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09"
+    },
+    {
+      "path": "sources/after-home.kt",
+      "bytes": 144144,
+      "sha256": "8ed593262e69c0e39c66d17e0be7001f7917fff7a195a4cf6ee1956b38f4379d"
+    },
+    {
+      "path": "sources/before-home.kt",
+      "bytes": 140993,
+      "sha256": "a5e8e4933fbe0436cfc888e73b50e4eb713b1e2c4108aa0ddfb50e12091ff8a4"
+    },
+    {
+      "path": "sources/diagnostic-home.kt",
+      "bytes": 141937,
+      "sha256": "aa3300bb5d66dbfd8dfdcb47aeceb30fc21093a07ef716676923b7f635822904"
+    },
+    {
+      "path": "sources/pending-rf1113-external-runner.py",
+      "bytes": 52575,
+      "sha256": "952fda0c10b42e6178d0326166626148c801047fe7adf84c6f68e2b47ed00817"
+    }
+  ],
+  "count": 189,
+  "archiveSha256": "b21c43761b37c78e607bd7dd07115c0c85481ba61a5432f7dc00439fc9964706",
+  "readBackVerified": true,
+  "privateBackupTarFilesIncluded": false,
+  "apkFilesIncluded": false
+}
