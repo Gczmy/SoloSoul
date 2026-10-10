@@ -9,6 +9,8 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 mod ocr;
 #[path = "sdk_pdf.rs"]
 mod pdf;
+#[path = "sdk_surface.rs"]
+mod surface;
 pub(super) fn prepare_ocr_input(config: &RuntimeConfig) -> Result<(), String> {
     ocr::prepare(config)
 }
@@ -1125,6 +1127,11 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
                     outcome = Err("auth-diagnostic-invalid");
                 }
             }
+        }
+    }
+    if outcome.is_ok() {
+        if let Err(reason) = surface::capture(&mut capture).await {
+            outcome = Err(reason);
         }
     }
     if let Err(reason) = capture.release_guards().await {
