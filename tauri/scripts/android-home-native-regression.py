@@ -580,10 +580,10 @@ def main():
                      "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner",
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         text = result.stdout.decode()
-        (output / "native.log").write_text(text)
+        (output / "native.log").write_text(text, encoding="utf-8")
         adb("pull", f"/sdcard/Android/data/{APP}/files/{tag}", str(output / "device-files"), stdout=subprocess.PIPE)
         verify_native(text)
-        evidence = json.loads((output / "device-files/report.json").read_text())
+        evidence = json.loads((output / "device-files/report.json").read_text(encoding="utf-8"))
         stages = verify_evidence(evidence, "accounts" if args.scenario == "cold" else args.scenario,
                                  args.motion_preferences, require_preview_bars=args.scenario == "previews",
                                  require_preview_ink=args.scenario == "previews",
@@ -617,10 +617,10 @@ def main():
                          'com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner',
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             text = result.stdout.decode()
-            (output / 'cold-native.log').write_text(text)
+            (output / 'cold-native.log').write_text(text, encoding="utf-8")
             adb('pull', f'/sdcard/Android/data/{APP}/files/{cold_tag}', str(output / 'cold-device-files'), stdout=subprocess.PIPE)
             verify_native(text, COLD_METHOD)
-            cold = json.loads((output / 'cold-device-files/report.json').read_text())
+            cold = json.loads((output / 'cold-device-files/report.json').read_text(encoding="utf-8"))
             report['coldStages'] = verify_evidence(cold, 'cold', args.motion_preferences)
             if (cold['records'][0]['previousProcessId'] != previous_pid
                     or {row['accountId'] for row in cold['records'] if row['stage'].startswith(('account-a-', 'account-b-'))} != set(ids)):
@@ -717,7 +717,7 @@ def main():
                     report['fontScaleRestoreError'] = str(error)
         report["passed"] = verification_passed(report, old_notification is not None)
         report["finishedAt"] = time.time()
-        (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+        (output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         cases = [(METHOD, bool(report.get('stages')) if args.scenario == 'cold' else report['passed'])]
         if args.scenario == 'cold':
             cases.append((COLD_METHOD, report['passed']))
