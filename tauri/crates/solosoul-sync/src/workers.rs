@@ -1,10 +1,12 @@
 //! RF905：同步任务在派发前登记，取消等待不提前释放真实 worker 的目录许可。
 
 use crate::session::SessionGuard;
+use crate::transport::SyncTransport;
 use solosoul_core::import_activity::{begin_owned_root_activity, RootActivityGuard};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use std::net::{Shutdown, TcpStream};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{oneshot, Mutex as AsyncMutex, Notify};
 use tokio::task::{spawn_blocking, JoinHandle};
@@ -12,6 +14,7 @@ use tokio::task::{spawn_blocking, JoinHandle};
 struct WorkerState {
     accepting: bool,
     cancel_io: bool,
+    cancellation: Arc<AtomicBool>,
     next_id: u64,
     sockets: HashMap<u64, TcpStream>,
     handles: Vec<JoinHandle<()>>,
@@ -29,6 +32,7 @@ impl SyncWorkers {
             state: Mutex::new(WorkerState {
                 accepting: true,
                 cancel_io: false,
+                cancellation: Arc::new(AtomicBool::new(false)),
                 next_id: 0,
                 sockets: HashMap::new(),
                 handles: Vec::new(),
@@ -56,6 +60,7 @@ impl SyncWorkers {
         }
         state.accepting = true;
         state.cancel_io = false;
+        state.cancellation = Arc::new(AtomicBool::new(false));
         state.stopping = None;
         Ok(())
     }
@@ -194,6 +199,7 @@ impl SyncWorkers {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         state.cancel_io = true;
+        state.cancellation.store(true, Ordering::SeqCst);
         for stream in state.sockets.values() {
             let _ = stream.shutdown(Shutdown::Both);
         }
@@ -239,6 +245,18 @@ pub(crate) struct WorkerPermit {
 }
 
 impl WorkerPermit {
+    pub(crate) fn transport(&self, stream: TcpStream) -> Result<SyncTransport, String> {
+        self.track_stream(&stream)?;
+        let cancellation = self
+            .workers
+            .state
+            .lock()
+            .map_err(|_| "__SYNC_ERR__:session_failed:worker_registry_poisoned")?
+            .cancellation
+            .clone();
+        SyncTransport::from_cancellable_stream(stream, cancellation)
+    }
+
     pub(crate) fn track_stream(&self, stream: &TcpStream) -> Result<(), String> {
         let mut state = self
             .workers

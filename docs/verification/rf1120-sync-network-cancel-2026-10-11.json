@@ -1,0 +1,158 @@
+{
+  "task": "RF-1120",
+  "status": "complete",
+  "baseCommit": "5828b385f142bb5309d134253b0fca9a8dfd0f1b",
+  "at": "2026-10-11T05:33:27.868184+00:00",
+  "sourceCount": 1834,
+  "changedSources": [
+    "tauri/crates/solosoul-sync/src/manager.rs",
+    "tauri/crates/solosoul-sync/src/mobile.rs",
+    "tauri/crates/solosoul-sync/src/session.rs",
+    "tauri/crates/solosoul-sync/src/transport.rs",
+    "tauri/crates/solosoul-sync/src/workers.rs",
+    "tauri/crates/solosoul-sync/src/workers_tests.rs"
+  ],
+  "validation": {
+    "actualRedExitCode": 101,
+    "finalReceipts": {
+      "format": {
+        "exitCode": 0,
+        "elapsedSeconds": 2.769684099999722,
+        "pid": 27068,
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "sourceUnchanged": true,
+        "sources": {
+          "workers.rs": "2e09eb30199271b37920c882457727e1354d4f055a42def8c53d219da98c0f00",
+          "workers_tests.rs": "4edbbf841b376731016232675af15a6981a70bc6434c81320b9995df8e831861",
+          "transport.rs": "bcc2cdbdfc995d775f731504a91cd1669aebded23725e1cb9d8953ded8dd8347",
+          "manager.rs": "6d174cf33ba12b026edd7928bf0157a44099c7828f1d17b96614b30b60277ba2",
+          "mobile.rs": "19d7d6ad469ca98c97a1728d7ed2b0c14db42889bb7b691ff0e42399f3350e0f",
+          "session.rs": "5d87d0fb8fc92ef53119f848443bf26c8d69e17f2952eac30b9b24ada54a2504"
+        }
+      },
+      "windows-clippy": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.7955189000058454,
+        "pid": 31396,
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "-p",
+          "solosoul-sync",
+          "--lib",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "sourceUnchanged": true,
+        "sources": {
+          "workers.rs": "2e09eb30199271b37920c882457727e1354d4f055a42def8c53d219da98c0f00",
+          "workers_tests.rs": "4edbbf841b376731016232675af15a6981a70bc6434c81320b9995df8e831861",
+          "transport.rs": "bcc2cdbdfc995d775f731504a91cd1669aebded23725e1cb9d8953ded8dd8347",
+          "manager.rs": "6d174cf33ba12b026edd7928bf0157a44099c7828f1d17b96614b30b60277ba2",
+          "mobile.rs": "19d7d6ad469ca98c97a1728d7ed2b0c14db42889bb7b691ff0e42399f3350e0f",
+          "session.rs": "5d87d0fb8fc92ef53119f848443bf26c8d69e17f2952eac30b9b24ada54a2504"
+        }
+      },
+      "windows-sync-tests": {
+        "exitCode": 0,
+        "elapsedSeconds": 122.92923950002296,
+        "pid": 23168,
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solosoul-sync",
+          "--lib",
+          "--",
+          "--nocapture"
+        ],
+        "sourceUnchanged": true,
+        "sources": {
+          "workers.rs": "2e09eb30199271b37920c882457727e1354d4f055a42def8c53d219da98c0f00",
+          "workers_tests.rs": "4edbbf841b376731016232675af15a6981a70bc6434c81320b9995df8e831861",
+          "transport.rs": "bcc2cdbdfc995d775f731504a91cd1669aebded23725e1cb9d8953ded8dd8347",
+          "manager.rs": "6d174cf33ba12b026edd7928bf0157a44099c7828f1d17b96614b30b60277ba2",
+          "mobile.rs": "19d7d6ad469ca98c97a1728d7ed2b0c14db42889bb7b691ff0e42399f3350e0f",
+          "session.rs": "5d87d0fb8fc92ef53119f848443bf26c8d69e17f2952eac30b9b24ada54a2504"
+        }
+      },
+      "android-strict": {
+        "exitCode": 0,
+        "elapsedSeconds": 44.63904629999888,
+        "pid": 8320,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rustup\\toolchains\\1.96.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+          "rustc",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-sync",
+          "--lib",
+          "--target",
+          "x86_64-linux-android",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "sourceUnchanged": true,
+        "sources": {
+          "workers.rs": "2e09eb30199271b37920c882457727e1354d4f055a42def8c53d219da98c0f00",
+          "workers_tests.rs": "4edbbf841b376731016232675af15a6981a70bc6434c81320b9995df8e831861",
+          "transport.rs": "bcc2cdbdfc995d775f731504a91cd1669aebded23725e1cb9d8953ded8dd8347",
+          "manager.rs": "6d174cf33ba12b026edd7928bf0157a44099c7828f1d17b96614b30b60277ba2",
+          "mobile.rs": "19d7d6ad469ca98c97a1728d7ed2b0c14db42889bb7b691ff0e42399f3350e0f",
+          "session.rs": "5d87d0fb8fc92ef53119f848443bf26c8d69e17f2952eac30b9b24ada54a2504"
+        }
+      }
+    },
+    "unitTestsPassed": 93,
+    "unitTestsFailed": 0,
+    "unitTestsIgnored": 0,
+    "unitTestsFiltered": 0,
+    "androidStrictCompiler": true,
+    "androidClippy": false,
+    "requiredCases": [
+      "network_interrupt_unblocks_real_socket_but_wait_still_joins_worker",
+      "cancellation_interrupts_write_to_nonreading_peer",
+      "cancellable_receive_preserves_partial_frame_across_poll_timeouts",
+      "cancellable_receive_keeps_thirty_second_idle_limit",
+      "completed_stop_releases_listener_before_same_manager_restart",
+      "cancelled_direct_manager_stop_keeps_independent_join_and_restart_waits_for_it",
+      "disable_waits_real_worker_while_status_queries_remain_reachable",
+      "cancelled_disable_awaiter_keeps_independent_cleanup_and_next_wait_joins_it",
+      "reenable_cannot_overtake_cancelled_old_disable_cleanup",
+      "service_drop_after_cancelled_disable_keeps_root_until_actual_worker_and_cleanup_exit"
+    ]
+  },
+  "observedTimings": [
+    "RF1120 network write interrupt elapsed: 4.2635ms",
+    "RF1120 network interrupt elapsed: 106.264ms",
+    "RF1120 network idle limit elapsed: 30.0981398s"
+  ],
+  "archive": {
+    "path": "rf1120-sync-network-cancel-2026-10-11/raw.tar.gz",
+    "sha256": "c7a3f2f26d03daa6e3a5ae21468313563a266cb28c1e15350aa69a22cb0158d9",
+    "memberCount": 123,
+    "allMembersReadBackVerified": true
+  },
+  "limits": [
+    "No native UI acceptance",
+    "No iOS/macOS runtime validation",
+    "No Android device/APK acceptance",
+    "No whole-stop 100ms promise; connection establishment and DB/attachment completion unchanged",
+    "Strengthened red test exact bytes were not captured; actual receipt SHA/logs and baseline preserved"
+  ],
+  "primaryReferences": [
+    "https://doc.rust-lang.org/std/net/struct.TcpStream.html",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-shutdown"
+  ]
+}

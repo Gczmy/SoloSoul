@@ -3,11 +3,15 @@
 //! Uses TCP with optional Noise encryption for data transfer
 //! between discovered peers.
 
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::net::TcpStream;
-use std::time::Duration;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
+const CANCEL_POLL_INTERVAL: Duration = Duration::from_millis(100);
+const MAX_WRITE_CHUNK: usize = 64 * 1024;
 const MAGIC_PREFIX: &[u8] = b"SOLOSOUL_SYNC_v1";
 const MAX_FRAME_SIZE: usize = 64 * 1024 * 1024; // 64 MB
 
@@ -16,6 +20,7 @@ const MAX_FRAME_SIZE: usize = 64 * 1024 * 1024; // 64 MB
 pub struct SyncTransport {
     pub peer_addr: String,
     stream: Option<TcpStream>,
+    cancellation: Option<Arc<AtomicBool>>,
 }
 
 impl SyncTransport {
@@ -23,6 +28,7 @@ impl SyncTransport {
         Self {
             peer_addr,
             stream: None,
+            cancellation: None,
         }
     }
 
@@ -55,7 +61,28 @@ impl SyncTransport {
         Self {
             peer_addr,
             stream: Some(stream),
+            cancellation: None,
         }
+    }
+
+    /// 受管会话不能只依赖 shutdown 唤醒已阻塞的系统调用。
+    pub(crate) fn from_cancellable_stream(
+        stream: TcpStream,
+        cancellation: Arc<AtomicBool>,
+    ) -> Result<Self, String> {
+        stream
+            .set_nonblocking(false)
+            .and_then(|()| stream.set_read_timeout(Some(CANCEL_POLL_INTERVAL)))
+            .and_then(|()| stream.set_write_timeout(Some(CANCEL_POLL_INTERVAL)))
+            .map_err(|e| format!("Configure cancellable stream failed: {e}"))?;
+        Ok(Self {
+            peer_addr: stream
+                .peer_addr()
+                .map(|a| a.to_string())
+                .unwrap_or_default(),
+            stream: Some(stream),
+            cancellation: Some(cancellation),
+        })
     }
 
     /// Send a message with magic prefix + length framing
@@ -66,9 +93,20 @@ impl SyncTransport {
         frame.extend_from_slice(MAGIC_PREFIX);
         frame.extend_from_slice(&len);
         frame.extend_from_slice(data);
-        stream
-            .write_all(&frame)
-            .map_err(|e| format!("Send failed: {}", e))
+        let result = if let Some(cancellation) = &self.cancellation {
+            transfer_all(
+                frame.len(),
+                cancellation,
+                io::ErrorKind::WriteZero,
+                |offset| {
+                    let end = (offset + MAX_WRITE_CHUNK).min(frame.len());
+                    stream.write(&frame[offset..end])
+                },
+            )
+        } else {
+            stream.write_all(&frame)
+        };
+        result.map_err(|e| format!("Send failed: {}", e))
     }
 
     /// Read a framed message
@@ -77,8 +115,7 @@ impl SyncTransport {
 
         // Read magic prefix
         let mut prefix = vec![0u8; MAGIC_PREFIX.len()];
-        stream
-            .read_exact(&mut prefix)
+        read_exact(stream, &mut prefix, self.cancellation.as_deref())
             .map_err(|e| format!("Read prefix failed: {}", e))?;
         if prefix != MAGIC_PREFIX {
             return Err("Invalid magic prefix".into());
@@ -86,8 +123,7 @@ impl SyncTransport {
 
         // Read length
         let mut len_buf = [0u8; 4];
-        stream
-            .read_exact(&mut len_buf)
+        read_exact(stream, &mut len_buf, self.cancellation.as_deref())
             .map_err(|e| format!("Read length failed: {}", e))?;
         let len = u32::from_be_bytes(len_buf) as usize;
         if len > MAX_FRAME_SIZE {
@@ -96,14 +132,68 @@ impl SyncTransport {
 
         // Read payload
         let mut payload = vec![0u8; len];
-        stream
-            .read_exact(&mut payload)
+        read_exact(stream, &mut payload, self.cancellation.as_deref())
             .map_err(|e| format!("Read payload failed: {}", e))?;
         Ok(payload)
     }
 
     pub fn close(&mut self) {
         self.stream = None;
+        self.cancellation = None;
+    }
+}
+
+fn read_exact(
+    stream: &mut TcpStream,
+    bytes: &mut [u8],
+    cancellation: Option<&AtomicBool>,
+) -> io::Result<()> {
+    if let Some(cancellation) = cancellation {
+        transfer_all(
+            bytes.len(),
+            cancellation,
+            io::ErrorKind::UnexpectedEof,
+            |offset| stream.read(&mut bytes[offset..]),
+        )
+    } else {
+        stream.read_exact(bytes)
+    }
+}
+
+/// 短系统等待仅用于取消轮询；每次实际进展仍重新开始原30秒等待。
+fn transfer_all(
+    length: usize,
+    cancellation: &AtomicBool,
+    empty: io::ErrorKind,
+    mut transfer: impl FnMut(usize) -> io::Result<usize>,
+) -> io::Result<()> {
+    let mut offset = 0;
+    let mut progress = Instant::now();
+    loop {
+        if cancellation.load(Ordering::SeqCst) {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "Sync cancelled"));
+        }
+        if offset == length {
+            return Ok(());
+        }
+        let result = transfer(offset);
+        if cancellation.load(Ordering::SeqCst) {
+            return Err(io::Error::new(io::ErrorKind::Interrupted, "Sync cancelled"));
+        }
+        match result {
+            Ok(0) => return Err(io::Error::from(empty)),
+            Ok(count) => {
+                offset += count;
+                progress = Instant::now();
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::TimedOut | io::ErrorKind::WouldBlock
+                ) && progress.elapsed() < DEFAULT_TIMEOUT => {}
+            Err(error) => return Err(error),
+        }
     }
 }
 
@@ -111,6 +201,105 @@ impl SyncTransport {
 mod tests {
     use super::*;
     use std::thread;
+
+    #[test]
+    fn cancellable_receive_preserves_partial_frame_across_poll_timeouts() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let client = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (mut server, _) = listener.accept().unwrap();
+        let writer = thread::spawn(move || {
+            server.write_all(&MAGIC_PREFIX[..3]).unwrap();
+            thread::sleep(Duration::from_millis(250));
+            server.write_all(&MAGIC_PREFIX[3..]).unwrap();
+            server.write_all(&5u32.to_be_bytes()).unwrap();
+            server.write_all(b"he").unwrap();
+            thread::sleep(Duration::from_millis(250));
+            server.write_all(b"llo").unwrap();
+        });
+        let mut transport =
+            SyncTransport::from_cancellable_stream(client, Arc::new(AtomicBool::new(false)))
+                .unwrap();
+        assert_eq!(transport.receive_message().unwrap(), b"hello");
+        writer.join().unwrap();
+    }
+
+    #[tokio::test]
+    async fn cancellable_receive_keeps_thirty_second_idle_limit() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let client = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (server, _) = listener.accept().unwrap();
+        let mut transport =
+            SyncTransport::from_cancellable_stream(client, Arc::new(AtomicBool::new(false)))
+                .unwrap();
+        let (done_tx, done_rx) = tokio::sync::oneshot::channel();
+        let started = Instant::now();
+        let worker = tokio::task::spawn_blocking(move || {
+            let _ = done_tx.send(transport.receive_message());
+        });
+        let result = tokio::time::timeout(Duration::from_secs(40), done_rx).await;
+        let elapsed = started.elapsed();
+        drop(server);
+        worker.await.unwrap();
+        println!("RF1120 network idle limit elapsed: {elapsed:?}");
+        assert!(result
+            .unwrap()
+            .unwrap()
+            .unwrap_err()
+            .contains("Read prefix failed"));
+        assert!(elapsed >= Duration::from_secs(29));
+        assert!(elapsed < Duration::from_secs(40));
+    }
+
+    #[tokio::test]
+    async fn cancellation_interrupts_write_to_nonreading_peer() {
+        let listener_socket = tokio::net::TcpSocket::new_v4().unwrap();
+        listener_socket.set_recv_buffer_size(4096).unwrap();
+        listener_socket
+            .bind("127.0.0.1:0".parse().unwrap())
+            .unwrap();
+        let listener = listener_socket.listen(1).unwrap();
+        let socket = tokio::net::TcpSocket::new_v4().unwrap();
+        socket.set_send_buffer_size(4096).unwrap();
+        let client = socket
+            .connect(listener.local_addr().unwrap())
+            .await
+            .unwrap()
+            .into_std()
+            .unwrap();
+        let (server, _) = listener.accept().await.unwrap();
+        let cancellation = Arc::new(AtomicBool::new(false));
+        let mut transport =
+            SyncTransport::from_cancellable_stream(client, cancellation.clone()).unwrap();
+        let (entered_tx, entered_rx) = tokio::sync::oneshot::channel();
+        let (done_tx, mut done_rx) = tokio::sync::oneshot::channel();
+        let worker = tokio::task::spawn_blocking(move || {
+            let payload = vec![0; 32 * 1024 * 1024];
+            entered_tx.send(()).unwrap();
+            let _ = done_tx.send(transport.send_message(&payload));
+        });
+        entered_rx.await.unwrap();
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        match done_rx.try_recv() {
+            Err(tokio::sync::oneshot::error::TryRecvError::Empty) => {}
+            result => {
+                drop(server);
+                worker.await.unwrap();
+                panic!("Expected pending socket write before cancellation, got {result:?}");
+            }
+        }
+        let started = Instant::now();
+        cancellation.store(true, Ordering::SeqCst);
+        let result = tokio::time::timeout(Duration::from_secs(2), &mut done_rx).await;
+        let elapsed = started.elapsed();
+        drop(server); // 失败路径也关闭本测试对端，等待真实 blocking worker 退出。
+        worker.await.unwrap();
+        println!("RF1120 network write interrupt elapsed: {elapsed:?}");
+        assert!(result
+            .expect("Network write did not stop within 2s")
+            .unwrap()
+            .unwrap_err()
+            .contains("Sync cancelled"));
+    }
 
     #[test]
     fn test_sync_transport_new() {
@@ -131,6 +320,7 @@ mod tests {
             SyncTransport {
                 peer_addr: server_addr,
                 stream: Some(stream),
+                cancellation: None,
             }
         });
 

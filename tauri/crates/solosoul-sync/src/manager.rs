@@ -4,7 +4,6 @@ use crate::failure::{SyncFailure, SyncFailureKind};
 use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
 use crate::session::{local_client_type, run_accept_loop, run_initiator_session};
-use crate::transport::SyncTransport;
 use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
 use crate::workers::SyncWorkers;
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
@@ -475,10 +474,7 @@ impl SyncManager {
                     let stream =
                         std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
                             .map_err(SyncFailure::connection)?;
-                    permit
-                        .track_stream(&stream)
-                        .map_err(SyncFailure::activity)?;
-                    let mut transport = SyncTransport::from_stream(stream);
+                    let mut transport = permit.transport(stream).map_err(SyncFailure::activity)?;
                     run_initiator_session(
                         &mut transport,
                         &node_id,

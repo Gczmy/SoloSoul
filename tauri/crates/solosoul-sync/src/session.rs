@@ -898,8 +898,7 @@ pub(crate) fn handle_accepted_connection(
     let session_cb = session_callback.read().ok().and_then(|g| g.clone());
     // 不接纳维护期间的新会话；派发失败会立即关闭 stream。
     let result = workers.spawn_session(vault.clone(), active_sessions, move |permit| {
-        permit.track_stream(&stream)?;
-        let mut transport = SyncTransport::from_stream(stream);
+        let mut transport = permit.transport(stream)?;
         // 响应方会话成功结束：通知 GUI 推送 sync-completed，让两侧同时
         // 展示「同步完成 + 具体条数」（B 侧用户不在同步页也能收到全局 toast）。
         // 未信任/错误会话不通知完成（发起方已自行感知错误）。
