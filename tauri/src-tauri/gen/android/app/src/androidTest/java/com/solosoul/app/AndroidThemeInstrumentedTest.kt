@@ -13,6 +13,8 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.webkit.WebView
 import androidx.core.view.WindowCompat
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -117,6 +119,11 @@ class AndroidThemeInstrumentedTest {
             .put("providerPackage", provider?.packageName ?: JSONObject.NULL)
             .put("providerVersion", provider?.versionName ?: JSONObject.NULL)
             .put("forceDark", if (Build.VERSION.SDK_INT >= 29 && view != null) view.settings.forceDark else JSONObject.NULL)
+            .put("supportsAlgorithmicDarkening", WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))
+            .put("supportsForceDark", WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK))
+            .put("supportsForceDarkStrategy", WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY))
+            .put("forceDarkStrategy", if (view != null && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY))
+                WebSettingsCompat.getForceDarkStrategy(view.settings) else JSONObject.NULL)
             .put("algorithmicDarkeningAllowed", if (Build.VERSION.SDK_INT >= 33 && view != null)
                 view.settings.isAlgorithmicDarkeningAllowed else JSONObject.NULL)
             .put("processId", android.os.Process.myPid())

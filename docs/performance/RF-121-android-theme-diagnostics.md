@@ -31,3 +31,14 @@ API31 provider 为 `com.android.webview 91.0.4472.114`，API35 为 `124.0.6367.2
 同一生产APK在API35两种模糊配置均通过原用例，6帧/12像素匹配；API31两种配置的首次浅色2帧/4像素匹配，原深色媒体查询超时仍失败。8张合格卡片原图已实际查看，独立编码PNG读者每API拒绝6种篡改。这个结果只证明本次bootstrap不透明卡片的截图可信；生产主题未修复，API31深色、物理设备及完整玻璃材质/平台矩阵未验收。
 
 API31首次启动超时、第一次来源检查的Cargo换行差异拒绝均保留，未削弱应用断言。四组私有数据和原设置完整恢复，专用模拟器正常退出；24个确切备份/旧快照临时文件已清理。[RF-1125证据](../verification/rf1125-android-theme-rendered-pixels-2026-10-11.json)包含最终来源、原通过/失败、事件绑定及原图SHA。
+
+
+## RF-1126 旧provider兼容修复
+
+旧实现的系统主题传递现在按WebViewFeature能力处理。缺少ALGORITHMIC_DARKENING、但支持FORCE_DARK和FORCE_DARK_STRATEGY时，在WebView创建和真实配置变化后选择WEB_THEME_DARKENING_ONLY并随系统切换ON/OFF；页面仍由自己的CSS及显式偏好控制配色。支持新机制时保持既有自动主题行为。[Android官方说明](https://developer.android.com/develop/ui/views/layout/webapps/dark-theme)区分了网页配色和自动反色，并说明旧模式需要跟随配置变化。
+
+本轮同一新生产APK在API31/WebView91、API35/WebView124上，以两种模糊配置分别执行原四个主题方法：16通过、0失败/跳过，48帧/96个编码PNG采样像素匹配。显式浅色、显式深色、保存色板及自定义强调色全部保持；原45秒、媒体、系统栏和实际绘制断言不变。此前同API31原失败保留作为修复前证据。每API实际审阅四个supported深色检查点，其余帧由独立像素读者核验。
+
+诊断字段forceDarkStrategy保留公开getter的真实返回，但不是实际策略读回：当前1.14 AAR字节码显示它委托getForceDark，原读者期待1而失败。记录中保留0/2及这一限制，未更改生产依赖；[AndroidX源码](https://raw.githubusercontent.com/androidx/androidx/androidx-main/webkit/webkit/src/main/java/androidx/webkit/WebSettingsCompat.java)提供交叉核对，当前安装版本以本地AAR/JAR哈希和javap输出为准。主题验收仍依据真实媒体、CSS、系统栏及像素，不能据此声称读取策略1。
+
+生产Kotlin、测试APK和10项既有单元实际通过；ZIP中全部资源和JNI与原件SHA一致。16次私有文件和设置恢复，专用模拟器正常退出；97个明确临时文件已删除。[本项证据](../verification/rf1126-legacy-webview-theme-2026-10-11.json)保留来源、原红灯、读者失败与最终结果。这个修复不代表物理设备、其他provider或完整跨平台材质/辅助功能/性能矩阵验收。
