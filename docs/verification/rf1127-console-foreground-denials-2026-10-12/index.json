@@ -1,0 +1,719 @@
+{
+  "task": "RF-1127",
+  "allMembersReadbackVerified": true,
+  "members": [
+    {
+      "member": "application-logs/baseline/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1129-diagnostic-console\\baseline\\100\\sample-001\\app.log",
+      "bytes": 2616,
+      "sha256": "199fed70a8aef5174dab08005c573e4d41044dc2d141612bd327b8a213aedb45"
+    },
+    {
+      "member": "application-logs/baseline/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1129-diagnostic-console\\baseline\\100\\sample-002\\app.log",
+      "bytes": 2616,
+      "sha256": "b8de0564396e39f89feef7e1221f27e7217b81f0f0e77b6826369bff7cbc7b42"
+    },
+    {
+      "member": "application-logs/baseline/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1129-diagnostic-console\\baseline\\100\\sample-003\\app.log",
+      "bytes": 2616,
+      "sha256": "41080ade9a6fcddc87d636d3c2deaeabbdfe7c1381cf40e795f60a7f599b3f0e"
+    },
+    {
+      "member": "capture/actual100.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100.live.json",
+      "bytes": 544,
+      "sha256": "b669ba9f3f3224d09f5805bf1bd7c8cde1a3b8f64f5e0685293ab3d305e11a4b"
+    },
+    {
+      "member": "capture/actual100.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100.receipt.json",
+      "bytes": 729,
+      "sha256": "0b6ee12d693931044092e1074a3cf0f700b0afad9b715bcfc640ecd6dd8f7052"
+    },
+    {
+      "member": "capture/actual100.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "capture/actual100.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100.stdout.log",
+      "bytes": 466,
+      "sha256": "6bdf0b359a41873b74297122cbd3ebd4f345772c483c2a9816b91b5b7ee73b7d"
+    },
+    {
+      "member": "capture/actual100/native-perf-auth-attribution-results.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\native-perf-auth-attribution-results.json",
+      "bytes": 70104,
+      "sha256": "889a79e2e08a5bdf37d9425a9e41cd008ae9435123ff813e144bf31f32c86852"
+    },
+    {
+      "member": "capture/actual100/native-perf-sdk-journey-results.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\native-perf-sdk-journey-results.json",
+      "bytes": 338742,
+      "sha256": "f4a4e9a15a4b4a758284d597db3afc4fe0878bd1abd0a791d8516d829a1cb086"
+    },
+    {
+      "member": "capture/actual100/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001.json",
+      "bytes": 98230,
+      "sha256": "72862eb6d2c2d0e9e9ce30025bfd0fed2a76c745d2d24ccd63e34be8cbd4cbee"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-auth-attribution.json",
+      "bytes": 17153,
+      "sha256": "c0d8114d915e11e0d4cca1af35f0a744b7c061c050b76d77cdba9b0756695a69"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-consumed.json",
+      "bytes": 312,
+      "sha256": "73c9fd242fecc72262d4dc7a75368b6c5bb347e1f385da663a2ea4ecdf1d2b79"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "46a88fbace286f87845c656b77a8e304c2b4b79ac85ca45cd49a007da41910d6"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-owned.json",
+      "bytes": 3552,
+      "sha256": "e800d250cec225001e50311812976a7ef305bc6a08a4dc42579e504af2348505"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-permission-commands.json",
+      "bytes": 1002,
+      "sha256": "abc792054e1ea235c44e24868f6c392e88d966f12597a6fa733f913175c5546e"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "4dfa1ecee26a37e1344706e7334859ba75416e8aa37e80fed7ad4708eb1f7b76"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "bytes": 623,
+      "sha256": "37456448ea8449bc214d8f86d23fa6c87500f6cb0e7df1a59c3626ca54bf1340"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "bytes": 404,
+      "sha256": "9a39b9313d4063edc7741de90b1249de0eb314f933bffd2557a6629f90493541"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-journey.json",
+      "bytes": 65711,
+      "sha256": "fdf2c21cf1e9c4ef3f7c453663eba3c84e02ed85c05132218907c507a8c75a38"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "1025d9b7ce4010fe4f3e683a688f7cc37400e0f6cce75c3692e551d9c6bb7ee8"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-phase-02.json",
+      "bytes": 1192,
+      "sha256": "0b1efbf6e12c4dea25da0bdce0a2d3faa032c69b560d0144a4f8f15f2e4d1011"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-phase-03.json",
+      "bytes": 613,
+      "sha256": "693795214b305e7f35b48f6bc517b6103bad0c360562e46c9df2d131a6bfdc85"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-phase-04.json",
+      "bytes": 306,
+      "sha256": "33349c6a86ca6c0b70d48fd51b278966587aab65922e81dd1173e3890299c1c0"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-phase-05.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-phase-05.json",
+      "bytes": 597,
+      "sha256": "c9b2b059979e5a638476ea20d9b6749e5641ce743f8beb149091c36221a2832b"
+    },
+    {
+      "member": "capture/actual100/sample-001/native-perf-sdk-phase-06.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\native-perf-sdk-phase-06.json",
+      "bytes": 1214,
+      "sha256": "4b660afc9b82a90fa30d7bb554f164df8da3cf9856c012ac875710d64c762569"
+    },
+    {
+      "member": "capture/actual100/sample-001/rf121-wgc-activate-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\rf121-wgc-activate-owned.json",
+      "bytes": 765,
+      "sha256": "04bdecf74357bcc087bcc75f1a517d63e37fe537ce8bb62a349238823422d96a"
+    },
+    {
+      "member": "capture/actual100/sample-001/rf121-window-inventory-activate-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\rf121-window-inventory-activate-owned.json",
+      "bytes": 1806,
+      "sha256": "2199fc58618173926e7e47e894b70d4b27b06431b192fdde485090fc167077c4"
+    },
+    {
+      "member": "capture/actual100/sample-001/surface-activation.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\surface-activation.receipt.json",
+      "bytes": 570,
+      "sha256": "cb083d8c9b3e82d60b62dd64eeb9f77bb0cddaaf964fc3fffd63b1808eaf283e"
+    },
+    {
+      "member": "capture/actual100/sample-001/surface-activation.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\surface-activation.stderr.log",
+      "bytes": 51,
+      "sha256": "0eb6b3d49ef17ad5d357e70258e3500d27b543567661bc21781b768490219d3c"
+    },
+    {
+      "member": "capture/actual100/sample-001/surface-activation.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\surface-activation.stdout.log",
+      "bytes": 656,
+      "sha256": "2787494f83cce8a8568b93e0f8c28ce4320f53efd4370b5a65abc1a91c15cd4f"
+    },
+    {
+      "member": "capture/actual100/sample-001/surface-identity.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\surface-identity.json",
+      "bytes": 171,
+      "sha256": "a97427779ec2b318b476c7273a41638bdfc87482d26a8b4a4cd13b31c6976470"
+    },
+    {
+      "member": "capture/actual100/sample-001/surface-identity.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "capture/actual100/sample-001/surface-identity.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-001\\surface-identity.stdout.log",
+      "bytes": 159,
+      "sha256": "91f1d8cd16abcd18d343aa32d4236a3b2e6166962ef33d84cabfc7c3fb641647"
+    },
+    {
+      "member": "capture/actual100/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002.json",
+      "bytes": 95843,
+      "sha256": "bfc70f904c3e51d1d7b115cd4f8027eddd38ed70688791e4786f807e7ecadbb0"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-auth-attribution.json",
+      "bytes": 17168,
+      "sha256": "08d08a23844bb8896d086da10a457978211339895f35201bc005d2bda6844d96"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-consumed.json",
+      "bytes": 312,
+      "sha256": "245b3e2d410bbda9fe6cd3288d8545c064b78fc4d36087f242dcc960a24d404f"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "08328d3e6cbb7ea52c72693cc53acfb5eb1db090ffd128af2d99891cb9e663c7"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-owned.json",
+      "bytes": 3552,
+      "sha256": "f8094e4c139a43020161af49c5e99717b9dd47d4d52d3984022c29d85c249d0c"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-permission-commands.json",
+      "bytes": 1013,
+      "sha256": "b8ab25e37728f3bf30ea597414ffe23176ab225853d912a49c869b27996a96bc"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "7f817105dd2307b9713cd4ae0b1403e21f61ed27bb77c566f4ade154672d98ed"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "bytes": 623,
+      "sha256": "db6cf4f2cc091a9f6bcf26ff6864432e771530c85f44dad5c2ef6c85854f2306"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "bytes": 404,
+      "sha256": "cfba8428a0062c0fd2d28df48c1fe0432353d314e9f105ac1cd5e3728409a8c0"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-journey.json",
+      "bytes": 63736,
+      "sha256": "e7fa88d2838fd237f1e8e3c92dda88406bad8977a7ab40d9e615ab77d69ac50a"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-phase-01.json",
+      "bytes": 828,
+      "sha256": "2c9bf19c92a4e47943a9687416a15382b492380d70cd7db2c1ecafa486e1d72d"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-phase-02.json",
+      "bytes": 1200,
+      "sha256": "2907817477c776bd588dc10f47da029dd2830b49c81a10b677c75f7b67afefa5"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-phase-03.json",
+      "bytes": 613,
+      "sha256": "6f6f792cc2b471da724b6230b57b73e78a8a2491dc7ee41011565b768c90aa66"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-phase-04.json",
+      "bytes": 328,
+      "sha256": "1383b8aea254114bf7ccfa1586f8170038e7978d5b4ccb167a8065455c82e5e8"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-phase-05.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-phase-05.json",
+      "bytes": 730,
+      "sha256": "f075fa8e06935fbc42bdcc899a8ea1f2fea56c51e5b1e8d510bcc8bb1c5698da"
+    },
+    {
+      "member": "capture/actual100/sample-002/native-perf-sdk-phase-06.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\native-perf-sdk-phase-06.json",
+      "bytes": 750,
+      "sha256": "fafddb1b5a58655c3c0c9393a13d2ecbb637fe70299800a5dd22883a013af225"
+    },
+    {
+      "member": "capture/actual100/sample-002/rf121-wgc-activate-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\rf121-wgc-activate-owned.json",
+      "bytes": 756,
+      "sha256": "3e3818107872cf4fdb0bcf92e52d24fefa98488891e226c031a9dff4c7e588bc"
+    },
+    {
+      "member": "capture/actual100/sample-002/rf121-window-inventory-activate-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\rf121-window-inventory-activate-owned.json",
+      "bytes": 1804,
+      "sha256": "87d094daa443637e89c66f1e83d0c1bf4fb603a45cacd0a38309d3a1cfc3c3d2"
+    },
+    {
+      "member": "capture/actual100/sample-002/surface-activation.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\surface-activation.receipt.json",
+      "bytes": 570,
+      "sha256": "2284f2bd30c95a83c93cf7ecefd794d815e11c67d93fcb5fa436bcfc7eaf7e79"
+    },
+    {
+      "member": "capture/actual100/sample-002/surface-activation.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\surface-activation.stderr.log",
+      "bytes": 51,
+      "sha256": "0eb6b3d49ef17ad5d357e70258e3500d27b543567661bc21781b768490219d3c"
+    },
+    {
+      "member": "capture/actual100/sample-002/surface-activation.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\surface-activation.stdout.log",
+      "bytes": 647,
+      "sha256": "b95fa18a8d830cc45444368d7b9541647a51cae6340fc7e6881648c9587570f1"
+    },
+    {
+      "member": "capture/actual100/sample-002/surface-identity.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\surface-identity.json",
+      "bytes": 171,
+      "sha256": "9e389d8c83a026823463c8dedcd2ff4dd2b2d24d178826219758a83ce2a7db5c"
+    },
+    {
+      "member": "capture/actual100/sample-002/surface-identity.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "capture/actual100/sample-002/surface-identity.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-002\\surface-identity.stdout.log",
+      "bytes": 159,
+      "sha256": "ca1e42e3b63efa458873fa5739e9b98912f42d532afb87a49c969f129d110aa8"
+    },
+    {
+      "member": "capture/actual100/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003.json",
+      "bytes": 97382,
+      "sha256": "bf41b0df96c49c94b09e338d3e624725dcb7892e68e1c7afb2e05e7efab8f69e"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-auth-attribution.json",
+      "bytes": 17100,
+      "sha256": "58161a5a6f863d680699015b387acf7b10f0c88195bece7d30a2b9455ae0753a"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-consumed.json",
+      "bytes": 312,
+      "sha256": "20d1a706097f6d04bd1260231746140731954f0cedb7a80f2ff8e3e7b7806855"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "a9d5da58f19375b5283217bef947392b8a6259e6ea933a30f50d4ec628b6c98d"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-owned.json",
+      "bytes": 3552,
+      "sha256": "343a6083208142590cef48ffe54e06e6dbba54ed58be59f2e02f90fd559a285e"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-permission-commands.json",
+      "bytes": 1013,
+      "sha256": "ab926b607105c3cd5618c826aa89f809efbc6db02a206e20f597b94f3c480ef5"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "d040cb0700d356a0c1817a612bb8c6e7d26ee0ba343b34a0f11613e708b3fb18"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "bytes": 623,
+      "sha256": "09c673b70ad821f431ae5f6f55fa1d212731f7d48e30a348cc9c479b751a672c"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "bytes": 404,
+      "sha256": "6cbf0a2344444c9e64eebc43b706ea26b07293ab2a180fb0c55ceb95b09767e6"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-journey.json",
+      "bytes": 64869,
+      "sha256": "e2820e5a846008515a9bc9936f401614f3a279cf1e15634e6fbc074e564f9961"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "c9057962653f9cb4b6899927e311eecbb80c5eff8aaaf60d02215ebb943892e1"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-phase-02.json",
+      "bytes": 781,
+      "sha256": "6660a094e34fd59092326e9ca071ab296440570a2179d2534c956f8f264e466a"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-phase-03.json",
+      "bytes": 1075,
+      "sha256": "ac222e7e6795fdc0248419fc774f31c27b8b0e55d564eb3e50acec23ae6ddefa"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-phase-04.json",
+      "bytes": 329,
+      "sha256": "ec318b1bc72500e8700ed12e8173f9af0e1b38b4f3398097a6e84f173b12a0a0"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-phase-05.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-phase-05.json",
+      "bytes": 610,
+      "sha256": "7e1a71ba82dd4d1bc2128163f9ed2c2fef29975c8e15a6bddc0a5f170aaf6f2e"
+    },
+    {
+      "member": "capture/actual100/sample-003/native-perf-sdk-phase-06.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\native-perf-sdk-phase-06.json",
+      "bytes": 1183,
+      "sha256": "9aef2d146607f57e3fdd8ef6a02e0c6392f31f91111a3fb52e5938bbe7aea8a1"
+    },
+    {
+      "member": "capture/actual100/sample-003/rf121-wgc-activate-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\rf121-wgc-activate-owned.json",
+      "bytes": 764,
+      "sha256": "ed418389129950cc54da02e864f766c0395c10cb708c5dba36d79b737f366599"
+    },
+    {
+      "member": "capture/actual100/sample-003/rf121-window-inventory-activate-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\rf121-window-inventory-activate-owned.json",
+      "bytes": 1801,
+      "sha256": "676b11c48facff10780f8e039fb6fcbb04302c4368b9f5f580267e6fd9292e91"
+    },
+    {
+      "member": "capture/actual100/sample-003/surface-activation.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\surface-activation.receipt.json",
+      "bytes": 569,
+      "sha256": "ea90f2ffc3278eb14d9614e621a1f3fe0e6bed92ca5a49d8eaf76def834d4f01"
+    },
+    {
+      "member": "capture/actual100/sample-003/surface-activation.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\surface-activation.stderr.log",
+      "bytes": 51,
+      "sha256": "0eb6b3d49ef17ad5d357e70258e3500d27b543567661bc21781b768490219d3c"
+    },
+    {
+      "member": "capture/actual100/sample-003/surface-activation.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\surface-activation.stdout.log",
+      "bytes": 655,
+      "sha256": "89b81e9b298dd74fdd04bbb61652f08c55bbf64641d40f320fc2126ab079c398"
+    },
+    {
+      "member": "capture/actual100/sample-003/surface-identity.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\surface-identity.json",
+      "bytes": 171,
+      "sha256": "ba6568ce764ec08f6544f819404d1cbadac4c58160a2e93896ca5fba1d836829"
+    },
+    {
+      "member": "capture/actual100/sample-003/surface-identity.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\surface-identity.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "capture/actual100/sample-003/surface-identity.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\actual100\\sample-003\\surface-identity.stdout.log",
+      "bytes": 159,
+      "sha256": "da3e12a60547904da600ec1f389a109851c72f1481cb9c4e2029e9d4b08307e3"
+    },
+    {
+      "member": "capture/capture-results.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\capture-results.json",
+      "bytes": 2558,
+      "sha256": "0e13d1f03990a89e3dafdd609e0c90137c5c76e9283bb2851a90ebadc5deba32"
+    },
+    {
+      "member": "capture/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\input-proof.json",
+      "bytes": 39988,
+      "sha256": "06f0181d5e97b3c7d0766270324a2e5fce625311da71a9a801bd173a9f1fde16"
+    },
+    {
+      "member": "capture/surface-sample-001.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\surface-sample-001.json",
+      "bytes": 734,
+      "sha256": "04f85749f5f8321fa0fd754fdd548bf6c4bf33685c8dc1f756815830c22b32fe"
+    },
+    {
+      "member": "capture/surface-sample-002.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\surface-sample-002.json",
+      "bytes": 734,
+      "sha256": "e6fb77a89b9bf34d8d0bbbab0aea3487ec7ce055ea8b40b353e4a415f5282403"
+    },
+    {
+      "member": "capture/surface-sample-003.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-diagnostic-console-20261012\\surface-sample-003.json",
+      "bytes": 734,
+      "sha256": "6264b684946c4bad321574b6907145086995375ccfd4cb83693ba22dea83d472"
+    },
+    {
+      "member": "matrix/caption-runtime-package.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\caption-runtime-package.json",
+      "bytes": 38230,
+      "sha256": "4f76fb3dd53c557ffab95d4b68e828adcc295c4b1a863a44905ecdf0b4e0c87e"
+    },
+    {
+      "member": "matrix/capture-baseline.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\capture-baseline.live.json",
+      "bytes": 184,
+      "sha256": "710954d4eafa5509539b4c8e257e15482b1c8701e846c549aa1dfc450a00b2e6"
+    },
+    {
+      "member": "matrix/capture-baseline.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\capture-baseline.receipt.json",
+      "bytes": 242,
+      "sha256": "464ada2fb75f4707e798daa439e1b1aaa72d6ef056bb839185c8aa643fc5a297"
+    },
+    {
+      "member": "matrix/capture-baseline.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\capture-baseline.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "matrix/capture-baseline.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\capture-baseline.stdout.log",
+      "bytes": 325,
+      "sha256": "026de558173d1bd7a227bcb98e99993e73eefbacc908f893c909e0bfa221951e"
+    },
+    {
+      "member": "matrix/cohort-baseline.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\cohort-baseline.json",
+      "bytes": 108,
+      "sha256": "cf2b6f73bafb5b5b181335399f85b7c9d02793c8edc415ac05dac0048bfca596"
+    },
+    {
+      "member": "matrix/cohorts-complete.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\cohorts-complete.json",
+      "bytes": 242,
+      "sha256": "c8f180241a66445e29b0ba375d241e2253d92451a935c5551cb9c25088dcec57"
+    },
+    {
+      "member": "matrix/first-failure-retained.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\first-failure-retained.json",
+      "bytes": 370,
+      "sha256": "ce57677fb15867364a5e1b611a72d38c4746873e0fe95faa08504373c3459bdd"
+    },
+    {
+      "member": "matrix/post-terminal-desktop-readonly.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\post-terminal-desktop-readonly.json",
+      "bytes": 317,
+      "sha256": "2bb0b22c6183eee622807f5c94d8d7f8b98df4a7a608cb88f61c2c9130631198"
+    },
+    {
+      "member": "matrix/preparation.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\preparation.json",
+      "bytes": 3628,
+      "sha256": "58bba178dc043e8d230478b407454fccdfdea4407da1fba8df4ecfaac1d4d2ab"
+    },
+    {
+      "member": "matrix/restore-helper.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\restore-helper.json",
+      "bytes": 533,
+      "sha256": "bc30cc2ab66159627a2da4ecf9681207cec105e8a2ee3d99680a991ab38bc686"
+    },
+    {
+      "member": "matrix/session-baseline.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\session-baseline.live.json",
+      "bytes": 167,
+      "sha256": "34d4028f07a6ffcf538a68994a8a950dbe1ecd79a754686c66e9b76044d151ac"
+    },
+    {
+      "member": "matrix/session-baseline.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\session-baseline.receipt.json",
+      "bytes": 227,
+      "sha256": "53702c215791e5c8a3289014382352529c0689004c02023265ba80a9d4ff0721"
+    },
+    {
+      "member": "matrix/session-baseline.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\session-baseline.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "matrix/session-baseline.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\session-baseline.stdout.log",
+      "bytes": 332,
+      "sha256": "80dd2fc3274add7ebc0cfa87f502e7b112d397924da7aa5b936b40e758b0e56d"
+    },
+    {
+      "member": "matrix/session-before-baseline.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\session-before-baseline.json",
+      "bytes": 319,
+      "sha256": "734ea1755f4a47503af3cf5cdb4747107a2b96c2444b863681fcccbab97ac561"
+    },
+    {
+      "member": "matrix/sources.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\sources.json",
+      "bytes": 231881,
+      "sha256": "be46ee59d713ab731c80233e760b2cffcaf4d88ebdbe7530623c1b18c5782167"
+    },
+    {
+      "member": "matrix/tools.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-matrix-console-20261012\\tools.json",
+      "bytes": 1259,
+      "sha256": "7434db807c4cbaa0a9c793394e7d6b88da4578f3bc5476d8b72efa415634986a"
+    },
+    {
+      "member": "sources/activate.rs",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\window-restore-caption-20261011\\helper\\src\\activate.rs",
+      "bytes": 32411,
+      "sha256": "78762caede66e54d9e5bc16861aebb8e484120e47481a31f874a6707a1e5d46c"
+    },
+    {
+      "member": "tools/archive-rf1127-console-failure.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\archive-rf1127-console-failure.py",
+      "bytes": 5005,
+      "sha256": "c877a1f306c72a45f9d810edf4b85c199eaca1e8404ecf43394690d989785ee2"
+    },
+    {
+      "member": "tools/prepare-rf1129-console-terminal-cleanup.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\prepare-rf1129-console-terminal-cleanup.py",
+      "bytes": 2899,
+      "sha256": "8d93046fd04a7a75b42e620d5ccb38ac7358531d9b9e9d7853e921071e2263bf"
+    },
+    {
+      "member": "tools/prepare-rf1129-native-matrix-console.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\prepare-rf1129-native-matrix-console.py",
+      "bytes": 3322,
+      "sha256": "692cb0f7b275b7582f2aa4af05610a9975cc22c97ad28d6cad0cdf1e982be672"
+    },
+    {
+      "member": "tools/render-rf1129-diagnostic-console.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\render-rf1129-diagnostic-console.py",
+      "bytes": 2201,
+      "sha256": "202bf98deb478818de18ff3be1174eae5e6a07dbbc779f3b113ba3d92d2c9fd0"
+    },
+    {
+      "member": "tools/rf1129-console-cache-cleanup-plan.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-console-cache-cleanup-plan.json",
+      "bytes": 6303,
+      "sha256": "e74b082ef3db0a6ca9b356d2c6724bb3344a57367a721954160706c695940485"
+    },
+    {
+      "member": "tools/rf1129-console-cache-cleanup-preflight.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-console-cache-cleanup-preflight.json",
+      "bytes": 35331,
+      "sha256": "79a4a76806b54734c45a927833d39f9c64fb0d3da1154f1c3033b20e839bb06f"
+    },
+    {
+      "member": "tools/rf1129-console-cache-cleanup.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-console-cache-cleanup.json",
+      "bytes": 35473,
+      "sha256": "f9ba526d69f10ff1d2944071df130278b117803c0ab7bcbb8f73201b84533b29"
+    },
+    {
+      "member": "tools/rf1129-console-cleanup-owned.ps1",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-console-cleanup-owned.ps1",
+      "bytes": 10700,
+      "sha256": "1aa6ab33fbdc7c7a100daac9f8cfd275135ad87e25652cf170927264838022af"
+    },
+    {
+      "member": "tools/rf1129-session-console-baseline.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-session-console-baseline.py",
+      "bytes": 2199,
+      "sha256": "1fbdcf807ebf48a0fd9a29f2f86d0c58b3ccf51c5cc22a158508ba40c9181984"
+    },
+    {
+      "member": "tools/rf1129-session-preflight-console.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-session-preflight-console.py",
+      "bytes": 2197,
+      "sha256": "004cc49a2a10e690c36a916101f27d74244fef2f16b0389cfff07029165de4f6"
+    },
+    {
+      "member": "tools/run-rf1129-cohorts-console.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\run-rf1129-cohorts-console.py",
+      "bytes": 2948,
+      "sha256": "f1d69fd6b89529dcd2368469fcc69396ae138be7f1182c7ca37d9a75cdcea39b"
+    },
+    {
+      "member": "tools/run-rf1129-diagnostic-console.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\run-rf1129-diagnostic-console.py",
+      "bytes": 21841,
+      "sha256": "ddf6b6a61cc889a2ef1044c4d926578bdd9ade1687b802bf8a9d19365d8dfb77"
+    },
+    {
+      "member": "tools/verify-rf1129-diagnostic-console.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\verify-rf1129-diagnostic-console.mjs",
+      "bytes": 27007,
+      "sha256": "688f7e0dc377a1fa1110eb8c5d60c143f7fadf486cfbc0dd00f1a7b46fd7d0eb"
+    }
+  ],
+  "unusedPreparedTools": [
+    "verify-rf1129-diagnostic-console.mjs",
+    "render-rf1129-diagnostic-console.py"
+  ],
+  "physicalVaultExecutablesModelsAndCachesExcluded": true
+}
