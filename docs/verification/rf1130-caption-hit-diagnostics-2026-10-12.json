@@ -1,0 +1,392 @@
+{
+  "task": "RF-1130",
+  "sourceHead": "782d7b012",
+  "accepted": true,
+  "acceptanceScope": "refused-hit diagnostic only; original native matrix rejected",
+  "exeSha256": "6f9e1c33a449eafd3843549b56db8e5c3ecee5f24157416ed655ee4a66a0c682",
+  "sources": 1839,
+  "requestedCohorts": 4,
+  "executedCohorts": 1,
+  "sdkJourneysPassed": 3,
+  "sdkJourneysFailed": 0,
+  "windowCapturesAccepted": 0,
+  "readerRuns": 0,
+  "rendererRuns": 0,
+  "denials": [
+    {
+      "apiReturned": false,
+      "applicationMaterialAccepted": false,
+      "captionActivation": {
+        "attempted": true,
+        "cursorRestored": null,
+        "error": "caption-point-hits-other-window",
+        "extraReleaseEventsSent": 0,
+        "inputEventsSent": 0,
+        "refusedHitMetadata": {
+          "atomicIdentityProof": false,
+          "authorizesInput": false,
+          "diagnosticOnly": true,
+          "foreground": {
+            "hwnd": 34931536,
+            "pid": 28508,
+            "threadAndPidAvailable": true,
+            "threadId": 25772,
+            "windowExistsAtRead": true
+          },
+          "hit": {
+            "hwnd": 1115524,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitEqualsTarget": false,
+          "hitRoot": {
+            "hwnd": 852170,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitRootEqualsTarget": false,
+          "hitRootOwner": {
+            "hwnd": 852170,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitRootOwnerEqualsTarget": false,
+          "inputEventsSentByDiagnostic": 0,
+          "pixelsRead": 0,
+          "pointScreen": [
+            522,
+            18
+          ],
+          "schemaVersion": 1,
+          "scope": "rf1130-refused-caption-hit-metadata",
+          "systemSettingsChanged": false,
+          "target": {
+            "hwnd": 9439874,
+            "pid": 29780,
+            "threadAndPidAvailable": true,
+            "threadId": 28528,
+            "windowExistsAtRead": true
+          },
+          "windowTextRead": false
+        }
+      },
+      "creationMs": 1791760478025,
+      "elapsedMilliseconds": 2004.1669,
+      "foregroundAfter": false,
+      "foregroundBefore": false,
+      "heldProcessAndWindowIdentityVerifiedBeforeAndAfter": true,
+      "hwnd": 9439874,
+      "inputEventsSent": 0,
+      "otherWindowsActivated": 0,
+      "pid": 29780,
+      "pixelsRead": 0,
+      "requested": true,
+      "runId": "c8be9accf6b04d6d98bced7f6309418a",
+      "schemaVersion": 1,
+      "scope": "rf121-owned-window-foreground-with-caption",
+      "systemSettingsChanged": false,
+      "tag": "activate-owned"
+    },
+    {
+      "apiReturned": false,
+      "applicationMaterialAccepted": false,
+      "captionActivation": {
+        "attempted": true,
+        "cursorRestored": null,
+        "error": "caption-point-hits-other-window",
+        "extraReleaseEventsSent": 0,
+        "inputEventsSent": 0,
+        "refusedHitMetadata": {
+          "atomicIdentityProof": false,
+          "authorizesInput": false,
+          "diagnosticOnly": true,
+          "foreground": {
+            "hwnd": 34931536,
+            "pid": 28508,
+            "threadAndPidAvailable": true,
+            "threadId": 25772,
+            "windowExistsAtRead": true
+          },
+          "hit": {
+            "hwnd": 1115524,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitEqualsTarget": false,
+          "hitRoot": {
+            "hwnd": 852170,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitRootEqualsTarget": false,
+          "hitRootOwner": {
+            "hwnd": 852170,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitRootOwnerEqualsTarget": false,
+          "inputEventsSentByDiagnostic": 0,
+          "pixelsRead": 0,
+          "pointScreen": [
+            522,
+            18
+          ],
+          "schemaVersion": 1,
+          "scope": "rf1130-refused-caption-hit-metadata",
+          "systemSettingsChanged": false,
+          "target": {
+            "hwnd": 83820780,
+            "pid": 22228,
+            "threadAndPidAvailable": true,
+            "threadId": 25800,
+            "windowExistsAtRead": true
+          },
+          "windowTextRead": false
+        }
+      },
+      "creationMs": 1791760495191,
+      "elapsedMilliseconds": 2002.3768999999998,
+      "foregroundAfter": false,
+      "foregroundBefore": false,
+      "heldProcessAndWindowIdentityVerifiedBeforeAndAfter": true,
+      "hwnd": 83820780,
+      "inputEventsSent": 0,
+      "otherWindowsActivated": 0,
+      "pid": 22228,
+      "pixelsRead": 0,
+      "requested": true,
+      "runId": "0b329b3c4987466ab27e2756efd80437",
+      "schemaVersion": 1,
+      "scope": "rf121-owned-window-foreground-with-caption",
+      "systemSettingsChanged": false,
+      "tag": "activate-owned"
+    },
+    {
+      "apiReturned": false,
+      "applicationMaterialAccepted": false,
+      "captionActivation": {
+        "attempted": true,
+        "cursorRestored": null,
+        "error": "caption-point-hits-other-window",
+        "extraReleaseEventsSent": 0,
+        "inputEventsSent": 0,
+        "refusedHitMetadata": {
+          "atomicIdentityProof": false,
+          "authorizesInput": false,
+          "diagnosticOnly": true,
+          "foreground": {
+            "hwnd": 34931536,
+            "pid": 28508,
+            "threadAndPidAvailable": true,
+            "threadId": 25772,
+            "windowExistsAtRead": true
+          },
+          "hit": {
+            "hwnd": 1115524,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitEqualsTarget": false,
+          "hitRoot": {
+            "hwnd": 852170,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitRootEqualsTarget": false,
+          "hitRootOwner": {
+            "hwnd": 852170,
+            "pid": 20684,
+            "threadAndPidAvailable": true,
+            "threadId": 21184,
+            "windowExistsAtRead": true
+          },
+          "hitRootOwnerEqualsTarget": false,
+          "inputEventsSentByDiagnostic": 0,
+          "pixelsRead": 0,
+          "pointScreen": [
+            522,
+            18
+          ],
+          "schemaVersion": 1,
+          "scope": "rf1130-refused-caption-hit-metadata",
+          "systemSettingsChanged": false,
+          "target": {
+            "hwnd": 10422748,
+            "pid": 19984,
+            "threadAndPidAvailable": true,
+            "threadId": 9008,
+            "windowExistsAtRead": true
+          },
+          "windowTextRead": false
+        }
+      },
+      "creationMs": 1791760513050,
+      "elapsedMilliseconds": 2007.9237,
+      "foregroundAfter": false,
+      "foregroundBefore": false,
+      "heldProcessAndWindowIdentityVerifiedBeforeAndAfter": true,
+      "hwnd": 10422748,
+      "inputEventsSent": 0,
+      "otherWindowsActivated": 0,
+      "pid": 19984,
+      "pixelsRead": 0,
+      "requested": true,
+      "runId": "a2a668a2ebaf4c958fdee85448758420",
+      "schemaVersion": 1,
+      "scope": "rf121-owned-window-foreground-with-caption",
+      "systemSettingsChanged": false,
+      "tag": "activate-owned"
+    }
+  ],
+  "atFailureOccupyingWindowOwnerRecorded": true,
+  "newDiagnosticProvenAtActualRefusal": true,
+  "failureCauseResolved": false,
+  "diagnosticChecks": {
+    "task": "RF-1130",
+    "existingApplicationSourcesUnchanged": true,
+    "existingSourceCount": 1839,
+    "diagnosticAndCompileInputsUnchangedAfterChecks": true,
+    "helperBodiesUnchangedAfterExactReverseProof": true,
+    "moduleApiRepairOnly": "IsWindow(hwnd) to IsWindow(Some(hwnd))",
+    "defaultApplicationBuildAndDependenciesChanged": false,
+    "helperTests": {
+      "passed": 12,
+      "failed": 0,
+      "ignored": 0
+    },
+    "checks": {
+      "accepted": true,
+      "rows": [
+        {
+          "name": "fmt",
+          "pid": 30440,
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1130-caption-hit-20261012\\helper\\Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 0.3467479000100866
+        },
+        {
+          "name": "module-fmt",
+          "pid": 10672,
+          "command": [
+            "rustfmt",
+            "--edition",
+            "2021",
+            "--check",
+            "D:\\SoloSoul\\tauri\\scripts\\native-perf-caption-hit-diagnostic.rs"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 0.10785309999482706
+        },
+        {
+          "name": "tests",
+          "pid": 28240,
+          "command": [
+            "cargo",
+            "test",
+            "--manifest-path",
+            "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1130-caption-hit-20261012\\helper\\Cargo.toml",
+            "--locked",
+            "--offline"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 4.545392700005323
+        },
+        {
+          "name": "clippy",
+          "pid": 16628,
+          "command": [
+            "cargo",
+            "clippy",
+            "--manifest-path",
+            "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1130-caption-hit-20261012\\helper\\Cargo.toml",
+            "--locked",
+            "--offline",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 2.5692558999871835
+        },
+        {
+          "name": "build",
+          "pid": 18208,
+          "command": [
+            "cargo",
+            "build",
+            "--manifest-path",
+            "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1130-caption-hit-20261012\\helper\\Cargo.toml",
+            "--locked",
+            "--offline"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 2.74962170002982
+        }
+      ],
+      "sourcesUnchanged": true
+    },
+    "pendingMatrixAccepted": false
+  },
+  "recordedHitProcessReadOnly": {
+    "at": "2026-10-11T23:17:28.3223842Z",
+    "queriedPid": 20684,
+    "scope": "read-only process metadata for recorded hit PID",
+    "process": {
+      "ProcessId": 20684,
+      "Name": "ChatGPT.exe",
+      "ExecutablePath": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1002.7124.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe",
+      "SessionId": 1,
+      "CreationDate": "2026-10-09T14:06:23.356936+01:00"
+    },
+    "inputEventsSent": 0,
+    "windowTextRead": false,
+    "pixelsRead": 0
+  },
+  "postTerminalObservationIsNotFailurePointEvidence": true,
+  "cleanup": {
+    "task": "RF-1130",
+    "at": "2026-10-11T23:16:46.9040619Z",
+    "identitiesChecked": 27,
+    "matchingOwnedIdentitiesLive": 0,
+    "processesTerminatedByThisTool": 0,
+    "removedCachePaths": 24,
+    "linksUnlinked": 3,
+    "preservedVaultAndRootFiles": 96,
+    "applicationLogs": 3,
+    "preservedBytesVerified": true
+  },
+  "fullRF121Accepted": false,
+  "RF1128Accepted": false,
+  "performanceAccepted": false,
+  "archive": {
+    "path": "rf1130-caption-hit-diagnostics-2026-10-12/raw.tar.gz",
+    "members": 168,
+    "bytes": 277585,
+    "sha256": "cf9f2ff58ce37147505b832fa327c42e36121014888cd4aab7fca825f59fc0fe",
+    "allMembersReadbackVerified": true
+  }
+}
