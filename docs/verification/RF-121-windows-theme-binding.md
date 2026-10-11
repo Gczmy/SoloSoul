@@ -13,7 +13,7 @@
 
 第一轮首页失败中，第二次认证流程 failed，登录收到 tauri-error；经完整合同核验的维护准入错误为 operations-active，部分活动见证包括 update-source-preferences。该观测没有覆盖全部活动许可，不能认定唯一原因或历史首页超时根因。其余十一份认证诊断均记录两次 finished；后九次因截图回执缺失，最终原生证明为 surface-capture-timeout，不能记作整组通过。
 
-九份实际前快照均为 Windows light/mica。这里的 mica 是 DOM 材质状态，不是原生属性读回或视觉验收。微软 [DWMWINDOWATTRIBUTE 文档](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)将深色、标题栏颜色、系统背景类型列为设置属性；当前工具不把未文档化的 getter 当作能力前提。这三项记 null，nativeAppearanceVerified=false。原 PID/birth/EXE、唯一窗口、几何、前台状态、DPI 和像素守卫保留。旧工具、固定 D 盘工具和明确读取能力的工具分别保存。
+九份实际前快照均为 Windows light/mica。这里的 mica 是 DOM 材质状态，不是原生属性读回或视觉验收。原轮工具将深色、标题栏颜色和系统背景类型三项记 null，nativeAppearanceVerified=false；其实际失败及能力口径保留。2026-10-11 更正：微软 [DWMWINDOWATTRIBUTE 文档](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)明确允许用 DwmGetWindowAttribute 读取 DWMWA_SYSTEMBACKDROP_TYPE，要求 Windows 11 Build 22621 起；深色及标题栏颜色仍按文档的设置属性处理。独立隐藏自有窗口能力探针已实际完成背景类型的读取、设置和恢复，但不能据此追溯认定旧应用截图已验证原生 Mica。原 PID/birth/EXE、唯一窗口、几何、前台状态、DPI 和像素守卫保留。原工具和原件保持，新读取工具需绑定当前构建后单独验证。
 
 只读 Win32/WTS 观测记录工具所在会话 1 为 Disconnected，活动控制台为会话 2，输入桌面访问错误 5；未读取用户名或像素、未发送输入或修改系统设置。恢复运行工具的同一会话并解除锁屏后，需重新核验环境再捕获。不把这一条件直接认作所有无帧失败的确定根因。
 
@@ -26,3 +26,9 @@ Rust 格式、默认及非默认严格 Clippy、新 GUI Release 构建通过。�
 见[结构化记录](rf121-windows-theme-binding-2026-10-10.json)和[原件索引](rf121-windows-theme-binding-2026-10-10/index.json)。归档共 535 个成员，全部逐字回读校验，不含物理 Vault、二进制、模型或缓存。先前未使用的正向归档/清理/渲染方案仅为历史原件，索引显式标记不可用于本次失败轮次。
 
 会话已恢复，第五轮使用独立固定入口 `build/rf121-theme-binding-20261010/run-round5.py`，没有覆盖历史样本；原四轮入口不能直接复用到新目录。当前只完成浅色、展开侧栏、96 DPI 的三次真实截图前后绑定。仍需深色、折叠、缩放、恢复、减少透明度/高对比、长内容和其他平台矩阵。RF-112、RF-121、RF-312 与后续六项前置保持未完成。
+
+2026-10-11 当前源码补验：使用 RF-1121 后的1834份源码构建新 GUI，SHA-256 为 `88e068597df2f0045e9e5a20539f2048897c931efa434c4def74face58a094a7`，94份资源逐字核验。严格 native Clippy、TSC/Vite 和 GUI Release 构建通过。原生模块首次在受限环境中实际115通过、14失败；相同源码和完整129项在提升权限后全部通过，保留两组日志。私有硬链接/联接探针观测到两种环境权限不同，不据此认定每个首次失败的唯一根因。构建造成的 Cargo.toml 换行已按等价核验恢复。背景读取和自有窗口激活工具既有12项测试、格式及严格 Clippy通过。
+
+四个计划分组各执行三次默认原生行程，共12次正常流程通过；每次请求激活自有窗口均被 Windows 拒绝。前台守卫在发布主题场景请求之前停止，因此没有实际执行浅/深色及折叠场景，也没有背景属性或像素验收。此时会话1为 Active，调用和输入桌面均为 WinSta0/Default；观测到前台 PID 对应 PickerHost.exe，但没有证明唯一根因。独立自有标题栏探针也在命中其他窗口时拒绝输入，输入事件为0，自有探针窗口已销毁。保持前台守卫，待文件选择器关闭后用同一新构建和新目录重试。
+
+清理前独立读回验证12份默认行程、认证与维护合同及12次激活拒绝，明确不能作外观验收。完成清理回执与随后 fresh CIM 读回确认无本轮进程仍在运行；96个精确私有缓存已移除、12份应用日志及全部 Vault/根级证据的 SHA 已保留验证，没有终止进程。原清理工具最终输出句柄未保留，不虚构该调用的可读取退出码。见[阶段记录](rf121-windows-backdrop-denials-2026-10-11.json)及[550份原件索引](rf121-windows-backdrop-denials-2026-10-11/index.json)，全部成员回读长度与 SHA 通过。成功场景专用的渲染/归档工具仅为准备文件，未执行；原生 Mica、完整 RF-121 和 RF-312 均未验收。
