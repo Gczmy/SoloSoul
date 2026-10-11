@@ -1,0 +1,30 @@
+{
+  "task": "RF-1127",
+  "rawFilesMatchArchivedHashes": true,
+  "files": [
+    {
+      "file": "native-perf-sdk-journey-bound.json",
+      "sha256": "6c42c69391999cadce885a8dc2bb1beef5015344eef20e063a03f84498852664",
+      "observedLastWriteUtc": "2026-10-11T22:17:05.334270+00:00"
+    },
+    {
+      "file": "native-perf-sdk-journey-authorized.json",
+      "sha256": "714e875bba8af24636e4a839e29de8c10ec3fbd2de62ad74381997f363ef622f",
+      "observedLastWriteUtc": "2026-10-11T22:17:10.056657+00:00"
+    },
+    {
+      "file": "surface-activation.receipt.json",
+      "sha256": "9e69b8c66a286329a3b5820059c6630696a0e7d4d51904ef649b6e382a3c17b0",
+      "observedLastWriteUtc": "2026-10-11T22:17:09.219842+00:00"
+    },
+    {
+      "file": "native-perf-surface-request.json",
+      "sha256": "7d298767e950e688510493e116a6dc629f673bfc2b744ee23bb0e1055efaa63e",
+      "observedLastWriteUtc": "2026-10-11T22:17:09.227556+00:00"
+    }
+  ],
+  "activationReceiptCompletedAt": "2026-10-11T22:17:09.219608+00:00",
+  "authorizationFileMtimeAfterActivationReceipt": true,
+  "filesystemTimesAreNotMonotonicPerformanceMeasurements": true,
+  "failureCauseResolved": false
+}
