@@ -1,0 +1,224 @@
+{
+  "task": "RF-1127",
+  "members": [
+    {
+      "member": "checks/format-check.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\format-check.log",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "member": "checks/format-check.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\format-check.receipt.json",
+      "bytes": 23,
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "member": "checks/format.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\format.log",
+      "bytes": 126,
+      "sha256": "b51400d2a7af53c8720d8f1f589a702bbf92a036fe6cf184cc7255f946f38b72"
+    },
+    {
+      "member": "checks/format.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\format.receipt.json",
+      "bytes": 23,
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "member": "checks/historical-intervals.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\historical-intervals.json",
+      "bytes": 20234,
+      "sha256": "0ffa78c3fd76953ba21223eaf506db6db469820e691060db08f21ef73a8defb3"
+    },
+    {
+      "member": "checks/historical-reader.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\historical-reader.log",
+      "bytes": 101,
+      "sha256": "e9a87ae7684a5b0f4d3cda80257334f352b7df2c2201bcdc3efd5839321f7d05"
+    },
+    {
+      "member": "checks/historical-reader.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\historical-reader.receipt.json",
+      "bytes": 49,
+      "sha256": "6cca4f7fd38805f1e2246c0205f13bfa208ce6f7028fa246186f2995cfb8ef07"
+    },
+    {
+      "member": "checks/node-all-elevated.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-all-elevated.log",
+      "bytes": 24666,
+      "sha256": "71c743f707cfe292f2925f43a721a14f20a3f0cdb32f0c20148f156a0e8b2fa8"
+    },
+    {
+      "member": "checks/node-all-elevated.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-all-elevated.receipt.json",
+      "bytes": 135,
+      "sha256": "fbfc44eba446ecc789506207ce40f29dcf2f9b927f6d28f91c4a79f01c1a3ef6"
+    },
+    {
+      "member": "checks/node-all.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-all.log",
+      "bytes": 34813,
+      "sha256": "a303f7bbc91626d3766cbfd0afa67254dacd9dc4f56a7e91e726b2e159b7ddea"
+    },
+    {
+      "member": "checks/node-all.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-all.receipt.json",
+      "bytes": 23,
+      "sha256": "c34bc644b4dfc96082e294ccb49ac40bdf34a3c659c956ffef43981ed30b2234"
+    },
+    {
+      "member": "checks/node-green.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-green.log",
+      "bytes": 965,
+      "sha256": "05882effcea9bb52e72c23d9e0637e6a31e85a835ddb8d8c8c0c3b726f7d40cf"
+    },
+    {
+      "member": "checks/node-green.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-green.receipt.json",
+      "bytes": 83,
+      "sha256": "c88e2d17903b4314e09b8f98cc852bb6bf8882cc5a9eb5bd180d868f3d12695b"
+    },
+    {
+      "member": "checks/node-red.log",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-red.log",
+      "bytes": 949,
+      "sha256": "e32368117d52fe1a53b5c564b1f99d315bf5e371eb908cf1883390b65ea47c84"
+    },
+    {
+      "member": "checks/node-red.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\node-red.receipt.json",
+      "bytes": 84,
+      "sha256": "564a14a195463fb1c58471cbdfd60afb6899c6195fba07854a5d9f9b11e4343b"
+    },
+    {
+      "member": "checks/pending-native.json",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\pending-native.json",
+      "bytes": 615,
+      "sha256": "239f5978aff9aae63ca9426891ad4b27e3ac4a44d60dd89c70f015c28ae7b0ba"
+    },
+    {
+      "member": "checks/prepare-native.py",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\prepare-native.py",
+      "bytes": 4003,
+      "sha256": "e4b3be1dd4bca5b6f838453d2e76eccf4296d790db0945ec7b733132e7db7409"
+    },
+    {
+      "member": "checks/publish-partial.py",
+      "source": "D:\\SoloSoul\\build\\rf1127-preference-settlement-20261011\\publish-partial.py",
+      "bytes": 4456,
+      "sha256": "d53606d7bd558492108eec4cc4f1114b4d1042427860a213ac89cfcc80c2b5ad"
+    },
+    {
+      "member": "current/tauri/scripts/native-perf-preference-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-preference-contract.mjs",
+      "bytes": 4687,
+      "sha256": "e326f51eaf0abc1b3c1bc68d48b15e51b3feca84b50f2386ad2bfa6dd376ae76"
+    },
+    {
+      "member": "current/tauri/scripts/native-perf-preference.node.test.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-preference.node.test.mjs",
+      "bytes": 8413,
+      "sha256": "9dda5cd45a9fbcf06aaf07d1de34a783e733b1143315383f47cce8abb274a4f5"
+    },
+    {
+      "member": "native-preparation/caption-runtime-package.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\caption-runtime-package.json",
+      "bytes": 37545,
+      "sha256": "6399ff214ecf5d9532f14385f42b08d16e00ce1afa055dcd4b1b009bfec363d4"
+    },
+    {
+      "member": "native-preparation/restore-helper.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\restore-helper.json",
+      "bytes": 533,
+      "sha256": "bc30cc2ab66159627a2da4ecf9681207cec105e8a2ee3d99680a991ab38bc686"
+    },
+    {
+      "member": "native-preparation/session-before-native-recheck1.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\session-before-native-recheck1.json",
+      "bytes": 351,
+      "sha256": "572279b071d14436f9afa75c0f29c80afa96f6f29bcc1971db01cbf0ae1646d8"
+    },
+    {
+      "member": "native-preparation/session-before-native.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\session-before-native.json",
+      "bytes": 352,
+      "sha256": "597286c1a4b56fade65f6682bafc15619fa757d8a900a9723eac1803d14a0d14"
+    },
+    {
+      "member": "native-preparation/sources.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\sources.json",
+      "bytes": 231648,
+      "sha256": "46707686b0cdebb06e4b1296742e13fe14fef8470f86f14d67c11daf2586228b"
+    },
+    {
+      "member": "native-preparation/tools.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\tools.json",
+      "bytes": 827,
+      "sha256": "f324bb70e0f1da6b193607a0b66e3382dd28ba59d7fd23dfe650fe8efb4ca3bf"
+    },
+    {
+      "member": "native-preparation/windows-build-reuse-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-settlement-20261011\\windows-build-reuse-proof.json",
+      "bytes": 1786,
+      "sha256": "265ef45c0cde53a5283426a0e68d99f31ea0e6e59837257040df9afc2804dbc7"
+    },
+    {
+      "member": "original-evidence/index.json",
+      "source": "D:\\SoloSoul\\docs\\verification\\rf121-windows-window-restore-2026-10-11\\index.json",
+      "bytes": 419768,
+      "sha256": "2a953a5f797041571b555fca1f7391eafa6e448b70e5ecc0fd4a1e80aa2f44a6"
+    },
+    {
+      "member": "tools/render-rf1127-settled.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\render-rf1127-settled.py",
+      "bytes": 2190,
+      "sha256": "e879e2aee2a5bd1888fc178bc71d6ddde973adc3c611109eff4a933500a4775f"
+    },
+    {
+      "member": "tools/rf1127-historical-intervals.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-historical-intervals.mjs",
+      "bytes": 3259,
+      "sha256": "d8fdc96b8a3f889cc56f407b520d3182bcf91454c7afe839fc27df3177442de5"
+    },
+    {
+      "member": "tools/rf1127-session-preflight.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-session-preflight.py",
+      "bytes": 2186,
+      "sha256": "17f8df1aa073937e794c7f5aee8f8f676da961d24e8f7ad5f05b1b464bd9bcdd"
+    },
+    {
+      "member": "tools/rf1127-session-recheck1.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-session-recheck1.py",
+      "bytes": 2197,
+      "sha256": "79cc940049ceda6c8dcce4145c68452c6a9ac3af965edcabe463790538d22ea9"
+    },
+    {
+      "member": "tools/run-rf1127-cohorts.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\run-rf1127-cohorts.py",
+      "bytes": 2849,
+      "sha256": "e4f6bbcc2459c50cf1b7350c86ff12379cb476e1704a3363518f7e0ff0452f38"
+    },
+    {
+      "member": "tools/run-rf1127-settled.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\run-rf1127-settled.py",
+      "bytes": 21432,
+      "sha256": "3052c63f7115730ac58415d2d52f1c9c45b6494b2b114ca966293e787bb4b4e5"
+    },
+    {
+      "member": "tools/verify-rf1127-settled.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\verify-rf1127-settled.mjs",
+      "bytes": 26963,
+      "sha256": "fbe9bd4cbe12b08feb738134973e7128577dc2543b34b27a6ac0335ceba5e2a8"
+    },
+    {
+      "member": "tools/window-restore-contract.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\window-restore-contract.mjs",
+      "bytes": 3086,
+      "sha256": "0b57153435af7163be784ebfbae28e9bc759361e956702d10320349b209810c8"
+    }
+  ],
+  "allMembersReadbackVerified": true,
+  "newNativeTestsStarted": 0,
+  "accepted": false
+}

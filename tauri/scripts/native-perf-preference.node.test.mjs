@@ -4,6 +4,7 @@ import {
   checkPreferenceWrites,
   preferenceWriteDelta,
   correlatePreferenceInterval,
+  correlateSettledThemeInterval,
 } from './native-perf-preference-contract.mjs';
 
 const identity = { runId: '0123456789abcdef0123456789abcdef', pid: 41 };
@@ -156,4 +157,109 @@ test('bounds and sequential IDs are checked for every row', () => {
   );
   const repeated = snapshot([row(1), row(1)]);
   assert.throws(() => checkPreferenceWrites(repeated, identity));
+});
+
+const settling = () => ({
+  before: snapshot([], 0),
+  after: snapshot([row(1, 'theme', 1, 4), row(2, 'backup-reminder', 5, null)], 6),
+  later: snapshot(
+    [row(1, 'theme', 1, 4), row(2, 'backup-reminder', 5, 7), row(3, 'theme', 8, 9)],
+    10,
+  ),
+});
+
+test('later completion preserves the original running interval and independent transport total', () => {
+  const { before, after, later } = settling();
+  const original = structuredClone({ before, after, later });
+  assert.throws(() => correlatePreferenceInterval(before, after, identity, 2));
+  const result = correlateSettledThemeInterval(before, after, later, identity, 2);
+  assert.equal(result.interval.total, 2);
+  assert.equal(result.interval.theme, 1);
+  assert.equal(result.interval.backupReminder, 1);
+  assert.equal(result.interval.allCompleted, false);
+  assert.equal(result.settledAttempts.length, 2);
+  assert.equal(result.settledAttempts[1].endedAtMs, 7);
+  assert.equal(result.laterAdded.total, 1);
+  assert.equal(result.laterAdded.theme, 1);
+  assert.equal(result.performanceMetrics, null);
+  assert.deepEqual({ before, after, later }, original);
+  assert.throws(() => correlateSettledThemeInterval(before, after, later, identity, 3));
+  assert.throws(() => correlateSettledThemeInterval(before, after, later, identity, NaN));
+});
+
+test('theme must be exactly one completed target write at the original checkpoint', () => {
+  for (const kind of ['theme', 'other']) {
+    const after = snapshot([row(1, 'theme', 1, 2), row(2, kind, 3, 4)], 5);
+    assert.throws(() =>
+      correlateSettledThemeInterval(snapshot([], 0), after, { ...after, atMs: 6 }, identity, 2),
+    );
+  }
+  const { before, after, later } = settling();
+  after.attempts[0] = row(1, 'theme', 1, null);
+  later.attempts[0] = row(1, 'theme', 1, 7);
+  assert.throws(() => correlateSettledThemeInterval(before, after, later, identity, 2));
+  const background = snapshot([row(1, 'backup-reminder')], 5);
+  assert.throws(() =>
+    correlateSettledThemeInterval(before, background, { ...background, atMs: 6 }, identity, 1),
+  );
+});
+
+test('later evidence cannot rewrite terminal history or change running identity', () => {
+  for (const mutate of [
+    (v) => {
+      v.runId = 'f'.repeat(32);
+    },
+    (v) => {
+      v.pid++;
+    },
+    (v) => {
+      v.clockScope = 'wall';
+    },
+    (v) => {
+      v.atMs = 6;
+    },
+    (v) => {
+      v.attempts[0].endedAtMs = 3;
+    },
+    (v) => {
+      v.attempts[1].id = 3;
+    },
+    (v) => {
+      v.attempts[1].kind = 'other';
+    },
+    (v) => {
+      v.attempts[1].accountVerified = false;
+    },
+    (v) => {
+      v.attempts[1].startedAtMs = 4.5;
+    },
+    (v) => {
+      v.attempts[1].endedAtMs = 5.5;
+    },
+    (v) => {
+      v.attempts[1].endedAtMs = null;
+      v.attempts[1].outcome = 'running';
+    },
+    (v) => {
+      v.attempts[1].outcome = 'interrupted';
+    },
+    (v) => {
+      v.attempts = v.attempts.slice(0, 1);
+    },
+  ]) {
+    const { before, after, later } = settling();
+    mutate(later);
+    assert.throws(() => correlateSettledThemeInterval(before, after, later, identity, 2));
+  }
+});
+
+test('later additional writes never fill a missing original transport count', () => {
+  const { before, after, later } = settling();
+  after.attempts = after.attempts.slice(0, 1);
+  assert.throws(() => correlateSettledThemeInterval(before, after, later, identity, 2));
+  // A genuinely later background write is separately reported, never counted in the interval.
+  later.attempts[1].startedAtMs = 6.5;
+  const result = correlateSettledThemeInterval(before, after, later, identity, 1);
+  assert.equal(result.interval.total, 1);
+  assert.equal(result.laterAdded.total, 2);
 });

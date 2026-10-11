@@ -101,3 +101,29 @@ export function correlatePreferenceInterval(before, after, identity, transportAt
     reject();
   return delta;
 }
+
+// A layout checkpoint can precede completion of a concurrent background write.
+// Keep its transport/count boundary intact; later evidence may only finish the
+// same immutable IDs. The target theme must already be complete at that boundary.
+export function correlateSettledThemeInterval(before, after, later, identity, transportAttempts) {
+  const interval = preferenceWriteDelta(before, after, identity);
+  const laterAdded = preferenceWriteDelta(after, later, identity);
+  if (
+    !integer(transportAttempts, 0, 256) ||
+    interval.total !== transportAttempts ||
+    interval.theme !== 1 ||
+    interval.other !== 0 ||
+    later.atMs <= after.atMs ||
+    interval.attempts.some((row) => row.kind === 'theme' && row.outcome !== 'completed')
+  )
+    reject();
+  const settledAttempts = interval.attempts.map((row) => later.attempts[row.id - 1]);
+  if (settledAttempts.some((row) => row.outcome !== 'completed')) reject();
+  return {
+    interval,
+    settledAttempts,
+    settlementAtMs: later.atMs,
+    laterAdded,
+    performanceMetrics: null,
+  };
+}
