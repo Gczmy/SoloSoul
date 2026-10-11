@@ -1,0 +1,304 @@
+{
+  "task": "RF-1124",
+  "base": "c714a71962c1336d999d5696f4ed91895baf7e71",
+  "status": "diagnostic-verification-complete",
+  "sourceCount": 1837,
+  "checks": {
+    "task": "RF-1124",
+    "base": "c714a71962c1336d999d5696f4ed91895baf7e71",
+    "originalThemeAcceptanceBodyUnchanged": true,
+    "originalLightDarkLightCommandsAndAssertionsUnchanged": true,
+    "budgetSeconds": 45,
+    "productionThemeOrWebViewConfigurationModified": false,
+    "sourceCount": 1837,
+    "finalSourceSha256": "6bc391e94746788c3acb79a415cc7f280e426cebe66886c5d1e68ed46c67cc77",
+    "unit": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "unitExecutedInFirstBuild": true,
+    "unitReusedUpToDateInRetry": true,
+    "receipts": {
+      "kotlin-unit-tests": {
+        "exitCode": 0,
+        "elapsedSeconds": 32.3241105999914,
+        "sourceUnchanged": true,
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+          ":app:testX86_64DebugUnitTest",
+          "-x",
+          ":app:rustBuildX86_64Debug",
+          "--init-script",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\private-packaging-assets.init.gradle",
+          "--offline",
+          "--no-daemon",
+          "--max-workers",
+          "2"
+        ]
+      },
+      "test-build": {
+        "exitCode": 0,
+        "elapsedSeconds": 40.016226799984,
+        "sourceUnchanged": true,
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+          ":app:assembleX86_64DebugAndroidTest",
+          "-x",
+          ":app:rustBuildX86_64Debug",
+          "--init-script",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\private-packaging-assets.init.gradle",
+          "--no-daemon",
+          "--max-workers",
+          "2"
+        ]
+      },
+      "test-badging": {
+        "exitCode": 0,
+        "elapsedSeconds": 0.9841547999531031,
+        "sourceUnchanged": true,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\aapt2.exe",
+          "dump",
+          "badging",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-theme-diagnostic-test-build-retry1-20261011\\app-x86_64-debug-androidTest.apk"
+        ]
+      },
+      "test-signature": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.1219569999957457,
+        "sourceUnchanged": true,
+        "command": [
+          "C:\\Users\\40299571\\ss-android\\jdk\\bin\\java.exe",
+          "-jar",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\lib\\apksigner.jar",
+          "verify",
+          "--verbose",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-theme-diagnostic-test-build-retry1-20261011\\app-x86_64-debug-androidTest.apk"
+        ]
+      }
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "main",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\x86_64\\debug\\app-x86_64-debug.apk",
+      "copy": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\app-x86_64-debug.apk",
+      "sha256": "7e536087723d9211ace0f9a0b20db0225d453a22258f71ba14e348936c0f49e2",
+      "bytes": 218619845,
+      "package": "com.solosoul.app",
+      "zipEntries": 1033,
+      "nativeLibraries": [
+        "lib/x86_64/libmlkit_google_ocr_pipeline.so",
+        "lib/x86_64/libsolo_soul.so"
+      ],
+      "signatureVerified": true
+    },
+    {
+      "kind": "test",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\androidTest\\x86_64\\debug\\app-x86_64-debug-androidTest.apk",
+      "copy": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-theme-diagnostic-test-build-retry1-20261011\\app-x86_64-debug-androidTest.apk",
+      "sha256": "a52cd837564231942b066b13a7a064d58b1f1942514697ffa564cff0b5c61cc8",
+      "bytes": 1944503,
+      "package": "com.solosoul.app.test",
+      "zipEntries": 39,
+      "nativeLibraries": [],
+      "signatureVerified": true
+    }
+  ],
+  "observations": [
+    {
+      "api": 31,
+      "mode": "supported",
+      "runId": "bd7e537407284605aa0ae16838631778",
+      "nativePassed": false,
+      "darkState": {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": false,
+        "colorScheme": "light",
+        "colorSchemeMeta": "",
+        "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+        "mounted": true,
+        "startupGone": true,
+        "background": "#fafaf6",
+        "surface": "#fdfcf9",
+        "foreground": "#111111",
+        "accent": "#5b7c99",
+        "materialContainer": "#eaeded",
+        "materialInk": "#000000",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "native": {
+          "api": 31,
+          "nightMode": 2,
+          "activityNight": 32,
+          "applicationNight": 32,
+          "systemResourcesNight": 32,
+          "androidLightTheme": false,
+          "appCompatLightTheme": false,
+          "providerPackage": "com.android.webview",
+          "providerVersion": "91.0.4472.114",
+          "forceDark": 1,
+          "algorithmicDarkeningAllowed": null
+        },
+        "stage": "system-dark",
+        "result": "timeout"
+      },
+      "restored": true
+    },
+    {
+      "api": 31,
+      "mode": "fallback",
+      "runId": "6b7321221077433d8d31012dba321a24",
+      "nativePassed": false,
+      "darkState": {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": false,
+        "colorScheme": "light",
+        "colorSchemeMeta": "",
+        "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+        "mounted": true,
+        "startupGone": true,
+        "background": "#fafaf6",
+        "surface": "#fdfcf9",
+        "foreground": "#111111",
+        "accent": "#5b7c99",
+        "materialContainer": "#eaeded",
+        "materialInk": "#000000",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "native": {
+          "api": 31,
+          "nightMode": 2,
+          "activityNight": 32,
+          "applicationNight": 32,
+          "systemResourcesNight": 32,
+          "androidLightTheme": false,
+          "appCompatLightTheme": false,
+          "providerPackage": "com.android.webview",
+          "providerVersion": "91.0.4472.114",
+          "forceDark": 1,
+          "algorithmicDarkeningAllowed": null
+        },
+        "stage": "system-dark",
+        "result": "timeout"
+      },
+      "restored": true
+    },
+    {
+      "api": 35,
+      "mode": "supported",
+      "runId": "1cf9337c856b424291cd8f50adb6114b",
+      "nativePassed": true,
+      "darkState": {
+        "platform": "android",
+        "theme": "dark",
+        "darkMedia": true,
+        "colorScheme": "dark",
+        "colorSchemeMeta": "",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+        "mounted": true,
+        "startupGone": true,
+        "background": "#1f1c18",
+        "surface": "#2a2620",
+        "foreground": "#ffffff",
+        "accent": "#7a9ab5",
+        "materialContainer": "#343432",
+        "materialInk": "#000000",
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "native": {
+          "api": 35,
+          "nightMode": 2,
+          "activityNight": 32,
+          "applicationNight": 32,
+          "systemResourcesNight": 32,
+          "androidLightTheme": false,
+          "appCompatLightTheme": false,
+          "providerPackage": "com.android.webview",
+          "providerVersion": "124.0.6367.219",
+          "forceDark": 1,
+          "algorithmicDarkeningAllowed": false
+        },
+        "stage": "system-dark"
+      },
+      "restored": true
+    },
+    {
+      "api": 35,
+      "mode": "fallback",
+      "runId": "40aea9eaaaeb4daab38aabfc250ef48e",
+      "nativePassed": true,
+      "darkState": {
+        "platform": "android",
+        "theme": "dark",
+        "darkMedia": true,
+        "colorScheme": "dark",
+        "colorSchemeMeta": "",
+        "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+        "mounted": true,
+        "startupGone": true,
+        "background": "#1f1c18",
+        "surface": "#2a2620",
+        "foreground": "#ffffff",
+        "accent": "#7a9ab5",
+        "materialContainer": "#343432",
+        "materialInk": "#000000",
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "native": {
+          "api": 35,
+          "nightMode": 2,
+          "activityNight": 32,
+          "applicationNight": 32,
+          "systemResourcesNight": 32,
+          "androidLightTheme": false,
+          "appCompatLightTheme": false,
+          "providerPackage": "com.android.webview",
+          "providerVersion": "124.0.6367.219",
+          "forceDark": 1,
+          "algorithmicDarkeningAllowed": false
+        },
+        "stage": "system-dark"
+      },
+      "restored": true
+    }
+  ],
+  "sourcePath": "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidThemeInstrumentedTest.kt",
+  "finalSourceSha256": "6bc391e94746788c3acb79a415cc7f280e426cebe66886c5d1e68ed46c67cc77",
+  "nativeThemeTests": {
+    "api31Passed": 0,
+    "api31Failed": 2,
+    "api35Passed": 2,
+    "api35Failed": 0,
+    "skipped": 0
+  },
+  "faultBoundaryEstablished": true,
+  "uniqueRootCauseEstablished": false,
+  "productionBugFixed": false,
+  "originalFailuresRetained": true,
+  "driverExternalOwnerErrorRecovered": true,
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "performanceAccepted": false,
+  "physicalDeviceAccepted": false,
+  "archive": {
+    "path": "docs/verification/rf1124-android-theme-diagnostics-2026-10-11/raw.tar.gz",
+    "sha256": "d4389159b35639f4ec40943b7d1d27fded5124fcb2b523e1796322763da89272",
+    "members": 154
+  },
+  "ledgerClosed": false,
+  "commitCreated": false,
+  "at": "2026-10-11T15:42:46.379333+00:00",
+  "officialReference": "https://developer.android.com/develop/ui/views/layout/webapps/dark-theme",
+  "inference": "API31 native configuration and isLightTheme switch; provider91 WebView media remains light. API35/provider124 same APK passes. Legacy force-dark strategy and absent meta are candidates, not uniquely established causes."
+}

@@ -1,0 +1,784 @@
+{
+  "archiveSha256": "d4389159b35639f4ec40943b7d1d27fded5124fcb2b523e1796322763da89272",
+  "members": [
+    {
+      "path": "final-source/tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidThemeInstrumentedTest.kt",
+      "size": 14733,
+      "sha256": "6bc391e94746788c3acb79a415cc7f280e426cebe66886c5d1e68ed46c67cc77"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/boot.receipt.json",
+      "size": 5493,
+      "sha256": "df209ae3e6ba5451ead0ab77e0e3c06aa0c623b89d6e557da1112ba7e6b12637"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/emulator.live.json",
+      "size": 498,
+      "sha256": "8ab6366d7ea6937c8f95e82976d8c84c43e66f717b6b65b37ef995e7bb60ac99"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/emulator.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/emulator.stdout.log",
+      "size": 17569,
+      "sha256": "5502f0d3121216040ca1b4fe4a67001f36f7c4904467b322675171402f9dde24"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/owned-processes-after-launch.json",
+      "size": 480,
+      "sha256": "6ef3e3b21459b52776b46d9bad6248680222b9da8e33bc4083f7ad18aaefd940"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/process-preflight.json",
+      "size": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/stop.receipt.json",
+      "size": 806,
+      "sha256": "c778c36cff5bf042b361641587fc51de12c993eda12a2946a6ceaa5eeee77a35"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/surfaceflinger.log",
+      "size": 88336,
+      "sha256": "0d73465788a5396372f6cf50760c6ad03f262b0935a190944e642a05d1e636cd"
+    },
+    {
+      "path": "raw/api31-host-rf1124-20261011/webview.log",
+      "size": 612,
+      "sha256": "b297efab1349c6200e63dfe61f4ed91e42650e3ac6f27a6893d67a6bb5d2828a"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/command.json",
+      "size": 382,
+      "sha256": "4c23a4ea417d0e9376e931eb2410d95bcd859df6dae04496e7f9c6d2d0ec6f65"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/external-before.json",
+      "size": 386,
+      "sha256": "ae0975b9a4dba69ed2693e2fcdb162e20345197628fe7bc5caafed12f8b52234"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/instrumentation.stderr.log",
+      "size": 108,
+      "sha256": "1910dddbaabbccc214628a2115d7f0791f4741a9fa34e9bea373fab0a5cdb07e"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/instrumentation.stdout.log",
+      "size": 4779,
+      "sha256": "019e748704c1fe4016746c855a42a8d969d7c8bf9aa8103d5e1ce77e3e1e1b7c"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/provider-before.log",
+      "size": 621,
+      "sha256": "ca20d3394b80294c67e426eb6bb9e4fe301e6770be0baf60441d7ec5c3de5d55"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/receipt.json",
+      "size": 720,
+      "sha256": "2d10446c7c2f7c259897233bb489cf2f4987c6734f43a9fe3d604b6eaad790d2"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/fallback/theme-diagnostics.json",
+      "size": 121,
+      "sha256": "00a266d11c6f94a0d544a8f8702a5cf2ba6463b634f68aec39cb4673f78ae444"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/input-proof.json",
+      "size": 235122,
+      "sha256": "fa8eb79d11c538c37a8d9678d0f3f7df226863f7744f51d0d51b906693e950be"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/owned-identity.json",
+      "size": 454,
+      "sha256": "6c3acbc08d7761278210f8b75efbad9e8ed1b8a469087769cd59f6d96faf0836"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/command.json",
+      "size": 383,
+      "sha256": "3ce6dae52284c339a5dbb3a1a4a936a030e917a2753d29f296ef66a1d9d0a63c"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/external-before.json",
+      "size": 386,
+      "sha256": "ae0975b9a4dba69ed2693e2fcdb162e20345197628fe7bc5caafed12f8b52234"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/failure.png",
+      "size": 336390,
+      "sha256": "8948c32a92b6682621813d610382e23e20fd19dfc9b189b772e52b24e4031992"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/instrumentation.stderr.log",
+      "size": 108,
+      "sha256": "1910dddbaabbccc214628a2115d7f0791f4741a9fa34e9bea373fab0a5cdb07e"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/instrumentation.stdout.log",
+      "size": 5085,
+      "sha256": "266a1aec586e87f5045ec412963bfae2e3333db24d1fc03db3aed1bbb5b69b87"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/provider-before.log",
+      "size": 621,
+      "sha256": "ca20d3394b80294c67e426eb6bb9e4fe301e6770be0baf60441d7ec5c3de5d55"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/receipt.json",
+      "size": 695,
+      "sha256": "ebda6e47ebd60fc104c51b879fec793053931ee11d1cd85284480d63741cd996"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/system-light.png",
+      "size": 120267,
+      "sha256": "d3f774422142cd3ac51db7bf157f7275e8eeef23c4d6f472b98aafcb6747a716"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/supported/theme-diagnostics.json",
+      "size": 2323,
+      "sha256": "441ae121247c1426bd3687983fb9366d47687e9261070e362728efc0f672dbd8"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-20261011/verification.json",
+      "size": 1828,
+      "sha256": "5f0240054670ad31dbcd14f00e63c777e007e38fe45c4ba15be1396afb054338"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/command.json",
+      "size": 382,
+      "sha256": "915be4e4ab4db1ad8ba530f822333f253beaa085dffab60dc5978c8af831b9da"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/external-before.json",
+      "size": 386,
+      "sha256": "ae0975b9a4dba69ed2693e2fcdb162e20345197628fe7bc5caafed12f8b52234"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/failure.png",
+      "size": 336829,
+      "sha256": "b600e413ba6737c3e9966a0a7212ea8f0395b53a1ad3c34ae953aefbc58ddcf3"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/instrumentation.stderr.log",
+      "size": 108,
+      "sha256": "1910dddbaabbccc214628a2115d7f0791f4741a9fa34e9bea373fab0a5cdb07e"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/instrumentation.stdout.log",
+      "size": 5084,
+      "sha256": "b5c3ffa654aadbd90e231906502c9604b81284d8a65c592dbbebcc2e4e315e3d"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/provider-before.log",
+      "size": 621,
+      "sha256": "ca20d3394b80294c67e426eb6bb9e4fe301e6770be0baf60441d7ec5c3de5d55"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/receipt.json",
+      "size": 694,
+      "sha256": "f015c2893a0b937876f006b97200b55965e435269fb622f0e382b2866fd0fb47"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/system-light.png",
+      "size": 124601,
+      "sha256": "4edebcb2c161cfd01c98b28d1d678bb5bb99756a8b4558afdaa0c90bdcef79df"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/fallback/theme-diagnostics.json",
+      "size": 2323,
+      "sha256": "8e5656d957230ceb1be125d91baedb9e1b552b944a6f77df499346ea2115c85b"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/input-proof.json",
+      "size": 235129,
+      "sha256": "7f8bbcd79b10b9d23d5487899ffc944d5b4289ed3d272ecd38abc10da6490d14"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/owned-identity.json",
+      "size": 454,
+      "sha256": "6c3acbc08d7761278210f8b75efbad9e8ed1b8a469087769cd59f6d96faf0836"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/command.json",
+      "size": 383,
+      "sha256": "7e4dce7b5d37653b2d24343098ab17cde0edb7b11bc694841a812ff7607e8cf5"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/external-before.json",
+      "size": 386,
+      "sha256": "ae0975b9a4dba69ed2693e2fcdb162e20345197628fe7bc5caafed12f8b52234"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/failure.png",
+      "size": 336906,
+      "sha256": "f57a5d8a133d44c3dd949e7e998faa3e70b0e13a4348e6b0b3c15e9b90122344"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/instrumentation.stderr.log",
+      "size": 108,
+      "sha256": "1910dddbaabbccc214628a2115d7f0791f4741a9fa34e9bea373fab0a5cdb07e"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/instrumentation.stdout.log",
+      "size": 5086,
+      "sha256": "227396632e897d6e905553c66d80bbd3c515cd5636f175b1222389957e91de01"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/provider-before.log",
+      "size": 621,
+      "sha256": "ca20d3394b80294c67e426eb6bb9e4fe301e6770be0baf60441d7ec5c3de5d55"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/receipt.json",
+      "size": 695,
+      "sha256": "16fbbeb50ac9bbc5a00d4fa48d7d8bdbcf10523837e407b3eb5c99cf89038f8f"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/system-light.png",
+      "size": 131769,
+      "sha256": "e1e05d1d8bd5bb144c2559048a62b176d6742cc736937248e0b5e00f32e7dc2f"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/supported/theme-diagnostics.json",
+      "size": 2323,
+      "sha256": "49795927509dcdd54bc973fa0674299b9d652714b8abb363139efc4b0e79d545"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/verification.json",
+      "size": 1801,
+      "sha256": "f023eba66758160a72aadeee8efb71fc2be804dd8bb09424f0f670f91455414e"
+    },
+    {
+      "path": "raw/api31-theme-rf1124-retry1-20261011/visual-review.json",
+      "size": 973,
+      "sha256": "ac220390319a808f9594a813b8f810b59dc135d537ff4908425c54c2253df9d2"
+    },
+    {
+      "path": "raw/api35-host-rf1124-20261011/failure.json",
+      "size": 352,
+      "sha256": "39848a00f6bbf79479a98811e2cff151c5a6e7dca15242bc49b48e3190318cb7"
+    },
+    {
+      "path": "raw/api35-host-rf1124-20261011/process-preflight.json",
+      "size": 364,
+      "sha256": "393a977d409ea1932cc755c4720895f44948250e5d6faf1590eb895af2597ee7"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/boot.receipt.json",
+      "size": 3714,
+      "sha256": "80e083c4158cf5029004bd7959e6cbe07efee1add2a637429213909631fe652b"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/emulator.live.json",
+      "size": 487,
+      "sha256": "440db7a606d8c2c31280bcc866f7eea31db10cae0e148260c97dbec66abcde0f"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/emulator.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/emulator.stdout.log",
+      "size": 16990,
+      "sha256": "92e3e9536720f7cec108a27558511aebdbc055f12e053b3469266ad71bb69693"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/owned-processes-after-launch.json",
+      "size": 1048,
+      "sha256": "d861df423d31487a7f57e40189dd2d5c2ae9fd9af21d48548f5dfd1f37361f5b"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/process-preflight.json",
+      "size": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/stop.receipt.json",
+      "size": 801,
+      "sha256": "0be3173d25df29858d634ac99357e56972392783b57fc8d6693a9346df87a665"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/surfaceflinger.log",
+      "size": 28387,
+      "sha256": "69b4b9cb797a5dd1507ef0d172e773e6d58c833e5eefaa7cffe14b41072fc0a0"
+    },
+    {
+      "path": "raw/api35-host-rf1124-retry1-20261011/webview.log",
+      "size": 585,
+      "sha256": "31ce17661761b498d0dafbf2a7de392935a51b70d8ee98d6d11283453ce5b83c"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/command.json",
+      "size": 382,
+      "sha256": "1dc620b659b4ee68e2d7eabd3d55604511c768e8f5f7c1b22b8f366a6af712e9"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/external-before.json",
+      "size": 386,
+      "sha256": "4cb3cd2ff4cab1356da30cbaaf8ca9413d74c0db20809e272e7ac7cb47c95368"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/instrumentation.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/instrumentation.stdout.log",
+      "size": 787,
+      "sha256": "b6bf02967f95bd0586a48f311ab55b8d1fe0b19d2611ffb754d1af742cfa2c95"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/provider-before.log",
+      "size": 593,
+      "sha256": "495bbcf04015473276492683e11aa0822a5f02e6621e7b2dacfc0d9aa9544915"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/receipt.json",
+      "size": 603,
+      "sha256": "b721df026b7ee76749346881f78499dfbbeda9cc298751e33489aee8f5a994f6"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/system-dark.png",
+      "size": 118580,
+      "sha256": "6578702850853f78528b518e97e09cae58e1c1ce1f3f9bd98032ff5dd2942128"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/system-light-again.png",
+      "size": 120288,
+      "sha256": "bb76e5041216b81488d246b9a0c21b555de5d2cfdd37350f53b23f3f036b5879"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/system-light.png",
+      "size": 30833,
+      "sha256": "fef54376da5800dd1c09d5d50c289246bd8373067344e77b5fe617c2bdb2d0fa"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/fallback/theme-diagnostics.json",
+      "size": 3396,
+      "sha256": "bda4c1aa57c9b582dc7b7341f16995e2e04189c19bbce09b6a2c6f0e8db40248"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/input-proof.json",
+      "size": 235123,
+      "sha256": "3b99ff448482682cef97ad2896d52a5dc328321816912e3dcf0731cf4b14dd8f"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/owned-identity.json",
+      "size": 449,
+      "sha256": "7365e3609d594d7fa752d99b367fe42969b9dbf5482190e4789fbd5acdce0196"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/command.json",
+      "size": 383,
+      "sha256": "76e46eeffb188ef76c6ee91915eda205e4950466abbc350efe15095c197d3810"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/external-before.json",
+      "size": 386,
+      "sha256": "4cb3cd2ff4cab1356da30cbaaf8ca9413d74c0db20809e272e7ac7cb47c95368"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/instrumentation.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/instrumentation.stdout.log",
+      "size": 789,
+      "sha256": "2dc4344f726b6cc6aa070f7f604936e86b7bc6e7ed7f4a8790a44ed6f7ce1fd0"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/provider-before.log",
+      "size": 593,
+      "sha256": "495bbcf04015473276492683e11aa0822a5f02e6621e7b2dacfc0d9aa9544915"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/receipt.json",
+      "size": 605,
+      "sha256": "026303f7920fd270118d384e5aafe854321fb8d2b0b86ae27f8b00250999094b"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/system-dark.png",
+      "size": 118580,
+      "sha256": "6578702850853f78528b518e97e09cae58e1c1ce1f3f9bd98032ff5dd2942128"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/system-light-again.png",
+      "size": 120598,
+      "sha256": "1ca6345a0949bcde6bbe54d41427e4b17057c861ae5f0058be26c4c6c6e827cb"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/system-light.png",
+      "size": 30833,
+      "sha256": "fef54376da5800dd1c09d5d50c289246bd8373067344e77b5fe617c2bdb2d0fa"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/supported/theme-diagnostics.json",
+      "size": 3396,
+      "sha256": "6c29b25dee146e5909abe443c81942ef5ed4c96e17fd239cac5ac387daae9c05"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/verification.json",
+      "size": 1611,
+      "sha256": "28b8988962ce076332aa5b84bf56887c4ba034f51a4981d6c42a9950592206e0"
+    },
+    {
+      "path": "raw/api35-theme-rf1124-retry1-20261011/visual-review.json",
+      "size": 1515,
+      "sha256": "9fc746435a3b4f5b5f466da0134c04b678982aa2cc6118e3c283779325f9fbd0"
+    },
+    {
+      "path": "raw/rf1124-external-owner-recovery-20261011/instrumentation.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/rf1124-external-owner-recovery-20261011/instrumentation.stdout.log",
+      "size": 774,
+      "sha256": "850ca18d08cd65bc6f68354b3c8f76772424ee6356628e5cea25fa611e0153f1"
+    },
+    {
+      "path": "raw/rf1124-external-owner-recovery-20261011/receipt.json",
+      "size": 642,
+      "sha256": "a1328e174446970cad9217f1171ff6150501f7e3f6104e41bab9abff15c17478"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/current-apks.json",
+      "size": 235423,
+      "sha256": "345c026d8b67483a40fa524570c5760198541edf0f9fbaec1dd7267037366566"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/executed-theme-test.kt",
+      "size": 13087,
+      "sha256": "5279fcdf93688e991db8d6b16e0c1ef951fac045f7e19f5089830bacbf614915"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/input-proof.json",
+      "size": 234596,
+      "sha256": "536052c485a39f83841b8a5fd3b13e05ecf205f49f00869dd4c0a245699127f3"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/kotlin-unit-tests.live.json",
+      "size": 435,
+      "sha256": "8d37156f6d70b145c11f21963e4b67d9a7705ec7a3486b5a1963cbc719cc6fbe"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/kotlin-unit-tests.receipt.json",
+      "size": 503,
+      "sha256": "699a7e5fca6dddf4dceca24ac75051327c5574763ef88ac48cebe3977ca1c419"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/kotlin-unit-tests.stderr.log",
+      "size": 611,
+      "sha256": "9de101d50a3c2de109a31704e07dec4a727a343588eb437302ff039616b5f4cb"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/kotlin-unit-tests.stdout.log",
+      "size": 9517,
+      "sha256": "25fc8b823a3558ab4cda8f18e5d2527e72230796324e0ace1406f9e9dec22b8a"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/source-and-checks-proof.json",
+      "size": 2823,
+      "sha256": "fa3a2907a6b4b0acd372bd0997fb9939892b43554bd7137915b8b46af8bb0469"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/source-proof-inline-first-failure.json",
+      "size": 245,
+      "sha256": "813cfd8ffacafed13404fddd067dd9efa2f48dae04433f0ac31733c839b2d1a3"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-badging.live.json",
+      "size": 308,
+      "sha256": "bf34fef8cc992471b2c334f7bd40258aa3b5a0dd459a12dbe3162c7a8139c5b9"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-badging.receipt.json",
+      "size": 376,
+      "sha256": "f0330c8812cc1a05ccb3edf930d517fbbb031500fcc8b96db745313ac9a30d98"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-badging.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-badging.stdout.log",
+      "size": 685,
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-build.live.json",
+      "size": 425,
+      "sha256": "69fa066459c8cea22b8e77903d7ae42efe17ae7d9475fe8ffaf018888c9302bb"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-build.receipt.json",
+      "size": 493,
+      "sha256": "693ee30633eaf2b5c25c7f05efc359e82c5b947ad7c4c7f9b786a76d1e98efde"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-build.stderr.log",
+      "size": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-build.stdout.log",
+      "size": 14560,
+      "sha256": "6213a0a0f5e2c4ceee724a7cd7940e11f4955009b3b8f14a5d92ac2fb912636c"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-signature.live.json",
+      "size": 392,
+      "sha256": "b3b3cb214f90dfd379a730d6b1b599e6eec70b76f4404d7a0b27cc6dfdeacbc5"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-signature.receipt.json",
+      "size": 460,
+      "sha256": "1c9dbd5e4fe0e5159e9ed50858aa3d515350e968431e7663748be21583cc74ee"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-signature.stderr.log",
+      "size": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/test-signature.stdout.log",
+      "size": 351,
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/unit-test-xml/TEST-com.solosoul.app.ResourceInstallerTest.xml",
+      "size": 1260,
+      "sha256": "25e174a92f53febe410ca2c2e6c1db3acde0bf698fee163fa82f5bb6f239e366"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-20261011/unit-test-xml/TEST-com.solosoul.app.ResourcePreparationCoordinatorTest.xml",
+      "size": 802,
+      "sha256": "0a6fd1f9dd385a91fba34d0bdbe0a97954b01aa828448cac699c83663fb45b25"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/current-apks.json",
+      "size": 235430,
+      "sha256": "62214012ac8e95a0e966a04884e0b0b827d8a4aa02304ad6ccb4dd8649a413b9"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/final-source-and-checks-proof.json",
+      "size": 2816,
+      "sha256": "b155eea229e64ac54f9176d67dc19268693599c0e5e097e5f2c234add5fa7c1a"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/input-proof.json",
+      "size": 234596,
+      "sha256": "18fc73bd5ed5024a67080c22098ec593f4ce56a6fb60738f60ec7b5af7abdc91"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/kotlin-unit-tests.live.json",
+      "size": 433,
+      "sha256": "15fe6a8a4e6379078ff67d3ecdd1253d451ebad0aedbb54e6341881fcf720c58"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/kotlin-unit-tests.receipt.json",
+      "size": 501,
+      "sha256": "92a09aee674cc749de142b14f8d93efaf976554da17fce79cec2dc09e60ff58a"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/kotlin-unit-tests.stderr.log",
+      "size": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/kotlin-unit-tests.stdout.log",
+      "size": 9632,
+      "sha256": "e5acf898f9821db34c9c6c0cd28d513e82e841a5803b1f2f9b4098ee02deb76f"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-badging.live.json",
+      "size": 315,
+      "sha256": "e55eab848dd170fc7a89e09171aa29fd28b7c2d20b8e47aa4dae78927eb8b714"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-badging.receipt.json",
+      "size": 383,
+      "sha256": "bef5fa54578508ae13940584a14d5b6634101d516e3dbf46b907541574dc41ae"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-badging.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-badging.stdout.log",
+      "size": 685,
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-build.live.json",
+      "size": 425,
+      "sha256": "fa722875343fbad765fe03931cd67b869be825b0745e57c75ed102a58e43e510"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-build.receipt.json",
+      "size": 490,
+      "sha256": "d3fc84e2293d965b301011db5f9eee8cca1f3c83b0afaa9bf8dd3ca691a45ebe"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-build.stderr.log",
+      "size": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-build.stdout.log",
+      "size": 14557,
+      "sha256": "f6ddffe0f24ae3004e705ec37cb06f02c00c0ed8ac7deabe9bed9735659c0f79"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-signature.live.json",
+      "size": 399,
+      "sha256": "1781a708afd14a0d56ca3729a791274905abd011324a1f43a06161ac47ea02fc"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-signature.receipt.json",
+      "size": 467,
+      "sha256": "125ad0712d4f7aefcba0638dee195e4c20cd18e899992eab4796f1929b8136a7"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-signature.stderr.log",
+      "size": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "raw/rf1124-theme-diagnostic-test-build-retry1-20261011/test-signature.stdout.log",
+      "size": 351,
+      "sha256": "b9c6879e48d25a9786d2beb8a15738c06edce7d06f2722dd860894618592bd09"
+    },
+    {
+      "path": "references/android-home-native-regression.py",
+      "size": 52575,
+      "sha256": "952fda0c10b42e6178d0326166626148c801047fe7adf84c6f68e2b47ed00817"
+    },
+    {
+      "path": "references/default-source-proof.json",
+      "size": 281,
+      "sha256": "07dd503b1d246a59b8d5b0e93ba037838f03f5b6f651a5d9e36a7b37bfd0a986"
+    },
+    {
+      "path": "tools/archive-rf1124-theme-diagnostics.py",
+      "size": 7509,
+      "sha256": "38355c92ffd947abe4f9ecdf1348efb3d9777fac8ada93446965e53b7e60bbb6"
+    },
+    {
+      "path": "tools/boot-rf1124-api31-host.py",
+      "size": 4086,
+      "sha256": "e1596f90c7688a6aadfe1d3872daf89778d463dbee9f674d3552667d73d8ba4a"
+    },
+    {
+      "path": "tools/boot-rf1124-api35-host-retry1.py",
+      "size": 4087,
+      "sha256": "b1699e8f52f81f919e1306259ac90941c4f6fd4e5acba24c9f5eb50f83795c4b"
+    },
+    {
+      "path": "tools/boot-rf1124-api35-host.py",
+      "size": 4080,
+      "sha256": "56c2eb1b6996381bc41a8e7bbc0c87d96d4ce16b9d4a8f5f53a9053c0cc36cb3"
+    },
+    {
+      "path": "tools/build-rf1124-theme-diagnostic-test-retry1.py",
+      "size": 6162,
+      "sha256": "8f777eab0d9e06e042fb3c76ec1636dddbe5ee8372f08b15bd9ab6b82c9532d1"
+    },
+    {
+      "path": "tools/build-rf1124-theme-diagnostic-test.py",
+      "size": 6155,
+      "sha256": "8350b9a173914f5e535b25b6b5c7f847c54da6e6cecb963e8ceb5806c4cf6be8"
+    },
+    {
+      "path": "tools/prepare-rf1124-api31-boot.py",
+      "size": 962,
+      "sha256": "8f54796be0dbb9ef5acf1b85fbb2688922f806624c6304fee8f381b89da61d93"
+    },
+    {
+      "path": "tools/prepare-rf1124-api35-retry.py",
+      "size": 1521,
+      "sha256": "fd51edc9bc407d2edafc7e7295c265663574132139c040711435b07b8a26b4b5"
+    },
+    {
+      "path": "tools/prepare-rf1124-test-build.first-failed.py",
+      "size": 3398,
+      "sha256": "95ed2812c209279c35113b1c93b0648b4faddfb7e0d91043c3d4a48c7cf53bee"
+    },
+    {
+      "path": "tools/prepare-rf1124-test-build.py",
+      "size": 3456,
+      "sha256": "e81638ec72ef3f62993c715844f540b4b0a3ba43f3742c53248392654c716c53"
+    },
+    {
+      "path": "tools/restore-rf1124-owned-external.py",
+      "size": 5850,
+      "sha256": "69c8c7572872670da4b61a887390995f0a2f390ba0ff31647da2b7360c297f15"
+    },
+    {
+      "path": "tools/rf1124-preparation-first-failure.json",
+      "size": 370,
+      "sha256": "141af81514f44e1e81b19026fd639ca6f901b9242d6da7be0957325bec162529"
+    },
+    {
+      "path": "tools/run-rf1124-theme-diagnostics-retry1-api35.py",
+      "size": 11966,
+      "sha256": "b9f560667a2f2c33123ab36ff5ca84df41ba79ba40faa488ddc73c8f29505d04"
+    },
+    {
+      "path": "tools/run-rf1124-theme-diagnostics-retry1.py",
+      "size": 11912,
+      "sha256": "aff298f8e89da8b1eace86ab0887b083df1905a160d15e0988eaff0268312427"
+    },
+    {
+      "path": "tools/run-rf1124-theme-diagnostics.first-failed.py",
+      "size": 11956,
+      "sha256": "38b9798ac1adcbdd54f301935daa34c6bd78929cef3afeb161e6ff4991eb6c3d"
+    },
+    {
+      "path": "tools/run-rf1124-theme-diagnostics.py",
+      "size": 11898,
+      "sha256": "5763aa4440afea44dc8c7648985e2afdc39faaecc4701f9546978cec937fcc10"
+    },
+    {
+      "path": "tools/stop-rf1124-owned-emulator-retry1-api35.py",
+      "size": 2819,
+      "sha256": "27e33fdc2632064600ff8940c61b36a5d97977f3a9797c86ca6dfbb0ebf51c64"
+    },
+    {
+      "path": "tools/stop-rf1124-owned-emulator-retry1.py",
+      "size": 2765,
+      "sha256": "84b75c569172d355a47e34094319597836adc3f85a41f6c1a5c79cec92e2418c"
+    },
+    {
+      "path": "tools/stop-rf1124-owned-emulator.py",
+      "size": 2758,
+      "sha256": "9a430a3006d977f02450d91064705c73dd4ffd1b76e8b6902d51103ad24e51ab"
+    },
+    {
+      "path": "tools/verify-rf1124-final-source.py",
+      "size": 2742,
+      "sha256": "9f1562004fef321aeddfd3a57b92a23727510ca4dc138b8046e902de065a2570"
+    },
+    {
+      "path": "tools/verify-rf1124-source-and-checks.py",
+      "size": 2218,
+      "sha256": "561fcfcd0d7e9141632320b01f6b951aa0dd437902776f27dfd7d6924692c6f7"
+    }
+  ],
+  "allMembersReread": true,
+  "excluded": [
+    "APK",
+    "JNI",
+    "models",
+    "private TAR",
+    "previous external snapshots",
+    "base64 recovery payload"
+  ]
+}

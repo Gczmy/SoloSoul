@@ -2,7 +2,11 @@ package com.solosoul.app
 
 import android.app.UiModeManager
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.os.Build
+import android.util.TypedValue
+import android.util.Base64
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -39,11 +43,13 @@ class AndroidThemeInstrumentedTest {
         var raw: String? = null
         var statusBarLight = false
         var navigationBarLight = false
+        var native = JSONObject()
         scenario.onActivity { activity ->
             val controller = requireNotNull(WindowCompat.getInsetsController(activity.window, activity.window.decorView))
             statusBarLight = controller.isAppearanceLightStatusBars
             navigationBarLight = controller.isAppearanceLightNavigationBars
             val view = webView(activity.window.decorView)
+            native = nativeThemeState(activity, view)
             // 冷启动时 WebView 尚未挂树；由有界轮询等待，不能在主线程断言导致进程崩溃。
             if (view == null) { done.countDown(); return@onActivity }
             view.evaluateJavascript(
@@ -51,6 +57,9 @@ class AndroidThemeInstrumentedTest {
                     platform: document.documentElement.dataset.platform || '',
                     theme: document.documentElement.dataset.theme || '',
                     darkMedia: matchMedia('(prefers-color-scheme: dark)').matches,
+                    colorScheme: getComputedStyle(document.documentElement).colorScheme,
+                    colorSchemeMeta: document.querySelector('meta[name="color-scheme"]')?.content || '',
+                    userAgent: navigator.userAgent.slice(0, 384),
                     mounted: (document.getElementById('root')?.childElementCount || 0) > 0,
                     startupGone: !document.getElementById('startup-screen'),
                     background: getComputedStyle(document.documentElement).getPropertyValue('--bg-base').trim(),
@@ -67,6 +76,32 @@ class AndroidThemeInstrumentedTest {
         // 页面未加载时 evaluateJavascript 可返回 null；不放宽最终主题/挂载断言。
         val result = if (value is String && value.startsWith("{")) JSONObject(value) else JSONObject()
         return result.put("statusBarLight", statusBarLight).put("navigationBarLight", navigationBarLight)
+            .put("native", native)
+    }
+
+    /** RF-1124：只观察真实配置/主题/provider，不修改 WebView 或主题决策。 */
+    @Suppress("DEPRECATION")
+    private fun nativeThemeState(activity: MainActivity, view: WebView?): JSONObject {
+        fun lightTheme(attribute: Int): Any {
+            val value = TypedValue()
+            return if (attribute != 0 && activity.theme.resolveAttribute(attribute, value, true) &&
+                value.type == TypedValue.TYPE_INT_BOOLEAN) value.data != 0 else JSONObject.NULL
+        }
+        val provider = WebView.getCurrentWebViewPackage()
+        val manager = activity.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+        return JSONObject()
+            .put("api", Build.VERSION.SDK_INT)
+            .put("nightMode", manager.nightMode)
+            .put("activityNight", activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+            .put("applicationNight", activity.applicationContext.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+            .put("systemResourcesNight", android.content.res.Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+            .put("androidLightTheme", lightTheme(activity.resources.getIdentifier("isLightTheme", "attr", "android")))
+            .put("appCompatLightTheme", lightTheme(androidx.appcompat.R.attr.isLightTheme))
+            .put("providerPackage", provider?.packageName ?: JSONObject.NULL)
+            .put("providerVersion", provider?.versionName ?: JSONObject.NULL)
+            .put("forceDark", if (Build.VERSION.SDK_INT >= 29 && view != null) view.settings.forceDark else JSONObject.NULL)
+            .put("algorithmicDarkeningAllowed", if (Build.VERSION.SDK_INT >= 33 && view != null)
+                view.settings.isAlgorithmicDarkeningAllowed else JSONObject.NULL)
     }
 
     private fun setNight(mode: String) {
@@ -118,18 +153,23 @@ class AndroidThemeInstrumentedTest {
                 // 等待启动淡出/系统栏切色完成绘制，再截图；主题断言仍在上方独立执行。
                 instrumentation.uiAutomation.waitForIdle(500, 3000)
                 val bitmap = instrumentation.uiAutomation.takeScreenshot()
-                File(instrumentation.targetContext.getExternalFilesDir(null), "rf201-$label.png")
+                val run = InstrumentationRegistry.getArguments().getString("themeDiagnosticRun")
+                val imageName = if (run == null) "rf201-$label.png" else "rf201-$label-$run.png"
+                File(instrumentation.targetContext.getExternalFilesDir(null), imageName)
                     .outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                 bitmap.recycle()
                 return
             }
             Thread.sleep(100)
         } while (System.nanoTime() < deadline)
+        records.put(JSONObject(last.toString()).put("stage", label).put("result", "timeout"))
         fail("$label: theme=$theme, media=$darkMedia required; actual=$last")
     }
 
     private fun verify(preset: String, customSchemes: Boolean = false) {
         val context = instrumentation.targetContext
+        val diagnosticRun = InstrumentationRegistry.getArguments().getString("themeDiagnosticRun")
+        require(diagnosticRun == null || Regex("[0-9a-f]{32}").matches(diagnosticRun))
         val manager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
         val originalNight = when (manager.nightMode) {
             UiModeManager.MODE_NIGHT_NO -> "no"
@@ -161,10 +201,41 @@ class AndroidThemeInstrumentedTest {
             setNight("no")
             waitForTheme(scenario, if (preset == "system") "light" else preset, false, "$label-light-again", records, customSchemes)
         } finally {
-            File(context.getExternalFilesDir(null), "rf201-${if (customSchemes) "custom-schemes" else preset}.json").writeText(records.toString(2))
+            if (diagnosticRun == null) {
+                File(context.getExternalFilesDir(null), "rf201-${if (customSchemes) "custom-schemes" else preset}.json").writeText(records.toString(2))
+            }
             if (originalPrefs == null) prefs.delete() else prefs.writeBytes(originalPrefs)
             setNight(originalNight)
+            if (diagnosticRun != null) {
+                File(context.getExternalFilesDir(null), "rf1124-$diagnosticRun.json").writeText(
+                    JSONObject().put("schema", 1).put("runId", diagnosticRun).put("preset", preset)
+                        .put("records", records).toString(2)
+                )
+            }
         }
+    }
+
+    /** 仅修复专用设备上由驱动 adb push 产生的 shell 所有者证据文件。 */
+    @Test fun restoreOwnedThemeEvidence() {
+        val args = InstrumentationRegistry.getArguments()
+        require(args.getString("privateDataBackedUp") == "true")
+        val run = requireNotNull(args.getString("themeDiagnosticRun"))
+        require(Regex("[0-9a-f]{32}").matches(run))
+        val context = instrumentation.targetContext
+        val manifest = File(context.applicationInfo.dataDir, "rf1124-restore-$run.json")
+        val records = JSONObject(manifest.readText())
+        val allowed = setOf("rf201-system.json", "rf201-system-light.png", "rf201-system-dark.png", "rf201-system-light-again.png")
+        val names = records.keys().asSequence().toSet()
+        require(names.isNotEmpty() && names.all { it in allowed })
+        val folder = requireNotNull(context.getExternalFilesDir(null))
+        for (name in names) {
+            val file = File(folder, name)
+            // 驱动只移除了明确的 shell 所有者文件；不得覆盖任何再次出现的证据。
+            require(!file.exists())
+            file.writeBytes(Base64.decode(records.getString(name), Base64.DEFAULT))
+            assertEquals(android.os.Process.myUid(), android.system.Os.stat(file.absolutePath).st_uid)
+        }
+        assertTrue(manifest.delete())
     }
 
     @Test fun systemThemeFollowsLightDarkLight() = verify("system")
