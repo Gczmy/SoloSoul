@@ -686,6 +686,92 @@ test(
   },
 );
 
+async function probeCandidateBirth(action, scenario) {
+  const identity = PROCESS_SCRIPT.slice(
+    PROCESS_SCRIPT.indexOf('function Identity($row)'),
+    PROCESS_SCRIPT.indexOf("if ($action -eq 'cleanup')"),
+  );
+  const discovery = PROCESS_SCRIPT.slice(
+    PROCESS_SCRIPT.indexOf('$root = $all'),
+    PROCESS_SCRIPT.indexOf('$browserChecks = @()'),
+  );
+  assert.doesNotMatch(discovery, /CommandLine|GetProcessById|\.Kill\(/);
+  const old = scenario.startsWith('old-');
+  const complete = scenario === 'old-complete' || scenario === 'valid';
+  const script = `
+$ErrorActionPreference='Stop'
+$ProgressPreference='SilentlyContinue'
+$stamp=[DateTime]::UtcNow
+$expectedPid=2147483400; $expectedExe='C:\\owned\\root.exe'
+$expectedStarted=([DateTimeOffset]$stamp).ToUnixTimeMilliseconds()
+$action='${action}'
+$rootRow=[PSCustomObject]@{ProcessId=$expectedPid;ParentProcessId=1;CreationDate=$stamp;ExecutablePath=$expectedExe;Name='root.exe'}
+$childBirth=${scenario === 'missing-time' ? '$null' : old ? '$stamp.AddDays(-3)' : scenario === 'equal-time' ? '$stamp' : '$stamp.AddMilliseconds(1)'}
+$childRow=[PSCustomObject]@{ProcessId=2147483404;ParentProcessId=$expectedPid;CreationDate=$childBirth;ExecutablePath=${complete ? "'C:\\owned\\child.exe'" : '$null'};Name='child.exe'}
+$grandchildRow=[PSCustomObject]@{ProcessId=2147483408;ParentProcessId=2147483404;CreationDate=$stamp.AddMilliseconds(2);ExecutablePath='C:\\owned\\grandchild.exe';Name='grandchild.exe'}
+$all=@($rootRow,$childRow,$grandchildRow)
+$script:queries=0
+function Get-CimInstance { param($ClassName,$Filter,$Property)
+  $script:queries++
+  if ($Filter -ne 'ProcessId = 2147483404') {throw 'Unexpected candidate query'}
+  $childRow
+}
+${identity}
+${discovery}
+@{ownedIds=@($owned.Keys | Sort-Object);unverifiedDescendants=$unverifiedDescendants;queries=$script:queries;refreshes=$ownershipRefreshes} | ConvertTo-Json -Depth 5 -Compress
+`;
+  const result = spawnSync(
+    'powershell.exe',
+    [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-EncodedCommand',
+      Buffer.from(script, 'utf16le').toString('base64'),
+    ],
+    { windowsHide: true, encoding: 'utf8', timeout: 15000 },
+  );
+  assert.equal(result.status, 0, action + '/' + scenario + result.stdout + result.stderr);
+  assert.equal(result.stderr.trim(), '', action + '/' + scenario + result.stderr);
+  return JSON.parse(result.stdout.replace(/^\uFEFF/, '').trim());
+}
+
+for (const action of ['sample', 'memory-series']) {
+  test(
+    `actual ${action} discovery excludes unreadable historical children before identity or refresh`,
+    { skip: process.platform === 'win32' ? false : 'Requires Windows PowerShell 5.1' },
+    async () => {
+      for (const scenario of ['old-unreadable', 'old-complete']) {
+        const value = await probeCandidateBirth(action, scenario);
+        assert.deepEqual(value.ownedIds, [2147483400], scenario);
+        assert.equal(value.unverifiedDescendants, false, scenario);
+        assert.equal(value.queries, 0, scenario);
+        assert.deepEqual(value.refreshes, [], scenario);
+      }
+    },
+  );
+}
+
+test(
+  'actual discovery still rejects current or undated unreadable children and preserves valid current chains',
+  { skip: process.platform === 'win32' ? false : 'Requires Windows PowerShell 5.1' },
+  async () => {
+    for (const action of ['sample', 'memory-series']) {
+      for (const scenario of ['missing-time', 'equal-time', 'current-unreadable', 'valid']) {
+        const value = await probeCandidateBirth(action, scenario);
+        const valid = scenario === 'valid';
+        assert.deepEqual(
+          value.ownedIds,
+          valid ? [2147483400, 2147483404, 2147483408] : [2147483400],
+          scenario,
+        );
+        assert.equal(value.unverifiedDescendants, !valid, scenario);
+        assert.equal(value.queries, action === 'memory-series' && !valid ? 1 : 0, scenario);
+      }
+    }
+  },
+);
+
 test(
   'fixed PowerShell ownership/memory script parses without executing CIM or termination',
   { skip: process.platform === 'win32' ? false : 'Requires Windows PowerShell 5.1 parser' },
