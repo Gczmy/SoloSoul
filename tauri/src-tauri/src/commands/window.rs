@@ -202,6 +202,7 @@ pub(crate) fn setup_startup_window(app: &tauri::AppHandle) {
     let _ = app;
 }
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {
     #[cfg(target_os = "macos")]
     macos::poll_accessibility(app);

@@ -19,8 +19,10 @@ use crate::state::AppState;
 /// 注意：Android 的 `NsdManager` 必须省略 `.local.` 后缀（底层会自动补齐），因此
 /// `NsdPlugin.kt` 中写作 `_solosoul._tcp`。两者在网络层等价，这里保留完整后缀
 /// 以满足 `mdns-sd` 库的要求。修改本常量时需同步检查 Android 端常量。
+#[cfg(any(desktop, test))]
 const MDNS_SERVICE_TYPE: &str = "_solosoul._tcp.local.";
 /// 恢复设备的 mDNS 服务类型（与同步类型区分，便于新设备只发现恢复主机）。
+#[cfg(desktop)]
 const RECOVERY_MDNS_SERVICE_TYPE: &str = "_solosoul_recovery._tcp.local.";
 /// 不含域后缀的服务类型基础名，用于跨平台一致性校验。
 #[cfg(test)]
