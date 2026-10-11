@@ -4,11 +4,13 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Build
 import android.util.TypedValue
 import android.util.Base64
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.webkit.WebView
 import androidx.core.view.WindowCompat
 import androidx.test.core.app.ActivityScenario
@@ -22,6 +24,8 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.abs
 
 /** RF-201：只在专用设备运行，使用真实客户端页面，不替换主题解析或事件。 */
 @RunWith(AndroidJUnit4::class)
@@ -67,7 +71,20 @@ class AndroidThemeInstrumentedTest {
                     foreground: getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim(),
                     accent: getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim(),
                     materialContainer: getComputedStyle(document.documentElement).getPropertyValue('--md-primary-container').trim(),
-                    materialInk: getComputedStyle(document.documentElement).getPropertyValue('--md-on-primary').trim()
+                    materialInk: getComputedStyle(document.documentElement).getPropertyValue('--md-on-primary').trim(),
+                    render: (() => {
+                        const card = document.querySelector('[class*="bootstrapCard"]');
+                        const rect = card?.getBoundingClientRect();
+                        const points = rect ? [{x: rect.left + 20, y: rect.top + 20},
+                            {x: rect.right - 20, y: rect.top + 20}].map(point => ({...point,
+                                hitsCard: document.elementFromPoint(point.x, point.y) === card})) : [];
+                        return {path: location.pathname, viewportWidth: innerWidth, viewportHeight: innerHeight,
+                            devicePixelRatio, viewportScale: visualViewport?.scale || 1,
+                            viewportOffsetX: visualViewport?.offsetLeft || 0, viewportOffsetY: visualViewport?.offsetTop || 0,
+                            bodyBackground: getComputedStyle(document.body).backgroundColor,
+                            cardFound: !!card, cardBackground: card ? getComputedStyle(card).backgroundColor : '',
+                            points};
+                    })()
                 })""".trimIndent()
             ) { value -> raw = value; done.countDown() }
         }
@@ -102,6 +119,133 @@ class AndroidThemeInstrumentedTest {
             .put("forceDark", if (Build.VERSION.SDK_INT >= 29 && view != null) view.settings.forceDark else JSONObject.NULL)
             .put("algorithmicDarkeningAllowed", if (Build.VERSION.SDK_INT >= 33 && view != null)
                 view.settings.isAlgorithmicDarkeningAllowed else JSONObject.NULL)
+            .put("processId", android.os.Process.myPid())
+            .put("webViewIdentity", if (view == null) JSONObject.NULL else System.identityHashCode(view))
+            .put("attached", view?.isAttachedToWindow ?: false)
+            .put("shown", view?.isShown ?: false)
+            .put("windowFocused", view?.hasWindowFocus() ?: false)
+            .put("hardwareAccelerated", view?.isHardwareAccelerated ?: false)
+    }
+
+    /** RF-1125：同一 WebView 的视觉提交后实际绘制，再验证系统合成像素。 */
+    private fun captureThemeFrame(scenario: ActivityScenario<MainActivity>, accepted: JSONObject,
+        label: String, record: JSONObject) {
+        val frame = JSONObject().put("visualCallback", false).put("nextDrawCompleted", false)
+            .put("pixelMatched", false)
+        record.put("renderCapture", frame)
+        val painted = CountDownLatch(1)
+        val active = AtomicBoolean(true)
+        val postedDraw = AtomicBoolean(false)
+        var boundView: WebView? = null
+        var observer: ViewTreeObserver? = null
+        var listener: ViewTreeObserver.OnDrawListener? = null
+        try {
+            scenario.onActivity { activity ->
+                val view = requireNotNull(webView(activity.window.decorView))
+                boundView = view
+                assertTrue("Capture needs the attached, visible, focused real WebView",
+                    view.isAttachedToWindow && view.isShown && view.hasWindowFocus())
+                assertEquals(accepted.getJSONObject("native").getInt("webViewIdentity"), System.identityHashCode(view))
+                val request = System.nanoTime()
+                frame.put("requestId", request).put("webViewIdentity", System.identityHashCode(view))
+                view.postVisualStateCallback(request, object : WebView.VisualStateCallback() {
+                    override fun onComplete(requestId: Long) {
+                        if (!active.get()) return
+                        frame.put("callbackRequestId", requestId).put("visualCallback", true).put("callbackAtNs", System.nanoTime())
+                        if (request != requestId) { painted.countDown(); return }
+                        val tree = view.viewTreeObserver
+                        observer = tree
+                        val drawn = object : ViewTreeObserver.OnDrawListener {
+                            override fun onDraw() {
+                                if (!active.get() || !postedDraw.compareAndSet(false, true)) return
+                                frame.put("drawAtNs", System.nanoTime())
+                                // onDraw 内不能移除监听器；主线程下一任务确认绘制已返回。
+                                view.post {
+                                    if (tree.isAlive) tree.removeOnDrawListener(this)
+                                    if (active.get()) {
+                                        frame.put("nextDrawCompleted", true)
+                                        painted.countDown()
+                                    }
+                                }
+                            }
+                        }
+                        listener = drawn
+                        tree.addOnDrawListener(drawn)
+                        view.invalidate()
+                    }
+                })
+            }
+            assertTrue("WebView must draw the requested visual state", painted.await(10, TimeUnit.SECONDS))
+            assertEquals(frame.getLong("requestId"), frame.getLong("callbackRequestId"))
+            assertTrue("The matching visual callback must be followed by a completed real draw", frame.getBoolean("nextDrawCompleted"))
+            instrumentation.uiAutomation.waitForIdle(350, 3000)
+            val fresh = state(scenario)
+            frame.put("stateAtCapture", fresh)
+            for (key in listOf("platform", "theme", "background", "surface", "foreground", "accent", "materialInk",
+                "darkMedia", "statusBarLight", "navigationBarLight", "mounted", "startupGone")) {
+                assertEquals("Theme must stay bound through actual draw: $key", accepted.get(key), fresh.get(key))
+            }
+            val render = fresh.getJSONObject("render")
+            assertEquals("Theme pixel fixture must stay on the real bootstrap page", "/bootstrap", render.getString("path"))
+            assertTrue("Real production bootstrap card must exist", render.getBoolean("cardFound"))
+            assertEquals(1.0, render.getDouble("viewportScale"), 0.001)
+            assertEquals(0.0, render.getDouble("viewportOffsetX"), 0.001)
+            assertEquals(0.0, render.getDouble("viewportOffsetY"), 0.001)
+            val expectedColor = Color.parseColor(accepted.getString("surface"))
+            val rgb = Regex("""rgb\((\d+),\s*(\d+),\s*(\d+)\)""").matchEntire(render.getString("cardBackground"))
+                ?: error("The real bootstrap card surface must be opaque RGB: $render")
+            val expected = listOf(Color.red(expectedColor), Color.green(expectedColor), Color.blue(expectedColor))
+            assertEquals("Rendered card CSS must actually use the accepted theme surface", expected,
+                (1..3).map { rgb.groupValues[it].toInt() })
+            val location = IntArray(2)
+            var ratio = 0.0
+            scenario.onActivity { activity ->
+                val view = requireNotNull(webView(activity.window.decorView))
+                assertSame("No replacement WebView may reuse a capture", boundView, view)
+                assertEquals(fresh.getJSONObject("native").getInt("webViewIdentity"), System.identityHashCode(view))
+                assertTrue(view.isAttachedToWindow && view.isShown && view.hasWindowFocus())
+                view.getLocationOnScreen(location)
+                ratio = view.width / render.getDouble("viewportWidth")
+                assertTrue("Actual WebView viewport must have concrete geometry", ratio > 0 && view.height > 0)
+                frame.put("screenX", location[0]).put("screenY", location[1])
+                    .put("webViewWidth", view.width).put("webViewHeight", view.height).put("cssToPixelRatio", ratio)
+            }
+            val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+            try {
+                frame.put("captureAtNs", System.nanoTime()).put("imageWidth", bitmap.width).put("imageHeight", bitmap.height)
+                val run = InstrumentationRegistry.getArguments().getString("themeDiagnosticRun")
+                val name = if (run == null) "rf201-$label.png" else "rf201-$label-$run.png"
+                File(instrumentation.targetContext.getExternalFilesDir(null), name)
+                    .outputStream().use { assertTrue("The actual screenshot must be encoded", bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+                val points = render.getJSONArray("points")
+                assertEquals(2, points.length())
+                val pixels = JSONArray()
+                frame.put("pixels", pixels)
+                var matched = true
+                for (index in 0 until points.length()) {
+                    val point = points.getJSONObject(index)
+                    assertTrue("Pixel point must hit uncovered card padding", point.getBoolean("hitsCard"))
+                    val x = location[0] + (point.getDouble("x") * ratio).toInt()
+                    val y = location[1] + (point.getDouble("y") * ratio).toInt()
+                    assertTrue("Pixel must be inside the actual native image", x in 0 until bitmap.width && y in 0 until bitmap.height)
+                    val value = bitmap.getPixel(x, y)
+                    val actual = listOf(Color.red(value), Color.green(value), Color.blue(value))
+                    val pass = actual.zip(expected).all { (a, e) -> abs(a - e) <= 6 }
+                    matched = matched && pass
+                    pixels.put(JSONObject().put("x", x).put("y", y).put("actualRgb", JSONArray(actual))
+                        .put("expectedRgb", JSONArray(expected)).put("matched", pass))
+                }
+                frame.put("pixelMatched", matched)
+                assertTrue("Composed pixels must match the real accepted card CSS: $frame", matched)
+            } finally { bitmap.recycle() }
+        } finally {
+            active.set(false)
+            scenario.onActivity {
+                val tree = observer
+                val drawn = listener
+                if (tree?.isAlive == true && drawn != null) tree.removeOnDrawListener(drawn)
+            }
+        }
     }
 
     private fun setNight(mode: String) {
@@ -149,15 +293,9 @@ class AndroidThemeInstrumentedTest {
                 assertTrue("Native menu material color must be concrete hex",
                     Regex("#[0-9a-f]{6}").matches(last.getString("materialContainer")))
                 assertEquals(expectedInk, last.getString("materialInk"))
-                records.put(JSONObject(last.toString()).put("stage", label))
-                // 等待启动淡出/系统栏切色完成绘制，再截图；主题断言仍在上方独立执行。
-                instrumentation.uiAutomation.waitForIdle(500, 3000)
-                val bitmap = instrumentation.uiAutomation.takeScreenshot()
-                val run = InstrumentationRegistry.getArguments().getString("themeDiagnosticRun")
-                val imageName = if (run == null) "rf201-$label.png" else "rf201-$label-$run.png"
-                File(instrumentation.targetContext.getExternalFilesDir(null), imageName)
-                    .outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-                bitmap.recycle()
+                val record = JSONObject(last.toString()).put("stage", label)
+                records.put(record)
+                captureThemeFrame(scenario, last, label, record)
                 return
             }
             Thread.sleep(100)
