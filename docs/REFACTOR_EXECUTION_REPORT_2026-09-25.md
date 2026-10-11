@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-11（RF-1117启动归属修复与RF-1118移动端锁cfg完成；完整跨平台矩阵仍待验证）
+> 最后更新：2026-10-11（RF-1119移动端同步worker条件编译完成；完整跨平台矩阵仍待验证）
 > 当前分支：`codex/rf1104-update-preference-leases`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**308**（P1：55；P2：252；P3：1）。
-- 已关闭：**298 / 308**；实际修复（已关闭）：298；排除：0；待验证/阻塞：4（RF-112、RF-121、RF-312、RF-1109）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093、RF-1094、RF-1095、RF-1096、RF-1097、RF-1098、RF-1099、RF-1100、RF-1101、RF-1102、RF-1103、RF-1104、RF-1105、RF-1106、RF-1107、RF-1108、RF-1109、RF-1110、RF-1111、RF-1112、RF-1113、RF-1114、RF-1115、RF-1116、RF-1117、RF-1118（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无；RF-1118已独立完成，完整RF-121/312及其他平台前置保持未完成。
+- 任务总数：**309**（P1：55；P2：253；P3：1）。
+- 已关闭：**299 / 309**；实际修复（已关闭）：299；排除：0；待验证/阻塞：4（RF-112、RF-121、RF-312、RF-1109）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093、RF-1094、RF-1095、RF-1096、RF-1097、RF-1098、RF-1099、RF-1100、RF-1101、RF-1102、RF-1103、RF-1104、RF-1105、RF-1106、RF-1107、RF-1108、RF-1109、RF-1110、RF-1111、RF-1112、RF-1113、RF-1114、RF-1115、RF-1116、RF-1117、RF-1118、RF-1119（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-1119已独立完成，完整RF-121/312及其他平台前置保持未完成。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -437,6 +437,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 306 | [RF-1116](#rf-1116) | P2 | 补齐受控原生主题切换与原偏好恢复验证入口 | 无（RF-121深色补验的固定设置路由缺口） | [x] 完成 |
 | 307 | [RF-1117](#rf-1117) | P2 | 排除历史父PID复用下不可读旧子进程的快照误判 | 无（RF-1116启动门禁失败归因） | [x] 完成 |
 | 308 | [RF-1118](#rf-1118) | P2 | 移动端不再构造仅桌面消费的进程锁路径 | 无（Android实编译unused variable警告） | [x] 完成 |
+| 309 | [RF-1119](#rf-1119) | P2 | 移动端不编译桌面worker重新开放与收尾等待方法 | 无（实际Android dead_code警告） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -4086,6 +4087,17 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 
 - **结果：**真Android x86_64目标严格rustc编译修复前unused lock_path失败、增加同桌面cfg后通过；Windows Core Clippy、格式及现有排他/Drop释放测试通过。仅一个cfg属性改动，无新测试/依赖/锁策略改动；未声明iOS编译或Android APK/UI验收。
 
+### RF-1119
+
+**移动端不编译桌面worker重新开放与收尾等待方法** · P2 · 来源：实际Android同步模块dead_code警告
+
+- **入口：**`tauri/crates/solosoul-sync/src/workers.rs`的reopen、wait_stopping及StopCompletion.is_finished。
+- **现状：**前两方法仅由桌面cfg manager调用，第三方法仅供reopen；移动端编译产生两条dead_code警告。begin_stop、close、wait、completion.wait及移动端生命周期需要保持。
+- **执行：**三条私有方法使用与manager相同的桌面cfg；不改方法体、共享停止/join、移动端策略或任何依赖。
+- **验收：**真Android x86_64目标严格rustc编译修复前复现两条unused方法错误、修复后通过；Windows完整Sync库严格Clippy、格式及全库现有测试，重点确认取消stop、join、重新启用、manager重启等已有竞态回归实际通过。无新增复述实现测试，无APK/界面验收声明；iOS仅源级同cfg，不称本机编译。保留原警告/红绿/执行源码和工具证据，独立本地提交不推送。
+
+- **结果：**真实Android严格编译先复现三个桌面方法dead_code两条错误、增加与manager一致的cfg后通过；Windows完整Sync库Clippy与90项现有测试均通过，6项指定停止/取消/join/重启竞态回归实际通过，0失败/忽略/过滤。源码仅新增3条cfg属性，共享移动逻辑与方法体未变。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -7665,3 +7677,14 @@ git commit -m "<任务卡的提交标题>"
 - [结构化证据](verification/rf1118-mobile-process-lock-cfg-2026-10-11.json)、[43份原件索引](verification/rf1118-mobile-process-lock-cfg-2026-10-11/index.json)及源码/编译器与linker SHA/红绿日志已归档，全成员回读长度/SHA通过。仅本项独立本地提交（以RF-1118检索），不推送。298/308关闭、4待验证、6待执行；整体goal active，后续可推进Android桌面专用同步方法及入口cfg警告。
 
 - RF-1118提交前第一次源码raw字节校验停止：已编译Rust文件2759字节、76个CRLF，Git暂存为2683字节LF。完整CRLF→LF归一后逐字节相同，未修改或重编执行源码；保留首次校验工具、原35成员归档/索引/摘要及失败说明。新的校验分别要求working与编译原件raw相同、Git仅按LF规范化后相同，不把raw相等声明为true。重新归档全部原件并回读核验后才提交。
+
+
+### RF-1119 同步worker移动端条件编译执行记录（2026-10-11，完成）
+
+- 重新核验当前源代码与调用关系：reopen、wait_stopping仅由桌面cfg的manager调用，StopCompletion.is_finished仅供reopen；测试中的JoinHandle.is_finished为不同方法。Android真目标严格rustc当前源码实际报告这三个方法dead_code的两条错误；仅对三条私有方法增加与manager一致的`cfg(not(any(target_os = "android", target_os = "ios")))`，未更改方法体、移动端共享begin_stop/close/wait或completion.wait，也未屏蔽警告和修改依赖。
+- D盘既有Rust1.96.0/NDK27，对x86_64-linux-android运行Sync `cargo rustc --locked --offline ... -- -D warnings`，先红后绿。私有Android工具链无Clippy，本项不将严格rustc称为Android Clippy。Windows完整Sync库严格Clippy、workspace格式及全库现有90项单元测试通过，0失败/忽略/过滤；六项指定取消/停止/join/重新启用/manager重启回归实际通过，没有新增只复述cfg实现的测试。
+- 1834份源码相对20ea216e9仅workers.rs改动，归一CRLF后精确证明只新增3条匹配的cfg属性。记录实际编译源码原字节，Git按标准LF转换后比较完整内容；不声称CRLF与LF raw字节相等。未构建/安装APK，未验收iOS或原生UI，完整RF-121/312及其他平台前置保持。
+- 完整测试运行186.92秒，network_interrupt_unblocks_real_socket_but_wait_still_joins_worker曾由harness报告运行超过60秒，最终通过；只有组时长与该下界，未测单例精确时长，尚不能归因于本次cfg或确认为网络中断缺陷。stderr中的rf905 injected worker panic为已有异常注入用例，源代码与passed状态已核对。后续需要隔离复测慢用例；本项通过不代表网络停止时延已验收。
+- [结构化证据](verification/rf1119-mobile-worker-cfg-2026-10-11.json)、[39份原件索引](verification/rf1119-mobile-worker-cfg-2026-10-11/index.json)和原警告/真实红绿/工具链SHA/完整测试日志已归档，全成员回读长度与SHA通过。仅本项独立本地提交（以RF-1119检索），不推送。299/309关闭、4待验证及6待执行；goal active，后续可推进Android应用入口桌面逻辑cfg警告与Windows原生补验。
+
+- RF-1119 Git顺序复核：首次暂存核验工具返回运行会话81437后，提交50219b6cd先于该会话的终态轮询；其完整源码清单回读在提交后结束。原归档逐成员/源码清单已在提交前核验，随后首次staged及独立HEAD均返回0，源码未变。保留两份实际回读结果与原校验工具，补记此顺序偏差；仅修订同一未推送本地提交，修订前等待新的完整暂存核验实际返回0，修订后再独立回读最终HEAD。未改产品源码或重复测试。

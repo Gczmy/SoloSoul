@@ -39,6 +39,7 @@ impl SyncWorkers {
     }
 
     /// 只允许在上一代全部 join 后重新打开；旧循环不会因新一代 running 再次复活。
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub(crate) fn reopen(&self) -> Result<(), String> {
         let mut state = self
             .state
@@ -94,6 +95,7 @@ impl SyncWorkers {
     }
 
     /// 新 start 必须等待上一收尾的 completion，不能抢先 join 后重新开放旧 group。
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {
         let completion = self
             .state
@@ -300,6 +302,7 @@ impl StopCompletion {
             notify: Notify::new(),
         })
     }
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn is_finished(&self) -> bool {
         self.result
             .lock()

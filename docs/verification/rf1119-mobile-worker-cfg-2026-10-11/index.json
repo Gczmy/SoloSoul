@@ -1,0 +1,203 @@
+{
+  "task": "RF-1119",
+  "archiveSha256": "b9e7ef3ed19e964f7bf21161fe4467e57f2a73277c7220fde85b572b9d58210f",
+  "archiveBytes": 499110,
+  "members": [
+    {
+      "path": "checks/checks-complete.json",
+      "bytes": 227,
+      "sha256": "e141c4203486746da7552faab48e101d67301128aaf1794915ae9e444874402c"
+    },
+    {
+      "path": "checks/first-head-verification.json",
+      "bytes": 349,
+      "sha256": "5d5501b4a182154d214661eba9e8b7d07c3bc057dc85edb3442e3cbe7e37ea87"
+    },
+    {
+      "path": "checks/first-staged-verification.json",
+      "bytes": 351,
+      "sha256": "6a12b1c14af9da1b56d17aa3c74a16bdf674b3ec988ffb690c4aee640a34fc38"
+    },
+    {
+      "path": "checks/format.live.json",
+      "bytes": 100,
+      "sha256": "2c6bd29656af2f81a703083000bbb1e09ebd207ecb66a5ffd3174c30ba7df872"
+    },
+    {
+      "path": "checks/format.receipt.json",
+      "bytes": 581,
+      "sha256": "2ab5086c9ff10b90c34cd620327a1f14dc30ab8473273a4a7aef8d8e635d8308"
+    },
+    {
+      "path": "checks/format.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/format.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/git-verification-order-review.json",
+      "bytes": 650,
+      "sha256": "8bc0dd7ede3db0280033008bcd86c024aa5f3925d88839002354bc4ea4da1944"
+    },
+    {
+      "path": "checks/green-android.live.json",
+      "bytes": 338,
+      "sha256": "8b3d19d572b9ac6bfd9038116e9c60d0b9e92b46dff327da06291011226d6a1f"
+    },
+    {
+      "path": "checks/green-android.receipt.json",
+      "bytes": 845,
+      "sha256": "b226ef436b0e543d185fc056751851b9ad281bf5b79ad2fd655c838a55c5ec29"
+    },
+    {
+      "path": "checks/green-android.stderr.log",
+      "bytes": 147,
+      "sha256": "6f90cdc29f57b1fdfc3f55ff5a60d64b42ad318866879517f166ba8ff0401eec"
+    },
+    {
+      "path": "checks/green-android.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/green-toolchain.json",
+      "bytes": 940,
+      "sha256": "f956e6a437a63f68a3335342faba9ae34f010b41cffc0f68dfedc1037610e493"
+    },
+    {
+      "path": "checks/ledger-before.md",
+      "bytes": 1157546,
+      "sha256": "a29aa7e804ef93669c4bd7088044ea03606d5133c5ed5485636deddcd3b2ecaa"
+    },
+    {
+      "path": "checks/red-android.live.json",
+      "bytes": 339,
+      "sha256": "80cc4955ab28e771f622caf0c4298acf703a0f4cf40937bf1ade28b8b42e46e6"
+    },
+    {
+      "path": "checks/red-android.receipt.json",
+      "bytes": 847,
+      "sha256": "392b5585d2a5f0532d9ac99e232e88eef9efd7581d777d220c49687ccd123945"
+    },
+    {
+      "path": "checks/red-android.stderr.log",
+      "bytes": 1680,
+      "sha256": "3c714611bfdf42180779a5fec9a2de27e4c9d941817b2dc5d9b70883394c0ed8"
+    },
+    {
+      "path": "checks/red-android.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/red-toolchain.json",
+      "bytes": 940,
+      "sha256": "6db673446db48fb228980d5648ca1e4bcdfe3aef661d28aed31f2acd7b5dc643"
+    },
+    {
+      "path": "checks/registration.json",
+      "bytes": 259,
+      "sha256": "26cc42da14186ec848b36e44853ea7bf807693ec3e778b03b96d42dbc48b48ea"
+    },
+    {
+      "path": "checks/source-provenance.json",
+      "bytes": 293,
+      "sha256": "99b20c4c1ca7a5d7065a64414949a27fe252b4ef91d0aa901e145356a5a89c52"
+    },
+    {
+      "path": "checks/sources.json",
+      "bytes": 229437,
+      "sha256": "3a9bb84aa4aca035541445469d0d046897a77f6a8f9ef2b75eb38f3e154ac411"
+    },
+    {
+      "path": "checks/verification-before-order-review.py",
+      "bytes": 1844,
+      "sha256": "53a2137519abb1aeca52c15f4e5feebefbfc777f1fd335c0566339ff6a12b0c3"
+    },
+    {
+      "path": "checks/windows-clippy.live.json",
+      "bytes": 161,
+      "sha256": "ef02fbec116e603ca12f263bfb0e7d084e5863e09135947c9bb54b50130bd672"
+    },
+    {
+      "path": "checks/windows-clippy.receipt.json",
+      "bytes": 643,
+      "sha256": "3dbe7b587b1045bd6e2c95cf9150c61f598306f504f67ce5087c7b88e3e09693"
+    },
+    {
+      "path": "checks/windows-clippy.stderr.log",
+      "bytes": 1875,
+      "sha256": "d6509bface444bb08cfabaaef2c9d4e2f821d3dffc023613e6e9dd0d5e50ad08"
+    },
+    {
+      "path": "checks/windows-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/windows-sync-tests.live.json",
+      "bytes": 152,
+      "sha256": "943fc9b1de01056d38f1a9349f00c718808f0118a0d4fd52e467a1748f36d646"
+    },
+    {
+      "path": "checks/windows-sync-tests.receipt.json",
+      "bytes": 634,
+      "sha256": "ce57996bd56ff2fc66fb93f68fa628454ac9d5dd459cfa334201a961207e9493"
+    },
+    {
+      "path": "checks/windows-sync-tests.stderr.log",
+      "bytes": 1835,
+      "sha256": "e7642268119a90c01ba50cfaa71673869cd301cb5e0ab7afd6d4c278df56deb1"
+    },
+    {
+      "path": "checks/windows-sync-tests.stdout.log",
+      "bytes": 9781,
+      "sha256": "03c7ae794f6ee6b9f45adce7a59aa14598b10ae63ec7ff9cbf170c8aca8e231c"
+    },
+    {
+      "path": "checks/workers-before.rs",
+      "bytes": 11144,
+      "sha256": "2d05aa6aaa4c43ec2348f65fb4ba44e7363eb2dedc2e6b0d8647285e1a45b4d9"
+    },
+    {
+      "path": "executed-source/workers.rs",
+      "bytes": 11328,
+      "sha256": "f296c41bc4d3fdc3ca1bcb0b089f23aba5994c1350b45f964ff333a0dcaac0b3"
+    },
+    {
+      "path": "original-warning/android-sync-desktop-method-warnings.json",
+      "bytes": 1963,
+      "sha256": "7f034747995426d8443ac341fad1f92e42a2be87a8febb5061256bfca8fc434f"
+    },
+    {
+      "path": "tools/rf1119-archive-close.py",
+      "bytes": 9532,
+      "sha256": "f96791ff859a90e9b248f658a261ad5288ee7793bdd835d9eb6398aca17de01f"
+    },
+    {
+      "path": "tools/rf1119-refresh-order-proof.py",
+      "bytes": 3849,
+      "sha256": "289c3af1c268ef3fcccbe9d5645f2ad689d0588bbfa11e49db64085f550e7427"
+    },
+    {
+      "path": "tools/rf1119-register.py",
+      "bytes": 4034,
+      "sha256": "1631b088d9fcdf4edcec9b133785b4bd5e0bed5129e917593cb89566798c3f89"
+    },
+    {
+      "path": "tools/rf1119-run-checks.py",
+      "bytes": 4159,
+      "sha256": "38afe1c2b138be26a5b7611ae3bb6e9701daf9d723508433e5a9817accc0550f"
+    },
+    {
+      "path": "tools/rf1119-verify-git.py",
+      "bytes": 1952,
+      "sha256": "dd518a7a1eb463fb4dc074ddd85c800b15b355736e08a5ecbbe7830d377beacd"
+    }
+  ],
+  "allMembersReadbackVerified": true
+}
