@@ -1,6 +1,6 @@
 # RF-121 Windows 真实应用完整窗口截图入口
 
-本阶段取得一张1030×781的真实SoloSoul首页截图，包括原生标题栏和按钮、生产Sidebar、内容AppBar及Home Card/CardGrid。与此前仅含WebView的PNG相比，现在具有窗口完整画面；DWM回读SYSTEMBACKDROP_TYPE=2。**这只完成截图入口验证，RF-121仍待验证**：单帧、未知前台状态及未绑定DOM主题/色板不能替代完整材质矩阵。
+本阶段取得一张1030×781的真实SoloSoul首页截图，包括原生标题栏和按钮、生产Sidebar、内容AppBar及Home Card/CardGrid。与此前仅含WebView的PNG相比，现在具有窗口完整画面；历史工具曾记录`SYSTEMBACKDROP_TYPE=2`；该值不作为当前原生材质属性的验收依据。**这只完成截图入口验证，RF-121仍待验证**：单帧、未知前台状态及未绑定DOM主题/色板不能替代完整材质矩阵。
 
 ![公开100对象隔离应用首页](./rf121-windows-composed-capture-2026-10-06/owned-home.png)
 
@@ -25,3 +25,14 @@
 [结构化证据](./rf121-windows-composed-capture-2026-10-06.json)绑定GUI/helper EXE SHA、源码、真实检查和窗口身份；[原件索引](./rf121-windows-composed-capture-2026-10-06/index.json)列出366份逐字节原件，单独归档于raw.tar.gz。归档已逐成员解压核验SHA/长度；不含EXE、DLL、模型、Vault实体文件和缓存。原件中的tools/Cargo.toml、Cargo.lock、src/bin/owned-window.rs可在独立临时目录重建工具；原固定路径和owned marker守卫必须保留，不能对正式账户执行。构建命令、五参数调用和退出码均在原始receipt中。
 
 后续在同一隔离应用中绑定实际主题/色板及前台状态，补浅深色、折叠、缩放、隐藏/最小化恢复的稳定帧和黑帧序列。高对比矩阵仍需可恢复的隔离会话，macOS/Android剩余验收保持未完成。RF-112/121/312、RF-122～127前置及278/287关闭数保持；独立本地提交，不推送，整体goal继续active。
+
+
+## 2026-10-11 真实侧栏折叠与恢复补验
+
+RF-1115为非默认Windows `native-perf`构建添加了一个可选、严格绑定原runId/PID/browserPid/token的`light-collapsed`请求。完整原生解锁、搜索、锁定与再解锁之后，读取现有按钮的可命中几何，通过SDK真实按下/释放鼠标折叠；截图成功或已开始操作后的失败均尝试真实恢复。缺省请求保持原行程，不新增生产命令或任意脚本/选择器/路由入口。
+
+新程序的浅色展开和折叠各3次完整行程及独立校验通过：折叠实测96px，可信指针10→11→12，同一文档/时钟/视口，截图前后状态和实际WGC像素绑定，最终恢复展开。六张实际窗口PNG逐张检查；保留了真实OCR完成横幅，折叠长标签的省略号及顶部切换按钮偏左布局也如实记录。54个记录身份已退出，48项缓存与6个联接清理，234份Vault/根级文件逐字保留。
+
+[结构化记录](./rf1115-windows-sidebar-scenes-2026-10-11.json)及[333份原件索引](./rf1115-windows-sidebar-scenes-2026-10-11/index.json)保存失败、通过、来源、实际截图及恢复/清理。当前工具metadataVersion=2，原生外观属性未验证、相关字段为null；DOM的mica状态与实际窗口单帧均不替代DWM属性验证。RF-121仍待深色、DPI/缩放、窗口最小化/恢复、过渡序列、长内容、辅助功能及其他平台验收，不据此关闭完整矩阵。
+
+![当前新程序的实际浅色折叠窗口](./rf1115-windows-sidebar-scenes-2026-10-11/collapsed-sample-001.png)

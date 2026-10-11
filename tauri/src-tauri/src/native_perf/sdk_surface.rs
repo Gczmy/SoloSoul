@@ -1,4 +1,5 @@
 //! RF-121 optional owned-file handshake around a fixed, read-only DOM observation.
+//! An additional exact scene request permits the owned homepage sidebar's real toggle.
 //! Absent request leaves all existing native journeys unchanged. No production command is added.
 use super::{parse_frame, publish, Capture, Outcome};
 use serde_json::{json, Value};
@@ -6,6 +7,8 @@ use sha2::{Digest, Sha256};
 use std::{fs::OpenOptions, io::Read, os::windows::fs::OpenOptionsExt, path::Path, time::Duration};
 
 const SCRIPT: &str = include_str!("sdk_surface.js");
+#[path = "sdk_surface_sidebar.rs"]
+mod sidebar;
 const REQUEST: &str = "native-perf-surface-request.json";
 const DONE: &str = "native-perf-surface-done.json";
 const BEFORE: &str = "native-perf-surface-before.json";
@@ -222,6 +225,38 @@ pub(super) async fn capture(c: &mut Capture) -> Outcome<()> {
         .as_ref()
         .and_then(|v| v["atMs"].as_f64())
         .ok_or("surface-binding-unavailable")?;
+    let scene = sidebar::requested(c, &req)?;
+    let initial = if scene.is_some() {
+        Some(sidebar::observe(c, min).await?)
+    } else {
+        None
+    };
+    if let (Some(scene), Some(initial)) = (&scene, &initial) {
+        sidebar::initial(initial)?;
+        if c.last.as_ref().map(|last| &last["inputTrust"]) != Some(&initial["inputTrust"]) {
+            return Err("sidebar-scene-initial-input-invalid");
+        }
+        let result = async {
+            sidebar::prepare(c, scene, initial).await?;
+            capture_frame(c, &req, min).await
+        }
+        .await;
+        // Restore through the same real button even when preparation/capture failed.
+        let restored = sidebar::restore(c, scene, initial).await;
+        publish(
+            &c.config.root,
+            "native-perf-surface-scene-result.json",
+            &json!({"schemaVersion":1,"scope":"windows-native-sidebar-scene-result","request":scene,
+                "captureError":result.as_ref().err(),"restoreError":restored.as_ref().err(),
+                "success":result.is_ok() && restored.is_ok(),"performanceMetrics":null}),
+        )?;
+        result?;
+        return restored;
+    }
+    capture_frame(c, &req, min).await
+}
+
+async fn capture_frame(c: &mut Capture, req: &Value, min: f64) -> Outcome<()> {
     let before = observe(c, min).await?;
     let base = c.config.root.clone();
     let before_proof = json!({"schemaVersion":1,"scope":"windows-native-surface-before","request":req,
@@ -255,7 +290,7 @@ pub(super) async fn capture(c: &mut Capture) -> Outcome<()> {
     );
     let ack: Value = serde_json::from_slice(&bytes(&base.join(DONE), 4096)?)
         .map_err(|_| "surface-acknowledgment-invalid")?;
-    acknowledgment(&ack, &req, &before_sha, &pixel_sha)?;
+    acknowledgment(&ack, req, &before_sha, &pixel_sha)?;
     let after = observe(c, before["atMs"].as_f64().unwrap()).await?;
     let unchanged = stable(&before, &after);
     publish(
