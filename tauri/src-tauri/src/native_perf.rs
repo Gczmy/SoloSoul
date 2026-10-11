@@ -9,6 +9,7 @@ mod maintenance_contract;
 pub mod maintenance_trace;
 mod media_fixture;
 mod permission_contract;
+pub mod preference_trace;
 #[cfg(test)]
 mod preflight_tests;
 mod runtime;

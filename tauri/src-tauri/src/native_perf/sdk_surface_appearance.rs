@@ -237,7 +237,9 @@ async fn observe(c: &mut Capture, spec: &Spec, minimum: f64) -> Outcome<Value> {
     let clock = c.time_origin.clone().ok_or("surface-binding-unavailable")?;
     let parameters = json!({"action":spec.action.name(),"theme":spec.theme,"checked":spec.checked.map(Preference::name),"original":spec.original.map(Preference::name),"verified":spec.verified});
     let raw=c.protocol("Runtime.evaluate",json!({"expression":SCRIPT.replace("__SCENE_PROBE__",&parameters.to_string()),"returnByValue":true,"awaitPromise":true})).await?;
-    let p = probe(&raw, &c.config.run_id, &clock, minimum)?;
+    let mut p = probe(&raw, &c.config.run_id, &clock, minimum)?;
+    p["preferenceWrites"] = crate::native_perf::preference_trace::snapshot(&c.config.run_id)
+        .ok_or("appearance-preference-observation-unavailable")?;
     if (spec.action != Action::Recover && p["action"] != spec.action.name())
         || spec.theme.is_some_and(|t| p["theme"] != t)
         || spec.checked.is_some_and(|t| p["checked"] != t.name())
