@@ -280,6 +280,22 @@ fn transition(before: &Value, after: &Value) -> Outcome<()> {
     super::super::ipc_delta(&before["observer"], &after["observer"])?;
     Ok(())
 }
+fn checked_transition(
+    before: &Value,
+    after: &Value,
+    phase: &str,
+    index: usize,
+    rejected: &mut Vec<Value>,
+) -> Outcome<()> {
+    let result = transition(before, after);
+    if let Err(error) = result {
+        // Both probes have already passed the owned fixed-scene validation.
+        // Keep the exact rejection and original observations, without retrying input.
+        rejected
+            .push(json!({"phase":phase,"index":index,"error":error,"before":before,"after":after}));
+    }
+    result
+}
 async fn click(c: &mut Capture, before: &Value) -> Outcome<()> {
     for kind in ["mousePressed", "mouseReleased"] {
         c.protocol("Input.dispatchMouseEvent",json!({"type":kind,"x":before["target"]["x"],"y":before["target"]["y"],"button":"left","clickCount":1})).await?;
@@ -291,6 +307,7 @@ struct Scene {
     steps: Vec<Value>,
     original: Option<Preference>,
     collapsed: bool,
+    rejected_transitions: Vec<Value>,
 }
 impl Scene {
     fn last(&self) -> &Value {
@@ -300,7 +317,13 @@ impl Scene {
 async fn advance(c: &mut Capture, state: &mut Scene, spec: Spec) -> Outcome<()> {
     click(c, state.last()).await?;
     let after = observe(c, &spec, state.last()["atMs"].as_f64().unwrap()).await?;
-    transition(state.last(), &after)?;
+    checked_transition(
+        state.steps.last().unwrap_or(&state.initial),
+        &after,
+        "prepare",
+        state.steps.len(),
+        &mut state.rejected_transitions,
+    )?;
     state.steps.push(after);
     Ok(())
 }
@@ -331,7 +354,7 @@ async fn prepare(c: &mut Capture, state: &mut Scene, req: &Value) -> Outcome<()>
         &json!({"schemaVersion":1,"scope":"windows-native-appearance-prepared","request":req,"binding":c.frame,"initial":state.initial,"steps":state.steps,"originalPreference":state.original.map(Preference::name),"performanceMetrics":null}),
     )
 }
-async fn restore(c: &mut Capture, state: &Scene, req: &Value) -> Outcome<()> {
+async fn restore(c: &mut Capture, state: &mut Scene, req: &Value) -> Outcome<()> {
     let mut verified = false;
     let mut steps = Vec::new();
     let mut minimum = state.last()["atMs"].as_f64().unwrap();
@@ -346,7 +369,13 @@ async fn restore(c: &mut Capture, state: &Scene, req: &Value) -> Outcome<()> {
         };
         let p = observe(c, &spec, minimum).await?;
         if let Some(before) = &previous {
-            transition(before, &p)?;
+            checked_transition(
+                before,
+                &p,
+                "restore",
+                steps.len(),
+                &mut state.rejected_transitions,
+            )?;
         }
         if p["href"] == APPEARANCE
             && state.original.is_some_and(|t| p["checked"] == t.name())
@@ -406,6 +435,7 @@ pub(super) async fn capture(
         steps: Vec::new(),
         original: None,
         collapsed,
+        rejected_transitions: Vec::new(),
     };
     c.theme_scene = true;
     c.step = "appearance-scene";
@@ -415,12 +445,16 @@ pub(super) async fn capture(
     }
     .await;
     // A failed input/capture still gets a bounded real-UI restoration attempt.
-    let restored = restore(c, &state, req).await;
+    let restored = restore(c, &mut state, req).await;
     c.theme_scene = false;
+    let mut result = json!({"schemaVersion":1,"scope":"windows-native-appearance-result","request":req,"captureError":captured.as_ref().err(),"restoreError":restored.as_ref().err(),"success":captured.is_ok()&&restored.is_ok(),"callsBefore":before_calls,"callsAfter":c.calls.len(),"performanceMetrics":null});
+    if !state.rejected_transitions.is_empty() {
+        result["rejectedTransitions"] = json!(state.rejected_transitions);
+    }
     publish(
         &c.config.root,
         "native-perf-surface-appearance-result.json",
-        &json!({"schemaVersion":1,"scope":"windows-native-appearance-result","request":req,"captureError":captured.as_ref().err(),"restoreError":restored.as_ref().err(),"success":captured.is_ok()&&restored.is_ok(),"callsBefore":before_calls,"callsAfter":c.calls.len(),"performanceMetrics":null}),
+        &result,
     )?;
     captured?;
     restored
@@ -494,5 +528,52 @@ mod tests {
             bad[key] = value;
             assert!(transition(&before, &bad).is_err());
         }
+    }
+    #[test]
+    fn rejected_transition_retains_the_original_pair_and_error_without_accepting_it() {
+        let before = sample()["result"]["value"].clone();
+        let mut after = before.clone();
+        after["action"] = json!("home");
+        after["theme"] = json!("dark");
+        after["checked"] = json!("dark");
+        after["radios"] = json!([false, true, false]);
+        after["inputTrust"] = json!({"pointer":13,"text":4,"untrusted":0});
+        let mut rejected = Vec::new();
+        assert!(checked_transition(&before, &after, "prepare", 2, &mut rejected).is_ok());
+        assert!(rejected.is_empty());
+        for (key, value) in [
+            ("inputTrust", json!({"pointer":13,"text":3,"untrusted":0})),
+            ("inputTrust", json!({"pointer":12,"text":4,"untrusted":0})),
+            ("viewport", json!([1000, 800, 1])),
+            ("expanded", json!(false)),
+            ("href", json!(HOME)),
+        ] {
+            let mut bad = after.clone();
+            bad[key] = value;
+            rejected.clear();
+            let original = transition(&before, &bad);
+            assert!(original.is_err());
+            assert_eq!(
+                checked_transition(&before, &bad, "restore", 1, &mut rejected),
+                original
+            );
+            assert_eq!(
+                rejected,
+                vec![
+                    json!({"phase":"restore","index":1,"error":original.unwrap_err(),"before":before,"after":bad})
+                ]
+            );
+        }
+        after["observer"]["runId"] = json!("foreign");
+        rejected.clear();
+        let original = transition(&before, &after);
+        assert!(original.is_err());
+        assert_eq!(
+            checked_transition(&before, &after, "restore", 3, &mut rejected),
+            original
+        );
+        assert_eq!(rejected[0]["error"], original.unwrap_err());
+        assert_eq!(rejected[0]["before"], before);
+        assert_eq!(rejected[0]["after"], after);
     }
 }

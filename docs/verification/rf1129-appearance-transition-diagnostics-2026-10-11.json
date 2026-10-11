@@ -1,0 +1,148 @@
+{
+  "task": "RF-1129",
+  "baseline": "2261e6341",
+  "scope": "diagnostic-only; preserve strict rejection and observed pair",
+  "accepted": true,
+  "checks": {
+    "workspace-fmt": {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.842358599998988,
+      "sourceFreezeApplicable": true,
+      "sourceUnchanged": true,
+      "changedSources": [],
+      "at": "2026-10-11T20:22:33.960934+00:00"
+    },
+    "native-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "--features",
+        "native-perf",
+        "native_perf::",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1168.391426199989,
+      "sourceFreezeApplicable": true,
+      "sourceUnchanged": true,
+      "changedSources": [],
+      "at": "2026-10-11T20:42:02.618621+00:00"
+    },
+    "native-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--all-targets",
+        "--features",
+        "native-perf",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 151.10419370001182,
+      "sourceFreezeApplicable": true,
+      "sourceUnchanged": true,
+      "changedSources": [],
+      "at": "2026-10-11T20:44:34.008505+00:00"
+    },
+    "workspace-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 19.935020600038115,
+      "sourceFreezeApplicable": true,
+      "sourceUnchanged": true,
+      "changedSources": [],
+      "at": "2026-10-11T20:44:54.227035+00:00"
+    },
+    "workspace-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3702.9406074999715,
+      "sourceFreezeApplicable": true,
+      "sourceUnchanged": true,
+      "changedSources": [],
+      "at": "2026-10-11T21:46:37.433267+00:00"
+    }
+  },
+  "nativeTests": 137,
+  "postprocessing": {
+    "originalQueueExitCode": 1,
+    "cargoWorkspaceTestExitCode": 0,
+    "originalFailure": "UnicodeDecodeError: 'charmap' codec can't decode byte 0x8d in position 736368: character maps to <undefined>",
+    "originalScript": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\run-rf1129-checks.py",
+    "originalScriptSha256": "6134ba8d7cafedb3e418862cdfa8435a6f634b5a2fdc78c446f62029e7417055",
+    "originalScriptPreserved": true,
+    "rawLogsPreserved": true,
+    "recovery": "strict UTF-8 decode of the same completed logs; no command rerun",
+    "testCommandsRerun": 0,
+    "completedResultGroups": 25,
+    "stdoutSha256": "eb1cfd203e431f6c978d6c35448837cd6d76644e1035df56216d0c1e891ee74b",
+    "at": "2026-10-11T21:47:36.362725+00:00"
+  },
+  "defaultWorkspace": {
+    "passed": 1874,
+    "failed": 0,
+    "ignored": 3,
+    "ignoredNames": [
+      "field::tests::test_field_metadata",
+      "field::tests::test_resolve_legacy_unchanged",
+      "p025_hold_baseline_large_dataset"
+    ]
+  },
+  "sources": 1839,
+  "sourceProof": {
+    "transitionAndProbeBodiesUnchanged": true,
+    "baseline": "2261e6341",
+    "defaultModuleCfgUnchanged": true,
+    "applicationRecompiled": false,
+    "noNewNativeFailureReproductionClaimed": true,
+    "onlyChangedFrozenSource": "tauri/src-tauri/src/native_perf/sdk_surface_appearance.rs",
+    "cfgProof": "lib.rs and native_perf module wiring match the frozen RF1128 input SHA exactly",
+    "sourceManifestExcludesGeneratedDist": true,
+    "generatedDistBeforeAfterEqualityClaimedForThisCheckRun": false
+  },
+  "sameGenericErrorsReturned": true,
+  "successResultSchemaUnchanged": true,
+  "maximumRejectedPairs": 2,
+  "noAdditionalInputOrRetries": true,
+  "newNativeGuiExecuted": false,
+  "originalFailureCauseResolved": false,
+  "RF1127Accepted": false,
+  "RF1128Accepted": false,
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "archive": {
+    "path": "rf1129-appearance-transition-diagnostics-2026-10-11/raw.tar.gz",
+    "members": 38,
+    "bytes": 183454,
+    "sha256": "af82e6c9a73b32203824d5c1c58a4d9111bdb4ec7da86ef335da3d1aa0ec6da1",
+    "allMembersReadbackVerified": true
+  }
+}
