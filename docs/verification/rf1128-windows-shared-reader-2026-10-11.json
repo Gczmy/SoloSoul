@@ -1,0 +1,152 @@
+{
+  "task": "RF-1128",
+  "sourceHead": "a5d59af12",
+  "status": "implementation-validated-partially-awaiting-file-symlink-and-full-native-matrix",
+  "closed": false,
+  "applicationChanged": false,
+  "applicationRecompiled": false,
+  "sourceFiles": 1839,
+  "resources": 94,
+  "guiSha256": "d77e575287c7d18f6124a7aa42cfa56f0ba20625d8b00309c1e7d2c07355da74",
+  "unit": {
+    "cases": 11,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 1,
+    "newSkip": "actual file symlink fixture: WinError1314; missing privilege; not counted as passed",
+    "initialFailedRunPreserved": true,
+    "actualExclusiveError": 32,
+    "actualEmptyDaclError": 5,
+    "fixtureAclRestoredExactly": true
+  },
+  "native": {
+    "requestedSamples": 12,
+    "journeysPassed": 11,
+    "captureSamplesAccepted": 9,
+    "completeGroupsAccepted": 3,
+    "wholeMatrixAccepted": false,
+    "groups": [
+      {
+        "scene": "baseline",
+        "nativeJourneyExitCode": 0,
+        "nativeSuccessfulSamples": 3,
+        "captureAccepted": true,
+        "captureSuccessfulSamples": 3,
+        "readerAccepted": true,
+        "captureFailures": []
+      },
+      {
+        "scene": "light-collapsed",
+        "nativeJourneyExitCode": 0,
+        "nativeSuccessfulSamples": 3,
+        "captureAccepted": true,
+        "captureSuccessfulSamples": 3,
+        "readerAccepted": true,
+        "captureFailures": []
+      },
+      {
+        "scene": "dark-expanded",
+        "nativeJourneyExitCode": 0,
+        "nativeSuccessfulSamples": 3,
+        "captureAccepted": true,
+        "captureSuccessfulSamples": 3,
+        "readerAccepted": true,
+        "captureFailures": []
+      },
+      {
+        "scene": "dark-collapsed",
+        "nativeJourneyExitCode": 1,
+        "nativeSuccessfulSamples": 2,
+        "captureAccepted": false,
+        "captureSuccessfulSamples": 0,
+        "readerAccepted": null,
+        "captureFailures": [
+          {
+            "index": 1,
+            "category": "RuntimeError",
+            "error": "Journey driver exited before native-perf-surface-appearance-restored.json",
+            "errno": null,
+            "winerror": null
+          },
+          {
+            "index": 2,
+            "category": "AssertionError",
+            "error": "Owned identity query failed",
+            "errno": null,
+            "winerror": null
+          },
+          {
+            "index": 3,
+            "category": "AssertionError",
+            "error": "Owned identity query failed",
+            "errno": null,
+            "winerror": null
+          }
+        ]
+      }
+    ],
+    "darkCollapsedFirstSample": {
+      "callsAfter": 101,
+      "callsBefore": 61,
+      "captureError": null,
+      "performanceMetrics": null,
+      "request": {
+        "browserPid": 24404,
+        "pid": 5648,
+        "runId": "7bb298f5dab841e9b0d325a1baf8794e",
+        "scene": "dark-collapsed",
+        "schemaVersion": 1,
+        "scope": "windows-native-appearance-scene-request",
+        "token": "bd411af6db3e48f3a3dd52526e1f139f"
+      },
+      "restoreError": "appearance-scene-transition-invalid",
+      "schemaVersion": 1,
+      "scope": "windows-native-appearance-result",
+      "success": false
+    },
+    "restoreFailurePairAvailable": false,
+    "uniqueRestoreCauseProven": false,
+    "failedSubsetAccepted": false,
+    "noReadErrorRetries": true,
+    "budgetsUnchanged": true
+  },
+  "oldFailuresUnmodified": true,
+  "originalSharingErrorsUniqueCauseProven": false,
+  "visualReview": [
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\surface-sample-001.png",
+      "sha256": "bc39daf4374cd5ee37a5f528281df8d546b3b966d798d8da8f151ac1e51b4055",
+      "humanReviewed": true,
+      "scope": "one frame from a complete accepted group; no full material approval"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\surface-sample-001.png",
+      "sha256": "6015bf9da8ddb1ef8790bb90b010c01fa3251c386bb0e8e68d1ce42e73ae438f",
+      "humanReviewed": true,
+      "scope": "one frame from a complete accepted group; no full material approval"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\surface-sample-001.png",
+      "sha256": "8466338a9d8885caf1449f406cb9121f11fe6deb19f0875e1d8cd8b5eec6cd65",
+      "humanReviewed": true,
+      "scope": "one frame from a complete accepted group; no full material approval"
+    }
+  ],
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "cleanup": {
+    "identitiesChecked": 106,
+    "pathsRemoved": 96,
+    "linksUnlinked": 12,
+    "preservedFiles": 549,
+    "processesTerminated": 0,
+    "preservedBytesVerified": true
+  },
+  "archive": {
+    "path": "rf1128-windows-shared-reader-2026-10-11/raw.tar.gz",
+    "members": 631,
+    "bytes": 2379773,
+    "sha256": "3a872e1e98ff0e395614494ca546f04d78784b3101632015c8b424a218d10558",
+    "allMembersReadbackVerified": true
+  }
+}

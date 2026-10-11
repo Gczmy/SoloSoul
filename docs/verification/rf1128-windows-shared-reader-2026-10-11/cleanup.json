@@ -1,0 +1,2428 @@
+{
+  "task": "RF-1128",
+  "at": "2026-10-11T20:17:13.6925177Z",
+  "identitiesChecked": 106,
+  "matchingOwnedIdentitiesLive": 0,
+  "processesTerminatedByThisTool": 0,
+  "removedCachePaths": [
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.b0961ef9d3784af786b6e7ed9c3c7b40",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.b0961ef9d3784af786b6e7ed9c3c7b40",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.ac7fe2febcaf4943b4c878c3dc2537be",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.ac7fe2febcaf4943b4c878c3dc2537be",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.7a58d07d62f1449e831bf7449f073466",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.7a58d07d62f1449e831bf7449f073466",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.5a2b94da02d645c19602d9f73edd4bbc",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.5a2b94da02d645c19602d9f73edd4bbc",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.d82fa6d302274592b100f2a3a1cf7372",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.d82fa6d302274592b100f2a3a1cf7372",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.902196c50e77479aa18eac5d3bd61097",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.902196c50e77479aa18eac5d3bd61097",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.2c628563b52f4f08a2dbf0b50b4d877d",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.2c628563b52f4f08a2dbf0b50b4d877d",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.64f849993e7c483fa5e8284642946ac6",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.64f849993e7c483fa5e8284642946ac6",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.991de5afc9764adeb70dbbd0223c988c",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.991de5afc9764adeb70dbbd0223c988c",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.7bb298f5dab841e9b0d325a1baf8794e",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.7bb298f5dab841e9b0d325a1baf8794e",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.8ab05cd1b3fe41ff93163a3d73fa45b6",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.8ab05cd1b3fe41ff93163a3d73fa45b6",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\app-data",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\profile",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\webview",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\temp",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\models",
+    "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\plugins",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.671890d8a0674012a698ee3495802819",
+    "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.671890d8a0674012a698ee3495802819"
+  ],
+  "linksUnlinked": [
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\profile"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "target": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "container": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\profile"
+    }
+  ],
+  "preservedVaultAndRootFiles": [
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "abc2fbbd417b7f6016a4b74bee0bd30aa5356abe8577b8c762193fbfcbd9a20d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "5f68fca938ed09c1f7999f12b63138326de9321bea4dbff33c335ec7bbdebf5d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "3b10296fd8cda62da84a9091db74c0deaf0a124c2f6f4e8fb3183a8518aa6a87"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\accounts.bak",
+      "sha256": "7fd51ae3305bd1e2d9ada7a1356c357e6b9b7a0d769b7519e982e05aaac31f3b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\accounts.json",
+      "sha256": "15538784dbe1383aaae6d393967c63eefb44d5e4b916e4cc5c64dbe013f59a54"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\vault\\ui_preferences.json",
+      "sha256": "81e959a97705bee86de5e6356a7874244e93dce0e9a1e45c736b26e2594dc262"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-auth-attribution.json",
+      "sha256": "8724b3b394305af7689dd7b99b95e2763e90e984eb65279c0d28375fe94cfe41"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-consumed.json",
+      "sha256": "2998089144d4ab19024c3e607e132eeb060852fe8c2bba02b604f04673b2cfb8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-maintenance-admission.json",
+      "sha256": "0d5fb851e8b6fb061dbd3760a3c88e88766c21a234543970840df4d4a8d8a190"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-owned.json",
+      "sha256": "09785b4af82ee5c8b4950a96ba2057eb297f4cb7e713e49e43ba7ef83102ed62"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-permission-commands.json",
+      "sha256": "023368f5dd4f95d31e309485e18aca080e0b4998a68e1522ef80537d4e8e1dd5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "sha256": "5eb3d91101ce05ae597733d101c429328582be8256f7c55958b532082bb44b91"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "sha256": "e028443284842f53c30f68c8e37159e74ee5d88db80eb458fa5eb9fccd8e4c48"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "sha256": "b5f1d2051c8cff75754579abf17465f7d24d0da21d323ed29f9eb4500d62b612"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey.json",
+      "sha256": "c359fed58b0a90f8527d47c8caf487ff42781173ed66d189e6925e633edffd62"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-01.json",
+      "sha256": "73271e5b0a714d3ea4a82c1f9febd4d48d74a6ba32df70159935e93768ea2065"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-02.json",
+      "sha256": "079d55f15248383a23a49e9ba5913548b8c6f9cafa20d9087468f075f58d999a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-03.json",
+      "sha256": "0ee5db5a517ecde8670748a063875e2eab7965c251e08512fced9df71974c742"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-04.json",
+      "sha256": "10aefb5a7bb1a003d2845597d92b03d3fb84d05df8683acbb6d55c02db7c976b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-05.json",
+      "sha256": "e81db0cd7c9ebf772e150508c8349deba6f0b4b0cc4e0ebcfbb66e66e9ae9cf8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-06.json",
+      "sha256": "824a5d86f3b42c04ab2696ca74385374b00c628f3b12eea908f89b41650b9fa7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-surface-after.json",
+      "sha256": "b657738842c02c886034cde96a59e6657cd52cc986d89c6e8095a555e10f4304"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-surface-before.json",
+      "sha256": "0c7e6ed913a0c7fe03071a241c6bd41289ddf27e0e7304bb10aa3451426e6616"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-surface-done.json",
+      "sha256": "18e251dd067e7ffe67b5a81b55e5cd154957ab7d5b44e2d251d5b7744c940c21"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\native-perf-surface-request.json",
+      "sha256": "2a9a9962bfc03cc9c27430cb7de5ca544e7400dde71b4ad17fd2b3d13384f9f0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-wgc-activate-owned.json",
+      "sha256": "4014607fda8074813597555633f85515f23bf6d59b9f778e24253548d13baede"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-wgc-light-visible.bgra",
+      "sha256": "bace5f3e258ab3b3fb0e66361365d7cc16166b41ddd0fe5c2c44f20417456dfb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-wgc-light-visible.json",
+      "sha256": "65d97a7fce0226295e0cf13d35e14b1e815f60b0a6f9feeba24c2df74ced81bb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "f3a296f4015924f142caa98deba5d4a73451b2c7cec2325bb4e62b42a229df74"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-activate-owned.json",
+      "sha256": "4bee61fc68fe8f8cf9893637dcc6a38d098d52dfcf3257cacc52f0001761ba30"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-light-visible.json",
+      "sha256": "4bee61fc68fe8f8cf9893637dcc6a38d098d52dfcf3257cacc52f0001761ba30"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "4bee61fc68fe8f8cf9893637dcc6a38d098d52dfcf3257cacc52f0001761ba30"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-activation.receipt.json",
+      "sha256": "14f57831df61cbfce92e05ebe9c1ea53def5d4de19e5689ec264f3bfc5cf446d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-activation.stdout.log",
+      "sha256": "b60a61f6e0dc67a8b9f96ebd5fd71fcf17f978f58b0eb91500837a866d54b876"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-capture.receipt.json",
+      "sha256": "20b613eae26414d66937c461dbab7d2342f29956f6b120baf701694ae327bd51"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-capture.stdout.log",
+      "sha256": "4d5db61838d59613a83a3772f75ef862f89468a9a161fd0a7835eef88e98a3c9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-identity.json",
+      "sha256": "73fc4b3c0f9fde2f9af16dc05cb178a2d95ffefce66fca5c6ec04f1c03da7639"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-identity.stdout.log",
+      "sha256": "9237c638594457daf1cf01326fb32094d35dba2468845413ce6326833eb3d744"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.receipt.json",
+      "sha256": "e3912c4178bb3c473c8df80f26883d3e546e761bf4a4492618908908d7ab402e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stdout.log",
+      "sha256": "e9b9a2263a3cb1bfd9efcb6020985d3c68648e47724e676b5ba02338e24f08ea"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "ccf99784d9bef52d9c310f49182916d5f7f3df0b9b65028a3650e1c2642db8b7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "733425fdb5a90906eef513492e18f06c1dfb67fe3061368ede4a0c33554e52d6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "c3f5d71010aeb25a2dcc437b9ceeaf452483891dad85f4330fbc638f865d8317"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\accounts.bak",
+      "sha256": "60a06fa65247cb2973f1897b08dcfd7740e99d89eaf4ec7c89ce652502f3f2e0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\accounts.json",
+      "sha256": "ac7b418262d440b22f11c764a18f3c2a09c37c5117efa638db3958a4ba25c107"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\vault\\ui_preferences.json",
+      "sha256": "5209ae2c403fbacb240651a2485d5560c80935f457a7fb8db713065ef8a1f0d3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-auth-attribution.json",
+      "sha256": "6479e0c1d9b2e40c58b2a680b38cc8cb9017a908919ca426335573c636de9b81"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-consumed.json",
+      "sha256": "581772e4ecd9c3e548ed6a8361cadd0cf595a217f6da4d107e95c9ad2270cbf6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-maintenance-admission.json",
+      "sha256": "bdd5af745618f8d0f7dbcb71b9503ce2d208de2917af5c11c2bc1fc8e6b896df"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-owned.json",
+      "sha256": "ddd20ac68959e9302be29cc74be0bcb8dc12774e498e1293622c85d207c61dab"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-permission-commands.json",
+      "sha256": "4f1e7ae254bf994a453dbefe8da559563e68faa63f912893ad806cf4e03d11d3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "sha256": "8bf6c220d1e94bbdf1ac475d40ec97ea9b084ff990511eac8996d1fb0783cd3b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "sha256": "040ace3251e18abc768483f7163fdd5f1b99c2ab05d719b4a181ee2a6a09c319"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "sha256": "8413443c48eaa86b1a11c36c91039ceff576b8ef0c8b1363cb1a62a41eaa08bb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey.json",
+      "sha256": "64431c1937d5b2e98a15bd7e2a8d8858a26ce9d00e441e344e8ed2141c469cb9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-01.json",
+      "sha256": "8e3a21e1a24cf6ace085bb3697b4756ccbdf2d8e2389a8d0f6580b13bcae7552"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-02.json",
+      "sha256": "bdc9cc12b8274799e046c88916605b5a4bcf498333b87ec05a683b7cf445dde0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-03.json",
+      "sha256": "00d9ee225c43de8e7996c4fcd8625b109d79e468e465d47479b671254f662671"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-04.json",
+      "sha256": "1c2fea94a1f3cc0ff9bc4d864970d1a0b240af36b85d8b91024a2658fa1cb72f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-05.json",
+      "sha256": "eae70da3dfd1dd6a7f5600c9008048e2a8e580e0c2f5c1fede5556f58d8d7895"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-06.json",
+      "sha256": "faf065df4cce4466a811299f6c8ba623e4c45e69a778ac644b0f074a149b0c1b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-surface-after.json",
+      "sha256": "f8748f129af11f81a7563b6bec2cceba49055f033372b943cb2f8a16cf7f85ea"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-surface-before.json",
+      "sha256": "a637b60d88303fad731d2de13fddd0ee1ff1b831aa465a61e3fa78d3ab1dd036"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-surface-done.json",
+      "sha256": "164709699576eb8db5aa5262a6edc3d9584988910c0521bdd967c761aae41196"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\native-perf-surface-request.json",
+      "sha256": "6480bfa577514676f12ad01d7430c348250e6b1696f16071d67b1cb48a7683d7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-wgc-activate-owned.json",
+      "sha256": "4982f6c221e342b090d3046b10fac1d1ef67c1fbab12247c8fe4c2463e50128e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-wgc-light-visible.bgra",
+      "sha256": "fc587f9474e94a61cb81ea0cc2cec087a7beb0d3221d722807525349ed26d989"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-wgc-light-visible.json",
+      "sha256": "a1667a2d2c8557ea7020124b7fe5f1fc6119ffe0ba6d51b81933293218752252"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "cac9297b78a0e7959b61cf5c1b619261520bb64f9d37612c45ec6d5c60064624"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-activate-owned.json",
+      "sha256": "6c01bc5d2b59e5351cefbf0790144716372d1748082b072d825dd4db187c0f82"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-light-visible.json",
+      "sha256": "6c01bc5d2b59e5351cefbf0790144716372d1748082b072d825dd4db187c0f82"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "6c01bc5d2b59e5351cefbf0790144716372d1748082b072d825dd4db187c0f82"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-activation.receipt.json",
+      "sha256": "8468075b867551063471825df5b696960e4243116f1ca1317cca8075900338b0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-activation.stdout.log",
+      "sha256": "a706837de73e847389b7b1429ec766957d1ae603d298f0a2f1ecf227e6d5eb40"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-capture.receipt.json",
+      "sha256": "e39671e0bb18f78a7d407a603decc882892575dc98202becd7824fe48702cd5d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-capture.stdout.log",
+      "sha256": "9ef3e59d2be8b689a122b6146bb523b661507caa53839b64c5326b7e58c40d05"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-identity.json",
+      "sha256": "68149b8a00d96dbe00f8c519d6068285390793ecfdff183c21b11edf1dbff241"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-identity.stdout.log",
+      "sha256": "f77590d852811eb120bf8211a4033ae3152019803fabf256a64f26c5b2a6302f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.receipt.json",
+      "sha256": "5a909dd180f39ae849644fe680efd8105666a8a0b391e3b151e64909911a7f5d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.stdout.log",
+      "sha256": "6633aa46a5b09afd8d1ee73072eab84af429a77e30b79fbc643b3796a9b5aac2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "001533fdc094e704bf0fd4cdc7e1c14c7ef1ab4769ea433c9fbde73aa4436dd2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "6a899af462c11684bc3c5073dd956afc34ae2d6d25f5bfe79369be90fd85e8f7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "8b1f3c9bb97e342ce2078744ed9ce73151773a2cde83fa76f1aabb087d4ef70d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\accounts.bak",
+      "sha256": "44cc6f75322552c29ab7b7b5d482507387a08ecef1a532d0fcce9004b2e6afc4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\accounts.json",
+      "sha256": "6162320e470fd1843c2de946712bae71d07d7f03c4123cb0d12ea77bb0ab7fd8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\vault\\ui_preferences.json",
+      "sha256": "bfe6cb5348f39e2fdf8d19c8720c5ab6c4c261eee0e9a7ac61d12391b1a6544b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-auth-attribution.json",
+      "sha256": "33a8927c764356fc062190ade865f473d661c7495af913d0759614f0ab2c9f9d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-consumed.json",
+      "sha256": "198f29b2131dd5ed7db9adcd6088896767c588c9f3eca6d81a5b1b9d39f62074"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-maintenance-admission.json",
+      "sha256": "ae4fd49862af4441fa161c8e81d4ff4200767191182a64695ee06130879f97ee"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-owned.json",
+      "sha256": "b189d349d2680da6d97352f739932021c93a2c91de4ed4a0e9afb9bc48a6dc88"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-permission-commands.json",
+      "sha256": "0d95faa8cbe6455287bce13ae31ec360b873f858fe20117c4ac8d5573daf7283"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "sha256": "8d11a6e4ba9f861a292f753f7d464bf4712435b5037fed9d073663e7efb94c47"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "sha256": "71040d63c3c118ef4eba603483d9e53f72770d6475ee2be5cd94e0001e6b7f0c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "sha256": "413d5571a00d5a4604b592a651768f6b0e21bf1fdb261c4214867a52030f6eaa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey.json",
+      "sha256": "6d856d7a8c2d444933bf360778c740fc7ae36bdfbc307a94fbe33b1ab1bc8687"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-01.json",
+      "sha256": "b3414061c87c6c5d4f92becd7dd345bba744fccbd0c52afe34c2ecfe2fd265c0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-02.json",
+      "sha256": "7a113985b9d5485ffa5ae9eb5d486604e263695505d3500d5dfcfb1cdc205851"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-03.json",
+      "sha256": "84225aa8d629fba45f6533971ca13fc8b7a32ecc25c7c4ec44c2ee1d00ffe697"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-04.json",
+      "sha256": "9733629611b507eed3e81ecb4ca82bb7ce38b8196f771fc73504ff085736178a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-05.json",
+      "sha256": "41fd4c7be7331bd9c2009df7c69f95e4df1d539e59910c2b1572eeaddb02ab59"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-06.json",
+      "sha256": "1964df67014b56023c7a69b2da03eed2540f9f44b430141b351eb61d8063937a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-surface-after.json",
+      "sha256": "835ccc27bb521f98a2ddac92ada7a1cc363e171ff09cd9784edacaba170183ab"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-surface-before.json",
+      "sha256": "2c2d8fed0252ef7e06239c3114d961da6f60164abb6c553221579628a9230cf1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-surface-done.json",
+      "sha256": "a99a479d264cedce5ff0d8d2ead0d730705e8352ab534a2412b82774dfccf08f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\native-perf-surface-request.json",
+      "sha256": "5c8911c1d9a6702f2db1df1d9d91bff6bd9ee1361445cb380f48e76d92f396ed"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-wgc-activate-owned.json",
+      "sha256": "994624cec480a32fe2cbf2d0091dcb95412f481df1105bad28a4f3f00297a69e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-wgc-light-visible.bgra",
+      "sha256": "bace5f3e258ab3b3fb0e66361365d7cc16166b41ddd0fe5c2c44f20417456dfb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-wgc-light-visible.json",
+      "sha256": "70d726260f77539fa6ec0d4ef4598e242d9af4a297752626e3a9c0ae345e1d23"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "8ed9a8dbf4c9cd5700af39767cd083f8851fcf7d84d717b5210b5ed5f497486d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-activate-owned.json",
+      "sha256": "9c135e7c01d1e5ae564c0d2c0bfa143e24c9b4323c1078347469ae797bc34e8c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-light-visible.json",
+      "sha256": "9c135e7c01d1e5ae564c0d2c0bfa143e24c9b4323c1078347469ae797bc34e8c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "9c135e7c01d1e5ae564c0d2c0bfa143e24c9b4323c1078347469ae797bc34e8c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-activation.receipt.json",
+      "sha256": "5a23365e92fd71dac071c194234fc9dcf4e47a846c124b4407334252fc4aa284"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-activation.stdout.log",
+      "sha256": "83f0d18e87cd7206f11fab0647365fc29627afdb382818c4a86d5ee9fc12a9b8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-capture.receipt.json",
+      "sha256": "b2998ee6365303183d579df62b2416121254b61fba8a665801d6e522b35ee101"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-capture.stdout.log",
+      "sha256": "e267adf680769194dcf0311f39ba5f7b6825ea717e3eaf4abc371c26166f1c56"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-identity.json",
+      "sha256": "80928294ffcedb1056ce1b07c5780a25066c32bad675696b6fcb991b239acff8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-identity.stdout.log",
+      "sha256": "9ab5e162ad0d3aa7339c4a08ef5e2ed0cefc756ff601b8561dfb7d5bfeda42a2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.receipt.json",
+      "sha256": "37db9763ac5c6d8b7c0581e521e3a8a2bcf19e012df11587fd10cb20c8f4d55e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.stdout.log",
+      "sha256": "b1e2387fd768438f4dfc57a43c2191c7f6af93dc7c7dbcf80eeaf604f773a5aa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "c99de5593fb8afed300191c0617466c1df49b09ca6709c0aa883341e20ea25f3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "eb78dc89ee43dc556b68c836e24b53ab6ef936290e36edad70cc9490f200f27d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "80368c7bcbc5b2c4edfedaf1f24e8f289524a40f99d3758a5e0fe8485954a02a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\accounts.bak",
+      "sha256": "a4a204d4e30ab7e587b87f8db4dbe0ee0d5069bff57016e5147a84a43e5025cd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\accounts.json",
+      "sha256": "d3b24623d23fdd9b7a20bde07d324ff21beb5a9859c3e6c3982725f5735f15f3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\vault\\ui_preferences.json",
+      "sha256": "002e2df007d7a84c117a8edd17596e66412471d3816d43d210f3d790b612ccdb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-auth-attribution.json",
+      "sha256": "b2f6db1600397418b78d11804fde6e7ab39c64d8a8ddea1ff942e473ad63c160"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-consumed.json",
+      "sha256": "3f255ae6d0d1f551b6e7666db94c429c19a6410d49252cc0b0320c926d1fca44"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-maintenance-admission.json",
+      "sha256": "d494de4f2bc543961c529fe1a7253d029f3c9d1a5eb92ad75014e59110807cbc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-owned.json",
+      "sha256": "24724900a2a39f144797fa363585a9ff806fdd98d92eebf8b2269c6450734103"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-permission-commands.json",
+      "sha256": "270c27efbdddbb39690db8f00897cb14156e808374cadd20c8c6c91ae5f57227"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "sha256": "366812456c84c93ee5690658d196ad641524e0621d289444364c8049d8cebd58"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "sha256": "8b36dd93239e1f93229d77604e705d6858dfbd9e0ced2f14834f37dff258dab4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "sha256": "29abde4b36ddbc1b5306ea1bf74ee3206c5d8e84734c6aa5b2f21ce7d0cb9f4f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey.json",
+      "sha256": "2f686b51e1f56ec3741f1a099ff28446cbed03a8e92e6ea3eefb0d024b8afde6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-01.json",
+      "sha256": "44c84b476a77adc1814893a65da258178bf2930ab216c60fa139cc2614c1d9d6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-02.json",
+      "sha256": "1b248cee9f61d9ed2f7b0a9a1a3b73cced8da1c3cf65d72ca76a35b1726e208f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-03.json",
+      "sha256": "cbe4800974e7834247eb522969ed1393497a23c62ce2140a04eb3fb17cf7020b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-04.json",
+      "sha256": "416b24e6b986b20cf84eaece8e915dd64c3abe38bd54b3a0f4283141443f118a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-05.json",
+      "sha256": "291247b11cbf11c7119703ed59bca6e251914b9d3ae084869a64e6875a2e2983"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-06.json",
+      "sha256": "357006bc2b2eb323f949936d3151b64bc377b7ad0ff4b68984c22b641e593cc0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-after.json",
+      "sha256": "9816a2a66e008c1ecdf1da20203e2e008522d8c8d7f9bec525aecc23b688b54c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-before.json",
+      "sha256": "31920f50c006ff6dfb7006a68ac1527d056e6a46e2a64daaea3b5cb8c5a13a13"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-done.json",
+      "sha256": "5b22e842e36ca05e43d12e3a89bf036ecc4419255b541287f2574e44a8841e9f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-request.json",
+      "sha256": "3af79dc2f052a87fc334298812c618e650f4fb799981df9790473c9be362c0cc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-scene-prepared.json",
+      "sha256": "0fb65235cdeb259da6780b8eab6e4861ed093d33fac2e45446a4fd42bc7a5837"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-scene-request.json",
+      "sha256": "e7a1d94ac7f104a23d92e1623357dc6cf66ac3d3998a4a2cd9a0389fc9c3edbc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-scene-restored.json",
+      "sha256": "b10db1d5a0d37735704c0cd774bcb49065fa313147e6bee658ec1f4e098c7efb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-scene-result.json",
+      "sha256": "f136f47124a0a067ec4f4128259a16f228a83779f4142337bd4a25c7440892e5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-activate-owned.json",
+      "sha256": "fbd679b1203f873a42320ac767e10dc06109d5b0da45d493dbda6735c9e41996"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-light-visible.bgra",
+      "sha256": "bf1833a3006a530af46adddffcd80ce28a625794abb26a549a4268bf3a050c7d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-light-visible.json",
+      "sha256": "a6362de6601d22563a7c8bf1e8d6b5aa04a38594b608dc07bccd9f0f15a3f15e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "1947040d6a2df54b86ea829421efd5c0d4dd63aa6a5c93b3454f68ef0085f705"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-activate-owned.json",
+      "sha256": "108d672b2849541dd012191ae190231c8edc22d4d7773206039ec0c7461affaa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-light-visible.json",
+      "sha256": "108d672b2849541dd012191ae190231c8edc22d4d7773206039ec0c7461affaa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "108d672b2849541dd012191ae190231c8edc22d4d7773206039ec0c7461affaa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-activation.receipt.json",
+      "sha256": "8047b61d3145ea9ab74b3f84789352302cfb25e73c706306d8d67f7c5b879a77"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-activation.stdout.log",
+      "sha256": "ada6293e9fb350e79d53cd27065be206a556d8d574be8d50c2b3ed9b0d748af2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-capture.receipt.json",
+      "sha256": "fb9f52ec513ff6b5c40bf6b039ccb23cea1be7c15da449e44a46503d39cc07ca"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-capture.stdout.log",
+      "sha256": "672fcbeda2f421a997aad4be16c7bb922845f865415c2079819cce36d1596858"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-identity.json",
+      "sha256": "6faad3d7ce6e3c2cb37f1f94f74e810656720fc17ca905d4b91ae27dd9c5a24d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-identity.stdout.log",
+      "sha256": "b5718e8ab281bd17945345d7311c070e869f1683469869edb789de35ebf135a9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.receipt.json",
+      "sha256": "1e1feaabec811950d07ab1808db5f198fe33ba11336b5a587ed56427b918fa98"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stdout.log",
+      "sha256": "b2dae82e7a0e2532571ba7acf9e02a001bc46f774c03ad76b875079a456fc12c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "348b35ccf549244e787dd6d46de81e4342b90d35dfd1b2fcaa66651ca2d40c98"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "d30051eb82bea6a71a401833c52cd6944035be1cb683ceb0e613e0ace90e2335"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "2fdb8d0069f5baa26c1775cd658a02b6697800473274a228ea89cb183f2b320b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\accounts.bak",
+      "sha256": "97fd95048ed965a6bf4c62c9102c0ce3fb3bec28124ff5678f688b2f9b73af1a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\accounts.json",
+      "sha256": "b9e8d75c15481411f4cbdf26b1c1d5d1605c206cae7155911fab4463645fb9f8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\vault\\ui_preferences.json",
+      "sha256": "4cc227ff6333f82793e573ed8ac17ab4fb16eb44357199f4afaa8f49ccdcb80d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-auth-attribution.json",
+      "sha256": "8341d70f0cdad32468b2ff35e7cd443a0d5f870dab7e729bf6c631d3cef22c45"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-consumed.json",
+      "sha256": "950efa09a0dde65dd6fb646f6ab3730f7e484bed9f1769721fda8255386863ef"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-maintenance-admission.json",
+      "sha256": "15384cb713bab38d8e6df219a61c469f7af835c2c10147acae6923d52da17437"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-owned.json",
+      "sha256": "fd0d522561dd5f1e7783bb61e0b9df198d1c347c021b3c74157e30be34c22f9e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-permission-commands.json",
+      "sha256": "c9c01c33efdee1d019b74c35c4f6d2906cc745c0b0ff0f40cf82124d821fd6be"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "sha256": "9c205435600dc961a9faa006661b64288095b8e757812d004002461b83300d41"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "sha256": "95fd6f322aa3ec1547b16f3c2488a25de71a99eaff5bf0ea0ed70022855587d2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "sha256": "693ecc15e9909aa7c17ae20f99213070762d05a04757e69bca4c8b17504ed5dc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey.json",
+      "sha256": "2c1e186b4b776ca232a043fbc954f9d40842c45b75d6929dd4a35c15e9ebff60"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-01.json",
+      "sha256": "58858ac9b641044550cf5d84cb0eaaa3b4caea2e26844610dd185bd07a9fd44c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-02.json",
+      "sha256": "d5c9f4d1b6ac4f82589ad1135509fa06e0d2c920c93902a30a8975bca7f2196e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-03.json",
+      "sha256": "1e2598dee9a0504ab86f28851ad06ae95cef67d325e873a981b3dfe2d88e0bf5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-04.json",
+      "sha256": "d86335dd0150dd575e85e0304f2a770e7cdf771177f02c6a226c1f1694e7c2f6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-05.json",
+      "sha256": "6488b42e8ddcd493fe11841ed56215bfeb1376ec0b78171abc1eaba05a3dd589"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-06.json",
+      "sha256": "c819502cb78906c6448e76f7da2d618596267dba4c9eb880a26115395629d63e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-after.json",
+      "sha256": "1ca8f173eee3643daf9648c0afc4f460eb9282002e86ee6c3ddc150203365806"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-before.json",
+      "sha256": "4c53e427adce049647f603d55ec77a3c2f29668706cab8c572d75ec6a0554888"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-done.json",
+      "sha256": "75ce32ec6f07f2d2a82fa79024e8e5d6d7d36758e57d2719dfc71d0309173e7f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-request.json",
+      "sha256": "fe5456ed8602df04ffa1feb9907faf35931964fde4d44733ab4e30383db08e0e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-scene-prepared.json",
+      "sha256": "531f4e16691ecdfeac98c8aeba5a8bb58531d091ceac20139ab6ed4915ca2767"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-scene-request.json",
+      "sha256": "f00f47e348ad9ff5c7dac5a0fceba5fc4a9b0e167cb4b0d58c6d8ef69cbb9b18"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-scene-restored.json",
+      "sha256": "47ebcf539903139d12d451a12c6b4260723aa1f927c172054db7419add06112d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-surface-scene-result.json",
+      "sha256": "6f364751d0fc95ac71a3b2bdad882314c22e6a38f1addd1d3991d1f7bd38ce60"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-wgc-activate-owned.json",
+      "sha256": "c0e083f527d9e7a29ecef96d80174dc5db5d3b0b27f7fc7e656bf0ef7ec31843"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-wgc-light-visible.bgra",
+      "sha256": "bf1833a3006a530af46adddffcd80ce28a625794abb26a549a4268bf3a050c7d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-wgc-light-visible.json",
+      "sha256": "ed98bb726e0261f4a41ee48a4e6681ab1e3905ee3852af9b7e791a11c9dc2155"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "833c978f7066cce0b2a8a46ec6ca162eaab606ea2a8d6640af8cc580fd0b22bb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-activate-owned.json",
+      "sha256": "65b9f44b6e51007ac864a388e3268d54d0d0a465f91964ce47a767e992e75cc3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-light-visible.json",
+      "sha256": "65b9f44b6e51007ac864a388e3268d54d0d0a465f91964ce47a767e992e75cc3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "65b9f44b6e51007ac864a388e3268d54d0d0a465f91964ce47a767e992e75cc3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-activation.receipt.json",
+      "sha256": "5b82e9f0d3a6942dc25fbb9c038865e97fd321c6cf806f63e00d480826388560"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-activation.stdout.log",
+      "sha256": "6fb6ac2ff3fa4f236f947306036ccb0491e5232b34a1915fa11e541818bee995"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-capture.receipt.json",
+      "sha256": "91e972bc29a562b11f86114bc3f7d7caa50ce01c111453f167632d2771522cd1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-capture.stdout.log",
+      "sha256": "4e88ab95a4a2ec46ed59c640583c495c6244f16b57ce85e0f81f44b4d195a570"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-identity.json",
+      "sha256": "ebfdbda545026d9257008feb634d2357787a9b4dd281d9a0cb669ea2fa774c0b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-identity.stdout.log",
+      "sha256": "c074e794fa5fc7c21a8c7005a15d62b7507c4eb2617b03b20cab3b31e3fbda45"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.receipt.json",
+      "sha256": "036d5eedaedeae7b0564612010bd6b556870de1f91b6b6ffa19844e1a8a07b96"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.stdout.log",
+      "sha256": "285feb7600a94e94d835a1dab837558c421a4ac38d28575fab67c75a2aedb7c6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "3bbe661cdfc481a8caaaa9343917a360961b5af62308dc9389e8cca0e226c312"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "234d023edb9fd5ca1769c0688f54826f3ea96e29ffcdb15f612f126d353f5d34"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "792648a5c3199afcbfd2af1fe4c004945e246880486b276eb7eeec9e7cb9a9a6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\accounts.bak",
+      "sha256": "8125f2367957ebe64c12dc129c6912c23a1fa41d0607bf7154564354469887d0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\accounts.json",
+      "sha256": "c7cd85408ec84b56708f1844652ec506122317b9ccb90e016c6867501a6479f0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\vault\\ui_preferences.json",
+      "sha256": "5b0aadd4503b4b12a1fc77879a880fd1d4c2267284534db23b89c4187a21be05"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-auth-attribution.json",
+      "sha256": "248b43ceabb300d863c1fbea07b2c9d7c18aa95764a780dac63cec38bb019e6e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-consumed.json",
+      "sha256": "a930eab961bf40c0bece3083ef4bfd6a9048ce16b73194cbcf87ba9341212a53"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-maintenance-admission.json",
+      "sha256": "8220b51ab8ea158e79641ec56cfe40ac866f759564b02899c173ec9cdd3067bf"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-owned.json",
+      "sha256": "99de5d022948cd531485c1c1ffe0c6e6b6c5a0c78dd2505be939acae7b6461cb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-permission-commands.json",
+      "sha256": "02619619c31bf668b2b2373bf1bd4d182b0c71aa79eceff05134bc1282cdf111"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "sha256": "ba916e1186d67d6c4561606715b17261e0b140158cbbb01e6283335ade9cc897"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "sha256": "66b3cc36f887c7ab04882d0d2cff7546539a72ccaa3ef5e7f89faa01ef5ad394"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "sha256": "be800a081c8f9daab45d0fbac54723afa193977d68d6840947ee1eac7ce97380"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey.json",
+      "sha256": "774381a267840f44f69a34eb3fe0a60137c37bc9cf0b67fa1c5dbdffdf82be08"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-01.json",
+      "sha256": "5769830e19d7324bb3c76d44ef771063c9575452ab156bd2f1b78b3ccd5bab56"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-02.json",
+      "sha256": "0a4c4d357dcdb03325948c685003ad2e29582e4f6fb032371f7181731e57d125"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-03.json",
+      "sha256": "df350ed8b46685f541edc597d5b849b69ea6ae51639321c86e6640d0152c06e8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-04.json",
+      "sha256": "d916c8e9230aaa1412aa69c7755fce543811ed3139932136c262fedc9cd38867"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-05.json",
+      "sha256": "f939b1ee419dc82027532f31be2f16d53a9f337fc1e9d363ff1d63dc6bfdfe8c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-06.json",
+      "sha256": "a694b46463cff776f3799986699a4ea574a81e26d294739102922d986c977e66"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-after.json",
+      "sha256": "b564348303a22863d807e4b53bd5d5b2a33e68af14885dc5f2f76482b68daa51"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-before.json",
+      "sha256": "20cfe74ecae847e727c7e43fd3489f164bdc6361d3f87aed3a46e89dce1e1572"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-done.json",
+      "sha256": "465039ca08c74f31ced7a6296c94aa52502ed69aea8cf4c81a73889ef8ab6dd4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-request.json",
+      "sha256": "7332e5f5d66433506dd5d0de588490ca97a74bb8ed09398b47983fa9c63011cd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-scene-prepared.json",
+      "sha256": "6352f64142031bb764c86b4b9c06bb07d9d8d04bf57f980dfccd542b9b9c98f8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-scene-request.json",
+      "sha256": "e6f91a441f58a80446b04f6fc2826b3c157204fb20863d5e3bb88a1dbf5e5a98"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-scene-restored.json",
+      "sha256": "1b07310afb83bbb8718a205839438f0a04be5bfe96debcc4e33d786b61b4ad3c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-surface-scene-result.json",
+      "sha256": "acbc499d5720e1799ec46aba29868cef51ee2c74413dd27caa40d2d7bac6362c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-wgc-activate-owned.json",
+      "sha256": "3dcd18e3db14d477faa3fb18b1f6ca3d7780f8e797e7d27ac115a0a4a350f2e9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-wgc-light-visible.bgra",
+      "sha256": "bf1833a3006a530af46adddffcd80ce28a625794abb26a549a4268bf3a050c7d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-wgc-light-visible.json",
+      "sha256": "9352bc138e75583c96e79914b79694ccc5f2988248f52460424f62efad8d74b2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "e89f86dd97ec72f027bbfb6f07645898d7829766a6df821887b3a4770a912580"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-activate-owned.json",
+      "sha256": "3348caec8ea23ab2ec6f44cf442491e40411d4d2332b8682acaef1f847ab356a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-light-visible.json",
+      "sha256": "3348caec8ea23ab2ec6f44cf442491e40411d4d2332b8682acaef1f847ab356a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "3348caec8ea23ab2ec6f44cf442491e40411d4d2332b8682acaef1f847ab356a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-activation.receipt.json",
+      "sha256": "6c957df2f75e37cc30df8733dfa99e1926f171215a717bb42ea44a514d261a1f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-activation.stdout.log",
+      "sha256": "eb96966ae3be94ca71572f0368b3065b1aec2186e440ef2d23108a7a81750a12"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-capture.receipt.json",
+      "sha256": "76d9f6bb4c9b111833e4f4340ed68e99c56d2783fddf8c0103e267090c6ac72f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-capture.stdout.log",
+      "sha256": "6dbd07cfc06da7e2a00ed22f15fb9eb0af974f296fe898f9d87a27e97cf66af1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-identity.json",
+      "sha256": "bd6759b2d0e1ba8ded0071094b7199785e7368ad981c1151a7268bc43eedadda"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-identity.stdout.log",
+      "sha256": "1ccb3723b9e7e61c929c1d3258980ef3a3ba2930d3d6b9cde49e7f0eb919b20c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.receipt.json",
+      "sha256": "209bac7817dddde859a501f12395f57e502d09737240efbf1e264e3a9445a2a0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.stdout.log",
+      "sha256": "1d7185037f409d5108db33aeaaf6a17b680e4f7ae0f78084d125a5e256569082"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "b7e19adba2784245af96534d24d6c62a34cd7ec1f4cb6a9bdaa277a81bdc5752"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "0c4ef0e15f8ad22235f6f8fcf791785c8b1d27ec31c35f8aaf301a91167b9559"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "6bab52af1f37c766897ab49f843a275ce0b11ab0c02826a815dd3fbb20df11c6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\accounts.bak",
+      "sha256": "28a9a042f098827dc17528d5c792fd966df9df51746f7abb6ff6b1bcbe3a4b6d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\accounts.json",
+      "sha256": "04a3cb245627d753e126820492871659d147598292d7fa0f4612baaa2ea2edc9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\vault\\ui_preferences.json",
+      "sha256": "7920f89029b548618731e9b68b78df4b70b09504a702ac25cc7a4eabb6e069f6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-auth-attribution.json",
+      "sha256": "d49922c1556ac9f056304c2f0cda84cba466ed1fb363239dfa0dd59cedeeb2ab"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-consumed.json",
+      "sha256": "fa5cf2c5e246af18053af07cee8d01ca11aca1c8e8dec1844fee145250d23a24"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-maintenance-admission.json",
+      "sha256": "db46f70a2149b74e01aab6a91bac7bdae17a09595ac314130af75db42cecc91c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-owned.json",
+      "sha256": "fa7038489b8f5648baad95a7df212ba69e9be41f97a56fb074036c87c5585f9b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-permission-commands.json",
+      "sha256": "2109869a778d5397c4cf525805f39c7131535bb0970a521e2db37a72fa088f1a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "sha256": "0c13b8656b6539b92d4214f067b316e45f2a0c364b18d29a921e7e6168db8b51"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "sha256": "096706a34cd6bcb61be8104616cbfbf7e83c2815f28d756ddf9b3a9a131d2dbb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "sha256": "882aaa8adff89a20af468efee8bdde35647646baf9c2d0338c9a6c65ef331c4f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey.json",
+      "sha256": "fcc493df9783e4ee657d2be3376da64f3ea9ad4f4086e8fbbcaa5ea298d53050"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-01.json",
+      "sha256": "68a7bff0df4db98600400307d7d79387754711bd3e1334f23e126dceaff633aa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-02.json",
+      "sha256": "ffa4bba9286cd58444f125f97d1efa4c35a852dd96579f2f1565c6293065cd4c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-03.json",
+      "sha256": "fa07205d329bfb06e1aaafc45e276dbb7aedc7943307c28f06f81f0799cafee0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-04.json",
+      "sha256": "07a36fac54476b844407d9b77896a009cb3f5698580e8b21adb980cce7131bf6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-05.json",
+      "sha256": "2cdc446af8aca5a0beaf81175892405429eb4e28674e48993dc32645778d26e9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-06.json",
+      "sha256": "b4cb33667e76f67fec25bb36bcd139286e763a5148d421fb1f2e8079afe494ce"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-after.json",
+      "sha256": "39ef9fa031fb71951bced0f1774cdc24453a0d97b275b1ec519bf2e5eaa02601"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-prepared.json",
+      "sha256": "3b568c1c2cb9e0e9d3dc2bafa132142ed973debd8c8162bbc2f961ea2d775ba8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-request.json",
+      "sha256": "c9a874b02c8cd9f87c05426e8dce221a759f711feb3a05c120c5e5a3325a61e1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-restored.json",
+      "sha256": "84989ea3cdfdfece763ff3660d3af9b4a69cb8546d45241c4b962847f9031acf"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-result.json",
+      "sha256": "ee2622013409820d13a19d6ddb34f7537c45ffefbf06fd0241e55fcc945d6124"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-before.json",
+      "sha256": "b7f154ae2a76cf64bcbc200b69898012baa9929d3a2f0bb88e4c9a5e584c3e34"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-done.json",
+      "sha256": "a9efcdffbe15fdf63f044097b3c5b4cd26d8e6f5bdda019f1300883774c19d59"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\native-perf-surface-request.json",
+      "sha256": "5f739af0beb300e7440c1a52e30a3f99f2cc7a547f57e50671e23ab82788088c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-wgc-activate-owned.json",
+      "sha256": "3e1a7f3351eb40efcf9daac47ae5bca4f2bf58a6f43b18262df2321565d2f408"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-wgc-dark-visible.bgra",
+      "sha256": "3adf6d2c15cfe7b2ceaf6f28328800af575dd156d0f61a6189084b8b08213634"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-wgc-dark-visible.json",
+      "sha256": "ac2a9ce2117b9a3ba72371fc06c96e928de97159bc1f8c462967700a6da6cd26"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "9d8babef51a403201e77a8fa315899e5cffeab82450891a013474abd36016ed4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-activate-owned.json",
+      "sha256": "75da54f66a1d9c126c068f74df03302e88ba6f0dbe56ca5276cacc393fecfb09"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-dark-visible.json",
+      "sha256": "75da54f66a1d9c126c068f74df03302e88ba6f0dbe56ca5276cacc393fecfb09"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "75da54f66a1d9c126c068f74df03302e88ba6f0dbe56ca5276cacc393fecfb09"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-activation.receipt.json",
+      "sha256": "faeb144b2bdda9220d58ecc7801813ca9a8ae1a24c99622441742b7fddfefb31"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-activation.stdout.log",
+      "sha256": "4da92c92b88a89de435f5324529151f86b39b81d9d166da0d9adc2e98e46b021"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-capture.receipt.json",
+      "sha256": "5fdb3e18b09b2c521f5c624f2315eabc4acf160604c28ff8f72dfe9b07f1dfc7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-capture.stdout.log",
+      "sha256": "2f33e4e69dee6b084b3140b8dfe09c0e4ac0573094aaac57942a8852e2bede3f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-identity.json",
+      "sha256": "98ebf6df5db7c0c564e7f8f9002388be034fb0569edaa49204b86286bbf52e02"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-identity.stdout.log",
+      "sha256": "42d83b3a2dae52214ef84e191ec86ef24f1d5ff78992df15bc1d50dcfd031ce7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.receipt.json",
+      "sha256": "d88c25d8aee7b7e09c1bb04fcf3e487c91079aae7c37dcfd5254fbba0e42cef0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stdout.log",
+      "sha256": "187004198672d3e57d7e89e6405e09f5b1fa5de2ede49abba9f8ef8cf8dc63ea"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "f51ff6fb65e6d0c24c3f41dfca28d45ca724a2e9e239f6de07ccdd84f8ea0179"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "498b161e7fbe028b14fee1148a11b47ca55f90e32e55ce8109d061075d5233b7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "569f8ccdc3b2b8806d17405bc1686492d7e9657a4faef3b45fbca1cf126f9303"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\accounts.bak",
+      "sha256": "8effca1c7aa6faa0c96a436ae3d04a238f62f586d30b4f14f7068c3c9b6b9380"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\accounts.json",
+      "sha256": "b54d8f8ad707b4a44d3b998fd9a7788322ac30520482e73bc5c70fcdccf43c5a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\vault\\ui_preferences.json",
+      "sha256": "208291c9441d044ad31a684a716c606c83bdf2abe045cc31981c48c29a1b76ca"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-auth-attribution.json",
+      "sha256": "b080f9851183f45483a71608237feb079088978df6807490bb3a70303b25bee8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-consumed.json",
+      "sha256": "b03f7e860026c05be1b174aa8fdb3d05ed08461892f053185e22ba92720310eb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-maintenance-admission.json",
+      "sha256": "0d6b5f40c6209c50ff5f00bbdf6aa56d0f433f8013f15c17f9d80449dbeac166"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-owned.json",
+      "sha256": "099d02c3f1a87300691e1e232dc0883ed8cf8f853227a2f400a06ae307667634"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-permission-commands.json",
+      "sha256": "aff692a1fa1aa9c6d3178ee835673e43312578b377f1202b4cfb676eb99be0b4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "sha256": "f82edbc5b5f11b800b31e77a84aef85c47ba472c6c0696f98ce550aa90ec920a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "sha256": "8d57d3a120496e55fe3fcd48bd7064145b18b76ff814534c01ef08a70557db6b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "sha256": "da0f6ec1a82273b3e0067939a53a091711629d959d211425818a034e87b47950"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey.json",
+      "sha256": "7f509c57576e753a735461b96b8667a7eb7c4ee3316dfb4ba5c7439024e8a3ee"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-01.json",
+      "sha256": "813cf9a8c638c86da27f7791b9e4e95fd17ced0ac9186c00016ffbcdcc19088e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-02.json",
+      "sha256": "68b1ee1d7a37e636013135512c6486a4686acfdf9741413ebf123997030a0140"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-03.json",
+      "sha256": "a61dc8a53e16fe310035f46bdf1177d2882eb0e0c1488b99dc9945e0f081843d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-04.json",
+      "sha256": "02898987f685dcfe0e47471dadd0eb794664b48f2051df27e0104568d3e25cba"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-05.json",
+      "sha256": "31ee9d36d96275cef4d97fbef2215a8d261fa395b99cb49eda02c4bb657a63b1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-06.json",
+      "sha256": "bb53ce1681120e3ae0aa02014d043ca9c0ffc7f3c847d5deef63c8bfc1f75718"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-after.json",
+      "sha256": "33bfc2ad79a6e0301ad473af3df07cef32e666081b44115fc9787851e105a590"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-appearance-prepared.json",
+      "sha256": "201f0755f094be7ef5146c254443a2c915b6a297a1550b1279a69f314469256b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-appearance-request.json",
+      "sha256": "637ec74c75f2695ff9c477f9de41274fe0660245498aad35c61b7cf3c3572749"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-appearance-restored.json",
+      "sha256": "3b62e1d3315fb0a9ca2fd9c53ffecc4a5379074c4f40c70f261536d3503a6a16"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-appearance-result.json",
+      "sha256": "19ce2e4ef4f3531a4891c6463f97aecf3a2de351eb2a9bdb444ca71fef43e219"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-before.json",
+      "sha256": "ce371c627fc0b7f633b8ff202f1f9fd2e34eb8b625ceb521f914962f299e3464"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-done.json",
+      "sha256": "3e4b694e0cf90de0f9dc7e8702ccede15355dc6c557014762785a510fa7a8db6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\native-perf-surface-request.json",
+      "sha256": "3adff7c4310432b826ec91d68c69d586f26351307a12aab3cf6df5a64ae6bd0e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-wgc-activate-owned.json",
+      "sha256": "f1c7fe2cb2142383c2d49ce5bf140cd519c37fa2ba921f758a771f081d45ff15"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-wgc-dark-visible.bgra",
+      "sha256": "0ba58004aa7e47220dfd931bacb83ab22e2aa5022fa4aa1cc5a337a6f768a07a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-wgc-dark-visible.json",
+      "sha256": "a236737f810c92b9b6a61752fd3f9be909b0112f8275cc431043402ea922479c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "cd774ff70755fd634c2d47ff366f384cc735741886902ee920bfdb4dcd6416ea"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-activate-owned.json",
+      "sha256": "6798b62e8db4357bd4fdc4554f05cd5358b613c253d22ffb0f517f460f83192c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-dark-visible.json",
+      "sha256": "6798b62e8db4357bd4fdc4554f05cd5358b613c253d22ffb0f517f460f83192c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "6798b62e8db4357bd4fdc4554f05cd5358b613c253d22ffb0f517f460f83192c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-activation.receipt.json",
+      "sha256": "e4c683bc0773c24e6829233f238575c2dde65ea05ed24a6d6a94610dce5683a0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-activation.stdout.log",
+      "sha256": "9d9c8372752782abef0f1891b6602d43c381a24dec638c25ea505634904bf810"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-capture.receipt.json",
+      "sha256": "35a90b111c4ccf752f4e7df0b67f7a90debe5eb62b51caf2560653f79d9d3ab4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-capture.stdout.log",
+      "sha256": "d59e7a2a75be478779f803e0f7e6a7b44cb3a3d90060b4a6ac5af7ef63c78bcb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-identity.json",
+      "sha256": "6fa302fa29138f75aeafc70eddb9e371ef727e4f25aa49d37923c6c1f93d4688"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-identity.stdout.log",
+      "sha256": "e112df261aa3808faa91c1d4557b36fb7be07ce89c7be9ea04caa9c640459eea"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.receipt.json",
+      "sha256": "b3799cff0891ac573292758b8aefcbcb981ec5d6fff8bac1f6e0e37534565e3b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\surface-minimize-restore.stdout.log",
+      "sha256": "b35123cdd2c4b7505ccc60a851fcdd09abd207bcba19e5c0d5787d94f67c4b3d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "0869c71b8aadfc74609f6fc1a550b7a9b7287d093df5acc1599ac19801b20a7b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "a7b6cb1be506d996e9ca5f86e09d7b2e09f9dfd45881edaf0cc67dac320b7d83"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "c75c9edef953e02a3112217fc0c33f1226a377712596e8200c307ff667506f90"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\accounts.bak",
+      "sha256": "339058aa0b03ad1ddfb7dd8a3779e3a32ace1314d509a306c2a0834765b4d8e8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\accounts.json",
+      "sha256": "c85ad04c79b063bbf00734a93f8a4a5aacd6f6d0eb4dbc1786bf2802169ba471"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\vault\\ui_preferences.json",
+      "sha256": "6d1343dbd2dde7f5a5495db26207f3103d84ef19336acc7ee2b0396b1753d3ae"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-auth-attribution.json",
+      "sha256": "ebcea6db175e8f1a2c4b5086ff1238f6fa5cf44cdcaefb51d5d46f53234b349f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-consumed.json",
+      "sha256": "8acbb51502acaba9cbf87022ebb09264338e502250fc8c2ffc1fdacb762dbb31"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-maintenance-admission.json",
+      "sha256": "942aa6848f7df5ada323327612f9aa66fc7895bf788d2c0ae9b252111f824e3d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-owned.json",
+      "sha256": "a327f29064fcad11a44b3a78e32ec803c843773f23b0b0fe5a7f214945b4e4fa"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-permission-commands.json",
+      "sha256": "f227b951404db577753d86ba84c611c93cf96a21261d1305c4a78868f7b37210"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "sha256": "4f7f2ed3e06a0cd191915be11c0debc658a73cd7d790fab43c91993e269682a6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "sha256": "48632758840a837bada4efab4d949e23e3552583ad926ca444f5e05cd2cd2b54"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "sha256": "fc07d32a162ff4753cb421d6a520f316b0b915f1b5132003b902f0244420c2cc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey.json",
+      "sha256": "fdce4b955a279ec7b5cb4381b435d56d30993b60cbccbf7e95a1f49021ec10bd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-01.json",
+      "sha256": "8efa13a993355e004c17cf2d19a38fe4f1b3269f88328aba776dc645d9f91b6d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-02.json",
+      "sha256": "0e64ac9f104959ed09562724181fd05cad207ba8386c091fb55c11fbbeb3d9d1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-03.json",
+      "sha256": "15275bfccb9053c494176af90110c9b6e789ea8ef3f215f068f8490f99eae8a3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-04.json",
+      "sha256": "0b32fb45977e877ef52a54cd2bf468ddfd1a9ef55fc9c680fa43b7d2bc5f31ae"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-05.json",
+      "sha256": "2487acd499d26887d84baeabeaf5b2b2e277aa2a5630d9c728f19de007222425"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-06.json",
+      "sha256": "37a45b938fa3c69e59e5563eb8d0b7055ea8f3b242bf74f3f42a4b8bb40cb392"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-after.json",
+      "sha256": "7974a02227c9e0894de7ec08e8338f3286ce4280d9cf45bb661a61601b6ef1f5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-appearance-prepared.json",
+      "sha256": "32b2c57902cd27d220e9945f61f3fc0e9343a56fa59d7646dcc1bf93de716d19"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-appearance-request.json",
+      "sha256": "3b8f48e28e39b00819896882acbf1f42e178e76bfe306c5692ca40082f6ddc01"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-appearance-restored.json",
+      "sha256": "38afdcfe14f751af78bf8474d078a152810d148973050d4e9e47ec9d76b6bc7c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-appearance-result.json",
+      "sha256": "9789a00b888e77ee49483043e360dfc7163ced3627710f2e2c40fc4bd1ea5dc9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-before.json",
+      "sha256": "79b78876abcb8ed941b31a7e0b031bd5c5f0b705850e6fb519f7b547db44b215"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-done.json",
+      "sha256": "2b1445a91f23a49bd521764711b759f434b92cf0484e0455dd6589adfae0b3a1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\native-perf-surface-request.json",
+      "sha256": "7e1398d570a0fbc7b64f6f9baa1bc8cc7aa8d6d155e5cc95082f36b0812b39bd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-wgc-activate-owned.json",
+      "sha256": "e96c3bd1cd7af73d0f43e9fdfdeb9047239f3889e364c87f3a7bfd97f9ebedad"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-wgc-dark-visible.bgra",
+      "sha256": "0ba58004aa7e47220dfd931bacb83ab22e2aa5022fa4aa1cc5a337a6f768a07a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-wgc-dark-visible.json",
+      "sha256": "dc8772421b7dcd14674ed6c7c17f14778e5a4f0e14ae6583bd3e6733b17bfac6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "ba76b4e68ff777902038743b69d9c312549c144c8807f59aa14a6d972c3d6201"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-activate-owned.json",
+      "sha256": "e42bdf4c6e4434a15e2e327573f1ad15cb18879d1b47db54d4d15a427ef327b4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-dark-visible.json",
+      "sha256": "e42bdf4c6e4434a15e2e327573f1ad15cb18879d1b47db54d4d15a427ef327b4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "e42bdf4c6e4434a15e2e327573f1ad15cb18879d1b47db54d4d15a427ef327b4"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-activation.receipt.json",
+      "sha256": "91b350a36d920b29688a170282c59909b961192aafbcb0e8bd6e17e15967bf46"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-activation.stdout.log",
+      "sha256": "2bdf9713750b2a3e9b0179044eb841799c17242e6e17896fa5c8d8ecb1e46b54"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-capture.receipt.json",
+      "sha256": "567cfbc7dda64cb670c7a5e13e0fe32b73835c2c35f19d9a35ed81a18e67da73"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-capture.stdout.log",
+      "sha256": "ef0f4901d13f26e6b95eb1c957bc5e633a003f5ebb13da149dec605cf09a95d0"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-identity.json",
+      "sha256": "ade1d35fdf63fed0e9fa82a0f5029af67f3de00f77dc8a218f7494010257ac82"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-identity.stdout.log",
+      "sha256": "b66dd88765cadeb7a1530e884ea2526ee8cfc5f984aba9961ccc00a9b8a0148c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.receipt.json",
+      "sha256": "93b9ab36ee92b4d40c0d181071f6c411da8a55b1b009a24e8979eae0e85ff75b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\surface-minimize-restore.stdout.log",
+      "sha256": "2129a1af407f740343835b78116d8bcb926023b8f28ad4beec6469bb62f8f148"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "97ac9d35a025a3c37f712d58d94a03ecec3ec3f9607c0b719181399c22307b99"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "ab85dfc17d912ba66acaa6ccef4f62a135aef396c1bb166f763c830ffe9880f3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "e55f7364ff89fcea305a3aee4e74b20ac2ae3551e54330a69f221c4258dcb45b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\accounts.bak",
+      "sha256": "6151a191edb4535dfe46569800f96f0ba6853d2984bf6c97b6b4b8d8126b5056"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\accounts.json",
+      "sha256": "419532baca85c99d55c50dfcfdc9c4a91e101993fe51308c21f33c92c76b2dfd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\vault\\ui_preferences.json",
+      "sha256": "1e8242910fd0cae3efbe08bd7f937cc20edc256513d33fdde29d3988550bf6a9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-auth-attribution.json",
+      "sha256": "db75e976bc4150a9ca37ac7767397f4904b2aad9f9540b72f2d41e9d5fe437ad"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-consumed.json",
+      "sha256": "7976d285ebab2cee9eb8b12ba4526736771547e053731726c99e401d4467653c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-maintenance-admission.json",
+      "sha256": "7cae5096ffc91b1c3cb4d4d6a6f666a264d1c6a272a23524a2fea6a604985618"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-owned.json",
+      "sha256": "21fd1867a5d6fe7a41b361fc01626c0a85989d2c59ea2c7b38a65b084e01e8c7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-permission-commands.json",
+      "sha256": "69c908c1c76a7942526fd2287e03e20e275c8da2c1ea1c4366c49cecdbceef67"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "sha256": "e8d33e2077997c19e2fed319e6c587ec9b089badcecf6b9acd49031b8f661c29"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "sha256": "d2c21999bff3765b2c82e0a1480223f632ac86344d2e6e9c8d2db67df80471d3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "sha256": "9326930bee6088470966ab5f0e2b50d4ea7cd77d042cecb8c4cae5f39edec7df"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-journey.json",
+      "sha256": "925803aa268a013aed509c110393ac8a35afb0457c79f2129aa8ede944393177"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-01.json",
+      "sha256": "ab8fef22d03a2b8d5f202b80990935db3277edbd7e3c6291b1d64e746d377505"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-02.json",
+      "sha256": "14e2d8804d5d031ea55fb75ca8bda6eaf0ce474082b02bf7185cf63338def03c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-03.json",
+      "sha256": "4def8330c794fdc42abe21732c937dd103e43208aacb9055bd58d83cca3bcc83"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-04.json",
+      "sha256": "dc81229d7c909ba4a8e4d3930f222b29fc346b7f2dec59d31d3ce928155a2eec"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-05.json",
+      "sha256": "53ddd2307327757a0529ecc9bb5cf0dc9549653b329d31fb59fce9a9094f7ff3"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-sdk-phase-06.json",
+      "sha256": "96d81e8f5c74b8de871337d0963a1832db91b6439360911196a00f62f4dc3b3b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-after.json",
+      "sha256": "4231184bed4b55d1ff36993233cc82968e75d7382f682ceb766bbe56c1a0614b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-prepared.json",
+      "sha256": "0d33551232cd5aec2648ed4f4eb909afcda1953b9ad39897a54a68b90bc990bb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-request.json",
+      "sha256": "13cd6388041c6b6fd95c916721b1a9d7f83109a96a7bea4ad373a17fb32182cb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-appearance-result.json",
+      "sha256": "965bcc8e188d19dcdfb2dc49988b9c3d153af982ea01938bb55cd6c14203c3bb"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-before.json",
+      "sha256": "8d5cf00e26eb2a28f4e6ed422540f41d437c1384589041b538e66c34910fd682"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-done.json",
+      "sha256": "976ebc795be5e54739b3f13c25430aa74b756d4c3fac26f5ded8fce903a95e11"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\native-perf-surface-request.json",
+      "sha256": "09cf4b2c0bba8ecf9b7ef990836a5585997651d309a2f512d1461039938d1e16"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-activate-owned.json",
+      "sha256": "a61cf3a206ce9d0e222467c665efe6cf09df398b35d7ae199432e23a86435612"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-dark-visible.bgra",
+      "sha256": "84c553a7486b4507ef254ecefc5af910a483b92ec0eab63d8a93edb0253bf1a6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-dark-visible.json",
+      "sha256": "969d24f3400bc1ddac7fe1df323e6eeae86f65e4f30649bd2821528c4ce45be9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-wgc-minimize-restore-owned.json",
+      "sha256": "02b69ca1a9e623cd43eebe4f6536473def740e43ef161b3ff5f97078506296d7"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-activate-owned.json",
+      "sha256": "3dd297fb0312172a03a0fe4a81cb3269c80f4c8a2c923b60d12c776c84ced598"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-dark-visible.json",
+      "sha256": "3dd297fb0312172a03a0fe4a81cb3269c80f4c8a2c923b60d12c776c84ced598"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\rf121-window-inventory-minimize-restore-owned.json",
+      "sha256": "3dd297fb0312172a03a0fe4a81cb3269c80f4c8a2c923b60d12c776c84ced598"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-activation.receipt.json",
+      "sha256": "b7411ded69b41135c2a0dc30435e1d214c43bc64f1d8784d90e439b3454e558b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-activation.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-activation.stdout.log",
+      "sha256": "3f7f6968aa430fb0b9fd7fcaaabaccc1d2332189266c644841c37b145168e59d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-capture.receipt.json",
+      "sha256": "86b96bcf2c3bc4133b8bd17d1a4d9c281904ba888591d271e8aa6924ef09f7d5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-capture.stderr.log",
+      "sha256": "c1e395504f35d0b3dda9a5c4f3d8aaee68433cbf349a25a13fa36651e0d41b76"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-capture.stdout.log",
+      "sha256": "5a05580431ba45461640e075d0582a66d974d2b8d2e332763ffaf589745cd393"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-identity.json",
+      "sha256": "0c28b066988077711af2e65deffc173aee4e40a62eb56772a3d74c2b19519d3f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-identity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-identity.stdout.log",
+      "sha256": "4c4850558a2f8adfa87589525ddbf43c788be70147d395d28b02848a253bb808"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.receipt.json",
+      "sha256": "b4a7cd62dc57459ca321dfede3439686aaaaef431ecd67245e237b6d9a1c2c61"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\surface-minimize-restore.stdout.log",
+      "sha256": "6d59dcfa949604c09a1f628aabf078e8a949fa2e82702035d71726d52a3fd137"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "46bcb825a7ff389f1441e3bb32b03002271cb29fc47a63b983abb09c1cc2a227"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "c0c68df82258c0e728a1ae4b343a07aa8c00f09334a4a2475caf1d8020afe6ca"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "7c8802eb6ff4d6bffdf871e87f6d96ef5113d2d849fa6215f97d46fa8e2bb9cf"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\accounts.bak",
+      "sha256": "24dba92f710598d17360f9a8ac89ff2c232d5e9dc7518a744d688b82628f00a8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\accounts.json",
+      "sha256": "cf85c3a97ea9c758bc1596f9f0b93ddbb4c276ef188eb2b399371b9b8b463c5d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\vault\\ui_preferences.json",
+      "sha256": "c1cf19f50ef3e2fceae1566c1c28e7c2602413e91fffd9f7196260e71b3aa21d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-auth-attribution.json",
+      "sha256": "65e8d33b94b1ec067bf086a843f34dc5b966c4f08ba49727911bf042104b5381"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-consumed.json",
+      "sha256": "a301d28f7b10ce0a8a98d69cc01d8b0fe5877ae01d0aaa3398c07f5c1bd1bbc8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-maintenance-admission.json",
+      "sha256": "ab1bae239e7ebb25ba423c4437a276576d1b4b9b7aff88cab380a7d51f6f0ac1"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-owned.json",
+      "sha256": "b9b8c964d56d7cc6b5cdf1a12e8595393716b484aaf2dd5b16da4c26612898e6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-permission-commands.json",
+      "sha256": "a8c0134b91977ff08158dcf57f35ff2d87604066eb26a181b352eb58f5f09993"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "sha256": "2ba51cd5af2c9405ad22391abba68b39da03d58c673770ad2e7227556b06e33d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "sha256": "677fdb6f318cb564217b011cf31b8b46e0f4ded3acf2f961e4989cd08c247c92"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "sha256": "68ba19a071a2d836f2096095063f69c65093c5a36f41ae4d034aed6264d37176"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-journey.json",
+      "sha256": "107a09fe5186c1f12aea781b7d92bda8cb7473d6dce82f5c4ca71d7a9bb48496"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-01.json",
+      "sha256": "27a1d0d4ec46d0ca207cca3d974d357541f26cf7ad335de4ccb1bd378ebb09e9"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-02.json",
+      "sha256": "132efe38477a2ebb7dcf0c861c550a3901e4c845d89398f680371991fce5aebc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-03.json",
+      "sha256": "6b7f74393527b9bc203b88666cd8a858521259c96d8fa13c2ceac439c2e5b7ae"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-04.json",
+      "sha256": "63237e5ca160df8aab4439683e5af06e0a912993ac8045935bff604e6d759168"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-05.json",
+      "sha256": "fdc5b979b35a1114792fb76fe077136b7bdbcef06d0f32721dfbfb6f086ccff2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\native-perf-sdk-phase-06.json",
+      "sha256": "41279f845345dd6347913d33ca08631d5bb9fbb8da5dd0aef69e82d7499e7dfd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\surface-identity.stderr.log",
+      "sha256": "51f49faf92ae3ca18773be1472f6160cfeaf0480751ec2834618486640ada6fc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\surface-identity.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\config.json",
+      "sha256": "8452098cdd29f3e9973b74ef137903ad397b996e41f84941e67f6fabd1cb08c5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db",
+      "sha256": "3f09456086a196db23b66dff40061da6a973adabdfe416660a88eed4412ba149"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-shm",
+      "sha256": "40af4dec247e186ee52f3235676bf19147000d200530330efaeb2b0e298d648e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\acc_rf312_100\\vault.db-wal",
+      "sha256": "286b3cc703a6e33794d636cb4ee78bcd958c14824c87aa3b055ffbc3c3ce4c70"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\.lock",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\accounts.bak",
+      "sha256": "cd37f5604e9d3b638713e1543d408eadfacc862fbd1a5838d782ab61a5dfde5a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\accounts.json",
+      "sha256": "5fc806a0a465dd90c0db7aa0f608a403d330399d4b8147529eb03f8f7e09dd01"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\rf312-fixture.json",
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\vault\\ui_preferences.json",
+      "sha256": "eaf49c239e263ff98995a3b3b58d138a0a8f24e8b8d99e2ca9c494b10c18dcc6"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-auth-attribution.json",
+      "sha256": "264d469ae86f836dbdd08e450b630b269d44ca2530f137ca317f865313de3558"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-consumed.json",
+      "sha256": "6e0bb61e176a7d9d2f24bf4dda9f5ee39fb1d6196c6f299a57ef1150ff41fdcd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-maintenance-admission.json",
+      "sha256": "1d39e2b27f694f2030ea834713cf4e89c87c45e2d7c940e93b53ab6c69c62079"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-owned.json",
+      "sha256": "24eba93c7974897131200dc80f0eaff69c2014936239e750f5ca0d1cac06463b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-permission-commands.json",
+      "sha256": "3651e86cc7ab786ed32a39dc18455faaf8a9452b218bb5b8c4b38ece8cf3c205"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "sha256": "bfecd83b238f86f9da445fc3afece71a4ef401fdcd8bde144c72fc78929077cd"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "sha256": "efe0c7df3f58441fe7aacc05f38566a3811ddc26bd1e2b57fe4613ada988a7ad"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "sha256": "855335f52f158c8e12bedc1ff63c614ca1d52453373dcdf97a7d6e083d942799"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-journey.json",
+      "sha256": "f47fba18f7a438fc30a3ad7b293b25797f38afb9d97b1e38df46505686fec178"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-01.json",
+      "sha256": "d2421532c962f1d52787a4ed65194d34d60a3f465a47019c068a535d8749332f"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-02.json",
+      "sha256": "a956098131b0556ec40cc43edfef45d6189462f0510f3ba9f5ab413b0bb85d6e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-03.json",
+      "sha256": "6753c16588555e7efd2d32bd0fb33929a306e0f4f23ff77401fa7e6d50df54b8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-04.json",
+      "sha256": "4d7583dff58e6fa3dbad20d28bf200b5229afa42952109c22ba2a22a914be072"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-05.json",
+      "sha256": "3f103d2dd42d37739bcb01a9a3babb7aed5d6d2c21e8bdf28a6c3cf9c800871d"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\native-perf-sdk-phase-06.json",
+      "sha256": "0519383def6ce91a15a3311afa23ff1eb847dd1ef1a6617d1b363685f706f0d2"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\surface-identity.stderr.log",
+      "sha256": "51f49faf92ae3ca18773be1472f6160cfeaf0480751ec2834618486640ada6fc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\surface-identity.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "applicationLogs": [
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-001\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\baseline\\100\\sample-001\\app.log",
+      "sha256": "daab94f2446f2a8823184cebbd9e8cdf6b157ba154c6a12c476635cc4c14a95a"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-002\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\baseline\\100\\sample-002\\app.log",
+      "sha256": "04aecd5baee5c022eede6d2f523ac2d591a1f9340b58ab541608a8fcfd1a4729"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-shared-20261011\\actual100\\sample-003\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\baseline\\100\\sample-003\\app.log",
+      "sha256": "b3e459cf23158153cdb6a57c80f0d91fcd308800a555a966e4b6d688aaebcc3f"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-001\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\light-collapsed\\100\\sample-001\\app.log",
+      "sha256": "69121a570a399f8cb3380ee2acf60ebdad23f5713b96827be29bc3502dbdf353"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-002\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\light-collapsed\\100\\sample-002\\app.log",
+      "sha256": "536af631c04b989a7d24d8601e869768f6b8281c63eff1d2a504cbd85fe55595"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-shared-20261011\\actual100\\sample-003\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\light-collapsed\\100\\sample-003\\app.log",
+      "sha256": "376f39f0b4909615d6a3026a2d8189cec536b8e8f73bb5d85b7000b02e4aa895"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-001\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\dark-expanded\\100\\sample-001\\app.log",
+      "sha256": "53ef3043e83d3a5f71199bb384189aa70736887f8322bed60cef7f3f9a8ab743"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-002\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\dark-expanded\\100\\sample-002\\app.log",
+      "sha256": "3e4ef9711aece946a6118685b8a72dd52f520a3d3845c9cc12047f05cac65ee0"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-shared-20261011\\actual100\\sample-003\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\dark-expanded\\100\\sample-003\\app.log",
+      "sha256": "c41749df34bbadb3e359f4469e735e5dc3d5b6c7285b2d5f3ca946b48dcc4179"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-001\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\dark-collapsed\\100\\sample-001\\app.log",
+      "sha256": "ae9fa8d6346aac59d1d35059d5a5df8fc51dcf9cf338bb16c6e725405bd8afbc"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-002\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\dark-collapsed\\100\\sample-002\\app.log",
+      "sha256": "1f72ea91b62af2dfd85ec43aa53cd6179a1468556002ee5828226272f0521063"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-shared-20261011\\actual100\\sample-003\\app-data\\logs\\app.log",
+      "copy": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\application-logs-rf1128-shared\\dark-collapsed\\100\\sample-003\\app.log",
+      "sha256": "adf0de72a22083a68b148130a8653d3a162a3e06ec52c709617173506d4015d1"
+    }
+  ],
+  "preservedBytesVerified": true
+}
