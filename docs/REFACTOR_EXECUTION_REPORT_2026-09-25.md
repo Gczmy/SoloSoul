@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-11（当前诊断GUI重建成功；首轮基线home探针超时，RF-1127/RF-1128继续待验证）
+> 最后更新：2026-10-12（同GUI复核基线通过，浅色折叠恢复拒绝；已转console，RF-1127/RF-1128继续待验证）
 > 当前分支：`codex/rf1104-update-preference-leases`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -122,7 +122,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**319**（P1：56；P2：262；P3：1）。
 - 已关闭：**307 / 319**；实际修复（已关闭）：307；排除：0；待验证/阻塞：6（RF-112、RF-121、RF-312、RF-1109、RF-1127、RF-1128）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093、RF-1094、RF-1095、RF-1096、RF-1097、RF-1098、RF-1099、RF-1100、RF-1101、RF-1102、RF-1103、RF-1104、RF-1105、RF-1106、RF-1107、RF-1108、RF-1109、RF-1110、RF-1111、RF-1112、RF-1113、RF-1114、RF-1115、RF-1116、RF-1117、RF-1118、RF-1119、RF-1120、RF-1121、RF-1122、RF-1123、RF-1124、RF-1125、RF-1126、RF-1127、RF-1128、RF-1129（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-1129诊断已完成；当前GUI从1839来源重建并冻结38份前端生成资源/94运行资源，首轮基线sample001在home探针超时，另外2次SDK行程成功但无窗口采集证明，整轮不接受。24个精确缓存已清理，原件保留；下一步同冻结GUI完整复核此新失败。RF-1127/RF-1128及RF-112/121/312/1109继续待验证，RF-122～127前置未关闭。
+- 当前处理：RF-1129诊断已完成；同冻结GUI复核基线三例capture/reader/render全过，浅色折叠首例最小化恢复未满足前台门禁，标题栏候选点未命中目标HWND且未发送点击；该点占用窗口归属尚无记录。整轮仍拒绝，48个精确缓存已清理。用户tscon转向console会话1后Default输入桌面可读，但Computer Use激活失败且截图错配；下一步使用原独立原生驱动在新console状态完整复核，不以Computer Use结果替代WGC门禁。RF-1127/RF-1128及RF-112/121/312/1109继续待验证，RF-122～127前置未关闭。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -7946,3 +7946,12 @@ git commit -m "<任务卡的提交标题>"
 - 已有timeoutDiagnostic通过同frame/loader绑定核验：末次仍为login页面，pointer2/text1/untrusted0，文档focused/visible，密码输入与submit均可见且submit未禁用，前端observer没有login调用。该快照没有固定按钮click目标/处理器接收或受控表单状态证据，因此不唯一归因登录按钮、窗口焦点、外部激活或生产代码。补充文件时间观察与原归档SHA绑定：本次授权文件时间晚于激活完成receipt，不能据两个外部流程均等待bound就声称本次发生输入并行；文件时间也不作为跨时钟性能指标。后续先用同冻结GUI、同检查条件完整复核，不修改输入/恢复次数、预算、nonce/身份/来源门禁或旧失败。
 - 三个SDK实例均cleanupIntegrity.complete，清理前实际核验27个进程身份；24个精确隔离缓存删除、3个内层联接解除、78份Vault/根证明文件SHA保持，3份应用日志复制保留。清理工具终止进程0；用户开发版应用单独只读列出，未作为输入、采集或终止目标。没有系统设置改动。
 - [当前GUI失败结果](verification/rf1127-current-gui-home-timeout-2026-10-11.json)、[121份原件索引](verification/rf1127-current-gui-home-timeout-2026-10-11/index.json)及[文件时间补充观察](verification/rf1127-current-gui-home-timeout-2026-10-11/sample001-ordering.json)包括实际构建/源码与dist冻结、全基线原始SDK/认证/身份/激活日志、全部失败和精确清理，原件长度/SHA回读通过；物理Vault、EXE、模型和缓存排除。此记录仅RF-1127独立证据提交，不推送；仍 **307/319关闭、6待验证、6待执行**，goal active，RF-1128文件符号链接权限门禁及完整RF-112/121/312/1109范围保持。
+
+
+### RF-1127 同GUI复核与console切换记录（2026-10-12，仍待验证）
+
+- 基线 `067fe8c7a`，沿用同一GUI SHA `6f9e1c33a449eafd3843549b56db8e5c3ecee5f24157416ed655ee4a66a0c682`、1839来源及原身份/来源/输入/恢复预算门禁。四组队列实际执行两组：浅色展开三例capture/reader/render均exit0，三帧独立接受；浅色折叠首例窗口恢复失败，另外两例SDK及原始采集完成，但该组reader/renderer未执行。共5次SDK成功、1失败、5份原始像素，仅3帧独立接受；深色两组未启动。不能拼接历史成功关闭完整矩阵，也未重现/解决上一轮home超时原因。
+- 浅色折叠sample001的窗口几何/DPI/样式/Mica属性前后相同，身份核验保持，最小化已观察；恢复后前台门禁失败，captionActivation原错误为caption-point-hits-other-window，inputEventsSent=0。现有证据仅说明WindowFromPoint不等于目标HWND，没有占用HWND/PID/root-owner记录，不能归因为其他应用、RDP栏或本应用子窗口。原恢复助手已使用非激活的SetWindowPos(HWND_TOP)，不能把同操作当成新增修复；保持拒绝及原预算，不放松点击归属检查。
+- 六个SDK实例均cleanupIntegrity.complete；清理前54个实际进程身份核验，48个精确缓存删除、6个内层联接解除、286份Vault/根证明SHA保持，6份应用日志复制。清理工具终止进程0。基线sample001当前PNG已人工查看，另外两帧不称人工验收；未执行深色、完整辅助功能/长内容/多端或性能验收。
+- 用户随后执行tscon 1 /dest:console，当前callerSessionId/activeConsoleSessionId均1，quser为console Active，OpenInputDesktop可读且名称Default。原生Computer Use实际能枚举应用、启动自有测试计算器并读取控件树，但两次激活均failed to activate captured window；214×316截图实际为Codex侧栏，明确拒绝该截图并未发送点击/文字。只读会话结果不代替实际像素/输入验收，测试计算器核对PID/出生时间/路径后已关闭。该桌面状态变化允许原独立驱动新的完整复核，不改写旧轮结果。
+- [本轮结构化结果](verification/rf1127-current-gui-restore-retry1-2026-10-12.json)及[328份原件索引](verification/rf1127-current-gui-restore-retry1-2026-10-12/index.json)包含两组全部原件、三张基线PNG、五份原始像素、原恢复助手源码、工具/来源、清理和console能力观察；全部成员长度/SHA回读通过，排除实体Vault/EXE/模型/缓存。此阶段仅RF-1127独立本地证据提交，不推送；仍307/319关闭、6待验证、6待执行，goal active。
