@@ -42,3 +42,8 @@ API31首次启动超时、第一次来源检查的Cargo换行差异拒绝均保�
 诊断字段forceDarkStrategy保留公开getter的真实返回，但不是实际策略读回：当前1.14 AAR字节码显示它委托getForceDark，原读者期待1而失败。记录中保留0/2及这一限制，未更改生产依赖；[AndroidX源码](https://raw.githubusercontent.com/androidx/androidx/androidx-main/webkit/webkit/src/main/java/androidx/webkit/WebSettingsCompat.java)提供交叉核对，当前安装版本以本地AAR/JAR哈希和javap输出为准。主题验收仍依据真实媒体、CSS、系统栏及像素，不能据此声称读取策略1。
 
 生产Kotlin、测试APK和10项既有单元实际通过；ZIP中全部资源和JNI与原件SHA一致。16次私有文件和设置恢复，专用模拟器正常退出；97个明确临时文件已删除。[本项证据](../verification/rf1126-legacy-webview-theme-2026-10-11.json)保留来源、原红灯、读者失败与最终结果。这个修复不代表物理设备、其他provider或完整跨平台材质/辅助功能/性能矩阵验收。
+
+
+## RF-1109 当前API35首页检查
+
+RF-1126主题通过后，原首页baseline/cold双模糊配置补验仍四组失败：增强画布ready=false/canvasVisible=false，冷启动第二阶段未执行。host后端实际为Intel UHD Graphics 630，但WebView124日志仍记录WebGL1 blocklisted，不能把模拟器硬件后端等同于可用WebGL。四组私有内容/权限、系统设置与通知权限完整恢复，自有设备正常退出。来源/APK、失败原件和独立恢复核验见[本轮证据](../verification/rf1109-current-api35-home-2026-10-11.json)；RF-1109及完整RF-121仍待验收，未修改生产/测试代码。
