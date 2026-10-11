@@ -7984,3 +7984,12 @@ git commit -m "<任务卡的提交标题>"
 - 用新冻结助手、同GUI按原完整四组队列真实执行首组。三例SDK均成功并cleanupIntegrity.complete；外部三例都保留caption-point-hits-other-window、foregroundAfter=false、inputEventsSent=0，独立reader/render及后续三组未启动、实际窗口像素0份。每例新增元数据均记录point522/18、hit HWND1115524/PID20684、root/root-owner HWND852170/PID20684，与目标PID29780/22228/19984及各自目标HWND不同；hitRootEqualsTarget=false。前后台只读CIM名称/路径/出生时间映射到当前Codex ChatGPT.exe，不把结束后光标观察当成这次命中证据。根窗口exStyle后续查询无WS_EX_TOPMOST，不能据覆盖现象声称置顶或唯一解释抬升后仍拒绝。
 - 本项仅关闭诊断缺口，完整RF-1127/1128/121/312未通过。清理前27个实际身份核验；24个精确缓存删除、3个内层联接解除、96份Vault/根证明SHA保持、3份应用日志复制，工具终止进程0。未操作Codex、用户命令窗口或原用户应用，未增加任何实际点击。
 - [诊断结果](verification/rf1130-caption-hit-diagnostics-2026-10-12.json)及[168份原件索引](verification/rf1130-caption-hit-diagnostics-2026-10-12/index.json)包含首次失败/修复后检查日志、完整原/新助手源码及共用模块、构建和来源manifest、实际三例拒绝点和SDK、工具和精确清理；全部原件长度/SHA回读通过，实体Vault/EXE/模型/缓存排除。独立本地提交，不推送；308/320关闭、6待验证、6待执行，goal active。下一步需要在当前桌面解除覆盖后完整复核，不放松原门禁或反复同条件重跑。
+
+
+### RF-1109 console环境API35完整补验（2026-10-12，WebGL仍不可用）
+
+- 基线 `b71df15d0`。用户tscon转console后以专用API35 AVD、私有ADB端口5049、原host GPU/加速/预算冷启动，实际启动成功；当前WebView124.0.6367.219，SurfaceFlinger仍为Intel UHD630的Android Emulator OpenGL ES Translator。不改系统/驱动/WebView，不使用绕过blocklist或软件渲染充作硬件验收。
+- 复用RF-1126同一主/测试APK，字节SHA保持。旧构建manifest1837来源相对当前有三处差异：Windows-only native_perf/sdk_surface_appearance.rs和两份外部Node偏好验收文件。lib.rs的native_perf入口受feature及target_os=windows共同cfg，Android不编译；Node两份不属Android/React构建。保留原artifactBuildSourceFiles和新的runtimeValidationSourceFiles、三处旧/新SHA及出处，明确allArtifactBuildSourcesEqualCurrent=false；1837当前验证来源全过程冻结，不宣称旧构建manifest与当前全相同，也未重编无变化的Android栈。
+- baseline/cold × supported/fallback原四项实际各执行一次，**4 failed / 0 passed / 0 skipped**；均首个enhanced-light ready=false/canvasVisible=false，cold第二阶段0次。当前实际logcat再次记录WebGL1 blocklisted、ES3.1/3.2 EGL_BAD_CONFIG，不唯一归因驱动/应用。早期沙箱内只读logcat探针Python退出1、未留ADB原退出码；随后主机只读探针exit0及完整原件保存，未重启native测试或改写首轮失败。
+- 四次均249项私有目录内容/链接/模式逐项恢复，夜间/字体/blur/通知权限设置恢复，原严格reader逐项拒绝失败，原before/after快照和报告SHA独立核验。只人工查看本轮baseline-supported的local-light和failure两张PNG，正文正常、加强失败仍显示盾牌降级；其余图不称人工验收。精确身份核验后专用模拟器正常退出、两个专用端口释放，退出后CIM模拟器清单为空。
+- [console完整补验结果](verification/rf1109-console-api35-home-2026-10-12.json)及[69份原件索引](verification/rf1109-console-api35-home-2026-10-12/index.json)包含四组所有失败/恢复/图像、当前实际图形日志、原/当前来源与APK构建出处、工具、正常退出和新source隔离依据，69成员长度/SHA回读通过；私有TAR/APK排除。归档核验后仅删除8个精确私有备份副本，[清理回执](verification/rf1109-console-api35-home-2026-10-12/cleanup.json)保存其原SHA、路径及全部祖先检查。此阶段仅RF-1109独立本地证据提交，不推送；仍308/320关闭、6待验证、6待执行，goal active，API31/完整RF-121/312不因此关闭。
