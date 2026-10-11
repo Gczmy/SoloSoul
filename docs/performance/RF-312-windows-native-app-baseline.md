@@ -6,6 +6,8 @@
 
 测试程序在创建 Tauri Builder、插件或线程前检查参数。准备模式只复制已验证的 100/5,000 对象合成数据，以真实 VaultService 解锁副本并验证对象、搜索、Profile 和偏好；源数据只读。每次只能创建绝对新目录，最后发布 ready 标记，运行时核验内容 SHA 并原子消费一次。已有目录、链接、源目录内输出、错误 KDF、篡改副本及占用端口均拒绝，不回退默认路径。
 
+consumed 标记先在同目录临时文件中完成 JSON 序列化与文件同步，再以禁止覆盖方式发布最终文件；消费者看到最终名称时即可读取完整负载。最终标记已发布后，即使 ready 移除或 GUI 初始化失败，也不能重用该样本。发布失败不会覆盖已有标记，普通序列化/发布错误由临时文件机制清理暂存文件；读者仍严格核对 JSON、runId、PID、端口和原始身份。
+
 每轮具有新 identifier，并原子声明实际 Windows Roaming/Local Known Folder 下的同名新目录。Vault、日志、导入暂存、插件、模型与 OCR 偏好使用显式隔离路径；插件初始化失败直接终止，不走生产/共享临时目录兜底。WebView2 使用新数据目录和仅 loopback 的 CDP 端口，runner 在输入公开合成密码前检查实际 browser 进程的 user-data-dir、原生 PID 和 runId。API user-data-folder 为本轮 webview 根目录，WebView2 Runtime 在其下自动追加 EBWebView；browser 命令行必须精确指向该子目录，根目录直用、其他子目录或重定向均拒绝，见 [Microsoft 的 WebView2 DevTools 说明](https://learn.microsoft.com/en-us/microsoft-edge/web-platform/devtools-mcp-server#step-2-find-the-webview2-user-data-directory)。Windows Known Folder 路径不能仅靠 APPDATA 变量替换；WebView2 也可能被环境/Registry 配置覆盖，见 [Microsoft API 说明](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl?view=webview2-1.0.4022.49)。测试进程拒绝继承 WEBVIEW2\_\* 或 PDFIUM_LIBRARY_PATH，再设置本轮 owned 值；不修改系统环境或 Registry。
 
 runner 在运行任何 EXE 前流式检查四个 feature 专属常量，缺一即拒绝。这只防止误传默认构建，不是二进制签名或来源认证。需要使用自己从本提交构建的测试 EXE。进程清理必须重新核验 PID、创建时间和可执行路径，只结束本轮自有进程；不能核验或清理未完成时保留失败记录并停止后续样本。
