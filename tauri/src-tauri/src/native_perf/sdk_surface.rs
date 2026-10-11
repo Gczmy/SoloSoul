@@ -7,6 +7,8 @@ use sha2::{Digest, Sha256};
 use std::{fs::OpenOptions, io::Read, os::windows::fs::OpenOptionsExt, path::Path, time::Duration};
 
 const SCRIPT: &str = include_str!("sdk_surface.js");
+#[path = "sdk_surface_appearance.rs"]
+mod appearance;
 #[path = "sdk_surface_sidebar.rs"]
 mod sidebar;
 const REQUEST: &str = "native-perf-surface-request.json";
@@ -226,6 +228,13 @@ pub(super) async fn capture(c: &mut Capture) -> Outcome<()> {
         .and_then(|v| v["atMs"].as_f64())
         .ok_or("surface-binding-unavailable")?;
     let scene = sidebar::requested(c, &req)?;
+    let theme = appearance::requested(c, &req)?;
+    if scene.is_some() && theme.is_some() {
+        return Err("surface-scenes-conflict");
+    }
+    if let Some(theme) = theme {
+        return appearance::capture(c, &req, &theme, min).await;
+    }
     let initial = if scene.is_some() {
         Some(sidebar::observe(c, min).await?)
     } else {
