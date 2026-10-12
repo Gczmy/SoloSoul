@@ -19,7 +19,14 @@ function capture({
   focus = true,
   forced = false,
   reduced = false,
+  readinessBudgetMs = null,
+  bannerUntilMs = 0,
+  bannerForever = false,
+  shiftUntilMs = 0,
+  frameStepMs = 100,
 } = {}) {
+  let now = 500;
+  const bannerPresent = () => bannerForever || now < bannerUntilMs;
   const nodes = new Map();
   const make = () => ({
     getAttribute(name) {
@@ -27,7 +34,7 @@ function capture({
       return expanded;
     },
     getBoundingClientRect() {
-      return { x: 10, y: 40, width: 100, height: 60 };
+      return { x: 10, y: bannerPresent() || now < shiftUntilMs ? 88 : 40, width: 100, height: 60 };
     },
     get textContent() {
       throw Error('Business text must not be read');
@@ -54,6 +61,7 @@ function capture({
       hasFocus: () => focus,
       visibilityState: 'visible',
       querySelectorAll(selector) {
+        if (selector === '[data-notification-banner="ocr"]') return bannerPresent() ? [make()] : [];
         assert(nodes.has(selector));
         return duplicate && selector === '[data-appbar]'
           ? [nodes.get(selector), make()]
@@ -93,7 +101,11 @@ function capture({
     innerHeight: 750,
     devicePixelRatio: 1.25,
     location: { href: 'http://tauri.localhost/' },
-    performance: { timeOrigin: 1000, now: () => 500 },
+    performance: { timeOrigin: 1000, now: () => now },
+    requestAnimationFrame(callback) {
+      now += frameStepMs;
+      queueMicrotask(() => callback(now));
+    },
     window: new Proxy(
       {},
       {
@@ -103,11 +115,16 @@ function capture({
       },
     ),
   };
-  return JSON.parse(
-    JSON.stringify(
-      vm.runInNewContext(script.replace('__REQUEST__', JSON.stringify({ runId })), context),
+  const value = vm.runInNewContext(
+    script.replace(
+      '__REQUEST__',
+      JSON.stringify({ runId, ...(readinessBudgetMs === null ? {} : { readinessBudgetMs }) }),
     ),
+    context,
   );
+  if (readinessBudgetMs !== null)
+    return Promise.resolve(value).then((result) => JSON.parse(JSON.stringify(result)));
+  return JSON.parse(JSON.stringify(value));
 }
 test('surface probe reads actual bounded theme, color tokens and viewport', () => {
   const state = capture();
@@ -166,4 +183,40 @@ test('unsupported color syntax and malformed boolean attributes are not coerced 
     null,
   );
   assert.equal(capture({ expanded: 'unknown' }).expanded, null);
+});
+
+test('capture readiness waits for the existing OCR banner to naturally disappear', async () => {
+  const state = await capture({ readinessBudgetMs: 10000, bannerUntilMs: 5500 });
+  assert.equal(state.surfaces.card.rect[1], 40);
+  assert(state.atMs >= 5500);
+  assert.equal(Object.keys(state).length, 18);
+});
+
+test('capture readiness waits for geometry to settle after banner removal', async () => {
+  const state = await capture({
+    readinessBudgetMs: 10000,
+    bannerUntilMs: 1500,
+    shiftUntilMs: 1800,
+  });
+  assert.equal(state.surfaces.content.rect[1], 40);
+  assert(state.atMs >= 2100);
+});
+
+test('persistent OCR banner rejects instead of consuming an unready frame', async () => {
+  await assert.rejects(
+    capture({ readinessBudgetMs: 1000, bannerForever: true }),
+    /surface-readiness-timeout/,
+  );
+});
+
+test('banner disappearing at the budget edge does not authorize an unsettled frame', async () => {
+  await assert.rejects(
+    capture({ readinessBudgetMs: 1000, bannerUntilMs: 1500 }),
+    /surface-readiness-timeout/,
+  );
+});
+
+test('capture readiness rejects missing bounds instead of accepting an unlimited wait', async () => {
+  for (const readinessBudgetMs of [0, -1, 10001, 1.5, '1000'])
+    await assert.rejects(capture({ readinessBudgetMs }), /surface-readiness-budget-invalid/);
 });

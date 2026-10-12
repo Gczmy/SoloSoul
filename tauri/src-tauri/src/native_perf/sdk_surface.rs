@@ -4,7 +4,13 @@
 use super::{parse_frame, publish, Capture, Outcome};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
-use std::{fs::OpenOptions, io::Read, os::windows::fs::OpenOptionsExt, path::Path, time::Duration};
+use std::{
+    fs::OpenOptions,
+    io::Read,
+    os::windows::fs::OpenOptionsExt,
+    path::Path,
+    time::{Duration, Instant},
+};
 
 const SCRIPT: &str = include_str!("sdk_surface.js");
 #[path = "sdk_surface_appearance.rs"]
@@ -182,14 +188,22 @@ fn acknowledgment(value: &Value, req: &Value, before_sha: &str, pixel_sha: &str)
     Ok(())
 }
 
-async fn observe(c: &mut Capture, minimum_ms: f64) -> Outcome<Value> {
+async fn observe(
+    c: &mut Capture,
+    minimum_ms: f64,
+    ready_budget: Option<Duration>,
+) -> Outcome<Value> {
     let clock = c.time_origin.clone().ok_or("surface-binding-unavailable")?;
     let frame = c.frame.clone().ok_or("surface-binding-unavailable")?;
-    let expression = SCRIPT.replace("__REQUEST__", &json!({"runId":c.config.run_id}).to_string());
+    let mut request = json!({"runId":c.config.run_id});
+    if let Some(budget) = ready_budget {
+        request["readinessBudgetMs"] = json!(budget.as_millis());
+    }
+    let expression = SCRIPT.replace("__REQUEST__", &request.to_string());
     let raw = c
         .protocol(
             "Runtime.evaluate",
-            json!({"expression":expression,"returnByValue":true}),
+            json!({"expression":expression,"returnByValue":true,"awaitPromise":true}),
         )
         .await?;
     let value = state(&raw, &c.config.run_id, &clock, minimum_ms)?;
@@ -266,13 +280,15 @@ pub(super) async fn capture(c: &mut Capture) -> Outcome<()> {
 }
 
 async fn capture_frame(c: &mut Capture, req: &Value, min: f64) -> Outcome<()> {
-    let before = observe(c, min).await?;
+    // Readiness and acknowledgment share the original ten-second wait budget.
+    // No banner is dismissed and no failed capture is retried.
+    let began = Instant::now();
+    let before = observe(c, min, Some(Duration::from_secs(10))).await?;
     let base = c.config.root.clone();
     let before_proof = json!({"schemaVersion":1,"scope":"windows-native-surface-before","request":req,
         "binding":c.frame,"state":before});
     publish(&base, BEFORE, &before_proof)?;
     let before_sha = format!("{:x}", Sha256::digest(bytes(&base.join(BEFORE), 262144)?));
-    let began = std::time::Instant::now();
     loop {
         if c.invalidated.load(std::sync::atomic::Ordering::SeqCst) {
             return Err("document-invalidated");
@@ -300,7 +316,7 @@ async fn capture_frame(c: &mut Capture, req: &Value, min: f64) -> Outcome<()> {
     let ack: Value = serde_json::from_slice(&bytes(&base.join(DONE), 4096)?)
         .map_err(|_| "surface-acknowledgment-invalid")?;
     acknowledgment(&ack, req, &before_sha, &pixel_sha)?;
-    let after = observe(c, before["atMs"].as_f64().unwrap()).await?;
+    let after = observe(c, before["atMs"].as_f64().unwrap(), None).await?;
     let unchanged = stable(&before, &after);
     publish(
         &base,
