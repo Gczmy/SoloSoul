@@ -1,0 +1,1435 @@
+{
+  "task": "RF-312",
+  "members": [
+    {
+      "member": "native/vault100/report.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\report.json",
+      "bytes": 338324,
+      "sha256": "6b3a9328687627eb90e580602ae02a83ea8593298811c65ffce93ffcf4112ca3"
+    },
+    {
+      "member": "native/vault100/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001.json",
+      "bytes": 59279,
+      "sha256": "0dee308a4ac9ce546cb789c69c3f2c986058ca608290ec964c80cab2220ff04d"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\native-perf-consumed.json",
+      "bytes": 244,
+      "sha256": "cbbd71e07d6fef9647444c03b5e39ec99d5d208195adecfd7cb1e4a2feb19ab6"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\native-perf-owned.json",
+      "bytes": 3212,
+      "sha256": "1237706b7af0c1e1cae5050fc9ecdf5b7e6e071a5c9e681f659ef446116245a0"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\native-perf-startup-restart-consumed.json",
+      "bytes": 645,
+      "sha256": "5b40377234ae95ed0d5531e770e4d6a0c74422583aa5441faf9c29d5e59f6ec0"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\native-perf-startup-restart-ticket.json",
+      "bytes": 2645,
+      "sha256": "21c7363dec5d665d2e180029da1e7ddc6c28a351f99c0a45fad7474eee17cf57"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\native-perf-startup-stopped.json",
+      "bytes": 1729,
+      "sha256": "1184fb11ef13e30129f479cc329ad8d00e5e5694d645b0b08625511874ecf8a0"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2985,
+      "sha256": "ae60ed98059bed332d4e1c64bdee2e01d5ddd90fc82893a86151df91d3cdc7d8"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "e6dad1523bb09942784ab49d215d5c7ff42c0801cb7aa8419cc968ccb46dc074"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "50c718b8530b961c2cb021f4037c33ac08b6ac55845b8d277683d9cbdc905723"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "ac9971778a73a33891d4e181a9dee5a6d6e252491d4ae78ab17ccb2fb50390e1"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "75ba139e56c79dbfa153ad296b5a8200746c867c17fa285cd440fb43883dac73"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 6953,
+      "sha256": "5f5f50ac1985396253cf28fdc1dc57ed13a1ab218ff36bbf1c74e9201fc09314"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "cc7f001070f652677abce816019dc2bd2c8688155593366d11212e4f0048aebb"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2951,
+      "sha256": "3f1ce72041f27a0e077611b9ba23131fb94865e5946715988c1277977dd8319d"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "4596c2cf36e1985aa90c3032d5b2c9b1a2e882983c4d2d4bff2a25876c5f6702"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "6d7446f0ab3144d82f36e18d1bbd0602b5cfb780a4344b8433f033f5dec0dd81"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "2972a11eb76e9ef0e8009a50deffaa509f2df692850e4870fb9e896ce9fc6d6f"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "34215f7bce7a18ba885f057b61c64aaac24160e50339370f9d533e1f76367d99"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6427,
+      "sha256": "0aab67b872d276ff7558c7fb7cbdf5014c6e00ae45714d9d891f3e77d6becd72"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-001\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 702,
+      "sha256": "0a67416932cb21e5ed836cee1a8f6940b3d42fc3c88f69ad94e62798dbada375"
+    },
+    {
+      "member": "native/vault100/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002.json",
+      "bytes": 59133,
+      "sha256": "6c97a54ad27b1be46f468f53863985e9933ce2bae60db85cbc0240a893686eaf"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\native-perf-consumed.json",
+      "bytes": 244,
+      "sha256": "1c65203a63d80d74d341e29d755a23c797d9dbb434a933d465bbd50841c95ae8"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\native-perf-owned.json",
+      "bytes": 3212,
+      "sha256": "930f3473537964122a9eea220fe51095154738443a3164f1fd9b2a8ad428da38"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\native-perf-startup-restart-consumed.json",
+      "bytes": 645,
+      "sha256": "ba8b266fdbc2ef99af477d17844c1b66218c30dcc0d30907539a329bd163304d"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\native-perf-startup-restart-ticket.json",
+      "bytes": 2645,
+      "sha256": "1c523ae7f92d984cde646ed772b008f046e9cb622d7a6e53afa3b74fb9f95e82"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\native-perf-startup-stopped.json",
+      "bytes": 1727,
+      "sha256": "a21c8c9cb910159f7e42905874941f74af913ff1eff7f75987f15064b63e365e"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2999,
+      "sha256": "a3d512ac8e4fcecfb139f175f689240f4289db8e64db31432a74302151ce3b04"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "0b0f401a4d2bcf69b148f4027a7c51d641dc2a07906b3b69e0aca507fc0aa8d7"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "ef0e67119b907425f884b0e673f39cd5236b0e48f0521880fd7c7e68f7c4bdb3"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "8a36e42953fc13803a8a65adea31e78c8bc14e2dd81c272b5559c7dbfbd66e48"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "d60bec5f85e0c563206ca0ed99d53916c337bada7e4751fad28d67896757b146"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 6984,
+      "sha256": "a0070a6cb7d85fe4d65ee7b001075e756be588fe2ed24935f9e3060cbbcfb49f"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "498518ffc79d00fb4d5108ad1633a7b0e55512158fac43c4baa9b1cf078f5497"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2990,
+      "sha256": "ebb8caa9492fd4e10ce51439f11d75c3bd743d1dc2f5e01475e92fe18a8c3f03"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "9a59e026809cbe452b316b6c0f820b118fee5f4749c5a14155507eea561edc95"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "7a785f320a36e4e95f2cece05694f2b406189eef235d8e18b7edca34f7ce94ac"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "de5f6bf042e3ee38be248b344a41255fc74f35727be12f791028f224829b70df"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "7c2408f5d8ae7a9d58a31f4916b013279d4f079add2cc8d8ce4dbaef885c2986"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6347,
+      "sha256": "2246ee15414097f9e070c93e1a068af706c2bb9a1ee9657f0f594288338b824d"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-002\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 689,
+      "sha256": "90328e31d37d77d84d52963f17a60b5a5996e97514b180894ab610f2c50bb10c"
+    },
+    {
+      "member": "native/vault100/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003.json",
+      "bytes": 59210,
+      "sha256": "b4c6f4a03be6936748660672ff26a505d68f112906663e98f90d9062cfb44b9a"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\native-perf-consumed.json",
+      "bytes": 244,
+      "sha256": "d512bf99e9985c9b0f9d0a3d324c062feb01030716eb5f6029f83a54e16d9fbc"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\native-perf-owned.json",
+      "bytes": 3212,
+      "sha256": "0cb7c64a331941cf082fb780128635011b877096b030c9ddde3eaedd8e471c73"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\native-perf-startup-restart-consumed.json",
+      "bytes": 644,
+      "sha256": "68c2b37f1502cd6769728a0c872e782cb18ddb7223154791f180fa04a10a9757"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\native-perf-startup-restart-ticket.json",
+      "bytes": 2645,
+      "sha256": "e8c57adb1cb89babaa6d2be18f35a08318bc191fc7b2b7a9af97a1306fb639a7"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\native-perf-startup-stopped.json",
+      "bytes": 1728,
+      "sha256": "db131c00f7a88a684b27c08c2eaff5a6c7d352b0b1d5b37c04d9593e7fd1b695"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 3031,
+      "sha256": "91bdb19d5acd01220ffd73d2cfe37924b4def6da7f1c64cf65f49ace50334cf0"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "36d9ba37370a09043faf91f4ab86e39a341a846fb51de75f19be22a0ff0fd030"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 284,
+      "sha256": "1d0742563b4157537bf84a7dcd2086f6e0b9abf32e022a54e29c19382927f275"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "d9535ae5085d6d9573296a3bbf410af570afae2ad1f8e1d2e1c3fec73fa292b5"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "b24020936d661a9b8d8a104a1322fb7a9908bda3a23fb8150d8bdf979b96d9c2"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7188,
+      "sha256": "51b3def138378b9dd1ac4edba6fccf0db165f1b046ac0a5eb31b62ecba4927ff"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 828,
+      "sha256": "b4a6822d5af0d6a910ddf214588d4eb54bb3e9a9e557cb990fa41dea7f84ab25"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2968,
+      "sha256": "df0fe2834dda82efbd41670d724abea736fbb69679d05bf046ceb36f966b2fcc"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "eed38acc6f63c5602e0c63be60fd2c42d2973e116c15153bc136405be3687636"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "58d5ea5339c744da5162966d83fdede527ff177c3e853b1758eb4ed68fc98e59"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 554,
+      "sha256": "244c9183ee85a87a8536ef06d187660ddee5c77faebed6a6bf06f82e12b93dff"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 336,
+      "sha256": "5830265884100a09ac2c2997fbad35c0cb8e7a817f72b9b48676fb79f95e79ea"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6225,
+      "sha256": "d72a49cc5d8afa10ed74a43472dc9efa91d8f7757f93417ba6959fd8f2a02281"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-003\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 688,
+      "sha256": "f8338e798714495e72b7676701b091b74422c71a62a67b351447b6419d9be9c0"
+    },
+    {
+      "member": "native/vault100/sample-004.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004.json",
+      "bytes": 59059,
+      "sha256": "b1d14d8734c9f9d6fac1087b2b4374a7dd1975619c0679aac53006f6e6dc0c27"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\native-perf-consumed.json",
+      "bytes": 244,
+      "sha256": "6db2114a7fac48e6e2bc50b8dc17562afd59f4937b497c5bfa05aed14d189d57"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\native-perf-owned.json",
+      "bytes": 3212,
+      "sha256": "7e0aba6f104fc03e14083a9a8af34fea05a312915f7210663df42cd2aa80556d"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\native-perf-startup-restart-consumed.json",
+      "bytes": 645,
+      "sha256": "c415a0b8b2530b4cfaccc49473b161bf11050041accabaed78eeaeb6f5e10818"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\native-perf-startup-restart-ticket.json",
+      "bytes": 2645,
+      "sha256": "5bfc776507d1efbb05c28e1e34ab6504cd81e26c0b44d360f40f5f6375f62d90"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\native-perf-startup-stopped.json",
+      "bytes": 1726,
+      "sha256": "f866acec0d9a009fae93b50f60cdf449fb2b2c5a6448e5a697325c6a07855a4f"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2965,
+      "sha256": "b61e10c70f9d22b2c1150ec0a3e88f2dbd4559cffc59f57cd371a576a1f32d3a"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "c7802e5567b19f1d13fbfd17f0a759fd858fba9e998ab1258b5fd0eb03900ca0"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "b75abb90e024e42d2f88ec969fd228b1eddbf6fcfc228bc6553d5d7b8c9a562a"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "f719abff44237fa3f73b61938f27e15558d003c3626b191364f8daf30d164069"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "977a5abc68126340e88dd8501753ebee14e5675d5f995a0ff57474b54d00959d"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 6925,
+      "sha256": "30f77cae0b4ee9a5a9c7fcf4b38a9643dd42de07e3cef216ac9e5530599dfd4f"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 806,
+      "sha256": "50eb62d1f6ce5e36fc3b5e78a0c1d4ab42ca79a87709b02ccc81bd2addc66117"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2985,
+      "sha256": "88133718e0d0e21007e999b6858066c8c1564fc7a6aaec9e1f9b6474dec1fb26"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "616a19c59923844448412eb4d2a9baa49af7b3beae296ccf0c2ce336de79fdab"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "421f74cc5ff29bfd56ae775040085ae471b73ce19fee0dda947fac61a239f815"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "a76f23c8892fd675028f1df9a3f319ebe9dd4a969650434fc1b55ce017916ed0"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "d4fe27c3dd003010a898adc77b808378d2bff4bd6f41894f8dc8ca8f458979b7"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6329,
+      "sha256": "f5cab6d7f5c4ea888ff7456b29dd9e2c2108207e86704e56edac5d1db22e62a7"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-004\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "3974cf92bb204098c5e78347390b9577b39a8c9f804cc08ac66d51e7cfb735ad"
+    },
+    {
+      "member": "native/vault100/sample-005.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005.json",
+      "bytes": 59128,
+      "sha256": "26aad06d20bd43bf66d02b2e86f1dc54f54c3ae2e692e05f2116ff414e422e93"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\native-perf-consumed.json",
+      "bytes": 244,
+      "sha256": "5181a66b1fefe0c5d4ca39b94178623f42f28a27b02e4a51c4e97e1651187242"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\native-perf-owned.json",
+      "bytes": 3212,
+      "sha256": "b17218d0c787a8d2ead74a9dc3224f915495726ee9cebd3d4dad839726bc7aa2"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\native-perf-startup-restart-consumed.json",
+      "bytes": 645,
+      "sha256": "5e81feeba83c1b4395894d58515cf13888397504910f9a25692f591184bcc749"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\native-perf-startup-restart-ticket.json",
+      "bytes": 2645,
+      "sha256": "e090f17959712e75d68183e889dba3e97462afd9320021a27e583151b8d6977e"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\native-perf-startup-stopped.json",
+      "bytes": 1727,
+      "sha256": "5432ec3c4803f817dd2618a61dff0701a4234564fdf36500ac12140a0a222d30"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2995,
+      "sha256": "ff6523596b51333b2550e1318199b82b30115f9024ea71bddc683a4c1bd94574"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "3474029a321c0da2142f60c33a68dea3b936d9c3c1991867b1634a5a431f6839"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 284,
+      "sha256": "e2331520c5368dd20ea411f93013ca5d670e317cf22e1acbba44e9e2ae9e64f4"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "5be387b4c8ee6ed449384701464e8616a73fb1ed0d3dea20a56d25f962939511"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "e5b1e3a0a635bae6b7c0571ea4e7f36575ed0976ada98a753ac9b1d2f3812c1d"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 6967,
+      "sha256": "5f0188111221e9195728a7adfa8067a2c27c2f4fed9e331ed2ac27b1d152d02c"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 805,
+      "sha256": "f4a74bfb010295bd4311c058404833fe0bbe0eb99bed68326d95a9649f0ce803"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2999,
+      "sha256": "20926dd970b20c707ff827039f09b7f7a7e1d709541adfe143fe3f873b2ca1e0"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "7c77b77661170dfbc9c6ce0fbb4d1eff527e559fd9e6b754433db493a4688d64"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "e6867ec15905e2e81886388a1a1f4da3998ab866b488b36ab0b5798ebbf7931a"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "0a626806eb4980102706c967cbe84e456bfa7ae1fb4b176fd540bb16f55d3e15"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 337,
+      "sha256": "619609885a93830854e494333ff33eda1c6b4a3ee983296c5997fa1e7aab6ad9"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6383,
+      "sha256": "3e461ebc6a5335e738e2261d72afd1b5059e80823568ac8e88a95f5dde611b69"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault100-20261012\\sample-005\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 701,
+      "sha256": "04510dac3613d8dac47763fbe49e0261d03440b1d0ccbe47188e8df7d9bf4801"
+    },
+    {
+      "member": "native/vault5000/report.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\report.json",
+      "bytes": 339011,
+      "sha256": "ae5a047f00caa15bc568c3f5a3d717eadaab5e1f582ed7042c89514ec0bb7789"
+    },
+    {
+      "member": "native/vault5000/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001.json",
+      "bytes": 59170,
+      "sha256": "af73c4ddf8351404d89ead46d1b6f23fa03bcaae41ba9c1a0c0aeed54602e4f9"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\native-perf-consumed.json",
+      "bytes": 244,
+      "sha256": "f8d6df22285fe80b0f96162a99870514f908a86194efc5a91afbe0e73912d854"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\native-perf-owned.json",
+      "bytes": 3228,
+      "sha256": "acaa50c2cada00eff2e9f66dcda6e08075d645053483ec65a7c1c9589f59735f"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\native-perf-startup-restart-consumed.json",
+      "bytes": 647,
+      "sha256": "2602d1b3b6f607aa004bd540f7b62e08c438a9b85ecfb42a2b551b5af497ec8d"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\native-perf-startup-restart-ticket.json",
+      "bytes": 2646,
+      "sha256": "d57e10dbdce4890f52b9f1899db4702ee742a7f9701b201dd2d09003f963b3c8"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\native-perf-startup-stopped.json",
+      "bytes": 1727,
+      "sha256": "8a766f8acdaf0d318f8bb037fe891bf2f72ce9ca0ac78859235079c0f0f30009"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2970,
+      "sha256": "6b4cbfc0bd888661964bc59f9c6e6d8d2188f8538eb0f39acbbfb08ae78ab6ab"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "b54e4dfa7e984ba226ea84a26de02e05a38f6d49d3ce2ed14915600b528615e9"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "9bd32ed74a86269cc598c98eb8113e782e5e1ed13efb2e9c1ede8542bee7665d"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "33df31c05997e33af804ccbd68376287445d7a67fe0aa74644e91f6f31832751"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 338,
+      "sha256": "b92fc22ad2729eb228e4058dfae4eb0b4a725e56d0787aae31cf335bc6d11c35"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 6932,
+      "sha256": "491738bf5c51299fb77d57f30e04ec351df0cd29db1d44a46d633c1dc17408ad"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "54d4d293158225021b71306168b527dd3cd839287f8a84d0349dda6290deb95f"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2982,
+      "sha256": "14e13b0a92f7aeaba5ca71baa2377310eec5da96caae338aab13010c46ed4010"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "495f5822d425eb781ba9e9019a50e307beee33c350ad6c4031307fad17d88699"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "65a15bc2162a6c9e6cdfae98c75a3db5dc4cb899160de5afe0f5105ea63bf506"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "06165f56d6c9d0f3d71ba7066a39ae469a4320bd2cbf681e7127a546ac27cb0f"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "e7110f580649cc4ae3adb348afadcdee3d522485e33177bcd1aabf488097c4fc"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6394,
+      "sha256": "35e96ce2d96a03d3ce2445dd0ac3c78c03235bb7c0f1b61e96cb9d9f294e20bc"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-001\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 702,
+      "sha256": "ee4c98fd3708eab2af8be745725f378d539201d6b8cdf9a9ad94a8c33f02f0bd"
+    },
+    {
+      "member": "native/vault5000/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002.json",
+      "bytes": 59433,
+      "sha256": "ef9c54de8586f8469049bd5181f9b809ea348ae699110aac00615f0107437bd7"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\native-perf-consumed.json",
+      "bytes": 245,
+      "sha256": "1c300aa8e37ece10155e9a75c83a21300fc127eb6137e7c080bedf44eaca2dbd"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\native-perf-owned.json",
+      "bytes": 3228,
+      "sha256": "5bd07dca1a8f4a1b47d17f346084c86a5679794c0d2de38db484b6549eaf720a"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\native-perf-startup-restart-consumed.json",
+      "bytes": 647,
+      "sha256": "88444602930f2d8db4996181f63f279dcb62ca6305416b1b055b6369405ca842"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\native-perf-startup-restart-ticket.json",
+      "bytes": 2647,
+      "sha256": "a7ab33db71b229b5270f68a595817a60258f7414c6b53d37d014a299bb932c0f"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\native-perf-startup-stopped.json",
+      "bytes": 1730,
+      "sha256": "67628e1c7d10a2bc93542424acf01395403f169906fb05c2b680ed920ca8b10d"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2970,
+      "sha256": "3224a4e0e104416551d604e145e45dfed2892789491aa01cf8c58e7c553f28ad"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "0145cc5d9994dc13eda29436f9bfb690ba278807f7b1a487f21fe6d91ca38588"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "a6d22d42bcc030e88d242c4a758fa9a3c921ba793c70b06fa5b6b46e6bccc7d8"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "f2e440ab4528ed6cca4b2ff05e4c98e8dc55bc92d5897d15772c5de2f76b345e"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "73a5a552df43c809e13eb5a88b0295525f31964db9619509e59614bc33058a86"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7150,
+      "sha256": "57940d841f798c0a4e559b309d18484cc657c1b96019b6010bc25091c0b06492"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "52174eb7d1758b7a53b3b5fcc658c26c0db2902c935aa23c5166e0d1f3ab0aa2"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2961,
+      "sha256": "65338259a0faadbac79ca33ffdceab3512dde8d7c04006973d2e2acadf8ded46"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "082fa9d32c3ab0eacb2814a2b0daa689571a8c194434b7f7172d30304ee31a69"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "2656bbb0f7792d7c72b60dbd427dc20e7c6aa4062fa6750f0c0ffc3aad8d5c03"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "57ee2ae997f9e4fb0222b5dfbc13c51bb47d31d05a861e7220230acc4154c0f5"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "4f2554706bef8bb0aa9451d0219b8b7b1fd7ea9fc80e3ff144d9ec584aa878b2"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6380,
+      "sha256": "fc0d30205ba22161ab15a5f178e3ef11de0e2b2d7952b2f93c3d18c077152327"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-002\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "07fe4aad9764c6bb59b64e684407ccadfddad9857e217b81742754c89ec02eda"
+    },
+    {
+      "member": "native/vault5000/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003.json",
+      "bytes": 59397,
+      "sha256": "f3a14c0b1a8f6805fea8fc5752982da96337838b2dcf73a7a27e4e22c1533ebb"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\native-perf-consumed.json",
+      "bytes": 245,
+      "sha256": "2b86af27149be8bea2eecef45a95abdeee441f7083ef7c9cffa53b1e9a829580"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\native-perf-owned.json",
+      "bytes": 3228,
+      "sha256": "4d047f413f705d67b6615289f8025681b4d06ebbe8882a6123e8b2d0b06c0c23"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\native-perf-startup-restart-consumed.json",
+      "bytes": 646,
+      "sha256": "bb1464cd981c0b8a942350e182ca873159339442b36876ae4680e647e4c21149"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\native-perf-startup-restart-ticket.json",
+      "bytes": 2647,
+      "sha256": "0c09b0382687416c072551b0a3b95d915836326f85c9499f6524d9a98e30e2ca"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\native-perf-startup-stopped.json",
+      "bytes": 1730,
+      "sha256": "7fb913284aa6f897cab4dcf3f1cfeea430bdb280614e9b6e9eefa7fc3ba261ac"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2969,
+      "sha256": "67ea3e0602697a067400c105526ab487a8cb013e51921efb2075b89b831114e3"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "3e0845403dfbfc43435e8f495b6a17d45ea605218de894cf5f1a691345b4d0ba"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "c27cdc90847d8862fbb8dc2940b903dea021e2d0b98aa2cfb6c56f738ec74fb6"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "53ee6092a85e49d955994c1c1a16aca53f500fd98254419c0ddba398bd282018"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "de62c437a92762476d529eaa07a0a4585389d88088db2cc49e756b708643aa20"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7174,
+      "sha256": "a000975605c65fa4cbdc4a25bd487bef4f9f8836e68b075adf62f82d48c8c2ec"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "f4a64812fa504589eebb334e12feab4435a0f87214a19f6ff3c16fa55b091717"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2936,
+      "sha256": "6967683e6d90c9a7d805898c5ed3d0346bf090d2b2631b95200466843c56060a"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "9b50027d09a96e72aa1f2b0498b0775ae8d94c529068f2d2be14915fffd076f7"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "c28dff3c88d9660d0676c5e907d6b2ca7518667afdf7d50a9f9211452fb78969"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "a5a2f5a61e90dd39ec65d38c952b2022e6a5cd7b8a2157a537f476c16c71d259"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "aba7d45788c71a316b1ff927f44caf567e5db4fea1ecde0556b3f17d6674036b"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6333,
+      "sha256": "8ecc1e93e8d39b1444a076d2a8f0d4420681cfcad00a91408e8b04cb66b17e45"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-003\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 688,
+      "sha256": "72cb9a4600deb1ba0fc0d4d8c87d95796b772f72d5b55a5741f76083912ba918"
+    },
+    {
+      "member": "native/vault5000/sample-004.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004.json",
+      "bytes": 59383,
+      "sha256": "c4002c534f61c4a2f38b22b1279a5f547a8b7dae68d89e60cfb2eb3931bcc081"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\native-perf-consumed.json",
+      "bytes": 245,
+      "sha256": "663b2affe4fc4cbe85f525b2d13f5b1d1e91c3967a0a426fa4bd32dd4037ce3b"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\native-perf-owned.json",
+      "bytes": 3228,
+      "sha256": "b147d2ae57783e9215a92b282cc2c29e2838686b708a04177c4d7277a1601ca7"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\native-perf-startup-restart-consumed.json",
+      "bytes": 646,
+      "sha256": "91d2762d78f42ee3f8d817450444889b77e03f1b448fef84bbe1e2188133623d"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\native-perf-startup-restart-ticket.json",
+      "bytes": 2646,
+      "sha256": "2c59745090baf759a78fc8463ed9e64685cfc2b3f66f77ff2c31423fe5645f3b"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\native-perf-startup-stopped.json",
+      "bytes": 1726,
+      "sha256": "c9495d5affb12af9d47a4b6340d6cacc593e2795982c49122148875c3a03ff7c"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2959,
+      "sha256": "42e69ec875bcebe6af109e8975f889a57f83a657a80463e4fbf9c7c0a4615362"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "6d2aa7e9f08cbb8ca1af6528be79cc0be6c0ef8de7990f4792eacf6334f25000"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "7bcd7b020da928912ed2d92dc1defbed809a09e3ee5c5d158bb24a36649bf0a7"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "935eccfe04176c91694071656ca2dd3e37c8c0d16e1d4190662499c77ee551f4"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "ded185605d166e0d2f2c9bc521c505343919550fe78d0efd0fe23e118e41f02c"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7138,
+      "sha256": "447dd6f690634f1b4a34cb58b9f49725a994fd8e9a0cc9ee4b045fb80d1f6a53"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "cad9205c8783dd160443b0bc81fa6a9e69091264daee76d5572f813a8179c9be"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2982,
+      "sha256": "1436ea8107acc2e1424f797b7b8fc69570d031c4d3ea1a0a336f71b6ce2869fd"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "00fc7055169e047b23bf65fc5f71a999d564aae12d2ffb2d69a30c8afea56d3c"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f3fdc11d8b1179878f1673afbe23f74a0339f40ffbf2e48856fa55145b014b81"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 555,
+      "sha256": "8fb6343015b899f2e9426d9f0c301a2fad9e3b83648e9f191e099678a9b5008f"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "e883d9f773b6fd5e2cf8a4bbbcee2e826a0607e688916f10e4b91bf294b5d4ab"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6399,
+      "sha256": "bb5b9c72f22a2dfe613a322410838bf3eb154ce00c94f287254c6f85f3393bab"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-004\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 712,
+      "sha256": "c8ceb5b9ee219cf7c06ccd09041522fb7f9dfd7053c25056664c490caff689e6"
+    },
+    {
+      "member": "native/vault5000/sample-005.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005.json",
+      "bytes": 59029,
+      "sha256": "a56eea3fad011d5067defcd3b9ace2eb813cb3eb7ec149d19826744de09e5ccb"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\native-perf-consumed.json",
+      "bytes": 245,
+      "sha256": "72f9671c11afa30c7850607037d0d226ec97c7f248f0a3b7f2f28f0c461b5d6a"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\native-perf-owned.json",
+      "bytes": 3228,
+      "sha256": "ef59994fa61d7ac33eba1982a28053fd5f25daced0c5cb5a2e4b978bb0aa1a6d"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\native-perf-startup-restart-consumed.json",
+      "bytes": 647,
+      "sha256": "07c992e57586eaa147204558c2f0afdc992fd6eb12dc8288f4d523dfe8d41097"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\native-perf-startup-restart-ticket.json",
+      "bytes": 2647,
+      "sha256": "68ea8ca810acf5483e9d1f320a7acc9131fb47b5b8b7737ce8090305731a0378"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\native-perf-startup-stopped.json",
+      "bytes": 1730,
+      "sha256": "328fa13c5af1836c00cc80117495b1a0f1ffc36aa43baa8e0e9e42818612486a"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2985,
+      "sha256": "6c0279413c60f70b9e3c9ecb9d87c01f8b8a5842ed4322f9abccbdefe03da8eb"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "cf77e2bc9800ec4e4c020e453ca35f11fcf341160792c57618b6af00dbc45f37"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f9acd70cd9695712ad3df3e6a3eae918fc0026a657acc1af075e263ceeab8080"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "c76007827e93e168ae21e6b4048d2652c6f11ac4f51638121c6a4de1be3631af"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "b0c3952fcf14b3936966f80d769aa9a7cc161db87c99784acac2c11ef3f9b2d6"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7072,
+      "sha256": "5c5c7b636f8abd19562ec5c52029182fa82adcb72f61567d434839f9b9bd17d2"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 808,
+      "sha256": "92dcd0526f4c3dd2bbe18d58229a7424bf409a215a99b2c5299f1566f1634f82"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2946,
+      "sha256": "2534aecde99d945ca781ce4dc8eae092aab00df4040865086f95b62b61aada9e"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 410,
+      "sha256": "de8c3d4fc78a17ddfb61a9428619d595f66130705718a7ce73a6c8a0b44f76b5"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 273,
+      "sha256": "7851f3e25f87ae610a181857eaea8353ec7f63957e302620f4aceada2f5d9759"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 556,
+      "sha256": "90a53ee06fde3d69c4cc4edbcf26461d432c3405fa113fb93f39c341e7e28d74"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 339,
+      "sha256": "8eb0f09c885b51e86b89e295f349658322510f2c9fb21ed64dd0e83fbe38d5fb"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6352,
+      "sha256": "e438c59ca2f42dce0a03c08c99f590dbf6dbfd7caae7d8d3aa11871a4bf31b47"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-startup-vault5000-20261012\\sample-005\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 710,
+      "sha256": "dbfde2565a424b9f4deb1e22377d5b30cc3c76d4528bbb697516c31f19f2c650"
+    },
+    {
+      "member": "sources/native-perf-startup.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-startup.mjs",
+      "bytes": 28785,
+      "sha256": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec"
+    },
+    {
+      "member": "sources/native-perf-startup.test.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-startup.test.mjs",
+      "bytes": 13084,
+      "sha256": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e"
+    },
+    {
+      "member": "tools/archive-rf312-current-startup-20261012.py",
+      "source": "D:\\SoloSoul\\build\\archive-rf312-current-startup-20261012.py",
+      "bytes": 6628,
+      "sha256": "90536bd924aa54b90ac7d160f584dadbb6cfe2bcbd3559a3c99f58ab097a668e"
+    },
+    {
+      "member": "tools/prepare-rf312-current-startup-20261012.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-startup-20261012.py",
+      "bytes": 2612,
+      "sha256": "be39005822c7d810f211dddde6dc56b01f05de92ab19df6b689085dc73fb71f1"
+    },
+    {
+      "member": "tools/prepare-rf312-current-startup-cleanup-20261012.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-startup-cleanup-20261012.py",
+      "bytes": 2342,
+      "sha256": "7b47d7b609d6bfe59703d8e786f2731b2a88a4bdc974683efb35a4bea5495a14"
+    },
+    {
+      "member": "tools/run-rf312-current-startup-20261012.py",
+      "source": "D:\\SoloSoul\\build\\run-rf312-current-startup-20261012.py",
+      "bytes": 2978,
+      "sha256": "63640ffff7685ee3d63d70473c8bbb93e808be9d036a03602553825c58a2bd0e"
+    },
+    {
+      "member": "tools/verify-rf312-current-startup-20261012.mjs",
+      "source": "D:\\SoloSoul\\build\\verify-rf312-current-startup-20261012.mjs",
+      "bytes": 7323,
+      "sha256": "a9eb9a95b414a3ab6fb60335f7731b6451b261b8c9b1e72547a7d2443087feeb"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault100\\100\\sample-001\\app.log",
+      "bytes": 2776,
+      "sha256": "50588e21423e2e99268bd1a949a1380950b48e393f16f41f17bfbc08cd30c4c0"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault100\\100\\sample-002\\app.log",
+      "bytes": 2776,
+      "sha256": "b5f9dd9534b6e8e681eab123fb4c91996d6215e3793a7d4123f2f099ebb4c6b5"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault100\\100\\sample-003\\app.log",
+      "bytes": 2776,
+      "sha256": "8f1d23daf53a88120a97935569511c48dcabd52f0f3f74328420edb54cd0bbc3"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-004/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault100\\100\\sample-004\\app.log",
+      "bytes": 2776,
+      "sha256": "885b280837c93b9498a816e10236fe57fac7f23d5d846f7fc1296f2e72af1da5"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-005/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault100\\100\\sample-005\\app.log",
+      "bytes": 2776,
+      "sha256": "d52abe25ba5b2534234a0fa05e951a3fad61db2b9cacb6ce4722c8c1d4ec9fd3"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault5000\\100\\sample-001\\app.log",
+      "bytes": 2778,
+      "sha256": "1b065ad158e35519843528330de321dde8959d4e8b634541504b50752d3c17bd"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault5000\\100\\sample-002\\app.log",
+      "bytes": 2778,
+      "sha256": "f85d5264e514c283a95df3ef68c94073e2ed144f4416a86ea346fad9651f12bd"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault5000\\100\\sample-003\\app.log",
+      "bytes": 2778,
+      "sha256": "8ea4c50926c2180dce425a1d8c1996d998d3ebd585285286af2ff89e71102066"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-004/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault5000\\100\\sample-004\\app.log",
+      "bytes": 2778,
+      "sha256": "4c201e27c8f79a5635fb1f8462400df09a3f891c279e5214fb6fe14a4d13cc3c"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-005/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\application-logs\\vault5000\\100\\sample-005\\app.log",
+      "bytes": 2778,
+      "sha256": "4f2f1b7fcc43120d0b2347a27f345945c1a862e223648c5bb0741e725aa3fb6e"
+    },
+    {
+      "member": "validation/cache-cleanup-plan.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\cache-cleanup-plan.json",
+      "bytes": 30490,
+      "sha256": "423dfb7ff6bec25b3d93d4b34eb57c72f2c80657f765387872552381b3f28646"
+    },
+    {
+      "member": "validation/cache-cleanup-preflight.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\cache-cleanup-preflight.json",
+      "bytes": 77308,
+      "sha256": "448d36aa2d65ab5d97b7502d3d77c48cb02adcd4d3d59c9760ce28348dcacb6a"
+    },
+    {
+      "member": "validation/cache-cleanup.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\cache-cleanup.json",
+      "bytes": 77449,
+      "sha256": "f950932e5c1e7058b8762107f39d7746ba92e581c55e29090e0092c112d72105"
+    },
+    {
+      "member": "validation/cleanup-owned.ps1",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\cleanup-owned.ps1",
+      "bytes": 9732,
+      "sha256": "ae9d7c8956c70be9129d979631f304561131b02e08d917b8547633eb69ce23a9"
+    },
+    {
+      "member": "validation/independent-validation.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\independent-validation.json",
+      "bytes": 13837,
+      "sha256": "8f19eced43ecaf0a7f9fea547498f84485c1eeafdde786eb454e80f20c6c0bf0"
+    },
+    {
+      "member": "validation/independent-verifier.first-rejected.mjs",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\independent-verifier.first-rejected.mjs",
+      "bytes": 5899,
+      "sha256": "3c4c817e38539af9537e18ce1df9104c1733f7173acef3f227bee8993cb7f3c2"
+    },
+    {
+      "member": "validation/independent-verifier.second-rejected.mjs",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\independent-verifier.second-rejected.mjs",
+      "bytes": 5899,
+      "sha256": "58e3a1161924841f0b64ad5c5994d807f32fadf5c7ca0aa075322dd4d5fa70eb"
+    },
+    {
+      "member": "validation/independent-verifier.third-rejected.mjs",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\independent-verifier.third-rejected.mjs",
+      "bytes": 6582,
+      "sha256": "930af5222287b98121e2310a65801bf804b578907f99f03dcdd3c438ce156b5f"
+    },
+    {
+      "member": "validation/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\input-proof.json",
+      "bytes": 511266,
+      "sha256": "1b38dea7d658e357458c73e15e869dbb30fdc589b3f23ea84da7ed2d32d19eee"
+    },
+    {
+      "member": "validation/observed-tool-outcomes.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\observed-tool-outcomes.json",
+      "bytes": 824,
+      "sha256": "3b94f08eb0113fbc8eb2b0f0ee280d5faa69f65a6dd2411e39aaf80a76a8c0f8"
+    },
+    {
+      "member": "validation/vault100.live.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault100.live.json",
+      "bytes": 501,
+      "sha256": "1cbeac70e904c1859504ffab8794d99474b47cd003d3b2bd0fca96dcfd63a562"
+    },
+    {
+      "member": "validation/vault100.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault100.receipt.json",
+      "bytes": 1089,
+      "sha256": "13e74390a2acfa3cedd868290672e3b4b523dc5f4edd9a01fff1955bba202541"
+    },
+    {
+      "member": "validation/vault100.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "validation/vault100.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault100.stdout.log",
+      "bytes": 427,
+      "sha256": "bafb3ecb5004c6f7c2675ac6c1dd9d1c64bf94a42ce83470dbfcb214ae114a45"
+    },
+    {
+      "member": "validation/vault5000.live.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault5000.live.json",
+      "bytes": 504,
+      "sha256": "8252a449ab089d1540aedb3d80970b9a6dd4ddb301ad8624bb833c0df525725b"
+    },
+    {
+      "member": "validation/vault5000.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault5000.receipt.json",
+      "bytes": 1093,
+      "sha256": "68266f06c5dca5dd3d6c207a520ab6d3707ebf9a14fdfe116ba0b88cb9ed1f9d"
+    },
+    {
+      "member": "validation/vault5000.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "validation/vault5000.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\vault5000.stdout.log",
+      "bytes": 429,
+      "sha256": "a35d96c964c94ac1a7a3c2551a630a2dfaebc0e29f65695be3e91ac345f3e9b5"
+    },
+    {
+      "member": "validation/verification.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-startup-20261012\\verification.json",
+      "bytes": 2638,
+      "sha256": "7f77f8ed34b211c5e7fe9322accfbc5e2c54e9cff4f8c8a1a31da6169d22a99f"
+    }
+  ],
+  "allMembersReadbackVerified": true,
+  "privateVaultsAndProfilesAndExecutableResourcesExcluded": true
+}

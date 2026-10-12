@@ -1,0 +1,17 @@
+{
+  "task": "RF-312",
+  "archiveMembersReadbackVerified": 238,
+  "nativeLaunchesAcceptedForPairedStartupOnly": 20,
+  "allPairsRetained": 10,
+  "missingMemorySnapshotOriginalNullKept": 1,
+  "exact80CachePathsAbsent": true,
+  "260VaultAndProofFilesPreserved": true,
+  "onlyTaskDocsAndEvidenceStaged": true,
+  "fullTaskAccepted": false,
+  "taskCounts": {
+    "closed": 310,
+    "total": 322,
+    "waiting": 6,
+    "pending": 6
+  }
+}
