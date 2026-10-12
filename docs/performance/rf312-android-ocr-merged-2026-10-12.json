@@ -1,0 +1,608 @@
+{
+  "task": "RF-312",
+  "status": "partial-verification",
+  "wholeRF312Accepted": false,
+  "scope": "real process-first Android OCR and merged12-stage100/5000 native UI diagnostics",
+  "productSourceAndMainApkUnchanged": true,
+  "mainApkSha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+  "signedIndependentTestApk": {
+    "acceptedPackagePreparation": true,
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-first-ocr-probe-round12-20261012\\solosoul-fixed-vault-releaseprobe.apk",
+    "sha256": "fd7f4a27f7b703120328e55018677a54ffee37d8441d7de7320807c5679ba081",
+    "bytes": 7972361,
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "package": "com.solosoul.app.releaseprobe",
+    "targetPackage": "com.solosoul.app",
+    "testClassDefined": true,
+    "traceRuntimeDefined": true,
+    "targetMainActivityAndTauriClassesNotPackaged": true,
+    "nativeLibrariesNotPackaged": true,
+    "homeTestSourceSha256": "91cace7f5b3b789d74a93295ae99b4f6357f0daf131b8c84ecf9b631da38985e",
+    "mainReleaseBytesUnchanged": true,
+    "nativeRuntimeAccepted": false,
+    "fullRF312Accepted": false,
+    "at": "2026-10-12T19:52:08.185448+00:00"
+  },
+  "sameRound12TestApkReusedForRound13": true,
+  "hostConsumerChecks": {
+    "checksPassed": true,
+    "cases": [
+      {
+        "case": "actual-native-twelve-phase-report-replayed-read-only",
+        "accepted": true,
+        "actualError": null
+      },
+      {
+        "case": "missing-search-phase",
+        "accepted": false,
+        "actualError": "Complete twelve-phase UI sequence required"
+      },
+      {
+        "case": "unaccepted-native-file-action",
+        "accepted": false,
+        "actualError": "Actual native file accessibility click required"
+      },
+      {
+        "case": "blank-ocr-window",
+        "accepted": false,
+        "actualError": "Actual visible public OCR window pixels required"
+      },
+      {
+        "case": "ocr-outside-visible-window",
+        "accepted": false,
+        "actualError": "Actual visible public OCR window pixels required"
+      },
+      {
+        "case": "wrong-small-vault-search-result-count",
+        "accepted": false,
+        "actualError": "Actual known public search results required"
+      },
+      {
+        "case": "missing-first-ocr-transport",
+        "accepted": false,
+        "actualError": "Exactly one first public OCR transport required"
+      },
+      {
+        "case": "second-ocr-in-whole-journey",
+        "accepted": false,
+        "actualError": "Exactly one OCR transport in whole journey required"
+      }
+    ],
+    "originalFailedReceiptNotChanged": true,
+    "positiveCaseIsReplayOnlyNotFreshNativeRun": true
+  },
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "SoloSoul_RF121_API31_20261010",
+    "api": 31,
+    "abi": "x86_64",
+    "gpu": "swiftshader",
+    "memoryMiB": 2048,
+    "cores": 2,
+    "physicalDevice": false
+  },
+  "definitions": {
+    "firstOcr": "native file accessibility ACTION_CLICK to actual known corpus in result DOM; includes picker result/IPC/decode/MLKit initialization and polling",
+    "phaseTiming": "native elapsedRealtimeNanos; includes instrumentation/readiness/input/polling/diagnostic overhead",
+    "startup": "Activity launch to usable production password form; excludes runner/process launch",
+    "memory": "serial main-process PSS including runner; not renderer or continuous peak",
+    "ipc": "actual early JS transport sends including startup/retries/channels; no arguments or bodies",
+    "confidence": "ML Kit confidence is unavailable; UI100% is placeholder, not measured accuracy"
+  },
+  "runs": [
+    {
+      "objectCount": 100,
+      "samples": 1,
+      "actualDriverExitCode": 0,
+      "all12PhasesPassed": true,
+      "firstOcr": {
+        "path": "/ocr",
+        "hello": true,
+        "soloSoul": true,
+        "digits": true,
+        "imported": false,
+        "alerts": 0,
+        "nativeFileSelectedAtNs": 24106484820113,
+        "nativeResultObservedAtNs": 24109523870513,
+        "fromFileSelectionMs": 3039.0504,
+        "definition": "native file accessibility ACTION_CLICK to actual known corpus in result DOM; includes picker result/IPC/decode/MLKit initialization and polling",
+        "nativeSystemPickerUsed": true,
+        "firstActualOcrTransport": true,
+        "confidenceNotMeasured": true
+      },
+      "nativeFileAction": {
+        "action": "ACTION_CLICK",
+        "accepted": true,
+        "nativeAtNs": 24106484820113,
+        "target": {
+          "class": "android.widget.LinearLayout",
+          "clickable": false,
+          "selected": false,
+          "enabled": true,
+          "bounds": [
+            48,
+            464,
+            245,
+            661
+          ],
+          "actions": [
+            1,
+            4,
+            8,
+            32,
+            64,
+            256,
+            512,
+            131072,
+            16908342,
+            16
+          ]
+        },
+        "definition": "exact unique public filename container publishes native accessibility CLICK; actual system document picker performs selection; no supplied URI or backend call"
+      },
+      "ocrWindowVisibility": {
+        "screenshot": "diagnostic-first-ocr-result-visible.png",
+        "knownText": true,
+        "nearForegroundPixels": 2235,
+        "left": 72,
+        "top": 956,
+        "right": 636,
+        "bottom": 1136,
+        "style": {
+          "matches": 1,
+          "path": "/ocr",
+          "knownText": true,
+          "rect": {
+            "x": 36,
+            "y": 478,
+            "width": 282,
+            "height": 90
+          },
+          "visible": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "viewportHeight": 800,
+          "startX": 306,
+          "startY": 480,
+          "endY": 176,
+          "safeSwipeStart": true
+        },
+        "nativeTouchScrollGestures": 1,
+        "definition": "known corpus summary fully above fixed navigation; native touch scroll, compositor callback/two frames and actual foreground window pixels; manual review still required"
+      },
+      "manualKnownOcrCorpusVisible": true,
+      "searchMatchesInFixture": 5,
+      "displayedSearchResults": 5,
+      "phaseDurationsDiagnosticOnly": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 4794.2815,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 4298.2096,
+          "transportAttempts": 49
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "success": true,
+          "durationMs": 19138.2577,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 3003.1707,
+          "transportAttempts": 115
+        },
+        {
+          "name": "search-needle",
+          "success": true,
+          "durationMs": 2074.2585,
+          "transportAttempts": 1
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 2799.4875,
+          "transportAttempts": 218
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 3068.9996,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 2970.541,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 4254.8901,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 4433.1578,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 1415.4333,
+          "transportAttempts": 216
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 3562.1978,
+          "transportAttempts": 46
+        }
+      ],
+      "mainProcessPssSampleCount": 60,
+      "rendererMemoryIncluded": false,
+      "originalApksPrivateDataBlurAndOwnedPublicImageRestored": true,
+      "fullPerformanceAccepted": false
+    },
+    {
+      "objectCount": 5000,
+      "samples": 1,
+      "actualDriverExitCode": 0,
+      "all12PhasesPassed": true,
+      "firstOcr": {
+        "path": "/ocr",
+        "hello": true,
+        "soloSoul": true,
+        "digits": true,
+        "imported": false,
+        "alerts": 0,
+        "nativeFileSelectedAtNs": 24278612468913,
+        "nativeResultObservedAtNs": 24281663706113,
+        "fromFileSelectionMs": 3051.2372,
+        "definition": "native file accessibility ACTION_CLICK to actual known corpus in result DOM; includes picker result/IPC/decode/MLKit initialization and polling",
+        "nativeSystemPickerUsed": true,
+        "firstActualOcrTransport": true,
+        "confidenceNotMeasured": true
+      },
+      "nativeFileAction": {
+        "action": "ACTION_CLICK",
+        "accepted": true,
+        "nativeAtNs": 24278612468913,
+        "target": {
+          "class": "android.widget.LinearLayout",
+          "clickable": false,
+          "selected": false,
+          "enabled": true,
+          "bounds": [
+            48,
+            464,
+            245,
+            661
+          ],
+          "actions": [
+            1,
+            4,
+            8,
+            32,
+            64,
+            256,
+            512,
+            131072,
+            16908342,
+            16
+          ]
+        },
+        "definition": "exact unique public filename container publishes native accessibility CLICK; actual system document picker performs selection; no supplied URI or backend call"
+      },
+      "ocrWindowVisibility": {
+        "screenshot": "diagnostic-first-ocr-result-visible.png",
+        "knownText": true,
+        "nearForegroundPixels": 2235,
+        "left": 72,
+        "top": 1111,
+        "right": 636,
+        "bottom": 1291,
+        "style": {
+          "matches": 1,
+          "path": "/ocr",
+          "knownText": true,
+          "rect": {
+            "x": 36,
+            "y": 555.5,
+            "width": 282,
+            "height": 90
+          },
+          "visible": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "viewportHeight": 800,
+          "startX": 306,
+          "startY": 480,
+          "endY": 176,
+          "safeSwipeStart": true
+        },
+        "nativeTouchScrollGestures": 1,
+        "definition": "known corpus summary fully above fixed navigation; native touch scroll, compositor callback/two frames and actual foreground window pixels; manual review still required"
+      },
+      "manualKnownOcrCorpusVisible": true,
+      "searchMatchesInFixture": 250,
+      "displayedSearchResults": 50,
+      "phaseDurationsDiagnosticOnly": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 5535.4183,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 4614.4579,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "success": true,
+          "durationMs": 18873.4895,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 3012.9271,
+          "transportAttempts": 11
+        },
+        {
+          "name": "search-needle",
+          "success": true,
+          "durationMs": 2401.0157,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 2737.7954,
+          "transportAttempts": 219
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 3264.0579,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 3034.4988,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 5116.4913,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 3672.2096,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 1412.5588,
+          "transportAttempts": 216
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 5158.2111,
+          "transportAttempts": 48
+        }
+      ],
+      "mainProcessPssSampleCount": 63,
+      "rendererMemoryIncluded": false,
+      "originalApksPrivateDataBlurAndOwnedPublicImageRestored": true,
+      "fullPerformanceAccepted": false
+    }
+  ],
+  "restorationAudit": [
+    {
+      "objectCount": 100,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "objectCount": 5000,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "allNativeOutcomesIncludingFailures": [
+    {
+      "run": "rf312-first-ocr-probe-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.IllegalStateException",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round2-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.IllegalStateException",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round3-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.IllegalStateException",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round4-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.AssertionError",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round5-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.AssertionError",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round6-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.AssertionError",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round7-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.AssertionError",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round8-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.IllegalStateException",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round9-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.AssertionError",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round10-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.IllegalStateException",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round11-20261012",
+      "objectCount": 100,
+      "driverExitCode": 0,
+      "nativeReportedSuccess": true,
+      "nativeErrorClass": null,
+      "driverError": null,
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round11-20261012",
+      "objectCount": 5000,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": false,
+      "nativeErrorClass": "java.lang.AssertionError",
+      "driverError": "Missing exact successful one-test native report; skips are failures",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round12-20261012",
+      "objectCount": 100,
+      "driverExitCode": 1,
+      "nativeReportedSuccess": true,
+      "nativeErrorClass": null,
+      "driverError": "Complete six-phase UI sequence required",
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round13-20261012",
+      "objectCount": 100,
+      "driverExitCode": 0,
+      "nativeReportedSuccess": true,
+      "nativeErrorClass": null,
+      "driverError": null,
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    },
+    {
+      "run": "rf312-first-ocr-probe-round13-20261012",
+      "objectCount": 5000,
+      "driverExitCode": 0,
+      "nativeReportedSuccess": true,
+      "nativeErrorClass": null,
+      "driverError": null,
+      "originalResultUnmodified": true,
+      "originalApksPrivateDataAndOwnedImageRestored": true
+    }
+  ],
+  "historicalRootCauseUniquelyProven": false,
+  "manualReview": {
+    "ocrKnownCorpus100And5000": true,
+    "searchResultScreens100And5000": true,
+    "scannedPdf5000RasterContent": true,
+    "searchNavbarColorDuringImeTransitionNotAcceptedAsFinalStyle": true
+  },
+  "remaining": [
+    "ordinary native finger event selection and picker return; only accessibility ACTION_CLICK path currently verified",
+    "repeated complete100/5000 cohorts and median/tail metrics",
+    "renderer/full-process memory and sampler overhead attribution",
+    "process-cold launch",
+    "physical hardware and other platforms",
+    "stable search capture after IME transition; not a claimed style repair"
+  ],
+  "rawIndex": "rf312-android-ocr-merged-2026-10-12/index.json"
+}
