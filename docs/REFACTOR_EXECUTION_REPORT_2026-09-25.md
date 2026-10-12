@@ -8176,3 +8176,11 @@ git commit -m "<任务卡的提交标题>"
 - [验收结果](verification/rf1134-android-restore-staging-2026-10-12.json)与[40份原件索引](verification/rf1134-android-restore-staging-2026-10-12/index.json)逐成员SHA/长度回读通过；已在独立核验后清理8份私有TAR副本，私有内容/程序/密钥不入库。历史外部驱动副本保持原样；后续性能/媒体驱动必须导入当前共享helper。
 - 仅RF-1134独立本地提交，不推送；313/324关闭、5待验证、6待执行，goal active。RF-312/121/1109的完整平台、性能和硬件范围保持，继续本地媒体准备和原生OCR/预览。
 - 提交回读曾因Windows路径分隔符退出128，规范路径后源码原始SHA又因Git换行规范化退出1；两次失败分开保留。原生执行的工作副本字节/原件SHA保持，暂存源码SHA独立记录，仅CRLF差异且Python AST完全相同；原驱动边界比对仅规范CRLF，未改原门禁或Native结果。
+
+### RF-312 Android媒体夹具路径准备（2026-10-12，部分验收）
+
+- 基线`71357f64a`、工作树初始干净；仅固定公开媒体例子增加Android导出/独立验证。新外层schema1与内层媒体v2严格分离，固定当前run-as核验的user0包根；原主机/native_manifest必须拒绝Android包装，不放宽v1/v2既有文件/加密/对象内容/源仅读门禁。副本未通过前不发布Android完成标记。
+- fmt、例子9项、严格Clippy、当前源码Release生成器均exit0；共享Windows非默认消费者严格Clippy及相关10项回归exit0、0失败/忽略。保留增量硬链接回退复制警告，未修改权限，不重跑未改动GUI矩阵。
+- 新整组100/5000各导出与独立重开全部exit0，生产KDF65536/3/4、全部对象内容和4素材解密字节/路径及源摘要保持通过；主机/Android清单混用4项真实exit1，未改成跳过。首轮100命令实际成功但stdout ACL日志导致汇总解析exit1，5000未执行；原件保留，在新目录重做整组，不拼接。
+- [口径/复跑与下一步](performance/RF-312-android-media-preparation.md)、[结果](performance/rf312-android-media-preparation-2026-10-12.json)及[87份原件索引](performance/rf312-android-media-preparation-2026-10-12/index.json)逐字SHA/长度回读通过。程序/数据库/密钥/缓存不入库；公开加密副本保留D盘供下一步专用原生验证。
+- 仅此RF-312准备部分独立本地提交、不推送；313/324关闭、5待验证、6待执行保持，goal active。尚未注入Android/执行OCR或预览，不增加关闭数，也不称完整性能验收。后续必须导入RF-1134当前共享恢复helper，实际检查绘制与内容，保留renderer内存/冷启动/物理硬件和其他平台范围。

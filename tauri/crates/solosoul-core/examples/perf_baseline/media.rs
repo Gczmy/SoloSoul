@@ -13,6 +13,7 @@ use std::path::{Path, PathBuf};
 
 const MARKER: &str = "rf312-media-fixture.json";
 const OBJECT: &str = "obj_perf_00000000";
+const ANDROID_ROOT: &str = "/data/user/0/com.solosoul.app";
 const ASSETS: [(&str, &str, &[u8]); 4] = [
     (
         "ocr_test.png",
@@ -63,10 +64,36 @@ struct Manifest {
     closed_files: Vec<ClosedFile>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct AndroidManifest {
+    schema_version: u32,
+    scope: String,
+    metadata_vault_root: String,
+    media: Manifest,
+}
+
+#[derive(Clone, Copy)]
+enum MetadataRoot<'a> {
+    Host(&'a Path),
+    Android,
+}
+
+impl MetadataRoot<'_> {
+    fn attachment_path(self, relative: &str) -> String {
+        match self {
+            Self::Host(root) => root.join(relative).to_string_lossy().into_owned(),
+            Self::Android => format!("{ANDROID_ROOT}/{relative}"),
+        }
+    }
+}
+
 enum Mode {
     Generate(PathBuf, usize),
     Verify(PathBuf),
     Copy(PathBuf, PathBuf),
+    AndroidCopy(PathBuf, PathBuf),
+    AndroidVerify(PathBuf),
 }
 
 pub(super) fn run_if_requested() -> Option<Result<Value, String>> {
@@ -76,6 +103,8 @@ pub(super) fn run_if_requested() -> Option<Result<Value, String>> {
             "--media-fixture-output",
             "--verify-media-fixture",
             "--copy-media-fixture",
+            "--copy-android-media-fixture",
+            "--verify-android-media-fixture",
         ]
         .iter()
         .any(|flag| a == flag)
@@ -86,10 +115,13 @@ pub(super) fn run_if_requested() -> Option<Result<Value, String>> {
         Mode::Generate(p, n) => generate(&p, n),
         Mode::Verify(p) => verify(&p),
         Mode::Copy(p, out) => copy(&p, &out),
+        Mode::AndroidCopy(p, out) => copy_android(&p, &out),
+        Mode::AndroidVerify(p) => verify_android(&p),
     }))
 }
 fn parse(args: &[OsString]) -> Result<Mode, String> {
     let (mut out, mut input, mut source, mut count) = (None, None, None, None);
+    let (mut android_source, mut android_input) = (None, None);
     for pair in args.chunks(2) {
         let flag = pair[0].to_str().ok_or("media flag must be UTF-8")?;
         let value = pair
@@ -100,6 +132,12 @@ fn parse(args: &[OsString]) -> Result<Mode, String> {
             "--media-fixture-output" if out.is_none() => out = Some(PathBuf::from(value)),
             "--verify-media-fixture" if input.is_none() => input = Some(PathBuf::from(value)),
             "--copy-media-fixture" if source.is_none() => source = Some(PathBuf::from(value)),
+            "--copy-android-media-fixture" if android_source.is_none() => {
+                android_source = Some(PathBuf::from(value))
+            }
+            "--verify-android-media-fixture" if android_input.is_none() => {
+                android_input = Some(PathBuf::from(value))
+            }
             "--objects" if count.is_none() => {
                 count = Some(
                     value
@@ -112,10 +150,12 @@ fn parse(args: &[OsString]) -> Result<Mode, String> {
             _ => return Err("unknown or duplicate media fixture option".into()),
         }
     }
-    match (out, input, source, count) {
-        (Some(p), None, None, n) => Ok(Mode::Generate(p, n.unwrap_or(100))),
-        (None, Some(p), None, None) => Ok(Mode::Verify(p)),
-        (Some(p), None, Some(src), None) => Ok(Mode::Copy(src, p)),
+    match (out, input, source, count, android_source, android_input) {
+        (Some(p), None, None, n, None, None) => Ok(Mode::Generate(p, n.unwrap_or(100))),
+        (None, Some(p), None, None, None, None) => Ok(Mode::Verify(p)),
+        (Some(p), None, Some(src), None, None, None) => Ok(Mode::Copy(src, p)),
+        (Some(p), None, None, None, Some(src), None) => Ok(Mode::AndroidCopy(src, p)),
+        (None, None, None, None, None, Some(p)) => Ok(Mode::AndroidVerify(p)),
         _ => Err("use exclusive media generation, verification, or copy with a new output".into()),
     }
 }
@@ -336,6 +376,20 @@ fn copy_files(base: &Path, out: &Path, m: &Manifest) -> Result<(), String> {
 }
 // 所有解锁/读取仅在副本；逐对象完整比较固定内容，附件仅允许四个固定公开素材。
 fn inspect(copy: &Path, declared: &Path, m: &Manifest, rebase: bool) -> Result<Value, String> {
+    inspect_paths(
+        copy,
+        MetadataRoot::Host(declared),
+        m,
+        rebase.then_some(MetadataRoot::Host(copy)),
+    )
+}
+
+fn inspect_paths(
+    copy: &Path,
+    declared: MetadataRoot<'_>,
+    m: &Manifest,
+    rebase: Option<MetadataRoot<'_>>,
+) -> Result<Value, String> {
     let checks = fixture::verify_data(copy, &m.base_fixture)?;
     let account = m.base_fixture["accountId"]
         .as_str()
@@ -373,10 +427,7 @@ fn inspect(copy: &Path, declared: &Path, m: &Manifest, rebase: bool) -> Result<V
             for ((a, descriptor), (name, mime, bytes)) in
                 atts.iter_mut().zip(&m.attachments).zip(ASSETS)
             {
-                let original = declared
-                    .join(&descriptor.relative_path)
-                    .to_string_lossy()
-                    .into_owned();
+                let original = declared.attachment_path(&descriptor.relative_path);
                 if a.id != descriptor.id
                     || a.object_id != OBJECT
                     || a.file_name != name
@@ -402,11 +453,11 @@ fn inspect(copy: &Path, declared: &Path, m: &Manifest, rebase: bool) -> Result<V
                     return Err("media decrypted content differs from public fixture".into());
                 }
                 observations.push(json!({"fileName":name,"encrypted":true,"bytes":decoded.len(),"sha256":sha(&decoded)}));
-                if rebase {
-                    a.vault_path = Some(file.to_string_lossy().into_owned());
+                if let Some(root) = rebase {
+                    a.vault_path = Some(root.attachment_path(&descriptor.relative_path));
                 }
             }
-            if rebase {
+            if rebase.is_some() {
                 objects::save_attachments(&mut record.properties, &atts);
                 vault.save_object(&record)?;
             }
@@ -428,16 +479,25 @@ fn inspect(copy: &Path, declared: &Path, m: &Manifest, rebase: bool) -> Result<V
     service.lock();
     drop(service);
     Ok(
-        json!({"baseVerification":checks,"allObjectContentsVerified":count,"attachmentCount":observations.len(),"attachments":observations,"sourcePathsCleared":true,"metadataPathsVerified":true,"rebasedOnOwnedCopy":rebase,"success":true}),
+        json!({"baseVerification":checks,"allObjectContentsVerified":count,"attachmentCount":observations.len(),"attachments":observations,"sourcePathsCleared":true,"metadataPathsVerified":true,"rebasedOnOwnedCopy":rebase.is_some(),"success":true}),
     )
 }
 fn verify_owned_source(base: &Path, m: &Manifest, marker_present: bool) -> Result<Value, String> {
+    verify_owned_source_paths(base, m, marker_present, MetadataRoot::Host(base))
+}
+
+fn verify_owned_source_paths(
+    base: &Path,
+    m: &Manifest,
+    marker_present: bool,
+    declared: MetadataRoot<'_>,
+) -> Result<Value, String> {
     let before = inventory(base, m, marker_present)?;
     let temporary = tempfile::tempdir().map_err(|e| e.to_string())?;
     let copy = temporary.path().join("closed-copy");
     fs::create_dir(&copy).map_err(|e| e.to_string())?;
     copy_files(base, &copy, m)?;
-    let result = inspect(&copy, base, m, false);
+    let result = inspect_paths(&copy, declared, m, None);
     let after = inventory(base, m, marker_present)?;
     if before != after {
         return Err("media source changed during independent copy verification".into());
@@ -536,6 +596,84 @@ fn copy(path: &Path, output: &Path) -> Result<Value, String> {
     )
 }
 
+fn checked_android_input(path: &Path) -> Result<(PathBuf, Manifest), String> {
+    if !path.is_absolute() {
+        return Err("Android media input must be absolute".into());
+    }
+    fixture::require_path(path, true)?;
+    let base = path.canonicalize().map_err(|e| e.to_string())?;
+    let marker = base.join(MARKER);
+    fixture::require_path(&marker, false)?;
+    if fs::metadata(&marker).map_err(|e| e.to_string())?.len() > 128 * 1024 {
+        return Err("Android media marker exceeds 128 KiB".into());
+    }
+    let wrapper: AndroidManifest = serde_json::from_value(fixture::read_json(&marker)?)
+        .map_err(|e| format!("invalid Android media marker: {e}"))?;
+    if wrapper.schema_version != 1
+        || wrapper.scope != "synthetic-android-media-vault-fixture"
+        || wrapper.metadata_vault_root != ANDROID_ROOT
+    {
+        return Err("Android media marker/root differs from owned-device contract".into());
+    }
+    let m = validate(
+        &base,
+        serde_json::to_value(wrapper.media).map_err(|e| e.to_string())?,
+    )?;
+    Ok((base, m))
+}
+
+fn verify_android(path: &Path) -> Result<Value, String> {
+    let (base, m) = checked_android_input(path)?;
+    let checks = verify_owned_source_paths(&base, &m, true, MetadataRoot::Android)?;
+    Ok(
+        json!({"scope":"synthetic-android-media-read-only-verification",
+        "fixturePath":base,"metadataVaultRoot":ANDROID_ROOT,"verification":checks,
+        "nativeUiMeasured":false,"success":true}),
+    )
+}
+
+fn copy_android(source: &Path, output: &Path) -> Result<Value, String> {
+    let (base, source_manifest) = checked_input(source)?;
+    let before = inventory(&base, &source_manifest, true)?;
+    // Reuse all existing source/output/reparse/encryption/content guards.
+    let host_copy = copy(&base, output)?;
+    let (out, m) = checked_input(output)?;
+    // Only the newly created owned copy is mutable. Do not leave a completed
+    // host marker while its attachment metadata is being changed for Android.
+    fs::remove_file(out.join(MARKER)).map_err(|e| e.to_string())?;
+    let rebase = inspect_paths(
+        &out,
+        MetadataRoot::Host(&out),
+        &m,
+        Some(MetadataRoot::Android),
+    )?;
+    let account = m.base_fixture["accountId"]
+        .as_str()
+        .ok_or("media account missing")?;
+    let closed = files(&out, account, &m.attachments)?;
+    let final_media = manifest(m.base_fixture, m.attachments, closed);
+    let independent = verify_owned_source_paths(&out, &final_media, false, MetadataRoot::Android)?;
+    if before != inventory(&base, &source_manifest, true)? {
+        return Err("media source changed during Android copy".into());
+    }
+    let wrapper = AndroidManifest {
+        schema_version: 1,
+        scope: "synthetic-android-media-vault-fixture".into(),
+        metadata_vault_root: ANDROID_ROOT.into(),
+        media: final_media,
+    };
+    fixture::write_new_json(
+        &out.join(MARKER),
+        &serde_json::to_value(wrapper).map_err(|e| e.to_string())?,
+    )?;
+    Ok(
+        json!({"scope":"synthetic-android-media-owned-copy","fixturePath":out,
+        "sourceFixture":base,"metadataVaultRoot":ANDROID_ROOT,"hostCopy":host_copy,
+        "rebase":rebase,"verification":independent,"sourceFilesUnchanged":true,
+        "nativeUiMeasured":false,"success":true}),
+    )
+}
+
 #[allow(dead_code)] // CLI 与非默认原生功能共享入口。
 pub(crate) fn native_manifest(path: &Path) -> Result<Value, String> {
     let (_, m) = checked_input(path)?;
@@ -598,6 +736,22 @@ mod tests {
             &["--media-fixture-output", "x", "--media-fixture-output", "y"],
             &["--verify-media-fixture", "x", "--fixture-output", "y"],
             &["--verify-media-fixture"],
+            &["--copy-android-media-fixture", "x"],
+            &["--verify-android-media-fixture", "x", "--objects", "100"],
+            &[
+                "--copy-android-media-fixture",
+                "x",
+                "--copy-media-fixture",
+                "x",
+                "--media-fixture-output",
+                "y",
+            ],
+            &[
+                "--verify-android-media-fixture",
+                "x",
+                "--verify-media-fixture",
+                "x",
+            ],
         ] {
             assert!(parse(&args(items)).is_err());
         }
@@ -611,6 +765,96 @@ mod tests {
             .unwrap(),
             Mode::Copy(..)
         ));
+        assert!(matches!(
+            parse(&args(&[
+                "--copy-android-media-fixture",
+                "x",
+                "--media-fixture-output",
+                "y"
+            ]))
+            .unwrap(),
+            Mode::AndroidCopy(..)
+        ));
+        assert!(matches!(
+            parse(&args(&["--verify-android-media-fixture", "x"])).unwrap(),
+            Mode::AndroidVerify(..)
+        ));
+    }
+
+    #[test]
+    fn android_copy_preserves_source_and_independently_checks_content_and_paths() {
+        let (_temp, base) = generated();
+        let (_, m) = checked_input(&base).unwrap();
+        let before = inventory(&base, &m, true).unwrap();
+        let target = base.parent().unwrap().join("android-copy");
+        let copied = copy_android(&base, &target).unwrap();
+        assert_eq!(copied["metadataVaultRoot"], ANDROID_ROOT);
+        assert_eq!(copied["verification"]["allObjectContentsVerified"], 100);
+        assert_eq!(copied["verification"]["attachmentCount"], 4);
+        assert_eq!(copied["verification"]["metadataPathsVerified"], true);
+        assert_eq!(inventory(&base, &m, true).unwrap(), before);
+        let proof = verify_android(&target).unwrap();
+        assert_eq!(proof["verification"]["sourceFilesUnchanged"], true);
+        // Old host/native consumers must not accept an Android path contract.
+        assert!(verify(&target).is_err());
+        assert!(native_manifest(&target).is_err());
+        assert!(verify_android(&base).is_err());
+        assert!(copy_android(&base, &target).is_err());
+        assert!(copy_android(&base, &base.join("forbidden")).is_err());
+        assert_eq!(inventory(&base, &m, true).unwrap(), before);
+    }
+
+    #[test]
+    fn android_marker_rejects_foreign_roots_unknown_fields_and_host_paths() {
+        let (_temp, base) = generated();
+        let target = base.parent().unwrap().join("android-copy");
+        copy_android(&base, &target).unwrap();
+        let original = fs::read(target.join(MARKER)).unwrap();
+        for root in [
+            "/data/user/10/com.solosoul.app",
+            "/data/user/0/other.app",
+            "../escape",
+        ] {
+            let mut value: Value = serde_json::from_slice(&original).unwrap();
+            value["metadataVaultRoot"] = json!(root);
+            fs::write(target.join(MARKER), serde_json::to_vec(&value).unwrap()).unwrap();
+            assert!(verify_android(&target).is_err());
+        }
+        let mut value: Value = serde_json::from_slice(&original).unwrap();
+        value["unexpected"] = json!(true);
+        fs::write(target.join(MARKER), serde_json::to_vec(&value).unwrap()).unwrap();
+        assert!(verify_android(&target).is_err());
+        fs::write(target.join(MARKER), &original).unwrap();
+        fs::write(target.join("rf312-fixture.json"), b"{}").unwrap();
+        assert!(verify_android(&target).is_err());
+        fs::remove_file(target.join("rf312-fixture.json")).unwrap();
+
+        let (_, mut m) = checked_android_input(&target).unwrap();
+        // Reintroduce host paths while updating all cipher-file hashes: marker
+        // integrity alone must not hide wrong decrypted attachment metadata.
+        inspect_paths(
+            &target,
+            MetadataRoot::Android,
+            &m,
+            Some(MetadataRoot::Host(&target)),
+        )
+        .unwrap();
+        m.closed_files = files(
+            &target,
+            m.base_fixture["accountId"].as_str().unwrap(),
+            &m.attachments,
+        )
+        .unwrap();
+        let wrapper = AndroidManifest {
+            schema_version: 1,
+            scope: "synthetic-android-media-vault-fixture".into(),
+            metadata_vault_root: ANDROID_ROOT.into(),
+            media: m,
+        };
+        fs::write(target.join(MARKER), serde_json::to_vec(&wrapper).unwrap()).unwrap();
+        assert!(verify_android(&target)
+            .unwrap_err()
+            .contains("metadata differs"));
     }
     #[test]
     fn independent_reopen_preserves_every_source_file_and_rebases_owned_copy() {
