@@ -1,0 +1,34 @@
+{
+  "at": "2026-10-12T01:02:23.0537396Z",
+  "os": {
+    "Caption": "Microsoft Windows 11 Enterprise LTSC",
+    "Version": "10.0.26100",
+    "OSArchitecture": "64-bit"
+  },
+  "privilegeText": "\r\nPRIVILEGES INFORMATION\r\n----------------------\r\n\r\nPrivilege Name                Description                          State   \r\n============================= ==================================== ========\r\nSeShutdownPrivilege           Shut down the system                 Disabled\r\nSeChangeNotifyPrivilege       Bypass traverse checking             Enabled \r\nSeUndockPrivilege             Remove computer from docking station Disabled\r\nSeIncreaseWorkingSetPrivilege Increase a process working set       Disabled\r\nSeTimeZonePrivilege           Change the time zone                 Disabled\r\n",
+  "appleNativeTools": [],
+  "changesMade": false,
+  "developerMode": {
+    "outcome": "not_readable_or_missing",
+    "errorId": "Argument,Microsoft.PowerShell.Commands.GetItemPropertyValueCommand"
+  },
+  "windowsDesktopSnapshot": {
+    "at": "2026-10-12T00:50:42.750020+00:00",
+    "foregroundHwnd": 34931536,
+    "foregroundPid": 28508,
+    "point": [
+      522,
+      18
+    ],
+    "hitHwnd": 1115524,
+    "hitPid": 20684,
+    "hitRootHwnd": 852170,
+    "snapshotOnly": true,
+    "noCurrentTestWindowWasLaunched": true,
+    "inputEventsSent": 0,
+    "pixelsRead": 0,
+    "windowTextRead": false,
+    "systemSettingsChanged": false
+  },
+  "installedEmulatorGpuHelp": "\r\n  Use -gpu <mode> to override the mode of GPU emulation indicated by the\r\n  AVD's hardware-qemu.inifile.\r\n\r\n     auto (default)       -> Auto-select the renderer, recommended.\r\n     host                 -> Use the host system's GPU drivers.\r\n     software             -> Use default software renderer.\r\n     lavapipe             -> Use Lavapipe software renderer for Vulkan and\r\n                             auto-select software backend for GLES.\r\n     swiftshader          -> Use SwiftShader software renderer for GLES\r\n                             and Vulkan.\r\n     swangle              -> Use ANGLE with Swiftshader backend for GLES and\r\n                             Swiftshader for Vulkan.\r\n\r\n\r\n"
+}
