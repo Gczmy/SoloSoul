@@ -41,4 +41,4 @@
 
 测试源码为 `tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidFixedVaultPerfInstrumentedTest.kt`，方法 `fixedVaultUiTransportBaseline`。必须使用专用 AVD、优化非调试主 APK、已签名独立测试包、完整私有备份、冻结 100/5000 公开夹具及唯一 `observerRunId/evidenceTag`；不得直接覆盖普通用户应用。原件中保留具体独立构建配方、驱动、十份启动器、恢复回执和验证脚本；程序及签名材料需由相同来源重新准备。
 
-下一步先将恢复备份的上传、SHA 和权限校验前移到清空私有目录之前，补充断连失败实证；随后适配 Android 媒体夹具路径、推进首 OCR 与预览。renderer/全进程内存、进程冷启动、物理设备及其他平台仍未验。保持 312/323 关闭、5 待验证、6 待执行；本项独立本地提交，不自动推送，goal 保持 active。
+恢复准备前置已由[RF-1134独立验收](../verification/rf1134-android-restore-staging-2026-10-12.json)完成；后续驱动须导入当前共享 helper，不能继续复制历史恢复体。下一步适配 Android 媒体夹具路径、推进首 OCR 与预览。renderer/全进程内存、进程冷启动、物理设备及其他平台仍未验。本基线提交时为 312/323 关闭、5 待验证、6 待执行；后续当前计数以执行报告为准。本项独立本地提交，不自动推送，goal 保持 active。

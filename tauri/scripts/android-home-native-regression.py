@@ -166,6 +166,49 @@ def inventory(path, require_empty=False):
     return result
 
 
+def stage_private_restore(adb, read, backup, expected_sha256, report):
+    """先确认备份在目标应用身份下可读且完整，再允许清空私有目录。"""
+    if digest(backup) != expected_sha256:
+        raise RuntimeError("Original private backup changed; refusing restore")
+    remote = f"/data/local/tmp/fe2-private-backup-{uuid.uuid4().hex}.tar"
+    staging = {"remotePath": remote, "sha256": expected_sha256,
+               "ready": False, "privateRootClearAttempted": False}
+    report["restoreStaging"] = staging
+    # exec-in 曾发生截断仍返回成功；先上传完整 TAR，并用实际 run-as 身份校验。
+    adb("push", str(backup), remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    adb("shell", "chmod", "644", remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = read("shell", "run-as", APP, "sha256sum", remote).split()
+    if result != [expected_sha256, remote] or digest(backup) != expected_sha256:
+        raise RuntimeError("Staged private backup digest/path differs; refusing clear")
+    staging["ready"] = True
+    return remote
+
+
+def restore_private_data(adb, read, archive, backup, before, root_mode, output, report):
+    remote = stage_private_restore(adb, read, backup, report["backup"]["sha256"], report)
+    names = read("shell", "run-as", APP, "ls", "-A").splitlines()
+    if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in (".", "..") for name in names):
+        raise RuntimeError("Unsafe private root entry; keep backup for manual recovery")
+    if names:
+        report["restoreStaging"]["privateRootClearAttempted"] = True
+        adb("shell", "run-as", APP, "rm", "-rf", "--", *names, stdout=subprocess.PIPE)
+    adb("shell", "run-as", APP, "tar", "-xpf", remote,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    adb("shell", "run-as", APP, "chmod", root_mode, ".", stdout=subprocess.PIPE)
+    restored = output / "private-data-restored.tar"
+    archive(restored)
+    after = inventory(restored, require_empty=True)
+    if before != after:
+        report["restoreChangedPaths"] = sorted(
+            name for name in before.keys() | after.keys() if before.get(name) != after.get(name))
+        raise RuntimeError("Private data does not match backup")
+    report["restoreVerification"] = {"entries": len(after), "allFileContentsLinksAndModesMatch": True}
+    if read("shell", "run-as", APP, "stat", "-c", "%a", ".") != root_mode:
+        raise RuntimeError("Private root mode differs from backup")
+    adb("shell", "rm", remote, stdout=subprocess.PIPE)
+    report["restored"] = True
+
+
 def verify_native(text, method=METHOD):
     text = text.replace("\r\n", "\n")
     statuses = [int(n) for n in re.findall(r"^INSTRUMENTATION_STATUS_CODE:\s*(-?\d+)\s*$", text, re.M)]
@@ -731,32 +774,7 @@ def main():
             try:
                 adb("shell", "am", "force-stop", APP, stdout=subprocess.PIPE)
                 if backup_valid and mutation_started:
-                    # 只移除专用应用私有根下的成员，拒绝不符合单一文件名的输出。
-                    names = read("shell", "run-as", APP, "ls", "-A").splitlines()
-                    if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in (".", "..") for name in names):
-                        raise RuntimeError("Unsafe private root entry; keep backup for manual recovery")
-                    if names:
-                        adb("shell", "run-as", APP, "rm", "-rf", "--", *names, stdout=subprocess.PIPE)
-                    # adb exec-in 的 stdin 在部分版本会提前结束，toybox tar 对截断
-                    # 归档仍可能退出 0；使用完整落盘归档并保持权限，最终逐文件校验。
-                    remote_backup = f"/data/local/tmp/fe2-private-backup-{uuid.uuid4().hex}.tar"
-                    adb("push", str(backup), remote_backup, stdout=subprocess.PIPE)
-                    adb("shell", "chmod", "644", remote_backup, stdout=subprocess.PIPE)
-                    adb("shell", "run-as", APP, "tar", "-xpf", remote_backup,
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    adb("shell", "run-as", APP, "chmod", root_mode, ".", stdout=subprocess.PIPE)
-                    restored = output / "private-data-restored.tar"
-                    archive(restored)
-                    after = inventory(restored, require_empty=True)
-                    if before != after:
-                        changed = sorted(name for name in before.keys() | after.keys() if before.get(name) != after.get(name))
-                        report["restoreChangedPaths"] = changed
-                        raise RuntimeError("Private data does not match backup")
-                    report["restoreVerification"] = {"entries": len(after), "allFileContentsLinksAndModesMatch": True}
-                    if read("shell", "run-as", APP, "stat", "-c", "%a", ".") != root_mode:
-                        raise RuntimeError("Private root mode differs from backup")
-                    adb("shell", "rm", remote_backup, stdout=subprocess.PIPE)
-                    report["restored"] = True
+                    restore_private_data(adb, read, archive, backup, before, root_mode, output, report)
             except Exception as error:
                 report["restoreError"] = str(error)
             # 私有目录恢复异常也必须尝试恢复系统模糊设置，两项清理互不依赖。

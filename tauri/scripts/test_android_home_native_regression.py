@@ -598,5 +598,126 @@ class HomeRunnerTests(unittest.TestCase):
                 runner.verify_native(invalid)
 
 
+class PrivateRestoreStagingTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.output = Path(self.temp.name)
+        self.backup = self.output / 'before.tar'
+        self.original = {'ui_preferences.json': (b'{"theme":"dark"}', 0o600)}
+        self.write_archive(self.backup, self.original)
+        self.before = runner.inventory(self.backup, require_empty=True)
+        self.root = {'runtime.json': (b'public active test state', 0o600)}
+        self.initial = dict(self.root)
+        self.remote = {}
+        self.commands = []
+        self.failure = None
+        self.root_mode = '700'
+        self.report = {'backup': {'sha256': runner.digest(self.backup)},
+                       'nativePassed': True, 'blurRestored': True, 'restored': False}
+
+    def write_archive(self, path, contents):
+        with tarfile.open(path, 'w') as archive:
+            for name, (data, mode) in contents.items():
+                member = tarfile.TarInfo(name)
+                member.mode = mode
+                member.size = len(data)
+                archive.addfile(member, io.BytesIO(data))
+
+    def adb(self, *command, **kwargs):
+        self.commands.append(command)
+        if command[0] == 'push':
+            if self.failure == 'push':
+                raise ConnectionError('injected upload disconnect')
+            self.remote[command[2]] = Path(command[1]).read_bytes()
+            if self.failure == 'source-change':
+                self.backup.write_bytes(b'changed after upload')
+        elif command[:2] == ('shell', 'chmod'):
+            if self.failure == 'chmod':
+                raise ConnectionError('injected chmod disconnect')
+            if self.failure == 'corrupt':
+                self.remote[command[3]] = b'truncated upload'
+        elif command[:5] == ('shell', 'run-as', runner.APP, 'rm', '-rf'):
+            self.root.clear()
+        elif command[:4] == ('shell', 'run-as', runner.APP, 'tar'):
+            with tarfile.open(fileobj=io.BytesIO(self.remote[command[-1]])) as archive:
+                self.root = {m.name: (archive.extractfile(m).read(), m.mode)
+                             for m in archive if m.isfile()}
+            if self.failure == 'restored-bytes':
+                self.root['ui_preferences.json'] = (b'wrong', 0o600)
+            if self.failure == 'restored-mode':
+                self.root['ui_preferences.json'] = (self.root['ui_preferences.json'][0], 0o644)
+        elif command[:4] == ('shell', 'run-as', runner.APP, 'chmod'):
+            self.root_mode = command[4]
+        elif command[:2] == ('shell', 'rm'):
+            del self.remote[command[2]]
+
+    def read(self, *command):
+        self.commands.append(command)
+        if command[:4] == ('shell', 'run-as', runner.APP, 'sha256sum'):
+            if self.failure == 'unreadable':
+                raise PermissionError('target app cannot read staged backup')
+            value = runner.hashlib.sha256(self.remote[command[4]]).hexdigest()
+            path = '/other.tar' if self.failure == 'checksum-path' else command[4]
+            extra = '\nextra' if self.failure == 'checksum-extra' else ''
+            return f'{value}  {path}{extra}'
+        if command[:4] == ('shell', 'run-as', runner.APP, 'ls'):
+            return '\n'.join(self.root)
+        if command[:4] == ('shell', 'run-as', runner.APP, 'stat'):
+            return '755' if self.failure == 'root-mode' else self.root_mode
+        raise AssertionError(command)
+
+    def restore(self):
+        runner.restore_private_data(self.adb, self.read,
+                                    lambda path: self.write_archive(path, self.root),
+                                    self.backup, self.before, '700', self.output, self.report)
+
+    def test_stage_faults_preserve_current_private_contents(self):
+        for failure in ['push', 'chmod', 'corrupt', 'unreadable', 'checksum-path',
+                        'checksum-extra', 'source-change']:
+            with self.subTest(failure=failure):
+                self.root = dict(self.initial)
+                self.write_archive(self.backup, self.original)
+                self.report['backup']['sha256'] = runner.digest(self.backup)
+                self.report['restored'] = False
+                self.failure = failure
+                with self.assertRaises((ConnectionError, PermissionError, RuntimeError, tarfile.TarError)):
+                    self.restore()
+                self.assertEqual(self.root, self.initial)
+                self.assertFalse(self.report['restored'])
+
+    def test_changed_local_backup_is_rejected_before_upload_or_clear(self):
+        self.backup.write_bytes(b'changed before restore')
+        with self.assertRaises((RuntimeError, tarfile.TarError)):
+            self.restore()
+        self.assertEqual(self.root, self.initial)
+        self.assertEqual(self.remote, {})
+
+    def test_success_requires_target_readable_digest_and_complete_restore(self):
+        self.restore()
+        self.assertEqual(self.root, self.original)
+        self.assertEqual(self.remote, {})
+        self.assertTrue(self.report['restored'])
+        self.assertTrue(self.report['restoreStaging']['ready'])
+        self.assertTrue(self.report['restoreStaging']['privateRootClearAttempted'])
+        self.assertTrue(runner.verification_passed(self.report, False))
+
+    def test_unsafe_root_names_are_not_deleted(self):
+        self.root = {'../outside': (b'untouched', 0o600)}
+        with self.assertRaises(RuntimeError):
+            self.restore()
+        self.assertEqual(self.root, {'../outside': (b'untouched', 0o600)})
+
+    def test_post_extract_contents_modes_and_root_mode_remain_required(self):
+        for failure in ['restored-bytes', 'restored-mode', 'root-mode']:
+            with self.subTest(failure=failure):
+                self.failure = failure
+                self.report['restored'] = False
+                with self.assertRaises(RuntimeError):
+                    self.restore()
+                self.assertFalse(runner.verification_passed(self.report, False))
+                self.assertTrue(self.remote)  # keep staged backup for recovery
+
+
 if __name__ == "__main__":
     unittest.main()

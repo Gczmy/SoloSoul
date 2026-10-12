@@ -1,0 +1,247 @@
+{
+  "task": "RF-1134",
+  "allMembersReadbackVerified": true,
+  "privateTarApksAndKeysExcluded": true,
+  "members": [
+    {
+      "member": "baseline.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\baseline.receipt.json",
+      "bytes": 44,
+      "sha256": "eef2265a5b5b3f4e98cba5001d1ddf3bb7e389f04f87cb246fce608e02bd04c2"
+    },
+    {
+      "member": "baseline.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\baseline.stderr.log",
+      "bytes": 7798,
+      "sha256": "536e2e2418f4fce413236b7071b6f6c69fa1920495065f9ff4c2f67f9c690865"
+    },
+    {
+      "member": "baseline.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\baseline.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "driver.before.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\driver.before.py",
+      "bytes": 57129,
+      "sha256": "6b0067bea91d2bd0d35505d19a22d26315a01f905faa9edb68ad56753927d7e6"
+    },
+    {
+      "member": "full-home/device-files/enhanced-dark-after-unlock.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\enhanced-dark-after-unlock.png",
+      "bytes": 130540,
+      "sha256": "86dbfae81b41fdda66d1b587fc1292ad927c0d169a5769f5a400dd9a61244f68"
+    },
+    {
+      "member": "full-home/device-files/enhanced-dark.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\enhanced-dark.png",
+      "bytes": 107003,
+      "sha256": "0fb9487f433d6bde64e079c1ad4494ebe2adf46cca5d44942b2c523337bc5833"
+    },
+    {
+      "member": "full-home/device-files/enhanced-light.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\enhanced-light.png",
+      "bytes": 129627,
+      "sha256": "d71dab2f189728822bfe69a5afd2b94128971e2d3ecff69b5e594867042f800d"
+    },
+    {
+      "member": "full-home/device-files/local-light.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\local-light.png",
+      "bytes": 101811,
+      "sha256": "fb9afd03a3843e54dbe832a35230b809bb2189691c184d900b14173551237f18"
+    },
+    {
+      "member": "full-home/device-files/object-actions-dark.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\object-actions-dark.png",
+      "bytes": 106913,
+      "sha256": "43d7044302f706aa85a266370d344eb217bc4a7e6e24ff0bb0e425644295b36e"
+    },
+    {
+      "member": "full-home/device-files/object-detail-dark.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\object-detail-dark.png",
+      "bytes": 118380,
+      "sha256": "ca1bb17d5d49b60983be05283feedcb0022784a5d01d58ac03aaabed399a006f"
+    },
+    {
+      "member": "full-home/device-files/object-editor-dark.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\object-editor-dark.png",
+      "bytes": 100954,
+      "sha256": "e94896394a7e7c7feee79c4978afff19b57e592a5df635e4d89c1b9ce3077c9b"
+    },
+    {
+      "member": "full-home/device-files/object-list-after-system-back.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\object-list-after-system-back.png",
+      "bytes": 111133,
+      "sha256": "9aed1c972934b46b224bb4c42634106210dda2af48544db26269ca873e1a398a"
+    },
+    {
+      "member": "full-home/device-files/object-list-dark.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\object-list-dark.png",
+      "bytes": 119310,
+      "sha256": "09be1a209afd565632c1e5dc22e5a5830e5502622760e10c4d1ed41879469805"
+    },
+    {
+      "member": "full-home/device-files/populated-enhanced-dark.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\populated-enhanced-dark.png",
+      "bytes": 129368,
+      "sha256": "b57d4a020d6939f72ab77ecc40b307f95caa1b694f20a8174a6dcea22ae7d37c"
+    },
+    {
+      "member": "full-home/device-files/populated-enhanced-light.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\populated-enhanced-light.png",
+      "bytes": 128309,
+      "sha256": "e28bc88ca11714fb08d64dd94a08a9d21b4efa5676f044ad71e19a5ab5ed2690"
+    },
+    {
+      "member": "full-home/device-files/report.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\device-files\\report.json",
+      "bytes": 30291,
+      "sha256": "eb5062dc37b23bc8f736eb1d1ede571cba00c609f1f11b08535bb980cff91629"
+    },
+    {
+      "member": "full-home/junit.xml",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "member": "full-home/native.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\native.log",
+      "bytes": 945,
+      "sha256": "14e95086a40a6177f586a4e17237d8b3f422ede7ab51a3a7c119ac8ef3375476"
+    },
+    {
+      "member": "full-home/report.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\report.json",
+      "bytes": 1890,
+      "sha256": "1910002086db22ac7da4dd340a434d421ead0812956957b64271027b5c5812f3"
+    },
+    {
+      "member": "full-home-inputs.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home-inputs.json",
+      "bytes": 1941,
+      "sha256": "da5b4d810fa331a214c553cdbf30d504b84b85196d0eb808bf31d2509bdce650"
+    },
+    {
+      "member": "full-home.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home.live.json",
+      "bytes": 740,
+      "sha256": "eafdcbcad5691ec018194891c0afc2ea77d3c9d37acfc6ed06af8e94c40aaf4d"
+    },
+    {
+      "member": "full-home.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home.receipt.json",
+      "bytes": 896,
+      "sha256": "ca96512dd9826ac7ef51fcd9ce6fb1ba22629e1cdf3492ee5844c4b05b06a3af"
+    },
+    {
+      "member": "full-home.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home.stderr.log",
+      "bytes": 153,
+      "sha256": "d53c8ab7b7e3f5c58b00babb3b8840121adc598dc8c449f74acb2fdac242dc64"
+    },
+    {
+      "member": "full-home.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home.stdout.log",
+      "bytes": 1890,
+      "sha256": "1910002086db22ac7da4dd340a434d421ead0812956957b64271027b5c5812f3"
+    },
+    {
+      "member": "green.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\green.receipt.json",
+      "bytes": 17,
+      "sha256": "d45db54bba0c56e2691a52869729c0a3eade7f5d50545e7832a20e3262a9d422"
+    },
+    {
+      "member": "green.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\green.stderr.log",
+      "bytes": 8725,
+      "sha256": "906d1cc289a62892868ba6ddb87e23172cb1285b40ff2989728f55c76e999559"
+    },
+    {
+      "member": "green.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\green.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "native/commands.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\commands.json",
+      "bytes": 16488,
+      "sha256": "2a49d4c9f62dda877456844ef20369ed39daafc37ee42b7c8a65587d18842b77"
+    },
+    {
+      "member": "native/result.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\result.json",
+      "bytes": 3422,
+      "sha256": "050bf39d90765d5077083284bef7b0f96da87561927d3113149da28da72d5d5a"
+    },
+    {
+      "member": "native-restore-staging.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native-restore-staging.py",
+      "bytes": 7592,
+      "sha256": "cd5217b2bce3aaa87ae2624fd599d6e7b85525080d12c7fa5903a806967b943f"
+    },
+    {
+      "member": "original-restore-body.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\original-restore-body.py",
+      "bytes": 1682,
+      "sha256": "4ab22a5069bb05e2a1b64e1400ec4f8f7c97dc4d9ec9320676b2054318d4835b"
+    },
+    {
+      "member": "readback.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\readback.json",
+      "bytes": 3054,
+      "sha256": "f1c21014e6e8c6823f8f1583a5f3bd062194e687a21388377d1e68c523fedeb7"
+    },
+    {
+      "member": "red-original-restore.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\red-original-restore.py",
+      "bytes": 944,
+      "sha256": "eab224a225a8256fa077edbae306cb3f7776a03977572b8457f282cc521f940c"
+    },
+    {
+      "member": "red.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\red.receipt.json",
+      "bytes": 17,
+      "sha256": "bc3b6dbf9284b62654e163d7d8bb21c0e0206d75c8d09936cb049cec67a579b0"
+    },
+    {
+      "member": "red.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\red.stderr.log",
+      "bytes": 7941,
+      "sha256": "3e6002afe60c4422e1c619791a600b6ae5b681f1c7909ed7ac2fa03d47cbb71d"
+    },
+    {
+      "member": "red.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\red.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "run-full-home.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\run-full-home.py",
+      "bytes": 1407,
+      "sha256": "5aef3940a3c2b42605ab10ad8210a04930284e77fb6774ae5e8a290d9a01df79"
+    },
+    {
+      "member": "tests.before.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\tests.before.py",
+      "bytes": 40059,
+      "sha256": "a6cc7400aa7e1490c582059b3c6851ceeba4d9e3b43e782c78bdc4e57d3496ac"
+    },
+    {
+      "member": "sources/android-home-native-regression.py",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\android-home-native-regression.py",
+      "bytes": 57664,
+      "sha256": "8bcf10eb27ac2b91acbb3e5f0b49249781bb36756016aa05cad597f2087014d6"
+    },
+    {
+      "member": "sources/test_android_home_native_regression.py",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\test_android_home_native_regression.py",
+      "bytes": 46224,
+      "sha256": "9a9ad2eb9501ee8c4f86f52e8b99c907a3f16adcd95e1e44a42dde42d5749727"
+    }
+  ]
+}

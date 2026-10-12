@@ -1,0 +1,20 @@
+{
+  "existingDriverOutsideRestoreExtractionExactlyEqual": true,
+  "allOriginal39TestCodeBytesUnchanged": true,
+  "defaultCallerPostRunPackagesExactlyEqualToOriginal": {
+    "main": {
+      "sha256": "f896b3c1e2f6ab00ba577d595905983668da67fc7be7d993f94d9709c33c459e",
+      "bytes": 218619845,
+      "uid": 10105,
+      "debuggable": true
+    },
+    "test": {
+      "sha256": "deeb46cc47870b8a63699d37d7737e782c33ddd98ccc06c6325f0e40dd2d7725",
+      "bytes": 1961635,
+      "uid": 10106,
+      "debuggable": true
+    }
+  },
+  "noOldGuardsOrChecksRemoved": true,
+  "sourceBoundaryComparisonNormalizesCRLFOnly": true
+}
