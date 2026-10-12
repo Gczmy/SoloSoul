@@ -28,7 +28,9 @@ const ASSETS: [(&str, &str, &[u8]); 4] = [
     (
         "scanned.pdf",
         "application/pdf",
-        include_bytes!("../../tests/fixtures/scanned.pdf"),
+        // The legacy OCR unit fixture is blank. Performance previews need a
+        // raster-only page with visible public content and no PDF text layer.
+        include_bytes!("fixtures/scanned.pdf"),
     ),
     (
         "preview.txt",
@@ -724,7 +726,7 @@ mod tests {
         );
         assert_eq!(
             sha(ASSETS[2].2),
-            "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+            "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525"
         );
     }
     #[test]
