@@ -20,6 +20,7 @@ export default defineConfig({
       'scripts/android-native-regression.test.mjs',
       'scripts/update-distribution.test.js',
       'src-tauri/src/native_perf/observer.node.test.mjs',
+      'src-tauri/src/android_native_perf/observer.node.test.mjs',
     ],
     coverage: {
       provider: 'v8',

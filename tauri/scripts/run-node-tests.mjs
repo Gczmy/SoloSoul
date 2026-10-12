@@ -23,6 +23,7 @@ const files = [
   'scripts/native-perf-startup.test.mjs',
   'scripts/native-perf-memory.test.mjs',
   'src-tauri/src/native_perf/observer.node.test.mjs',
+  'src-tauri/src/android_native_perf/observer.node.test.mjs',
   'scripts/update-distribution.test.js',
   'scripts/stage-mobile-resources.test.cjs',
 ];
