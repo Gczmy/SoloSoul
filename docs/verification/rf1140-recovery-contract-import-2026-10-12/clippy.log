@@ -1,0 +1,12 @@
+    Blocking waiting for file lock on package cache
+warning: hard linking files in the incremental compilation cache failed. copying files instead. consider moving the cache directory to a file system which supports hard linking in session dir `\\?\D:\SoloSoul\build\rf312-maintenance-20261009\cargo-target\debug\incremental\solosoul_core-3c3zn7xtxh1iu\s-hn3tzd0gjy-1lhcwzs-working`
+
+warning: `solosoul-core` (lib) generated 1 warning
+warning: hard linking files in the incremental compilation cache failed. copying files instead. consider moving the cache directory to a file system which supports hard linking in session dir `\\?\D:\SoloSoul\build\rf312-maintenance-20261009\cargo-target\debug\incremental\solosoul_sync-0jzjtguva1qum\s-hn3u066sbn-0ba5veu-working`
+
+warning: `solosoul-sync` (lib) generated 1 warning
+   Compiling solo_soul v2.13.2 (D:\SoloSoul\tauri\src-tauri)
+warning: hard linking files in the incremental compilation cache failed. copying files instead. consider moving the cache directory to a file system which supports hard linking in session dir `\\?\D:\SoloSoul\build\rf312-maintenance-20261009\cargo-target\debug\incremental\solosoul_plugin-0c2yryzrd5f63\s-hn3u09k2ai-0z9rfq8-working`
+
+warning: `solosoul-plugin` (lib) generated 1 warning
+    Finished `dev` profile [optimized + debuginfo] target(s) in 3m 18s

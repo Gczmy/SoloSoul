@@ -1,0 +1,67 @@
+[
+  {
+    "label": "fmt-local",
+    "command": [
+      "C:/Users/40299571/.cargo/bin/cargo.exe",
+      "fmt",
+      "--check"
+    ],
+    "exitCode": 0,
+    "seconds": 7.048531300039031,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "contracts-tests",
+    "command": [
+      "cmd.exe",
+      "/d",
+      "/c",
+      "npm.cmd",
+      "run",
+      "test:contracts"
+    ],
+    "exitCode": 0,
+    "seconds": 693.8686926999944,
+    "logSha256": "c063c501a9839552cc18d60eeb5fd3054aa847324514d4edbe36e254ccbf2ae8"
+  },
+  {
+    "label": "contracts-drift",
+    "command": [
+      "cmd.exe",
+      "/d",
+      "/c",
+      "npm.cmd",
+      "run",
+      "check:contracts"
+    ],
+    "exitCode": 0,
+    "seconds": 9.066823299974203,
+    "logSha256": "c076d9890c40fccb46683b805d79fa42f80a3695b14f0f5d32b160bda3d87275"
+  },
+  {
+    "label": "acl",
+    "command": [
+      "C:/Python314/python.exe",
+      "scripts/check_acl_consistency.py"
+    ],
+    "exitCode": 0,
+    "seconds": 0.2649402000242844,
+    "logSha256": "010e2ea2f1b1e4744d10cac49161b2e1820aa68579b154ee86e4bf8cc8f84fa9"
+  },
+  {
+    "label": "acl-tests",
+    "command": [
+      "C:/Python314/python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "scripts",
+      "-p",
+      "test_check_acl_consistency.py"
+    ],
+    "exitCode": 0,
+    "seconds": 1.1749277000199072,
+    "logSha256": "9946f3038a05b16938840da4f7d0bf519ba7ec0aa0a1b67843feff5077c31b50"
+  }
+]

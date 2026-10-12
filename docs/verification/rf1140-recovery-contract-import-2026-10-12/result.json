@@ -1,0 +1,202 @@
+{
+  "task": "RF-1140",
+  "baseHead": "33fc34af4aa52cb9dddeadd2dba9ed773c28d965",
+  "pr": 5,
+  "source": {
+    "path": "tauri/src-tauri/src/commands/recovery.rs",
+    "worktreeSha256": "4de1d7e6fb0c835b8b448af83c3e04901ff28968c22373202a2fd89aa471dd2b",
+    "gitNormalizedSha256": "4de1d7e6fb0c835b8b448af83c3e04901ff28968c22373202a2fd89aa471dd2b"
+  },
+  "checks": [
+    {
+      "label": "fmt-local",
+      "command": [
+        "C:/Users/40299571/.cargo/bin/cargo.exe",
+        "fmt",
+        "--check"
+      ],
+      "exitCode": 0,
+      "seconds": 7.048531300039031,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "contracts-tests",
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "npm.cmd",
+        "run",
+        "test:contracts"
+      ],
+      "exitCode": 0,
+      "seconds": 693.8686926999944,
+      "logSha256": "c063c501a9839552cc18d60eeb5fd3054aa847324514d4edbe36e254ccbf2ae8"
+    },
+    {
+      "label": "contracts-drift",
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "npm.cmd",
+        "run",
+        "check:contracts"
+      ],
+      "exitCode": 0,
+      "seconds": 9.066823299974203,
+      "logSha256": "c076d9890c40fccb46683b805d79fa42f80a3695b14f0f5d32b160bda3d87275"
+    },
+    {
+      "label": "acl",
+      "command": [
+        "C:/Python314/python.exe",
+        "scripts/check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "seconds": 0.2649402000242844,
+      "logSha256": "010e2ea2f1b1e4744d10cac49161b2e1820aa68579b154ee86e4bf8cc8f84fa9"
+    },
+    {
+      "label": "acl-tests",
+      "command": [
+        "C:/Python314/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "seconds": 1.1749277000199072,
+      "logSha256": "9946f3038a05b16938840da4f7d0bf519ba7ec0aa0a1b67843feff5077c31b50"
+    }
+  ],
+  "nativeChecks": [
+    {
+      "label": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "-p",
+        "solo_soul",
+        "--all-targets",
+        "--features",
+        "native-perf",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "seconds": 199.25267189997248
+    },
+    {
+      "label": "rust-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "--features",
+        "native-perf"
+      ],
+      "exitCode": 0,
+      "seconds": 1698.567791199952
+    }
+  ],
+  "contractTestsPassed": 23,
+  "rustTestsPassed": 930,
+  "rustTestsIgnored": 0,
+  "otherTasksRemainPaused": true,
+  "ciLatestHeadAccepted": false,
+  "rf1137NativeAccepted": false,
+  "files": {
+    "acl-tests.live.json": {
+      "sha256": "2b3616a7b01352223d4b6df9ec218acc9318a56a19736c72a7bf3bf5024d2575",
+      "bytes": 183
+    },
+    "acl-tests.log": {
+      "sha256": "9946f3038a05b16938840da4f7d0bf519ba7ec0aa0a1b67843feff5077c31b50",
+      "bytes": 116
+    },
+    "acl.live.json": {
+      "sha256": "1476ba5830f2e1febe8ba5c09c13b938bdc0eec1a15d95a6ab223be8cd824b44",
+      "bytes": 134
+    },
+    "acl.log": {
+      "sha256": "010e2ea2f1b1e4744d10cac49161b2e1820aa68579b154ee86e4bf8cc8f84fa9",
+      "bytes": 188
+    },
+    "checks.json": {
+      "sha256": "a8660a42fbabf0948d0febb9936f0c801026cd964e352b015f9958a8676603d5",
+      "bytes": 1558
+    },
+    "ci-failure.json": {
+      "sha256": "633ae2feb8bdacb9bf37b24ac38f099f5c5c2734f1ee7557ea7e2d9297f62be0",
+      "bytes": 71785
+    },
+    "clippy.live.json": {
+      "sha256": "e67d83de3e229060f05a279f92162de02aa4488b66c6466f103a2e821c411a8d",
+      "bytes": 204
+    },
+    "clippy.log": {
+      "sha256": "9a183455e4f2f2fb210d2b7879b0d9b9501ac80b72859d281f0627653015b900",
+      "bytes": 1337
+    },
+    "contracts-drift.live.json": {
+      "sha256": "e73e6719a7019fefe004f6f900ace8ae7fbc4f6f7132bbbbb6b2b4bfadff582c",
+      "bytes": 131
+    },
+    "contracts-drift.log": {
+      "sha256": "c076d9890c40fccb46683b805d79fa42f80a3695b14f0f5d32b160bda3d87275",
+      "bytes": 174
+    },
+    "contracts-tests.live.json": {
+      "sha256": "82b3ed38c849ac5071586e754fb019712834e103a23358244742f8cf16fbd20e",
+      "bytes": 130
+    },
+    "contracts-tests.log": {
+      "sha256": "c063c501a9839552cc18d60eeb5fd3054aa847324514d4edbe36e254ccbf2ae8",
+      "bytes": 2688
+    },
+    "fmt-local.live.json": {
+      "sha256": "dab450dd12d620f8400c8f6e500e2143b8ca342056229c6fd985c9eba4f60030",
+      "bytes": 130
+    },
+    "fmt-local.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "fmt.live.json": {
+      "sha256": "102a26fde82a36994dfe64de1678b72078f64786709ac533ebd4c2294d6742c3",
+      "bytes": 102
+    },
+    "fmt.log": {
+      "sha256": "edca627aa5895d7521ba4bc5455b5deb9a41ec61c4d49685724f46f66fa6a060",
+      "bytes": 146
+    },
+    "native-checks.json": {
+      "sha256": "a80e27f36e050494074fed56e1bfcab271bfcb34e4ebf5117b594dcfed480d64",
+      "bytes": 617
+    },
+    "red.log": {
+      "sha256": "6563ed6a7852dc19da53b02b51181c23ca9280cc1175277e4e266ed01d4c344a",
+      "bytes": 226
+    },
+    "rust-tests.live.json": {
+      "sha256": "949cd49192cb1221d2ce3bacbd956175b5f6f4e96ffe723c74b6d13bc9deb79e",
+      "bytes": 168
+    },
+    "rust-tests.log": {
+      "sha256": "d6d36adc4d2b8a057399c27dd1aa094c34d548eec530577ef81d5749f3261a4f",
+      "bytes": 506849
+    }
+  }
+}

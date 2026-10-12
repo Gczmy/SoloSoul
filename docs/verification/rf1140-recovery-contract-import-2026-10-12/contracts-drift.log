@@ -1,0 +1,5 @@
+
+> solosoul@2.13.2 check:contracts
+> node scripts/generate-ipc-contracts.mjs --check
+
+IPC contracts verified: 106 migrated commands, 120 legacy commands, 11 selected events.

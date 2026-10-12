@@ -1,0 +1,7 @@
+
+> solosoul@2.13.2 check:contracts
+> node scripts/generate-ipc-contracts.mjs --check
+
+Rust contract generator failed (1):
+ipc-contract-gen: src-tauri/src/commands/recovery.rs: conditional/attributed use is unsupported
+

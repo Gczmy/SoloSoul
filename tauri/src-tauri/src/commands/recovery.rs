@@ -17,8 +17,6 @@ use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, Rec
 use solosoul_vault::ImportSourceKind;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-#[cfg(desktop)]
-use tauri::Manager;
 use tauri::{Emitter, State};
 
 /// 从 VaultService 读取当前解锁账户的名称。
@@ -171,6 +169,8 @@ async fn advertise_recovery_mdns(
     fingerprint: &str,
     display_addr: &str,
 ) -> Result<Option<String>, String> {
+    use tauri::Manager;
+
     let daemon_state = app.state::<crate::commands::discovery::SharedDaemon>();
     let daemon_arc = daemon_state.get().await?;
     let guard = daemon_arc.lock().await;

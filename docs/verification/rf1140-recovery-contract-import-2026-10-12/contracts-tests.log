@@ -1,0 +1,35 @@
+
+> solosoul@2.13.2 test:contracts
+> node --test scripts/generate-ipc-contracts.node.mjs
+
+✔ two real-source generations are byte-identical; check leaves outputs unchanged (15547.0408ms)
+✔ an actual Rust command argument change fails check, and generated arguments reject the old TS call (3360.063ms)
+✔ missing output fails check without writing files; Rust parsing errors also fail generation (2171.7127ms)
+✔ the actual typed wrapper preserves command and argument correlation across generated commands (1306.129ms)
+✔ RF302 real object and snapshot contracts reject invalid wire calls through direct and session invokers (4447.2634ms)
+✔ RF306 actual plugin contracts preserve SDK channels, resource handles and nullable wire payloads (4449.2278ms)
+✔ RF303 real serde fixtures compile against generated LLM commands and stream events (5871.7569ms)
+✔ RF303 a real stream identity change fails check without overwriting generated outputs (3560.394ms)
+✔ RF304 real serde transfer fixtures and negative requests compile against generated contracts (4850.8902ms)
+✔ RF304 real default and outcome drift fail check without overwriting outputs (5230.369ms)
+✔ RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields (5479.4662ms)
+✔ RF305 actual SAS, flattened recovery and platform-command drift cannot overwrite outputs (573863.0772ms)
+✔ RF307 Host error fixtures compile against actual rejection contracts and unsafe wire shapes fail (11232.9265ms)
+✔ RF307 actual error serde and Result signature drift fail check without replacing generated files (6081.3229ms)
+✔ RF908 guide retrieval requires the starting account at the actual typed IPC boundary (5047.8547ms)
+✔ RF317 all 26 LLM errors and optional stream failures use the actual Rust contracts (2611.7927ms)
+✔ RF317 actual LLM Result or stream-error serde drift rejects without replacing outputs (5478.5042ms)
+✔ RF318 all actual transfer errors compile with safe counts and keep ImportOutcome separate (2554.1692ms)
+✔ RF318 actual transfer Result or completed-count serde drift fails without replacing output (9837.8652ms)
+✔ RF319 actual synchronization rejection contracts preserve pairing and recovery outcomes (2377.4824ms)
+✔ RF319 actual Result and pairing serde drift fail without overwriting generated outputs (5971.052ms)
+✔ RF320 all plugin rejection contracts use real safe fixtures and retain resource/result schemas (3408.2701ms)
+✔ RF320 actual plugin Result and stage serde drift fail without replacing outputs (5821.2171ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 691508.9369
