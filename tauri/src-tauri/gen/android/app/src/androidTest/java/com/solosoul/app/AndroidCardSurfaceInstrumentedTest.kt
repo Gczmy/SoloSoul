@@ -31,7 +31,8 @@ class AndroidCardSurfaceInstrumentedTest {
         return JSONObject(JSONArray("[${raw ?: "null"}]").getString(0))
     }
 
-    private fun capture(scenario: ActivityScenario<CardSurfaceRegressionActivity>, theme: String, surface: String): JSONObject {
+    private fun capture(scenario: ActivityScenario<CardSurfaceRegressionActivity>, theme: String, surface: String,
+                        prefix: String = "rf121"): JSONObject {
         evaluate(scenario, """JSON.stringify((() => {
             const card = document.querySelector('[data-ui-card="$surface"]');
             window.scrollTo({ top: scrollY + card.getBoundingClientRect().top - 24, behavior: 'instant' });
@@ -85,7 +86,7 @@ class AndroidCardSurfaceInstrumentedTest {
         }
         val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
         try {
-            File(instrumentation.targetContext.getExternalFilesDir(null), "rf121-card-$theme-$surface.png")
+            File(instrumentation.targetContext.getExternalFilesDir(null), "$prefix-card-$theme-$surface.png")
                 .outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             val x = location[0] + (point.getDouble("x") * ratio).toInt()
             val y = location[1] + (point.getDouble("y") * ratio).toInt()
@@ -102,10 +103,39 @@ class AndroidCardSurfaceInstrumentedTest {
         } finally { bitmap.recycle() }
     }
 
-    @Test fun lightAndDarkCardsRenderWithoutOverflow() {
+    private fun actualHighTextContrast(): Boolean {
+        val resolver = instrumentation.targetContext.contentResolver
+        val raw = Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+        assertTrue("Only actual absent/0/1 settings are accepted", raw == null || raw == "0" || raw == "1")
+        val value = Settings.Secure.getInt(resolver, "high_text_contrast_enabled", 0)
+        assertEquals("Native integer must match actual raw setting", if (raw == "1") 1 else 0, value)
+        return value == 1
+    }
+
+    private fun textContrast(foreground: String, background: String): Double {
+        fun luminance(css: String): Double {
+            val rgb = Regex("""rgb\((\d+),\s*(\d+),\s*(\d+)\)""").matchEntire(css)
+                ?: error("Real card foreground/background must be opaque RGB: $css")
+            return listOf(0.2126, 0.7152, 0.0722).mapIndexed { index, weight ->
+                val value = rgb.groupValues[index + 1].toInt() / 255.0
+                assertTrue("Real color channels must be in range", value in 0.0..1.0)
+                weight * if (value <= 0.04045) value / 12.92 else Math.pow((value + 0.055) / 1.055, 2.4)
+            }.sum()
+        }
+        val a = luminance(foreground)
+        val b = luminance(background)
+        return (maxOf(a, b) + 0.05) / (minOf(a, b) + 0.05)
+    }
+
+    @Test fun lightAndDarkCardsRenderWithoutOverflow() = verifyCards(false)
+
+    @Test fun lightAndDarkHighTextContrastCardsRenderWithoutOverflow() = verifyCards(true)
+
+    private fun verifyCards(expectedHighTextContrast: Boolean) {
         val context = instrumentation.targetContext
-        assertEquals("This lane validates default contrast only", 0,
-            Settings.Secure.getInt(context.contentResolver, "high_text_contrast_enabled", 0))
+        assertEquals("Actual Android system contrast must match the explicit lane",
+            expectedHighTextContrast, actualHighTextContrast())
+        val prefix = if (expectedHighTextContrast) "rf121-hc" else "rf121"
         assertTrue("This lane preserves normal system animations",
             Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f)
         val records = JSONArray()
@@ -118,11 +148,13 @@ class AndroidCardSurfaceInstrumentedTest {
             }
             assertTrue("Fixture must load and own native window focus", ready)
             for (theme in listOf("light", "dark")) {
+                val nativeContrast = actualHighTextContrast()
+                assertEquals(expectedHighTextContrast, nativeContrast)
                 scenario.onActivity {
                     assertTrue(it.reports.isEmpty())
                     // 中性正文 Card 的默认表面；不伪装成 Android 原生弹窗材质或辅助功能矩阵。
                     it.webView.evaluateJavascript("""(() => {
-                        window.__runCardSample('$theme', {material:'solid',reduceMotion:false,highContrast:false}, 'android');
+                        window.__runCardSample('$theme', {material:'solid',reduceMotion:false,highContrast:$nativeContrast}, 'android');
                         // 在本次主题提交中计算样式，启动过渡；不能等300ms后首次采样才启动。
                         for (const card of document.querySelectorAll('[data-ui-card]'))
                             getComputedStyle(card).backgroundColor;
@@ -135,9 +167,11 @@ class AndroidCardSurfaceInstrumentedTest {
                     if (raw == null) Thread.sleep(30)
                 }
                 val report = JSONObject(requireNotNull(raw) { "Actual paint-frame report missing" })
-                File(context.getExternalFilesDir(null), "rf121-card-$theme-dom.json").writeText(report.toString(2))
+                File(context.getExternalFilesDir(null), "$prefix-card-$theme-dom.json").writeText(report.toString(2))
                 assertFalse("Paint timeout cannot pass", report.has("error"))
                 assertEquals(theme, report.getString("theme"))
+                assertEquals("Appearance must derive from actual native setting", nativeContrast,
+                    report.getJSONObject("appearance").getBoolean("highContrast"))
                 assertFalse(report.getBoolean("pageOverflow"))
                 val cards = report.getJSONArray("cards")
                 assertEquals(2, cards.length())
@@ -148,13 +182,25 @@ class AndroidCardSurfaceInstrumentedTest {
                     // 逐张滚入视口并完成原生绘制后，capture仍严格核对主题token与像素。
                     assertNotEquals(card.getString("background"), card.getString("color"))
                     assertEquals(if (index == 0) "default" else "floating", card.getString("surface"))
+                    if (expectedHighTextContrast) {
+                        val contrast = textContrast(card.getString("color"), card.getString("background"))
+                        assertTrue("High-text-contrast card text must be readable: $card; ratio=$contrast", contrast >= 4.5)
+                        card.put("textContrastRatio", contrast)
+                    }
                 }
                 val pixels = JSONArray()
-                for (surface in listOf("default", "floating")) pixels.put(capture(scenario, theme, surface))
+                for (surface in listOf("default", "floating")) pixels.put(capture(scenario, theme, surface, prefix))
+                assertEquals("Native system setting must remain stable across actual paint", nativeContrast, actualHighTextContrast())
+                if (expectedHighTextContrast) report.put("nativeHighTextContrast", JSONObject()
+                    .put("source", "android.provider.Settings.Secure")
+                    .put("key", "high_text_contrast_enabled")
+                    .put("rawBeforeAndAfter", Settings.Secure.getString(context.contentResolver, "high_text_contrast_enabled"))
+                    .put("enabled", nativeContrast)
+                    .put("windowsForcedColorsAcceptance", false))
                 records.put(report.put("nativePixels", pixels))
             }
         }
-        File(context.getExternalFilesDir(null), "rf121-android-card-surfaces.json").writeText(records.toString(2))
+        File(context.getExternalFilesDir(null), "$prefix-android-card-surfaces.json").writeText(records.toString(2))
     }
 
     /** FE2：生产 WebGL 渲染器与 CSS 的独立补证，不代表完整 AndroidHome 或实体 GPU 性能。 */

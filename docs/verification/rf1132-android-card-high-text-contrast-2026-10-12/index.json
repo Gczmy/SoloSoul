@@ -1,0 +1,589 @@
+{
+  "task": "RF-1132",
+  "members": [
+    {
+      "member": "before/AndroidCardSurfaceInstrumentedTest.kt.before",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-20261012\\AndroidCardSurfaceInstrumentedTest.kt.before",
+      "bytes": 15638,
+      "sha256": "291d189093db374842912f5293cccfc0c8baf103c4db5c575641974b9204f080"
+    },
+    {
+      "member": "before/README.md.before",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-20261012\\README.md.before",
+      "bytes": 7735,
+      "sha256": "c05794b545232cfaff736e83a6946a625b759a5ce4d409ae48ef9472ade1d3a1"
+    },
+    {
+      "member": "before/sources-before.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-20261012\\sources-before.json",
+      "bytes": 305,
+      "sha256": "b4ab39faed856b537bb5c50f8eb8322bf4d50a2ce728367c4b12e0673b90e03e"
+    },
+    {
+      "member": "boot/accessibility-before-readonly.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\accessibility-before-readonly.log",
+      "bytes": 1344,
+      "sha256": "991df499d83807492bb6442013adbd79f3add2f9f7a0e5149f7be20f8254e25b"
+    },
+    {
+      "member": "boot/boot.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\boot.receipt.json",
+      "bytes": 4650,
+      "sha256": "8bda2dac8d74b2f902fa10e4aeb6c0e57328c3494310f39655511269b2301b57"
+    },
+    {
+      "member": "boot/card-accessibility-preflight.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\card-accessibility-preflight.json",
+      "bytes": 160,
+      "sha256": "92cebd6c47658e3505bb19cc17c213641ac45069b255ff9a638c5867c917d3c8"
+    },
+    {
+      "member": "boot/emulator.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\emulator.live.json",
+      "bytes": 499,
+      "sha256": "a90ec6fe3ed2f27f4ec520f3ad338492c8ed3b5aa5d8da6668b10f962da841a4"
+    },
+    {
+      "member": "boot/emulator.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\emulator.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "boot/emulator.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\emulator.stdout.log",
+      "bytes": 16708,
+      "sha256": "6a0f75031d1b7512beed1edd08b9a6d24a3c2729327fb4635806c97dd090c7dc"
+    },
+    {
+      "member": "boot/owned-processes-after-launch.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\owned-processes-after-launch.json",
+      "bytes": 481,
+      "sha256": "5108517c7a961a0d2148fdc9651eaac28701e721ea68122ac48543d9f62fc944"
+    },
+    {
+      "member": "boot/process-preflight.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\process-preflight.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "member": "boot/rf1132-stop.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\rf1132-stop.receipt.json",
+      "bytes": 876,
+      "sha256": "f869b196ec7a52bc184eae6f36c1dc7bb1be087d84ecbff293485164d917a2ff"
+    },
+    {
+      "member": "boot/surfaceflinger.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\surfaceflinger.log",
+      "bytes": 89171,
+      "sha256": "064c3418eb87ff93c35ae218703014839d71599fa585d3fd1e76ff37955c9a9a"
+    },
+    {
+      "member": "boot/webview.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-host-rf1132-20261012\\webview.log",
+      "bytes": 612,
+      "sha256": "b297efab1349c6200e63dfe61f4ed91e42650e3ac6f27a6893d67a6bb5d2828a"
+    },
+    {
+      "member": "build/current-apks.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\current-apks.json",
+      "bytes": 470016,
+      "sha256": "0902d11ba199b9bbe697078e70433eb4c9c28e6bdf9954b4689d823b2dd40121"
+    },
+    {
+      "member": "build/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\input-proof.json",
+      "bytes": 468997,
+      "sha256": "9e83c4f92d2a6c7f2fc91e45aedc86e2698116a6f4f5950ed91cafc2e21cf9f7"
+    },
+    {
+      "member": "build/kotlin-unit-tests.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\kotlin-unit-tests.live.json",
+      "bytes": 435,
+      "sha256": "5a1c11bd8b640bb5b60c6db45e93cdf10cbf652a338de6f125c7759e659a012c"
+    },
+    {
+      "member": "build/kotlin-unit-tests.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\kotlin-unit-tests.receipt.json",
+      "bytes": 503,
+      "sha256": "45cc9f68599d0db59ae78b9b6a117c3bdbf5bc745d109528eef37f4da811fa4d"
+    },
+    {
+      "member": "build/kotlin-unit-tests.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\kotlin-unit-tests.stderr.log",
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "member": "build/kotlin-unit-tests.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\kotlin-unit-tests.stdout.log",
+      "bytes": 9635,
+      "sha256": "395c0c0de334298b42edb3bf80a0c033ac2c57590443f629663fe166b850400f"
+    },
+    {
+      "member": "build/main-existing-signature.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\main-existing-signature.live.json",
+      "bytes": 391,
+      "sha256": "f7dd260ab479d5cfcb4f2909c9acb9f1bbf5c4ee1e4f71fa26e0ce738711ac29"
+    },
+    {
+      "member": "build/main-existing-signature.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\main-existing-signature.receipt.json",
+      "bytes": 459,
+      "sha256": "bb9716367ce59bb82e66a1498b75f35595f0c06c3854c0e0ddf9ec9c5ff2129f"
+    },
+    {
+      "member": "build/main-existing-signature.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\main-existing-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "member": "build/main-existing-signature.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\main-existing-signature.stdout.log",
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    {
+      "member": "build/sources.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\sources.json",
+      "bytes": 229808,
+      "sha256": "765d914123b944885f4e1ebf5810dd15eacba56d384f16e7ca11d644b6298fb7"
+    },
+    {
+      "member": "build/test-badging.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-badging.live.json",
+      "bytes": 304,
+      "sha256": "671748e72c8a178661f8cb6ae186449d475d603863c7540c2f4106493ddb3865"
+    },
+    {
+      "member": "build/test-badging.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-badging.receipt.json",
+      "bytes": 373,
+      "sha256": "7a5c4a3b491c951d2f1457513da98a884cd76cfd84448e6d54f5e82c7b74769f"
+    },
+    {
+      "member": "build/test-badging.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build/test-badging.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-badging.stdout.log",
+      "bytes": 685,
+      "sha256": "97524bf9bbc406ffd683e0e96c935cd839d7ebbd7ed80b56889b36d196d9f747"
+    },
+    {
+      "member": "build/test-build.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-build.live.json",
+      "bytes": 442,
+      "sha256": "b948d6abbc1fe1e080fe0f18187ce6440fe53c8cfc5dd71f238727fe28e84dff"
+    },
+    {
+      "member": "build/test-build.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-build.receipt.json",
+      "bytes": 510,
+      "sha256": "d4fcff4eddcfec42efcc5f92f03c04c5f7617dd1459790b7db6b1fe33b743d5c"
+    },
+    {
+      "member": "build/test-build.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-build.stderr.log",
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "member": "build/test-build.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-build.stdout.log",
+      "bytes": 14440,
+      "sha256": "5c353a21532d26fd67602751e6698e9529ebd80cad7e05b6fbdf560350b0ec19"
+    },
+    {
+      "member": "build/test-signature.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-signature.live.json",
+      "bytes": 410,
+      "sha256": "2705bf30eeb78778b8e6ae61dc0b377f7de8c40007a65baff92c67a23c79f42d"
+    },
+    {
+      "member": "build/test-signature.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-signature.receipt.json",
+      "bytes": 479,
+      "sha256": "caebb427c1563eba5f268c6dcef5e3f7d4b7714475e25d31a27c41285e33dac5"
+    },
+    {
+      "member": "build/test-signature.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "member": "build/test-signature.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\test-signature.stdout.log",
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    {
+      "member": "build/unit-test-xml/TEST-com.solosoul.app.ResourceInstallerTest.xml",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\unit-test-xml\\TEST-com.solosoul.app.ResourceInstallerTest.xml",
+      "bytes": 1262,
+      "sha256": "29bbe0a832e435ff29d6e53e410c6f303a533653d285084571f574806955b18e"
+    },
+    {
+      "member": "build/unit-test-xml/TEST-com.solosoul.app.ResourcePreparationCoordinatorTest.xml",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\unit-test-xml\\TEST-com.solosoul.app.ResourcePreparationCoordinatorTest.xml",
+      "bytes": 802,
+      "sha256": "37a94c0767f31154a508efeb2295fa6f24b5e8bf73652a552a2865a721aa6ef7"
+    },
+    {
+      "member": "native/commands.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\commands.json",
+      "bytes": 41529,
+      "sha256": "3af76074fa7503a12b5738bcc45e46ea2c46b89463ebf10acc230b92542c8d00"
+    },
+    {
+      "member": "native/hc-fallback/accessibility.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\accessibility.log",
+      "bytes": 1367,
+      "sha256": "ef142e6dda705c85196b19c6879e65b3bd3e202204ae53cbac0bd29014fb6ca0"
+    },
+    {
+      "member": "native/hc-fallback/case.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\case.json",
+      "bytes": 421,
+      "sha256": "18e2710bfef6159dff88683fd14c08810befab1075a7a2e30afd515e52c8e5e4"
+    },
+    {
+      "member": "native/hc-fallback/native.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\native.log",
+      "bytes": 848,
+      "sha256": "e9e9e36db23a413d40727d6139ad2ef069f8be90915d983017d12af999e18f00"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-android-card-surfaces.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-android-card-surfaces.json",
+      "bytes": 3724,
+      "sha256": "e374f172aa14f91e7379802d6c9e9e70eefea70641470477b32d27ed8e933822"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-card-dark-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-dark-default.png",
+      "bytes": 193334,
+      "sha256": "6384c03d4579c2973c45c15bc2794f5e926ba77a847004e9206245e62893aeba"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-card-dark-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-dark-dom.json",
+      "bytes": 832,
+      "sha256": "6fb1c594fe3f31901738a419ae0c0fad31d5dcd7c8c5490354081f1561e6d678"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-card-dark-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-dark-floating.png",
+      "bytes": 202382,
+      "sha256": "d75a8a07ef25f079fbda45a8995e7e5ab2abe4c720996fc2511ae8b0fbfa8acb"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-card-light-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-light-default.png",
+      "bytes": 192896,
+      "sha256": "22a31493b2c9aaa1a612c8bbd6eafcd03e29e3de2631cae1cdd63b7e9ae06459"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-card-light-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-light-dom.json",
+      "bytes": 842,
+      "sha256": "fc5ae0b9aea2d04b5a399d7108fe47b74ec65e53b24fc1fea716cf09363521a5"
+    },
+    {
+      "member": "native/hc-fallback/rf121-hc-card-light-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-light-floating.png",
+      "bytes": 201800,
+      "sha256": "0777888a8929e96e3cc8e3a0886fb0315e743a7b96fdab06a588cfbf92623ad5"
+    },
+    {
+      "member": "native/hc-supported/accessibility.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\accessibility.log",
+      "bytes": 1367,
+      "sha256": "ef142e6dda705c85196b19c6879e65b3bd3e202204ae53cbac0bd29014fb6ca0"
+    },
+    {
+      "member": "native/hc-supported/case.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\case.json",
+      "bytes": 423,
+      "sha256": "9b2a16206443096fdc9e5d42f9b31ae0ffd40f52b2e61baf3d4ca8d6b768622b"
+    },
+    {
+      "member": "native/hc-supported/native.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\native.log",
+      "bytes": 848,
+      "sha256": "c5054d6ca60bd797fa3a2a50981531b702602c657ef2bf984be08fa69e23df2f"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-android-card-surfaces.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-android-card-surfaces.json",
+      "bytes": 3724,
+      "sha256": "e374f172aa14f91e7379802d6c9e9e70eefea70641470477b32d27ed8e933822"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-card-dark-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-dark-default.png",
+      "bytes": 193334,
+      "sha256": "6384c03d4579c2973c45c15bc2794f5e926ba77a847004e9206245e62893aeba"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-card-dark-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-dark-dom.json",
+      "bytes": 832,
+      "sha256": "6fb1c594fe3f31901738a419ae0c0fad31d5dcd7c8c5490354081f1561e6d678"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-card-dark-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-dark-floating.png",
+      "bytes": 202382,
+      "sha256": "d75a8a07ef25f079fbda45a8995e7e5ab2abe4c720996fc2511ae8b0fbfa8acb"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-card-light-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-light-default.png",
+      "bytes": 192896,
+      "sha256": "22a31493b2c9aaa1a612c8bbd6eafcd03e29e3de2631cae1cdd63b7e9ae06459"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-card-light-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-light-dom.json",
+      "bytes": 842,
+      "sha256": "fc5ae0b9aea2d04b5a399d7108fe47b74ec65e53b24fc1fea716cf09363521a5"
+    },
+    {
+      "member": "native/hc-supported/rf121-hc-card-light-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-light-floating.png",
+      "bytes": 201800,
+      "sha256": "0777888a8929e96e3cc8e3a0886fb0315e743a7b96fdab06a588cfbf92623ad5"
+    },
+    {
+      "member": "native/hc-wrong-system-rejected/accessibility.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-wrong-system-rejected\\accessibility.log",
+      "bytes": 1367,
+      "sha256": "ef142e6dda705c85196b19c6879e65b3bd3e202204ae53cbac0bd29014fb6ca0"
+    },
+    {
+      "member": "native/hc-wrong-system-rejected/case.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-wrong-system-rejected\\case.json",
+      "bytes": 204,
+      "sha256": "f80ff29519deb0abef5da8ce44cfab5816684ffd7652c3e24f2b288916c2ae28"
+    },
+    {
+      "member": "native/hc-wrong-system-rejected/native.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-wrong-system-rejected\\native.log",
+      "bytes": 2765,
+      "sha256": "b4778d1f800540ba69d0469d074c36714be565e6a0c2a9d2b3868d5104edf36f"
+    },
+    {
+      "member": "native/independent-validation.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\independent-validation.json",
+      "bytes": 12131,
+      "sha256": "263be9d009e55f64c639c430076eee6ee39889c32e9ca1322c0f9c29e526e619"
+    },
+    {
+      "member": "native/normal-fallback/accessibility.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\accessibility.log",
+      "bytes": 1367,
+      "sha256": "ef142e6dda705c85196b19c6879e65b3bd3e202204ae53cbac0bd29014fb6ca0"
+    },
+    {
+      "member": "native/normal-fallback/case.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\case.json",
+      "bytes": 321,
+      "sha256": "c7f88c97c35b9e93b419050bede5b6f0363ba42fd14da61f8bad864d9a7b69b8"
+    },
+    {
+      "member": "native/normal-fallback/native.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\native.log",
+      "bytes": 815,
+      "sha256": "1cf536ae4a1c8938ce93de2ae17fade0d741a71ae21f2455205e5bb3ce8a3b39"
+    },
+    {
+      "member": "native/normal-fallback/rf121-android-card-surfaces.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-android-card-surfaces.json",
+      "bytes": 3064,
+      "sha256": "d05c6349ddd2ff348bd9871b0dee61b95631f101f0f932c4561367328d446342"
+    },
+    {
+      "member": "native/normal-fallback/rf121-card-dark-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-dark-default.png",
+      "bytes": 192872,
+      "sha256": "98bfed1d976529cb3a2ca81e51e2efa2c01f3b06b1b66be09fc47a09ed601449"
+    },
+    {
+      "member": "native/normal-fallback/rf121-card-dark-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-dark-dom.json",
+      "bytes": 833,
+      "sha256": "70ee739a73c6258631e783d224ae9c19a7d1346ace31682b1e7a3f1d00674d2a"
+    },
+    {
+      "member": "native/normal-fallback/rf121-card-dark-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-dark-floating.png",
+      "bytes": 202470,
+      "sha256": "b72d92f27976fbc6b0bede5098e5ab93ad8243c44def8f7dcd7f7cc271f883ee"
+    },
+    {
+      "member": "native/normal-fallback/rf121-card-light-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-light-default.png",
+      "bytes": 192292,
+      "sha256": "8bf9fa3223ccdffe620c8f6a825712f53a91fdcf343284344466d92c496305f2"
+    },
+    {
+      "member": "native/normal-fallback/rf121-card-light-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-light-dom.json",
+      "bytes": 843,
+      "sha256": "a13f3735d9324b4d445e5f634a92c55a0990db0567d64adad3f6c16f1f2a09e1"
+    },
+    {
+      "member": "native/normal-fallback/rf121-card-light-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-light-floating.png",
+      "bytes": 201848,
+      "sha256": "d1be1612fa4961c339ccd98e89c1aa088230a6bb1905897c6fb476c8587047d4"
+    },
+    {
+      "member": "native/normal-supported/accessibility.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\accessibility.log",
+      "bytes": 1344,
+      "sha256": "991df499d83807492bb6442013adbd79f3add2f9f7a0e5149f7be20f8254e25b"
+    },
+    {
+      "member": "native/normal-supported/case.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\case.json",
+      "bytes": 323,
+      "sha256": "9fd86008dfd1703cfaa62c33de02d72b47e91df58e1c5a1d24812f3e6c3e26bd"
+    },
+    {
+      "member": "native/normal-supported/native.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\native.log",
+      "bytes": 817,
+      "sha256": "10a39720ebb8cdef8d76cb6030faeb87b3af8cefb5c9adcaf05c00b0bf50b11d"
+    },
+    {
+      "member": "native/normal-supported/rf121-android-card-surfaces.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-android-card-surfaces.json",
+      "bytes": 3064,
+      "sha256": "d05c6349ddd2ff348bd9871b0dee61b95631f101f0f932c4561367328d446342"
+    },
+    {
+      "member": "native/normal-supported/rf121-card-dark-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-dark-default.png",
+      "bytes": 192872,
+      "sha256": "98bfed1d976529cb3a2ca81e51e2efa2c01f3b06b1b66be09fc47a09ed601449"
+    },
+    {
+      "member": "native/normal-supported/rf121-card-dark-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-dark-dom.json",
+      "bytes": 833,
+      "sha256": "70ee739a73c6258631e783d224ae9c19a7d1346ace31682b1e7a3f1d00674d2a"
+    },
+    {
+      "member": "native/normal-supported/rf121-card-dark-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-dark-floating.png",
+      "bytes": 202439,
+      "sha256": "982b95c22fe540451b757f77aeb81cb5c411d2ea72f200913f346a7085d03acb"
+    },
+    {
+      "member": "native/normal-supported/rf121-card-light-default.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-light-default.png",
+      "bytes": 192367,
+      "sha256": "52ddcdb835004518dbce485587cf996714e9ffe48ed18fd3c92e3d894aaeee6b"
+    },
+    {
+      "member": "native/normal-supported/rf121-card-light-dom.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-light-dom.json",
+      "bytes": 843,
+      "sha256": "a13f3735d9324b4d445e5f634a92c55a0990db0567d64adad3f6c16f1f2a09e1"
+    },
+    {
+      "member": "native/normal-supported/rf121-card-light-floating.png",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-light-floating.png",
+      "bytes": 201739,
+      "sha256": "b74761673ee4726ca94ce8ce9fe21c514de98dd9551da59a4859715dbac0607f"
+    },
+    {
+      "member": "native/observed-tool-outcomes.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\observed-tool-outcomes.json",
+      "bytes": 790,
+      "sha256": "1178b11285066ca42a08511b9efae0e508a21853efe30988a6a9d8aa96b59015"
+    },
+    {
+      "member": "native/private-before-inventory.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\private-before-inventory.json",
+      "bytes": 33452,
+      "sha256": "8a91a69eadcfcbeeb1310182ec7ae957423b6581ff6c287d0ae2df69cd3c71a2"
+    },
+    {
+      "member": "native/private-restored-inventory.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\private-restored-inventory.json",
+      "bytes": 33452,
+      "sha256": "8a91a69eadcfcbeeb1310182ec7ae957423b6581ff6c287d0ae2df69cd3c71a2"
+    },
+    {
+      "member": "native/progress.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\progress.json",
+      "bytes": 236944,
+      "sha256": "d85e1be738fc93253e754537fda274453d2301bc7347e3359e69854f3f04195c"
+    },
+    {
+      "member": "native/result.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\result.json",
+      "bytes": 237385,
+      "sha256": "40b828fc1d24ff979d094dfacd9d3a3edda63a60f42e97b5ffb10ea6a938da26"
+    },
+    {
+      "member": "sources/tauri/native-regression/card-surfaces/README.md",
+      "source": "D:\\SoloSoul\\tauri\\native-regression\\card-surfaces\\README.md",
+      "bytes": 8709,
+      "sha256": "61a007e5936da8c8905d1618794caa94abd1e9f6d8eb1c575e4352587d83587b"
+    },
+    {
+      "member": "sources/tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidCardSurfaceInstrumentedTest.kt",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\app\\src\\androidTest\\java\\com\\solosoul\\app\\AndroidCardSurfaceInstrumentedTest.kt",
+      "bytes": 18567,
+      "sha256": "5654ec65a2454a533f7011242875be0a666a679d39d9da609153de02ee469fc8"
+    },
+    {
+      "member": "tools/archive-rf1132.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\archive-rf1132.py",
+      "bytes": 5531,
+      "sha256": "a2027d191e2ffbd21a136c5f8e21109d897b8b97f7038383254cbb356292ac4b"
+    },
+    {
+      "member": "tools/boot-rf1132-api31-host.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\boot-rf1132-api31-host.py",
+      "bytes": 4086,
+      "sha256": "9001c71b57104cb79f6334390bd523364c939fd6dce84e9fc50136b74de29a38"
+    },
+    {
+      "member": "tools/build-rf1132-card-high-contrast.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\build-rf1132-card-high-contrast.py",
+      "bytes": 5186,
+      "sha256": "04731aea5cb28fe61cbe9902a3c848760a4129639ace1a4c040f12e66a105de4"
+    },
+    {
+      "member": "tools/run-rf1132-card-high-contrast.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\run-rf1132-card-high-contrast.py",
+      "bytes": 11088,
+      "sha256": "757d87dd5c04b083a6eb1eeac8ed41ea55a2e60425f13cadf76483e99729d28e"
+    },
+    {
+      "member": "tools/verify-stop-rf1132.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\verify-stop-rf1132.py",
+      "bytes": 8218,
+      "sha256": "f5eee14f8d48401f9760618d50442178ca7953914d8c83541a87f3a3f7b0dbeb"
+    },
+    {
+      "member": "tools/verify-stop-rf1132.py.first-rejected",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\verify-stop-rf1132.py.first-rejected",
+      "bytes": 8155,
+      "sha256": "e7c47b49575eda7938d0c6ad7b86348d87b2324ff09683da57c833af88b1781a"
+    }
+  ],
+  "allMembersReadbackVerified": true,
+  "privateTarsAndApksExcluded": true
+}

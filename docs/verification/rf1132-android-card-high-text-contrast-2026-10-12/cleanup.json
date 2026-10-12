@@ -1,0 +1,24 @@
+{
+  "task": "RF-1132",
+  "onlyExactPrivateCopiesRemoved": true,
+  "removedCount": 2,
+  "files": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\private-before.tar",
+      "sha256": "879b6a2bc00859ed8f8a75d332c371845111073ba5135956cb010731a61d0ed8",
+      "bytes": 276992,
+      "allAncestorsNonReparse": true
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\private-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992,
+      "allAncestorsNonReparse": true
+    }
+  ],
+  "publishedArchiveHashVerified": true,
+  "ownedEmulatorAbsent": true,
+  "nativeAvdDataUnchanged": true,
+  "recursiveDeleteUsed": false,
+  "atUtc": "2026-10-12T01:32:36.9268774Z"
+}
