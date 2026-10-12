@@ -6,7 +6,7 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
-import { trackAsyncListener } from '@/lib/asyncListener';
+import { subscribeWindowDragDrop } from '@/lib/windowDragDrop';
 import { uploadAttachmentsSequentially, filterOutDirectories } from '@/lib/attachmentUpload';
 import { useUiStore } from '@/stores/uiStore';
 import i18n from '@/lib/i18n';
@@ -39,13 +39,6 @@ const initialState: DragUploadState = {
 interface UseDragToAttachOptions {
   /** 所有文件上传完成后的回调，用于刷新列表 */
   onComplete?: () => void;
-}
-
-/** 从 Tauri Event<DragDropEvent> 中提取统一的事件字段 */
-interface DragDropPayload {
-  type: 'enter' | 'over' | 'drop' | 'leave';
-  paths?: string[];
-  position?: { x: number; y: number };
 }
 
 /** P023: drop 处理所需的可变状态依赖（refs/setter，由调用方注入）。 */
@@ -109,24 +102,6 @@ async function handleDropFiles(
   });
 
   deps.processBatchRef.current(files, objId);
-}
-
-/**
- * 注册窗口级 drag-drop 监听器。
- * 返回 unlisten 函数或 null（不可用时）。
- */
-async function registerDragDropListener(
-  handler: (payload: DragDropPayload) => void,
-): Promise<(() => void) | null> {
-  try {
-    const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
-    const win = getCurrentWebviewWindow();
-    return await win.onDragDropEvent((event) => {
-      handler(event.payload as DragDropPayload);
-    });
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -234,59 +209,57 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
     let active = true;
     mountedRef.current = true;
 
-    const dispose = trackAsyncListener(
-      registerDragDropListener((payload) => {
-        if (!active || !mountedRef.current) return;
+    const dispose = subscribeWindowDragDrop((payload) => {
+      if (!active || !mountedRef.current) return;
 
-        const el = ref.current;
-        const currentObjectId = objectIdRef.current;
-        if (!el || !currentObjectId) return;
+      const el = ref.current;
+      const currentObjectId = objectIdRef.current;
+      if (!el || !currentObjectId) return;
 
-        const pos = payload.position;
+      const pos = payload.position;
 
-        // ── 视觉层级检测：使用 elementFromPoint 确认当前组件是视觉顶层接收者 ──
-        // 由于 useDragToAttach 注册的是窗口级全局监听器，所有实例都会收到每次 drop 事件。
-        // 当弹窗（如 AttachmentViewer/ObjectDetailModal）覆盖在工作区卡片上方时，
-        // 被覆盖的卡片虽然 getBoundingClientRect() 仍然有效，但实际上不应接收 drop。
-        // elementFromPoint(x, y) 返回视觉上最顶层的元素，检查它是否属于当前 ref 的子树。
-        const topEl = pos !== undefined ? document.elementFromPoint(pos.x, pos.y) : null;
-        const isTopReceiver = topEl !== null && (topEl === el || el.contains(topEl));
+      // ── 视觉层级检测：使用 elementFromPoint 确认当前组件是视觉顶层接收者 ──
+      // 由于 useDragToAttach 注册的是窗口级全局监听器，所有实例都会收到每次 drop 事件。
+      // 当弹窗（如 AttachmentViewer/ObjectDetailModal）覆盖在工作区卡片上方时，
+      // 被覆盖的卡片虽然 getBoundingClientRect() 仍然有效，但实际上不应接收 drop。
+      // elementFromPoint(x, y) 返回视觉上最顶层的元素，检查它是否属于当前 ref 的子树。
+      const topEl = pos !== undefined ? document.elementFromPoint(pos.x, pos.y) : null;
+      const isTopReceiver = topEl !== null && (topEl === el || el.contains(topEl));
 
-        const rect = el.getBoundingClientRect();
-        const isOverBounds =
-          isTopReceiver &&
-          pos !== undefined &&
-          pos.x >= rect.left &&
-          pos.x <= rect.right &&
-          pos.y >= rect.top &&
-          pos.y <= rect.bottom;
+      const rect = el.getBoundingClientRect();
+      const isOverBounds =
+        isTopReceiver &&
+        pos !== undefined &&
+        pos.x >= rect.left &&
+        pos.x <= rect.right &&
+        pos.y >= rect.top &&
+        pos.y <= rect.bottom;
 
-        switch (payload.type) {
-          case 'enter':
-          case 'over':
-            setDragState((prev) => ({ ...prev, isDraggingOver: !!isOverBounds }));
-            break;
-          case 'leave':
-            setDragState((prev) => ({ ...prev, isDraggingOver: false }));
-            break;
-          case 'drop': {
-            const rawPaths = payload.paths;
-            if (!rawPaths || rawPaths.length === 0) break;
-            if (!isOverBounds) break;
-            // 去重：Tauri v2 onDragDropEvent 可能触发重复 drop 事件
-            if (isDuplicateDrop(rawPaths, currentObjectId)) break;
+      switch (payload.type) {
+        case 'enter':
+        case 'over':
+          setDragState((prev) => ({ ...prev, isDraggingOver: !!isOverBounds }));
+          break;
+        case 'leave':
+          setDragState((prev) => ({ ...prev, isDraggingOver: false }));
+          break;
+        case 'drop': {
+          const rawPaths = payload.paths;
+          if (!rawPaths || rawPaths.length === 0) break;
+          if (!isOverBounds) break;
+          // 去重：Tauri v2 onDragDropEvent 可能触发重复 drop 事件
+          if (isDuplicateDrop(rawPaths, currentObjectId)) break;
 
-            void handleDropFiles(rawPaths, currentObjectId, {
-              setDragState,
-              isUploadingRef,
-              pendingQueueRef,
-              processBatchRef,
-            });
-            break;
-          }
+          void handleDropFiles(rawPaths, currentObjectId, {
+            setDragState,
+            isUploadingRef,
+            pendingQueueRef,
+            processBatchRef,
+          });
+          break;
         }
-      }),
-    );
+      }
+    });
 
     return () => {
       active = false;

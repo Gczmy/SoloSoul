@@ -1,0 +1,50 @@
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+
+ ❯ src/hooks/useDragToAttach.test.tsx (3 tests | 1 failed) 1321ms
+     × shares the native listener while only the top card receives a drop 1105ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/hooks/useDragToAttach.test.tsx > useDragToAttach upload ownership > shares the native listener while only the top card receives a drop
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        data-pending="0"
+        data-testid="drop-target"
+      >
+        idle
+      </div>
+      <div
+        data-pending="0"
+        data-testid="drop-target"
+      >
+        idle
+      </div>
+    </div>
+  </body>
+</html>
+ ❯ src/hooks/useDragToAttach.test.tsx:159:46
+    157|     vi.mocked(document.elementFromPoint).mockReturnValue(view.getAllBy…
+    158|     await drop('front.pdf');
+    159|     await waitFor(() => expect(mocks.upload).toHaveBeenCalledTimes(1));
+       |                                              ^
+    160|     expect(mocks.upload).toHaveBeenCalledWith(['front.pdf'], 'object-f…
+    161|
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  22:24:30
+   Duration  2.85s (transform 320ms, setup 221ms, import 376ms, tests 1.32s, environment 756ms)
+

@@ -1,0 +1,109 @@
+{
+  "task": "RF-1137",
+  "baseline": "c0bbc01c7",
+  "closed": false,
+  "nativeValidationPending": true,
+  "sources": {
+    "tauri/src/hooks/useDragToAttach.ts": "9ce311dcebc95944f0489ac5e001deb26d1d329f7aeadc7fcbb80d2bc22776cd",
+    "tauri/src/hooks/useDragToAttach.test.tsx": "23d75a752f02e10554c71cf0e6c28976fc54884e7ce8183c3bae720e2fd60a6d",
+    "tauri/src/lib/windowDragDrop.ts": "676bc31e8c781b9c29ca36ce0e1997e666b5d63e190d83a9ff9a3de515a5c8ce",
+    "tauri/src/lib/windowDragDrop.test.ts": "d9938be7e8b1fa49b3a26275ecb2af659ed60859d9fe37572075e7da4fa87e73",
+    "tauri/package-lock.json": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90",
+    "tauri/vitest.config.ts": "ed2d8156260ddd57edd8a885e07ae7463bc073da38a775dcf0a90c4bef84ae6a",
+    "tauri/scripts/run-node-tests.mjs": "cd1bd755a23cdedda5aec31cd5906cc7df3cffef27e51956bd5f6b48b1dabcc8",
+    "tauri/node_modules/@tauri-apps/api/webview.js": "29b803a82322bac10e08a809f257725367ce9200f251563c73b7113722db1c46"
+  },
+  "logs": {
+    "red.log": {
+      "bytes": 1763,
+      "sha256": "b399152a4c0d2457ba8997954ca9c93ee8e47f62e71b6ad795ab358f2896d2bf"
+    },
+    "red-settled.log": {
+      "bytes": 1763,
+      "sha256": "c085e2fb0fa92e50661b054c8ec30aa8d66f49f1e5f2ddd67c86c044f554781c"
+    },
+    "red-isolated.log": {
+      "bytes": 1776,
+      "sha256": "852e55bd4aa599150ee09c0d6d17354da75cdf9d5a66bc727a4240946601301f"
+    },
+    "red-import-settled.log": {
+      "bytes": 1763,
+      "sha256": "2821f05dfee4e14358564b25477ceee1c1d9ff55aaea4b8daa767cebb253cce1"
+    },
+    "red-sequential-mount.log": {
+      "bytes": 1085,
+      "sha256": "961e7c20c6418df74852f397fbd7b3cdba0c6d42fb0c56824dae767777c18d20"
+    },
+    "targeted.log": {
+      "bytes": 216,
+      "sha256": "c7780a7df477591a72709034326d4cf945e524e411ee32b2b77561b293fddeaf"
+    },
+    "tsc.log": {
+      "bytes": 649,
+      "sha256": "b1823fd9d9777209a0f81cc24b5f7968fccf229280c907c9574ec549dc76384b"
+    },
+    "frontend-tests.log": {
+      "bytes": 26543,
+      "sha256": "bae17039f0e46d5a08dffd97564b3a8916360d0d03093f38d8d6ef71362dbc6d"
+    },
+    "lint.log": {
+      "bytes": 270,
+      "sha256": "9e89446757cc7804b6e7a218956a54c851dc2ab907f0bd1dc861ffb5216bea28"
+    },
+    "tsc-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "targeted-final.log": {
+      "bytes": 216,
+      "sha256": "11444f75c276fe0f15158e57bc4a60d6bb7adb7a693ee910e20fe8ac16842441"
+    }
+  },
+  "checks": {
+    "sandboxFirstRun": {
+      "exitCode": 1,
+      "tests": 0,
+      "reason": "EPERM temp cache rename"
+    },
+    "oldSequentialMount": {
+      "exitCode": 1,
+      "passed": 2,
+      "failed": 1,
+      "expectedRegistrations": 1,
+      "actualRegistrations": 2
+    },
+    "finalTargeted": {
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0
+    },
+    "tscFirst": {
+      "exitCode": 2,
+      "reason": "readonly test array"
+    },
+    "tscFinal": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 1,
+      "existingWarning": "syncStore.ts:838 unused event"
+    },
+    "npmTest": {
+      "exitCode": 1,
+      "nodePassed": 245,
+      "nodeSkipped": 1,
+      "vitestPassed": 2354,
+      "vitestFailedSuites": 1,
+      "reason": "android_native_perf/observer.node.test.mjs incorrectly collected by Vitest"
+    }
+  },
+  "claims": {
+    "oneSharedSdkRegistrationFor50Receivers": true,
+    "nativeIpcReductionMeasured": false,
+    "nativeLatencyImprovementMeasured": false,
+    "desktopDropValidated": false,
+    "pushPerformed": false
+  }
+}

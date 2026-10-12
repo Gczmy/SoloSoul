@@ -1,0 +1,26 @@
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+
+ ❯ src/hooks/useDragToAttach.test.tsx (3 tests | 1 failed) 322ms
+     × shares the native listener while only the top card receives a drop 98ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/hooks/useDragToAttach.test.tsx > useDragToAttach upload ownership > shares the native listener while only the top card receives a drop
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ src/hooks/useDragToAttach.test.tsx:157:28
+    155|       await vi.dynamicImportSettled();
+    156|     });
+    157|     expect(mocks.register).toHaveBeenCalledTimes(1);
+       |                            ^
+    158|     vi.mocked(document.elementFromPoint).mockReturnValue(view.getAllBy…
+    159|     await drop('front.pdf');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  22:24:55
+   Duration  2.00s (transform 352ms, setup 252ms, import 409ms, tests 322ms, environment 829ms)
+
