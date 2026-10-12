@@ -1,0 +1,191 @@
+{
+  "task": "RF-1141",
+  "baseHead": "99b0c375e90b58c29481583e9aa3f9c69867f72d",
+  "pr": 5,
+  "source": {
+    "path": "tauri/src/components/onboarding/OnboardingDialog.test.tsx",
+    "worktreeSha256": "587a60ef8c728455818ae653978a7bcdb39a4cf476420b5c8a6d0e40cb750ddd",
+    "gitNormalizedSha256": "587a60ef8c728455818ae653978a7bcdb39a4cf476420b5c8a6d0e40cb750ddd"
+  },
+  "checks": [
+    {
+      "label": "typecheck-final",
+      "command": [
+        "node.exe",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "seconds": 18.763806200004183,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "lint-final",
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "seconds": 10.834263199998531,
+      "logSha256": "618ed2fe7c34a69d6afe846b2be2f0cbd34fb676136bc67b51488cd964908232"
+    },
+    {
+      "label": "format-final",
+      "command": [
+        "node.exe",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/components/onboarding/OnboardingDialog.test.tsx"
+      ],
+      "exitCode": 0,
+      "seconds": 0.3531440999940969,
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "label": "coverage",
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "npm.cmd",
+        "run",
+        "test:coverage"
+      ],
+      "exitCode": 0,
+      "seconds": 329.8035860999953,
+      "logSha256": "ac1b29923835923b008f3ea286ddc9d72f1b9b7428370a2e46886b06b0c63cab"
+    }
+  ],
+  "vitestFiles": 262,
+  "vitestPassed": 2361,
+  "nodePassed": 257,
+  "existingNodePrivilegeSkip": 1,
+  "coveragePercent": {
+    "Statements": 85.95,
+    "Branches": 73.37,
+    "Functions": 80.96,
+    "Lines": 87.85
+  },
+  "formatterEmittedJavaScriptUnchanged": true,
+  "initialFormatCheckFailed": true,
+  "seededRed": "red3-seeded.log",
+  "seededGreen": "green-seeded.log",
+  "seededFilteredTests": 13,
+  "environmentAttempts": {
+    "red": "Windows command path failure; no tests",
+    "red2": "outside-root dependency resolution; no tests"
+  },
+  "runtimeProductionCodeChanged": false,
+  "otherTasksRemainPaused": true,
+  "latestHeadCiAccepted": false,
+  "files": {
+    "checks.json": {
+      "sha256": "234085074ae5f600fb86307ecfb58c809033c571283b4b780ccbc3f2d11c0da7",
+      "bytes": 1248
+    },
+    "ci-failure.json": {
+      "sha256": "2f5c9ef1ac67e2caa3ec226e0a30fa31d8b5276fabf86cf3e8ab45d6522e13d7",
+      "bytes": 145580
+    },
+    "coverage.live.json": {
+      "sha256": "ec1f8e7f7b3efe0668e71d40f7a8bb46e5e879653a05fff9a0f87f6b64d40eff",
+      "bytes": 128
+    },
+    "coverage.log": {
+      "sha256": "ac1b29923835923b008f3ea286ddc9d72f1b9b7428370a2e46886b06b0c63cab",
+      "bytes": 58079
+    },
+    "first-checks.json": {
+      "sha256": "e352d2035f012db64ffd5b30bb6678b65be762a3badbc588522bc9111795f8a1",
+      "bytes": 926
+    },
+    "format-final.live.json": {
+      "sha256": "7b36ea0d62411edfb65beb862cb7a8b0d3ff16439b46cce7ae847bab2222bc4c",
+      "bytes": 191
+    },
+    "format-final.log": {
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "bytes": 66
+    },
+    "format.live.json": {
+      "sha256": "1d8bc11d88a8549e25cda444d2a20ebb8fca31ce9182f1f40b309f139e0be132",
+      "bytes": 191
+    },
+    "format.log": {
+      "sha256": "eba69ba9c43832c5f947568df08df38db8b7e07ff275900f793c202cb0e720d8",
+      "bytes": 166
+    },
+    "formatter-semantic-parity.json": {
+      "sha256": "9af4755ee63bc2090ff68198534387f87033d46fa0781ceab8366a45d8ad5817",
+      "bytes": 330
+    },
+    "green-seeded.log": {
+      "sha256": "8c69f4f052528467374c87bb1e08f774835177eee9d0cf94ddd3022b2448eea0",
+      "bytes": 221
+    },
+    "green-seeded.receipt.json": {
+      "sha256": "219ee6bc57dee0393e9c9a9725f66388a2e06cf672c872fc3ea68998bac670f1",
+      "bytes": 478
+    },
+    "lint-final.live.json": {
+      "sha256": "7c1efb575f1cf2c1201209f2ad101e8a0c5754b63ad4ca12e0d84c19a0443394",
+      "bytes": 120
+    },
+    "lint-final.log": {
+      "sha256": "618ed2fe7c34a69d6afe846b2be2f0cbd34fb676136bc67b51488cd964908232",
+      "bytes": 260
+    },
+    "lint.live.json": {
+      "sha256": "1e9c52ed75e465ef9213eef09448cafbe5d9d46e6cf5067a745a15616cecc5a7",
+      "bytes": 120
+    },
+    "lint.log": {
+      "sha256": "618ed2fe7c34a69d6afe846b2be2f0cbd34fb676136bc67b51488cd964908232",
+      "bytes": 260
+    },
+    "red-seeded.log": {
+      "sha256": "2a9b2357fe9eb99d74c733caa7f8f856d296d950ef6b52376431773adb4bf328",
+      "bytes": 103
+    },
+    "red-seeded.receipt.json": {
+      "sha256": "dde271a6a1493d6d27e862d5631b03cf2f779e71b3541d6c21e6ac31cc807b6e",
+      "bytes": 497
+    },
+    "red2-seeded.log": {
+      "sha256": "c5e75f57cf788e009e45bc72e43be576a9afdaa3314e8c451b6239546d60ba9c",
+      "bytes": 1754
+    },
+    "red2-seeded.receipt.json": {
+      "sha256": "13c9eb8c0053f72892e73ba9dc70500addad22a4dad383e4a58bd7a4e481a8a7",
+      "bytes": 476
+    },
+    "red3-seeded.log": {
+      "sha256": "c3611e1c461dbeedc7c527f921dc93a2d0da3fafc72df2e77b6fc31ae1d0c7a4",
+      "bytes": 13833
+    },
+    "red3-seeded.receipt.json": {
+      "sha256": "5a3294f7434ef2833e50a9a1c1b35c038d519655b15eff3b45ac8f2902ed0000",
+      "bytes": 477
+    },
+    "typecheck-final.live.json": {
+      "sha256": "692535c83d051ad554a80862304b2d753173d1c57c07eba90b39d871b9ffea0e",
+      "bytes": 130
+    },
+    "typecheck-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "typecheck.live.json": {
+      "sha256": "f39a6b2941798c6cbe54a3e25621e0dd70b042a04bdb663ee1d218b6fe6fb323",
+      "bytes": 130
+    },
+    "typecheck.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

@@ -1,0 +1,256 @@
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+
+ ❯ ../build/rf1141-onboarding-test-lifecycle-20261012/red3-seeded.test.tsx (14 tests | 1 failed | 13 skipped) 1217ms
+     × does not allow leaving the vault step while SAF initialization is pending 1215ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  ../build/rf1141-onboarding-test-lifecycle-20261012/red3-seeded.test.tsx > OnboardingDialog vault directory step (Android) > does not allow leaving the vault step while SAF initialization is pending
+TestingLibraryElementError: Unable to find role="button" and name `/onboarding_vault_dir_saf_title/i`
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-macos-glass-backdrop[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; z-index: var(--z-onboarding); display: flex; align-items: center; justify-content: center; background: var(--bg-overlay); backdrop-filter: blur(4px);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mdata-macos-glass[39m=[32m"panel"[39m
+        [33mstyle[39m=[32m"background: var(--bg-elevated); border-radius: 18px; padding: 32px 36px; max-width: 440px; width: 90%; box-shadow: var(--shadow-lg); border: 1px solid var(--border-subtle); text-align: center;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-warm)); display: flex; align-items: center; justify-content: center; margin: 0px auto 20px;"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-folder"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"32"[39m
+            [33mstroke[39m=[32m"white"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"32"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<h2[39m
+          [33mstyle[39m=[32m"font-size: var(--text-page-title); font-weight: 700; margin: 0px 0px 10px; color: var(--text-primary);"[39m
+        [36m>[39m
+          [0monboarding_vault_dir_title[0m
+        [36m</h2>[39m
+        [36m<p[39m
+          [33mstyle[39m=[32m"font-size: var(--text-body); color: var(--text-secondary); line-height: 1.6; margin: 0px 0px 24px; min-height: 0px;"[39m
+        [36m>[39m
+          [0monboarding_vault_dir_desc[0m
+        [36m</p>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"padding: 16px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent); background: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-toolbar)); text-align: left; margin-bottom: 24px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-caption); color: var(--text-secondary); margin-bottom: 6px;"[39m
+          [36m>[39m
+            [0monboarding_vault_dir_selected_label[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-body-sm); color: var(--text-primary); word-break: break-all; line-height: 1.5;"[39m
+          [36m>[39m
+            [0mcontent://test-vault[0m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mstyle[39m=[32m"margin-top: 12px; font-size: var(--text-caption); color: var(--accent-primary); background: transparent; border: medium; padding: 0px; cursor: pointer; font-family: inherit; font-weight: 500;"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0monboarding_vault_dir_reselect[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; justify-content: center; gap: 6px; margin-bottom: 28px;"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--accent-primary);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; justify-content: space-between; align-items: center;"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<div />[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; gap: 8px;"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"interactive-toolbar"[39m
+              [33mstyle[39m=[32m"font-size: var(--text-caption); padding: 6px 12px; border-radius: 6px; border-width: 1px; border-style: solid; cursor: pointer; font-family: inherit; font-weight: 500; opacity: 1;"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0monboarding_back[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"interactive-toolbar"[39m
+              [33mstyle[39m=[32m"font-size: var(--text-caption); padding: 6px 12px; border-radius: 6px; border-width: 1px; border-style: solid; cursor: pointer; font-family: inherit; font-weight: 500;"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0monboarding_next[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-macos-glass-backdrop[39m=[32m"true"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; z-index: var(--z-onboarding); display: flex; align-items: center; justify-content: center; background: var(--bg-overlay); backdrop-filter: blur(4px);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mdata-macos-glass[39m=[32m"panel"[39m
+        [33mstyle[39m=[32m"background: var(--bg-elevated); border-radius: 18px; padding: 32px 36px; max-width: 440px; width: 90%; box-shadow: var(--shadow-lg); border: 1px solid var(--border-subtle); text-align: center;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-warm)); display: flex; align-items: center; justify-content: center; margin: 0px auto 20px;"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-folder"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"32"[39m
+            [33mstroke[39m=[32m"white"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"32"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</div>[39m
+        [36m<h2[39m
+          [33mstyle[39m=[32m"font-size: var(--text-page-title); font-weight: 700; margin: 0px 0px 10px; color: var(--text-primary);"[39m
+        [36m>[39m
+          [0monboarding_vault_dir_title[0m
+        [36m</h2>[39m
+        [36m<p[39m
+          [33mstyle[39m=[32m"font-size: var(--text-body); color: var(--text-secondary); line-height: 1.6; margin: 0px 0px 24px; min-height: 0px;"[39m
+        [36m>[39m
+          [0monboarding_vault_dir_desc[0m
+        [36m</p>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"padding: 16px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent); background: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-toolbar)); text-align: left; margin-bottom: 24px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-caption); color: var(--text-secondary); margin-bottom: 6px;"[39m
+          [36m>[39m
+            [0monboarding_vault_dir_selected_label[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-body-sm); color: var(--text-primary); word-break: break-all; line-height: 1.5;"[39m
+          [36m>[39m
+            [0mcontent://test-vault[0m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mstyle[39m=[32m"margin-top: 12px; font-size: var(--text-caption); color: var(--accent-primary); background: transparent; border: medium; padding: 0px; cursor: pointer; font-family: inherit; font-weight: 500;"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0monboarding_vault_dir_reselect[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; justify-content: center; gap: 6px; margin-bottom: 28px;"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--accent-primary);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mstyle[39m=[32m"width: 8px; height: 8px; border-radius: 50%; background: var(--border-subtle);"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"display: flex; justify-content: space-between; align-items: center;"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<div />[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; gap: 8px;"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"interactive-toolbar"[39m
+              [33mstyle[39m=[32m"font-size: var(--text-caption); padding: 6px 12px; border-radius: 6px; border-width: 1px; border-style: solid; cursor: pointer; font-family: inherit; font-weight: 500; opacity: 1;"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0monboarding_back[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"interactive-toolbar"[39m
+              [33mstyle[39m=[32m"font-size: var(--text-caption); padding: 6px 12px; border-radius: 6px; border-width: 1px; border-style: solid; cursor: pointer; font-family: inherit; font-weight: 500;"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0monboarding_next[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ ../build/rf1141-onboarding-test-lifecycle-20261012/red3-seeded.test.tsx:310:34
+    308|     );
+    309|
+    310|     fireEvent.click(await screen.findByRole('button', { name: /onboard…
+       |                                  ^
+    311|     await waitFor(() => expect(vaultDirectory.initVaultDirectory).toHa…
+    312|     expect(screen.queryByRole('button', { name: /onboarding_next/i }))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 skipped (14)
+   Start at  23:29:47
+   Duration  27.73s (transform 1.88s, setup 2.67s, import 4.65s, tests 1.22s, environment 18.42s)
+

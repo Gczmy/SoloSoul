@@ -1,0 +1,39 @@
+[
+  {
+    "label": "typecheck",
+    "command": [
+      "node.exe",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "exitCode": 0,
+    "seconds": 26.35033869999461,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "lint",
+    "command": [
+      "cmd.exe",
+      "/d",
+      "/c",
+      "npm.cmd",
+      "run",
+      "lint"
+    ],
+    "exitCode": 0,
+    "seconds": 45.92257439997047,
+    "logSha256": "618ed2fe7c34a69d6afe846b2be2f0cbd34fb676136bc67b51488cd964908232"
+  },
+  {
+    "label": "format",
+    "command": [
+      "node.exe",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "src/components/onboarding/OnboardingDialog.test.tsx"
+    ],
+    "exitCode": 1,
+    "seconds": 0.6316465000272729,
+    "logSha256": "eba69ba9c43832c5f947568df08df38db8b7e07ff275900f793c202cb0e720d8"
+  }
+]
