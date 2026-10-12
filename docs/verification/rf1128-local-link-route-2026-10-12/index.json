@@ -1,0 +1,36 @@
+{
+  "task": "RF-1128",
+  "allMembersReadbackVerified": true,
+  "members": [
+    {
+      "member": "probe/live.json",
+      "bytes": 206,
+      "sha256": "9ddff641e1efb5abcc68bc1049c800d5457e27707f824098fa93edee213acd2c"
+    },
+    {
+      "member": "probe/published.json",
+      "bytes": 25,
+      "sha256": "8c856ee64db53c235aee09084224f2756959163c1da9a0df4a4db152dc427c63"
+    },
+    {
+      "member": "probe/result.json",
+      "bytes": 816,
+      "sha256": "f795683a14eba2b487eb19e161da85acaea194110f355aa54cf6a8cfaba8ea47"
+    },
+    {
+      "member": "probe/wsl.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "probe/wsl.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "tools/probe-rf1128-wsl-native-link-20261012.py",
+      "bytes": 3079,
+      "sha256": "ec052888297877c323ef006bd5036d5cebb4ac00ad9c792ed2517f3d1b77f20c"
+    }
+  ]
+}
