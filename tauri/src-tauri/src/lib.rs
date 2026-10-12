@@ -12,6 +12,10 @@ pub mod mobile_ocr_plugin;
 compile_error!("native-perf 目前只支持 Windows 原生隔离验收");
 #[cfg(all(feature = "native-perf", target_os = "windows"))]
 mod native_perf;
+#[cfg(all(feature = "android-native-perf", not(target_os = "android")))]
+compile_error!("android-native-perf 仅支持 Android 非默认测量构建");
+#[cfg(all(feature = "android-native-perf", target_os = "android"))]
+mod android_native_perf;
 #[cfg(all(
     feature = "macos-ui-regression",
     any(
@@ -494,6 +498,14 @@ pub fn run() {
 
     // 必须在 updater 初始化之后只读探测；移动端不查询桌面 updater 的私有 state。
     builder = builder.plugin(commands::system::init_platform_capabilities());
+
+    #[cfg(all(feature = "android-native-perf", target_os = "android"))]
+    {
+        // 使用框架既有初始化脚本时序，在生产页面脚本前安装观察器。
+        // 默认构建、Tauri readonly invoke、窗口与插件创建流程保持原样。
+        builder =
+            builder.append_invoke_initialization_script(android_native_perf::INITIALIZATION_SCRIPT);
+    }
 
     // 桌面端：solosoul-pdf:// 自定义协议——PDF 附件内嵌预览（WebView2 无法渲染
     // data:/blob: URL 的 embed，且 fs_read_file_as_data_url 有 10 MiB 上限）。

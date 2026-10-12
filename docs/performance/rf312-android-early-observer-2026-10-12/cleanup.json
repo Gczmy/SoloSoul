@@ -1,0 +1,124 @@
+{
+  "removedCount": 16,
+  "removedFiles": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\negative-control\\baseline-supported-default-release\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "28adf6df89d63457fd233bfcca7742a4d02697b572c10f947f34ec55d884f768",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "8e6b6b59e613634060c1fd795ae41dd7d12b5c31105164cbddd27cef383f5283"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\negative-control\\baseline-supported-default-release\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "8e6b6b59e613634060c1fd795ae41dd7d12b5c31105164cbddd27cef383f5283"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native\\observer-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "d5831857f68decd70151a41ec12c3550094f9226ae26b7dfc9981f9b6fabed53"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native\\observer-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "d5831857f68decd70151a41ec12c3550094f9226ae26b7dfc9981f9b6fabed53"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native\\observer-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "cee3d5fe8283d01db9a95eb81d4c8e97c593adc1ad769dfa987deaced62fa69e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native\\observer-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "cee3d5fe8283d01db9a95eb81d4c8e97c593adc1ad769dfa987deaced62fa69e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\java-bridge-probe\\late-diagnostic-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "eefab89e7a1839c7a7779efa1ee4ba9be2ec18b72863a36dc8375bd63bfbc31a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\java-bridge-probe\\late-diagnostic-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "eefab89e7a1839c7a7779efa1ee4ba9be2ec18b72863a36dc8375bd63bfbc31a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\java-bridge-probe-round2\\late-diagnostic-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "b2a1065c8262da5b103bd043f90c97e4cc1a7f0e4762a8a4314ba9ef6d367215"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\java-bridge-probe-round2\\late-diagnostic-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "b2a1065c8262da5b103bd043f90c97e4cc1a7f0e4762a8a4314ba9ef6d367215"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native-round2\\observer-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "1cca2a655082af52cb30adc80afb82f18b6546bc94b7ad607371dd77b149f945"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native-round2\\observer-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "1cca2a655082af52cb30adc80afb82f18b6546bc94b7ad607371dd77b149f945"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native-round2\\observer-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "8a4e3e4cd3f0ae7f9953d1e8d333c8e0674558f87558513400978812c6d7b18b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-early-observer-implementation-20261012\\positive-native-round2\\observer-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "8a4e3e4cd3f0ae7f9953d1e8d333c8e0674558f87558513400978812c6d7b18b"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-bridge-capabilities-20261012\\bridge-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "879b6a2bc00859ed8f8a75d332c371845111073ba5135956cb010731a61d0ed8",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "8296bb7c6b7038e2bd01f8de529d83bd8812b9a964f4ab88c82c4140605e8419"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-bridge-capabilities-20261012\\bridge-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "privateEntriesRestoreVerified": 216,
+      "reportSha256": "8296bb7c6b7038e2bd01f8de529d83bd8812b9a964f4ab88c82c4140605e8419"
+    }
+  ],
+  "allRemovedCopiesPreviouslyRestoreVerified": true,
+  "allPairs216EntriesExact": true,
+  "allAncestorsNonReparse": true,
+  "nonRecursive": true,
+  "originalAvdAndPackagesKept": true,
+  "archiveVerifiedBeforeRemoval": true,
+  "at": "2026-10-12T10:10:14.774982+00:00"
+}

@@ -129,6 +129,8 @@ default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 mobile = []
 native-perf = ["tauri/devtools", "dep:webview2-com", "dep:windows-core", "solosoul-core/native-perf"]
+# Android 非默认测量构建：只观察 IPC 传输，不启用 devtools 或新增依赖。
+android-native-perf = []
 # 仅 macOS debug 的完整客户端隔离验收，不扩展 Windows 性能工具。
 macos-ui-regression = []
 
