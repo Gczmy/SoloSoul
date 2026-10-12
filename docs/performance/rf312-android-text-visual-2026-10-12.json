@@ -1,0 +1,474 @@
+{
+  "task": "RF-312",
+  "status": "partial-verification",
+  "scope": "actual committed WebView text visibility; not a product style repair",
+  "productSourceAndMainApkUnchanged": true,
+  "runs": [
+    {
+      "run": "rf312-text-visual-probe-20261012",
+      "objectCount": 100,
+      "nativeActualExitCode": 0,
+      "sameMainApkSha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+      "before": {
+        "screenshot": "diagnostic-text-before-commit.png",
+        "knownText": true,
+        "nearForegroundPixels": 3547,
+        "left": 96,
+        "top": 842,
+        "right": 624,
+        "bottom": 941,
+        "style": {
+          "knownText": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "rect": {
+            "x": 48,
+            "y": 421.25,
+            "width": 264,
+            "height": 49.5
+          }
+        }
+      },
+      "after": {
+        "screenshot": "diagnostic-text-after-commit.png",
+        "knownText": true,
+        "nearForegroundPixels": 3547,
+        "left": 96,
+        "top": 842,
+        "right": 624,
+        "bottom": 941,
+        "style": {
+          "knownText": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "rect": {
+            "x": 48,
+            "y": 421.25,
+            "width": 264,
+            "height": 49.5
+          }
+        }
+      },
+      "phaseDurationsDiagnosticOnly": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 5706.3939,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 4883.1681,
+          "transportAttempts": 50
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 10812.2913,
+          "transportAttempts": 45
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 2315.4836,
+          "transportAttempts": 83
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 2940.7435,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 2543.0453,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 4253.118,
+          "transportAttempts": 5
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 3399.9283,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 1460.2267,
+          "transportAttempts": 216
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 3394.2319,
+          "transportAttempts": 35
+        }
+      ],
+      "pdfDiagnosticAndAll10PhasesPassed": true,
+      "fullPerformanceAccepted": false
+    },
+    {
+      "run": "rf312-text-visual-probe-round2-20261012",
+      "objectCount": 100,
+      "nativeActualExitCode": 0,
+      "sameMainApkSha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+      "before": {
+        "screenshot": "diagnostic-text-before-commit.png",
+        "knownText": true,
+        "nearForegroundPixels": 3547,
+        "left": 96,
+        "top": 842,
+        "right": 624,
+        "bottom": 941,
+        "style": {
+          "knownText": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "rect": {
+            "x": 48,
+            "y": 421.25,
+            "width": 264,
+            "height": 49.5
+          }
+        }
+      },
+      "after": {
+        "screenshot": "diagnostic-text-after-commit.png",
+        "knownText": true,
+        "nearForegroundPixels": 3547,
+        "left": 96,
+        "top": 842,
+        "right": 624,
+        "bottom": 941,
+        "style": {
+          "knownText": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "rect": {
+            "x": 48,
+            "y": 421.25,
+            "width": 264,
+            "height": 49.5
+          }
+        }
+      },
+      "phaseDurationsDiagnosticOnly": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 5227.2237,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 4884.492,
+          "transportAttempts": 47
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 10516.461,
+          "transportAttempts": 14
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 2520.3334,
+          "transportAttempts": 115
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 2753.6693,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 3113.7516,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 4269.944,
+          "transportAttempts": 5
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 3481.9369,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 1431.3746,
+          "transportAttempts": 216
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 3203.8491,
+          "transportAttempts": 30
+        }
+      ],
+      "pdfDiagnosticAndAll10PhasesPassed": true,
+      "fullPerformanceAccepted": false
+    },
+    {
+      "run": "rf312-text-visual-probe-round2-20261012",
+      "objectCount": 5000,
+      "nativeActualExitCode": 0,
+      "sameMainApkSha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+      "before": {
+        "screenshot": "diagnostic-text-before-commit.png",
+        "knownText": true,
+        "nearForegroundPixels": 3547,
+        "left": 96,
+        "top": 842,
+        "right": 624,
+        "bottom": 941,
+        "style": {
+          "knownText": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "rect": {
+            "x": 48,
+            "y": 421.25,
+            "width": 264,
+            "height": 49.5
+          }
+        }
+      },
+      "after": {
+        "screenshot": "diagnostic-text-after-commit.png",
+        "knownText": true,
+        "nearForegroundPixels": 3547,
+        "left": 96,
+        "top": 842,
+        "right": 624,
+        "bottom": 941,
+        "style": {
+          "knownText": true,
+          "foreground": "rgb(17, 17, 17)",
+          "fontSize": "14px",
+          "opacity": "1",
+          "visibility": "visible",
+          "viewportWidth": 360,
+          "rect": {
+            "x": 48,
+            "y": 421.25,
+            "width": 264,
+            "height": 49.5
+          }
+        }
+      },
+      "phaseDurationsDiagnosticOnly": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 4862.893,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 4595.9178,
+          "transportAttempts": 48
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 10800.7711,
+          "transportAttempts": 15
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 2345.361,
+          "transportAttempts": 116
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 2734.5103,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 2934.6128,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 4358.9274,
+          "transportAttempts": 5
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 3549.0008,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 1437.3002,
+          "transportAttempts": 216
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 3590.6292,
+          "transportAttempts": 46
+        }
+      ],
+      "pdfDiagnosticAndAll10PhasesPassed": true,
+      "fullPerformanceAccepted": false
+    }
+  ],
+  "restorationAudit": [
+    {
+      "run": "rf312-text-visual-probe-20261012",
+      "objectCount": 100,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf312-text-visual-probe-round2-20261012",
+      "objectCount": 100,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf312-text-visual-probe-round2-20261012",
+      "objectCount": 5000,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "historicalInspection": {
+    "inferredComparableRegionOnly": true,
+    "rows": [
+      {
+        "run": "rf1135-android-native-pages-round4-20261012",
+        "objectCount": 100,
+        "screenshot": "build\\android-native-feasibility-20261010\\rf1135-android-native-pages-round4-20261012\\first-100-diagnostic\\device-files\\diagnostic-text-preview.png",
+        "referenceRegionFromCurrentSameViewport": [
+          96,
+          842,
+          624,
+          941
+        ],
+        "nearDarkForegroundPixels": 0,
+        "historicalOwnPreRectNotRecorded": true
+      },
+      {
+        "run": "rf1136-android-nonblank-media-20261012",
+        "objectCount": 100,
+        "screenshot": "build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-100-diagnostic\\device-files\\diagnostic-text-preview.png",
+        "referenceRegionFromCurrentSameViewport": [
+          96,
+          842,
+          624,
+          941
+        ],
+        "nearDarkForegroundPixels": 0,
+        "historicalOwnPreRectNotRecorded": true
+      },
+      {
+        "run": "rf1136-android-nonblank-media-20261012",
+        "objectCount": 5000,
+        "screenshot": "build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-5000-diagnostic\\device-files\\diagnostic-text-preview.png",
+        "referenceRegionFromCurrentSameViewport": [
+          96,
+          842,
+          624,
+          941
+        ],
+        "nearDarkForegroundPixels": 3547,
+        "historicalOwnPreRectNotRecorded": true
+      }
+    ],
+    "specificHistoricalCauseProven": false
+  },
+  "historicalBlankSpecificCauseProven": false,
+  "firstRunAddsStyleQueriesBeforeImmediateCapture": true,
+  "secondProbePreservesPriorImmediatePointAndAnalyzesSavedPngAfterCapture": true,
+  "postCommitGate": "actual postVisualStateCallback and two native frames within original45s budget; exact public DOM text plus window foreground pixels and manual review",
+  "wholeRF312Accepted": false,
+  "remaining": [
+    "first OCR",
+    "search plus all media in repeated full cohorts",
+    "renderer/full process memory",
+    "process cold launch",
+    "hardware and other platforms"
+  ],
+  "rawIndex": "rf312-android-text-visual-2026-10-12/index.json",
+  "manualPostCommitWindowTextReviews": {
+    "100": true,
+    "5000": true
+  },
+  "cleanup": {
+    "verifiedUnusedPrivateArchivesRemoved": [
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-text-visual-probe-20261012\\first-100-diagnostic\\private-data-before.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-text-visual-probe-20261012\\first-100-diagnostic\\private-data-restored.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-text-visual-probe-round2-20261012\\first-100-diagnostic\\private-data-before.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-text-visual-probe-round2-20261012\\first-100-diagnostic\\private-data-restored.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-text-visual-probe-round2-20261012\\first-5000-diagnostic\\private-data-before.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-text-visual-probe-round2-20261012\\first-5000-diagnostic\\private-data-restored.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      }
+    ],
+    "inspectionCropsRemovedAfterArchive": true,
+    "publicFixturesAndProgramsRetainedForFirstOcr": true
+  }
+}
