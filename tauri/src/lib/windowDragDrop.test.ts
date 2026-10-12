@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DragDropPayload } from './windowDragDrop';
 
 const mocks = vi.hoisted(() => ({ register: vi.fn(), warn: vi.fn() }));
-vi.mock('@tauri-apps/api/webviewWindow', () => ({
-  getCurrentWebviewWindow: () => ({ onDragDropEvent: mocks.register }),
+vi.mock('./nativeWindowDragDrop', () => ({
+  registerNativeWindowDragDrop: (handler: (payload: DragDropPayload) => void) =>
+    mocks.register((event: { payload: DragDropPayload }) => handler(event.payload)),
 }));
 vi.mock('./logger', () => ({ logger: { warn: mocks.warn } }));
 
@@ -151,6 +152,39 @@ describe('shared window drag-drop lifecycle', () => {
     (mocks.register.mock.calls[1][0] as NativeHandler)({ payload: over });
     expect(handler).toHaveBeenCalledWith(over);
     nextStop();
+    expect(unlisten).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries on a new receiver while the original card stays mounted', async () => {
+    const retry = deferred();
+    const unlisten = vi.fn();
+    mocks.register
+      .mockRejectedValueOnce(new Error('temporary rejection'))
+      .mockReturnValueOnce(retry.promise);
+    const { subscribeWindowDragDrop } = await import('./windowDragDrop');
+    const original = vi.fn();
+    const stopOriginal = subscribeWindowDragDrop(original);
+    await vi.dynamicImportSettled();
+    expect(mocks.warn).toHaveBeenCalledTimes(1);
+    const next = vi.fn();
+    const stopNext = subscribeWindowDragDrop(next);
+    const third = vi.fn();
+    const stopThird = subscribeWindowDragDrop(third);
+    await vi.dynamicImportSettled();
+    expect(mocks.register).toHaveBeenCalledTimes(2);
+    retry.resolve(unlisten);
+    await retry.promise;
+    const native = mocks.register.mock.calls[1][0] as NativeHandler;
+    native({ payload: over });
+    for (const handler of [original, next, third]) expect(handler).toHaveBeenCalledTimes(1);
+    stopOriginal();
+    expect(unlisten).not.toHaveBeenCalled();
+    native({ payload: over });
+    expect(original).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledTimes(2);
+    expect(third).toHaveBeenCalledTimes(2);
+    stopNext();
+    stopThird();
     expect(unlisten).toHaveBeenCalledTimes(1);
   });
 

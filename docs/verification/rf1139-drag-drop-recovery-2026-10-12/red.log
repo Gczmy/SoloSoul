@@ -1,0 +1,26 @@
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+
+ ❯ src/lib/windowDragDrop.test.ts (8 tests | 1 failed) 128ms
+     × retries on a new receiver while the original card stays mounted 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/windowDragDrop.test.ts > shared window drag-drop lifecycle > retries on a new receiver while the original card stays mounted
+AssertionError: expected "vi.fn()" to be called 2 times, but got 1 times
+ ❯ src/lib/windowDragDrop.test.ts:171:28
+    169|     const stopThird = subscribeWindowDragDrop(third);
+    170|     await vi.dynamicImportSettled();
+    171|     expect(mocks.register).toHaveBeenCalledTimes(2);
+       |                            ^
+    172|     retry.resolve(unlisten);
+    173|     await retry.promise;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  22:46:01
+   Duration  1.36s (transform 140ms, setup 231ms, import 24ms, tests 128ms, environment 789ms)
+

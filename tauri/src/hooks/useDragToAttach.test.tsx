@@ -16,10 +16,9 @@ const mocks = vi.hoisted(() => ({
   unlisten: vi.fn(),
 }));
 
-vi.mock('@tauri-apps/api/webviewWindow', () => ({
-  getCurrentWebviewWindow: () => ({
-    onDragDropEvent: mocks.register,
-  }),
+vi.mock('@/lib/nativeWindowDragDrop', () => ({
+  registerNativeWindowDragDrop: (handler: (payload: DragPayload) => void) =>
+    mocks.register((event: { payload: DragPayload }) => handler(event.payload)),
 }));
 
 vi.mock('@/lib/attachmentUpload', () => ({

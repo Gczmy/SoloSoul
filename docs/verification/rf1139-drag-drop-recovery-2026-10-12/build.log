@@ -1,0 +1,72 @@
+
+> solosoul@2.13.2 build
+> npm run gen-nsis-assets && node scripts/build-search-index.js && node scripts/stage-mobile-resources.cjs && node scripts/stage-desktop-resources.cjs && tsc --noEmit && vite build
+
+
+> solosoul@2.13.2 gen-nsis-assets
+> python3 scripts/generate-nsis-assets.py || python scripts/generate-nsis-assets.py
+
+'python3' is not recognized as an internal or external command,
+operable program or batch file.
+Generated: D:\SoloSoul\tauri\src-tauri\bundles\nsis\assets\welcome-sidebar.bmp
+Generated: D:\SoloSoul\tauri\src-tauri\bundles\nsis\assets\header-install.bmp
+Generated: D:\SoloSoul\tauri\src-tauri\bundles\nsis\assets\header-uninstall.bmp
+Search index built: 3387 words, 21 guides
+[stage-mobile-resources] 已生成移动端插件市场资源: D:\SoloSoul\tauri\src-tauri\resources-mobile\SoloSoul_plugin_market
+[stage-mobile-resources] 资源版本 aa28e8eac6e0412313d6a24aed548c0e035f18869187e7468cb4b29bf87d5fa4，89 文件
+[stage-desktop-resources] 已生成桌面端插件市场资源: D:\SoloSoul\tauri\src-tauri\resources-desktop\SoloSoul_plugin_market
+vite v8.0.16 building client environment for production...
+[2K
+transforming...✓ 4197 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                           1.73 kB │ gzip:   0.79 kB
+dist/assets/128x128@2x-lsnePcND.png                      13.59 kB
+dist/assets/is-prop-valid_framer-motion-0Fmh8zwg.css      0.16 kB │ gzip:   0.12 kB
+dist/assets/useLlmChatCore-C77BIXIX.css                   0.97 kB │ gzip:   0.48 kB
+dist/assets/RecoveryQrScanner-DcMf1r0X.css                1.59 kB │ gzip:   0.52 kB
+dist/assets/index-BNzNAeP1.css                            2.53 kB │ gzip:   0.91 kB
+dist/assets/photoAlbumPreview-Djhl_LIP.css                3.35 kB │ gzip:   0.83 kB
+dist/assets/Dialog-DF1XDdnW.css                           7.82 kB │ gzip:   2.18 kB
+dist/assets/bootstrapApp-C5Au3FPq.css                   267.46 kB │ gzip:  38.80 kB
+dist/assets/vaultDirectory-BnojJ1Td.js                    0.08 kB │ gzip:   0.09 kB
+dist/assets/loginAvailabilityPreflight-Bn8IYyFh.js        0.08 kB │ gzip:   0.09 kB
+dist/assets/dialog-CZ4Qwkx0.js                            0.10 kB │ gzip:   0.10 kB
+dist/assets/is-prop-valid_framer-motion-CT5lOZ-5.js       0.66 kB │ gzip:   0.44 kB
+dist/assets/rolldown-runtime-Cyuzqnbw.js                  0.82 kB │ gzip:   0.47 kB
+dist/assets/preload-helper-zJ_50EbN.js                    1.19 kB │ gzip:   0.68 kB
+dist/assets/event-SFM-3aSQ.js                             1.44 kB │ gzip:   0.68 kB
+dist/assets/constants-OmM7_JPu.js                         2.43 kB │ gzip:   1.31 kB
+dist/assets/core-BAM5JyGC.js                              2.48 kB │ gzip:   1.01 kB
+dist/assets/webviewWindow-MqE53BjL.js                     4.65 kB │ gzip:   1.37 kB
+dist/assets/jsx-runtime-B09ZbkQF.js                       5.13 kB │ gzip:   2.43 kB
+dist/assets/authStore-CpCKuBNQ.js                         5.14 kB │ gzip:   2.05 kB
+dist/assets/react-SqCrPCpP.js                             8.13 kB │ gzip:   3.14 kB
+dist/assets/PhotoViewerOverlay-C6jWb_Xh.js                8.23 kB │ gzip:   3.11 kB
+dist/assets/Dialog-BdB3bRNg.js                            8.26 kB │ gzip:   3.28 kB
+dist/assets/photoAlbumPreview-B7W5XvCj.js                12.07 kB │ gzip:   4.63 kB
+dist/assets/window-Dq_nAI7g.js                           12.98 kB │ gzip:   3.12 kB
+dist/assets/AiQuickChatPopover-AvwECl6h.js               14.82 kB │ gzip:   4.34 kB
+dist/assets/ipcClient-CHNvffXg.js                        20.24 kB │ gzip:   6.74 kB
+dist/assets/useLlmChatCore-DrJgec6Q.js                   20.29 kB │ gzip:   7.42 kB
+dist/assets/RecoveryReceiveDialog-3-Orr94p.js            31.57 kB │ gzip:   8.12 kB
+dist/assets/backendError-w3gbCLhM.js                     53.30 kB │ gzip:  18.02 kB
+dist/assets/motion-vendor-C2zFBgWK.js                   125.02 kB │ gzip:  40.72 kB
+dist/assets/notification-qZIAM98s.js                    134.49 kB │ gzip:  40.52 kB
+dist/assets/index-B4GPtCAD.js                           313.00 kB │ gzip:  97.53 kB
+dist/assets/markdown-vendor-B-CNUyYJ.js                 318.00 kB │ gzip:  97.55 kB
+dist/assets/RecoveryQrScanner-Q5b29JK4.js               377.18 kB │ gzip: 111.50 kB
+dist/assets/bootstrapApp-Jq31c6g2.js                  1,283.38 kB │ gzip: 341.87 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[INEFFECTIVE_DYNAMIC_IMPORT] src/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.
+
+✓ built in 3.71s

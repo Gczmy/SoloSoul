@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { registerNativeWindowDragDrop } from './nativeWindowDragDrop';
 
 export interface DragDropPayload {
   type: 'enter' | 'over' | 'drop' | 'leave';
@@ -29,14 +30,13 @@ function release(state: Subscription) {
 
 async function register(state: Subscription) {
   try {
-    const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
-    state.unlisten = await getCurrentWebviewWindow().onDragDropEvent((event) => {
+    state.unlisten = await registerNativeWindowDragDrop((payload) => {
       // A removed receiver must not run later in this dispatch. New receivers
       // start with the next event, even if mounted during another callback.
       for (const handler of [...state.handlers]) {
         if (!state.handlers.has(handler)) continue;
         try {
-          handler(event.payload);
+          handler(payload);
         } catch (error) {
           logger.warn('[windowDragDrop] Receiver failed:', error);
         }
@@ -53,16 +53,19 @@ async function register(state: Subscription) {
 
 /** Share one native subscription until the last local receiver is removed. */
 export function subscribeWindowDragDrop(handler: Handler): () => void {
-  let start = false;
   if (!subscription) {
-    subscription = { handlers: new Set(), pending: true };
-    start = true;
+    subscription = { handlers: new Set(), pending: false };
   }
   const state = subscription;
   // Separate ownership even if two consumers pass the same callback.
   const receiver: Handler = (payload) => handler(payload);
   state.handlers.add(receiver);
-  if (start) void register(state);
+  if (!state.pending && !state.unlisten) {
+    // Retry a failed native registration without discarding existing receivers.
+    // Mark pending before starting so simultaneous mounts share this attempt.
+    state.pending = true;
+    void register(state);
+  }
   return () => {
     if (!state.handlers.delete(receiver)) return;
     if (state.handlers.size === 0 && !state.pending) release(state);
