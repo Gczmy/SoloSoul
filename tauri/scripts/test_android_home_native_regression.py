@@ -13,6 +13,89 @@ spec.loader.exec_module(runner)
 
 
 class HomeRunnerTests(unittest.TestCase):
+    def test_font_restore_survives_framework_default_and_decimal_writeback(self):
+        for original, effective in [('null', 1.0), ('1.30', 1.3)]:
+            with self.subTest(original=original):
+                state = {'raw': '2.0', 'effective': 2.0}
+
+                def write(action, value, remaining):
+                    self.assertGreater(remaining, 0)
+                    target = 1.0 if action == 'delete' else float(value)
+                    state['raw'] = 'null' if action == 'delete' else value
+                    if target != state['effective']:
+                        # Android writes the new effective configuration back to Settings.
+                        state['effective'] = target
+                        state['raw'] = str(target)
+
+                runner.restore_font_scale(original, effective, write,
+                                          lambda _: state['raw'], lambda _: state['effective'])
+                self.assertEqual(state['raw'], original)
+                self.assertEqual(state['effective'], effective)
+
+    def test_global_font_configuration_requires_one_complete_real_field(self):
+        line = '  mGlobalConfiguration: {1.3 310mcc260mnc [en_US] 320dpi winConfig={ mBounds=Rect(0, 0 - 720, 1600) } s.20}'
+        self.assertEqual(runner.activity_font_scale(line), 1.3)
+        for invalid in ('', line + '\n' + line, line.replace('mGlobalConfiguration', 'CurrentConfiguration'),
+                        line[:-1], line.replace('{1.3 ', '{NaN '), line.replace('{1.3 ', '{null '),
+                        line.replace('{1.3 ', '{0 ')):
+            with self.subTest(invalid=invalid), self.assertRaises(RuntimeError):
+                runner.activity_font_scale(invalid)
+
+    def test_font_capture_rejects_changed_raw_or_disagreed_effective_configuration(self):
+        values = iter(['null', '1.0'])
+        with self.assertRaisesRegex(RuntimeError, 'changed'):
+            runner.capture_font_scale(lambda _: next(values), lambda _: 1.0)
+        with self.assertRaisesRegex(RuntimeError, 'changed'):
+            runner.capture_font_scale(lambda _: '1.30', lambda _: 2.0)
+        self.assertEqual(runner.capture_font_scale(lambda _: '1.30', lambda _: 1.3), ('1.30', 1.3))
+
+    def test_font_restore_observes_configuration_before_final_raw_write_and_times_out(self):
+        for converges in (True, False):
+            with self.subTest(converges=converges):
+                state = {'time': 0.0, 'raw': '2.0', 'reads': 0}
+                writes = []
+
+                def write(action, value, remaining):
+                    self.assertGreater(remaining, 0)
+                    if action == 'delete':
+                        self.assertGreaterEqual(state['reads'], 2)
+                    writes.append((action, value))
+                    state['raw'] = 'null' if action == 'delete' else value
+
+                def read_effective(_):
+                    state['reads'] += 1
+                    return 1.0 if converges and state['reads'] >= 2 else 2.0
+
+                def pause(seconds):
+                    state['time'] += seconds
+
+                arguments = ('null', 1.0, write, lambda _: state['raw'], read_effective)
+                if converges:
+                    runner.restore_font_scale(*arguments, timeout=0.1, clock=lambda: state['time'], pause=pause)
+                    self.assertEqual(writes, [('put', '1.0'), ('delete', None)])
+                    self.assertEqual(state['raw'], 'null')
+                else:
+                    with self.assertRaisesRegex(RuntimeError, 'budget'):
+                        runner.restore_font_scale(*arguments, timeout=0.1, clock=lambda: state['time'], pause=pause)
+                    self.assertEqual(writes, [('put', '1.0')])
+
+    def test_font_restore_preserves_late_writeback_and_raw_mismatch_failures(self):
+        for late in (True, False):
+            with self.subTest(late=late):
+                state = {'raw': '2.0', 'reads': 0}
+
+                def write(action, value, _):
+                    state['raw'] = 'null' if action == 'delete' and late else '1.0'
+
+                def read_effective(_):
+                    state['reads'] += 1
+                    if state['reads'] == 2:
+                        state['raw'] = '1.0'
+                    return 1.0
+
+                with self.assertRaisesRegex(RuntimeError, 'differs|changed'):
+                    runner.restore_font_scale('null', 1.0, write, lambda _: state['raw'], read_effective)
+
     def test_keyboard_cancel_requires_its_own_actual_ime_and_touch_geometry(self):
         root = Path(__file__).parents[2] / 'docs/verification/fe2-keyboard-2026-10-07'
         candidates = list(root.rglob('report.json'))

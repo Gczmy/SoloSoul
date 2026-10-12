@@ -40,6 +40,82 @@ def font_scale(text):
     return value
 
 
+def activity_font_scale(text):
+    lines = [line.strip() for line in text.splitlines()
+             if line.strip().startswith('mGlobalConfiguration:')]
+    match = re.fullmatch(r'mGlobalConfiguration:\s*\{(\S+)\s+.*\}', lines[0]) if len(lines) == 1 else None
+    if match is None or match[1] == 'null':
+        raise RuntimeError('Unrecognized global font configuration; refusing mutation')
+    return float(font_scale(match[1]))
+
+
+def effective_font_scale(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 < value <= 10:
+        raise RuntimeError('Unrecognized effective font scale; refusing mutation')
+    return float(value)
+
+
+def font_deadline(timeout, clock):
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or not 0 < timeout <= 30:
+        raise RuntimeError('Invalid font restoration budget')
+    deadline = clock() + timeout
+
+    def remaining():
+        value = deadline - clock()
+        if value <= 0:
+            raise RuntimeError('System font configuration did not converge within restoration budget')
+        return value
+
+    return remaining
+
+
+def capture_font_scale(read_raw, read_effective, *, timeout=10.0, clock=time.monotonic):
+    remaining = font_deadline(timeout, clock)
+    original = font_scale(read_raw(remaining()))
+    effective = effective_font_scale(read_effective(remaining()))
+    if (font_scale(read_raw(remaining())) != original or
+            (original != 'null' and not math.isclose(float(original), effective, rel_tol=0, abs_tol=0.001))):
+        raise RuntimeError('Original font setting/configuration changed; refusing mutation')
+    return original, effective
+
+
+def restore_font_scale(original, effective, write, read_raw, read_effective, *,
+                       timeout=10.0, clock=time.monotonic, pause=time.sleep, trace=None):
+    """Settle the effective configuration, then restore exact raw presence/bytes."""
+    original = font_scale(original)
+    effective = effective_font_scale(effective)
+    if original != 'null' and not math.isclose(float(original), effective, rel_tol=0, abs_tol=0.001):
+        raise RuntimeError('Original font setting/configuration differs; refusing mutation')
+    remaining = font_deadline(timeout, clock)
+    trace = {} if trace is None else trace
+    trace.update(originalRawValue=original, originalEffectiveValue=effective,
+                 budgetSeconds=timeout, configurationObservations=[], finalRawValues=[], verified=False)
+    # Reset configuration first. Android may normalize/write back this value.
+    write('put', str(effective), remaining())
+    while True:
+        actual = effective_font_scale(read_effective(remaining()))
+        trace['configurationObservations'].append(actual)
+        if math.isclose(actual, effective, rel_tol=0, abs_tol=0.001):
+            break
+        pause(min(0.05, remaining()))
+    # The effective scale now stays unchanged, so the final raw write cannot
+    # trigger the configuration-reset writeback that lost the absent key.
+    write('delete' if original == 'null' else 'put', None if original == 'null' else original, remaining())
+    actual_raw = font_scale(read_raw(remaining()))
+    trace['finalRawValues'].append(actual_raw)
+    if actual_raw != original:
+        raise RuntimeError('System font scale differs from original state')
+    final_effective = effective_font_scale(read_effective(remaining()))
+    trace['finalEffectiveValue'] = final_effective
+    if not math.isclose(final_effective, effective, rel_tol=0, abs_tol=0.001):
+        raise RuntimeError('Effective system font scale differs from original state')
+    actual_raw = font_scale(read_raw(remaining()))
+    trace['finalRawValues'].append(actual_raw)
+    if actual_raw != original:
+        raise RuntimeError('System font scale changed after configuration readback')
+    trace['verified'] = True
+
+
 def validate_previous_process(actual, expected):
     # instrumentation 完成后 Android 可能已结束目标进程。空结果是已退出，
     # 不能把 pidof 的退出 1 当成故障，也不能停止不属于第一阶段的其他进程。
@@ -516,16 +592,30 @@ def main():
     old_notification = None
     old_night = None
     old_font_scale = None
+    old_font_effective = None
     backup = output / "private-data-before.tar"
     before = None
     root_mode = None
 
     def adb(*command, **kwargs):
         return subprocess.run([args.adb, "-s", args.serial, *command], check=True,
-                              timeout=240, **kwargs)
+                              timeout=kwargs.pop('timeout', 240), **kwargs)
 
     def read(*command):
         return adb(*command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode().strip()
+
+    def read_font_raw(remaining):
+        return adb('shell', 'settings', 'get', 'system', 'font_scale', timeout=remaining,
+                   stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode()
+
+    def read_font_effective(remaining):
+        return activity_font_scale(adb('shell', 'dumpsys', 'activity', 'processes', timeout=remaining,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode())
+
+    def write_font(action, value, remaining):
+        adb('shell', 'settings', action, 'system', 'font_scale',
+            *(() if value is None else (value,)), timeout=remaining,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def archive(path):
         with open(path, "xb") as stream:
@@ -540,8 +630,9 @@ def main():
             raise RuntimeError("AVD identity mismatch")
         selected = True
         if args.font_scale is not None:
-            old_font_scale = font_scale(read('shell', 'settings', 'get', 'system', 'font_scale'))
+            old_font_scale, old_font_effective = capture_font_scale(read_font_raw, read_font_effective)
             report['fontScaleBefore'] = old_font_scale
+            report['fontScaleBeforeEffective'] = old_font_effective
         if args.scenario in ('lifecycle', 'cold'):
             old_night = night_mode(read('shell', 'cmd', 'uimode', 'night'))
             report['nightModeBefore'] = old_night
@@ -707,11 +798,10 @@ def main():
                     report['nightModeRestoreError'] = str(error)
             if old_font_scale is not None:
                 try:
-                    command = ('delete',) if old_font_scale == 'null' else ('put',)
-                    adb('shell', 'settings', *command, 'system', 'font_scale',
-                        *(() if old_font_scale == 'null' else (old_font_scale,)), stdout=subprocess.PIPE)
-                    if font_scale(read('shell', 'settings', 'get', 'system', 'font_scale')) != old_font_scale:
-                        raise RuntimeError('System font scale differs from original state')
+                    report['fontScaleRestoreTrace'] = {}
+                    restore_font_scale(old_font_scale, old_font_effective, write_font,
+                                       read_font_raw, read_font_effective,
+                                       trace=report['fontScaleRestoreTrace'])
                     report['fontScaleRestored'] = True
                 except Exception as error:
                     report['fontScaleRestoreError'] = str(error)

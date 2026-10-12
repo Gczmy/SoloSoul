@@ -1,0 +1,29 @@
+{
+  "initialStagedVerificationRejectedRawByteEquality": true,
+  "reason": "Git text normalization converts raw CRLF to LF; original raw executed bytes/SHA remain archived",
+  "sources": [
+    {
+      "path": "tauri/scripts/android-home-native-regression.py",
+      "workingRawSha256": "6b0067bea91d2bd0d35505d19a22d26315a01f905faa9edb68ad56753927d7e6",
+      "stagedSha256": "75efa32f6c7118e772cdd5fbb0486338c3791460da0ac9e9460a7e8229b0409d",
+      "workingCrlfCount": 714,
+      "stagedCrlfCount": 0,
+      "rawNativeInputUnchanged": true,
+      "onlyGitNewlineNormalization": true,
+      "normalizedBytesEqual": true,
+      "pythonAstEqual": true
+    },
+    {
+      "path": "tauri/scripts/test_android_home_native_regression.py",
+      "workingRawSha256": "a6cc7400aa7e1490c582059b3c6851ceeba4d9e3b43e782c78bdc4e57d3496ac",
+      "stagedSha256": "a6cc7400aa7e1490c582059b3c6851ceeba4d9e3b43e782c78bdc4e57d3496ac",
+      "workingCrlfCount": 0,
+      "stagedCrlfCount": 0,
+      "rawNativeInputUnchanged": true,
+      "onlyGitNewlineNormalization": true,
+      "normalizedBytesEqual": true,
+      "pythonAstEqual": true
+    }
+  ],
+  "testsRerun": 0
+}
