@@ -1,0 +1,24 @@
+{
+  "task": "RF-1109",
+  "stagedArchiveMembersVerified": 71,
+  "strictNativeFailuresKept": 4,
+  "allPrivateDataAndSettingsRestored": true,
+  "eightExactBackupCopiesAbsent": true,
+  "noProductionOrTestCodeChangedThisBackendRun": true,
+  "currentSourceHead": "391fd0f73",
+  "observedBackendDriverExitCode": 1,
+  "stopAndArchiveAndCleanupObservedExitCodes": [
+    0,
+    0,
+    0
+  ],
+  "readonlyInspectionShellSyntaxErrorRetained": "SyntaxError: unterminated string literal (detected at line 1)",
+  "readonlyInspectionErrorChangedNoFilesOrDeviceState": true,
+  "onlyTaskDocsAndEvidenceStaged": true,
+  "taskCounts": {
+    "closed": 310,
+    "total": 322,
+    "waiting": 6,
+    "pending": 6
+  }
+}
