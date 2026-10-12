@@ -1,0 +1,1542 @@
+{
+  "task": "RF-312",
+  "scope": "same-APK repeated complete native finger OCR/search/media journey",
+  "archiveSha256": "f9e3081d0bca04d060a9d3c12abc6ef3ecf047fb30c2e6b8ffdcf2233bb815fc",
+  "members": {
+    "orchestration/archive-rf312-merged-repeat.py": {
+      "bytes": 3288,
+      "sha256": "e27e60008868a83691dbb0662afb1ccd2a10277ece36a2fb5a46578eb33f8f34"
+    },
+    "orchestration/audit-rf312-repeat-restoration.py": {
+      "bytes": 2282,
+      "sha256": "fe8f0b2b3b5b7b7d09d70e903e8134c7d7f1e7acf244686214da7dc02eabe227"
+    },
+    "orchestration/prepare-rf312-merged-repeat.py": {
+      "bytes": 2392,
+      "sha256": "480e9a77fb3684bd0096dbd092b4dfc77047f9d0bd41a05b86f7b681ea1b2bc2"
+    },
+    "orchestration/run-rf312-merged-repeat.py": {
+      "bytes": 3172,
+      "sha256": "d40c6a988a16492f5dffaa5cf717ed47ec0e0e515c85b75fd60542d5b4ab3a2f"
+    },
+    "orchestration/summarize-rf312-merged-repeat.py": {
+      "bytes": 4414,
+      "sha256": "e4cecdf8a52cb5268589a42e438da63e0544dd3c5c9c8d8de91bef8a22654928"
+    },
+    "rf312-merged-repeat-100-001-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-100-001-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-100-001-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "04bef25b5ef1220abc36f6a08e57f8994f73ce5c0d278eb36af8ee561fccb076"
+    },
+    "rf312-merged-repeat-100-001-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1637,
+      "sha256": "a6fb8fdcc3619494cc200b1e1784a4f99f4613be3fa4432a8edf1889b8d3f5c9"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "8a5c35b8adf58ba399be97416e27f16f355cdf5be10f87d6e054b1f422ed0930"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 484,
+      "sha256": "b898e72536dc3972be19958f289792876afe795eeb229ec3350261f10f821791"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 1390473,
+      "sha256": "f616ab49760640581fdd00541b7dd957136d3dcc6e1a51da984d45ebd1df0d8b"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27363,
+      "sha256": "aa2dcd45df0b80ef24a42f90ea5ef53ed6f254dfd19d4058bcade813ee31d3f2"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 190177,
+      "sha256": "4215120a18a3fbbd2917e99f85c9184a4b21cb951b6819a273cfcec58414f3a8"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113180,
+      "sha256": "e6c388bea818225f1b1f5dac40d2474b13a7854cfe6dad60fea32ab3705b86fe"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116181,
+      "sha256": "8f4d4267d1ae0beb62b526c9eea6e6c508da5dbf98a16374d4bd7bde062fd310"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 29830,
+      "sha256": "b033b3076ea080613dc0c9163c89983f0b02e2b4ea9c043fcf4c1de06007d969"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46172,
+      "sha256": "2d84a28abe68eef1e586ac594c6045ae1586cb978e7b70d0c53762529a887bbb"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 111306,
+      "sha256": "b7443319c766e672881dde7530f6edececb12c572388af23a4b345b6513bf0b0"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104664,
+      "sha256": "f0cb5234b8b6be8cb89319dd353590890521ac5812f7d5e768a421b27eff4ee8"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104664,
+      "sha256": "f0cb5234b8b6be8cb89319dd353590890521ac5812f7d5e768a421b27eff4ee8"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 1259308,
+      "sha256": "52e2163b47c72c0ffbbaf6c2108f6f6f112c96a10fc0bf1ba8b1997c5458f130"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "c28cdc0901368410aec0b86f5948d26a80253d8ad1f4428de4097342ee264f43"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17287,
+      "sha256": "796f50304b560e4484677665d0a8f790b532b643f0768ead218fe5ce934b7a8f"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "cb5be99c5ece03faa13b8166337413092b8d7d0078d5361af40f048239da2c99"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "86e52e0b67ba4281a72fe94a60f180b45901426c9d3378d0baab3d5691a28a8f"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "bd41f5b1f66dcb455dc48895acfde0005d74c30c1e75e6209e0739404897899e"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17371,
+      "sha256": "22271aafd87de403771239f69d6b83318c314c68ee1256b8c3171ad32cdae195"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/report.json": {
+      "bytes": 1390473,
+      "sha256": "f616ab49760640581fdd00541b7dd957136d3dcc6e1a51da984d45ebd1df0d8b"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17389,
+      "sha256": "6a8d0b54834ec44b203a0a59588a1bfe6304166300c37e4a233d200d57ce5308"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "7581139c82831ae3d81c619392550fb0a65b2463e7a7cdbd1bb900141c8ad448"
+    },
+    "rf312-merged-repeat-100-001-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8251,
+      "sha256": "907d79bc88b34db64731e775cf16ebdf1f8eb4071d65be9e201994f378310b29"
+    },
+    "rf312-merged-repeat-100-001-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-100-001-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-100-001-20261012/run-sample.py": {
+      "bytes": 3734,
+      "sha256": "4850e85e5d6e08941b48a66b233416cd45ab8270974c4a0f34f224713c4a6781"
+    },
+    "rf312-merged-repeat-100-001-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-100-002-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-100-002-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-100-002-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "653fced6aa2e46f1a984a1e59fa135f035db5d4719b8e5dc9a753d738095941a"
+    },
+    "rf312-merged-repeat-100-002-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1637,
+      "sha256": "edc9bfa4b0b92ce46eccafb54517abab2cb0f5ed8b448aa8f6c97d1611f8af4d"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "60b5c1768745f23ff8ee25e1e9be4d4129acd2105449d8dfd985988e0145d7bd"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 484,
+      "sha256": "ab95311fecd697e80b8a624b88fae1c2f4282797196c71fcf7f2698d2a592790"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 1397869,
+      "sha256": "f723b293c71414c7415577fe1c29bc834738466936a6ada8e7f3ebfff208c7d0"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27362,
+      "sha256": "8647b5cdccf07833d64806abebd2956b0d6df9697f746a654adb58d6144178ed"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162646,
+      "sha256": "5e7674325c05bfa72c27547639a6d631022c9b745ca1eb5bc2b09780bef0c441"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113224,
+      "sha256": "ab5e688fb3c8afee66d8250defd6720ce7bc7a77895f801856c2e8edb747f2bd"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 98497,
+      "sha256": "9a73cdcb7caad87a80febffebd04115e89bb7d0df4084b7e9195ef7ed7503d2c"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 30156,
+      "sha256": "a5a368eff036d9b5f6a00d39bc9a9924a294ad1beee412cd2e2b9f3caa61375e"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 45700,
+      "sha256": "a6da711de599c8c78dbb780a97461285985006493e94129c2f254d5f9e4d9568"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 102422,
+      "sha256": "c5d4f5f5c0dbc581c5fd86c95d97a5f5908ed43650bc6175d1b78ac448223618"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104684,
+      "sha256": "aefb855651b2e3bad357992ef782d0a19ade4fcd61a0a6093c2a9c6669bae596"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104684,
+      "sha256": "aefb855651b2e3bad357992ef782d0a19ade4fcd61a0a6093c2a9c6669bae596"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 1266133,
+      "sha256": "0cf3b65758ee3f6b03b96e84f22de3739294625109cedbd619e099b17cf49d6f"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "2ff16f3de74688ed7d45eda58c44ea81f214fdc1c09c9b6f6d1ce930fc987b65"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17294,
+      "sha256": "c0b9a37056e632fb5efb167608e5a455d6313cb089b835e28a5622bb11b2c9a2"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "7b62a2a433111c4b62c80420ea8bfb689a25f609dcb725c7f584c5e5c73b69aa"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "4f76e6b279253480c73dee44709f53a1b799dec86ab40d214973da3b5422198f"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8295,
+      "sha256": "be34849e47a66f63efa4ba85c5f8798ce525f75b5c6cce83b1c26656929bcfee"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17368,
+      "sha256": "84a5b958616d456f6a4e5f9650e8af74aa7efe676cfdeeb4b36e0b3ca6d5a607"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/report.json": {
+      "bytes": 1397869,
+      "sha256": "f723b293c71414c7415577fe1c29bc834738466936a6ada8e7f3ebfff208c7d0"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17397,
+      "sha256": "e1b582775d7f0438f1e4148615772ef79f1ebaf2c6765a5d0141241e66bda42a"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "a0e4bd81e2884a103f40666c638aa2704f46652fe8004022c01658adb45891f4"
+    },
+    "rf312-merged-repeat-100-002-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8251,
+      "sha256": "580f59355259f600f72dc172fa10de06805c2ba10baf627f02517038f114c0e9"
+    },
+    "rf312-merged-repeat-100-002-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-100-002-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-100-002-20261012/run-sample.py": {
+      "bytes": 3734,
+      "sha256": "71072f630ad7e56f72eeac0c2849ba5cd50669d5149062fdf75efafb08be2f3c"
+    },
+    "rf312-merged-repeat-100-002-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-100-003-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-100-003-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-100-003-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "592d7efe41467181344a7069a09512a4c286a38a0a4895fce52e1ad7048770c8"
+    },
+    "rf312-merged-repeat-100-003-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1637,
+      "sha256": "cdd6955c3ab767e9d90e98807634a1975c0c9c5ebf3b152cf9334331ce499251"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "5dd1e87a5acafe34b7cfbb514398595777bb853f9f416e2b935d887e871ebf1a"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 484,
+      "sha256": "cfb5103a6aec8577e2aa6a4ec5096e3fb05e0d45f5900b85a9bdf1aee5071aad"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 1398361,
+      "sha256": "d9d9a01f18692dd36b73946b86c1140ca8da540c3878eb7958ec9cd71db2c001"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27364,
+      "sha256": "f53b361a714f6cc93be217dbb84f0469f6485a6dc017c80999f7b9eca835dbe0"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162707,
+      "sha256": "1255ef9eaa92c61d924d9dee10b4c98704621cf573038456b5bc0e6f6c32af5f"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113224,
+      "sha256": "ab5e688fb3c8afee66d8250defd6720ce7bc7a77895f801856c2e8edb747f2bd"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116176,
+      "sha256": "53471cae23ecae95822c1162cbb38953133b0cfc3846f9d16bce348f3a9063d5"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 32284,
+      "sha256": "636e42e379d852427cfbc3bdf1f8bfd8336c8bc1ea1b8efe3be082be9b6445a1"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46447,
+      "sha256": "b9658da612654a6559d8c24a5a55d4dc8d1850fff8f3112e7e52daed27aa1b2c"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 102416,
+      "sha256": "077378b8174b61b4c601ec76289f36f6e15b22bd6dc8e5ad90822ba1448e970b"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104664,
+      "sha256": "f0cb5234b8b6be8cb89319dd353590890521ac5812f7d5e768a421b27eff4ee8"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104664,
+      "sha256": "f0cb5234b8b6be8cb89319dd353590890521ac5812f7d5e768a421b27eff4ee8"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 1266518,
+      "sha256": "4ed9e155148328bd2e3029d0bd7a9b96b66c6febf095503e161e1f9d73ff91a7"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "ab3b816779aba99786870a49cb475e1c6b3087625726bf3ab46ddfe32f4f1fb9"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17293,
+      "sha256": "8bfea38f833d71491e3cf8893873b6253c55951dd7d63c706612cbf08fce2230"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "26177b1c50d630cd8fa55ac1e151018a1c904c2c21d3228d7f2298f6c82d9445"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "74aaed7028082ca5044ebe8ad336b6c280ede1da48406774c77558f0e87b1cf2"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8295,
+      "sha256": "79445b73a6bf6b70f0bc50ee6278a5ee34e6c0f4584286fa622fb0cb741f4c4f"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17362,
+      "sha256": "65e77ff72bda4a29259706ceead58ab38bcb5693edaaf97e7178c1af951e841c"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/report.json": {
+      "bytes": 1398361,
+      "sha256": "d9d9a01f18692dd36b73946b86c1140ca8da540c3878eb7958ec9cd71db2c001"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17396,
+      "sha256": "eb958e4a485fc33da185132a4531bd18caebb0fca126ccb34f7f51d12f879211"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "55a2d224ee517f80089debe4ce84ab548e4b2b4b6f767b82740b054484dfbb31"
+    },
+    "rf312-merged-repeat-100-003-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8251,
+      "sha256": "8a92ef472d1aabc236894651ed225d5a8a113ff743a35dc85868cffea1f5d85c"
+    },
+    "rf312-merged-repeat-100-003-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-100-003-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-100-003-20261012/run-sample.py": {
+      "bytes": 3734,
+      "sha256": "0ecd7a02d39681642f25958f7e6567b3873ef558cc4df2b516f1825ec964f74c"
+    },
+    "rf312-merged-repeat-100-003-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-100-004-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-100-004-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-100-004-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "3b41003b76b5ab6f1a6602a0b58dad2d0e72799427d9133673d9f0ed37d89fe1"
+    },
+    "rf312-merged-repeat-100-004-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1637,
+      "sha256": "6eaa669b91d9876d150f967c806a673a30314d5edbd61535af49b690a1dd94ca"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "618e1edcaa951dcc8ce974f6da23251a4bffdac6fa78aa3b202e5cb9a402f359"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 484,
+      "sha256": "7747b95c1cb563b86f9f4537ae0dfb592c49cdd9a38b9d83ae0e10390b09b22d"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 1400225,
+      "sha256": "a8b3a5066e6fb2184527854c89aa9a1b71611dc8c0b4d2a17baa78c1b01a2978"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27359,
+      "sha256": "f154afa17d7d6c386f70846fdc435da2cfd1f005447fde2e820e449e3478e534"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162646,
+      "sha256": "5e7674325c05bfa72c27547639a6d631022c9b745ca1eb5bc2b09780bef0c441"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113224,
+      "sha256": "ab5e688fb3c8afee66d8250defd6720ce7bc7a77895f801856c2e8edb747f2bd"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116270,
+      "sha256": "0310966126a00a43ae2f40cb0d46a6cb73beb48a3caadf14ee19b4880c8064a4"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 32929,
+      "sha256": "fc5a19896ff4d141719601aa86c5093b05d10d557a28808de8c31d17bb20557e"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46191,
+      "sha256": "7f994b0d5abaf4be6aed90d71e08f8079f68e99b4b0e93a79970715772fd71d8"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 102422,
+      "sha256": "c5d4f5f5c0dbc581c5fd86c95d97a5f5908ed43650bc6175d1b78ac448223618"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 83071,
+      "sha256": "c767815c5d866ab911fe9692f4b13f9f12eba364377b26eccf173ad612001da7"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 1268322,
+      "sha256": "79176b494b53eeb345ace9ad16d732581b28eebe885ab074a33ad24dc7068a7c"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "145cc3c012e60500b88ed7b06f07d5724475363e0494aea59a7acd77f3ceee55"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17293,
+      "sha256": "08c0dc6fffd9e03910d642242d4d401f67092def9dad23fe2c20afc43b28152b"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "085b5a771a9943921188f866bec7f4a6b10ad0dcf446564458d57c6c42ee57cb"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "56e1c1885e3f5e7e41d06699ce420dbfdfbe9ec787f3e65696fbbb0036a0149b"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8297,
+      "sha256": "54107151747128164c4b4a81a75277565aef33359283fd302ace7e1bc11d2475"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17365,
+      "sha256": "7c9897802736c757e0932aee7ef255e9cfcb765f4252859c5170425d62a0f967"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/report.json": {
+      "bytes": 1400225,
+      "sha256": "a8b3a5066e6fb2184527854c89aa9a1b71611dc8c0b4d2a17baa78c1b01a2978"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17397,
+      "sha256": "7bfdcb8cd07ac01e4e975bf3132e26e31670b591cf9a8c36a00f595fcd4c8923"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7586,
+      "sha256": "e3d961347e4a3c17f11ffaacb57d5a6ca350e186508094565fc961836a76e925"
+    },
+    "rf312-merged-repeat-100-004-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "2f176748f7b8b3af630c928546afb8da7fd23285945808dd0d724834810ad977"
+    },
+    "rf312-merged-repeat-100-004-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-100-004-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-100-004-20261012/run-sample.py": {
+      "bytes": 3734,
+      "sha256": "22c554944c91d0998bd0748ca5881c72535f3784bccfbf7de5c4ce4378b9f265"
+    },
+    "rf312-merged-repeat-100-004-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-100-005-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-100-005-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-100-005-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "8f076f38aa795a5c700e7975454305c34ad533d5ef64ff010719ba480016a36e"
+    },
+    "rf312-merged-repeat-100-005-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1637,
+      "sha256": "86dd940448fcc1f9b3bce3ff1c677f3964aa610a0f20736a9b09787ee9e73665"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "2f4947032d877f56279e9eac14845ef89e67a2e7d4aa7873635e7cda26797082"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 484,
+      "sha256": "350058e21370cdf2f7f50e9519083d8eb7c8f894730587cc1119d570a71eb30f"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 1397272,
+      "sha256": "18f9b3f3006985f7defc6f8a8e0140b37437c67d3d90ae98ecbce83c6984a26c"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27357,
+      "sha256": "565b187dc967b5b9c2509b1945e235daf56ae579c89c9455bec6adffbfec9b34"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162694,
+      "sha256": "052981c425445f5c364dca964a3de28f9081e5f317627caa57922814fd5f9b3f"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 112844,
+      "sha256": "ed00bedff6e0bdf305b329b3ce97c14dd8086e0e13983f34c40eb7f5eccdbaa7"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116181,
+      "sha256": "8f4d4267d1ae0beb62b526c9eea6e6c508da5dbf98a16374d4bd7bde062fd310"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50968,
+      "sha256": "3c9f03865b62ba1a08be8c0ac2df5ff1c866b1f02d03b4a9cbf17a45e211eabd"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 30800,
+      "sha256": "4d3a6d29c88ef913e64a02e9a69874f22f8cc0f6ddc116d19b1938aeae32562b"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 45413,
+      "sha256": "fcd96ea71d673e8a9adbffafed15833eb41f3f3660e0654161b538bd64ce619c"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 102432,
+      "sha256": "9f1b4addaa85eca5912bbcc01742ba13295046efa21fd5a4193bd3286ca3ebf5"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104725,
+      "sha256": "006c4961d790bcbbe39994c417f5ddba934c2a1eea5de326635ecad4c250c6a9"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104725,
+      "sha256": "006c4961d790bcbbe39994c417f5ddba934c2a1eea5de326635ecad4c250c6a9"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 1265804,
+      "sha256": "aa65bef602b961a759cb135a9cedb4dd8b91ffbcfcc3f6ebb5283fdbc252c729"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/native.log": {
+      "bytes": 913,
+      "sha256": "289f260492f96f558a1f45e8a6c6bfef2194d11d69113ad9653705f3df83699e"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17291,
+      "sha256": "06b1e58332649623b6f7fc7f69f722f8fef1cab80b92cf48a8cadc443cbc8e72"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "a4ec65b214b4d7abf61c959d82cb2d4fe0da99851bd1b8d372a58bbab531ce51"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "21f9c22b995486cbebe1a2538a93a4d27c51b251117fe6e4fc8af16105012a12"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "5ae8e551c4e4b49d6783058c7fe0aa2eb66f50781abf9200bf11203c30e6f27b"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17369,
+      "sha256": "1887ab1f8533e95b5c10875e791a2916ed8e30de0269e3495cd7d90b9fd5746d"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/report.json": {
+      "bytes": 1397272,
+      "sha256": "18f9b3f3006985f7defc6f8a8e0140b37437c67d3d90ae98ecbce83c6984a26c"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17387,
+      "sha256": "09d0bcfc472eedc75da8209c01af25c2df2b047f67fb4f404b0d616149b7e94d"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "637c343a183dcca60e918d86eba697fefdff2b5695e3ec06717a79eed7f1a98b"
+    },
+    "rf312-merged-repeat-100-005-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "d09a16f0813bb9c461d13f5a43589dfeb5aee1d335a17a5962931cfb3c55b3f7"
+    },
+    "rf312-merged-repeat-100-005-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-100-005-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-100-005-20261012/run-sample.py": {
+      "bytes": 3734,
+      "sha256": "bc3cd555c25b0122d4ade2dc874e434940acecf9adce49873e1d14de782796cd"
+    },
+    "rf312-merged-repeat-100-005-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-5000-001-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-5000-001-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-5000-001-20261012/cohort-launcher.stdout.log": {
+      "bytes": 302,
+      "sha256": "bf96a500fc4dae5c6e314a954820503aa22bfd4904adf44be02aeea5e10bdde2"
+    },
+    "rf312-merged-repeat-5000-001-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic.live.json": {
+      "bytes": 1642,
+      "sha256": "a7c804bcc8998c3aba54b6918225e642835c3ccdaa58e3c47d7596d12632d911"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "150af3bea344952c173d3c8cbc57a30df1885097751a2c17278f32d79d3fec19"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic.stderr.log": {
+      "bytes": 488,
+      "sha256": "dff6698cd9ef79e222ee56643b46fff789100a7235e76d8c77af57236a910302"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic.stdout.log": {
+      "bytes": 1380635,
+      "sha256": "e883c5b36e8ca4b0934b4dcace7cad3a535e94e8978eacc42104640d00e65a9c"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/commands.json": {
+      "bytes": 27377,
+      "sha256": "2f72b10f45caf554bc6781f5874d5c6e5a8c46cb6f31618a44023684ac03c99b"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162646,
+      "sha256": "5e7674325c05bfa72c27547639a6d631022c9b745ca1eb5bc2b09780bef0c441"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 114263,
+      "sha256": "52d92f6809baa0eabf420b3095ee1ccbfe44990b4cfa18670446f08a0bcbfb30"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 112760,
+      "sha256": "f62a99d3ddfd3722df0d62f77ab2ac352a75a9207b193e5894dca86264223124"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116173,
+      "sha256": "bdd2b8cc51668e0cce9c3b074eebd152a4c70eade57644d2821f8d4d269667cf"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 31465,
+      "sha256": "dba169a63d20d6e09f8a07fb8811582f84dc2c27a939385eef7c74bb329a0bfb"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46014,
+      "sha256": "a3c02ab2a91edbd34d27f4ed52bb7ed87ebd7df50efdacf310f799a84483360a"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 110605,
+      "sha256": "356c7c580d687489e7c8fe6f0f05dc42fc4bcb28f4c41b7ce2934796b41fd197"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/device-files/report.json": {
+      "bytes": 1250499,
+      "sha256": "d18e8ecd5e7043f8cc348ad41c6b8109de07c75703920e8c286c17ae3b0914cd"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "33bf4fc124102e6f390c68d9e2ef7b4707f3accbc4ce63184962109ba4120ab1"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/original-main-package.log": {
+      "bytes": 17290,
+      "sha256": "c2d37c7a1c87ac6977153b0649dceda177cdd7add3b687295352772e39108f58"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "d4d6f1bb8da8325b6d95b7348679c3dbc7a56e0e8d936cc07f27a0b0d9aa96f6"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "1e9dff81d021f3944982a23b7ec103c26b2fd48bdaaf4b1ad3c5e3994bf1f74f"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "c33a07618ddb910714b09b955ec2d63da730d2ad49ac81c1e59dfa9ff23e72e0"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/release-main-package.log": {
+      "bytes": 17369,
+      "sha256": "843239ba1aee8057c71e15115b1cb4830dcc01fcd48fe87ed8f09227ef1b38cb"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/report.json": {
+      "bytes": 1380635,
+      "sha256": "e883c5b36e8ca4b0934b4dcace7cad3a535e94e8978eacc42104640d00e65a9c"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/restored-main-package.log": {
+      "bytes": 17392,
+      "sha256": "3f1c601792e0b68e94ae680cd7007cec8454a0fdcec7c3b25e9e60fa125c100d"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "80e77a75c97fde7cb2ff75e674c11eb86f41927193f0da8c66487a62915f9447"
+    },
+    "rf312-merged-repeat-5000-001-20261012/first-5000-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "45eb08e0a09d84693a756d52cb3c8dd46477a991ef64d7022913c0a2c9437ad6"
+    },
+    "rf312-merged-repeat-5000-001-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-5000-001-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-5000-001-20261012/run-sample.py": {
+      "bytes": 3745,
+      "sha256": "e51bf5c0adb67b7c4f7caf0f476acda7fb055988e0fa1f021666d39161539ab3"
+    },
+    "rf312-merged-repeat-5000-001-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-5000-002-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-5000-002-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-5000-002-20261012/cohort-launcher.stdout.log": {
+      "bytes": 302,
+      "sha256": "4a31f0da0185f81eaaaa64c5be928385dad5cd5d8ea79110b56676bad25c23b9"
+    },
+    "rf312-merged-repeat-5000-002-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic.live.json": {
+      "bytes": 1642,
+      "sha256": "31b9129b3c99912b504c47dee52840bf5eabea525ed93181b8a02b35bd2f0ea8"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "eee3e74f4b381a9f97471dd003cb6f9331e0b0d5ad83c921fdfd4093ba1171f0"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic.stderr.log": {
+      "bytes": 488,
+      "sha256": "f6cfd4bc829d04c124132b86138660137f85cdd94d1dff169010da5e6e4deac5"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic.stdout.log": {
+      "bytes": 1387259,
+      "sha256": "120fbe263ca8487d079ca3a1418a5cfacd39b0f0e5d839ded1c1e4bce4993f98"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/commands.json": {
+      "bytes": 27372,
+      "sha256": "4ae9fc3f60a94a74c3663c636fa455941a83c5b3f415a963809d3ff6e2d0c285"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162707,
+      "sha256": "1dbd37b292dee71a25e24b8c106e401b1b651ced37ff0902fccba0a3914b18d8"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 114263,
+      "sha256": "52d92f6809baa0eabf420b3095ee1ccbfe44990b4cfa18670446f08a0bcbfb30"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113224,
+      "sha256": "ab5e688fb3c8afee66d8250defd6720ce7bc7a77895f801856c2e8edb747f2bd"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116176,
+      "sha256": "53471cae23ecae95822c1162cbb38953133b0cfc3846f9d16bce348f3a9063d5"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 32426,
+      "sha256": "97f2c0b32bfaf8773c49b967688308611e62d59e0964f3afbd7a1d4f79fcaee9"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 45925,
+      "sha256": "f45964f1bd247e7688749c894587209847ff00034217cfe235d8674e2fbe3e52"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 110588,
+      "sha256": "614673ced459321418f6b64b8286cf86e2c300f793ead5141821099350cec6d5"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104664,
+      "sha256": "f0cb5234b8b6be8cb89319dd353590890521ac5812f7d5e768a421b27eff4ee8"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104664,
+      "sha256": "f0cb5234b8b6be8cb89319dd353590890521ac5812f7d5e768a421b27eff4ee8"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/device-files/report.json": {
+      "bytes": 1256234,
+      "sha256": "2b28b807fccaa748059bf3ff54882e013d1dddc86769a0cb715706c6cb09d9ba"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "ff0d29e5090ed768bdca48bcb64240ff4c2f3c8497b6d4fedd1067bcb2e66a01"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/original-main-package.log": {
+      "bytes": 17298,
+      "sha256": "5603993a031370f9886bba2ba5af1f490d74347241713bacd974b6d67ab2df72"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "b73703e131d666f38d0fc6f7f52f52bad0f6f13f0f5b20bff18f607dd6956b02"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "91c7401c0c222f290145be4589144f265990d54804f80e86db4c79b8057491c5"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "8927ddb7210c0b14c685f2f82d4c11ca2b60c266f8f93190f65cb4efc6b641a8"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/release-main-package.log": {
+      "bytes": 17370,
+      "sha256": "1d8884aa305ba7413efbf464c7873b30babbb10e6874c119fb3a69d7c54523d8"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/report.json": {
+      "bytes": 1387259,
+      "sha256": "120fbe263ca8487d079ca3a1418a5cfacd39b0f0e5d839ded1c1e4bce4993f98"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/restored-main-package.log": {
+      "bytes": 17391,
+      "sha256": "8314bf306cb21bfc5de82ea9de23094a695cbc1c8499281627d9547097dbcaef"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "21c88b1b379f1ab8f53f3b5e8452aebae9b667c9024d8d7402ec776553ef1ac9"
+    },
+    "rf312-merged-repeat-5000-002-20261012/first-5000-diagnostic/runtime-probe-package.log": {
+      "bytes": 8251,
+      "sha256": "fbe9ce4c316356fa5a5186460d698e3146cd0622d34a268fa564f18997e7fd47"
+    },
+    "rf312-merged-repeat-5000-002-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-5000-002-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-5000-002-20261012/run-sample.py": {
+      "bytes": 3745,
+      "sha256": "a82b5c4ad85e4940d5de8c076c06637be618fc20814f321d738727ae82fe6a49"
+    },
+    "rf312-merged-repeat-5000-002-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-5000-003-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-5000-003-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-5000-003-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "766f700685492bd16c96d08c8eb2750c4c5bf49713f7436cdba4754491649e15"
+    },
+    "rf312-merged-repeat-5000-003-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic.live.json": {
+      "bytes": 1641,
+      "sha256": "a49188f3685087f69e0a988145753559a14d0098cc0b6e4ebba90d72966839e4"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "84dda8a2a28d3813be686f36be4ac121f748693c92d28dd8df4bfd9645c23bcd"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic.stderr.log": {
+      "bytes": 487,
+      "sha256": "8c46e6d05ad82018eb625c161766e68ee13a6d6d6057bab3989a293d4c1ac0c0"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic.stdout.log": {
+      "bytes": 1384823,
+      "sha256": "4b8d4e51c318d088995822b2370feb4cc0e1b4e64c76d2a2adbab6f6812ba9a0"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/commands.json": {
+      "bytes": 27371,
+      "sha256": "c64726878c03004766f99ea46645bc4bd788449dcebd0a2bca257bfcd1379e40"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 145887,
+      "sha256": "e0a93ae84a6368c975580b0b62f47d549ec4426761fe2b2897fd6949c924c52e"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 114263,
+      "sha256": "52d92f6809baa0eabf420b3095ee1ccbfe44990b4cfa18670446f08a0bcbfb30"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 112744,
+      "sha256": "f67010d4852b092cae1b86d2738b83c348ccfe91868d4f4f593d7a3ad251d531"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116173,
+      "sha256": "bdd2b8cc51668e0cce9c3b074eebd152a4c70eade57644d2821f8d4d269667cf"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 31004,
+      "sha256": "9916ca361c3bb7f977042d781be90db42cb732da29addb346860534c6f0ed819"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 45933,
+      "sha256": "038010a4f3d9b28ba6a773cecdfb96b611aee8ee47773cdaced90d4bbeebaa54"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 110609,
+      "sha256": "ba6890633790154ffbeab5886b91a304de92c60ebd51542e66315a3d2764480f"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/device-files/report.json": {
+      "bytes": 1254134,
+      "sha256": "fa48c3ed5217d69273eb37641121913bc2dd7f960744397f3c2c2a506492a717"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "60240543f169c93025208d1a40126ae50f1ca31a06653b6b0c2d3f2d84b51e92"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/original-main-package.log": {
+      "bytes": 17297,
+      "sha256": "94f920518c53a1d6ef07ba278f1a59dc01012d7b8c0a8a8ff6e5beafa9aac864"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "689ee896cd2874122a0d0c4db3815d63506e376a20b1c17250bc8c4a8f1de0b1"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "705142c32b364394a132e4a019a55db586be5f3dbc11eb006e4535b52b1531d0"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8297,
+      "sha256": "48bf2a02a5c094d1c2055a556baaf1541dd13e4f8d6ae685fd5c00adca2e5806"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/release-main-package.log": {
+      "bytes": 17371,
+      "sha256": "466d8df6b6ccb0c4b57961aade3fd154233bb8c2efc0231c9cd1add48b262e12"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/report.json": {
+      "bytes": 1384823,
+      "sha256": "4b8d4e51c318d088995822b2370feb4cc0e1b4e64c76d2a2adbab6f6812ba9a0"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/restored-main-package.log": {
+      "bytes": 17393,
+      "sha256": "40c5a3532e5dda53969a6531fc59a61636ca712be737163a9ad4e76a52f56e83"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/restored-test-package.log": {
+      "bytes": 7586,
+      "sha256": "88586516edc8c64b569103aae8fb2e4e8c1c84cb0d1e7134c899bc0215675a95"
+    },
+    "rf312-merged-repeat-5000-003-20261012/first-5000-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "161b149d0ca9de72fc6f0f5685f6b430b19295b3be8d3c85e730eff94e25e788"
+    },
+    "rf312-merged-repeat-5000-003-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-5000-003-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-5000-003-20261012/run-sample.py": {
+      "bytes": 3745,
+      "sha256": "6bd15930ff9164325492a9579dba360e94e560794570c487ef606d7cac582b9f"
+    },
+    "rf312-merged-repeat-5000-003-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-5000-004-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-5000-004-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-5000-004-20261012/cohort-launcher.stdout.log": {
+      "bytes": 301,
+      "sha256": "8e4be0bf1fa3936c176ccb2b7d920dc81beefced25e04fd1852edde935294e2a"
+    },
+    "rf312-merged-repeat-5000-004-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic.live.json": {
+      "bytes": 1642,
+      "sha256": "697500f2da50e5c17cfd8b636d795d3aade1cb1e86bba38204ef2b37696c9863"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic.receipt.json": {
+      "bytes": 282,
+      "sha256": "e1021f701c004c803f3a1b2860400a5131d2625b2d3630e032a99a79fed396c2"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic.stderr.log": {
+      "bytes": 488,
+      "sha256": "8b5463ca954d6b54e53164238e1d6efb599444bbef9194b2ae9459c774337766"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic.stdout.log": {
+      "bytes": 1396752,
+      "sha256": "9ea6a6fd24cb52023db6d580c32532d2e1290317ec2f93e9efa7d49b72d5b418"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/commands.json": {
+      "bytes": 27368,
+      "sha256": "37270c035c6f1d4181458853d64e7496ec0f451cf54a67869529f89839195122"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 144687,
+      "sha256": "c7eab97de6c82673a82ced6e263fdaedce5d8512e58d28d5ed537774fc106c62"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 114263,
+      "sha256": "52d92f6809baa0eabf420b3095ee1ccbfe44990b4cfa18670446f08a0bcbfb30"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113224,
+      "sha256": "ab5e688fb3c8afee66d8250defd6720ce7bc7a77895f801856c2e8edb747f2bd"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116173,
+      "sha256": "bdd2b8cc51668e0cce9c3b074eebd152a4c70eade57644d2821f8d4d269667cf"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 32148,
+      "sha256": "c085b30aa566ea79edbdb8ac5437acb60c4194e4a8d86525ab9781ec0ba7f462"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46048,
+      "sha256": "a5e4fcf7ac29609f70209e45730a9da6622f030a17402645972315d44ec09201"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 110588,
+      "sha256": "614673ced459321418f6b64b8286cf86e2c300f793ead5141821099350cec6d5"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104659,
+      "sha256": "30c55cd67ee2076b72e444a3b1c3c481f8141dbca264605e8a6c94fb54ec7f8f"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104659,
+      "sha256": "30c55cd67ee2076b72e444a3b1c3c481f8141dbca264605e8a6c94fb54ec7f8f"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/device-files/report.json": {
+      "bytes": 1264969,
+      "sha256": "08e154ca04c868abb27f7bbe8e73539f9a6fc8b0bcd5e420499d2d568e1a280e"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "ef14d4f30b397e65ceb2a8563c89d01ba2b8ceb261c40f91af2dbaa0e66d5871"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/original-main-package.log": {
+      "bytes": 17297,
+      "sha256": "819f4cdea863c578567208b4d43c3394ce95e55f86077c4ecf99280fd5b6074f"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "dbe5e8e439028eb50a2f1f3fb41597a88c6ea4b73fbcf3de202abf1c22ba112e"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "d4fb9eedcf177b6b4b83590f4f0fa44fef728e5b07d8f8813417e63408fa608a"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "61bfe9280903b8be5ae861502362f675178001a878e775f3eb8fc9377694182d"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/release-main-package.log": {
+      "bytes": 17372,
+      "sha256": "d9fe5520ceead987747715de084969e7dcea267cfe4c2d181e590d916ee8d100"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/report.json": {
+      "bytes": 1396752,
+      "sha256": "9ea6a6fd24cb52023db6d580c32532d2e1290317ec2f93e9efa7d49b72d5b418"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/restored-main-package.log": {
+      "bytes": 17391,
+      "sha256": "fba379c98b6d89f769ba573f37b5022618baad3ad5cf4c9955a919991ac3f094"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "832c4d852e70b171feef56f31ca013d8f801bdd300bc8d2705b42bb8d9a0ebbe"
+    },
+    "rf312-merged-repeat-5000-004-20261012/first-5000-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "845e88fedaa9c87324dfd0b35d283b2234f86800eefa43f80e4830da717ab289"
+    },
+    "rf312-merged-repeat-5000-004-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-5000-004-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-5000-004-20261012/run-sample.py": {
+      "bytes": 3745,
+      "sha256": "9b55562eab517a7069a8137af4ccfb4987ab0af9548db12fe855fc256154d615"
+    },
+    "rf312-merged-repeat-5000-004-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-5000-005-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-merged-repeat-5000-005-20261012/cohort-launcher.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-merged-repeat-5000-005-20261012/cohort-launcher.stdout.log": {
+      "bytes": 302,
+      "sha256": "505fb2c87f6b10a1b6a65551f82369f8fece7c9d98ce22abd59d7c1a563e0eb8"
+    },
+    "rf312-merged-repeat-5000-005-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic.live.json": {
+      "bytes": 1642,
+      "sha256": "70b8ea6efc8b5e81bb6c8c9eb01893f5c7803ac41e1ee6c4344e7ec1b8304310"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "9c923cbc83c04a1c00fca6d2853269838edb0c923cc8c3138901d3254b770a83"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic.stderr.log": {
+      "bytes": 488,
+      "sha256": "f2fe72656892a5ce61e3a0924231bec0d2512755a34ebbb0b12901ea0de9f790"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic.stdout.log": {
+      "bytes": 1381177,
+      "sha256": "d799825e424fa6501cc81165e085b54c00b41ac3d2795d2a09969195d9352f4e"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/commands.json": {
+      "bytes": 27377,
+      "sha256": "e350c26f08fc74541eefc6936e57d83827f1fff4f37dbfa87b0bfb32d0ba3d2a"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162646,
+      "sha256": "3c90549bb472f893f17265bcceec6cd963e64c96409459eb783d981fc1886d29"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 112181,
+      "sha256": "59477f2d8131b02935823ad9a272756a70ede2148993ab29d6308c20fbfe5ce7"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116173,
+      "sha256": "bdd2b8cc51668e0cce9c3b074eebd152a4c70eade57644d2821f8d4d269667cf"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50968,
+      "sha256": "3c9f03865b62ba1a08be8c0ac2df5ff1c866b1f02d03b4a9cbf17a45e211eabd"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 30410,
+      "sha256": "fd9a30e1423e4f7c28151b3cd0f620eeca84c722d28b87ec3caf87d119dcfae2"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46069,
+      "sha256": "7f4eb7727c53f5c0681b8649072ac3bab9382ebdb17901aaf84e0ddb41f705d4"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 101895,
+      "sha256": "da436c028de9be6c5ba549cde4e1391077fcc07765fd128b60e4489e1692ee14"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104721,
+      "sha256": "ffd5f2b813b97a049d07460466a3daeae9f981de569199996fe8eb72ec1a5c03"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/device-files/report.json": {
+      "bytes": 1251004,
+      "sha256": "d340630c2004aba62e486d9d0c8f574617fd42e2c5b2ffaf14ececdad6c365c7"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "42daa9004119bb62492dcd2c56ba4fc8e71aa7e7b4af8a53d135d1f81ce51aae"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/original-main-package.log": {
+      "bytes": 17289,
+      "sha256": "875187f214eefeb2c3c7e64c39787f2571419049ad9105361c7a6ffce59eb1d8"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "2a5fa51a58335aa4baf5682a6ff31684700931bac22ba5bdbd9acd16f7860909"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "724dc3566489ec12d482aeb62abc70794cf230417e275bd7db1c317ea06ac809"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "8d0957d4b538c3c8047d6aefc86db901e26698fe0c4a9afd680812eeadb0e00c"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/release-main-package.log": {
+      "bytes": 17368,
+      "sha256": "8659dfab992dcb71bac4f3ef248e35fbc5abe545fa38d5dc25e6932bb154cccf"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/report.json": {
+      "bytes": 1381177,
+      "sha256": "d799825e424fa6501cc81165e085b54c00b41ac3d2795d2a09969195d9352f4e"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/restored-main-package.log": {
+      "bytes": 17393,
+      "sha256": "fdfd493d29cb8b57810a0524c8d190167774c67bb7b9d841ec89db6058e2ef55"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "2a4cdaa170542154f177e89ff03fa79340a1d6dbfdf4b1202c7c1cf401a5c7a1"
+    },
+    "rf312-merged-repeat-5000-005-20261012/first-5000-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "fa0a152d7299f40d7ce22f7a41c32c502666d15591a8ce4b8d037171cd2fde51"
+    },
+    "rf312-merged-repeat-5000-005-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-merged-repeat-5000-005-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-merged-repeat-5000-005-20261012/run-sample.py": {
+      "bytes": 3745,
+      "sha256": "dea5878e85dcd8e53f3a9c5cac8c32d74eec167321b7b844f84c884ac42fa51e"
+    },
+    "rf312-merged-repeat-5000-005-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    },
+    "rf312-merged-repeat-api31-20261012/cohort-live.json": {
+      "bytes": 1074,
+      "sha256": "572173924c5e74cd51b4bacb2d2a99cebbf5e75e93238ba602dd452cdfdc06fd"
+    },
+    "rf312-merged-repeat-api31-20261012/cohort-progress.json": {
+      "bytes": 3543,
+      "sha256": "b9bdd572c3cdee1a3aec22369d3414a1fcef2c6249a43def82a17a1904e59c15"
+    },
+    "rf312-merged-repeat-api31-20261012/cohort-terminal.json": {
+      "bytes": 3539,
+      "sha256": "06bd725b154c36a112a5b4cd1910d49ebb45be2e83b0fd04018baf5f48922cc4"
+    },
+    "rf312-merged-repeat-api31-20261012/independent-restoration-audit.json": {
+      "bytes": 3735,
+      "sha256": "c45c98ef406653eb898a124c7a9c0f628bd1992323078d2271fdb29276c59f8a"
+    },
+    "rf312-merged-repeat-api31-20261012/plan.json": {
+      "bytes": 9910,
+      "sha256": "3814d61410337fa7cd291d6744d41c87d1c5209895eeb3957df7e6b973d4f01a"
+    },
+    "rf312-merged-repeat-api31-20261012/private-backup-cleanup.json": {
+      "bytes": 103,
+      "sha256": "2cd795600e344282cca44a3515ae2c52509cd9b830ca5fce8b7cdfca345e1ef3"
+    },
+    "rf312-merged-repeat-api31-20261012/repeated-journey-summary.json": {
+      "bytes": 15059,
+      "sha256": "64fb81bd1d509b32b7dbb05497ce35093c176ef1a5d52239789644fe90e9862a"
+    },
+    "rf312-merged-repeat-api31-20261012/transport-command-attribution.json": {
+      "bytes": 8637,
+      "sha256": "6092dbf51ad0a4fec55bfe445d4e67b52d9d74f3e04a8d328eaf671f3e8ce70a"
+    }
+  },
+  "privateDataCompiledProgramsKeysAndDatabasesExcluded": true,
+  "archiveName": "raw.tar.gz",
+  "uncompressedArchiveSha256": "484b34565e669b0ed427370c27603eaa6be6053288b0829ea746daeeb3c2492f"
+}
