@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1135",
+  "status": "completed",
+  "sourceParentHead": "98dac44bd338d4fce6ca7eca3977ebdce119b8d1",
+  "validatedSourceHashes": {
+    "tauri/src-tauri/src/commands/attachment/mod.rs": "3a028bf52c5cbe46134e8aa01a5b2fafd63c9a9f019366acdb45f9ae68d26c49",
+    "tauri/src-tauri/src/commands/attachment/share.rs": "917bc12fa81976e1f352bd809705e40617fc25fefc837e34e319c5b46bcc12ad",
+    "tauri/src-tauri/src/commands/attachment/tests.rs": "f32064d59f12c847f05a0b616f456b6ee8e677f99a6a18838ad0d315a36e3908"
+  },
+  "hostChecks": {
+    "fmt": 0,
+    "strictClippy": 0,
+    "attachmentTests": {
+      "passed": 29,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 763
+    }
+  },
+  "optimizedAndroidBuild": {
+    "command": [
+      "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rustup\\toolchains\\1.96.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "build",
+      "--locked",
+      "--offline",
+      "-p",
+      "solo_soul",
+      "--lib",
+      "--release",
+      "--target",
+      "x86_64-linux-android",
+      "--features",
+      "android-native-perf"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 792.6017931999522,
+    "sourceUnchanged": true,
+    "changedSources": [],
+    "generatedDebugJniUnchanged": true
+  },
+  "nativeRun": {
+    "exitCode": 0,
+    "elapsedSeconds": 104.96077430003788,
+    "passed": true,
+    "restored": true,
+    "originalApksRestored": true,
+    "ownedProbeRemoved": true,
+    "blurRestored": true,
+    "fullRF312Accepted": false,
+    "samplesRequested": 1,
+    "sourceInputsUnchanged": true
+  },
+  "nativeScope": "100 public synthetic objects; functional diagnostic only",
+  "nativePdf": {
+    "text_only.pdf": {
+      "activity": "com.solosoul.app.PdfPreviewActivity",
+      "sameUid": true,
+      "focused": true,
+      "attached": true,
+      "titleMatches": true,
+      "pageInfo": "1 / 2",
+      "viewWidth": 720,
+      "viewHeight": 1232,
+      "shown": true,
+      "bitmapWidth": 720,
+      "bitmapHeight": 931,
+      "inkPixels": 1771,
+      "lightPixels": 0,
+      "nonTransparentPixels": 1771,
+      "knownBlankFixture": false,
+      "plaintextSha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe",
+      "knownPublicPlaintextVerified": true,
+      "windowPixels": {
+        "screenshot": "diagnostic-native-text_only.pdf.png",
+        "actualWindowPageDarkPixels": 1175,
+        "actualWindowPageWhitePixels": 885353,
+        "left": 0,
+        "top": 160,
+        "right": 720,
+        "bottom": 1392
+      },
+      "secondPage": {
+        "activity": "com.solosoul.app.PdfPreviewActivity",
+        "sameUid": true,
+        "focused": true,
+        "attached": true,
+        "titleMatches": true,
+        "pageInfo": "2 / 2",
+        "viewWidth": 720,
+        "viewHeight": 1232,
+        "shown": true,
+        "bitmapWidth": 720,
+        "bitmapHeight": 931,
+        "inkPixels": 1534,
+        "lightPixels": 0,
+        "nonTransparentPixels": 1534,
+        "windowPixels": {
+          "screenshot": "diagnostic-native-second-text_only.pdf.png",
+          "actualWindowPageDarkPixels": 987,
+          "actualWindowPageWhitePixels": 885602,
+          "left": 0,
+          "top": 160,
+          "right": 720,
+          "bottom": 1392
+        }
+      },
+      "closedToOriginalAttachmentList": true
+    },
+    "scanned.pdf": {
+      "activity": "com.solosoul.app.PdfPreviewActivity",
+      "sameUid": true,
+      "focused": true,
+      "attached": true,
+      "titleMatches": true,
+      "pageInfo": "1 / 1",
+      "viewWidth": 720,
+      "viewHeight": 1232,
+      "shown": true,
+      "bitmapWidth": 720,
+      "bitmapHeight": 180,
+      "inkPixels": 0,
+      "lightPixels": 129600,
+      "nonTransparentPixels": 129600,
+      "knownBlankFixture": true,
+      "plaintextSha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1",
+      "knownPublicPlaintextVerified": true,
+      "windowPixels": {
+        "screenshot": "diagnostic-native-scanned.pdf.png",
+        "actualWindowPageDarkPixels": 0,
+        "actualWindowPageWhitePixels": 887040,
+        "left": 0,
+        "top": 160,
+        "right": 720,
+        "bottom": 1392,
+        "knownBlankFixture": true,
+        "nonblankScanRenderingProven": false
+      },
+      "closedToOriginalAttachmentList": true
+    }
+  },
+  "restorationAudit": [
+    {
+      "run": "rf312-android-media-native-proposal-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf312-android-media-native-round2-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf312-android-media-native-round4-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf312-android-media-native-round5-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf1135-android-media-native-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf1135-android-native-pages-round3-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "run": "rf1135-android-native-pages-round4-20261012",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "rawIndex": "rf1135-android-attachment-temp-2026-10-12/index.json",
+  "fullRF312Accepted": false,
+  "pushed": false,
+  "independentImageReview": {
+    "textPdfPage1": true,
+    "textPdfPage2": true,
+    "scanBlankFixtureMatchesExpected": true,
+    "imagePreview": true,
+    "textExactDomContent": true,
+    "textScreenshotVisibleContentAccepted": false
+  },
+  "limitations": [
+    "scanned.pdf is a blank placeholder; nonblank scan rendering remains unverified",
+    "text DOM exact content passed, but captured text screenshot is blank; visual checkpoint remains RF-312 work",
+    "100 objects, one functional run; not repeated full RF-312 performance or renderer memory",
+    "Android native share chooser not exercised; shared copy regression and Android compilation passed"
+  ]
+}

@@ -13,7 +13,14 @@ const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 
 /// 不再永久残留（复核打回项：原实现「下次分享前清理」留下最近副本 + 竞态）。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn copy_to_share_dir(path: &Path, file_name: &str, att_key: &[u8; 32]) -> Result<PathBuf, String> {
-    super::decrypt_to_temp_dir(att_key, path, file_name, "solosoul_share", SHARE_TEMP_GRACE)
+    super::decrypt_to_temp_dir(
+        att_key,
+        path,
+        file_name,
+        &std::env::temp_dir(),
+        "solosoul_share",
+        SHARE_TEMP_GRACE,
+    )
 }
 
 /// 转发附件到其他应用。
@@ -56,10 +63,15 @@ pub async fn attachment_share<R: Runtime>(
         // P001/P010: 分享给外部应用前解密到一次性 UUID 子目录（FileProvider 无法
         // 读取 vault 密文）；每次分享独立子目录互不覆盖，后台延迟清理（30 分钟宽限，
         // 覆盖系统分享面板等待用户选择目标应用的场景）。
+        let temp_base = app
+            .path()
+            .app_cache_dir()
+            .map_err(|e| format!("Failed to resolve app cache dir: {}", e))?;
         let temp_path = super::decrypt_to_temp_dir(
             &att_key,
             &path,
             &att.file_name,
+            &temp_base,
             "solosoul_share",
             SHARE_TEMP_GRACE,
         )?;
