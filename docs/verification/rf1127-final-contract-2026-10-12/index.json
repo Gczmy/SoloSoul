@@ -1,0 +1,54 @@
+{
+  "task": "RF-1127",
+  "allMembersReadbackVerified": true,
+  "members": [
+    {
+      "member": "historical-recheck/derivation.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-final-closure-20261012\\derivation.json",
+      "bytes": 351,
+      "sha256": "55c6f9aad0f194dfa8262db0cdadcf7d444d041c706aea7c3c52972f6ae0acf2"
+    },
+    {
+      "member": "historical-recheck/historical-intervals.json",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-final-closure-20261012\\historical-intervals.json",
+      "bytes": 20234,
+      "sha256": "0ffa78c3fd76953ba21223eaf506db6db469820e691060db08f21ef73a8defb3"
+    },
+    {
+      "member": "historical-recheck/historical.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-final-closure-20261012\\historical.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "historical-recheck/historical.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-final-closure-20261012\\historical.stdout.log",
+      "bytes": 100,
+      "sha256": "0e84529119720ae062190b1a5dd79ebc801df7fdbe027e6baea6041c7b3cc9c8"
+    },
+    {
+      "member": "sources/close-rf1127-final-contract-20261012.py",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\close-rf1127-final-contract-20261012.py",
+      "bytes": 7315,
+      "sha256": "09ad6e1b8b97a9ab7b729fa65a3fb1dfaa2f77679beab1c754090af9b376670f"
+    },
+    {
+      "member": "sources/native-perf-preference-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-preference-contract.mjs",
+      "bytes": 4687,
+      "sha256": "e326f51eaf0abc1b3c1bc68d48b15e51b3feca84b50f2386ad2bfa6dd376ae76"
+    },
+    {
+      "member": "sources/native-perf-preference.node.test.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-preference.node.test.mjs",
+      "bytes": 8413,
+      "sha256": "9dda5cd45a9fbcf06aaf07d1de34a783e733b1143315383f47cce8abb274a4f5"
+    },
+    {
+      "member": "sources/rf1127-final-historical-intervals.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1127-final-historical-intervals.mjs",
+      "bytes": 3248,
+      "sha256": "e08b5093f64e49cef9cce3e495da021b730b20843484892bacd1e29ddbd6ee36"
+    }
+  ]
+}
