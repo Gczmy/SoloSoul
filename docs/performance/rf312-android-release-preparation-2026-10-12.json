@@ -1,0 +1,176 @@
+{
+  "task": "RF-312",
+  "sourceHead": "100d10a51",
+  "acceptedScope": "Android optimized x86_64 Release package preparation only",
+  "accepted": true,
+  "nativeRuntimeAccepted": false,
+  "physicalPerformanceAccepted": false,
+  "fullRF312Accepted": false,
+  "sourcesValidated": 1839,
+  "allOriginalSourcesAndGeneratedDebugJniRestored": true,
+  "originalCliFailureUnmodified": true,
+  "package": {
+    "acceptedPackagePreparation": true,
+    "scope": "optimized non-debuggable x86_64 Release APK signed only for owned internal validation",
+    "originalCliExitCode": 1,
+    "originalOuterWrapperExitCode": 1,
+    "completedReleaseCompilationPreserved": true,
+    "gradlePackagingExitCode": 0,
+    "apk": {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\app-x86_64-release-internal-validation.apk",
+      "sha256": "20a99626cb9022524beee24d9578d97ee2f97f11ac744e0d368a96e8a15451a5",
+      "bytes": 78626143
+    },
+    "originalUnsignedArtifactUnchanged": true,
+    "codeAssetsAndNativeBytesUnchangedBySigning": true,
+    "signerScope": "existing debug/test key; not production signing",
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "package": "com.solosoul.app",
+    "abi": "x86_64",
+    "applicationDebuggable": false,
+    "minSdk": 28,
+    "targetSdk": 36,
+    "installedToAnyDevice": false,
+    "nativeRuntimeAccepted": false,
+    "physicalPerformanceAccepted": false,
+    "fullRF312Accepted": false
+  },
+  "nativeReleaseLibrary": {
+    "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-target\\x86_64-linux-android\\release\\libsolo_soul.so",
+    "copy": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\release-libsolo_soul.so",
+    "bytes": 59432984,
+    "sha256": "fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b",
+    "elfBits": 64,
+    "machine": 62,
+    "elfType": 3
+  },
+  "originalCLI": {
+    "pid": 29304,
+    "command": [
+      "npm.cmd",
+      "run",
+      "tauri",
+      "--",
+      "android",
+      "build",
+      "--target",
+      "x86_64",
+      "--split-per-abi",
+      "--apk",
+      "--ci",
+      "--config",
+      "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\release-build.conf.json"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 2935.1303229000187,
+    "changedSources": [
+      "tauri/src-tauri/Cargo.toml",
+      "tauri/src-tauri/gen/android/app/tauri.properties"
+    ],
+    "rawSourceUnchanged": false,
+    "productionReleaseSigningInherited": false,
+    "rustOffline": true,
+    "gradleOffline": true,
+    "cargoBuildJobs": 1,
+    "gradleWorkers": 2,
+    "deviceAcceptance": false
+  },
+  "packagingAttempts": [
+    {
+      "exitCode": 1,
+      "elapsedSeconds": 169.51566982269287,
+      "sourceHashesUnchanged": true
+    },
+    {
+      "exitCode": 1,
+      "elapsedSeconds": 54.95404100418091,
+      "sourceHashesUnchanged": true
+    },
+    {
+      "exitCode": 1,
+      "elapsedSeconds": 139.42720866203308,
+      "sourceHashesUnchanged": true
+    },
+    {
+      "exitCode": 1,
+      "elapsedSeconds": 50.610689878463745,
+      "sourceHashesUnchanged": true
+    },
+    {
+      "exitCode": 0,
+      "elapsedSeconds": 125.41861510276794,
+      "sourceHashesUnchanged": true
+    }
+  ],
+  "sameReleaseLibraryReusedWithoutRustRebuild": true,
+  "runtimeComponentGraphUnchanged": true,
+  "lintToolClosureFilesVerified": 66,
+  "r8WarningPendingIndependentReview": "proguard-rules.pro:19 field name <fields> after Serializable type unlikely to match intended source members",
+  "outcomes": {
+    "originalCliExitCode": 1,
+    "rustReleaseCompilerFinished": true,
+    "rustElapsedLog": "48m 07s",
+    "cliFailure": "Windows symbolic-link creation not allowed; generated JNI removed before rejection",
+    "outerWrapperExitCode": 1,
+    "outerErrors": [
+      "strict source freeze found Cargo.toml and tauri.properties changes",
+      "generated JNI missing during finally"
+    ],
+    "inputRecoveryFirstExitCode": 1,
+    "recoveryFirstReason": "ANSI color codes prevented exact Finished text match; no restore performed before assertion",
+    "inputRecoverySecondExitCode": 0,
+    "onlyTerminalFormattingNormalizedForRead": true,
+    "packagingExitCodes": [
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    "packagingFailureReasons": [
+      "five offline runtime dependencies missing",
+      "four AARs absent from actual Release resolution despite explicit artifact fetch",
+      "existing lint-gradle31.11.0 tooling not cached",
+      "temporary unsigned setting overridden by later project release signing config"
+    ],
+    "runtimeDependencyFetchInitialExitCode": 1,
+    "runtimeDependencyFetchInitialReason": "included buildSrc lacks tauri-android project",
+    "explicitFiveFetchGradleExitCode": 0,
+    "actualReleaseVariantFiveFetchExitCodes": [
+      0,
+      0
+    ],
+    "fullReleaseDependencyGraphUnchanged": true,
+    "lintToolingGradleExitCode": 0,
+    "lintOuterReadExitCode": 1,
+    "ordinaryCacheVerifierExitCodes": [
+      1,
+      1
+    ],
+    "lintPathCause": "272-character ordinary Python path unavailable; same Windows extended path2199bytes andSHA match",
+    "extendedPathVerifierExitCode": 0,
+    "cacheAndSystemPoliciesModified": false,
+    "packageVerifierFirstExitCode": 1,
+    "packageVerifierFirstReason": "actual aapt2 minSdkVersion field differs from old sdkVersion expectation",
+    "packageVerifierFinalExitCode": 0,
+    "originalUnsignedCheckExpectedExitCode": 1,
+    "internalSignAndVerifyExitCodes": [
+      0,
+      0
+    ],
+    "signerScope": "existing debug/test key only; no production release signing",
+    "deviceInstallPerformed": false,
+    "nativeRuntimeAccepted": false,
+    "fullRF312Accepted": false,
+    "ordinaryPathReadFailuresIncludingLintOuter": 3
+  },
+  "archive": {
+    "path": "rf312-android-release-preparation-2026-10-12/raw.tar.gz",
+    "members": 121,
+    "bytes": 159814,
+    "sha256": "06112d94ceb1b980dcf30892cdb232d5aee9a3404c9e31ffebc0fc1df350b929",
+    "allMembersReadbackVerified": true
+  },
+  "temporaryBinaryCopiesRemoved": 6,
+  "rawMetadataCountClarification": "rf312-android-release-preparation-2026-10-12/tool-outcome-count-clarification.json"
+}

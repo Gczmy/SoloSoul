@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-12（RF-312当前冻结Release同profile启动复核完成；10对/20次只读启动通过，完整任务仍待验）
+> 最后更新：2026-10-12（RF-312 Android Release库/APK内部验证产物准备完成；原生运行/性能仍待验）
 > 当前分支：`codex/rf1104-update-preference-leases`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -122,7 +122,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**322**（P1：56；P2：265；P3：1）。
 - 已关闭：**310 / 322**；实际修复（已关闭）：310；排除：0；待验证/阻塞：6（RF-112、RF-121、RF-312、RF-1109、RF-1127、RF-1128）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093、RF-1094、RF-1095、RF-1096、RF-1097、RF-1098、RF-1099、RF-1100、RF-1101、RF-1102、RF-1103、RF-1104、RF-1105、RF-1106、RF-1107、RF-1108、RF-1109、RF-1110、RF-1111、RF-1112、RF-1113、RF-1114、RF-1115、RF-1116、RF-1117、RF-1118、RF-1119、RF-1120、RF-1121、RF-1122、RF-1123、RF-1124、RF-1125、RF-1126、RF-1127、RF-1128、RF-1129、RF-1130、RF-1131、RF-1132（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-312当前冻结Release新profile/同profile启动双档各5对、共20次原生启动通过；真实身份/目录/票据/统计及完整清理已独立核验，1份内存快照null保留。窗口激活阻塞不应泛化为所有Windows测量入口均不可运行；继续核对SDK现成测量入口，完整RF-312/121和其余待验任务保持，RF-122～127前置不解除。
+- 当前处理：RF-312 Android x86_64优化Release库编译及APK内部签名准备完成；原CLI符号链接失败、恢复守卫/缺失JNI、打包四轮失败及读取/长路径问题均保持，1839项输入与原Debug JNI恢复、六份冗余副本已清理。尚未安装设备或接受原生性能；下一步专用AVD Release运行和独立测量入口、R8字段规则警告复核。完整RF-312/121等待验和RF-122～127前置保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -8076,3 +8076,12 @@ git commit -m "<任务卡的提交标题>"
 - 独立读者四次退出码1/1/1/0：首个字段profileAfterPrime不存在，按原源改为profileAfterFirst；第二次原实时checkTicket正确拒绝超过300000ms的历史票据，归档核验使用原warm.beforeSnapshot.observedAt驱动墙钟时间重放同门禁，SHA/身份/字段/原预算保持且不授予当前票据执行能力；第三次误加全部内存可用要求拒绝原null，按原启动合同核验并完整保留缺失读数和限制。三份拒绝工具原件保留，无native重跑、产品修复或改写原失败。
 - fresh CIM验证180个记录PID/出生身份退出，精确owned标记/路径/祖先/reparse核对后，仅清理80个自有缓存路径并解除10个自有联接；260份Vault/根证明/两代SDK原件和应用日志副本清理前后逐字一致，缓存工具终止额外进程数0。D盘存放主要profile/WebView/temp，系统Local/Roaming唯一合成identifier只按实测owned命名空间清理，正式客户端数据保持。
 - [当前启动口径与复跑](performance/RF-312-current-windows-paired-startup.md)、[结构化结果](performance/rf312-current-windows-paired-startup-2026-10-12.json)及[238份逐字原件索引](performance/rf312-current-windows-paired-startup-2026-10-12/index.json)保留整组20次启动、构建/当前来源、实际读者拒绝/历史时刻核验、null读数、所有应用日志和精确清理。仅接受当前构建成对启动部分，不增加关闭数；维持**310/322关闭、6待验证、6待执行**。独立RF-312本地提交、不推送，goal active；下一步核对现成SDK测量入口及当前源是否可执行，而非仅因截图阻塞结束本地推进。
+
+### RF-312 Android优化Release库和内部验证APK准备（2026-10-12）
+
+- 基线 `100d10a51`，原1839源码输入和38项已冻结生产前端逐字核对，使用原Android Release配置和D盘缓存。Rust单并发实际优化编译完成，原日志48m07s；主应用目标x86_64-linux-android、opt-level3/codegen-units1/strip-symbols实测。工作区lto=thin是配置记录，不将截取的参数片段冒充单独LTO证明。产物ELF64/ET_DYN/machine62，59,432,984字节、SHA fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b。
+- 原CLI编译后因Windows无符号链接权限exit1，原生成JNI已被删除；外层因Cargo.toml及tauri.properties两处格式变化拒绝、finally读缺失JNI失败，真实exit1保持。首次恢复读者被ANSI控制符拒绝，在仅移除显示格式后确认原release完成；纯换行/末尾换行语义核对后全部1839输入字节恢复，原Debug JNI从SHA验证过的副本恢复，原主/测试APK保持、临时Gradle init已移除。未用新的普通文件打包成功改判原CLI/外层成功。
+- 同完成Release库的普通文件副本交由Gradle，Rust未重编。五轮打包exit1/1/1/1/0；原固定Runtime依赖缺失、实际Release解析仍缺AAR、既有lint-gradle31.11.0工具未缓存及临时unsigned设置被项目配置覆盖均保持。最终AGP finalizeDsl阶段只设置内部未签名准备，原源码、Release Lint/R8/压缩/ABI保持，生产签名不改。原五个精确组件按实际Release配置解析，整个版本图前后相同；66份固定根Lint工具文件核验，未升级生产依赖。
+- Lint缓存普通Python路径读失败：实证同JAR路径272字符，普通路径不可见、Windows扩展路径2199字节和原SHA匹配，无缓存/系统策略改写。fetch外层与两次独立读者共三次失败保持，原元数据读者计数范围由补充JSON校正。首轮包读者被实际aapt2字段minSdkVersion拒绝，按原输出修正后通过，不重打包或修改APK。包名com.solosoul.app/版本2.13.2/2013002、仅x86_64、min28/target36、非Debug字段检查通过；原unsigned验证exit1，现有专用test密钥内部签名及证书核验exit0/0，所有原ZIP内容与源库匹配，未访问发布密钥。
+- 内部验证APK78,626,143字节（约75.0MiB）、SHA20a99626cb9022524beee24d9578d97ee2f97f11ac744e0d368a96e8a15451a5，保留D盘本机；未安装、未运行设备，也未接受实体性能。原件回读后只删除六份精确冗余库副本，原Debug JNI、主/测试APK、Release库和内部签名/未签名包保持。R8在proguard-rules.pro:19记录了字段规则警告，后续独立核对，不在冻结输入期间顺手修复。
+- [产物准备口径](performance/RF-312-android-release-preparation.md)、[完整结果](performance/rf312-android-release-preparation-2026-10-12.json)、[121份原件索引](performance/rf312-android-release-preparation-2026-10-12/index.json)、[计数范围补充](performance/rf312-android-release-preparation-2026-10-12/tool-outcome-count-clarification.json)和[精确清理回执](performance/rf312-android-release-preparation-2026-10-12/cleanup.json)保存全部构建/恢复/失败与真实配置、依赖/长路径实证和签名。仅接受产物准备，独立RF-312本地提交、不推送；维持310/322关闭、6待验证、6待执行，goal active。下一步在专用AVD按完整APK/私有备份/恢复合同执行Release运行，再推进测量入口，不将旧Debug结果作为Release证据。

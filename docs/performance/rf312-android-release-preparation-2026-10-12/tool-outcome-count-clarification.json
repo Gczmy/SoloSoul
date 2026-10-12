@@ -1,0 +1,18 @@
+{
+  "task": "RF-312",
+  "rawMetadataRetained": true,
+  "field": "ordinaryCacheVerifierExitCodes",
+  "rawRecordedValues": [
+    1,
+    1,
+    1
+  ],
+  "actualStandaloneOrdinaryCacheVerifierExitCodes": [
+    1,
+    1
+  ],
+  "separatelyRecordedInitialLintFetchOuterReadExitCode": 1,
+  "meaning": "Three ordinary-path read failures total: one fetch outer read and two independent cache reads; not three standalone verifier executions.",
+  "finalExtendedPathReadbackExitCode": 0,
+  "originalToolErrorsAndProducerLogsUnchanged": true
+}

@@ -1,0 +1,17 @@
+{
+  "task": "RF-312",
+  "stagedArchive121MembersReadbackVerified": true,
+  "all1839SourceBytesRestored": true,
+  "exact6CopiesAbsent": true,
+  "originalCliFailurePreserved": true,
+  "packagePreparedOnly": true,
+  "sourceCodeApkLibraryKeyExcludedFromCommit": true,
+  "onlyTaskDocsAndEvidenceStaged": true,
+  "fullTaskAccepted": false,
+  "counts": {
+    "closed": 310,
+    "total": 322,
+    "waiting": 6,
+    "pending": 6
+  }
+}
