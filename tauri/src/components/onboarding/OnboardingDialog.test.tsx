@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { OnboardingDialog } from './OnboardingDialog';
 import * as vaultDirectory from '@/lib/vaultDirectory';
@@ -203,10 +203,12 @@ describe('OnboardingDialog', () => {
 
 describe('OnboardingDialog vault directory step (Android)', () => {
   beforeEach(() => {
+    localStorage.removeItem(ST_ONBOARDING_SAF_URI);
     vi.clearAllMocks();
   });
 
   afterEach(() => {
+    cleanup();
     localStorage.removeItem(ST_ONBOARDING_SAF_URI);
   });
 

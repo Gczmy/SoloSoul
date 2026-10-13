@@ -1,0 +1,277 @@
+{
+  "task": "RF-1134",
+  "accepted": true,
+  "taskClosed": true,
+  "sourceHeadBeforeFix": "c2d5118c0",
+  "scope": "host-side original-private-TAR staging before directory deletion; no APK/default runtime/dependency changes",
+  "checks": {
+    "baselinePassed": 39,
+    "currentPassed": 44,
+    "failed": 0,
+    "skipped": 0,
+    "oldRestoreRedTests": 2,
+    "oldRestoreRedFailures": 8
+  },
+  "native": {
+    "accepted": true,
+    "currentRepositoryHelperExecuted": true,
+    "sourceSha256": "8bcf10eb27ac2b91acbb3e5f0b49249781bb36756016aa05cad597f2087014d6",
+    "cases": [
+      {
+        "case": "push-disconnect",
+        "error": "controlled transport failure before upload; no ADB service stop",
+        "directoryInventoryExactlyUnchanged": true,
+        "privateClearCommandIssued": false,
+        "localBackupUnchanged": true,
+        "staging": {
+          "remotePath": "/data/local/tmp/fe2-private-backup-d6792a10799d4312984a2e97f4730c49.tar",
+          "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+          "ready": false,
+          "privateRootClearAttempted": false
+        },
+        "faultInjectionExplicit": true
+      },
+      {
+        "case": "chmod-disconnect",
+        "error": "controlled transport failure before chmod; no ADB service stop",
+        "directoryInventoryExactlyUnchanged": true,
+        "privateClearCommandIssued": false,
+        "localBackupUnchanged": true,
+        "staging": {
+          "remotePath": "/data/local/tmp/fe2-private-backup-1ada7ab9ff064c72a6a27ce482340414.tar",
+          "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+          "ready": false,
+          "privateRootClearAttempted": false
+        },
+        "faultInjectionExplicit": true
+      },
+      {
+        "case": "corrupt-staged-tar",
+        "error": "Staged private backup digest/path differs; refusing clear",
+        "directoryInventoryExactlyUnchanged": true,
+        "privateClearCommandIssued": false,
+        "localBackupUnchanged": true,
+        "staging": {
+          "remotePath": "/data/local/tmp/fe2-private-backup-84c964fc38c8447ea357c3b70f1c987a.tar",
+          "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+          "ready": false,
+          "privateRootClearAttempted": false
+        },
+        "faultInjectionExplicit": true
+      },
+      {
+        "case": "success",
+        "report": {
+          "backup": {
+            "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+          },
+          "restored": true,
+          "restoreStaging": {
+            "remotePath": "/data/local/tmp/fe2-private-backup-a2b58bb5ff2b4161842151b01608ec49.tar",
+            "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+            "ready": true,
+            "privateRootClearAttempted": true
+          },
+          "restoreVerification": {
+            "entries": 216,
+            "allFileContentsLinksAndModesMatch": true
+          }
+        },
+        "all216EntriesExactlyRestored": true
+      }
+    ],
+    "originalPackages": {
+      "main": {
+        "sha256": "f896b3c1e2f6ab00ba577d595905983668da67fc7be7d993f94d9709c33c459e",
+        "bytes": 218619845,
+        "uid": 10105,
+        "debuggable": true
+      },
+      "test": {
+        "sha256": "deeb46cc47870b8a63699d37d7737e782c33ddd98ccc06c6325f0e40dd2d7725",
+        "bytes": 1961635,
+        "uid": 10106,
+        "debuggable": true
+      }
+    },
+    "privateOriginalEntries": 216,
+    "activeOwnedFixtureEntries": 217,
+    "originalPrivateContentsLinksModesAndRootModeRestored": true,
+    "systemBlurAndPackageBytesUidUnchanged": true,
+    "controlledFaultsDoNotClaimRealServerDisconnect": true,
+    "originalActualDisconnectFailureRetainedInRF312Archive": true,
+    "noApkOrRustRebuildRequiredForHostOnlyChange": true,
+    "performanceOrFullPlatformAccepted": false
+  },
+  "defaultCaller": {
+    "exitCode": 0,
+    "elapsedSeconds": 36.704217999998946,
+    "passed": true,
+    "restored": true,
+    "stages": [
+      "local-light",
+      "enhanced-light",
+      "enhanced-dark",
+      "enhanced-dark-after-unlock",
+      "encrypted-preferences",
+      "object-editor-dark",
+      "object-list-dark",
+      "object-detail-dark",
+      "object-actions-dark",
+      "object-list-after-system-back",
+      "populated-enhanced-dark",
+      "populated-enhanced-light"
+    ],
+    "restoreStaging": {
+      "remotePath": "/data/local/tmp/fe2-private-backup-b495921c36b64583a2ef924d3ac3d2c6.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "ready": true,
+      "privateRootClearAttempted": true
+    },
+    "source": "current repository default caller",
+    "mainAndNativeHomeTestApksReusedWithExactSourceProvenance": true,
+    "wholePerformanceOrPlatformAccepted": false
+  },
+  "readback": {
+    "twoCompleteOriginalRestoresIndependentlyEqual": true,
+    "threeFaultRootsIndependentlyUnchanged": true,
+    "pngs": [
+      {
+        "name": "enhanced-dark-after-unlock.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "86dbfae81b41fdda66d1b587fc1292ad927c0d169a5769f5a400dd9a61244f68",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "enhanced-dark.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "0fb9487f433d6bde64e079c1ad4494ebe2adf46cca5d44942b2c523337bc5833",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "enhanced-light.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "d71dab2f189728822bfe69a5afd2b94128971e2d3ecff69b5e594867042f800d",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "local-light.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "fb9afd03a3843e54dbe832a35230b809bb2189691c184d900b14173551237f18",
+        "decoded": true,
+        "manuallyInspected": true
+      },
+      {
+        "name": "object-actions-dark.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "43d7044302f706aa85a266370d344eb217bc4a7e6e24ff0bb0e425644295b36e",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "object-detail-dark.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "ca1bb17d5d49b60983be05283feedcb0022784a5d01d58ac03aaabed399a006f",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "object-editor-dark.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "e94896394a7e7c7feee79c4978afff19b57e592a5df635e4d89c1b9ce3077c9b",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "object-list-after-system-back.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "9aed1c972934b46b224bb4c42634106210dda2af48544db26269ca873e1a398a",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "object-list-dark.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "09be1a209afd565632c1e5dc22e5a5830e5502622760e10c4d1ed41879469805",
+        "decoded": true,
+        "manuallyInspected": false
+      },
+      {
+        "name": "populated-enhanced-dark.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "b57d4a020d6939f72ab77ecc40b307f95caa1b694f20a8174a6dcea22ae7d37c",
+        "decoded": true,
+        "manuallyInspected": true
+      },
+      {
+        "name": "populated-enhanced-light.png",
+        "dimensions": [
+          720,
+          1600
+        ],
+        "sha256": "e28bc88ca11714fb08d64dd94a08a9d21b4efa5676f044ad71e19a5ab5ed2690",
+        "decoded": true,
+        "manuallyInspected": false
+      }
+    ],
+    "all11Decoded": true,
+    "manualScreenshots": 2
+  },
+  "currentSources": {
+    "tauri/scripts/android-home-native-regression.py": "8bcf10eb27ac2b91acbb3e5f0b49249781bb36756016aa05cad597f2087014d6",
+    "tauri/scripts/test_android_home_native_regression.py": "9a9ad2eb9501ee8c4f86f52e8b99c907a3f16adcd95e1e44a42dde42d5749727"
+  },
+  "historicalFailedCopiesRemainImmutableFuturePerfDriversMustUseCurrentSharedHelper": true,
+  "originalActualDisconnectEvidence": "../performance/rf312-android-fixed-vault-2026-10-12.json",
+  "fullRF312OrRF121Accepted": false,
+  "archive": {
+    "path": "rf1134-android-restore-staging-2026-10-12/raw.tar.gz",
+    "members": 40,
+    "sha256": "a35aa1950e382ef2ec92db2b1eef7e5405d3955d46186fdd723e154e63575f96",
+    "bytes": 1284514,
+    "allMembersReadbackVerified": true
+  },
+  "supplementalAudits": {
+    "postArchivePrivateCopyCleanup": "rf1134-android-restore-staging-2026-10-12/cleanup.json",
+    "exactSourceBoundaryAndPostDefaultCallerPackageIdentity": "rf1134-android-restore-staging-2026-10-12/final-audit.json",
+    "stagedPathReadbackFailure": "rf1134-android-restore-staging-2026-10-12/staged-path-readback-failure.json",
+    "nativeWorkingToStagedSourceEolParity": "rf1134-android-restore-staging-2026-10-12/source-eol-parity.json"
+  },
+  "stagedSources": {
+    "tauri/scripts/android-home-native-regression.py": "8e67e96ea19fd1ec8067d2fbd00cb3ec946bc25671c91c7251db34249c4efc5c",
+    "tauri/scripts/test_android_home_native_regression.py": "9a9ad2eb9501ee8c4f86f52e8b99c907a3f16adcd95e1e44a42dde42d5749727"
+  }
+}

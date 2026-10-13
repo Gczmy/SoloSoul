@@ -1,0 +1,592 @@
+{
+  "task": "RF-1131",
+  "sourceHead": "d5bb01fd5",
+  "accepted": true,
+  "acceptanceScope": "external exact font restoration plus complete API31 home regression; other platforms remain incomplete",
+  "checks": {
+    "task": "RF-1131",
+    "rows": [
+      {
+        "stage": "red",
+        "observedToolExitCode": 1,
+        "tests": 35,
+        "errors": 6,
+        "stderrSha256": "e2cfa15dffc58aeb7689fe90eaf00200b0a18814fb2d4fe2de22685304325976",
+        "stderrBytes": 19021
+      },
+      {
+        "stage": "red-d-utf8",
+        "observedToolExitCode": 1,
+        "tests": 35,
+        "errors": 2,
+        "stderrSha256": "0495a05e8352c96745ed69819516de5e8c7b4da942bedcd712bfa7b3a8f07285",
+        "stderrBytes": 9579
+      },
+      {
+        "stage": "green",
+        "observedToolExitCode": 0,
+        "tests": 39,
+        "errors": 0,
+        "stderrSha256": "5a1a91ffdda0f916fc21c4fbfd9ec5ceb7def2c43fda367f766bbfbdcd7d61ca",
+        "stderrBytes": 7798
+      }
+    ],
+    "finalAccepted": true,
+    "redNativeWritebackCases": 2,
+    "unrelatedInitialSandboxTempAndCp1252ErrorsRetained": true
+  },
+  "actualRestorationProbe": {
+    "task": "RF-1131",
+    "accepted": true,
+    "rows": [
+      {
+        "originalRaw": "null",
+        "originalEffective": 1.0,
+        "mutatedTo": "2.0",
+        "mutatedEffectiveBeforeRestore": 2.0,
+        "finalRaw": "null",
+        "finalEffective": 1.0,
+        "accepted": true,
+        "trace": {
+          "originalRawValue": "null",
+          "originalEffectiveValue": 1.0,
+          "budgetSeconds": 10.0,
+          "configurationObservations": [
+            1.0
+          ],
+          "finalRawValues": [
+            "null",
+            "null"
+          ],
+          "verified": true,
+          "finalEffectiveValue": 1.0
+        }
+      },
+      {
+        "originalRaw": "1.0",
+        "originalEffective": 1.0,
+        "mutatedTo": "2.0",
+        "mutatedEffectiveBeforeRestore": 2.0,
+        "finalRaw": "1.0",
+        "finalEffective": 1.0,
+        "accepted": true,
+        "trace": {
+          "originalRawValue": "1.0",
+          "originalEffectiveValue": 1.0,
+          "budgetSeconds": 10.0,
+          "configurationObservations": [
+            1.0
+          ],
+          "finalRawValues": [
+            "1.0",
+            "1.0"
+          ],
+          "verified": true,
+          "finalEffectiveValue": 1.0
+        }
+      },
+      {
+        "originalRaw": "1.30",
+        "originalEffective": 1.3,
+        "mutatedTo": "2.0",
+        "mutatedEffectiveBeforeRestore": 2.0,
+        "finalRaw": "1.30",
+        "finalEffective": 1.3,
+        "accepted": true,
+        "trace": {
+          "originalRawValue": "1.30",
+          "originalEffectiveValue": 1.3,
+          "budgetSeconds": 10.0,
+          "configurationObservations": [
+            1.3
+          ],
+          "finalRawValues": [
+            "1.30",
+            "1.30"
+          ],
+          "verified": true,
+          "finalEffectiveValue": 1.3
+        }
+      }
+    ],
+    "exactOwnedEmulator": {
+      "Name": "emulator.exe",
+      "ProcessId": 16292,
+      "CreationDate": "2026-10-12T00:31:05.979811+01:00",
+      "ExecutablePath": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe",
+      "CommandLine": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe -avd SoloSoul_RF121_API31_20261010 -port 5586 -accel on -gpu host -memory 2048 -cores 2 -no-window -no-snapshot -no-audio -no-boot-anim"
+    },
+    "originalRaw": "null",
+    "finalRaw": "null",
+    "originalEffective": 1.0,
+    "finalEffective": 1.0,
+    "outerRestorationTrace": {
+      "originalRawValue": "null",
+      "originalEffectiveValue": 1.0,
+      "budgetSeconds": 10.0,
+      "configurationObservations": [
+        1.0
+      ],
+      "finalRawValues": [
+        "null",
+        "null"
+      ],
+      "verified": true,
+      "finalEffectiveValue": 1.0
+    },
+    "sources": {
+      "tauri/scripts/android-home-native-regression.py": "6b0067bea91d2bd0d35505d19a22d26315a01f905faa9edb68ad56753927d7e6",
+      "tauri/scripts/test_android_home_native_regression.py": "a6cc7400aa7e1490c582059b3c6851ceeba4d9e3b43e782c78bdc4e57d3496ac"
+    },
+    "sourceUnchanged": true,
+    "otherDevicesOrHostSettingsModified": false
+  },
+  "originalProbeFailureRetained": true,
+  "nativeContexts": 24,
+  "nativeMethodsPassed": 26,
+  "nativeFailed": 0,
+  "nativeSkipped": 0,
+  "fontPairs": [
+    {
+      "mode": "supported",
+      "scale": 1.3,
+      "accepted": true,
+      "comparisons": [
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        }
+      ]
+    },
+    {
+      "mode": "supported",
+      "scale": 2.0,
+      "accepted": true,
+      "comparisons": [
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        }
+      ]
+    },
+    {
+      "mode": "fallback",
+      "scale": 1.3,
+      "accepted": true,
+      "comparisons": [
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 21.5,
+          "height_ratio": 1.303030303030303
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 79,
+          "height_ratio": 1.3057851239669422
+        }
+      ]
+    },
+    {
+      "mode": "fallback",
+      "scale": 2.0,
+      "accepted": true,
+      "comparisons": [
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "local-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "enhanced-dark-after-unlock",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "populated-enhanced-dark",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy > p:first-child",
+          "normal_glyph_height": 16.5,
+          "enlarged_glyph_height": 33,
+          "height_ratio": 2.0
+        },
+        {
+          "stage": "populated-enhanced-light",
+          "selector": ".android-overview-copy strong",
+          "normal_glyph_height": 60.5,
+          "enlarged_glyph_height": 122,
+          "height_ratio": 2.0165289256198347
+        }
+      ]
+    }
+  ],
+  "allPrivateDataAndSettingsRestored": true,
+  "privateEntriesPerContext": 216,
+  "sourceProvenanceScopeClarification": {
+    "provenanceSha256": "e19acc9250c3e33e15cdc42d1d05b595c97284eeec2c1d71e1ab40af822cb275",
+    "scopeClarification": {
+      "legacyNoProductionOrTestCodeModifiedField": "Inherited APK-build provenance field; does not cover the external Python verifier/tests changed by RF-1131. Original file is retained unchanged during the native queue.",
+      "androidApplicationOrInstrumentationCodeChanged": false,
+      "externalVerificationCodeChanged": true,
+      "externalPythonRegressionTestsChanged": true,
+      "apkBytesChanged": false
+    },
+    "originalNativeProbe": {
+      "exitCode": 1,
+      "reason": "System font configuration did not converge within restoration budget",
+      "fixtureMutationSettledBeforeRestore": false,
+      "outerOriginalRawAndEffectiveRestored": true,
+      "rawRecord": "actual-font-restoration.json"
+    },
+    "settledNativeProbe": {
+      "exitCode": 0,
+      "fixtureActual2ObservedBeforeRestore": true,
+      "threeOriginalStatesRestored": true,
+      "rawRecord": "actual-font-restoration-settled.json"
+    },
+    "pythonChecks": {
+      "initialSandboxedExitCode": 1,
+      "initialErrors": 6,
+      "dDriveUtf8RedExitCode": 1,
+      "dDriveUtf8RealWritebackErrors": 2,
+      "greenExitCode": 0,
+      "greenTests": 39
+    },
+    "defaultUIAndInstrumentationBudgetsUnchanged": true
+  },
+  "sourceAudit": {
+    "existingFunctionsUnchanged": [
+      "night_mode",
+      "font_scale",
+      "validate_previous_process",
+      "notification_permission",
+      "digest",
+      "inventory",
+      "verify_native",
+      "verification_passed",
+      "typography_clipped",
+      "verify_font_scale_pair",
+      "verify_evidence"
+    ],
+    "changedExistingFunctions": [
+      "main"
+    ],
+    "newHelpers": [
+      "activity_font_scale",
+      "capture_font_scale",
+      "effective_font_scale",
+      "font_deadline",
+      "restore_font_scale"
+    ],
+    "mainAfterReversingOnlyFontAndTimeoutPlumbingAstEqualsOriginal": true,
+    "nativeUICommandsAndBudgetsUnchanged": true,
+    "currentDriverSha256": "6b0067bea91d2bd0d35505d19a22d26315a01f905faa9edb68ad56753927d7e6"
+  },
+  "currentValidationSources": 1837,
+  "artifactBuildSourcesEqualCurrent": false,
+  "apkBytesUnchanged": true,
+  "ownedEmulatorGracefullyExited": true,
+  "exactPrivateSnapshotsEligibleForCleanup": 48,
+  "fullRF121Accepted": false,
+  "RF312Accepted": false,
+  "allPngsHumanReviewed": false,
+  "archive": {
+    "path": "rf1131-android-font-exact-restoration-2026-10-12/raw.tar.gz",
+    "members": 607,
+    "bytes": 44232645,
+    "sha256": "b6bd8523621f06beb9697f43c86f8a9972660389599cee98d4391593590cf849",
+    "allMembersReadbackVerified": true
+  }
+}

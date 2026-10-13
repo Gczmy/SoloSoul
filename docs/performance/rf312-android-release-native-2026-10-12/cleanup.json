@@ -1,0 +1,91 @@
+{
+  "removedCount": 16,
+  "removedFiles": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-fallback-probe-aligned-round4\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-fallback-probe-aligned-round4\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-fallback-probe-round3\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-fallback-probe-round3\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-fallback-round2\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-fallback-round2\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-supported-probe-aligned-round4\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-supported-probe-aligned-round4\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-supported-probe-round3\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-supported-probe-round3\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-supported-round2\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "879b6a2bc00859ed8f8a75d332c371845111073ba5135956cb010731a61d0ed8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-native-20261012\\baseline-supported-round2\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-probe-debug-control-20261012\\baseline-supported-probe-aligned-round4\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-probe-debug-control-20261012\\baseline-supported-probe-aligned-round4\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-probe-debug-control-20261012\\baseline-supported-probe-round3\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-probe-debug-control-20261012\\baseline-supported-probe-round3\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "allEightRestorationsVerified": true,
+  "archiveSha256": "2f79bafb07db74b5f2e2a8b40ade2a8cccd52d3dc8dbb22c9305a7806f071d5b",
+  "nonRecursive": true,
+  "allAncestorsNonReparse": true,
+  "originalAvdAndAppDataPreserved": true,
+  "at": "2026-10-12T05:40:08.8992605Z"
+}

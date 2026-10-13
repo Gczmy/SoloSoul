@@ -1,0 +1,78 @@
+{
+  "task": "RF-1135",
+  "verifiedRestorationPairs": 7,
+  "removedUnusedPrivateArchives": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-proposal-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-proposal-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-round2-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-round2-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-round4-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-round4-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-round5-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-native-round5-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-media-native-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-media-native-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-native-pages-round3-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-native-pages-round3-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-native-pages-round4-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-native-pages-round4-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    }
+  ],
+  "all14Absent": true,
+  "programsAndPublicFixturesRetainedForNextStep": true
+}

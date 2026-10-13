@@ -472,16 +472,18 @@ fn resolve_verified_attachment_path(
 /// - 后台线程 sleep `grace` 后删除整个子目录 → 明文残留有界（不再无限累积，
 ///   最近副本也不再永久残留；P001-3 修复 open 路径完全无清理的残留面）。
 ///
+/// 临时基目录由平台调用方提供：Android 使用应用缓存，桌面使用系统临时目录。
 /// 返回解密后的临时文件路径（外部应用读此文件）。
 pub(crate) fn decrypt_to_temp_dir(
     att_key: &[u8; 32],
     src: &Path,
     file_name: &str,
+    temp_base: &Path,
     prefix: &str,
     grace: std::time::Duration,
 ) -> Result<PathBuf, String> {
     let safe_name = solosoul_core::path_util::sanitize_file_name(file_name)?;
-    let root = std::env::temp_dir().join(prefix);
+    let root = temp_base.join(prefix);
     std::fs::create_dir_all(&root).map_err(|e| format!("Failed to prepare temp dir: {}", e))?;
     let dir = root.join(uuid::Uuid::new_v4().to_string());
     std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to prepare temp subdir: {}", e))?;
@@ -538,10 +540,20 @@ pub async fn attachment_open<R: Runtime>(
 
     // P001-3: 解密到一次性 UUID 子目录（外部应用无法读取 vault 密文），
     // 后台延迟清理——原实现永久残留明文（复核打回项）。
+    // Android 12 及以下的系统临时目录可能是应用无权写入的 /data/local/tmp。
+    // 使用 Android 提供的应用私有缓存，不改变进程全局 TMPDIR。
+    #[cfg(target_os = "android")]
+    let temp_base = app
+        .path()
+        .app_cache_dir()
+        .map_err(|e| format!("Failed to resolve app cache dir: {}", e))?;
+    #[cfg(not(target_os = "android"))]
+    let temp_base = std::env::temp_dir();
     let temp_path = decrypt_to_temp_dir(
         &att_key,
         &path,
         &_att.file_name,
+        &temp_base,
         "solosoul_open",
         OPEN_TEMP_GRACE,
     )?;

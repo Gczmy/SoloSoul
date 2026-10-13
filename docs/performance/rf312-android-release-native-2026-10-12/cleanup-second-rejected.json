@@ -1,0 +1,8 @@
+{
+  "observedExitCode": 1,
+  "error": "Cleanup root not reached",
+  "removedFiles": 0,
+  "all16PrivateTarsStillPresentVerified": true,
+  "cause": "Raw DirectoryInfo returned by FileInfo.Directory does not have the PowerShell PSIsContainer extension property",
+  "correction": "Use intrinsic DirectoryInfo type for parent traversal; all boundary/hash/reparse guards unchanged"
+}

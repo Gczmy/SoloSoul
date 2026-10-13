@@ -1,0 +1,31 @@
+{
+  "acceptedStagedScope": true,
+  "stagedPathsBeforeVerification": [
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "docs/performance/RF-312-android-release-native.md",
+    "docs/performance/rf312-android-release-native-2026-10-12.json",
+    "docs/performance/rf312-android-release-native-2026-10-12/.gitattributes",
+    "docs/performance/rf312-android-release-native-2026-10-12/cleanup-first-rejected.json",
+    "docs/performance/rf312-android-release-native-2026-10-12/cleanup-first-rejected.ps1",
+    "docs/performance/rf312-android-release-native-2026-10-12/cleanup-second-rejected.json",
+    "docs/performance/rf312-android-release-native-2026-10-12/cleanup-second-rejected.ps1",
+    "docs/performance/rf312-android-release-native-2026-10-12/cleanup-source.ps1",
+    "docs/performance/rf312-android-release-native-2026-10-12/cleanup.json",
+    "docs/performance/rf312-android-release-native-2026-10-12/index.json",
+    "docs/performance/rf312-android-release-native-2026-10-12/raw.tar.gz"
+  ],
+  "archiveMembers": 335,
+  "allArchiveMemberLengthsAndHashesVerified": true,
+  "sourceHashesVerified": 1839,
+  "releaseNativeTests": 2,
+  "debugControlTests": 1,
+  "all33PngCopiesBound": true,
+  "all16RedundantPrivateCopiesAbsent": true,
+  "allFailuresPreserved": true,
+  "canonicalClosed": 310,
+  "canonicalTotal": 322,
+  "waiting": 6,
+  "pending": 6,
+  "fullRF312Accepted": false,
+  "commitCreatedAtVerification": false
+}

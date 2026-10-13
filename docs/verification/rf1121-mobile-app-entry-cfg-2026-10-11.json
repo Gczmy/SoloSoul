@@ -1,0 +1,313 @@
+{
+  "task": "RF-1121",
+  "status": "complete",
+  "base": "1894c758d118d8d171b536e9e7b0a2aafe3569dd",
+  "at": "2026-10-11T07:45:53.262268+00:00",
+  "sourceCount": 1834,
+  "changedSources": [
+    "tauri/src-tauri/src/commands/discovery.rs",
+    "tauri/src-tauri/src/commands/recovery.rs",
+    "tauri/src-tauri/src/commands/window.rs",
+    "tauri/src-tauri/src/setup/mod.rs"
+  ],
+  "validation": {
+    "redWarnings": [
+      "unused import: `Manager`",
+      "unused import: `tauri::Emitter`",
+      "unused variable: `app`",
+      "unused variable: `instance_name`",
+      "constant `MDNS_SERVICE_TYPE` is never used",
+      "constant `RECOVERY_MDNS_SERVICE_TYPE` is never used",
+      "function `advertise_recovery_mdns` is never used",
+      "function `poll_accessibility` is never used",
+      "function `setup_spawn_registry_refresh` is never used"
+    ],
+    "redExitCode": 101,
+    "greenReceipts": {
+      "green-android": {
+        "exitCode": 0,
+        "pid": 24812,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rustup\\toolchains\\1.96.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+          "rustc",
+          "--locked",
+          "--offline",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--target",
+          "x86_64-linux-android",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "elapsedSeconds": 491.86252850000164,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "sourceManifest": "green-sources.json",
+        "temp": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\tmp",
+        "targetDirectory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-target"
+      },
+      "format": {
+        "exitCode": 0,
+        "pid": 26824,
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "elapsedSeconds": 3.180631399998674,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "sourceManifest": "green-sources.json",
+        "temp": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "targetDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target"
+      },
+      "windows-workspace-clippy": {
+        "exitCode": 0,
+        "pid": 23472,
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "elapsedSeconds": 171.54663480000454,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "sourceManifest": "green-sources.json",
+        "temp": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "targetDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target"
+      },
+      "windows-workspace-tests": {
+        "exitCode": 0,
+        "pid": 28532,
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--verbose"
+        ],
+        "elapsedSeconds": 4352.023584500013,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "sourceManifest": "green-sources.json",
+        "temp": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "targetDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target"
+      }
+    },
+    "workspaceTestGroups": [
+      {
+        "passed": 790,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 446,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 41,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 25,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 36,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 102,
+        "failed": 0,
+        "ignored": 2,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 93,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 312,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      }
+    ],
+    "workspaceTestTotals": {
+      "passed": 1874,
+      "failed": 0,
+      "ignored": 3,
+      "measured": 0,
+      "filtered": 0
+    },
+    "requiredExistingCases": [
+      "recovery_package_exports_to_temp_and_cleans_up",
+      "recovery_package_requires_unlocked_vault_and_distinct_password",
+      "test_mdns_constants_defined",
+      "test_mdns_service_type_matches_android_base",
+      "test_titlebar_color_deserialization"
+    ],
+    "androidClippy": false,
+    "iosCompilerExecuted": false,
+    "apkBuilt": false,
+    "nativeUiAccepted": false
+  },
+  "invariants": {
+    "signaturesUnchanged": true,
+    "desktopAndMobileMdnsHelperBodiesUnchanged": true,
+    "mobileNoneFallbackRetained": true,
+    "cancelStillClearsInstanceName": true,
+    "normalServiceTypeRetainedForTests": true,
+    "otherSourcesUnchanged": true
+  },
+  "archive": {
+    "path": "rf1121-mobile-app-entry-cfg-2026-10-11/raw.tar.gz",
+    "sha256": "1b34722b2af3ab88897fa1c7de0dfb60a62aad01049797578ea24e74af7a22e4",
+    "memberCount": 49,
+    "allMembersVerified": true
+  }
+}

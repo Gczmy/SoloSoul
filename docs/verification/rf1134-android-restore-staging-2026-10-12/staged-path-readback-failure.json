@@ -1,0 +1,8 @@
+{
+  "originalGitShowExitCode": 128,
+  "readbackAccepted": false,
+  "cause": "currentSources metadata used Windows backslashes; git show index paths require repository slash form",
+  "all40RawMembersReadbackBeforePathFailurePassed": true,
+  "sourceAndNativeOutcomesUnchanged": true,
+  "nextAction": "normalize metadata keys and rerun complete staged readback"
+}

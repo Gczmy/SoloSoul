@@ -1,0 +1,691 @@
+
+> solosoul@2.13.2 test:coverage
+> npm run test:node && vitest run --coverage --maxWorkers 2 --testTimeout 15000
+
+
+> solosoul@2.13.2 test:node
+> node scripts/run-node-tests.mjs
+
+{
+  "serial": "emulator-5586",
+  "avd": "Dedicated",
+  "mode": "supported",
+  "startedAt": "2026-10-12T21:39:12.313Z",
+  "tests": [],
+  "passed": false,
+  "error": "adb devices failed: spawnSync D:\\SoloSoul\\build\\rf1138-node-test-entry-20261012\\tmp\\solosoul-native-negative-KMHmbD\\missing-adb ENOENT",
+  "count": 0,
+  "successes": 0,
+  "finishedAt": "2026-10-12T21:39:12.317Z"
+}
+✔ runner rejects ambiguous devices, missing options and duplicate options (1.5911ms)
+✔ only exact successful one-test native report is accepted (0.634ms)
+✔ supported and fallback lanes execute distinct glass assertions and same system-theme cases (0.4395ms)
+✔ missing adb produces nonzero result and JUnit environment failure, never a zero-test pass (13.083ms)
+✔ auth attribution binds owned document and separates header arrival, actual await and backend clocks (3.5929ms)
+✔ auth attribution rejects foreign identity, private fields, invalid chronology and impossible flow transitions (1.4443ms)
+✔ auth attribution keeps genuinely pending await and worker as null duration without inventing completion (0.2682ms)
+✔ auth attribution rejects lost calls and does not fabricate ordinal pairing when backend commands overlap (0.4818ms)
+Usage: node scripts/native-perf-sdk-journey.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)
+✔ auth binary preflight rejects old build and accepts explicit marker across stream boundary (24.2894ms)
+✔ authentication delegate uses an accepted mode of the real six-phase SDK runner (0.8246ms)
+✔ account write substeps remain fixed and bounded and cannot enter account refresh or carry private details (1.1569ms)
+✔ diagnostic CLI accepts exactly three absolute paths and rejects benchmark/control overrides (3.2056ms)
+✔ help exits without a preparation or GUI process (233.281ms)
+✔ consumed marker must match exact run, PID, port and owned root (0.4384ms)
+✔ only root and fresh journal-matched browser may be queried (0.8454ms)
+✔ helper response rejects stale identities, unexpected browser UDF and foreign listeners (0.7257ms)
+✔ no verified owned listener means no HTTP request (0.3827ms)
+✔ mismatched remote flags or non-loopback listener blocks HTTP (0.2386ms)
+✔ version endpoint result never claims CDP attach or GUI/performance success (0.6533ms)
+✔ HTTP failure preserves diagnostic failure without fabricated version (0.5552ms)
+✔ helper rejection preserves only fixed-schema reason, never raw stdout (0.5512ms)
+✔ listener query failure is unknown, not proof of absence (0.2324ms)
+✔ logging is explicit and duplicate CLI paths/flags are refused (0.4357ms)
+✔ logging marker rejects another run/port, extended path and non-owned log (0.4825ms)
+✔ old executable marker is rejected offline; diagnostic marker prevents benchmark acceptance (22.3175ms)
+✔ off-mode helper environment deletes inherited logging even with case aliases (0.3955ms)
+✔ ordinary native TMP requires explicit logging and rejects duplicate/value/unknown flags (0.371ms)
+✔ native launch keeps default/logging contracts and selects only the explicit ordinary-TMP mode (0.2142ms)
+✔ ordinary TMP marker accepts only the same owned directory with all other canonical paths preserved (0.3947ms)
+✔ ordinary TMP marker rejects normalized equivalents for unchanged root/TEMP/profile/UDF (0.584ms)
+✔ ordinary TMP rejects extended, UNC, relative, external, nested and traversal directory representations (1.1708ms)
+✔ ordinary TMP marker rejects stale identity, changed diagnostic scope and fabricated performance acceptance (1.022ms)
+✔ ordinary-TMP streaming marker rejects older binaries and matches across the 64KiB block boundary (21.3122ms)
+✔ older logging EXE is rejected before output creation or native preparation/GUI execution (243.3117ms)
+✔ runtime CLI requires source/version, logging and one experimental variable (1.1163ms)
+✔ runtime launch changes only explicit owned runtime selection and never permits ordinary TMP mixing (0.2537ms)
+✔ selected Runtime feature preflight rejects old TMP binaries and accepts split marker (14.7898ms)
+✔ old EXE is rejected before Runtime inspection, copying, output creation or native execution (262.4823ms)
+✔ maintenance witness binds fixed error to interrupted admission and one process clock (5.669ms)
+✔ maintenance diagnostic rejects private fields and foreign or completed authentication stage (0.8739ms)
+✔ missing witness leaves cause unknown; successful or pending admission needs no failure (0.4146ms)
+✔ one actual witness must keep same metadata across failures; observations cannot extend beyond bounds (3.0654ms)
+✔ maximal bounded producer still fits its independent artifact byte limit (21.491ms)
+✔ media contract accepts only fixed assets, production base and closed canonical paths (5.6734ms)
+✔ media file proof checks actual bytes and bounded marker without writing source (213.0879ms)
+✔ prepared media binds source identity and exactly nine closed-file proofs (14.8245ms)
+✔ nine-phase media proof requires decoded/painted public end state and real read attempts (3.4637ms)
+✔ media summaries never accept successful subsets, bad phases or incomplete cleanup (0.869ms)
+✔ media EXE marker gate rejects old input-only builds before launch (41.2527ms)
+✔ actual media probe waits for image decode and two frames, or exact public text (26.4717ms)
+✔ actual media probe rejects wrong dimensions, text, decode failure and implicit modes (8.6481ms)
+✔ actual media probe requests bounded wheel only outside verified content clip without DOM scrolling (28.7789ms)
+✔ memory interval is optional and bounded; original arguments remain strict (1.8789ms)
+✔ memory readings reject incomplete rows, changed identity and unverified UDF (7.9099ms)
+✔ root-only startup permits only the original single root, never an unknown browser (0.2432ms)
+✔ periodic sampling and checkpoints serialize; accepted observed maximum includes intermediate rows (39.5084ms)
+✔ finish waits for a pending query before caller may clean up owner (30.8034ms)
+✔ failed queries and missing UI checkpoints cannot contribute an accepted maximum (0.8048ms)
+✔ sample cap fails closed and stops collecting without overlapping cleanup (0.8262ms)
+✔ previously observed WebView or root identity cannot be replaced later (0.7851ms)
+✔ failed memory sample never contributes successful UI phases to performance medians (0.3577ms)
+✔ only explicit memory-series mode excludes an identity-verified, freshly confirmed exited descendant (1.3922ms)
+✔ actual PowerShell memory block confirms absence once; live, unavailable and root cases remain failures (5002.7885ms)
+✔ actual startup ownership refresh accepts only a current same-parent identity and never claims a live orphan (7302.9905ms)
+✔ batched owned browser details preserve identity and UDF gates without querying foreign command lines (10707.0453ms)
+✔ actual memory block confirms null properties only for absent descendants and keeps default/root/live failures (7070.6569ms)
+✔ complete native picker and public three-line OCR proof accepts (3.5238ms)
+✔ wrong HWND owner, arbitrary edit, hidden controls, cyclic trees and duplicate Open fail (1.1846ms)
+✔ document, IPC, result, tier and native time tampering fail closed (2.7625ms)
+✔ failed or incomplete full groups suppress all OCR metrics (0.5955ms)
+✔ public input bytes must match actual selected plaintext PNG; preserved original cannot overwrite (44.5741ms)
+✔ OCR binary preflight rejects previous fixed-PDF build marker alone (12.1209ms)
+✔ actual public PNG has independent fixed text mask (1.7852ms)
+✔ independent decoder rejects blank, partial text, corrupt CRC and allocation bounds (158.9676ms)
+✔ strict complete first-page native proof accepts repeated observations (3.0199ms)
+✔ PDF protocol rejects missing, reordered or extra final authentication guards (4.2818ms)
+✔ identity, source, private payload, PNG proof and time tampering fail (3.8922ms)
+✔ distribution requires the entire requested group, identities and cleanup (0.6615ms)
+✔ preview preflight rejects older EXE without exact marker (23.2117ms)
+✔ transient child-frame screenshots require two later stable captures and keep their overhead (1.6357ms)
+✔ PDF diagnostic accepts capability capture while all performance remains null (1.9627ms)
+✔ PDF diagnostic rejects changed identity, widened scope, false rendering claims and cleanup failures (1.3102ms)
+✔ PDF candidate context must bind an observed descendant frame and exact typed state (1.2883ms)
+✔ actual viewer expression distinguishes missing API and never waits a null loaded promise (3.1457ms)
+✔ actual viewer expression reads load state and two frames without input or business access (1.3076ms)
+✔ actual viewer expression rejects replaced document and does not call its method (1.1324ms)
+✔ PDF v2 accepts bounded direct sessions or empty topology without claiming rendering (1.4927ms)
+✔ PDF v2 refuses foreign, repeated, active or unlisted session identities (2.252ms)
+✔ PDF v2 refuses target payload leakage, unsafe methods and cleanup failures (3.036ms)
+✔ PDF v3 binds one observed component, explicit detach and native observation clock without promoting rendering (0.7987ms)
+✔ PDF v3 rejects mismatched main parent, context, session, observation or detach evidence (2.7454ms)
+✔ PDF v3 refuses lifecycle widening and missing actual SDK trace (1.1625ms)
+✔ PDF v4 accepts bounded structural metadata and both frame trees without performance promotion (1.8265ms)
+✔ PDF v4 rejects structural payloads, impossible counts, budget widening and unbound frame identity (2.5559ms)
+✔ actual structure probe classifies bound embeds and open shadows without reading private payloads (2.5079ms)
+✔ actual structure probe bounds element and shadow traversal and reports truncation (3.7648ms)
+✔ concurrent theme and reminder writes remain two transport calls and separate categories (2.5211ms)
+✔ foreign identity, unknown fields, categories, clocks and coverage are rejected (1.9363ms)
+✔ completed history is immutable; running history may finish after the prior checkpoint (2.6573ms)
+✔ unknown, interrupted and incomplete intervals cannot become successful theme evidence (0.3739ms)
+✔ bounds and sequential IDs are checked for every row (0.5773ms)
+✔ later completion preserves the original running interval and independent transport total (0.6431ms)
+✔ theme must be exactly one completed target write at the original checkpoint (0.353ms)
+✔ later evidence cannot rewrite terminal history or change running identity (2.7407ms)
+✔ later additional writes never fill a missing original transport count (0.3739ms)
+✔ arguments require absolute explicit paths, unique options and at least three samples (2.9072ms)
+✔ only Release synthetic fixture scope with production KDF and exact public account is accepted (0.5444ms)
+✔ Windows canonical prefixes fold only equivalent drive and UNC paths (0.42ms)
+✔ prepared native manifest matches nested fixture, unique identifier and exact owned paths (0.7928ms)
+✔ observer counts actual command attempts including plugin calls and removes unexpected payload fields (0.9163ms)
+✔ identity mismatch, fallback, overflow, missing fields and reset produce null counts with reason (0.5066ms)
+✔ single original document permits SPA but extra pages, frames and new documents invalidate observation (0.2977ms)
+✔ owned process selection excludes other SoloSoul instances, orphan WebViews and PID identity changes (0.4844ms)
+✔ errors redact the fixed synthetic password and remove Playwright call logs (0.342ms)
+✔ incomplete cleanup and unresolved exit stop sampling without terminating unknown identities (0.3632ms)
+✔ PowerShell stderr errors replace encoded command noise and retain timeout context (1.0267ms)
+✔ unfinished owned child reference is released on timeout without claiming termination (0.2577ms)
+✔ failed samples remain represented and do not contribute to success percentiles (0.3845ms)
+✔ summary uses standard odd/even medians and retains requested count after failed samples (0.4053ms)
+✔ offline native-perf preflight accepts all feature markers and rejects every missing marker (55.5782ms)
+✔ offline marker scanning matches markers spanning multiple read blocks (9.9072ms)
+✔ default-build stub is rejected offline before CLI output creation or executable launch (272.3038ms)
+✔ WebView2 browser data accepts only the exact API UDF/EBWebView directory (0.4019ms)
+✔ WebView2 exact owned directories reject filesystem junction redirection (11.6188ms)
+✔ file validation never creates output and refuses existing output without changing it (23.2162ms)
+✔ file validation refuses linked fixture and output placed inside source fixture (15.5502ms)
+✔ CLI help and invalid sample count exit without loading a GUI executable (429.5551ms)
+✔ PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline (1003.1181ms)
+✔ actual sample discovery excludes unreadable historical children before identity or refresh (2883.776ms)
+✔ actual memory-series discovery excludes unreadable historical children before identity or refresh (1991.8226ms)
+✔ actual discovery still rejects current or undated unreadable children and preserves valid current chains (7542.9017ms)
+✔ fixed PowerShell ownership/memory script parses without executing CIM or termination (472.5966ms)
+✔ SDK requested or proof markers exclude benchmark acceptance even with malformed content or non-file markers (36.1919ms)
+✔ Windows Runtime relative names reject traversal, namespaces, aliases and device names (1.7297ms)
+✔ Runtime relative paths allow exactly 64 segments and reject a file or directory at segment 65 (0.3581ms)
+✔ PE parser validates actual AMD64 PE32+ structure instead of trusting metadata (0.6559ms)
+✔ core signature/version samples require exact versions and Valid Microsoft organization (0.9208ms)
+✔ real inspection accepts only the explicit installed Evergreen folder and rejects others before signatures (116.7034ms)
+✔ full Runtime tree copies real files and empty directories, with an exclusive bound manifest (4459.4379ms)
+✔ Runtime reuse cannot replace the runtime folder or previously published manifest (2571.5972ms)
+✔ changed source files are rejected before Runtime creation and failures keep evidence (597.4341ms)
+✔ source junctions are rejected without traversing or writing their other directory (538.2403ms)
+✔ ownership mismatches refuse copied Runtime writes and cannot publish evidence into another root (47.5682ms)
+✔ core declarations and physical PE architecture are both checked before copying (533.3777ms)
+✔ bounded and exact Runtime file proof rejects duplicate paths, excess bytes and missing core (31.1643ms)
+✔ preexisting Runtime manifest is never overwritten and failed copy remains reviewable (1622.2512ms)
+✔ selected marker binds exact canonical identity, ordinary folder, source version and manifest hash (2.219ms)
+✔ browser proof checks actual physical copied EXE and exact recorded FileVersion/ProductVersion (1860.7189ms)
+✔ modified copied browser bytes cannot be accepted using stale Runtime metadata (1716.806ms)
+✔ browser directory junction fallback is rejected even if its version and bytes match the source (1714.383ms)
+✔ explicit directory inventory rejects missing empty dirs, case aliases and file conflicts (518.8645ms)
+✔ source mutation after copy begins rejects the new runtime and preserves partial evidence (1421.786ms)
+✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (2.5218ms)
+✔ SDK help starts no native preparation or GUI process (248.1897ms)
+✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (5867.5718ms)
+✔ old native-perf EXE fails before output creation or any EXE execution (209.5275ms)
+✔ SDK launch selects only the run-only native SDK diagnostics contract (0.5067ms)
+✔ requested marker requires exact canonical root, run, PID, port and main window (0.8015ms)
+✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (3.1956ms)
+✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (1.3512ms)
+✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.6092ms)
+✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.636ms)
+✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (7.8122ms)
+✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.6416ms)
+✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.9141ms)
+✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (20.5609ms)
+✔ SDK file/directory junctions and non-file proof markers never traverse another folder (19.1736ms)
+✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (119.7292ms)
+✔ SDK proof lookup must recheck time after the async filesystem query and reject a 45000-to-45001 crossing (62.5115ms)
+✔ RF312 proof rejects missing, premature, timed-out or private handoff metadata (0.9978ms)
+✔ SDK journey accepts six measured phases only with same owned document and trusted input (2.1403ms)
+✔ SDK binding fails closed before public input authorization (1.4093ms)
+✔ SDK journey rejects navigation, missing phases, wrong methods, failed inputs and invalid IPC (2.1537ms)
+✔ SDK proof validators reject private extra fields (0.6715ms)
+✔ SDK journey rejects an old EXE before any GUI startup (40.5851ms)
+✔ actual SDK probe observes startup without reading password or sending actions (4.3792ms)
+✔ rejected, interrupted or source-invalid samples never enter SDK performance summaries (0.5829ms)
+✔ timeout diagnostic cannot make a failed or extra-field SDK proof successful (0.3313ms)
+✔ actual timed-out SDK probe captures only bounded UI state without reading credentials or sending input (5.6388ms)
+✔ startup accepts readonly pairs with native duration distinct from capture elapsed time (3.2897ms)
+✔ startup accepts fixed authentication diagnostic tail and rejects missing or repeated guards (0.7472ms)
+✔ startup rejects input, failure, old journey format and unsupported fields (2.0464ms)
+✔ startup rejects malformed observer events and inconsistent IPC (1.3509ms)
+✔ warm pair rejects reused processes, frame, clock or directories (1.4039ms)
+✔ warm ticket binds all original hashes and fresh exit receipt (2.2392ms)
+✔ a failed pair or missing sample rejects whole-group metrics (0.7232ms)
+✔ offline gate rejects older executable before any launch (21.2426ms)
+✔ actual startup probe waits for enabled submit and two frames without input or credential access (3.7463ms)
+✔ startup preserves fixed preferences and validates only native producer cache sources (1.0255ms)
+✔ surface probe reads actual bounded theme, color tokens and viewport (7.4998ms)
+✔ surface probe normalizes computed RGB and sRGB without preserving CSS strings (3.7782ms)
+✔ duplicate appbar and missing card remain null for strict native rejection (1.8025ms)
+✔ surface probe never reads business text, markup or a business IPC (1.0689ms)
+✔ solid material, accessibility and actual unfocused dark state are observed (2.6413ms)
+✔ unsupported color syntax and malformed boolean attributes are not coerced into success (2.5276ms)
+✔ capture readiness waits for the existing OCR banner to naturally disappear (5.5239ms)
+✔ capture readiness waits for geometry to settle after banner removal (1.9131ms)
+✔ persistent OCR banner rejects instead of consuming an unready frame (12.4422ms)
+✔ banner disappearing at the budget edge does not authorize an unsettled frame (2.3633ms)
+✔ capture readiness rejects missing bounds instead of accepting an unlimited wait (5.6573ms)
+✔ one real handoff event controls when native document identity can be bound (4.2078ms)
+✔ register then check handles handoff completed before native gate installation (3.1166ms)
+✔ startup errors produce a fixed control outcome without copying private diagnostics (0.9627ms)
+✔ deadline is terminal and never declares UI readiness (0.873ms)
+✔ control transport rejection does not become an unhandled rejection or retry (2.2494ms)
+✔ missing root and empty root are distinct without reading DOM content (3.8245ms)
+✔ mount mark and startup error are independent fixed observations (1.0303ms)
+✔ populated root preserves the original successful root predicate (1.0022ms)
+✔ unknown and absent startup state are reduced to fixed unavailable value (1.6642ms)
+✔ RF312 retains the early state and waits for actual handoff, not just a populated root or event (1.1304ms)
+✔ RF312 startup error is terminal and preserves its fixed stage without retrying (0.9973ms)
+✔ RF312 bounded timeout remains failure with early and final observations (1.4453ms)
+✔ RF312 public startup diagnostic exposes only fixed phase/state/reason and remains terminal (52.4942ms)
+✔ RF312 startup diagnostics normalize unknown caller strings without reading UI content (0.954ms)
+✔ 资源版本只由排序后的内容决定，修改时间和路径不影响结果 (17.5588ms)
+✔ UTF-8 文件内容和不同根的清单排序稳定 (2.8557ms)
+﹣ 拒绝符号链接，避免把资源目录之外的内容打包 (1.8811ms) # 当前 Windows 测试账户没有创建符号链接权限
+✔ 缺失源目录不能生成一个伪完整版本 (1.1365ms)
+✔ 资产 URL 按片段编码版本、空格、中文、井号、问号和百分号 (2.156ms)
+✔ 拒绝非 HTTPS、userinfo、查询、片段、控制字符和歧义路径 (0.5223ms)
+✔ --no-probe 稳定生成全部 legacy 文件，不发生网络请求，签名和元数据一致 (70.2779ms)
+✔ CDN 覆盖主清单、全部 legacy 清单和 Android URL，现有签名不变 (26.3306ms)
+✔ 网络探测失败只输出诊断，不删减 legacy；探测真实包而非 release 页面 (171.3057ms)
+✔ APK 缺少校验和或签名时拒绝生成，不留下半套清单；桌面独立发布仍有效 (9.7654ms)
+✔ 版本中 + 和 prerelease 不被解释为正则；不能匹配旧版本/多个同平台包 (9.9093ms)
+✔ 自定义代理保留固定 legacy id，并拒绝文件路径注入与重复 id (1.3492ms)
+✔ Range 检查接受精确 206、总大小及本地首段，拒绝 200/伪 Range/HTML/截断/错误内容 (6.1315ms)
+✔ 有界读取拒绝未知长度超限流、过大 Content-Length，限制重定向并拒绝 HTTP 降级 (11.7544ms)
+✔ 超时覆盖正文读取，而不只是收到响应头之前 (24.5179ms)
+✔ 远端 metadata 必须与本地候选一致，HTML/过大内容被拒绝 (18.4668ms)
+✔ 完整只读验收脚本检查远端两份 Android metadata、主清单和所有资产 (678.8922ms)
+✔ 本地验收拒绝缺失 legacy、签名不一致、Android asset 大小及命名组合错误 (770.1868ms)
+✔ CLI 离线端到端生成/验收且参数错误退出非零 (1653.5066ms)
+✔ counts early bridge sends before binding, without changing readonly invoke or descriptor flags (7.1964ms)
+✔ preserves bridge receiver, exact arguments, synchronous return and thrown error identity (2.0306ms)
+✔ channel fetch counts headers only and preserves the original promise without reading bodies (1.1607ms)
+✔ rejects unsupported envelopes and overflow while forwarding every original call (41.3907ms)
+✔ unmodifiable transports are never forced writable or accepted as complete (1.0082ms)
+✔ detects wrapper/frame/clock replacement, prevents rebinding, and returns independent snapshots (2.0234ms)
+✔ duplicate initialization invalidates the old observer without double wrapping (0.8942ms)
+✔ accepts actual Tauri order: observer precedes the readonly core invoke definition (0.9306ms)
+✔ invalid channel command is redacted without reading bodies or changing forwarding (0.9809ms)
+✔ public invalidation never echoes supplied private values into diagnostics (1.0062ms)
+✔ preserves method getter semantics on unrelated fetch and refuses unobservable IPC methods (1.6654ms)
+✔ captures sticky Java host sends without mutating the original host method or native receiver (0.7942ms)
+✔ counts application, plugin and channel invokes, excludes ordinary fetch and never reads body (4.8094ms)
+✔ forwards fetch errors and return values unchanged (1.3356ms)
+✔ default transport fallback makes the whole total unavailable without suppressing warnings (1.1315ms)
+✔ overflow retains a bounded command list and invalidates the total (111.8653ms)
+✔ fetch and warn replacement are sticky failures even after restoration (0.9878ms)
+✔ invalid origin, missing run identity and duplicate installation fail closed (2.1675ms)
+✔ snapshot exposes copies rather than mutable counter internals (1.0165ms)
+✔ malformed IPC command cannot silently disappear from a supposedly complete count (1.0103ms)
+✔ document navigation and additional frames invalidate total without recording navigation paths (4.836ms)
+✔ auth observer preserves pending promise identity, reads only fixed status header and keeps payload private (21.5154ms)
+✔ auth observer distinguishes protocol errors, rejects unknown checkpoints and keeps ordinary count unchanged (1.1099ms)
+✔ auth observation forwards the original rejection and synchronous exception without their private details (2.3889ms)
+✔ unreadable headers invalidate auth attribution without consuming response or invalidating ordinary count (1.0633ms)
+ℹ tests 258
+ℹ suites 0
+ℹ pass 257
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 30484.1613
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+      Coverage enabled with v8
+
+✔ 资源版本只由排序后的内容决定，修改时间和路径不影响结果 (9.2161ms)
+✔ UTF-8 文件内容和不同根的清单排序稳定 (3.7522ms)
+﹣ 拒绝符号链接，避免把资源目录之外的内容打包 (2.0818ms) # 当前 Windows 测试账户没有创建符号链接权限
+✔ 缺失源目录不能生成一个伪完整版本 (0.575ms)
+
+ Test Files  261 passed (261)
+      Tests  2354 passed (2354)
+   Start at  22:39:45
+   Duration  300.46s (transform 11.14s, setup 41.61s, import 108.07s, tests 107.74s, environment 249.37s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   85.94 |    73.35 |   80.94 |   87.83 |                   
+ scripts           |   44.06 |    42.42 |   55.55 |   43.39 |                   
+  ...resources.cjs |   44.06 |    42.42 |   55.55 |   43.39 | ...95-107,113-114 
+ src/App           |   83.87 |    70.58 |   84.84 |   84.25 |                   
+  ...eAppEvents.ts |   80.95 |     62.5 |      75 |   82.35 | 31,73-74,79-80,84 
+  ...nLifecycle.ts |   85.36 |    74.28 |   90.47 |   85.13 | ...32-136,150-151 
+ src/components    |   81.48 |    68.57 |   69.23 |   80.76 |                   
+  ...ieldInput.tsx |   81.48 |    68.57 |   69.23 |   80.76 | 78-88,101,119,147 
+ ...onents/android |    71.6 |    68.48 |   76.08 |   73.33 |                   
+  ...ppearance.tsx |   86.27 |    71.42 |   78.26 |   87.23 | ...13,191-207,229 
+  AndroidHome.tsx  |     100 |     87.5 |     100 |     100 | 49,122            
+  ...idArtwork.tsx |       0 |        0 |       0 |       0 | 10-51             
+  ...avigation.tsx |   76.71 |    62.26 |   70.83 |   81.25 | ...12,126-139,168 
+  ...stination.tsx |       0 |      100 |       0 |       0 | 9-38              
+  AndroidSheet.tsx |   66.66 |    58.33 |     100 |   69.76 | 57-75             
+ ...nts/attachment |   88.31 |    78.65 |   85.46 |   90.01 |                   
+  ...ntActions.tsx |   94.11 |      100 |   83.33 |   94.11 | 66                
+  ...NameBlock.tsx |   95.06 |    93.06 |   91.66 |   98.57 | 322               
+  ...ditDialog.tsx |   92.64 |     64.1 |   94.73 |   96.55 | 85-86             
+  ...jectGroup.tsx |      50 |    43.75 |   42.85 |      50 | ...31-147,181-182 
+  ...tPageCard.tsx |      90 |    77.77 |   85.71 |   93.75 | 170               
+  ...ewOverlay.tsx |   86.11 |       95 |   71.42 |   85.71 | ...25,152,314-315 
+  ...chmentRow.tsx |   72.22 |     87.5 |      50 |   72.22 | 53,56,58,91,151   
+  ...AlbumGrid.tsx |   67.44 |    54.54 |   66.66 |    67.5 | 46-60,78-80,172   
+  ...umOverlay.tsx |    92.3 |     92.5 |   91.66 |    90.9 | 354               
+  ...erOverlay.tsx |   65.85 |       68 |    62.5 |      75 | ...89-212,344-346 
+  ...wTitlebar.tsx |     100 |    85.71 |     100 |     100 | 48                
+  ...iewWindow.tsx |     100 |    88.88 |     100 |     100 | 20                
+  ...entPreview.ts |   97.43 |     89.7 |     100 |   97.97 | 128-129           
+  ...AlbumState.ts |   89.23 |    58.06 |   96.55 |   90.59 | ...74,236,278-282 
+  ...hotoViewer.ts |   90.32 |    76.92 |   92.59 |   94.02 | 103-110,120       
+ ...ponents/editor |    86.5 |    74.07 |   85.91 |   88.78 |                   
+  ...oupEditor.tsx |   85.18 |    77.08 |    90.9 |   89.36 | 61-65,159,182     
+  ...ggestions.tsx |     100 |    95.12 |     100 |     100 | 319-320           
+  ...FieldList.tsx |   65.85 |       50 |   63.63 |   71.42 | ...67-178,223-224 
+  ...eSelector.tsx |   66.66 |    65.71 |   42.85 |    62.5 | 70-134,188-191    
+  ...tionReveal.ts |   94.11 |    83.07 |     100 |   95.78 | 107-108,230-231   
+ ...mponents/forms |   78.14 |    72.28 |   78.15 |    79.8 |                   
+  ...er.helpers.ts |   92.06 |    81.57 |     100 |   95.83 | 127-128           
+  DatePicker.tsx   |   94.55 |    90.38 |   88.57 |   96.18 | 134-137,233,237   
+  ...rCalendar.tsx |     100 |    86.66 |     100 |     100 | 170-184           
+  ...wordInput.tsx |   96.47 |    91.35 |   90.47 |    98.7 | 63                
+  ...etricCard.tsx |       0 |        0 |       0 |       0 | 22                
+  ...ionDialog.tsx |     100 |    77.77 |     100 |     100 | 59,68-81,122      
+  PinEntryCard.tsx |       0 |        0 |       0 |       0 | 41-43             
+  PinInput.tsx     |   71.69 |    72.34 |   66.66 |   76.08 | ...55,73-76,79-82 
+  ...ification.tsx |   66.66 |    56.25 |      75 |   71.87 | ...05,107,120-122 
+  ...tionFlows.tsx |   48.45 |    36.66 |   53.84 |   48.31 | ...69-181,187-189 
+  ...onIconBar.tsx |   38.29 |       20 |   33.33 |    40.9 | ...11-112,117-123 
+ ...mponents/guide |   88.97 |    78.16 |   90.42 |   90.42 |                   
+  ...CodeBlock.tsx |   63.63 |    55.55 |      50 |   63.63 | 19-27             
+  GuideImage.tsx   |       0 |        0 |       0 |       0 | 8-25              
+  ...geContent.tsx |     100 |       75 |     100 |     100 | 63                
+  ...eRenderer.tsx |   93.75 |    85.71 |      85 |   93.42 | 153,204-210,302   
+  GuideSearch.tsx  |   76.84 |       64 |   94.44 |   79.26 | ...17,228,243,293 
+  PageGuide.tsx    |   97.46 |    84.61 |   96.42 |     100 | ...67,184,218-273 
+ ...ponents/import |      80 |       80 |   71.42 |      80 |                   
+  ...nsSection.tsx |      80 |       80 |   71.42 |      80 | 24,54             
+ ...ponents/layout |    77.5 |    56.29 |   76.63 |   78.83 |                   
+  ...ageButton.tsx |   92.15 |    55.46 |      90 |    94.5 | ...38-139,154-161 
+  ...gePopover.tsx |   26.66 |    20.68 |   42.85 |   36.36 | 54-59,79-97       
+  ...atPopover.tsx |      75 |    59.18 |    62.5 |   77.61 | ...04,123,168-245 
+  AppBar.tsx       |   91.66 |    54.54 |     100 |   89.47 | 56,62             
+  AppShell.tsx     |   82.97 |     57.5 |      88 |   81.57 | ...61,182-183,191 
+  AuthLayout.tsx   |   88.88 |       50 |      80 |   88.46 | 25-27             
+  ...itPopover.tsx |    69.1 |    46.15 |   62.96 |   71.02 | ...23,292,331-395 
+  ...Indicator.tsx |      75 |    58.33 |   83.33 |    70.9 | ...8-89,95-97,189 
+  ...oryPicker.tsx |   66.66 |    52.63 |   57.14 |   72.72 | 68-90             
+  ...anPopover.tsx |   88.78 |       60 |   88.57 |   91.66 | ...01-103,121,229 
+  ...nListener.tsx |   94.11 |    88.88 |     100 |   91.66 | 19                
+  ...chPopover.tsx |   79.57 |     72.8 |   78.72 |   83.05 | ...91-296,357-360 
+  ...arActions.tsx |   55.55 |    34.61 |      50 |   57.89 | 42-56,78-101      
+  ...rdPosition.ts |       8 |    27.77 |   14.28 |    9.52 | 13-44             
+  ...onfigStore.ts |   92.85 |     90.9 |     100 |   91.66 | 54                
+  ...ationItems.ts |   73.43 |    57.69 |      70 |   73.68 | ...13-217,224-238 
+ ...components/llm |   53.19 |    60.41 |   33.33 |   56.81 |                   
+  ...ssageList.tsx |   71.87 |    76.31 |   55.55 |   79.31 | 13-19,96,199      
+  ...onHistory.tsx |      20 |        0 |       0 |      20 | 19-40,60-63       
+  ...guredHint.tsx |       0 |      100 |       0 |       0 | 11-43             
+ ...nts/llm-config |    62.5 |    61.97 |   55.88 |   64.06 |                   
+  ...eBaseCard.tsx |     100 |    66.66 |     100 |     100 | 31,44             
+  ...ingsPanel.tsx |   42.85 |    66.66 |   33.33 |   42.85 | 84,115-173        
+  ...agerPanel.tsx |   57.69 |    57.77 |   54.54 |      60 | ...53-171,236-311 
+  ...romptCard.tsx |   66.66 |      100 |      50 |   66.66 | 28                
+ ...ponents/object |   80.52 |    69.78 |   80.65 |   83.26 |                   
+  ...ailFooter.tsx |     100 |    95.45 |     100 |     100 | 86                
+  ...rmDialogs.tsx |     100 |       70 |     100 |     100 | 70-113            
+  ...tListItem.tsx |   73.33 |    65.38 |   55.55 |   73.33 | 121-122,125-126   
+  ...entViewer.tsx |   84.84 |       68 |      84 |   84.84 | 121,285-289       
+  ...werHeader.tsx |     100 |    83.33 |     100 |     100 | 101-111           
+  ...ldsViewer.tsx |   16.66 |     7.14 |   33.33 |   22.22 | 15-21,84          
+  ...adOverlay.tsx |   45.45 |    26.66 |     100 |      40 | 36-158            
+  ...oryViewer.tsx |    90.3 |    75.78 |   88.88 |   94.02 | ...09,457,608-610 
+  ...eteDialog.tsx |     100 |       50 |     100 |     100 | 25                
+  ...ieldsList.tsx |   94.87 |       88 |    92.3 |   97.29 | 68                
+  ...tailModal.tsx |   41.17 |     65.9 |      50 |      50 | ...00,201,226-238 
+  ...lSections.tsx |   46.15 |    31.81 |      50 |   46.15 | 65-179            
+  ...irmDialog.tsx |   40.54 |    51.35 |   46.15 |   42.42 | 52-136,171        
+  ...etailUtils.ts |     100 |    71.42 |     100 |     100 | 51,118            
+  ...tBatchOps.tsx |   86.84 |    70.96 |   95.23 |   89.89 | 128-143,164       
+  ...entViewer.tsx |   75.31 |    73.84 |   77.14 |   76.08 | ...83,294,342-343 
+  ...tailModal.tsx |   87.67 |    81.44 |   74.41 |   94.95 | ...36,247,253-254 
+  ...ification.tsx |      80 |    43.63 |      95 |   81.73 | ...62-180,195,227 
+ ...components/ocr |    85.5 |    80.76 |   81.25 |    83.6 |                   
+  ...esultCard.tsx |       0 |        0 |       0 |       0 | 12-117            
+  ...hDropdown.tsx |     100 |    88.46 |     100 |     100 | 127,146,152       
+  ...verHeader.tsx |      60 |      100 |      50 |      60 | 53-54             
+  ...sultPanel.tsx |     100 |    63.88 |     100 |     100 | 72-96,130-169     
+  ...nControls.tsx |   88.88 |    97.14 |      80 |   88.88 | 89                
+  ...StatusRow.tsx |     100 |    96.87 |     100 |     100 | 128               
+ ...nts/onboarding |    87.5 |    83.33 |   83.33 |      88 |                   
+  ...ingDialog.tsx |   76.19 |      100 |      75 |   72.22 | 85-101            
+  ...ltDirStep.tsx |   71.42 |    70.73 |      50 |   83.33 | 150               
+ ...ponents/plugin |   86.17 |    71.33 |    87.3 |    87.2 |                   
+  PluginCard.tsx   |   80.55 |       75 |   77.77 |   84.37 | 54-58,67,144,179  
+  ...lProgress.tsx |       0 |        0 |       0 |       0 | 16-20             
+  ...uickPanel.tsx |    83.9 |    76.13 |   79.41 |   85.71 | ...58,198,223,298 
+  ...sultPanel.tsx |   75.25 |       60 |   82.14 |   77.52 | ...99,438,450-453 
+  ...amsDialog.tsx |     100 |     93.1 |     100 |     100 | 88,96             
+  ...ginConfig.tsx |   98.26 |    88.57 |   97.61 |   97.97 | 150,159           
+ ...s/plugin-views |   30.76 |        0 |       0 |   33.33 |                   
+  ...rdianView.tsx |   30.76 |        0 |       0 |   33.33 | 61-86             
+ .../plugin/shared |   57.14 |     67.3 |   44.44 |   66.66 |                   
+  CopyButton.tsx   |    37.5 |       50 |   33.33 |   42.85 | 23-26             
+  ...leSection.tsx |   66.66 |    85.71 |     100 |   66.66 | 27                
+  ...ogSection.tsx |      70 |    68.57 |      25 |    87.5 | 112               
+ ...nents/recovery |   25.86 |    51.29 |   39.53 |   26.78 |                   
+  ...countView.tsx |      40 |     28.3 |      25 |      40 | 224-247           
+  ...ctionCard.tsx |      30 |    45.45 |      50 |      30 | 28-48             
+  ...QrScanner.tsx |       0 |        0 |       0 |       0 | 13-177            
+  ...iveDialog.tsx |   45.45 |    85.71 |   33.33 |   55.55 | 108-191           
+  ...ceiveTabs.tsx |      80 |       75 |   66.66 |      80 | 18                
+  ...yScanView.tsx |       0 |        0 |       0 |       0 | 24-26             
+ ...nents/settings |   66.66 |    51.67 |   78.57 |   67.74 |                   
+  ...icSection.tsx |   76.19 |    57.14 |   72.72 |   75.94 | ...73-184,334,378 
+  ...onLogCard.tsx |      50 |    46.83 |     100 |   53.33 | 64-96             
+ ...omponents/sync |   71.85 |    60.06 |   69.44 |   73.96 |                   
+  ...tTypeIcon.tsx |      50 |    33.33 |     100 |      50 | 16,20-24          
+  ...ingDialog.tsx |     100 |    78.04 |     100 |     100 | 50-75,138,229-230 
+  QrModalShell.tsx |      75 |    57.14 |     100 |     100 | 38-81             
+  ...ntryPanel.tsx |     100 |    16.66 |     100 |     100 | 45-210            
+  ...QrContent.tsx |     100 |       70 |     100 |     100 | 156-178           
+  ...ictDialog.tsx |   89.58 |    68.83 |   82.35 |   91.76 | ...77-293,406-413 
+  ...QrContent.tsx |     100 |    83.33 |     100 |     100 | 157               
+  ...bSwitcher.tsx |   66.66 |      100 |   66.66 |   66.66 | 32                
+  ...nQrDialog.tsx |   21.21 |      3.7 |   16.66 |   19.35 | 37-180            
+  ...wQrDialog.tsx |   69.91 |    58.69 |   52.38 |      74 | ...72-173,195-202 
+ ...nents/template |   79.82 |    64.65 |   71.81 |   81.51 |                   
+  ...dsSection.tsx |      80 |    28.57 |   57.14 |      80 | 120-127           
+  ...oupConfig.tsx |   64.86 |       50 |   64.28 |    64.7 | 56,131,169-206    
+  IconPicker.tsx   |     100 |    93.75 |     100 |     100 | 37                
+  ...onsEditor.tsx |   86.66 |     62.5 |      75 |   86.66 | 55,118            
+  PluginBadge.tsx  |   83.33 |       50 |      60 |   92.85 | 54                
+  ...ateDetail.tsx |   94.11 |       75 |   88.88 |   92.85 | 36                
+  ...teGallery.tsx |   95.74 |    97.36 |   90.47 |   94.87 | 183,208           
+  ...ityBadges.tsx |   88.88 |       50 |     100 |     100 | 16                
+  ...tailModal.tsx |    62.5 |    43.75 |      50 |   68.42 | 44,80,210-213     
+  ...ateEditor.tsx |   66.66 |    64.28 |      50 |      75 | 130-183           
+  ...ndingForm.tsx |      70 |    41.66 |      40 |      70 | 48,81-101         
+  ...ndingList.tsx |   88.88 |    77.77 |    87.5 |   92.85 | 96                
+  ...ngSection.tsx |      50 |    69.23 |   42.85 |   53.84 | 79-90,95-98       
+  ...eFieldRow.tsx |      60 |    28.57 |      50 |      60 | 83-102,140,167    
+  ...ldRowItem.tsx |     100 |    58.33 |     100 |     100 | 48-65             
+  ...eldsPanel.tsx |   38.46 |    63.63 |    37.5 |   45.45 | 155-167           
+  ...ageSelect.tsx |     100 |    91.66 |     100 |     100 | 19                
+  ...ypeSelect.tsx |   83.33 |      100 |   66.66 |   83.33 | 34                
+  ...ditorState.ts |   97.36 |       84 |    87.5 |   97.22 | 47                
+ ...nents/transfer |   85.29 |    76.92 |   89.47 |   83.33 |                   
+  ...ctionTree.tsx |   84.84 |    73.33 |   88.88 |   82.75 | 121,210,297-299   
+ ...mponents/trash |   85.09 |     73.2 |   79.59 |   87.04 |                   
+  ...rashValue.tsx |   92.98 |    89.18 |     100 |   94.23 | 99-100,142        
+  ...lSections.tsx |   72.72 |     64.1 |      60 |   72.09 | ...66-384,522-588 
+  ...hItemCard.tsx |   74.07 |    42.85 |   85.71 |   79.16 | 19-21,104-105     
+  ...pshotView.tsx |      90 |    79.71 |   78.57 |   93.24 | 54-98,282,412,448 
+ src/components/ui |   89.52 |    86.16 |   92.92 |    90.3 |                   
+  ...conButton.tsx |     100 |    86.95 |     100 |     100 | 50-55,74          
+  Card.tsx         |     100 |    86.66 |     100 |     100 | 56                
+  ...irmDialog.tsx |     100 |     90.9 |     100 |     100 | 52                
+  ...gSkeleton.tsx |       0 |      100 |       0 |       0 | 9                 
+  Dialog.tsx       |   94.44 |    94.73 |     100 |   93.33 | 67                
+  ...ownSelect.tsx |   89.18 |       70 |   83.33 |   91.17 | 46-48             
+  ...rBoundary.tsx |     100 |       75 |     100 |     100 | 33,79             
+  ...dTypeIcon.tsx |   70.58 |    66.66 |     100 |   70.58 | 44-48,54,58       
+  ...ChipGroup.tsx |     100 |    92.85 |     100 |     100 | 86                
+  Input.tsx        |      95 |    97.05 |      75 |     100 | 44                
+  ...allBanner.tsx |   93.75 |    94.59 |     100 |   93.75 | 58-59             
+  PromptDialog.tsx |     100 |    66.66 |     100 |     100 | 45-75             
+  ...ieldValue.tsx |   97.43 |       90 |     100 |   96.96 | 77                
+  ...tCheckbox.tsx |     100 |    86.95 |     100 |     100 | 46-51,86          
+  ...sionBadge.tsx |      50 |    58.33 |     100 |      50 | 32-49             
+  ...Container.tsx |      75 |       70 |   72.72 |   69.56 | 29,36,43-45,68-69 
+  ToastOutlet.tsx  |   88.23 |    81.81 |     100 |     100 | 17,24             
+  UpdateBanner.tsx |      90 |      100 |   66.66 |      90 | 255               
+  ...Container.tsx |   74.07 |    43.47 |     100 |   77.08 | 13,18-27,48-49    
+ ...ents/workspace |   87.81 |    83.04 |   81.53 |   90.03 |                   
+  ...eteDialog.tsx |     100 |       50 |     100 |     100 | 34-35             
+  ...erPreview.tsx |     100 |    94.11 |     100 |     100 | 61                
+  ...egoryTabs.tsx |   76.19 |    95.65 |   54.54 |      75 | 52,68,101,116-127 
+  ...jectRuler.tsx |   81.57 |    76.92 |      75 |   86.27 | ...06-208,236-246 
+  objectRuler.ts   |     100 |       75 |     100 |     100 | 8                 
+  ...erPosition.ts |   90.58 |     77.5 |   91.66 |    92.2 | ...12-113,119-120 
+ src/hooks         |    80.9 |    70.72 |   80.56 |   83.54 |                   
+  ...ddPageForm.ts |   83.01 |    77.27 |   85.71 |    82.6 | 53-58,64,67-68    
+  ...CreateMenu.ts |    88.6 |    79.06 |   68.75 |   92.42 | 44,90-91,132-133  
+  ...droidGlass.ts |   63.15 |      100 |   44.44 |    62.5 | 8-21              
+  useAppUpdate.ts  |   83.33 |        0 |   83.33 |    87.5 | 14-15             
+  ...entManager.ts |   67.15 |    64.28 |   64.28 |   68.33 | ...03-206,214-218 
+  ...erBatchOps.ts |   63.09 |    61.22 |   47.05 |   65.75 | ...82-183,221,243 
+  ...gerItemOps.ts |      55 |    53.33 |   47.05 |   53.52 | ...59-171,176-180 
+  ...ntPageSort.ts |   36.36 |        0 |      80 |   36.84 | 23,30-44          
+  useAutoLock.ts   |   81.74 |    79.16 |   60.52 |   81.48 | ...21,188,192,196 
+  ...atchSelect.ts |   90.32 |       75 |     100 |   92.59 | 61,72             
+  ...oClipboard.ts |   52.94 |    57.14 |      75 |   56.25 | 28-29,43-55       
+  ...agToAttach.ts |   79.79 |    69.81 |   61.11 |   84.09 | ...69,179,241-245 
+  useEntryBack.ts  |   44.44 |        0 |      50 |      50 | 14-18             
+  ...rdPosition.ts |   32.14 |     8.33 |   33.33 |   30.76 | ...65-67,71,76-80 
+  ...mportState.ts |    90.5 |    83.53 |    92.1 |    94.3 | ...16-724,729-737 
+  ...ntalWindow.ts |   66.66 |      100 |      40 |     100 |                   
+  ...owViewport.ts |    87.5 |       50 |     100 |     100 | 12-21             
+  ...lmChatCore.ts |   89.51 |       76 |   94.73 |   94.21 | 283-287,309-312   
+  ...reSettings.ts |   75.51 |    56.25 |   85.71 |   77.77 | 47,69-83          
+  ...lEmbedding.ts |   53.53 |    22.58 |   56.25 |   56.38 | ...64-202,230-241 
+  ...iderConfig.ts |      80 |    66.66 |     100 |   78.26 | 29-30,49-54       
+  ...mProviders.ts |   55.71 |    44.44 |      50 |   61.66 | ...11-130,140-153 
+  ...mStreaming.ts |   94.44 |    95.83 |     100 |     100 | 28                
+  useLongPress.ts  |   94.73 |    71.42 |     100 |   94.73 | 37                
+  ...Preference.ts |    87.5 |       50 |      80 |   85.71 | 16                
+  ...kspaceData.ts |      93 |    74.32 |   93.84 |    96.1 | ...24-225,351-352 
+  ...delManager.ts |   92.85 |    82.14 |     100 |   92.85 | 98,112,128,150    
+  useOnboarding.ts |   79.71 |       50 |      80 |    81.2 | ...62,281-282,286 
+  ...yBackGuard.ts |   97.33 |    88.46 |     100 |     100 | ...15,122,174-178 
+  ...redentials.ts |   72.97 |       50 |     100 |   77.14 | ...51,54-55,58-59 
+  ...ManualForm.ts |      48 |    16.66 |      60 |   51.06 | 31-55,62-67,77,84 
+  ...eryReceive.ts |      88 |    74.86 |   85.71 |    91.4 | ...29,443-444,449 
+  ...evealState.ts |      95 |    88.88 |     100 |   98.03 | 35                
+  ...eFieldMeta.ts |   93.33 |       40 |   85.71 |   92.85 | 45                
+  useTouchZoom.ts  |   94.62 |       76 |     100 |    94.5 | 143-149,189       
+  ...fiedSearch.ts |   96.66 |       90 |     100 |     100 | 62-70             
+  ...ateChecker.ts |   96.77 |    95.65 |     100 |     100 | 47,69             
+  ...swordGuard.ts |      80 |    61.36 |   94.11 |    82.5 | ...38-139,142-146 
+  ...mplateSync.ts |    65.3 |    50.57 |   80.95 |   70.16 | ...55-268,284-287 
+ src/lib           |    89.2 |    86.35 |   90.29 |   91.35 |                   
+  ...ntContrast.ts |     100 |    94.44 |     100 |     100 | 14                
+  androidGlass.ts  |     100 |      100 |   83.33 |     100 |                   
+  ...idRenderer.ts |   95.58 |     87.3 |     100 |     100 | ...59,181-207,237 
+  ...idMaterial.ts |    96.1 |    88.23 |     100 |   98.46 | 72                
+  ...Controller.ts |   94.11 |      100 |   85.71 |   94.11 | 50                
+  ...mentUpload.ts |   45.71 |    27.02 |   54.54 |   47.61 | ...72-118,143-158 
+  ...hmentUtils.ts |   81.39 |    78.94 |    87.5 |   83.78 | 31-32,37-39,72    
+  backendError.ts  |   76.36 |    64.06 |   85.71 |   77.55 | 244-257,307       
+  ...dErrorWire.ts |   94.17 |     93.2 |     100 |   97.38 | 401,403,577,583   
+  ...etricError.ts |   92.85 |    85.71 |     100 |    92.3 | 30                
+  ...tFieldMeta.ts |   96.05 |    94.94 |     100 |   98.21 | 258,263,353       
+  dialog.ts        |   66.66 |      100 |   66.66 |   66.66 | 61-68             
+  exportFormat.ts  |     100 |       90 |     100 |     100 | 26                
+  ...tionPolicy.ts |   90.47 |     93.1 |     100 |   94.73 | 71                
+  ...Validators.ts |      60 |      100 |   42.85 |      60 | 18-30             
+  i18n.ts          |     100 |    93.75 |     100 |     100 | 56                
+  importOutcome.ts |     100 |    91.66 |     100 |     100 | 16                
+  ipcClient.ts     |   97.29 |    91.48 |     100 |   97.05 | 184               
+  logger.ts        |     100 |       50 |     100 |     100 | 24                
+  ...yPreflight.ts |   95.83 |    95.23 |    87.5 |   95.23 | 91                
+  ...leTransfer.ts |   54.09 |    41.93 |   63.63 |      55 | ...,63,83-144,153 
+  ...vePerfAuth.ts |   84.61 |    85.71 |     100 |     100 | 19,31             
+  ...arControls.ts |      84 |     64.7 |   66.66 |   86.66 | 34,39-41,51-52    
+  nativeWindow.ts  |    96.2 |    86.66 |   68.42 |     100 | ...79,118,134-136 
+  navigation.ts    |      40 |        0 |      50 |      40 | 18-21             
+  notification.ts  |   79.77 |    79.36 |   84.61 |   81.57 | ...91-194,221,238 
+  ...tViewModel.ts |   96.96 |    98.21 |     100 |   96.29 | 118               
+  ...pabilities.ts |     100 |    83.33 |     100 |     100 | 21                
+  ...anMessages.ts |      80 |       50 |     100 |      80 | 8                 
+  ...nOperation.ts |   91.58 |    86.66 |    90.9 |     100 | ...22,133,147,150 
+  ...bumPreview.ts |   87.69 |       75 |     100 |   91.37 | 24-26,93,130      
+  platform.ts      |   83.33 |    66.66 |     100 |   85.71 | 36,48             
+  ...pabilities.ts |   98.03 |    95.55 |     100 |     100 | 28,88             
+  plugin.ts        |   79.45 |       75 |   80.95 |   85.71 | ...01,149,178,233 
+  ...inOrdering.ts |     100 |    91.66 |     100 |     100 | 20                
+  ...rtyFlatten.ts |   90.16 |    88.54 |     100 |   95.91 | 118,182           
+  ...veryErrors.ts |   79.41 |     85.1 |     100 |   77.41 | ...37,41,53,57,61 
+  ...eTemplates.ts |   91.66 |    91.66 |     100 |     100 | 456               
+  searchCache.ts   |   89.65 |    86.66 |     100 |      92 | 38-39             
+  searchShared.tsx |   93.63 |    83.73 |     100 |   95.65 | ...75,201-209,324 
+  startupScreen.ts |   90.47 |       75 |   71.42 |     100 | 18-19             
+  syncPeer.ts      |   93.33 |    90.47 |     100 |    92.3 | 25                
+  templateSync.ts  |     100 |    92.85 |     100 |     100 | 59                
+  theme.ts         |   93.93 |    86.53 |    92.3 |   96.61 | 33,61             
+  ...Controller.ts |   90.72 |    86.76 |   89.47 |   93.67 | 50,75-79,114,153  
+  themeSchemes.ts  |   90.32 |    85.71 |     100 |   92.59 | 450-451           
+  time.ts          |   56.52 |    33.33 |     100 |   66.66 | 27-31,38          
+  updater.ts       |   84.42 |    80.32 |   81.48 |    84.9 | ...99,303-304,330 
+  utils.ts         |   93.93 |     82.6 |     100 |   96.55 | 24                
+  ...tDirectory.ts |   77.77 |    86.66 |   58.33 |   77.77 | ...,83-85,116-120 
+  ...owDragDrop.ts |     100 |    93.75 |     100 |     100 | 20                
+ src/lib/llm       |   90.24 |    83.87 |    90.9 |   94.44 |                   
+  chatRequest.ts   |     100 |    92.85 |     100 |     100 | 54                
+  ...ersistence.ts |    90.9 |    83.33 |     100 |     100 | 34-36             
+  statsApi.ts      |      50 |        0 |   66.66 |      60 | 43-44             
+ src/lib/prefetch  |   94.94 |    93.87 |   82.75 |   96.55 |                   
+  ...fetchStore.ts |   98.33 |    92.85 |    92.3 |     100 | 84-85             
+  registry.ts      |   87.09 |    94.11 |      75 |   88.88 | 60,75,87          
+  ...efetchData.ts |     100 |      100 |      75 |     100 |                   
+ src/pages/ai      |   85.36 |       85 |      60 |   90.62 |                   
+  ...onfigPage.tsx |      50 |      100 |      25 |      60 | 111-137           
+  ...ConfigPage.ts |   91.42 |    81.25 |   83.33 |   96.29 | 62                
+ ...ai/LlmChatPage |   66.02 |    46.66 |      76 |    74.8 |                   
+  useLlmChat.ts    |   66.02 |    46.66 |      76 |    74.8 | ...30-247,256-257 
+ src/pages/auth    |   82.94 |    78.34 |   68.47 |   85.71 |                   
+  ...strapPage.tsx |   89.85 |    83.67 |   69.23 |   95.23 | 20,175-218        
+  ...tSelector.tsx |   33.33 |       75 |   33.33 |   33.33 | 22-37             
+  ...etricView.tsx |     100 |       50 |     100 |     100 | 35-103            
+  LoginPage.tsx    |      25 |    66.66 |   14.28 |   28.57 | 136-187           
+  ...swordView.tsx |     100 |    68.75 |     100 |     100 | 88-97             
+  LoginPinView.tsx |       0 |      100 |       0 |       0 | 21-28             
+  ...inIconBar.tsx |   93.47 |    91.66 |     100 |   95.34 | 106-107           
+  useLoginPage.tsx |   75.18 |       60 |   72.41 |   78.99 | ...62-266,290-294 
+  ...lockFlows.tsx |   88.82 |     87.5 |   63.15 |   89.93 | ...81-283,300-301 
+ src/pages/editor  |   72.69 |    61.95 |   80.85 |   73.05 |                   
+  ...ditorPage.tsx |      75 |    78.94 |      40 |      75 | 23-24,89-107      
+  ...EditorPage.ts |   72.53 |    60.21 |   85.71 |    72.9 | ...09-410,461,474 
+ src/pages/help    |   87.14 |    72.22 |   77.77 |   86.15 |                   
+  HelpPage.tsx     |   87.14 |    72.22 |   77.77 |   86.15 | ...48-153,158,240 
+ src/pages/home    |   91.46 |       85 |     100 |    92.1 |                   
+  HomePage.tsx     |   91.46 |       85 |     100 |    92.1 | ...72-276,283,314 
+ src/pages/scan    |   79.42 |    68.38 |   71.79 |   84.49 |                   
+  OcrPage.tsx      |   81.18 |    64.28 |    87.5 |   87.19 | ...43-345,393-394 
+  ...esultList.tsx |      60 |    69.23 |      50 |      60 | 78-150            
+  ...ingsPanel.tsx |   71.42 |    74.07 |      50 |   71.42 | 98,141-168        
+  ScanDropZone.tsx |      50 |    74.19 |   33.33 |      50 | 80-102            
+ ...pages/settings |    64.2 |    59.76 |   61.05 |   64.34 |                   
+  ...tingsPage.tsx |   79.66 |    82.35 |      65 |   83.01 | ...28,251,326-330 
+  ...dSyncPage.tsx |      80 |      100 |      50 |      80 | 29                
+  ...ementPage.tsx |   71.87 |    73.91 |   55.55 |   68.96 | 35-36,75,151-219  
+  ...tingsPage.tsx |   78.26 |    78.57 |      50 |   78.26 | 49,60,137-171     
+  PieChartSvg.tsx  |   95.83 |     62.5 |     100 |     100 | 29-51             
+  ...tingsPage.tsx |   68.75 |    41.66 |   57.14 |   64.28 | 26,130-168        
+  SettingsPage.tsx |   93.33 |    63.15 |    87.5 |   92.85 | 207               
+  ...rySection.tsx |       0 |        0 |       0 |       0 | 13-256            
+  ...tExecution.ts |   65.57 |    62.85 |      80 |   67.24 | ...06,128,145,148 
+  ...tDirectory.ts |   44.73 |    45.83 |      50 |   44.54 | ...88-196,203-206 
+ ...ings/cloudSync |   76.47 |    64.96 |   69.76 |   80.41 |                   
+  ...nsSection.tsx |     100 |    82.14 |     100 |     100 | 50,92-101         
+  ...onSection.tsx |    37.5 |       75 |   28.57 |    37.5 | 36,54-95          
+  ...ngSection.tsx |     100 |       50 |     100 |     100 | 32                
+  ...onSection.tsx |   33.33 |        0 |      20 |   33.33 | 36-68             
+  ...leSection.tsx |   66.66 |       50 |      50 |   66.66 | 56                
+  ...tatusCard.tsx |     100 |       50 |     100 |     100 | 26-47             
+  ...udSyncPage.ts |   77.65 |    62.35 |   86.36 |    82.6 | ...30,243-244,276 
+ src/pages/sync    |   71.42 |    64.12 |      80 |   74.58 |                   
+  ...ameEditor.tsx |   95.65 |    83.33 |     100 |     100 | 45-58             
+  PairingPanel.tsx |      40 |       55 |      25 |      40 | 72-96,135-154     
+  ...toryPanel.tsx |   73.33 |    84.21 |   66.66 |   84.61 | 12,204            
+  useSyncPage.ts   |   69.67 |    50.81 |   91.66 |   72.05 | ...05-307,324,355 
+ src/pages/system  |   77.19 |     80.4 |   71.42 |   76.36 |                   
+  AboutPage.tsx    |   91.66 |       25 |      75 |    90.9 | 79                
+  DebugLogPage.tsx |   78.26 |    84.61 |      80 |   77.27 | 45-46,53-54,59    
+  LinksCard.tsx    |      50 |       50 |      50 |      50 | 49-53             
+  ...teOverlay.tsx |   66.66 |    83.33 |      60 |   66.66 | 191-196           
+  ...eInfoCard.tsx |     100 |    81.81 |     100 |     100 | ...04,235,325-332 
+ ...ages/workspace |   89.09 |    82.08 |   81.05 |   89.26 |                   
+  ...spacePage.tsx |    89.7 |    80.32 |      84 |   90.62 | ...27,331,407,461 
+  ...bjectCard.tsx |    87.8 |    84.81 |   77.27 |   86.66 | 167-171,300-317   
+ src/stores        |   87.13 |    76.13 |    88.2 |   89.22 |                   
+  authStore.ts     |   85.21 |    85.45 |   78.26 |      88 | ...09-211,238,258 
+  llmStatsStore.ts |   83.33 |     8.33 |     100 |   84.61 | 33,47-49          
+  llmStore.ts      |   95.13 |    96.55 |      95 |   97.43 | 271-277           
+  objectStore.ts   |   97.77 |    77.77 |     100 |     100 | 99-101,187-216    
+  ocrScanStore.ts  |     100 |    86.11 |     100 |     100 | 90-127,136-137    
+  pluginStore.ts   |   77.58 |    66.17 |    77.5 |    79.9 | ...87-490,518-540 
+  profileStore.ts  |     100 |    68.75 |     100 |     100 | 54-59             
+  safSyncStore.ts  |   83.87 |    58.13 |      90 |   89.28 | 121-129,144-148   
+  settingsStore.ts |   91.13 |    78.71 |     100 |    94.9 | ...47,628-629,697 
+  syncStore.ts     |   85.75 |    71.15 |   79.71 |   86.98 | ...47,847,868-869 
+  templateStore.ts |     100 |       80 |     100 |     100 | 109               
+  trashStore.ts    |   91.56 |    77.77 |    92.3 |   89.55 | 13-23,186         
+  uiStore.ts       |   78.78 |       75 |   84.21 |   74.07 | 62,69-76,105      
+  updateStore.ts   |      76 |    72.32 |   65.21 |   80.83 | ...84-395,408,411 
+ src/types         |   88.88 |    85.71 |     100 |     100 |                   
+  llmChat.ts       |   88.88 |    85.71 |     100 |     100 | 25                
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 85.94% ( 18467/21488 )
+Branches     : 73.35% ( 9171/12503 )
+Functions    : 80.94% ( 3351/4140 )
+Lines        : 87.83% ( 17100/19468 )
+================================================================================

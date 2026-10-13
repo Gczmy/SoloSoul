@@ -1,0 +1,17 @@
+{
+  "pid": 16940,
+  "command": [
+    "cmd.exe",
+    "/d",
+    "/c",
+    "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+    ":app:assembleX86_64DebugAndroidTest",
+    "-x",
+    ":app:rustBuildX86_64Debug",
+    "--init-script",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\private-packaging-assets.init.gradle",
+    "--no-daemon",
+    "--max-workers",
+    "2"
+  ]
+}

@@ -1,0 +1,794 @@
+{
+  "task": "RF-312",
+  "acceptedScope": "current-source host-only Android-media fixture export and independent content/path verification",
+  "taskClosed": false,
+  "fullRF312Accepted": false,
+  "sourceHeadBeforeAdapter": "71357f64a",
+  "sourceFile": "tauri/crates/solosoul-core/examples/perf_baseline/media.rs",
+  "sourceSha256": "64568beb6dd069a9c4ea6fe8e619afd0124f5dfaf014d29be3110796bf44332f",
+  "currentSourceGenerator": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+    "sha256": "f8327222475262cb4bb629bf4ae36d4dd72314a8217da1442aabf56f779f0c2d",
+    "sourceHeadBeforeAdapter": "71357f64a",
+    "currentSourceBuild": true,
+    "buildReceipt": {
+      "rows": [
+        {
+          "label": "fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--",
+            "--check"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 5.174985999998171
+        },
+        {
+          "label": "media-tests",
+          "command": [
+            "cargo",
+            "test",
+            "--locked",
+            "--offline",
+            "-p",
+            "solosoul-core",
+            "--example",
+            "perf_baseline",
+            "media::tests",
+            "--",
+            "--test-threads=1"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 317.2459025999997
+        },
+        {
+          "label": "media-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--locked",
+            "--offline",
+            "-p",
+            "solosoul-core",
+            "--example",
+            "perf_baseline",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 25.80378070002189
+        },
+        {
+          "label": "release-generator",
+          "command": [
+            "cargo",
+            "build",
+            "--locked",
+            "--offline",
+            "-p",
+            "solosoul-core",
+            "--release",
+            "--example",
+            "perf_baseline"
+          ],
+          "exitCode": 0,
+          "elapsedSeconds": 193.30175220000092
+        }
+      ],
+      "sourcesUnchanged": true,
+      "defaultDependenciesAndLockfileUnchanged": true,
+      "nativeUiOrPerformanceAccepted": false
+    },
+    "nativeUiMeasured": false
+  },
+  "checks": {
+    "rows": [
+      {
+        "label": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 5.174985999998171
+      },
+      {
+        "label": "media-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-core",
+          "--example",
+          "perf_baseline",
+          "media::tests",
+          "--",
+          "--test-threads=1"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 317.2459025999997
+      },
+      {
+        "label": "media-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-core",
+          "--example",
+          "perf_baseline",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 25.80378070002189
+      },
+      {
+        "label": "release-generator",
+        "command": [
+          "cargo",
+          "build",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-core",
+          "--release",
+          "--example",
+          "perf_baseline"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 193.30175220000092
+      }
+    ],
+    "sourcesUnchanged": true,
+    "defaultDependenciesAndLockfileUnchanged": true,
+    "nativeUiOrPerformanceAccepted": false
+  },
+  "sharedWindowsConsumer": {
+    "rows": [
+      {
+        "label": "windows-consumer-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--offline",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 164.15516480000224
+      },
+      {
+        "label": "windows-consumer-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "native_perf::media_fixture::",
+          "--",
+          "--test-threads=1"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 689.0001690000063
+      }
+    ],
+    "sourcesUnchanged": true,
+    "nativeWindowsGuiOrAndroidRuntimeNotExecutedByTheseChecks": true
+  },
+  "testCounts": {
+    "examplePassed": 9,
+    "windowsConsumerPassed": 10,
+    "failed": 0,
+    "ignored": 0
+  },
+  "actualPreparation": {
+    "rows": [
+      {
+        "label": "android-100-copy",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--copy-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-media-fixtures-d-20261012\\vault100",
+          "--media-fixture-output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100"
+        ],
+        "elapsedSeconds": 4.498798600048758
+      },
+      {
+        "label": "android-100-verify",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100"
+        ],
+        "elapsedSeconds": 0.9241694000083953
+      },
+      {
+        "label": "android-100-host-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--verify-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100"
+        ],
+        "elapsedSeconds": 0.37162590003572404
+      },
+      {
+        "label": "host-100-android-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-media-fixtures-d-20261012\\vault100"
+        ],
+        "elapsedSeconds": 0.05474400002276525
+      },
+      {
+        "label": "android-5000-copy",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--copy-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-media-fixtures-d-20261012\\vault5000",
+          "--media-fixture-output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000"
+        ],
+        "elapsedSeconds": 5.615312099980656
+      },
+      {
+        "label": "android-5000-verify",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000"
+        ],
+        "elapsedSeconds": 1.4459219999844208
+      },
+      {
+        "label": "android-5000-host-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--verify-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000"
+        ],
+        "elapsedSeconds": 0.05352299998048693
+      },
+      {
+        "label": "host-5000-android-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\current-android-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-media-fixtures-d-20261012\\vault5000"
+        ],
+        "elapsedSeconds": 0.059124000021256506
+      }
+    ],
+    "currentSourceBuild": true,
+    "sourcesAndOriginal1005000FixturesUnchanged": true,
+    "bothProductionKdfCopiesAndIndependentAllObjectFourAssetVerification": true,
+    "bothMixedPlatformModesRejected": true,
+    "nativeAndroidUiOrPerformanceAccepted": false
+  },
+  "outputs": [
+    {
+      "objectCount": 100,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100",
+      "metadataVaultRoot": "/data/user/0/com.solosoul.app",
+      "marker": {
+        "media": {
+          "attachments": [
+            {
+              "id": "att_d8078605-7864-468e-a0a3-6429ef8f907e",
+              "relativePath": "attachments/obj_perf_00000000/att_d8078605-7864-468e-a0a3-6429ef8f907e/ocr_test.png"
+            },
+            {
+              "id": "att_b36cf48f-88de-4dda-92a8-9069d2635e54",
+              "relativePath": "attachments/obj_perf_00000000/att_b36cf48f-88de-4dda-92a8-9069d2635e54/text_only.pdf"
+            },
+            {
+              "id": "att_9f97ece8-277a-49b2-85a8-f6b37b422e9c",
+              "relativePath": "attachments/obj_perf_00000000/att_9f97ece8-277a-49b2-85a8-f6b37b422e9c/scanned.pdf"
+            },
+            {
+              "id": "att_eba6cbe1-f4c9-49eb-9fff-1f8556af5f72",
+              "relativePath": "attachments/obj_perf_00000000/att_eba6cbe1-f4c9-49eb-9fff-1f8556af5f72/preview.txt"
+            }
+          ],
+          "baseFixture": {
+            "accountId": "acc_rf312_100",
+            "accountName": "Performance Fixture",
+            "buildProfile": "release",
+            "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+            "expectedSearchMatches": 5,
+            "fixture": "deterministic-20th-object-property-match",
+            "generator": "solosoul-core/examples/perf_baseline",
+            "includesAttachments": false,
+            "includesOcrFixture": false,
+            "includesProfile": true,
+            "includesUiPreferences": true,
+            "kdf": {
+              "iterations": 3,
+              "memoryKiB": 65536,
+              "parallelism": 4
+            },
+            "objectCount": 100,
+            "schemaVersion": 1,
+            "scope": "synthetic-native-vault-fixture",
+            "searchQuery": "needle"
+          },
+          "closedFiles": [
+            {
+              "relativePath": "acc_rf312_100/config.json",
+              "sha256": "51a3c766e924282a2c30c9f4a4c1b525e6bcf1725b424d51d43952b2aba95dd0"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db",
+              "sha256": "b4d3e67b18b0fdc36889bd1852fb2340a6bf9850203aa03bc257446fc8a7aa1e"
+            },
+            {
+              "relativePath": "accounts.json",
+              "sha256": "76d37c13fd2fc44579eca3f3ad951cc7df2dbb9dd85e8439196e5bde68067484"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_9f97ece8-277a-49b2-85a8-f6b37b422e9c/scanned.pdf",
+              "sha256": "2cb057112ba16ff490f5107809442f66a87315fd35fca44b370feefdba5838bb"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_b36cf48f-88de-4dda-92a8-9069d2635e54/text_only.pdf",
+              "sha256": "79147864d70da87cd7493aa449ce3dc62c8cb054ffbfb43d7c96b1ebeaf002d6"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_d8078605-7864-468e-a0a3-6429ef8f907e/ocr_test.png",
+              "sha256": "60d606860057cbce87d7f8a885920a0f57a9893d85e7afb343ece7349612d9b5"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_eba6cbe1-f4c9-49eb-9fff-1f8556af5f72/preview.txt",
+              "sha256": "db8c4495802efed1a99dcb894b6a435003b3f1f2f40402a08f34c4b877c9cb49"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+            }
+          ],
+          "generator": "solosoul-core/examples/perf_baseline --media-fixture-output",
+          "includesAttachments": true,
+          "includesOcrFixture": true,
+          "mediaObjectId": "obj_perf_00000000",
+          "publicAssets": [
+            {
+              "bytes": 6274,
+              "fileName": "ocr_test.png",
+              "mimeType": "image/png",
+              "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+            },
+            {
+              "bytes": 3035,
+              "fileName": "text_only.pdf",
+              "mimeType": "application/pdf",
+              "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+            },
+            {
+              "bytes": 1921,
+              "fileName": "scanned.pdf",
+              "mimeType": "application/pdf",
+              "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+            },
+            {
+              "bytes": 71,
+              "fileName": "preview.txt",
+              "mimeType": "text/plain",
+              "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+            }
+          ],
+          "schemaVersion": 2,
+          "scope": "synthetic-native-media-vault-fixture"
+        },
+        "metadataVaultRoot": "/data/user/0/com.solosoul.app",
+        "schemaVersion": 1,
+        "scope": "synthetic-android-media-vault-fixture"
+      },
+      "verification": {
+        "fixturePath": "\\\\?\\D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100",
+        "metadataVaultRoot": "/data/user/0/com.solosoul.app",
+        "nativeUiMeasured": false,
+        "scope": "synthetic-android-media-read-only-verification",
+        "success": true,
+        "verification": {
+          "allObjectContentsVerified": 100,
+          "attachmentCount": 4,
+          "attachments": [
+            {
+              "bytes": 6274,
+              "encrypted": true,
+              "fileName": "ocr_test.png",
+              "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+            },
+            {
+              "bytes": 3035,
+              "encrypted": true,
+              "fileName": "text_only.pdf",
+              "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+            },
+            {
+              "bytes": 1921,
+              "encrypted": true,
+              "fileName": "scanned.pdf",
+              "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+            },
+            {
+              "bytes": 71,
+              "encrypted": true,
+              "fileName": "preview.txt",
+              "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+            }
+          ],
+          "baseVerification": {
+            "accountCount": 1,
+            "accountId": "acc_rf312_100",
+            "objectCount": 100,
+            "objectIdsVerified": true,
+            "profileVerified": true,
+            "scope": "synthetic-fixture-reopen-verification",
+            "searchMatches": 5,
+            "searchResultIdsVerified": true,
+            "success": true,
+            "uiPreferencesVerified": true
+          },
+          "metadataPathsVerified": true,
+          "rebasedOnOwnedCopy": false,
+          "sourceFileProofs": [
+            {
+              "relativePath": ".lock",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "relativePath": "acc_rf312_100/config.json",
+              "sha256": "51a3c766e924282a2c30c9f4a4c1b525e6bcf1725b424d51d43952b2aba95dd0"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db",
+              "sha256": "b4d3e67b18b0fdc36889bd1852fb2340a6bf9850203aa03bc257446fc8a7aa1e"
+            },
+            {
+              "relativePath": "accounts.bak",
+              "sha256": "18a45896ffc1641fb505ae8e00b6a8e041e610710ca20eec7d7c8bedbdb3ada5"
+            },
+            {
+              "relativePath": "accounts.json",
+              "sha256": "76d37c13fd2fc44579eca3f3ad951cc7df2dbb9dd85e8439196e5bde68067484"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_9f97ece8-277a-49b2-85a8-f6b37b422e9c/scanned.pdf",
+              "sha256": "2cb057112ba16ff490f5107809442f66a87315fd35fca44b370feefdba5838bb"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_b36cf48f-88de-4dda-92a8-9069d2635e54/text_only.pdf",
+              "sha256": "79147864d70da87cd7493aa449ce3dc62c8cb054ffbfb43d7c96b1ebeaf002d6"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_d8078605-7864-468e-a0a3-6429ef8f907e/ocr_test.png",
+              "sha256": "60d606860057cbce87d7f8a885920a0f57a9893d85e7afb343ece7349612d9b5"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_eba6cbe1-f4c9-49eb-9fff-1f8556af5f72/preview.txt",
+              "sha256": "db8c4495802efed1a99dcb894b6a435003b3f1f2f40402a08f34c4b877c9cb49"
+            },
+            {
+              "relativePath": "rf312-media-fixture.json",
+              "sha256": "076e7e9bc313171e0b95f8794c4303bed122065dd5924870c2851b6d83a5f710"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+            }
+          ],
+          "sourceFilesUnchanged": true,
+          "sourcePathsCleared": true,
+          "success": true
+        }
+      },
+      "files": {
+        ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "accounts.bak": "18a45896ffc1641fb505ae8e00b6a8e041e610710ca20eec7d7c8bedbdb3ada5",
+        "accounts.json": "76d37c13fd2fc44579eca3f3ad951cc7df2dbb9dd85e8439196e5bde68067484",
+        "rf312-media-fixture.json": "076e7e9bc313171e0b95f8794c4303bed122065dd5924870c2851b6d83a5f710",
+        "ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+        "acc_rf312_100/config.json": "51a3c766e924282a2c30c9f4a4c1b525e6bcf1725b424d51d43952b2aba95dd0",
+        "acc_rf312_100/vault.db": "b4d3e67b18b0fdc36889bd1852fb2340a6bf9850203aa03bc257446fc8a7aa1e",
+        "attachments/obj_perf_00000000/att_9f97ece8-277a-49b2-85a8-f6b37b422e9c/scanned.pdf": "2cb057112ba16ff490f5107809442f66a87315fd35fca44b370feefdba5838bb",
+        "attachments/obj_perf_00000000/att_b36cf48f-88de-4dda-92a8-9069d2635e54/text_only.pdf": "79147864d70da87cd7493aa449ce3dc62c8cb054ffbfb43d7c96b1ebeaf002d6",
+        "attachments/obj_perf_00000000/att_d8078605-7864-468e-a0a3-6429ef8f907e/ocr_test.png": "60d606860057cbce87d7f8a885920a0f57a9893d85e7afb343ece7349612d9b5",
+        "attachments/obj_perf_00000000/att_eba6cbe1-f4c9-49eb-9fff-1f8556af5f72/preview.txt": "db8c4495802efed1a99dcb894b6a435003b3f1f2f40402a08f34c4b877c9cb49"
+      }
+    },
+    {
+      "objectCount": 5000,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000",
+      "metadataVaultRoot": "/data/user/0/com.solosoul.app",
+      "marker": {
+        "media": {
+          "attachments": [
+            {
+              "id": "att_0bae923c-699f-4980-a411-abb94787f0b2",
+              "relativePath": "attachments/obj_perf_00000000/att_0bae923c-699f-4980-a411-abb94787f0b2/ocr_test.png"
+            },
+            {
+              "id": "att_730bdbc0-c6cb-4fd2-ba77-bbece5f20d93",
+              "relativePath": "attachments/obj_perf_00000000/att_730bdbc0-c6cb-4fd2-ba77-bbece5f20d93/text_only.pdf"
+            },
+            {
+              "id": "att_e8d6e3b5-e566-473f-b7f9-91929a5a42e0",
+              "relativePath": "attachments/obj_perf_00000000/att_e8d6e3b5-e566-473f-b7f9-91929a5a42e0/scanned.pdf"
+            },
+            {
+              "id": "att_7b157e8d-69bc-484f-91c9-35ce4641cba5",
+              "relativePath": "attachments/obj_perf_00000000/att_7b157e8d-69bc-484f-91c9-35ce4641cba5/preview.txt"
+            }
+          ],
+          "baseFixture": {
+            "accountId": "acc_rf312_5000",
+            "accountName": "Performance Fixture",
+            "buildProfile": "release",
+            "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+            "expectedSearchMatches": 250,
+            "fixture": "deterministic-20th-object-property-match",
+            "generator": "solosoul-core/examples/perf_baseline",
+            "includesAttachments": false,
+            "includesOcrFixture": false,
+            "includesProfile": true,
+            "includesUiPreferences": true,
+            "kdf": {
+              "iterations": 3,
+              "memoryKiB": 65536,
+              "parallelism": 4
+            },
+            "objectCount": 5000,
+            "schemaVersion": 1,
+            "scope": "synthetic-native-vault-fixture",
+            "searchQuery": "needle"
+          },
+          "closedFiles": [
+            {
+              "relativePath": "acc_rf312_5000/config.json",
+              "sha256": "10106c8f9507a3703523c8d4532a35a64bc89cb568c8906a58b2c527e50bccc4"
+            },
+            {
+              "relativePath": "acc_rf312_5000/vault.db",
+              "sha256": "35a3026f468d7132837adfb6a790c4059682b57644bf87dc389850c0280e4f01"
+            },
+            {
+              "relativePath": "accounts.json",
+              "sha256": "8ce700c48ffb55e1efcdf83d493ae3888d4f3776637c13291644ce2a32a025ff"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_0bae923c-699f-4980-a411-abb94787f0b2/ocr_test.png",
+              "sha256": "7b92471ff8c9b78bb70327fb85f30c5172c2b044b2c9e11f5c15aa6adeac2044"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_730bdbc0-c6cb-4fd2-ba77-bbece5f20d93/text_only.pdf",
+              "sha256": "d923296599770314cae83c62baf58910cd8e452cbe02d67665ce17367e762a2c"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7b157e8d-69bc-484f-91c9-35ce4641cba5/preview.txt",
+              "sha256": "e2bab4eab5daeb9f171959dd0b2193ecd2673942cb98c6d8677979ac2ab6b7b7"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_e8d6e3b5-e566-473f-b7f9-91929a5a42e0/scanned.pdf",
+              "sha256": "645f77e469887d7184017c7eb377467190586935c2de4df2f19faff406b3172b"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+            }
+          ],
+          "generator": "solosoul-core/examples/perf_baseline --media-fixture-output",
+          "includesAttachments": true,
+          "includesOcrFixture": true,
+          "mediaObjectId": "obj_perf_00000000",
+          "publicAssets": [
+            {
+              "bytes": 6274,
+              "fileName": "ocr_test.png",
+              "mimeType": "image/png",
+              "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+            },
+            {
+              "bytes": 3035,
+              "fileName": "text_only.pdf",
+              "mimeType": "application/pdf",
+              "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+            },
+            {
+              "bytes": 1921,
+              "fileName": "scanned.pdf",
+              "mimeType": "application/pdf",
+              "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+            },
+            {
+              "bytes": 71,
+              "fileName": "preview.txt",
+              "mimeType": "text/plain",
+              "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+            }
+          ],
+          "schemaVersion": 2,
+          "scope": "synthetic-native-media-vault-fixture"
+        },
+        "metadataVaultRoot": "/data/user/0/com.solosoul.app",
+        "schemaVersion": 1,
+        "scope": "synthetic-android-media-vault-fixture"
+      },
+      "verification": {
+        "fixturePath": "\\\\?\\D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000",
+        "metadataVaultRoot": "/data/user/0/com.solosoul.app",
+        "nativeUiMeasured": false,
+        "scope": "synthetic-android-media-read-only-verification",
+        "success": true,
+        "verification": {
+          "allObjectContentsVerified": 5000,
+          "attachmentCount": 4,
+          "attachments": [
+            {
+              "bytes": 6274,
+              "encrypted": true,
+              "fileName": "ocr_test.png",
+              "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+            },
+            {
+              "bytes": 3035,
+              "encrypted": true,
+              "fileName": "text_only.pdf",
+              "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+            },
+            {
+              "bytes": 1921,
+              "encrypted": true,
+              "fileName": "scanned.pdf",
+              "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+            },
+            {
+              "bytes": 71,
+              "encrypted": true,
+              "fileName": "preview.txt",
+              "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+            }
+          ],
+          "baseVerification": {
+            "accountCount": 1,
+            "accountId": "acc_rf312_5000",
+            "objectCount": 5000,
+            "objectIdsVerified": true,
+            "profileVerified": true,
+            "scope": "synthetic-fixture-reopen-verification",
+            "searchMatches": 250,
+            "searchResultIdsVerified": true,
+            "success": true,
+            "uiPreferencesVerified": true
+          },
+          "metadataPathsVerified": true,
+          "rebasedOnOwnedCopy": false,
+          "sourceFileProofs": [
+            {
+              "relativePath": ".lock",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "relativePath": "acc_rf312_5000/config.json",
+              "sha256": "10106c8f9507a3703523c8d4532a35a64bc89cb568c8906a58b2c527e50bccc4"
+            },
+            {
+              "relativePath": "acc_rf312_5000/vault.db",
+              "sha256": "35a3026f468d7132837adfb6a790c4059682b57644bf87dc389850c0280e4f01"
+            },
+            {
+              "relativePath": "accounts.bak",
+              "sha256": "cd52a6c1bdcd5416dca1699d4788e489a5eb5bd618e2f97c085e55fb38a3e7ac"
+            },
+            {
+              "relativePath": "accounts.json",
+              "sha256": "8ce700c48ffb55e1efcdf83d493ae3888d4f3776637c13291644ce2a32a025ff"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_0bae923c-699f-4980-a411-abb94787f0b2/ocr_test.png",
+              "sha256": "7b92471ff8c9b78bb70327fb85f30c5172c2b044b2c9e11f5c15aa6adeac2044"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_730bdbc0-c6cb-4fd2-ba77-bbece5f20d93/text_only.pdf",
+              "sha256": "d923296599770314cae83c62baf58910cd8e452cbe02d67665ce17367e762a2c"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7b157e8d-69bc-484f-91c9-35ce4641cba5/preview.txt",
+              "sha256": "e2bab4eab5daeb9f171959dd0b2193ecd2673942cb98c6d8677979ac2ab6b7b7"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_e8d6e3b5-e566-473f-b7f9-91929a5a42e0/scanned.pdf",
+              "sha256": "645f77e469887d7184017c7eb377467190586935c2de4df2f19faff406b3172b"
+            },
+            {
+              "relativePath": "rf312-media-fixture.json",
+              "sha256": "eb70071a5c950a0869b5ac8bade98a482f8c10118ff1f2ec88382044522d9856"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+            }
+          ],
+          "sourceFilesUnchanged": true,
+          "sourcePathsCleared": true,
+          "success": true
+        }
+      },
+      "files": {
+        ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "accounts.bak": "cd52a6c1bdcd5416dca1699d4788e489a5eb5bd618e2f97c085e55fb38a3e7ac",
+        "accounts.json": "8ce700c48ffb55e1efcdf83d493ae3888d4f3776637c13291644ce2a32a025ff",
+        "rf312-media-fixture.json": "eb70071a5c950a0869b5ac8bade98a482f8c10118ff1f2ec88382044522d9856",
+        "ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+        "acc_rf312_5000/config.json": "10106c8f9507a3703523c8d4532a35a64bc89cb568c8906a58b2c527e50bccc4",
+        "acc_rf312_5000/vault.db": "35a3026f468d7132837adfb6a790c4059682b57644bf87dc389850c0280e4f01",
+        "attachments/obj_perf_00000000/att_0bae923c-699f-4980-a411-abb94787f0b2/ocr_test.png": "7b92471ff8c9b78bb70327fb85f30c5172c2b044b2c9e11f5c15aa6adeac2044",
+        "attachments/obj_perf_00000000/att_730bdbc0-c6cb-4fd2-ba77-bbece5f20d93/text_only.pdf": "d923296599770314cae83c62baf58910cd8e452cbe02d67665ce17367e762a2c",
+        "attachments/obj_perf_00000000/att_7b157e8d-69bc-484f-91c9-35ce4641cba5/preview.txt": "e2bab4eab5daeb9f171959dd0b2193ecd2673942cb98c6d8677979ac2ab6b7b7",
+        "attachments/obj_perf_00000000/att_e8d6e3b5-e566-473f-b7f9-91929a5a42e0/scanned.pdf": "645f77e469887d7184017c7eb377467190586935c2de4df2f19faff406b3172b"
+      }
+    }
+  ],
+  "originalHostFixturesUnchanged": true,
+  "fixedOwnedDeviceMetadataRootConfirmedByActualRunAsPwd": "/data/user/0/com.solosoul.app",
+  "oldHostNativeConsumersRejectAndroidWrapper": true,
+  "firstRoundStdoutJsonFailureRetained": {
+    "outerExitCode": 1,
+    "android100CopyExitCode": 0,
+    "android100IndependentVerifyExitCode": 0,
+    "objects5000Attempted": false,
+    "cause": "Windows ACL status lines precede final JSON on stdout; whole-output JSON parser failed",
+    "oldOutputsRetained": true,
+    "nativeAndroidUiOrPerformanceAccepted": false
+  },
+  "nativeAndroidUiOrOcrPreviewPerformanceAccepted": false,
+  "defaultCrateApisFlagsDependenciesAndLockfileUnchanged": true,
+  "archive": {
+    "path": "rf312-android-media-preparation-2026-10-12/raw.tar.gz",
+    "members": 87,
+    "bytes": 138856,
+    "sha256": "5b377e7ea9ad40da09612e88bac1d8e606b32dd139341579c3ab3a79407adc59",
+    "allMembersReadbackVerified": true
+  }
+}

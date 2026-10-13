@@ -2,6 +2,90 @@ use super::*;
 use std::os::windows::process::CommandExt;
 use std::process::{Command, Stdio};
 
+#[test]
+fn consumed_publication_is_invisible_until_serialization_finishes() {
+    struct Observed<'a> {
+        destination: &'a Path,
+        visible: &'a std::cell::Cell<bool>,
+    }
+    impl serde::Serialize for Observed<'_> {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            use serde::ser::SerializeMap;
+            let mut map = serializer.serialize_map(Some(1))?;
+            map.serialize_entry("runId", "complete-payload")?;
+            self.visible.set(self.destination.exists());
+            map.end()
+        }
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let destination = dir.path().join(CONSUMED_FILE);
+    let visible = std::cell::Cell::new(false);
+    publish_consumed_json(
+        &destination,
+        &Observed {
+            destination: &destination,
+            visible: &visible,
+        },
+    )
+    .unwrap();
+    assert!(!visible.get(), "consumer saw a marker during serialization");
+    assert_eq!(
+        read_json(&destination).unwrap(),
+        json!({"runId":"complete-payload"})
+    );
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
+}
+
+#[test]
+fn consumed_publication_failure_leaves_no_marker_or_temporary_file() {
+    struct Broken;
+    impl serde::Serialize for Broken {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            use serde::ser::SerializeMap;
+            let mut map = serializer.serialize_map(Some(2))?;
+            map.serialize_entry("runId", "partial")?;
+            Err(serde::ser::Error::custom("injected serialization failure"))
+        }
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let destination = dir.path().join(CONSUMED_FILE);
+    assert!(publish_consumed_json(&destination, &Broken).is_err());
+    assert!(!destination.exists());
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
+    publish_consumed_json(&destination, &json!({"runId":"retry"})).unwrap();
+    assert_eq!(read_json(&destination).unwrap(), json!({"runId":"retry"}));
+}
+
+#[test]
+fn consumed_publication_concurrent_claims_have_one_complete_winner() {
+    let dir = tempfile::tempdir().unwrap();
+    let destination = dir.path().join(CONSUMED_FILE);
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(8));
+    let threads: Vec<_> = (0..8)
+        .map(|id| {
+            let destination = destination.clone();
+            let barrier = barrier.clone();
+            std::thread::spawn(move || {
+                let value = json!({"runId":id,"payload":"x".repeat(8192)});
+                barrier.wait();
+                publish_consumed_json(&destination, &value)
+                    .is_ok()
+                    .then_some(value)
+            })
+        })
+        .collect();
+    let winners: Vec<_> = threads
+        .into_iter()
+        .filter_map(|t| t.join().unwrap())
+        .collect();
+    assert_eq!(winners.len(), 1);
+    assert_eq!(read_json(&destination).unwrap(), winners[0]);
+    let bytes = fs::read(&destination).unwrap();
+    assert!(publish_consumed_json(&destination, &json!({"runId":"overwrite"})).is_err());
+    assert_eq!(fs::read(&destination).unwrap(), bytes);
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
+}
+
 fn args(values: &[&str]) -> Vec<OsString> {
     values.iter().map(OsString::from).collect()
 }
@@ -1183,7 +1267,7 @@ fn native_perf_warm_ticket_preserves_fixture_and_legacy_consume_and_is_one_use()
     let observer = json!({"schemaVersion":1,"scope":"windows-native-tauri-invoke-observer","runId":config.run_id,"valid":true,"total":0,"observedCount":0,"invalidReasons":[],"installedAtMs":0,"timeOriginMs":1000,"maxEvents":16384,"commands":[]});
     let ipc = json!({"attempts":0,"commands":{},"reason":null});
     let trust = json!({"pointer":0,"text":0,"untrusted":0});
-    let proof = json!({"schemaVersion":1,"scope":"windows-native-sdk-startup","root":config.root,"runId":config.run_id,"pid":pid,"port":config.port,"objectCount":100,"browserPid":browser,"binding":{"source":"http://tauri.localhost/login","mainFrameId":"unit-frame","loaderId":"unit-loader","timeOriginMs":null,"navigationEvents":0,"frameCreatedEvents":0},"timeOriginMs":1000,"inputMethod":"SDK-CDP-read-only","success":true,"reason":null,"failedStep":null,"calls":["Runtime.evaluate","Page.getFrameTree"],"phases":[{"name":"startup","success":true,"durationMs":10,"ipc":ipc,"inputTrust":trust,"fromAtMs":0,"toAtMs":5}],"lastProbe":{"schemaVersion":1,"scope":"windows-native-sdk-ui-probe","runId":config.run_id,"step":"startup","outcome":"ready","href":"http://tauri.localhost/login","origin":"http://tauri.localhost","timeOriginMs":1000,"atMs":5,"rootPresent":true,"frameCount":0,"target":null,"inputTrust":trust,"observer":observer},"ipcAll":ipc,"elapsedMs":1,"unmeasured":startup::unmeasured(1),"startup":config.startup});
+    let proof = json!({"schemaVersion":1,"scope":"windows-native-sdk-startup","root":config.root,"runId":config.run_id,"pid":pid,"port":config.port,"objectCount":100,"browserPid":browser,"binding":{"source":"http://tauri.localhost/login","mainFrameId":"unit-frame","loaderId":"unit-loader","timeOriginMs":null,"navigationEvents":0,"frameCreatedEvents":0},"timeOriginMs":1000,"inputMethod":"SDK-CDP-read-only","success":true,"reason":null,"failedStep":null,"calls":["Runtime.evaluate","Page.getFrameTree","Runtime.evaluate","Page.getFrameTree"],"phases":[{"name":"startup","success":true,"durationMs":10,"ipc":ipc,"inputTrust":trust,"fromAtMs":0,"toAtMs":5}],"lastProbe":{"schemaVersion":1,"scope":"windows-native-sdk-ui-probe","runId":config.run_id,"step":"startup","outcome":"ready","href":"http://tauri.localhost/login","origin":"http://tauri.localhost","timeOriginMs":1000,"atMs":5,"rootPresent":true,"frameCount":0,"target":null,"inputTrust":trust,"observer":observer},"ipcAll":ipc,"elapsedMs":1,"unmeasured":startup::unmeasured(1),"startup":config.startup});
     let proof_path = config.evidence_root().join("native-perf-sdk-journey.json");
     write_new_json(&proof_path, &proof).unwrap();
     let hashes = [
@@ -1214,6 +1298,43 @@ fn native_perf_warm_ticket_preserves_fixture_and_legacy_consume_and_is_one_use()
     )
     .unwrap();
     assert!(consume(&config.root, free_port(), &folders).is_err());
+    // The current producer has a fixed startup pair and authentication/frame tail.
+    // Reject a malformed tail before the stop-hash check, then restore original bytes.
+    let original_proof = fs::read(&proof_path).unwrap();
+    for calls in [
+        json!([]),
+        json!(["Runtime.evaluate", "Page.getFrameTree"]),
+        json!(["Runtime.evaluate", "Page.getFrameTree", "Runtime.evaluate"]),
+        json!([
+            "Runtime.evaluate",
+            "Page.getFrameTree",
+            "Runtime.evaluate",
+            "Page.getFrameTree",
+            "Runtime.evaluate",
+            "Page.getFrameTree"
+        ]),
+        json!([
+            "Runtime.evaluate",
+            "Page.getFrameTree",
+            "Page.getFrameTree",
+            "Runtime.evaluate"
+        ]),
+        json!([
+            "Runtime.evaluate",
+            "Page.getFrameTree",
+            "Input.insertText",
+            "Page.getFrameTree"
+        ]),
+    ] {
+        let mut invalid = proof.clone();
+        invalid["calls"] = calls;
+        fs::write(&proof_path, serde_json::to_vec(&invalid).unwrap()).unwrap();
+        assert_eq!(
+            startup::prepare_restart(&config.root, &folders).unwrap_err(),
+            "first startup proof is not a successful exclusive read-only prime"
+        );
+    }
+    fs::write(&proof_path, original_proof).unwrap();
     let prepared = startup::prepare_restart(&config.root, &folders).unwrap();
     assert_ne!(prepared["runId"], config.run_id);
     assert!(startup::prepare_restart(&config.root, &folders).is_err());

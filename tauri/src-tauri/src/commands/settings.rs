@@ -374,6 +374,11 @@ pub async fn user_data_update_preference(
     state: State<'_, AppState>,
     payload: UpdatePreferencesPayload,
 ) -> Result<(), String> {
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_attempt = crate::native_perf::preference_trace::begin(
+        &payload.account_id,
+        payload.preferences.keys().map(String::as_str),
+    );
     // P026: 入口校验 key 白名单与载荷边界，拒绝未知 key/超限载荷。
     validate_preferences_payload(&payload.preferences)?;
     let vault = vault_handle(&state)?;
@@ -389,6 +394,10 @@ pub async fn user_data_update_preference(
     })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    if let Some(attempt) = perf_attempt {
+        attempt.complete();
+    }
     Ok(())
 }
 

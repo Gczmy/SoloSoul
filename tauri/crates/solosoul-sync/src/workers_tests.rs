@@ -2,7 +2,6 @@ use super::*;
 use solosoul_core::import_activity::begin_owned_root_maintenance;
 use solosoul_vault::root_owner::VaultRootOwner;
 use solosoul_vault::{VaultConfig, VaultStore};
-use std::io::Read;
 use std::net::TcpListener;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc;
@@ -187,16 +186,19 @@ async fn network_interrupt_unblocks_real_socket_but_wait_still_joins_worker() {
     let (_dir, vault) = fixture();
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let client = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
-    let (mut server, _) = listener.accept().unwrap();
+    let (server, _) = listener.accept().unwrap();
     let workers = SyncWorkers::new();
     let counter = Arc::new(AtomicUsize::new(0));
     let (entered_tx, entered_rx) = tokio::sync::oneshot::channel();
+    let (read_done_tx, read_done_rx) = tokio::sync::oneshot::channel();
+    let (release_tx, release_rx) = mpsc::channel();
     let receiver = workers
         .spawn_session(vault.clone(), counter.clone(), move |permit| {
-            permit.track_stream(&server).unwrap();
+            let mut transport = permit.transport(server).unwrap();
             let _ = entered_tx.send(());
-            let mut byte = [0u8; 1];
-            server.read(&mut byte)
+            let result = transport.receive_message().map(|_| 0);
+            let _ = read_done_tx.send(result);
+            release_rx.recv_timeout(Duration::from_secs(10)).unwrap();
         })
         .unwrap();
     entered_rx.await.unwrap();
@@ -207,13 +209,40 @@ async fn network_interrupt_unblocks_real_socket_but_wait_still_joins_worker() {
         "IMPORT_OPERATIONS_ACTIVE"
     );
     workers.close();
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    let started = std::time::Instant::now();
     workers.interrupt_network();
-    let read_result = receiver.await.unwrap();
-    assert!(matches!(read_result, Ok(0) | Err(_)));
-    workers.wait().await.unwrap();
+    let interrupted = tokio::time::timeout(Duration::from_secs(2), read_done_rx).await;
+    let elapsed = started.elapsed();
+    // 清理失败路径的真实 worker，避免测试失败后由 runtime 永久等待阻塞线程。
+    if interrupted.is_err() {
+        client.shutdown(Shutdown::Both).unwrap();
+    }
+    assert_eq!(counter.load(Ordering::SeqCst), 1);
+    assert_eq!(
+        begin_owned_root_maintenance(vault.root_owner())
+            .err()
+            .unwrap(),
+        "IMPORT_OPERATIONS_ACTIVE"
+    );
+    let waiting_workers = workers.clone();
+    let waiter = tokio::spawn(async move { waiting_workers.wait().await });
+    tokio::time::sleep(Duration::from_millis(20)).await;
+    let wait_returned_before_worker = waiter.is_finished();
+    release_tx.send(()).unwrap();
+    receiver.await.unwrap();
+    waiter.await.unwrap().unwrap();
     assert_eq!(counter.load(Ordering::SeqCst), 0);
     drop(client);
     drop(begin_owned_root_maintenance(vault.root_owner()).unwrap());
+    println!("RF1120 network interrupt elapsed: {elapsed:?}");
+    assert!(!wait_returned_before_worker, "wait released a live worker");
+    assert!(interrupted.is_ok(), "Network read did not stop within 2s");
+    assert!(interrupted
+        .unwrap()
+        .unwrap()
+        .unwrap_err()
+        .contains("Sync cancelled"));
 }
 
 #[tokio::test]

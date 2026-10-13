@@ -1,0 +1,89 @@
+{
+  "task": "RF-1127",
+  "sourceHead": "41fc4d15cbc546699ad416e75d10766704456787",
+  "accepted": false,
+  "newGuiBuilt": true,
+  "exeSha256": "6f9e1c33a449eafd3843549b56db8e5c3ecee5f24157416ed655ee4a66a0c682",
+  "sources": 1839,
+  "buildReceipt": {
+    "command": [
+      "npm.cmd",
+      "run",
+      "tauri",
+      "--",
+      "build",
+      "--config",
+      "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\rf1129-native-build-20261011\\native-build.conf.json",
+      "--features",
+      "native-perf",
+      "--no-bundle",
+      "--ci"
+    ],
+    "pid": 28464,
+    "exitCode": 0,
+    "elapsedSeconds": 1640.6149049999658,
+    "sourceUnchanged": false,
+    "changedSources": [
+      "tauri/src-tauri/Cargo.toml"
+    ]
+  },
+  "manifestNewlineParity": {
+    "normalizedBytesEqual": true,
+    "parsedTomlEqual": true,
+    "action": "restore original newline bytes only; original build receipt retained"
+  },
+  "generatedFrontendInputStability": {
+    "allGeneratedFrontendInputsUnchangedDuringRustBuild": true,
+    "files": 38,
+    "manifestSha256": "c2d33602aeb308bd0dbbad9478690226f0093234cba0a8d18f6261e3d8cedd09"
+  },
+  "runtimeResources": 94,
+  "requestedCohorts": 4,
+  "executedCohorts": 1,
+  "sdkJourneysPassed": 2,
+  "sdkJourneysFailed": 1,
+  "windowCapturesAccepted": 0,
+  "readerRuns": 0,
+  "rendererRuns": 0,
+  "failedStep": "home",
+  "reason": "probe-timeout",
+  "firstLastGoodProbeStep": "submit",
+  "failureCauseResolved": false,
+  "appearanceTransitionDiagnosticReached": false,
+  "cleanupIdentities": 27,
+  "exactCachesRemoved": 24,
+  "junctionsUnlinked": 3,
+  "vaultAndRootProofFilesPreserved": 78,
+  "applicationLogCopies": 3,
+  "cleanupProcessesTerminated": 0,
+  "fullRF121Accepted": false,
+  "RF1128Accepted": false,
+  "performanceAccepted": false,
+  "archive": {
+    "path": "rf1127-current-gui-home-timeout-2026-10-11/raw.tar.gz",
+    "members": 121,
+    "bytes": 312437,
+    "sha256": "c206cb9b4fab85174222c895c730956f3ec615bdfee5e50d90afc7bd4bd723e2",
+    "allMembersReadbackVerified": true
+  },
+  "timeoutDiagnosticPresent": true,
+  "timeoutFrameVerified": true,
+  "timeoutState": {
+    "focused": true,
+    "homeVisible": false,
+    "passwordVisible": true,
+    "submitDisabled": false,
+    "submitVisible": true,
+    "viewportHeight": 800,
+    "viewportWidth": 1200,
+    "visibility": "visible"
+  },
+  "timeoutInputTrust": {
+    "pointer": 2,
+    "text": 1,
+    "untrusted": 0
+  },
+  "frontendLoginInvocationsAtTimeout": 0,
+  "frontendProbeTimeoutMs": 45000,
+  "callbackEnvelopeMs": 50000
+}

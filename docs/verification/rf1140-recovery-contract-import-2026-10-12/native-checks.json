@@ -1,0 +1,37 @@
+[
+  {
+    "label": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--offline",
+      "-p",
+      "solo_soul",
+      "--all-targets",
+      "--features",
+      "native-perf",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exitCode": 0,
+    "seconds": 199.25267189997248
+  },
+  {
+    "label": "rust-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "-p",
+      "solo_soul",
+      "--lib",
+      "--features",
+      "native-perf"
+    ],
+    "exitCode": 0,
+    "seconds": 1698.567791199952
+  }
+]

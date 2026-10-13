@@ -1,0 +1,66 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF121_20261010",
+  "mode": "supported",
+  "startedAt": "2026-10-10T20:56:59.694Z",
+  "tests": [
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "systemThemeFollowsLightDarkLight",
+      "passed": true,
+      "seconds": 7.423
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "explicitLightSurvivesSystemChanges",
+      "passed": true,
+      "seconds": 6.315
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "explicitDarkSurvivesSystemChanges",
+      "passed": true,
+      "seconds": 6.121
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "savedSchemesAndCustomAccentSurviveColdStartup",
+      "passed": true,
+      "seconds": 7.846
+    },
+    {
+      "class": "ResourceInstallerInstrumentedTest",
+      "method": "packagedResourcesInstallAndSecondStartWritesNothing",
+      "passed": true,
+      "seconds": 3.04
+    },
+    {
+      "class": "ResourcePreparationInstrumentedTest",
+      "method": "slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "passed": true,
+      "seconds": 8.243
+    },
+    {
+      "class": "ResourcePreparationInstrumentedTest",
+      "method": "errorIsVisibleAndRetryUnblocksRealConsumers",
+      "passed": true,
+      "seconds": 7.371
+    }
+  ],
+  "passed": true,
+  "api": 35,
+  "abi": "x86_64",
+  "artifacts": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+      "sha256": "4f84d60e7740b9804ced6080e09cb35421a89f1d3c02de2faaecdede676da003"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk",
+      "sha256": "9f2097d2da5d2b8d517544a50f200f2753faa4d160752fe38e0c60cca027f4e5"
+    }
+  ],
+  "count": 7,
+  "successes": 7,
+  "finishedAt": "2026-10-10T20:57:49.225Z"
+}

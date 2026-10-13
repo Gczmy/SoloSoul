@@ -1,0 +1,47 @@
+{
+  "privateTarCopiesRemovedAfterExactReadback": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\full-home\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\chmod-disconnect\\private-data-unchanged.tar",
+      "bytes": 277504,
+      "sha256": "372b78165cb36142cdae5d25e5848dfa745161b998592516398f6dc526a5e859"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\corrupt-staged-tar\\private-data-unchanged.tar",
+      "bytes": 277504,
+      "sha256": "372b78165cb36142cdae5d25e5848dfa745161b998592516398f6dc526a5e859"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\private-data-active.tar",
+      "bytes": 277504,
+      "sha256": "372b78165cb36142cdae5d25e5848dfa745161b998592516398f6dc526a5e859"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\push-disconnect\\private-data-unchanged.tar",
+      "bytes": 277504,
+      "sha256": "372b78165cb36142cdae5d25e5848dfa745161b998592516398f6dc526a5e859"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1134-restore-staging-20261012\\native\\success\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "deviceOriginalDataRestoredBeforeRemoval": true,
+  "programsKeysAndSharedServerUntouched": true,
+  "privateContentsNotArchived": true
+}

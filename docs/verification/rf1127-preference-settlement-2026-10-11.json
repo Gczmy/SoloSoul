@@ -1,0 +1,63 @@
+{
+  "task": "RF-1127",
+  "accepted": false,
+  "status": "implementation-verified; new-native-matrix-awaits-interactive-session1",
+  "sourceHead": "82df28d2bc2ed1e16b31759858d22e15ac7a9117",
+  "productionApplicationChanged": false,
+  "strictIntervalContractUnchanged": true,
+  "newContract": "correlateSettledThemeInterval",
+  "targetThemeMustAlreadyBeCompleted": true,
+  "originalTransportCountPreserved": true,
+  "originalRunningSnapshotsUnmodified": true,
+  "terminalPrefixImmutable": true,
+  "laterIdsCannotFillOriginalInterval": true,
+  "dedicatedTests": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "completeNodeTests": {
+    "passed": 240,
+    "failed": 0,
+    "existingSkipped": 1,
+    "exitCode": 0
+  },
+  "failuresRetained": [
+    "missing new export before implementation",
+    "original complete Node sandbox junction permissions"
+  ],
+  "historicalIntervalsVerified": 12,
+  "historicalStrictRejected": 2,
+  "historicalProofIsNewNativeRun": false,
+  "newNativeTestsStarted": 0,
+  "nativeQueueExecuted": false,
+  "session": {
+    "at": "2026-10-11T18:07:37.335422+00:00",
+    "callerPid": 9788,
+    "callerSessionId": 1,
+    "activeConsoleSessionId": 2,
+    "userNamesRead": false,
+    "pixelsRead": 0,
+    "inputEventsSent": 0,
+    "systemSettingsChanged": false,
+    "connectionState": 4,
+    "connectionStateName": "Disconnected",
+    "inputDesktopAvailable": false,
+    "inputDesktopError": 5
+  },
+  "windowsGuiRecompiled": false,
+  "fixtureOrUserDataTouched": false,
+  "processesTerminated": 0,
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "remaining": "new four groups of three native journeys, independent appearance/window pixel validation, precise cache cleanup",
+  "archive": {
+    "path": "rf1127-preference-settlement-2026-10-11/raw.tar.gz",
+    "members": 36,
+    "bytes": 184196,
+    "sha256": "5562a0c6a9cfb1d9324f51266c1ecfc5e4fdf4e1fcbf0b60222eb731e3405e1a",
+    "readbackVerified": true
+  },
+  "ledgerClosed": false,
+  "commitCreated": false
+}

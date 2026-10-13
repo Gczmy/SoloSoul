@@ -1,0 +1,29 @@
+{
+  "task": "RF-1135",
+  "sourceParity": [
+    {
+      "path": "tauri/src-tauri/src/commands/attachment/mod.rs",
+      "validatedWorkingSha256": "3a028bf52c5cbe46134e8aa01a5b2fafd63c9a9f019366acdb45f9ae68d26c49",
+      "stagedSha256": "42962d46de40c8d07a40960123dfca5ec006b8a942d69780e2608fe5dafd8a38",
+      "rawBytesEqual": false,
+      "normalizedEolOnlyEqual": true
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/attachment/share.rs",
+      "validatedWorkingSha256": "917bc12fa81976e1f352bd809705e40617fc25fefc837e34e319c5b46bcc12ad",
+      "stagedSha256": "3fe16a898adbdebe8fb92a5f12df5dbb5cc61467b76be5526102f5741eaa3d08",
+      "rawBytesEqual": false,
+      "normalizedEolOnlyEqual": true
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/attachment/tests.rs",
+      "validatedWorkingSha256": "f32064d59f12c847f05a0b616f456b6ee8e677f99a6a18838ad0d315a36e3908",
+      "stagedSha256": "445f74514e293ba7b06c054e3dd50c4b7d612d3cb63e67113d4d974f5ec043a8",
+      "rawBytesEqual": false,
+      "normalizedEolOnlyEqual": true
+    }
+  ],
+  "stagedRawArchiveMembers": 374,
+  "allStagedArchiveHashesAndLengthsMatch": true,
+  "limitedFunctionalScopePreserved": true
+}

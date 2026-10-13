@@ -1,0 +1,152 @@
+{
+  "task": "RF-1127",
+  "accepted": false,
+  "status": "two-full-matrices-rejected-by-consumed-marker-read-permissions",
+  "sourceHead": "d6b470cfe",
+  "productionApplicationChanged": false,
+  "guiRecompiled": false,
+  "sourceFiles": 1837,
+  "resourceFiles": 94,
+  "defaultNativeJourneysPassed": 24,
+  "successfulCaptureSamples": 22,
+  "completeSurfaceGroupsPassed": 6,
+  "samplesInThoseCompleteGroups": 18,
+  "groups": [
+    {
+      "round": "initial",
+      "scene": "baseline",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": true,
+      "primaryReaderAccepted": true
+    },
+    {
+      "round": "initial",
+      "scene": "light-collapsed",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": true,
+      "primaryReaderAccepted": true
+    },
+    {
+      "round": "initial",
+      "scene": "dark-expanded",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": true,
+      "primaryReaderAccepted": true
+    },
+    {
+      "round": "initial",
+      "scene": "dark-collapsed",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": false,
+      "primaryReaderAccepted": false
+    },
+    {
+      "round": "retry1",
+      "scene": "baseline",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": true,
+      "primaryReaderAccepted": true
+    },
+    {
+      "round": "retry1",
+      "scene": "light-collapsed",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": true,
+      "primaryReaderAccepted": true
+    },
+    {
+      "round": "retry1",
+      "scene": "dark-expanded",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": true,
+      "primaryReaderAccepted": true
+    },
+    {
+      "round": "retry1",
+      "scene": "dark-collapsed",
+      "defaultJourneysPassed": 3,
+      "captureGroupAccepted": false,
+      "primaryReaderAccepted": false
+    }
+  ],
+  "denials": [
+    {
+      "round": "initial",
+      "scene": "dark-collapsed",
+      "sample": 1,
+      "category": "PermissionError",
+      "errno": null,
+      "winerror": null,
+      "error": "[Errno 13] Permission denied: 'D:\\\\SoloSoul\\\\build\\\\rf121-theme-binding-20261010\\\\ss-rf121-composed-window-restore-dark-collapsed-settled-20261011\\\\actual100\\\\sample-001\\\\native-perf-consumed.json'"
+    },
+    {
+      "round": "retry1",
+      "scene": "dark-collapsed",
+      "sample": 3,
+      "category": "PermissionError",
+      "errno": 13,
+      "winerror": null,
+      "error": "[Errno 13] Permission denied: 'D:\\\\SoloSoul\\\\build\\\\rf121-theme-binding-20261010\\\\ss-rf121-composed-window-restore-dark-collapsed-settled-retry1-20261011\\\\actual100\\\\sample-003\\\\native-perf-consumed.json'"
+    }
+  ],
+  "failedSamplesReclassified": false,
+  "failedMatricesRemainRejected": true,
+  "successfulSubsetUsedToAcceptMatrix": false,
+  "readRetriesIntroduced": false,
+  "budgetsChanged": false,
+  "originalMarkerLaterReadable": true,
+  "uniqueCauseOfOriginalErrorsProven": false,
+  "isolatedSharingProbe": {
+    "probeOnly": true,
+    "originalNativeCauseProven": false,
+    "fixtureSha256": "8c856ee64db53c235aee09084224f2756959163c1da9a0df4a4db152dc427c63",
+    "holderRequestsReadAndDelete": true,
+    "holderSharesReadWriteDelete": true,
+    "pythonDefaultReadSucceeded": false,
+    "pythonErrno": 13,
+    "pythonWinerror": null,
+    "sharedReadVerifiedBytes": true,
+    "afterHolderClosedDefaultReadSucceeded": true,
+    "privateProbeFixtureRemoved": true
+  },
+  "nextTask": "RF-1128",
+  "visualReview": [
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-settled-retry1-20261011\\surface-sample-001.png",
+      "sha256": "25b88da79935b5a1fd8e3f5007ed74425eaea0d19665027afa237e99dc37cd51",
+      "humanReviewed": true,
+      "scope": "one actual restored endpoint from retry1; whole matrix remains failed"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-settled-retry1-20261011\\surface-sample-001.png",
+      "sha256": "ed19ac5cd25da35e8b04604ff68b2c2215f2489b8d49d7b35980aab226b1f2c2",
+      "humanReviewed": true,
+      "scope": "one actual restored endpoint from retry1; whole matrix remains failed"
+    },
+    {
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-settled-retry1-20261011\\surface-sample-001.png",
+      "sha256": "0b67626577bffc55c8db3307dc5ef937c19805eba0db29c65517e76a906af490",
+      "humanReviewed": true,
+      "scope": "one actual restored endpoint from retry1; whole matrix remains failed"
+    }
+  ],
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "cleanup": {
+    "pathsRemoved": 192,
+    "identitiesChecked": 216,
+    "linksUnlinked": 24,
+    "preservedFiles": 1146,
+    "processesTerminated": 0,
+    "preservedBytesVerified": true
+  },
+  "archive": {
+    "path": "rf1127-native-read-denials-2026-10-11/raw.tar.gz",
+    "members": 1286,
+    "bytes": 4722559,
+    "sha256": "89449c88f5d2c9df5f73444cfb90718044e523773433c3f091241ba36b3859b2",
+    "allMembersReadbackVerified": true
+  },
+  "ledgerClosed": false,
+  "commitCreated": false
+}

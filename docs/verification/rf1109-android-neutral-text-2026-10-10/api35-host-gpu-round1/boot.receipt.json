@@ -1,0 +1,611 @@
+{
+  "booted": false,
+  "attempts": [
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 0.13617329997941852
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 2.19284649999463
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 4.251440399995772
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 6.341625699977158
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 8.39742959997966
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 10.455019199987873
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 12.557328800001414
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 14.61484539997764
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 16.675692799995886
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 18.770361399976537
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 20.833217099978356
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 22.894154699984938
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 24.98408819999895
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 27.05200349999359
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 29.126135499973316
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 31.232712999975774
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 33.2907969999942
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 35.350620099983644
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 37.44338449998759
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 39.4969702999806
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 41.552512399997795
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 43.65743619998102
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 45.72453759997734
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 47.79262529997504
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 49.886946799990255
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 51.94899999999325
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 54.021409399982076
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 56.12194269997417
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 58.190047299984144
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 60.25687299997662
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 62.36876569999731
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 64.43868479999946
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 66.50277239998104
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 68.60844879999058
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 70.67669849999947
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 72.76761660000193
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 74.8755432999751
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 76.93653690000065
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 79.01198819998535
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 81.11656029999722
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 83.16947929997696
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 85.22738050000044
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 87.3282377999858
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 89.40515719997347
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 91.46186260000104
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 93.55150729999878
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 95.6395166000002
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 97.6963354999898
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 99.79291409999132
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 101.84584609998274
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 103.91225609998219
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 106.00864499999443
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 108.07452109997394
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 110.13539979999769
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 112.238890299981
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 114.30043459997978
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 116.36039629997686
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 118.45466819999274
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 120.51527459998033
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 122.57501799997408
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 124.66720629998599
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 126.72669449998648
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 128.7859939999762
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 130.8773874999897
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 132.93775089998962
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 134.99852799999644
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 137.0970986999746
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 139.16273359998013
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 141.2278071999899
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 143.3293502999877
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 145.39632519998122
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 147.45744759999798
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 149.55526929997723
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 151.61583629998495
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 153.67837849998614
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 155.7733872999961
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 157.83503049999126
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 159.89399889999186
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 162.00896659999853
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 164.06886149998172
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 166.1349568000005
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 168.24144249997335
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 170.30501459998777
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 172.36791909998283
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 174.46588529998553
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 176.52549400000134
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 178.58590689999983
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 180.6826754999929
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 182.74849479997647
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 184.80462419998366
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 186.89769349998096
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 188.9584055999876
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 191.021523399977
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 193.1250250999874
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 195.18500399999903
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 197.24465169999166
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 199.3464752
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 201.40705529999104
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 203.46659079997335
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 205.5653381999873
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 207.62347809999483
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 209.69537489998038
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 211.88731919997372
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 213.94813889998477
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 216.0135781999852
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 218.1203604999755
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 220.17976619998808
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 222.23943899999722
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 224.33797449999838
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 226.4207963999943
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 228.48477270000149
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 230.59433409999474
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 232.66099599999143
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 234.7186932999757
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 236.81594119998044
+    },
+    {
+      "exitCode": 1,
+      "value": "",
+      "elapsedSeconds": 238.87670529997558
+    }
+  ],
+  "elapsedSeconds": 240.8770133999933,
+  "pid": 29804,
+  "command": [
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe",
+    "-avd",
+    "SoloSoul_RF121_20261010",
+    "-port",
+    "5586",
+    "-accel",
+    "on",
+    "-gpu",
+    "host",
+    "-memory",
+    "2048",
+    "-cores",
+    "2",
+    "-no-window",
+    "-no-snapshot",
+    "-no-audio",
+    "-no-boot-anim"
+  ],
+  "applicationAcceptance": false,
+  "physicalDevicePerformanceAccepted": false,
+  "previousFailuresPreserved": true,
+  "emulatorExitCode": null,
+  "at": "2026-10-10T20:51:44.868016+00:00"
+}

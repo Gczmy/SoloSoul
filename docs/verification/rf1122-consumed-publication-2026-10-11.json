@@ -1,0 +1,297 @@
+{
+  "task": "RF-1122",
+  "status": "complete",
+  "base": "4130d10afb3becfff4b400dc91cf23c5685b66ad",
+  "at": "2026-10-11T12:14:47.592982+00:00",
+  "sourceCount": 1834,
+  "changedSources": [
+    "tauri/src-tauri/src/native_perf.rs",
+    "tauri/src-tauri/src/native_perf/preflight_tests.rs"
+  ],
+  "validation": {
+    "redExitCode": 101,
+    "redPassed": 1,
+    "redFailed": 2,
+    "nativePassed": 132,
+    "nativeFailed": 0,
+    "nativeIgnored": 0,
+    "workspace": {
+      "passed": 1874,
+      "failed": 0,
+      "ignored": 3,
+      "ignoredNames": [
+        "field::tests::test_field_metadata",
+        "field::tests::test_resolve_legacy_unchanged",
+        "p025_hold_baseline_large_dataset"
+      ],
+      "allIgnoredAlsoPresentInPreviousUnchangedSourceRun": true
+    },
+    "receipts": {
+      "workspace-fmt": {
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 3.0830208999977913,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "at": "2026-10-11T10:14:51.195094+00:00"
+      },
+      "native-clippy": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--all-targets",
+          "--features",
+          "native-perf",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 93.37707980000414,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "at": "2026-10-11T10:16:24.597848+00:00"
+      },
+      "native-tests": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "native_perf::",
+          "--",
+          "--nocapture"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 631.3732321000134,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "at": "2026-10-11T10:26:55.975836+00:00"
+      },
+      "workspace-clippy": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 116.12267469998915,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "at": "2026-10-11T10:28:52.111130+00:00"
+      },
+      "workspace-tests": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--verbose"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 3504.598964500008,
+        "sourceUnchanged": true,
+        "changedSources": [],
+        "at": "2026-10-11T11:27:16.729310+00:00"
+      }
+    },
+    "currentGuiBuildExitCode": 0,
+    "buildSourceNewlineParity": {
+      "rawReceiptSourceUnchanged": false,
+      "normalizedBytesEqual": true,
+      "parsedTomlEqual": true,
+      "beforeSha256": "edff461c8e2cbeebef93e06a2f4f9af78839cfa5c3657f1677b63a8961151ece",
+      "afterSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+      "action": "Restore original newline bytes only; preserve raw build receipt"
+    },
+    "markerReadsCompleted": 12,
+    "markerParseFailures": 0,
+    "consumedCaptures": [
+      {
+        "mode": "baseline",
+        "index": 1,
+        "runId": "2432ae94c29f4649b82330c4f19e3803",
+        "pid": 30600,
+        "consumedSha256": "b1b86ac878dd11b30fe88824544d72dba36308665b01f497d4630259bef0d315",
+        "surfaceSha256": "ee8d67b6d4f7dbc268dace3a3341e19e2f7a07505e1b342f8d3ffe037715a089"
+      },
+      {
+        "mode": "baseline",
+        "index": 2,
+        "runId": "03d9a78739f34e63b986ea6aa81c2634",
+        "pid": 24212,
+        "consumedSha256": "76ce1d3f42f8b58c7af3bd855fb5897964b9538623f8fd4f5fa0d3cbb10785f3",
+        "surfaceSha256": "229a46cc103308f193db805f9cbc93ce99e53354ae450de037f6cba350dc2493"
+      },
+      {
+        "mode": "baseline",
+        "index": 3,
+        "runId": "d085a2a6343745fb85fa95f7dd19006a",
+        "pid": 17228,
+        "consumedSha256": "0eb7c841c8346f9a619a50706a7b7bad906cac1bf2f7033607daa551b4a3052a",
+        "surfaceSha256": "68f5f8ac9462c714af84f8456dec8e9964498ceb1ce612ec49978ec0627eb88f"
+      },
+      {
+        "mode": "light-collapsed",
+        "index": 1,
+        "runId": "57330295079e47d2bb22c62d2051be1e",
+        "pid": 26880,
+        "consumedSha256": "f4bca5f9f2211b4de4a76688470a2bc8f76dc0ee2f83c133c9ef65081e60a5ca",
+        "surfaceSha256": "565320de459864e3e39134ec67c702900e53b4d73d113f8e0617d67aad9d47fb"
+      },
+      {
+        "mode": "light-collapsed",
+        "index": 2,
+        "runId": "fded299fcd6e482cb1dce518b60b99fc",
+        "pid": 23592,
+        "consumedSha256": "12dda97b74c933966fd97fedc1b66aa3ad7f00c96acb63416b5a2f6f4e2863b1",
+        "surfaceSha256": "c7656734dafa5fb6613d7743945842b622ad3b06b0a359cf8350e20db60233dd"
+      },
+      {
+        "mode": "light-collapsed",
+        "index": 3,
+        "runId": "ef938f9c6cf54358a2437f94ed0d3c42",
+        "pid": 1256,
+        "consumedSha256": "17f7b5a80a506fb702cb8856d7266adb29bced8ed745159edbc739e22bde0fe4",
+        "surfaceSha256": "6fbfe3b08519ec96b782ca796826ceb10414eaafa53f4effe4b8652c2b8a35de"
+      },
+      {
+        "mode": "dark-expanded",
+        "index": 1,
+        "runId": "becb40bc11b14f9da98050a099ecb19f",
+        "pid": 17216,
+        "consumedSha256": "b489ad543cb4f2d678b4e674f4600fb9d1c643720ee0c16471a4dffd69c5d035",
+        "surfaceSha256": "5751317d7c14660f2451a002d29cbbb03c5bebf857bf081522b77a75294bec3b"
+      },
+      {
+        "mode": "dark-expanded",
+        "index": 2,
+        "runId": "cea20897309b43a182c8378fd86d05ec",
+        "pid": 15076,
+        "consumedSha256": "f45a42ef4ff6957a507cca1f4f2be3a4f0c0756ac44ea81cb6c0c97a881026c7",
+        "surfaceSha256": "7f97ef3be75991c8ec1226856c23c6928d6f59d8ed4c0f3e1b6d16ad15915985"
+      },
+      {
+        "mode": "dark-expanded",
+        "index": 3,
+        "runId": "cf52fdc290f74fcdaf6afb4be5f8e155",
+        "pid": 16744,
+        "consumedSha256": "798369b5a2eee0ce4f4e30eb24277a55929b300410db34bce3936a962989c400",
+        "surfaceSha256": "5f6d572f20a8b0e35ba00d27973b06c1188ceea63eadd76252c1f7e3e67066ef"
+      },
+      {
+        "mode": "dark-collapsed",
+        "index": 1,
+        "runId": "2b0d62533fed479e9a379e2a91ebe11e",
+        "pid": 23724,
+        "consumedSha256": "13c8590454b3cb2634e6068f7fe88d2c6995dadbd639a7d4b9b2b411bb38c312",
+        "surfaceSha256": "3c4c556f0b9f1e0d0adef350240302c890a10ca124a0ff3dbfee2ef0c742c279"
+      },
+      {
+        "mode": "dark-collapsed",
+        "index": 2,
+        "runId": "fef9fa5ad40f49709fb5fa30c172be1c",
+        "pid": 28532,
+        "consumedSha256": "45169fac669a395ea71d6fdc7e7604901ee5385970f10de8cf4646e94f4c7024",
+        "surfaceSha256": "98a39cd50263f26836309c9392955e4fc31bcd495e61599f1e5c08d002b24178"
+      },
+      {
+        "mode": "dark-collapsed",
+        "index": 3,
+        "runId": "d0e3c01037d3430cb85295aa339c8790",
+        "pid": 30444,
+        "consumedSha256": "f3394decdcfc6bf7e5bc9457e82abc7d8ce098bfb9a081bf19c5da196fba684e",
+        "surfaceSha256": "50749c529cd597765fb83d5a5c25466125722f0cba389b1abe8e26e3764539b0"
+      }
+    ],
+    "completeIndependentWindowBindings": 6,
+    "partialDarkBindings": [
+      1,
+      3
+    ],
+    "actualPngsInspected": 8,
+    "originalFourCohortQueue": {
+      "success": false,
+      "rows": [
+        {
+          "mode": "baseline",
+          "executed": true,
+          "captureExitCode": 0,
+          "independentVerifierExitCode": 0,
+          "rendererExitCode": 0
+        },
+        {
+          "mode": "light-collapsed",
+          "executed": true,
+          "captureExitCode": 0,
+          "independentVerifierExitCode": 0,
+          "rendererExitCode": 0
+        },
+        {
+          "mode": "dark-expanded",
+          "executed": true,
+          "captureExitCode": 0,
+          "independentVerifierExitCode": 1,
+          "rendererExitCode": null
+        }
+      ],
+      "sourceUnchanged": true,
+      "fullMatrixAccepted": false,
+      "applicationMaterialAccepted": false,
+      "systemSettingsChanged": false
+    },
+    "remainingIndependentCohort": {
+      "subsetSuccess": false,
+      "originalFourCohortQueueAccepted": false,
+      "rows": [
+        {
+          "mode": "dark-collapsed",
+          "executed": true,
+          "captureExitCode": 0,
+          "independentVerifierExitCode": 1,
+          "rendererExitCode": null
+        }
+      ],
+      "sourceUnchanged": true,
+      "fullMatrixAccepted": false,
+      "applicationMaterialAccepted": false,
+      "systemSettingsChanged": false
+    },
+    "darkAppearanceFailure": "aggregate user_data_update_preference count 2 versus 1",
+    "uniqueExtraPreferenceWriterEstablished": false
+  },
+  "cleanup": {
+    "identitiesChecked": 108,
+    "removedCachePaths": 96,
+    "linksUnlinked": 12,
+    "logsPreserved": 12,
+    "preservedFiles": 540,
+    "preservedBytesVerified": true,
+    "processesTerminated": 0
+  },
+  "scope": "Only optional Windows native-perf consumed marker publication; full appearance matrix not accepted",
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "applicationMaterialAccepted": false,
+  "systemSettingsChanged": false,
+  "archive": {
+    "path": "rf1122-consumed-publication-2026-10-11/raw.tar.gz",
+    "sha256": "c354c8bafe0bcef6363afd2d0c387d57a33db664b5eb05f9c960af4c1662a87f",
+    "members": 684,
+    "allMembersVerified": true
+  }
+}

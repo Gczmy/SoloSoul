@@ -1,0 +1,1332 @@
+{
+  "task": "RF-312",
+  "status": "repeated-complete-journey-diagnostic",
+  "wholeRF312Accepted": false,
+  "all10RequestedSamplesCompleted": true,
+  "all10Passed": true,
+  "groups": [
+    {
+      "objectCount": 100,
+      "attemptedSamples": 5,
+      "successfulSamples": 5,
+      "failures": [],
+      "phaseDurationMs": {
+        "activity-startup": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4986.9901,
+            6112.1679,
+            4751.6622,
+            4835.4395,
+            6061.5097
+          ],
+          "median": 4986.9901,
+          "p95NearestRank": 6112.1679,
+          "minimum": 4751.6622,
+          "maximum": 6112.1679
+        },
+        "password-unlock": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4509.4796,
+            4381.992,
+            5085.7235,
+            4671.7188,
+            4700.5848
+          ],
+          "median": 4671.7188,
+          "p95NearestRank": 5085.7235,
+          "minimum": 4381.992,
+          "maximum": 5085.7235
+        },
+        "first-ocr-user-flow": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            21007.3932,
+            18646.7738,
+            21019.0067,
+            19164.5382,
+            19309.4518
+          ],
+          "median": 19309.4518,
+          "p95NearestRank": 21019.0067,
+          "minimum": 18646.7738,
+          "maximum": 21019.0067
+        },
+        "workspace": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            3004.6233,
+            4017.1601,
+            3248.0217,
+            3393.4008,
+            3819.6561
+          ],
+          "median": 3393.4008,
+          "p95NearestRank": 4017.1601,
+          "minimum": 3004.6233,
+          "maximum": 4017.1601
+        },
+        "search-needle": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            2307.5658,
+            1772.8235,
+            2107.252,
+            1917.7493,
+            1729.9268
+          ],
+          "median": 1917.7493,
+          "p95NearestRank": 2307.5658,
+          "minimum": 1729.9268,
+          "maximum": 2307.5658
+        },
+        "attachments-open": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            2527.9269,
+            2823.9155,
+            2816.218,
+            2983.457,
+            2584.6224
+          ],
+          "median": 2816.218,
+          "p95NearestRank": 2983.457,
+          "minimum": 2527.9269,
+          "maximum": 2983.457
+        },
+        "image-preview": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            3102.8082,
+            2951.6289,
+            3131.6377,
+            3023.5479,
+            3239.4348
+          ],
+          "median": 3102.8082,
+          "p95NearestRank": 3239.4348,
+          "minimum": 2951.6289,
+          "maximum": 3239.4348
+        },
+        "text-preview": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            2988.499,
+            2919.8161,
+            3987.0167,
+            3586.031,
+            3236.2404
+          ],
+          "median": 3236.2404,
+          "p95NearestRank": 3987.0167,
+          "minimum": 2919.8161,
+          "maximum": 3987.0167
+        },
+        "pdf-text-native-diagnostic": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4482.0395,
+            4409.8851,
+            4322.7999,
+            4348.0401,
+            4489.7296
+          ],
+          "median": 4409.8851,
+          "p95NearestRank": 4489.7296,
+          "minimum": 4322.7999,
+          "maximum": 4489.7296
+        },
+        "pdf-scanned-native-diagnostic": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4533.0718,
+            3550.1998,
+            3537.2221,
+            3732.9525,
+            3977.8749
+          ],
+          "median": 3732.9525,
+          "p95NearestRank": 4533.0718,
+          "minimum": 3537.2221,
+          "maximum": 4533.0718
+        },
+        "application-lock": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            1463.1651,
+            1544.0419,
+            1387.5206,
+            1599.9793,
+            2119.4781
+          ],
+          "median": 1544.0419,
+          "p95NearestRank": 2119.4781,
+          "minimum": 1387.5206,
+          "maximum": 2119.4781
+        },
+        "password-reunlock": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            3497.6098,
+            5232.2518,
+            3982.0015,
+            3627.4027,
+            3748.5035
+          ],
+          "median": 3748.5035,
+          "p95NearestRank": 5232.2518,
+          "minimum": 3497.6098,
+          "maximum": 5232.2518
+        }
+      },
+      "wholeNativeJourneySpanMs": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          65215.7895,
+          64983.1088,
+          65907.0062,
+          63772.4267,
+          66199.8067
+        ],
+        "median": 65215.7895,
+        "p95NearestRank": 66199.8067,
+        "minimum": 63772.4267,
+        "maximum": 66199.8067
+      },
+      "firstOcrNativeFileTapToDomMs": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          3768.3739,
+          3103.4394,
+          3370.7613,
+          3175.905,
+          3150.1512
+        ],
+        "median": 3175.905,
+        "p95NearestRank": 3768.3739,
+        "minimum": 3103.4394,
+        "maximum": 3768.3739
+      },
+      "actualEarlyJsTransportSends": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          1032,
+          1035,
+          1033,
+          1033,
+          1015
+        ],
+        "median": 1033,
+        "p95NearestRank": 1035,
+        "minimum": 1015,
+        "maximum": 1035
+      },
+      "mainIncludingRunnerMaximumSampledPssBytes": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          198153216,
+          199762944,
+          187965440,
+          240912384,
+          193045504
+        ],
+        "median": 198153216,
+        "p95NearestRank": 240912384,
+        "minimum": 187965440,
+        "maximum": 240912384
+      },
+      "mainIncludingRunnerMedianSampledPssBytes": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          163339776.0,
+          164162560,
+          163624448.0,
+          164292608.0,
+          163266560
+        ],
+        "median": 163624448.0,
+        "p95NearestRank": 164292608.0,
+        "minimum": 163266560,
+        "maximum": 164292608.0
+      },
+      "rendererMemoryMeasured": false,
+      "continuousPeakMeasured": false,
+      "sampledMemoryReadDurationMs": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          28.7999,
+          33.5107,
+          39.3797,
+          28.3874,
+          30.4385
+        ],
+        "median": 30.4385,
+        "p95NearestRank": 39.3797,
+        "minimum": 28.3874,
+        "maximum": 39.3797
+      }
+    },
+    {
+      "objectCount": 5000,
+      "attemptedSamples": 5,
+      "successfulSamples": 5,
+      "failures": [],
+      "phaseDurationMs": {
+        "activity-startup": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            5071.2443,
+            5822.8533,
+            5137.5148,
+            5057.784,
+            5166.8985
+          ],
+          "median": 5137.5148,
+          "p95NearestRank": 5822.8533,
+          "minimum": 5057.784,
+          "maximum": 5822.8533
+        },
+        "password-unlock": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4621.827,
+            4556.7274,
+            4582.8285,
+            4605.3557,
+            4645.8992
+          ],
+          "median": 4605.3557,
+          "p95NearestRank": 4645.8992,
+          "minimum": 4556.7274,
+          "maximum": 4645.8992
+        },
+        "first-ocr-user-flow": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            19753.4163,
+            19368.9198,
+            20275.39,
+            20204.8552,
+            19561.0042
+          ],
+          "median": 19753.4163,
+          "p95NearestRank": 20275.39,
+          "minimum": 19368.9198,
+          "maximum": 20275.39
+        },
+        "workspace": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            3034.4058,
+            4372.4056,
+            3169.3037,
+            3402.7267,
+            3135.3021
+          ],
+          "median": 3169.3037,
+          "p95NearestRank": 4372.4056,
+          "minimum": 3034.4058,
+          "maximum": 4372.4056
+        },
+        "search-needle": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            2105.2373,
+            2457.6309,
+            2110.7287,
+            2086.2865,
+            2464.4667
+          ],
+          "median": 2110.7287,
+          "p95NearestRank": 2464.4667,
+          "minimum": 2086.2865,
+          "maximum": 2464.4667
+        },
+        "attachments-open": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            2784.0742,
+            2685.2948,
+            2767.7793,
+            2661.0315,
+            2751.8373
+          ],
+          "median": 2751.8373,
+          "p95NearestRank": 2784.0742,
+          "minimum": 2661.0315,
+          "maximum": 2784.0742
+        },
+        "image-preview": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            3044.7862,
+            3024.3487,
+            3236.4246,
+            3220.0699,
+            3379.2692
+          ],
+          "median": 3220.0699,
+          "p95NearestRank": 3379.2692,
+          "minimum": 3024.3487,
+          "maximum": 3379.2692
+        },
+        "text-preview": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            2958.1427,
+            2898.8678,
+            3734.1153,
+            2856.6225,
+            3063.4063
+          ],
+          "median": 2958.1427,
+          "p95NearestRank": 3734.1153,
+          "minimum": 2856.6225,
+          "maximum": 3734.1153
+        },
+        "pdf-text-native-diagnostic": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4228.9542,
+            4458.8093,
+            4394.3369,
+            4154.795,
+            4358.7868
+          ],
+          "median": 4358.7868,
+          "p95NearestRank": 4458.8093,
+          "minimum": 4154.795,
+          "maximum": 4458.8093
+        },
+        "pdf-scanned-native-diagnostic": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4749.3141,
+            3769.855,
+            3780.5061,
+            4445.5291,
+            3698.2437
+          ],
+          "median": 3780.5061,
+          "p95NearestRank": 4749.3141,
+          "minimum": 3698.2437,
+          "maximum": 4749.3141
+        },
+        "application-lock": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            1529.3602,
+            1724.0125,
+            1459.7254,
+            1485.904,
+            1537.7711
+          ],
+          "median": 1529.3602,
+          "p95NearestRank": 1724.0125,
+          "minimum": 1459.7254,
+          "maximum": 1724.0125
+        },
+        "password-reunlock": {
+          "successfulSamples": 5,
+          "valuesInRunOrder": [
+            4004.8674,
+            4962.2513,
+            4447.8896,
+            3769.7711,
+            4244.0155
+          ],
+          "median": 4244.0155,
+          "p95NearestRank": 4962.2513,
+          "minimum": 3769.7711,
+          "maximum": 4962.2513
+        }
+      },
+      "wholeNativeJourneySpanMs": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          64936.5604,
+          66925.5514,
+          66518.7205,
+          65208.7243,
+          65589.3242
+        ],
+        "median": 65589.3242,
+        "p95NearestRank": 66925.5514,
+        "minimum": 64936.5604,
+        "maximum": 66925.5514
+      },
+      "firstOcrNativeFileTapToDomMs": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          3720.5969,
+          3380.9608,
+          3151.3465,
+          3281.5605,
+          3201.0562
+        ],
+        "median": 3281.5605,
+        "p95NearestRank": 3720.5969,
+        "minimum": 3151.3465,
+        "maximum": 3720.5969
+      },
+      "actualEarlyJsTransportSends": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          1032,
+          1034,
+          1034,
+          1034,
+          1034
+        ],
+        "median": 1034,
+        "p95NearestRank": 1034,
+        "minimum": 1032,
+        "maximum": 1034
+      },
+      "mainIncludingRunnerMaximumSampledPssBytes": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          195709952,
+          246946816,
+          263194624,
+          205580288,
+          208849920
+        ],
+        "median": 208849920,
+        "p95NearestRank": 263194624,
+        "minimum": 195709952,
+        "maximum": 263194624
+      },
+      "mainIncludingRunnerMedianSampledPssBytes": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          178469888,
+          179128320.0,
+          177736704.0,
+          178388992.0,
+          179097088.0
+        ],
+        "median": 178469888,
+        "p95NearestRank": 179128320.0,
+        "minimum": 177736704.0,
+        "maximum": 179128320.0
+      },
+      "rendererMemoryMeasured": false,
+      "continuousPeakMeasured": false,
+      "sampledMemoryReadDurationMs": {
+        "successfulSamples": 5,
+        "valuesInRunOrder": [
+          28.4935,
+          25.07145,
+          34.41045,
+          32.04705,
+          34.663799999999995
+        ],
+        "median": 32.04705,
+        "p95NearestRank": 34.663799999999995,
+        "minimum": 25.07145,
+        "maximum": 34.663799999999995
+      }
+    }
+  ],
+  "allFailuresRetained": true,
+  "failedAttemptsNotReplaced": true,
+  "p95Definition": "nearest rank; ceil(.95*n)-1 in zero-based sorted values; with5 successful samples equals maximum; conditional on successful runs when failures exist",
+  "phaseDefinition": "native elapsedRealtimeNanos includes readiness/input/observation/painting overhead; not pure product operation latency",
+  "memoryDefinition": "main-process PSS includes instrumentation runner; excludes renderer; sampled maximum is not continuous peak",
+  "cacheDefinition": "process-first OCR and Activity startup; no OS page/model-cache clearing; not OS-cold startup",
+  "remaining": [
+    "renderer/full-process memory and sampler attribution",
+    "process-cold launch",
+    "physical hardware and other platforms",
+    "stable search capture after IME transition"
+  ],
+  "sameMainApk": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1135-android-attachment-temp-20261012\\android-release-package\\app-x86_64-release-early-observer-internal-validation.apk",
+    "sha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+    "bytes": 78630239
+  },
+  "sameTestApk": {
+    "acceptedPackagePreparation": true,
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-first-ocr-probe-round15-20261012\\solosoul-fixed-vault-releaseprobe.apk",
+    "sha256": "ea896d90db399a8cab6160835edbaf45ed2a6b544ec53c0f0e46bbd8f6b114d8",
+    "bytes": 7974409,
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "package": "com.solosoul.app.releaseprobe",
+    "targetPackage": "com.solosoul.app",
+    "testClassDefined": true,
+    "traceRuntimeDefined": true,
+    "targetMainActivityAndTauriClassesNotPackaged": true,
+    "nativeLibrariesNotPackaged": true,
+    "homeTestSourceSha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26",
+    "mainReleaseBytesUnchanged": true,
+    "nativeRuntimeAccepted": false,
+    "fullRF312Accepted": false,
+    "at": "2026-10-12T20:28:05.594577+00:00"
+  },
+  "order": "alternating100/5000 for5 rounds",
+  "allNativeOutcomes": [
+    {
+      "ordinal": 1,
+      "objectCount": 100,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-100-001-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 137.99333169998135,
+      "error": null
+    },
+    {
+      "ordinal": 1,
+      "objectCount": 5000,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-5000-001-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 121.46893080003792,
+      "error": null
+    },
+    {
+      "ordinal": 2,
+      "objectCount": 100,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-100-002-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 115.56613440002548,
+      "error": null
+    },
+    {
+      "ordinal": 2,
+      "objectCount": 5000,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-5000-002-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 126.26479960000142,
+      "error": null
+    },
+    {
+      "ordinal": 3,
+      "objectCount": 100,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-100-003-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 129.07070899999235,
+      "error": null
+    },
+    {
+      "ordinal": 3,
+      "objectCount": 5000,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-5000-003-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 122.47843760001706,
+      "error": null
+    },
+    {
+      "ordinal": 4,
+      "objectCount": 100,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-100-004-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 117.13053850003053,
+      "error": null
+    },
+    {
+      "ordinal": 4,
+      "objectCount": 5000,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-5000-004-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 137.77974019997055,
+      "error": null
+    },
+    {
+      "ordinal": 5,
+      "objectCount": 100,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-100-005-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 119.10528519999934,
+      "error": null
+    },
+    {
+      "ordinal": 5,
+      "objectCount": 5000,
+      "root": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-merged-repeat-5000-005-20261012",
+      "actualExitCode": 0,
+      "passed": true,
+      "fullyRestoredAndSourceUnchanged": true,
+      "elapsedSeconds": 118.05642760003684,
+      "error": null
+    }
+  ],
+  "restorationAudit": [
+    {
+      "root": "rf312-merged-repeat-100-001-20261012",
+      "objectCount": 100,
+      "ordinal": 1,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-5000-001-20261012",
+      "objectCount": 5000,
+      "ordinal": 1,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-100-002-20261012",
+      "objectCount": 100,
+      "ordinal": 2,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-5000-002-20261012",
+      "objectCount": 5000,
+      "ordinal": 2,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-100-003-20261012",
+      "objectCount": 100,
+      "ordinal": 3,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-5000-003-20261012",
+      "objectCount": 5000,
+      "ordinal": 3,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-100-004-20261012",
+      "objectCount": 100,
+      "ordinal": 4,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-5000-004-20261012",
+      "objectCount": 5000,
+      "ordinal": 4,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-100-005-20261012",
+      "objectCount": 100,
+      "ordinal": 5,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "root": "rf312-merged-repeat-5000-005-20261012",
+      "objectCount": 5000,
+      "ordinal": 5,
+      "actualExitCode": 0,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "backupCleanup": {
+    "removed": 20,
+    "allPairsIndependentlyVerified": true,
+    "allNativeFailuresAndSuccessesRetained": true
+  },
+  "transportCommandAttribution": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "total": 1032,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "object_list",
+          12
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          11
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "sync_get_auto_status",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "total": 1032,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          13
+        ],
+        [
+          "object_list",
+          10
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "sync_get_auto_status",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "total": 1035,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "object_list",
+          12
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          12
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "android_cached_update",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "total": 1034,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          13
+        ],
+        [
+          "object_list",
+          10
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "android_cached_update",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "total": 1033,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "object_list",
+          11
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          11
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "android_cached_update",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "total": 1034,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          13
+        ],
+        [
+          "object_list",
+          10
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "android_cached_update",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "total": 1033,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "object_list",
+          12
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          12
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "sync_get_auto_status",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "total": 1034,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          13
+        ],
+        [
+          "object_list",
+          10
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "android_cached_update",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "total": 1015,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "object_list",
+          11
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          9
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "attachment_count_stats",
+          4
+        ],
+        [
+          "template_list",
+          4
+        ]
+      ]
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "total": 1034,
+      "topCommands": [
+        [
+          "plugin:event|listen",
+          435
+        ],
+        [
+          "plugin:event|unlisten",
+          425
+        ],
+        [
+          "ui_update_preference",
+          14
+        ],
+        [
+          "set_status_bar_style",
+          13
+        ],
+        [
+          "plugin:__TAURI_CHANNEL__|fetch",
+          13
+        ],
+        [
+          "object_list",
+          10
+        ],
+        [
+          "vault_list_accounts",
+          8
+        ],
+        [
+          "get_lock_pending",
+          8
+        ],
+        [
+          "set_titlebar_color",
+          6
+        ],
+        [
+          "biometric_check_availability",
+          6
+        ],
+        [
+          "template_list",
+          5
+        ],
+        [
+          "android_cached_update",
+          4
+        ]
+      ]
+    }
+  ],
+  "ipcFollowup": "listen/unlisten comprise most sends, concentrated in workspace/attachment/lock phases; per-event/owner attribution needed before claiming leaks or optimizing",
+  "rawIndex": "rf312-android-merged-repeat-2026-10-12/index.json"
+}

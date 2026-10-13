@@ -1,0 +1,42 @@
+{
+  "task": "RF-312",
+  "exactTemporaryBinaryCopiesRemoved": 6,
+  "recursiveDeleteUsed": false,
+  "allAncestorsNonReparse": true,
+  "archiveVerified": true,
+  "originalGeneratedDebugJniPreserved": true,
+  "releaseLibraryAndApksPreserved": true,
+  "files": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\generated-jni-before.so",
+      "sha256": "f01c1954751dc0fe933726ec59d743370cfb1b3030a447b0270655b389541ab7",
+      "bytes": 91808568
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\gradle-packaging-attempt1\\jni\\x86_64\\libsolo_soul.so",
+      "sha256": "fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b",
+      "bytes": 59432984
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\gradle-packaging-attempt2\\jni\\x86_64\\libsolo_soul.so",
+      "sha256": "fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b",
+      "bytes": 59432984
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\gradle-packaging-attempt3\\jni\\x86_64\\libsolo_soul.so",
+      "sha256": "fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b",
+      "bytes": 59432984
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\gradle-packaging-attempt4\\jni\\x86_64\\libsolo_soul.so",
+      "sha256": "fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b",
+      "bytes": 59432984
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-release-build-20261012\\gradle-packaging-attempt5\\jni\\x86_64\\libsolo_soul.so",
+      "sha256": "fc37bde0578b82825df7790bf362be41339043a85b938119d72667d382b5071b",
+      "bytes": 59432984
+    }
+  ],
+  "atUtc": "2026-10-12T04:35:37.8031599Z"
+}

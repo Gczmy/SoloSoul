@@ -1,0 +1,53 @@
+[
+  {
+    "label": "typecheck-final",
+    "command": [
+      "node.exe",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "exitCode": 0,
+    "seconds": 18.763806200004183,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "lint-final",
+    "command": [
+      "cmd.exe",
+      "/d",
+      "/c",
+      "npm.cmd",
+      "run",
+      "lint"
+    ],
+    "exitCode": 0,
+    "seconds": 10.834263199998531,
+    "logSha256": "618ed2fe7c34a69d6afe846b2be2f0cbd34fb676136bc67b51488cd964908232"
+  },
+  {
+    "label": "format-final",
+    "command": [
+      "node.exe",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "src/components/onboarding/OnboardingDialog.test.tsx"
+    ],
+    "exitCode": 0,
+    "seconds": 0.3531440999940969,
+    "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+  },
+  {
+    "label": "coverage",
+    "command": [
+      "cmd.exe",
+      "/d",
+      "/c",
+      "npm.cmd",
+      "run",
+      "test:coverage"
+    ],
+    "exitCode": 0,
+    "seconds": 329.8035860999953,
+    "logSha256": "ac1b29923835923b008f3ea286ddc9d72f1b9b7428370a2e46886b06b0c63cab"
+  }
+]

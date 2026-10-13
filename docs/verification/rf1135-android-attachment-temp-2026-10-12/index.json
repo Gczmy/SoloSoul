@@ -1,0 +1,1505 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1135",
+  "archive": "raw.tar",
+  "archiveSha256": "4dad2afeb983a808ea7f4e23eb8726a8da97fd070e59416900dcfe0f491a5d38",
+  "members": {
+    "orchestration/archive-rf1135-results.py": {
+      "bytes": 4959,
+      "sha256": "067745b38ddb55bf083124ec2530e7f98d617a4dfff5df0a4efe2b19c1c2b4f1"
+    },
+    "orchestration/build-rf1135-android-release.py": {
+      "bytes": 4002,
+      "sha256": "6d50cf162c8f31845bf6ec7052aaccf638ffbc811add54a94d68a83fa254b7aa"
+    },
+    "orchestration/build-rf1135-pages-probe-round3.py": {
+      "bytes": 4292,
+      "sha256": "617e65cfdbe816739ddb00ef3774a3f6660ca9696719c8b5d291b9a53d5decac"
+    },
+    "orchestration/build-rf1135-pages-probe-round4.py": {
+      "bytes": 4292,
+      "sha256": "5d0e96e6296d1d9bff7fecd514c954eec40528e11ead403e86b1604167396af0"
+    },
+    "orchestration/build-rf1135-pages-probe.py": {
+      "bytes": 4292,
+      "sha256": "d7e122081f56eaa863c587e79d41ed4dc8dc1962a34216b7cd6c61c36e12851d"
+    },
+    "orchestration/package-rf1135-android-release.py": {
+      "bytes": 8276,
+      "sha256": "c12d4c5cf51c5f1bc6511b208bf35ef50cf4bf0d041e0053ea4a649d96320ac4"
+    },
+    "orchestration/prepare-rf1135-checks.py": {
+      "bytes": 2774,
+      "sha256": "ff6d5adc2caadf716002ca35e0783cc1c336943343772da451ad78846b930729"
+    },
+    "orchestration/prepare-rf1135-native.py": {
+      "bytes": 1828,
+      "sha256": "cedf37fcf6b985dfa7385a782d7fcb149646c0e8738c3fc83e5acab6df8f229e"
+    },
+    "orchestration/prepare-rf1135-pages-round2.py": {
+      "bytes": 6428,
+      "sha256": "f900cfa13912536ce6785488592773caa8f0b1e735ea7ac4c30c198603171b03"
+    },
+    "orchestration/prepare-rf1135-pages-round3.py": {
+      "bytes": 1560,
+      "sha256": "2f5ae9933eb80bedf854da37de04164618324067a46c6d3836c240e701b90f12"
+    },
+    "orchestration/prepare-rf1135-pages-round4.py": {
+      "bytes": 3324,
+      "sha256": "a65d44d67f36cc73a551a1d06982efab7432cff45931d87727f29a630754df84"
+    },
+    "orchestration/run-rf1135-windows-checks.py": {
+      "bytes": 2371,
+      "sha256": "59087544ab783d8a0972804d9d1ac194e6e176d5958a59a61941259228b7c4fb"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-build/input-proof.json": {
+      "bytes": 235491,
+      "sha256": "cedf5cde5b9ff20765e512d15c19e313702b09928760adfb88812b10a98a77e6"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-build/library.json": {
+      "bytes": 597,
+      "sha256": "32f1b3882ef5237a0ab9ae17fb22ec795ebefd438a42854376212963586b5e84"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-build/live.json": {
+      "bytes": 405,
+      "sha256": "44b07c0b7734baa0b592d0f9f6d3bbd8aaf921368a7107629bdaf78a20e314a1"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-build/receipt.json": {
+      "bytes": 490,
+      "sha256": "34c500c15cae06464201217c0ef5f8c2fde52ec9b767c2e38ea8a44b5331037a"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-build/stderr.log": {
+      "bytes": 125,
+      "sha256": "5781c45ddf7668f8f31a3f95b0880f70e1a87c1a5e3c9bb75ba9a25233bb26f1"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-build/stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/default-jni-exports.live.json": {
+      "bytes": 392,
+      "sha256": "0bdd61ab912006cc6fca96e274a6feb25262cf3f3e73eb6673d40791790f95b0"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/default-jni-exports.receipt.json": {
+      "bytes": 468,
+      "sha256": "bb6f5b1d1691af8e6a848deff7aed6a41fc3ee31d8193e2bd5f0e5fbdb501fcc"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/default-jni-exports.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/default-jni-exports.stdout.log": {
+      "bytes": 2148,
+      "sha256": "8ee3ff48154c5e6e9a5446eed821c811af7a435e39d4a6ad1b3c8c43dc7c34c8"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-sign.live.json": {
+      "bytes": 866,
+      "sha256": "58915bee1acda73e175456379b8f5756ffeed8c0a9d92fde4a031e751de4dd88"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-sign.receipt.json": {
+      "bytes": 942,
+      "sha256": "514b336a6b6935c5bbd78efe6c61d95fadfbfbc426c9c8649305a9cf5a012c10"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-sign.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-sign.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-signature.live.json": {
+      "bytes": 504,
+      "sha256": "fe7545865c2b0f533dffdf8572f5dc05d05a1264644d500a190f4a12643604a5"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-signature.receipt.json": {
+      "bytes": 580,
+      "sha256": "c5e4d3f38d4a84ed6410b06452d89e193d9ba5b77ff753486a75f7b3d09387a3"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/internal-test-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "206753f3b947f9d228b9112d9706720034de1853eedc9feedd195dd494835042"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/jni-exports.json": {
+      "bytes": 2416,
+      "sha256": "353b814b1edb175ebd2bc29db76088847a84cd231e49f0f0f15b79bf74296bef"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/observer-jni-exports.live.json": {
+      "bytes": 417,
+      "sha256": "2b10c26f966471276e12296afa0cb9a6541381af5d9380f3af6250a7a58aa36d"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/observer-jni-exports.receipt.json": {
+      "bytes": 494,
+      "sha256": "6d04dfa8682819549154834d7d14a58b2b44372064b6261763ed456a83be7f9e"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/observer-jni-exports.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/observer-jni-exports.stdout.log": {
+      "bytes": 2148,
+      "sha256": "74a6522ba2d347a0b40b903debbc0be4b09e8e28a34d6c8de4a9fea9b283ad6a"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/package-verification.json": {
+      "bytes": 1724,
+      "sha256": "860ab1e8caa37099a03444a31f5266604accc981f5a50d867919cfc0f7b8b0e8"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-badging.live.json": {
+      "bytes": 373,
+      "sha256": "7c14efc36673c2f6815f68d47b7d358001f1355795017c53cf7f399dc045f5a5"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-badging.receipt.json": {
+      "bytes": 450,
+      "sha256": "6013ef5cbdf0753e7ef652407ab3263b53d4246336d4cee4443b9ec12fa2f5b2"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-badging.stdout.log": {
+      "bytes": 6459,
+      "sha256": "b3e342407ed4c7d4d9e694680511ff0ec9432439deabb6fc78e38654fb0a79c6"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-gradle-package.live.json": {
+      "bytes": 499,
+      "sha256": "fdbab92aab477ad39eed5055ce08cd4467d79c7a54179ecad36f6389c0430f41"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-gradle-package.receipt.json": {
+      "bytes": 576,
+      "sha256": "74fa89e34cf6250b29051412560798e05ffaa0e26bdbbd1d5c83b819af2c7db3"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-gradle-package.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/release-gradle-package.stdout.log": {
+      "bytes": 20666,
+      "sha256": "fa5490de3d52a33bb3ded40b0ff6f0dc6ed3209b88b1d8876279b75716f77caf"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/unsigned-check.live.json": {
+      "bytes": 457,
+      "sha256": "8cab3ebe22936cb91120a260f266ce467d7ed992c177bf33d865c0821b11ac96"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/unsigned-check.receipt.json": {
+      "bytes": 534,
+      "sha256": "44fb7b0bf4e3de47358c190190dc98609e49ef193ec1f27b7b718f835ce24855"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/unsigned-check.stderr.log": {
+      "bytes": 234,
+      "sha256": "6e68e756d0e824ac585dc800cb365340c3c31f7f55bcd294d82d80d83d1e9b2b"
+    },
+    "rf1135-android-attachment-temp-20261012/android-release-package/unsigned-check.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/changes.json": {
+      "bytes": 363,
+      "sha256": "b7269647d604dd2aff9a2cf6a1252b861c60691fdde5efc7cc0afa3fbeb4f4b7"
+    },
+    "rf1135-android-attachment-temp-20261012/complete-restoration-audit.json": {
+      "bytes": 2152,
+      "sha256": "d433bd93015466dbbac42698f0eb572326a6b0a4e81ad6b199710d8297caaf68"
+    },
+    "rf1135-android-attachment-temp-20261012/negative-restoration-audit.json": {
+      "bytes": 1813,
+      "sha256": "5745983891a12e8fd76ec6794c516d11f62a43b5f062d9e301c8df761e72c045"
+    },
+    "rf1135-android-attachment-temp-20261012/sources.json": {
+      "bytes": 232633,
+      "sha256": "fe43ab233f26d8e04cc55e7bb1559afdb67f1a6bfa9ff7589f18150649f60ee6"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/complete.json": {
+      "bytes": 88,
+      "sha256": "f38a07e3a02e192e08eb635db07932e1149820a0e246d248d6c5108f25b80fec"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-clippy.live.json": {
+      "bytes": 217,
+      "sha256": "f612af0e081d69b1f1fc799c1c502c5cc1b0505875d847f3de6e55f2b29d13b5"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-clippy.receipt.json": {
+      "bytes": 263,
+      "sha256": "d31ce8d196b4d4b4ca6e75cd6df7b014f5f332386be6658b822c9d1ab67f22f1"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-clippy.stderr.log": {
+      "bytes": 132,
+      "sha256": "ea127e999d9ff3ab57b2ac9002e7ce734baec07ec25c6862bc277008cdd84d8d"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-clippy.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-fmt.live.json": {
+      "bytes": 144,
+      "sha256": "01a14b4ec22ab728c5a0329cde5a744aafad2331bced56ae2cbf44525280e60f"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-fmt.receipt.json": {
+      "bytes": 192,
+      "sha256": "47d6e69e29559808efbfb228259d2286bd8d5b3e3a92d69aea9e9addfbe63a07"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-fmt.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-fmt.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-tests.live.json": {
+      "bytes": 249,
+      "sha256": "953ea32cc2d8ce35ff4d604ee5bbba39bbca190a9430aae5aab21fac9ada640a"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-tests.receipt.json": {
+      "bytes": 296,
+      "sha256": "c6a1db8ee46a4c6e9dc132d308d051746bad483e7d74effeba2d433b32c52fd0"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-tests.stderr.log": {
+      "bytes": 269,
+      "sha256": "3fcaf868d100a24e22f2abc2cef8fae4aeb621a979094a3c487979a2e756bb19"
+    },
+    "rf1135-android-attachment-temp-20261012/windows-checks/workspace-tests.stdout.log": {
+      "bytes": 17315,
+      "sha256": "0f5d10520feeb40c388233cf1a46efcf402868c7cd0cfcdfc642b9291b3bcb3c"
+    },
+    "rf1135-android-media-native-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 39292,
+      "sha256": "a0d8fdc6d30a9bd6c24e269e952817db0956e9a7704123818ee3fe7b92db5840"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1648,
+      "sha256": "f1b83eeb2a3f707662e8178cdc80809d3919522d458e66d0718235df34a450e7"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 284,
+      "sha256": "21769947850bf008c22d4ba8fbe4c7ce6c0179115a4668612bed622e0d91920a"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 353,
+      "sha256": "e7c9bbb4c0ee319f3e029e6695faab0077f07e19c862e585cb1f926afa0c7ad8"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 9630,
+      "sha256": "ad726ce51777dc15c374d0d505584965d6c06074444bc3cd7503fcbcd339d55a"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22239,
+      "sha256": "02f2fb05265b1c7eb45541b27710b356cb01e6e79006292293bc54e6a930a46c"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 145876,
+      "sha256": "9c0790554f1220635d25a1fc63593ba678ce512002d901b9820a84499f3e544b"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116299,
+      "sha256": "372b1732e5d19cdad0698e17487548bf2efb9d34e123e7c7dc719ba79a171dc4"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/device-files/diagnostic-text-preview.png": {
+      "bytes": 104801,
+      "sha256": "e687076cd1bd6c2b09e58b267ffa48bfbd88eb4c4824af61ee5c8973fe21225a"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 269322,
+      "sha256": "940e7893784b40ae0c714235a4b8adfec4fb2de7b733fd09ef82d5e455f124f3"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/native.log": {
+      "bytes": 4632,
+      "sha256": "1f2c43489647ecfdc39c8e63ffbd3f401abec245581cbf5b75c0b3c8738f0c40"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17294,
+      "sha256": "d15ed54da495cb8457ab93ad07479cf0cc1e2902a749f49c257af7aec3ec88d4"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7588,
+      "sha256": "77ccde9204226213e81caf8a90f656583476df56be158239d771f6a9f1106f5a"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "047a345d4ed1555deda460c1a2354ec9f61486fd1e3971734b2db9df36b88342"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17371,
+      "sha256": "4de99ce506741adc52ac612e09a2089ac751940e55deb5c39168f27394155bb0"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/report.json": {
+      "bytes": 9630,
+      "sha256": "ad726ce51777dc15c374d0d505584965d6c06074444bc3cd7503fcbcd339d55a"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17395,
+      "sha256": "f6c08fec36123afa63d109d444a8b7d430c53fb473eb5e02c4f300ef374ef92a"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "58c02ac8f57b4ccb6355cced6ab48f964b1eb3e96964a8aebba121256a4a8e5e"
+    },
+    "rf1135-android-media-native-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "bf2719a62d0fbdfb230c3d73a02b289b1d7c96a810034b289027d4387b139ab5"
+    },
+    "rf1135-android-media-native-20261012/inputs.json": {
+      "bytes": 253589,
+      "sha256": "6bce594dc436734c3b7ea4a31a24608666ca05735daf9d435b433bc1c64aa982"
+    },
+    "rf1135-android-media-native-20261012/media-native-driver.py": {
+      "bytes": 68206,
+      "sha256": "8e50606ecc2a55af62ba37aed7c29044933c2ab56c150d40d99c149ab9018576"
+    },
+    "rf1135-android-media-native-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3734,
+      "sha256": "db32de5b364d5e6454dd3d76aba975795e8161b5d9689551b7ff2160ca4a0e29"
+    },
+    "rf1135-android-media-native-20261012/source-binding.json": {
+      "bytes": 237713,
+      "sha256": "d3cad1060db1cfc47b4b64d586ca30b798695b8d162c3500da6c4f296039762a"
+    },
+    "rf1135-android-native-pages-round2-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 42276,
+      "sha256": "e9c3b5f6cb81aab56ab419d08a838d6eadd9b3698ca05d2ad69eb2c3858c8a6c"
+    },
+    "rf1135-android-native-pages-round2-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf1135-android-native-pages-round2-20261012/current-runtime-sources.json": {
+      "bytes": 232633,
+      "sha256": "fe43ab233f26d8e04cc55e7bb1559afdb67f1a6bfa9ff7589f18150649f60ee6"
+    },
+    "rf1135-android-native-pages-round2-20261012/input-proof.json": {
+      "bytes": 238724,
+      "sha256": "3e8c6dc491737b6273019dfd89bebde2293a6d527dd4549bbafcfbc4f27ecca0"
+    },
+    "rf1135-android-native-pages-round2-20261012/inputs.json": {
+      "bytes": 253589,
+      "sha256": "6bce594dc436734c3b7ea4a31a24608666ca05735daf9d435b433bc1c64aa982"
+    },
+    "rf1135-android-native-pages-round2-20261012/media-native-driver.py": {
+      "bytes": 68515,
+      "sha256": "bb9c8b61a718bc6a87b8d2da93d96ce75f50b2239809d3425e43c86ea01e9967"
+    },
+    "rf1135-android-native-pages-round2-20261012/probe-build.live.json": {
+      "bytes": 368,
+      "sha256": "ca6dac6783bcd76a6bb7a0e365a2c127fcb372da55d95a5b686262d685883d06"
+    },
+    "rf1135-android-native-pages-round2-20261012/probe-build.receipt.json": {
+      "bytes": 490,
+      "sha256": "dd337179f506726abc2a6c949b78caf2609317d4904808bc1b717788d80923f4"
+    },
+    "rf1135-android-native-pages-round2-20261012/probe-build.stderr.log": {
+      "bytes": 1228,
+      "sha256": "2e0c235c0f4ac075948dfd114ef3a6d389bb281764e10d8b6faa3b9eec691b71"
+    },
+    "rf1135-android-native-pages-round2-20261012/probe-build.stdout.log": {
+      "bytes": 2698,
+      "sha256": "a633f89520d7f4050d21bfd3cd9266d9f405fe7dc1595b272d0e2dabb38db9e8"
+    },
+    "rf1135-android-native-pages-round2-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3741,
+      "sha256": "5f8809b6eadb6513cb97327f4e9d5a0b121faba99746d115bf7c62daa332681d"
+    },
+    "rf1135-android-native-pages-round3-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 42675,
+      "sha256": "511eba012072e3b4a311ec223f6a9be09d4987898f8ec21a3b68ad1a637c4f08"
+    },
+    "rf1135-android-native-pages-round3-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf1135-android-native-pages-round3-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf1135-android-native-pages-round3-20261012/current-runtime-sources.json": {
+      "bytes": 230787,
+      "sha256": "35281d9292f43ee12a933603d8d7fbcbc30d642dca973343d93a0cd05a07b2a0"
+    },
+    "rf1135-android-native-pages-round3-20261012/current-test-apk.json": {
+      "bytes": 881,
+      "sha256": "a00b8767eb2312f23c668bd051e3e23ca38f51f5cd56e92ea25e7b276ef594c2"
+    },
+    "rf1135-android-native-pages-round3-20261012/dex-defined-classes.json": {
+      "bytes": 316804,
+      "sha256": "b58123a8df58945281d42937558564c0515c9c7ff63149d1bc37629aaf608bd1"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1663,
+      "sha256": "f61f5300d28b22b5111505ac94310b7fa14d7f991dc0d44b2f24c0b0be053d11"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "c6d0ba9349bde6cf926ec4176ddc050eb282b377bb9bd0e8b2a4683e3bed2b17"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 360,
+      "sha256": "9de35b42abfaaa8b2532c2902ff53d6dbd6861535c6dd8b6149d9b185a1be525"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 9638,
+      "sha256": "cbf585f97758765b89db22c93329e023b5afcf53992ae795886e073da8870388"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22261,
+      "sha256": "1d346dfda06fe38557aea7afc7c9e1a75557a20442ecbe9fb91025107444ccd2"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 145876,
+      "sha256": "9c0790554f1220635d25a1fc63593ba678ce512002d901b9820a84499f3e544b"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 98488,
+      "sha256": "6c3ccc04b17efdaf66c0135b6d73e4801d6adcd39b1cea06169eec7b06c8df35"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 32392,
+      "sha256": "22325af85b50afaf61d08a8c71f4eac384e604751d1d7afc82f99268d2d9ec5b"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/diagnostic-text-preview.png": {
+      "bytes": 104736,
+      "sha256": "338766307c3a1e78cc0283e68f14f22b2e0eef9af8265adcd823536c2febb458"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 323140,
+      "sha256": "918f7a5b3dea2ea6a05c5307c5b26a81e1ca9d3a2811969b8b90406fd6e72ee2"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/native.log": {
+      "bytes": 4687,
+      "sha256": "592f8085cd79229ac6d3da0f309dd7062dbe11d062853031778653db88c81d91"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17297,
+      "sha256": "9654886c5aa15be816c5dd405f25df863da09ee0d65d8ab370be32169338b96a"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "4bc1868908358833a3149759626c28a1a75219cea361c38672b41930a0095131"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8297,
+      "sha256": "1cf0974da30efddde67a046aa8a31e3854177950482b866ff89289b81b5dedb0"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17362,
+      "sha256": "3c375cc2e6603817cf0e10b75671e4dc110cbd3e2510f6d8ff086186f18ec97c"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/report.json": {
+      "bytes": 9638,
+      "sha256": "cbf585f97758765b89db22c93329e023b5afcf53992ae795886e073da8870388"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17401,
+      "sha256": "3b0fc67e134fd74f090b366d12f3547cb354b6970548b9a2a8be10b7a7096159"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "ad01439c8745d0043b8d70b4300232250811448b8e99798193c5b00c4bc73612"
+    },
+    "rf1135-android-native-pages-round3-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "ab6d95c3d9eb4e8768e9c1d84696e6b2c44db287c255dc6337c4d85e6942f91b"
+    },
+    "rf1135-android-native-pages-round3-20261012/input-proof.json": {
+      "bytes": 238724,
+      "sha256": "5acedd79ac5c2b177a6c6d5417901c00e2fa7a28842a1e54b3535d0b3b9b59ad"
+    },
+    "rf1135-android-native-pages-round3-20261012/inputs.json": {
+      "bytes": 253590,
+      "sha256": "799379c57b3210c702a1753a7e1d7b50d896335176cba2c837b2dcee0b87a215"
+    },
+    "rf1135-android-native-pages-round3-20261012/media-native-driver.py": {
+      "bytes": 68515,
+      "sha256": "bb9c8b61a718bc6a87b8d2da93d96ce75f50b2239809d3425e43c86ea01e9967"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-badging.live.json": {
+      "bytes": 323,
+      "sha256": "8037ed32f8760680317db7429dc3b92bcd5c55c15090ff7834b6fab04750be91"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-badging.receipt.json": {
+      "bytes": 445,
+      "sha256": "a8e36625059ebf05c371cf0f722f8eecc4a87b86a8c362679dd65d3e6859807d"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-build.live.json": {
+      "bytes": 369,
+      "sha256": "59910872a9d3b4775cbdc87177abd0d2060d0d6dab49cbfa2c05078b750a7fe0"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-build.receipt.json": {
+      "bytes": 490,
+      "sha256": "e100159355820af333a8b968abd1d59b68ee84abd493363a0dcd1dcbbafdd0ed"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-build.stdout.log": {
+      "bytes": 2965,
+      "sha256": "543eecf0949cd0bd96273b216ff5ec2414a5829aa026122e10e5325d126dec31"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-signature.live.json": {
+      "bytes": 431,
+      "sha256": "92b048bb062d20f6669d00becb46ec189152f11839283a08175b78abb571ef12"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-signature.receipt.json": {
+      "bytes": 553,
+      "sha256": "a215ef5eb6efd841176702e39f709bf98f1685133e534ce6a19673458c87ce74"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf1135-android-native-pages-round3-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf1135-android-native-pages-round3-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3741,
+      "sha256": "c1ad3eef6740487683cefa384284acf1c750e3aced8d12cf3f5b44f920ee1e1e"
+    },
+    "rf1135-android-native-pages-round4-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 43452,
+      "sha256": "9b45952b3bd674a48de9a1d459705c512eeee8a1d1790e07a0cf9343091fb18d"
+    },
+    "rf1135-android-native-pages-round4-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf1135-android-native-pages-round4-20261012/blank-scanned-fixture-proof.json": {
+      "bytes": 229,
+      "sha256": "35a14c37f16ef2ba941356575d59e1d2ef8024b9c6bdc86b63cc440fd96ba450"
+    },
+    "rf1135-android-native-pages-round4-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf1135-android-native-pages-round4-20261012/current-runtime-sources.json": {
+      "bytes": 230787,
+      "sha256": "35281d9292f43ee12a933603d8d7fbcbc30d642dca973343d93a0cd05a07b2a0"
+    },
+    "rf1135-android-native-pages-round4-20261012/current-test-apk.json": {
+      "bytes": 881,
+      "sha256": "4437f314c1a8e723e89c8b8b293103acf495390e57b859852815085ba1906d15"
+    },
+    "rf1135-android-native-pages-round4-20261012/dex-defined-classes.json": {
+      "bytes": 316804,
+      "sha256": "b58123a8df58945281d42937558564c0515c9c7ff63149d1bc37629aaf608bd1"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1662,
+      "sha256": "81f15ed5b8e59e25682e6779a97b606b00d1bcb239e56dabf5b49430b2642152"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "4ee0731d9218efca88ba5c045f8caf6f1c5d9ae543ac5ac2c2486c79ae0d4321"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 361,
+      "sha256": "7e8598b83abbd22d8624094005681a8278998d5200763b3ac9822b4eea74fd7c"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 572434,
+      "sha256": "d7e1196f078c79c9eef4d71c273fcfe64daa2b528dce750d30202776a2b33295"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22264,
+      "sha256": "1e4ec857643ebb99589484871f870381c513e779cb6e20c23fe962e13e4479a2"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 145876,
+      "sha256": "9c0790554f1220635d25a1fc63593ba678ce512002d901b9820a84499f3e544b"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 996,
+      "sha256": "83f41d1e4b131a7bc5279e75b08f59e572acb412cef439db550ff6a0ce288830"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116299,
+      "sha256": "372b1732e5d19cdad0698e17487548bf2efb9d34e123e7c7dc719ba79a171dc4"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 18447,
+      "sha256": "9107886969e24c33b54dc800f9e2d10bd7b9ac2a7c813559bd9cbed991835e5a"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 29440,
+      "sha256": "04e7875ac197848b2a9e5e6893160bcbafb8d15aab2c1e874806a2369da23fe5"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/diagnostic-text-preview.png": {
+      "bytes": 83171,
+      "sha256": "6d29bfe47d34127a2c4b417bd5e6511e05b2eb43a113c47e1e0d86e83e92379b"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 512593,
+      "sha256": "a5d3e6377ba0f86c3e65c4cd4922420544439d07e91cd47ae43b311fdfebb2c3"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/native.log": {
+      "bytes": 804,
+      "sha256": "b7c0846f95fa3ecba676f50c1e385f7e2187847ea7fcdad01da567f4eb95b2c8"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17298,
+      "sha256": "77a4c22cf99e211de6c1f46fcf1c2745bbe7a849a571bf21a60ab89620609275"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "5f576316834b24ddac2d35db8c1eec86940870a8060bb89eb1bf0abb4d32a779"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8295,
+      "sha256": "f9311814b15cc9ad2fe0929f1dc61a6d30dd26093bdb00f23169ca18753c9b36"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17372,
+      "sha256": "1bfed883e1cb3f83729b5279d32391c15a3349fa73d524fd8d291dbe5168f5c7"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/report.json": {
+      "bytes": 572434,
+      "sha256": "d7e1196f078c79c9eef4d71c273fcfe64daa2b528dce750d30202776a2b33295"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17390,
+      "sha256": "63999ad738601d134cfb6b7e4ecc2da7a6c7d60c765ccb38e5d7451865a20a49"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "9296a0d3811812554ac2bf5a045c72cca6906e64abef927fed9ac45c85ca1bfb"
+    },
+    "rf1135-android-native-pages-round4-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "b880a2621d4533eb3532054d0440fb68cb24c350ff8c8ad0fe6ebc6cc3418f09"
+    },
+    "rf1135-android-native-pages-round4-20261012/input-proof.json": {
+      "bytes": 238724,
+      "sha256": "55bba4ffe5d3906745c0d6182c587de5f55dc7258198e6253e668dab65b64d3d"
+    },
+    "rf1135-android-native-pages-round4-20261012/inputs.json": {
+      "bytes": 253590,
+      "sha256": "16b2981122b70eb3d6dbed6ba206a3c21d01b054f28aaf5505fecd138ebe7938"
+    },
+    "rf1135-android-native-pages-round4-20261012/media-native-driver.py": {
+      "bytes": 68837,
+      "sha256": "b0c0f3e96f59554945aa2011095a441d3c2e666874e991051608114c652d867a"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-badging.live.json": {
+      "bytes": 323,
+      "sha256": "6c2f576674fe47597126ea4decf07cc25e47ff3b38c9998502f5065e620036d3"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-badging.receipt.json": {
+      "bytes": 445,
+      "sha256": "03960bf672fac56ab3146d6c037a51c92722d3754560e3f0f0c725958b3babc5"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-build.live.json": {
+      "bytes": 369,
+      "sha256": "98b88830dd63a6d8cf867c0049f3fd4f8b352288d51fcdd0b0ef07dd52504a67"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-build.receipt.json": {
+      "bytes": 491,
+      "sha256": "24acacac65275faecd0c86a8f7da21e3376472e9d1ceddc285992bde9b27aa26"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-build.stdout.log": {
+      "bytes": 2965,
+      "sha256": "5af3c5044e01df22fe86533bc2140740b6bee68398d4851e1c2ee29c19591343"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-signature.live.json": {
+      "bytes": 431,
+      "sha256": "e31ba20fde95f61e46c379a277db14733ebdb607fbb07320381c252c793a2d06"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-signature.receipt.json": {
+      "bytes": 553,
+      "sha256": "eea1150b351f7a8e03d022aab00dfe8891f6406ded65467ac1c9d4baab58a52a"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf1135-android-native-pages-round4-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf1135-android-native-pages-round4-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3741,
+      "sha256": "07d08f0820aa47872d581268b4c918bc60b05e92da6bb1393e657dd08306e6b3"
+    },
+    "rf312-android-media-native-proposal-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 30531,
+      "sha256": "b8e0afaa4836c3179933b75b81843f5aa3d2bf09cadeaa934b1477afe10a1930"
+    },
+    "rf312-android-media-native-proposal-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-android-media-native-proposal-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf312-android-media-native-proposal-20261012/current-runtime-sources.json": {
+      "bytes": 232633,
+      "sha256": "249a8057c654851fa6ea47025739417479eb194da9a770a53638f8f506d046e0"
+    },
+    "rf312-android-media-native-proposal-20261012/current-test-apk.json": {
+      "bytes": 882,
+      "sha256": "268e2212f8732570657dfd6594090b8b998f77143183796fa0df94b6ab229480"
+    },
+    "rf312-android-media-native-proposal-20261012/dex-defined-classes.json": {
+      "bytes": 315546,
+      "sha256": "f163076f86860a3c0d8c68990f43b3167cd28dfbc522d6c0de85f9037d7a395e"
+    },
+    "rf312-android-media-native-proposal-20261012/driver-adaptation.json": {
+      "bytes": 480,
+      "sha256": "5bc9c1f77308cb5dfa0ec05b640fdc60e62a719c19c8f43b9c75c15737d70f44"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1678,
+      "sha256": "f4401e11009e98b7962f746dd6ed8538b09f99efcdf3f8b32015981fdf685f67"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "c3726c95d0f4d2741577ed8467f1141f2fffd1b5b1390ad3cb366ec73503f4f3"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 368,
+      "sha256": "37a7dd95ba9a396c3d82d5a68d606b98dbb0eb5fdd4bbc9519840c240a142644"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 10040,
+      "sha256": "2a230eb87443694af12146491b3df2ff8af4293a9cda9bd5cddba0d2796ea588"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22277,
+      "sha256": "9f1bab61c4179c66b5c97103ad26e7d4db9bfaabfe9cf3b11000fb410eb80117"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/native.log": {
+      "bytes": 2076,
+      "sha256": "bff0b2480e553321f02ef12f194ac5c4cd3a7c141af3c0e8a10a45159fa37676"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17775,
+      "sha256": "fb91518f59fe89a2243681030004176c9756263bf9f114bae68b2803175ec1c1"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7588,
+      "sha256": "aa75cda55386a7d9afb071af376521699e41e35d9ec7f67cc7ab6295e3b0eb45"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8297,
+      "sha256": "e822d36aa8a43e15f997145c1ce267b750ec4ede27ddc626eb592beede29272b"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17370,
+      "sha256": "d33206a7a01cd363941a4ce0e469aa85fcddefce82e25a9e293b5a5e4c3471b1"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/report.json": {
+      "bytes": 10040,
+      "sha256": "2a230eb87443694af12146491b3df2ff8af4293a9cda9bd5cddba0d2796ea588"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17399,
+      "sha256": "7f707f5615cd00669b9c828b5a59da6ca8565bf3f9cd4ddf0e1363b46e55d883"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7586,
+      "sha256": "abd33e291603988dd8057e508fe929701b3c99c6ddce1e90bfb7a7fd9813f2f7"
+    },
+    "rf312-android-media-native-proposal-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "73ac564a4d6ff368db208cd13c0c1aae4d87288c4b8f6e742fd7bb5e95ef71b3"
+    },
+    "rf312-android-media-native-proposal-20261012/input-proof.json": {
+      "bytes": 238557,
+      "sha256": "e6cfcb9e11e130f4a5a1c2940bdcba469f278c8b3cd4d66a859c6112d9dc9a01"
+    },
+    "rf312-android-media-native-proposal-20261012/inputs.json": {
+      "bytes": 253567,
+      "sha256": "4fdbe1306358d8abe5d7a837704eb559c5025c410d0848cd2359b5e8a07e0d11"
+    },
+    "rf312-android-media-native-proposal-20261012/media-native-driver.py": {
+      "bytes": 67555,
+      "sha256": "eb20c6d65338ffd790719560179876eb79e8b61f85328a8c0487e4941b58fe5e"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-badging.live.json": {
+      "bytes": 324,
+      "sha256": "8cc136418662511eb206780f19a16087c5277fc4ee3029ba55fc07760f2aa452"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-badging.receipt.json": {
+      "bytes": 445,
+      "sha256": "14af5f4e627a3f66f439cd4db7e5ee595fe6ad71c09fefa8e2c36c42a7726446"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-build.live.json": {
+      "bytes": 370,
+      "sha256": "360294d269b0c72fd6aa0c9979be6c80e241d2e1c8832d8b293e260b0069b805"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-build.receipt.json": {
+      "bytes": 491,
+      "sha256": "c5c2b46ccce4fe1e128ac94c4559858869fb1d64b42db4bab477de25cc02fbab"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-build.stdout.log": {
+      "bytes": 2971,
+      "sha256": "c3d76c92ac1f16e88868e47aa838a0b6934bb1ed6735358405c89d9fe0912853"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-signature.live.json": {
+      "bytes": 432,
+      "sha256": "8097fe6980a4b486447bd6dd4f7309588c4cd7b721992e045dd31ad38e817374"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-signature.receipt.json": {
+      "bytes": 554,
+      "sha256": "5ab3239062765c2d9ca88648def91afa23ca2d7501e217e293379987eb354e5b"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf312-android-media-native-proposal-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf312-android-media-native-proposal-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3742,
+      "sha256": "e95276636fddc7e71960b644bc350cf30a6ea9df25592066adc262ffd6ee0905"
+    },
+    "rf312-android-media-native-round2-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 30975,
+      "sha256": "9fb7a268a144375ff3f196c2cbc4d54488330dd9107e91343e0473d8edea074e"
+    },
+    "rf312-android-media-native-round2-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-android-media-native-round2-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf312-android-media-native-round2-20261012/current-runtime-sources.json": {
+      "bytes": 232633,
+      "sha256": "249a8057c654851fa6ea47025739417479eb194da9a770a53638f8f506d046e0"
+    },
+    "rf312-android-media-native-round2-20261012/current-test-apk.json": {
+      "bytes": 880,
+      "sha256": "cf4bdd49fa72e90c8744de0de271a28ca713f6c7c0be22d60b986d40205cdeb3"
+    },
+    "rf312-android-media-native-round2-20261012/dex-defined-classes.json": {
+      "bytes": 315546,
+      "sha256": "f163076f86860a3c0d8c68990f43b3167cd28dfbc522d6c0de85f9037d7a395e"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1672,
+      "sha256": "086a7912321f7868111b4ef406b706328f8994b1dbaa0451c77ed2887f33c727"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 284,
+      "sha256": "3d139997d48c7f55a226d8b203faab3832153b5048efd05116c01ade8e4bbcfe"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 360,
+      "sha256": "fa0bb93907bceb84f7969e3867563bbb48f77e4d0f3318fb260814e2a69d4271"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 9649,
+      "sha256": "05482b79949f24be121ac26c5f5f925871078077699cfae8339cc77580adae2c"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22269,
+      "sha256": "2c5bedaeb388e59280d04bc8ac4ee7e351e87dc30151b7de6f208485d55edef0"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 145907,
+      "sha256": "e3e7100b31bb5750d4baf8bfef29d13f7bed57617f37ddb6274b79925174fd5f"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116302,
+      "sha256": "bcfaf53215bbc6166fb69f9f7e1a3f2336137e0596163f09e7a364439f6f38b6"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/device-files/diagnostic-text-preview.png": {
+      "bytes": 104741,
+      "sha256": "aa97aa9fa6eafea764590b08839cd32321580d1b2c37cda1dd9d95af972e9920"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/device-files/failure-pdf-preview-diagnostic.png": {
+      "bytes": 162840,
+      "sha256": "8d2a8ba2bb8f9c7afb0b44533f97b5a715c5333ceb96c055e8586c287e4ed0a1"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 274536,
+      "sha256": "3687fead5335cee4df79dced02696a4542c747496064e30029ff483ab9a7f018"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/native.log": {
+      "bytes": 4924,
+      "sha256": "dcb3d62535716f407288f07249719c44346a7c1360397eddeb33a41c1990bf22"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17300,
+      "sha256": "3cb2517d5e1a90d3f5b57aa2ea5599ecaabcb6ce27e3d57bb4b86d0d1d187c94"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "87bbfdce47742668dfb006fc9444d37490779ba36dc3d8aaf3504f3ac367324a"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "f3e331e07dd524fb1a42197b980f551687c8b5cad765d0f3012f6391ef50c509"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17366,
+      "sha256": "7de2f6a9f7f1e99b81df295f6cf8afbe5aed63fe957374581ef2d55f095075af"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/report.json": {
+      "bytes": 9649,
+      "sha256": "05482b79949f24be121ac26c5f5f925871078077699cfae8339cc77580adae2c"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17394,
+      "sha256": "de6cf705d96fc888d6dac5d992be6959eb65ab75f03e6ef5403a736cba67780f"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "0c24df34229c4911630b9bd707bda91ec337ae4fd18b0f4d48d7145608c851a9"
+    },
+    "rf312-android-media-native-round2-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8251,
+      "sha256": "9f07652edfb5791099981202b222ab6ba634c4c1c1376a0c46b6e3f882062d8e"
+    },
+    "rf312-android-media-native-round2-20261012/input-proof.json": {
+      "bytes": 238553,
+      "sha256": "a8a11d6a262e3bef183b95afcbead9eabc16188eca35311c150283b69204a03c"
+    },
+    "rf312-android-media-native-round2-20261012/inputs.json": {
+      "bytes": 253565,
+      "sha256": "afd1bb1e74919a577fdff31d0723636fbb9989f173daca25d97c56cd0f54a209"
+    },
+    "rf312-android-media-native-round2-20261012/media-native-driver.py": {
+      "bytes": 67555,
+      "sha256": "eb20c6d65338ffd790719560179876eb79e8b61f85328a8c0487e4941b58fe5e"
+    },
+    "rf312-android-media-native-round2-20261012/post-pdf-diagnostic-process-logcat.log": {
+      "bytes": 64620,
+      "sha256": "1862513f3f0a2557a455bffe4cdb3e12802e3c8cfbea05d8925d6fa315260b6e"
+    },
+    "rf312-android-media-native-round2-20261012/probe-badging.live.json": {
+      "bytes": 322,
+      "sha256": "631e7358356b7ef42b3fe646d2a76d1b38f27774f21f2f2912f69e51bd487874"
+    },
+    "rf312-android-media-native-round2-20261012/probe-badging.receipt.json": {
+      "bytes": 444,
+      "sha256": "ab9eb2cd940d50f1de42cc4778f7c6e264961ab4ae417610df30dd38dec54d44"
+    },
+    "rf312-android-media-native-round2-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-android-media-native-round2-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf312-android-media-native-round2-20261012/probe-build.live.json": {
+      "bytes": 368,
+      "sha256": "cf4471d0b1472aa1b784bfc414c9f9360901e45d647e09aa84dae64f3e15f777"
+    },
+    "rf312-android-media-native-round2-20261012/probe-build.receipt.json": {
+      "bytes": 490,
+      "sha256": "dfbb91e34fe3f61798537cfdae356d749b9106258d64043b25972f8bbf94c90f"
+    },
+    "rf312-android-media-native-round2-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf312-android-media-native-round2-20261012/probe-build.stdout.log": {
+      "bytes": 2964,
+      "sha256": "d8486c1f0a0fd69ff7caf770965b14164f1706cb116c3fa7ae574cb41d68277a"
+    },
+    "rf312-android-media-native-round2-20261012/probe-signature.live.json": {
+      "bytes": 430,
+      "sha256": "ff45250bf70c3ca9f7aa1adafa5a3b55ba15e6a448f54c6d94a538b4c495bf8d"
+    },
+    "rf312-android-media-native-round2-20261012/probe-signature.receipt.json": {
+      "bytes": 552,
+      "sha256": "f28201f6aa03c397baec4575d14d1ee5465fc482fb5c28d5eeb4625d6cfe0b4b"
+    },
+    "rf312-android-media-native-round2-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf312-android-media-native-round2-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf312-android-media-native-round2-20261012/root-alias-proposal.json": {
+      "bytes": 304,
+      "sha256": "9b989d247f513463915b2f8dcd0740f37ad65d2e5bc9112d662dc878a592cdb4"
+    },
+    "rf312-android-media-native-round2-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3740,
+      "sha256": "6ceb71af4e33e2e9bd5571189edf36bb2f87ae019c222a941f4af6111d2cd318"
+    },
+    "rf312-android-media-native-round3-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 39292,
+      "sha256": "a0d8fdc6d30a9bd6c24e269e952817db0956e9a7704123818ee3fe7b92db5840"
+    },
+    "rf312-android-media-native-round3-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-android-media-native-round3-20261012/current-runtime-sources.json": {
+      "bytes": 230787,
+      "sha256": "a5081b148fb9ad53b9a68195bc8722e98b42f1e78df13d5ad83a1760b10a08a0"
+    },
+    "rf312-android-media-native-round3-20261012/input-proof.json": {
+      "bytes": 238553,
+      "sha256": "6d4b7b1393e4fe4c56299c03c21893a6bd7e769e77234a8569b5abc62ba5d522"
+    },
+    "rf312-android-media-native-round3-20261012/inputs.json": {
+      "bytes": 251383,
+      "sha256": "e25e3d7165b9f1db1609c38783afb0e68ef7c8269c52fac6b6b1ed1700bf54e4"
+    },
+    "rf312-android-media-native-round3-20261012/media-native-driver.py": {
+      "bytes": 68206,
+      "sha256": "8e50606ecc2a55af62ba37aed7c29044933c2ab56c150d40d99c149ab9018576"
+    },
+    "rf312-android-media-native-round3-20261012/probe-build.live.json": {
+      "bytes": 368,
+      "sha256": "c8e89691d95f2cb785e45f21a0e3b7e90eea20a7f112ede710edbec4a752371f"
+    },
+    "rf312-android-media-native-round3-20261012/probe-build.receipt.json": {
+      "bytes": 489,
+      "sha256": "46d9cfa49b3b5a5542d7938af8a8e2535af43da296ad61f7191b05052dcd7fa9"
+    },
+    "rf312-android-media-native-round3-20261012/probe-build.stderr.log": {
+      "bytes": 5380,
+      "sha256": "a33b8d88da4abcff01e0dda5ba58b1a9d2ff452a42ab7c58e45168ee108c76a0"
+    },
+    "rf312-android-media-native-round3-20261012/probe-build.stdout.log": {
+      "bytes": 235,
+      "sha256": "dc54b22eab2ded73662fe60e0f1137429853eab29fb535913b6444bc737be20e"
+    },
+    "rf312-android-media-native-round3-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3740,
+      "sha256": "51897acea95ca4b4b0106afb0438a69a535c67befc6ccb7ecc51bf4f073654f2"
+    },
+    "rf312-android-media-native-round4-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 39292,
+      "sha256": "a0d8fdc6d30a9bd6c24e269e952817db0956e9a7704123818ee3fe7b92db5840"
+    },
+    "rf312-android-media-native-round4-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-android-media-native-round4-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf312-android-media-native-round4-20261012/current-runtime-sources.json": {
+      "bytes": 230787,
+      "sha256": "a5081b148fb9ad53b9a68195bc8722e98b42f1e78df13d5ad83a1760b10a08a0"
+    },
+    "rf312-android-media-native-round4-20261012/current-test-apk.json": {
+      "bytes": 880,
+      "sha256": "11071b792b9fedcd66322fcc30ed2757733504b9eced8cf42986e695995a6915"
+    },
+    "rf312-android-media-native-round4-20261012/dex-defined-classes.json": {
+      "bytes": 316294,
+      "sha256": "4fa982ab6d0df9117c46cc6133a298bebb86bf291f4a21ba15634fd56b0c1a9d"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1672,
+      "sha256": "64838f42823ede28624f971d31297b0e91bd6fc31d6263acdf86f7b90a46e992"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "87ae053a1b4a41ff2cd5cc45e434bee92e27cc640a41784192ef7f40790623fa"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 360,
+      "sha256": "8be0e90a7bdde62f500e54ba2657be9c702257c27800f3531604d168cc2d7fa6"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 9649,
+      "sha256": "97809c4f27b4c5eb2810b82991166bca0a18fd7a386a7f6d4d07ada6314d3c6e"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22275,
+      "sha256": "2ce2851b9b796db3cafa290a5fcc7781c031ed0599c38f17c34e8c9262ceed7a"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 145876,
+      "sha256": "9c0790554f1220635d25a1fc63593ba678ce512002d901b9820a84499f3e544b"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116299,
+      "sha256": "372b1732e5d19cdad0698e17487548bf2efb9d34e123e7c7dc719ba79a171dc4"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/device-files/diagnostic-text-preview.png": {
+      "bytes": 83019,
+      "sha256": "0b760e1f05b4fe8457e8094c30325a4d5b2b46b4e0bfc5677b2f82651f35f582"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/device-files/failure-native-pdf-text_only.pdf.png": {
+      "bytes": 162793,
+      "sha256": "60522243003fa8e613cf7d30545034c9584360e07a67753a33b276ace49bcbf8"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/device-files/failure-pdf-text-native-diagnostic.png": {
+      "bytes": 160700,
+      "sha256": "5f37fbe1f574fa8cf529c9205d20f5615115b624bffc596f09fcaeb8d199407e"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 262059,
+      "sha256": "08bc84ba8890086d746d470bf815a105bddbd3e447b0d76909738e8013aaad8d"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/native.log": {
+      "bytes": 3865,
+      "sha256": "e08c10e5801d57174d435d697d1626b80d6aac405c1cad1d678ad3c6ccde4097"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17296,
+      "sha256": "66e5a355aeae714fbe680386b40b8861dc1795528f479f0270ad481e2af488d4"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "02bcf2d3c2b029ece4ae723bb693b62691ac148780b97616de36ee89ea4b7820"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "51a6960043d0fc0c015b47c37dba70a0b2637a4836da89b64f0550722453f69c"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17370,
+      "sha256": "ba6d335c65568b4237f6a5282c7693316168d5879fef6187a9815fdb87a03043"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/report.json": {
+      "bytes": 9649,
+      "sha256": "97809c4f27b4c5eb2810b82991166bca0a18fd7a386a7f6d4d07ada6314d3c6e"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17393,
+      "sha256": "9a0cfe344323ed46a7b421cc82ee580993917cf594950a8c7fd70ef7d147ef8e"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "32996af52a3c4d842dfa839e20b282fb27a22357f69dd48e7ab35c1bf82766f6"
+    },
+    "rf312-android-media-native-round4-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "2a16f305dd709436d7d604c4cfb8a636856d06da1b5b8effd1c4be95c600462a"
+    },
+    "rf312-android-media-native-round4-20261012/input-proof.json": {
+      "bytes": 238553,
+      "sha256": "8802574654b99c1da05b6bfabe01283a76b96a1aa79c4de19e6ed9e610943920"
+    },
+    "rf312-android-media-native-round4-20261012/inputs.json": {
+      "bytes": 253565,
+      "sha256": "69d0aac8f053670317336775bfc30c54ec9aa19af7af503d533056cd50bb8f2a"
+    },
+    "rf312-android-media-native-round4-20261012/media-native-driver.py": {
+      "bytes": 68206,
+      "sha256": "8e50606ecc2a55af62ba37aed7c29044933c2ab56c150d40d99c149ab9018576"
+    },
+    "rf312-android-media-native-round4-20261012/owned-failure-logcat.log": {
+      "bytes": 64220,
+      "sha256": "b72ca7e246f6eadd7cd626a553c824e39408d41bc56a3c38701b01da47475775"
+    },
+    "rf312-android-media-native-round4-20261012/probe-badging.live.json": {
+      "bytes": 322,
+      "sha256": "be717d8d44981a4b3c35feb69e07eaaceba6e163680e7ab36cac95b48e572770"
+    },
+    "rf312-android-media-native-round4-20261012/probe-badging.receipt.json": {
+      "bytes": 444,
+      "sha256": "ae2a8aa485b7c0156543efe4936c72f0f1bbf064a2932ddec09a33465a485491"
+    },
+    "rf312-android-media-native-round4-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-android-media-native-round4-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf312-android-media-native-round4-20261012/probe-build.live.json": {
+      "bytes": 368,
+      "sha256": "325e52c1b0d42390d150773db4b891003e2bb14f67af8dba829d2fe29c4b172f"
+    },
+    "rf312-android-media-native-round4-20261012/probe-build.receipt.json": {
+      "bytes": 489,
+      "sha256": "8f07fb42616322bc4b8027642470798cf0a3ac22704998fbebd59555fb595834"
+    },
+    "rf312-android-media-native-round4-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf312-android-media-native-round4-20261012/probe-build.stdout.log": {
+      "bytes": 2962,
+      "sha256": "1e6545b800f09592167a84d80f4e7b3d66b625663a4fdc17166cfb7b8dce5d04"
+    },
+    "rf312-android-media-native-round4-20261012/probe-signature.live.json": {
+      "bytes": 430,
+      "sha256": "e833db7f574bfa9fbaafa07b52a7d296e1cab4d3a43dcef3e4efe829e8272b4b"
+    },
+    "rf312-android-media-native-round4-20261012/probe-signature.receipt.json": {
+      "bytes": 551,
+      "sha256": "d0ad2344c579fbe368bd936251c5d1b6a597d2536cfbbee326693b1552424a8b"
+    },
+    "rf312-android-media-native-round4-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf312-android-media-native-round4-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf312-android-media-native-round4-20261012/retry-reason.json": {
+      "bytes": 337,
+      "sha256": "9b2f751cc0f0f1c78ecba0dc8747840337f341f4f3c44f026dff5239fb0fd6d5"
+    },
+    "rf312-android-media-native-round4-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3740,
+      "sha256": "da168e1b8f62b94745c8c61d1e9d77e5dca525a0ec38b4177d874e41d14e4cb8"
+    },
+    "rf312-android-media-native-round4-20261012/run-temp-directory-probe.py": {
+      "bytes": 1983,
+      "sha256": "bd2d575f6efbbfa07101fbf299c7135fa751cffa569593e95f23c858bae9b942"
+    },
+    "rf312-android-media-native-round4-20261012/temp-directory-native.json": {
+      "bytes": 2544,
+      "sha256": "db5e849b5a4f02b98d081b9991ff39c0616315f2021b5adc0da3994a5712d1ac"
+    },
+    "rf312-android-media-native-round4-20261012/temp-directory-native.stderr.log": {
+      "bytes": 110,
+      "sha256": "e5e360424d01ed149ee50c3ed9ed8091fedbfaf8154379080bba2c65bfb47355"
+    },
+    "rf312-android-media-native-round4-20261012/temp-directory-native.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-android-media-native-round4-20261012/temp-directory-probe.rs": {
+      "bytes": 927,
+      "sha256": "fc42a851ad044a860de9e912175874b18552c0d1a7b9b70f7f774b737c8653db"
+    },
+    "rf312-android-media-native-round5-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 41115,
+      "sha256": "6c6081a83452fe78a718de506bcea45678a6ed9a454cf66a66f15d0653319693"
+    },
+    "rf312-android-media-native-round5-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-android-media-native-round5-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf312-android-media-native-round5-20261012/current-runtime-sources.json": {
+      "bytes": 230787,
+      "sha256": "a5081b148fb9ad53b9a68195bc8722e98b42f1e78df13d5ad83a1760b10a08a0"
+    },
+    "rf312-android-media-native-round5-20261012/current-test-apk.json": {
+      "bytes": 880,
+      "sha256": "d42b7fa0dafe3118c1f1fbc1dce937752f62318920aea72b199619cbefae3881"
+    },
+    "rf312-android-media-native-round5-20261012/dex-defined-classes.json": {
+      "bytes": 316382,
+      "sha256": "d8c67e87ea0afc9a19313c802e56a16e8022d2569ba7ca69cbaef8b6afbf1b0e"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1671,
+      "sha256": "62286c6145bfd784de50dcb45e5790631decf0e9eb5dd1981801b145e9adedc9"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "b92d29c644bc6a6e4126ba0e1d5b5515cf410a597165e29b024ce6e6a52d37b6"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 360,
+      "sha256": "c76ef330315f7d28c46b8cb3851c43a9a616a21c949f2855bb95abc3f4f51491"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 9646,
+      "sha256": "c6aaa4a6ff1625ca8a80831cca8f10e845ef8b9604903a635c06fb4c38cace1a"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 22269,
+      "sha256": "dd489cb4de91df0ff6df3b4c5f3a69c4cfc49704f6f91478babde099c90f7839"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162793,
+      "sha256": "60522243003fa8e613cf7d30545034c9584360e07a67753a33b276ace49bcbf8"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116299,
+      "sha256": "372b1732e5d19cdad0698e17487548bf2efb9d34e123e7c7dc719ba79a171dc4"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/device-files/diagnostic-text-preview.png": {
+      "bytes": 104736,
+      "sha256": "338766307c3a1e78cc0283e68f14f22b2e0eef9af8265adcd823536c2febb458"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/device-files/failure-native-pdf-text_only.pdf.png": {
+      "bytes": 162793,
+      "sha256": "60522243003fa8e613cf7d30545034c9584360e07a67753a33b276ace49bcbf8"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/device-files/failure-pdf-text-native-diagnostic.png": {
+      "bytes": 160699,
+      "sha256": "e4ce4dd3b44a31c35fd1a3fb8505eab015a247bcba81d067f54728e546f4a849"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 267649,
+      "sha256": "874b0574bcb453ea98979a559b8530347d4a99ee25d0240cf633432d0a91f41d"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/native.log": {
+      "bytes": 3865,
+      "sha256": "e3d628b893b88bd713d1715bf170794cdb332faddcd8a220d14d7d065fbfaa61"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17295,
+      "sha256": "df70f1476ff19330304e4d513fe8ac9dcb449b1f7d4f6ef3545765ad828d1cc8"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "596c6aa6a9287b8d72813292ffa46933ef0d4eedc4e9bb99a3d97e398a42764d"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8294,
+      "sha256": "7a97db70073439cb6ac8415deea6e7906434853313587e3ffa5efaa7233a1986"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17369,
+      "sha256": "b24734ffc906a8073ffe7b1053ee327f94ea51b9ba506643940442734c3cea89"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/report.json": {
+      "bytes": 9646,
+      "sha256": "c6aaa4a6ff1625ca8a80831cca8f10e845ef8b9604903a635c06fb4c38cace1a"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17395,
+      "sha256": "851b7040dd90440052ac513d232d49fcb8400d3c29943468eccae950b90a20e5"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "629cc42be332868c28038cf052fdcafd40dbe81640bc3c635bcc2fc872624f50"
+    },
+    "rf312-android-media-native-round5-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "e7601a6d8b9a027635b46a7b2af0ed0476be02bb9c2a8e061deb3e0c5e9fafa2"
+    },
+    "rf312-android-media-native-round5-20261012/input-proof.json": {
+      "bytes": 238553,
+      "sha256": "48889b9306d3c6f9f82d59579ee435a691bb3eb548ffab5bcd8d68ca267dcf88"
+    },
+    "rf312-android-media-native-round5-20261012/inputs.json": {
+      "bytes": 253565,
+      "sha256": "bf767a5c5f46c57ba0bac0102bb5d6c9a2d88f513f3dd31b6dcbfa536e93c232"
+    },
+    "rf312-android-media-native-round5-20261012/media-native-driver.py": {
+      "bytes": 68206,
+      "sha256": "8e50606ecc2a55af62ba37aed7c29044933c2ab56c150d40d99c149ab9018576"
+    },
+    "rf312-android-media-native-round5-20261012/probe-badging.live.json": {
+      "bytes": 322,
+      "sha256": "23520da34b529105436d06d1c59c41056b040383ef217533c4cc36abf90abd06"
+    },
+    "rf312-android-media-native-round5-20261012/probe-badging.receipt.json": {
+      "bytes": 443,
+      "sha256": "e72cb35ba48ab112c4d6c0347e302bc55e40b168304281fa4cd8ee8778c7963e"
+    },
+    "rf312-android-media-native-round5-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-android-media-native-round5-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf312-android-media-native-round5-20261012/probe-build.live.json": {
+      "bytes": 368,
+      "sha256": "65dc662187cd0847fc9a19e3d2c4f7e76b91c22f14431e541c0726c9e0ad80a2"
+    },
+    "rf312-android-media-native-round5-20261012/probe-build.receipt.json": {
+      "bytes": 489,
+      "sha256": "c51ad5ddb69cd29d8b17307f5ad6a831522d9b5799bd354763245e54023639ee"
+    },
+    "rf312-android-media-native-round5-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf312-android-media-native-round5-20261012/probe-build.stdout.log": {
+      "bytes": 2962,
+      "sha256": "dff60c15e84648b4ac553315e63f8c2fc7dc7f8645a3f15c22a0e9cc4dcd6822"
+    },
+    "rf312-android-media-native-round5-20261012/probe-signature.live.json": {
+      "bytes": 430,
+      "sha256": "68e2e7c9064862d36203b8a0c7c989e61f5c2e8af9045e277e351fe276e94581"
+    },
+    "rf312-android-media-native-round5-20261012/probe-signature.receipt.json": {
+      "bytes": 551,
+      "sha256": "1b136cfee9154d1f0533c8d44ca54f01f6367d3caa65e4f3315fc4441c59f235"
+    },
+    "rf312-android-media-native-round5-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf312-android-media-native-round5-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf312-android-media-native-round5-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3740,
+      "sha256": "68acc67689cebc84ba143ead3a5731e56491c75131ac7686d8bf5ff840f6cbca"
+    },
+    "rf312-android-media-native-round5-20261012/scope.json": {
+      "bytes": 276,
+      "sha256": "41d2892be97934a87cdeabfb5472077671c76a60c1c630744b9e8c823f3427bf"
+    },
+    "validated-working-source/tauri/src-tauri/src/commands/attachment/mod.rs": {
+      "bytes": 25751,
+      "sha256": "3a028bf52c5cbe46134e8aa01a5b2fafd63c9a9f019366acdb45f9ae68d26c49"
+    },
+    "validated-working-source/tauri/src-tauri/src/commands/attachment/share.rs": {
+      "bytes": 15315,
+      "sha256": "917bc12fa81976e1f352bd809705e40617fc25fefc837e34e319c5b46bcc12ad"
+    },
+    "validated-working-source/tauri/src-tauri/src/commands/attachment/tests.rs": {
+      "bytes": 31081,
+      "sha256": "f32064d59f12c847f05a0b616f456b6ee8e677f99a6a18838ad0d315a36e3908"
+    }
+  },
+  "privateDataProgramsKeysAndDatabasesExcluded": true
+}

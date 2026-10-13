@@ -1,0 +1,1684 @@
+{
+  "members": [
+    {
+      "path": "debug-control/aligned-progress-observation.json",
+      "bytes": 31310,
+      "sha256": "411a00fe549b814fe942dc631ef4fee18656c5fd9b6a9c66f8fd0f8f2cd8f4ca"
+    },
+    {
+      "path": "debug-control/aligned-runtime-current.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4.live.json",
+      "bytes": 1062,
+      "sha256": "eaa89c1e7c280da1dcdde3b33ca2a513f612276694503784042127bc0ba05a76"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4.receipt.json",
+      "bytes": 620,
+      "sha256": "082013429c03565d755b318111a36b4ce8cb4ab83bf200eb63e5b46f8bf7f5aa"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4.stderr.log",
+      "bytes": 370,
+      "sha256": "cac00cc1fb247874a7ac1d3438444ebcf10eacbc57331adbce05e2a7cfd690e7"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4.stdout.log",
+      "bytes": 2947,
+      "sha256": "e74ec42f7ccabe799b2229b865f80340712392f091b84d470cfc13e010657450"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/commands.json",
+      "bytes": 18960,
+      "sha256": "b54c6b136c90e337f8dfa28ab252ace8d4b77562478e2add4508a29e22c041e9"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/debug-control-main-package.log",
+      "bytes": 17396,
+      "sha256": "441424cd526292a8452eb38abb431f9f0a672884ab0c390038536574b5e671b7"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130522,
+      "sha256": "344f20616edf5c0c11b5d5a61d4d797504373a0ab8e68cec1f487984c6f3569a"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/enhanced-dark.png",
+      "bytes": 130522,
+      "sha256": "344f20616edf5c0c11b5d5a61d4d797504373a0ab8e68cec1f487984c6f3569a"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/enhanced-light.png",
+      "bytes": 129332,
+      "sha256": "aa3385449f0615026dbbac23e337cf17d40b8ffdad78740ddb8f5e2bc91d78f0"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/local-light.png",
+      "bytes": 101554,
+      "sha256": "43dcdfc67d5d8eb705ed5255fb0e55316c40e9bcee941b00645659614e994e36"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/object-actions-dark.png",
+      "bytes": 106715,
+      "sha256": "117968a055ec3f47bb90f62d627eb67ff27e9f61855726c2c5433f8f8bb67a20"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/object-detail-dark.png",
+      "bytes": 118077,
+      "sha256": "1eb9c4fcc9c2439b4409ab38a79e3dfd48a27d539890eb4abc4de0fe0f55d240"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/object-editor-dark.png",
+      "bytes": 101004,
+      "sha256": "b130fcbdd0fd21be1639e26215153b7adcedef4f8dac218b42122c029a42b109"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/object-list-after-system-back.png",
+      "bytes": 111159,
+      "sha256": "9c7fb7b1cec3df3ab0a6d0e789e888abf85e52078a00de4555b45cff309e6e9b"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/object-list-dark.png",
+      "bytes": 119273,
+      "sha256": "0194a58c89e647ae15b2f7c44b51d48bdb10e2e229b977cfcea07f9b253bd190"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/populated-enhanced-dark.png",
+      "bytes": 143317,
+      "sha256": "b0b9065634065014ca9b9e0c5470e9c8c232791212ba4593ed3b8db482017cb9"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/populated-enhanced-light.png",
+      "bytes": 128084,
+      "sha256": "177b31a08d546106adb5f4cb3f6b69e504d729bc9f8566192df32073fc9d6e2f"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/device-files/report.json",
+      "bytes": 30243,
+      "sha256": "8c373c8fcffcefa461c44aee7847afdfb3406f59cad92d81686a41035a7bec31"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/native.log",
+      "bytes": 945,
+      "sha256": "e7cc0525a78f1835c7c40ab2385103bea76d622b9745c99aac6a6a4c025bb050"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/original-main-package.log",
+      "bytes": 17295,
+      "sha256": "ff56621d9de36d5bcbb51dfb0a7d6ea6c5f0de43a547aeaf201bbe0a9c592211"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/original-test-package.log",
+      "bytes": 7575,
+      "sha256": "cac2f471a722a081367f463d1a61f5937922182bc9ad3101fbb63c488caf57cc"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/probe-before-uninstall-package.log",
+      "bytes": 8292,
+      "sha256": "6f180cb6ffacff8bb83f0ec8050f1df6b721fca413feda9f785fd3c1b1974b01"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/report.json",
+      "bytes": 2947,
+      "sha256": "e74ec42f7ccabe799b2229b865f80340712392f091b84d470cfc13e010657450"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/restored-main-package.log",
+      "bytes": 17384,
+      "sha256": "a674402b87f690c90563ce738ea863a2f8284d956a8432a29751aa12d719c5af"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/restored-test-package.log",
+      "bytes": 7573,
+      "sha256": "b275e53b13e53898e5ea3cd75d90025a58393d7dc8c7bad0e1abf6c109cd83d7"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-aligned-round4/runtime-probe-package.log",
+      "bytes": 8247,
+      "sha256": "d5adc6eb6c480da2bc3b628454ed986a71f0d2ab28db3a0b41e6c0836ed04691"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3.live.json",
+      "bytes": 1038,
+      "sha256": "4c8c7cc1881a701113e05177d4b77ec9fcdbb5e9896496082fe961721520b9a1"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3.receipt.json",
+      "bytes": 686,
+      "sha256": "09461c7e0c4c0fa5ba7a91698006800b9229d4cd542e0c2c655ace4dad7ac735"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3.stderr.log",
+      "bytes": 358,
+      "sha256": "0a27696d76b709f2a7a8128c74b7f9fa9f372c98db9c8732f0f2f1a4df1acd32"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3.stdout.log",
+      "bytes": 2622,
+      "sha256": "97e08ba3db35024a8e38d9ac40e86059dbb02457095a37e5e4a780d350133aa2"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/commands.json",
+      "bytes": 18855,
+      "sha256": "602cccc64aa45da38ef4b004e7c4d8c2f6fb57911b175e7bf0d292a71cab2fd7"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/debug-control-main-package.log",
+      "bytes": 17394,
+      "sha256": "bcffe3ed7a18a3ce8c47a37f2104134431cf7d9cc55aab925f0834f9f044ccbd"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/device-files/failure.png",
+      "bytes": 11230,
+      "sha256": "72f24cfb54f56eebe9fce1df579c1041fac59c4b2a5af27cd4ff23210ef0b10c"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/device-files/report.json",
+      "bytes": 795,
+      "sha256": "92073b366e99d54ecc59573b1cdcbc039370434f2c84e500e525414352e4a4a7"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/junit.xml",
+      "bytes": 332,
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/native.log",
+      "bytes": 2056,
+      "sha256": "8583c8abd701bf6d463e8a5dccb8eddbb8345cb1bced612538e41cc2fc0ae81a"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/original-main-package.log",
+      "bytes": 17293,
+      "sha256": "8f39c76291b45cabbdc19a28f4c77a8c0aa29e48df56fc2e7166aba2a5a19d55"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/original-test-package.log",
+      "bytes": 7575,
+      "sha256": "68e2ddf30bab97da1f94ebc14fafe57ed6e6a9f4a1baaf604199579036e0d52f"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/probe-before-uninstall-package.log",
+      "bytes": 9494,
+      "sha256": "b9e04c8858099506c67d5879e1bbd55bfd8c533be464837e14b000420e09b472"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/report.json",
+      "bytes": 2622,
+      "sha256": "97e08ba3db35024a8e38d9ac40e86059dbb02457095a37e5e4a780d350133aa2"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/restored-main-package.log",
+      "bytes": 17397,
+      "sha256": "44ea299125ad4500074676cc86e2f0efbc7eb284e752a26fcf254587467eee12"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/restored-test-package.log",
+      "bytes": 7577,
+      "sha256": "6de1fdc65c6ff75f8af5d28aa0326f55adfabafb23bc378fe9a97cbcca693cd2"
+    },
+    {
+      "path": "debug-control/baseline-supported-probe-round3/runtime-probe-package.log",
+      "bytes": 9446,
+      "sha256": "8c4d5dcfe87c0f45004f8187791fa2f4ef43e55a584d64d0d04fa6c0448c0a45"
+    },
+    {
+      "path": "debug-control/inputs.json",
+      "bytes": 238813,
+      "sha256": "decbd108d185de67f3c3da4a4eb341c33973134bd08e63a22de40ed6302eeecb"
+    },
+    {
+      "path": "debug-control/original-driver.py",
+      "bytes": 57129,
+      "sha256": "6b0067bea91d2bd0d35505d19a22d26315a01f905faa9edb68ad56753927d7e6"
+    },
+    {
+      "path": "debug-control/original-system.json",
+      "bytes": 137,
+      "sha256": "c3f32958224bb2b949514fa93a332096995578cd1d7024c74d53ad2d0657507b"
+    },
+    {
+      "path": "debug-control/owned-emulator-preflight.json",
+      "bytes": 523,
+      "sha256": "82ccd7089ff9828b94fd9b823ab87057561c4c3ca926f82df778e80022b22d56"
+    },
+    {
+      "path": "debug-control/pre-alignment-inputs.json",
+      "bytes": 238796,
+      "sha256": "56c8c358f29652288468e78bf34c0dd08a3900377deb80f600dc0d8bb7ef02da"
+    },
+    {
+      "path": "debug-control/pre-alignment-owned-emulator-preflight.json",
+      "bytes": 523,
+      "sha256": "82ccd7089ff9828b94fd9b823ab87057561c4c3ca926f82df778e80022b22d56"
+    },
+    {
+      "path": "debug-control/pre-alignment-preparation.json",
+      "bytes": 1064,
+      "sha256": "dbfc2cd2eefec5c4e0c5902123082b7c14946e118bac9c460eac76bc1e8c63ba"
+    },
+    {
+      "path": "debug-control/pre-alignment-progress.json",
+      "bytes": 817,
+      "sha256": "1155b82f12723f02bba902af08bf9ddb4e8f2b27ff728f218a62c50f7d6347c9"
+    },
+    {
+      "path": "debug-control/pre-alignment-verification.json",
+      "bytes": 1137,
+      "sha256": "f00f3c63ac896f8fcbb9df14fda9708304049945c91846eb522e4e5461b98020"
+    },
+    {
+      "path": "debug-control/preparation.json",
+      "bytes": 1187,
+      "sha256": "4692f03e65b898351a00ce2a7f876d771e636e747a0fe4cbeca0332a5dceb70a"
+    },
+    {
+      "path": "debug-control/progress.json",
+      "bytes": 751,
+      "sha256": "23a0d9f7f82419775fba02f401a71aadb15b8e5335717101e83b9b1f21ebeef2"
+    },
+    {
+      "path": "debug-control/release-driver-before.py",
+      "bytes": 62850,
+      "sha256": "a54f989b2ac29772cf49be19c4c579a8078716651ada57b37eedd61a6110893b"
+    },
+    {
+      "path": "debug-control/release-home-native-driver.py",
+      "bytes": 62863,
+      "sha256": "176319e3f87b588d1e6e3e3f8ac4540eb79b97832de2fb6b4df2e414786fabf5"
+    },
+    {
+      "path": "debug-control/run-pre-alignment.py",
+      "bytes": 5934,
+      "sha256": "9b82d4a1a42955949b4145a23c48cdfa5988e9706fa1a0d2c111255cc7509dbf"
+    },
+    {
+      "path": "debug-control/verification.json",
+      "bytes": 1070,
+      "sha256": "3bdca5b40b3a60a122e923dd942d3b948a5c37ba596018656a5a2c69c6146447"
+    },
+    {
+      "path": "emulator/boot.receipt.json",
+      "bytes": 3906,
+      "sha256": "53cd4adeba641f9d2a5746919ba72a4fac6d56f26ae2eb3d0cc30b2e49c943e8"
+    },
+    {
+      "path": "emulator/emulator.live.json",
+      "bytes": 499,
+      "sha256": "ade0897755c6b7362084315b19f7e3bde7313ebd654dc181fb1837ac4a20d2be"
+    },
+    {
+      "path": "emulator/emulator.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "emulator/emulator.stdout.log",
+      "bytes": 16970,
+      "sha256": "0f82f55d664bdf86a42477b3383fa0530ec292af038f3f7c0f80edf242a9cd1d"
+    },
+    {
+      "path": "emulator/owned-processes-after-launch.json",
+      "bytes": 481,
+      "sha256": "faec8d65f226a72a6eba682e268406bbad2a4b6171b02f38147a9c2a1b677fa9"
+    },
+    {
+      "path": "emulator/process-preflight.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "emulator/stop.receipt.json",
+      "bytes": 911,
+      "sha256": "f8cc3b05cb95f8a85334f08845d11bda6b0b7b590b665dcd7f6321d722cf6e27"
+    },
+    {
+      "path": "emulator/surfaceflinger.log",
+      "bytes": 89115,
+      "sha256": "0c0e235bb0531082921a0a6674ecc67a7f9f41511347cc0d1a75a696867b7a24"
+    },
+    {
+      "path": "emulator/webview.log",
+      "bytes": 612,
+      "sha256": "b297efab1349c6200e63dfe61f4ed91e42650e3ac6f27a6893d67a6bb5d2828a"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4.live.json",
+      "bytes": 1091,
+      "sha256": "82ede64d3482ec7471a735295f21a0c006df6de9d276a61c108ccefb981e43bd"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4.receipt.json",
+      "bytes": 620,
+      "sha256": "41f720668b8982e17411e28f06eedfc76351571e79f5c880d9e1824ae475be3a"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4.stderr.log",
+      "bytes": 372,
+      "sha256": "ddd2a12b9d21537fa9fc2b2ec78adc574c251e9aa74551c21d7f19764a222c12"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4.stdout.log",
+      "bytes": 2968,
+      "sha256": "8ff16ebc3dc1e38b38ce7e7e10c9a4a68f9a7c7903af72610a2e3b92ea5b4f23"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/commands.json",
+      "bytes": 18992,
+      "sha256": "e5c6f489ba2f564877073d86c95f62190c04ee57844fea47758de81bb453c812"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130094,
+      "sha256": "248efc3263166d15d702c4d79a041076d3a48ec941b9d2f9b776792c8ab25be9"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/enhanced-dark.png",
+      "bytes": 130094,
+      "sha256": "248efc3263166d15d702c4d79a041076d3a48ec941b9d2f9b776792c8ab25be9"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/enhanced-light.png",
+      "bytes": 129299,
+      "sha256": "ae1369521889099f686f840b7569df7ec19a2def67cfb52e890bcd613e3a6fb5"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/local-light.png",
+      "bytes": 101521,
+      "sha256": "72c74b2dd9d4f68273fc2b7af4d6922fa6b7ebafb1d60fab2638afeb918dfcf2"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/object-actions-dark.png",
+      "bytes": 106309,
+      "sha256": "b7d8f044824aec76237f36ef183bbf2e3a9980ed83802f5afb7756892df34de7"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/object-detail-dark.png",
+      "bytes": 117750,
+      "sha256": "1cc90c6991f681677b5ad7aa843b96c7db9fc222bfebed2def0aac34debd3ca7"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/object-editor-dark.png",
+      "bytes": 100679,
+      "sha256": "9beb78efd1fb691d11de7e754328f25327d12c47c1da84dd2a62b5e93187ec5a"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/object-list-after-system-back.png",
+      "bytes": 110808,
+      "sha256": "58e2dd8de9ad4a8b3c1abbab85237e2b8c0ca005d1c42a206028247ac067c530"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/object-list-dark.png",
+      "bytes": 118933,
+      "sha256": "e6b3061cf63ea03a32980f6bece6aa4e3e308eddabc8a083242e27d65508752d"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/populated-enhanced-dark.png",
+      "bytes": 142934,
+      "sha256": "cc9b5109ee32798af6462038b741f4208e7d87946862efc63d552bd8643bc8ae"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/populated-enhanced-light.png",
+      "bytes": 127761,
+      "sha256": "2e44b69139a4f4b57717d2fb69180dd1fc0cc95a10c2f41b9f658f0ed50b6f2d"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/device-files/report.json",
+      "bytes": 30311,
+      "sha256": "d03f3e28ed445ce19a55c927462586a9f4db689860a03b4b567e433c540effdc"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/native.log",
+      "bytes": 945,
+      "sha256": "f0bcc069c8c0c96cf246445e17af64bd4e2876efd7d8fb78a8b932625c72eee5"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/original-main-package.log",
+      "bytes": 17285,
+      "sha256": "d31a99eec2e88ca2b2aaedbdd1d1e2de4bdddcdb0a9ac81da4cf2b009db5c378"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/original-test-package.log",
+      "bytes": 7574,
+      "sha256": "ffa1664e0b25ca50b4a82f19d9a79db437b40ea0183b447d7dcf1c1406ba6ec5"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/probe-before-uninstall-package.log",
+      "bytes": 8290,
+      "sha256": "49ca19ecff53e54319b463cf9fbef4533a965a6ea2d2acfda51ceb1455303164"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/release-main-package.log",
+      "bytes": 17363,
+      "sha256": "3bb4421aec04c999e5f425ac9d95ee6597dc5a77e22a73b466ee01b30dac932b"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/report.json",
+      "bytes": 2968,
+      "sha256": "8ff16ebc3dc1e38b38ce7e7e10c9a4a68f9a7c7903af72610a2e3b92ea5b4f23"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/restored-main-package.log",
+      "bytes": 17392,
+      "sha256": "abf73b247e64a2171ba250873661fcdddd274bc3ba7eb98677e8e0c6a196486b"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/restored-test-package.log",
+      "bytes": 7576,
+      "sha256": "d270fe964d11275340de2a28197020168079e1b3e537d23739417494fc2a1934"
+    },
+    {
+      "path": "native/baseline-fallback-probe-aligned-round4/runtime-probe-package.log",
+      "bytes": 8247,
+      "sha256": "2b76d45a0f43139d0200bab46e0e6e6567f04ecafe99f64c456e4ab3f0612010"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3.live.json",
+      "bytes": 1066,
+      "sha256": "de99526b09e9a16cb418293af9485c226de07506056f971f8f1ea181ff6a84fd"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3.receipt.json",
+      "bytes": 685,
+      "sha256": "17e5bc965d26e662998b1d83164a94a1b80f915a309d852de720129cd13c9504"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3.stderr.log",
+      "bytes": 360,
+      "sha256": "e477be33828567c3f3f677b09ec71aa1cb67b1dc2b871c1379f09f8a022fe6bc"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3.stdout.log",
+      "bytes": 2641,
+      "sha256": "98d8475d7d06ec1ecc750f8a9ecd82ba0a21f09a83ab7172a2d6a48c428728e7"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/commands.json",
+      "bytes": 18873,
+      "sha256": "e77bf805bf8a2c5c5fad43069371b318fbda49b144fd0bcb6773c8489b267857"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/device-files/failure.png",
+      "bytes": 11331,
+      "sha256": "768d54b8e5a836630ed7edc3d7d1793f4a29191ab1299119af298eb873e38bf0"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/device-files/report.json",
+      "bytes": 795,
+      "sha256": "408e543de00a4787fb071ed704e9a89c2b8f83df98cfa847b23c4d899a049ea2"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/junit.xml",
+      "bytes": 332,
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/native.log",
+      "bytes": 2056,
+      "sha256": "130951e503b8d35f10c748d2aeac0657bad79f95ed06a2c72131be78484bd05d"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/original-main-package.log",
+      "bytes": 17292,
+      "sha256": "8e27ad577ef41cbd74c0d00f7d212d7b9243cc3f55b56a6cf7781d506482ada4"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/original-test-package.log",
+      "bytes": 7572,
+      "sha256": "6f7c8bb698de57801de88269e66ed8c7220abdc94c57117233a99ed488c7b9ce"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/probe-before-uninstall-package.log",
+      "bytes": 9490,
+      "sha256": "3b18dce9957f71613d5e5e07a56b5e3555906cd991d2e61cee199100dcbab93b"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/release-main-package.log",
+      "bytes": 17365,
+      "sha256": "33bd4c94335c108704c488bfd23fbdf94de51a10270d0172782563923e6ada6a"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/report.json",
+      "bytes": 2641,
+      "sha256": "98d8475d7d06ec1ecc750f8a9ecd82ba0a21f09a83ab7172a2d6a48c428728e7"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/restored-main-package.log",
+      "bytes": 17391,
+      "sha256": "85eb5ad2f33301ab2347b60128cb300bf2ab8fd5bdcb1c4179ce69766f6d099b"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/restored-test-package.log",
+      "bytes": 7573,
+      "sha256": "15228dec0a91c1a5c9bb3586ce08e43152030cc73521a618c9384dad01523707"
+    },
+    {
+      "path": "native/baseline-fallback-probe-round3/runtime-probe-package.log",
+      "bytes": 9446,
+      "sha256": "3038daf44da5348aa958eb01dc8325e8ce7272a8a9ee083c129fafb37c4d5b05"
+    },
+    {
+      "path": "native/baseline-fallback-round2.live.json",
+      "bytes": 1066,
+      "sha256": "d1d26f568b3772c10a89549f6e28c8d619f19b9251d35f858ad4f9aae66c2d00"
+    },
+    {
+      "path": "native/baseline-fallback-round2.receipt.json",
+      "bytes": 1287,
+      "sha256": "987e48fee878356c9860aa52d9750d135ef4b235e94f517687bf057b8f64af07"
+    },
+    {
+      "path": "native/baseline-fallback-round2.stderr.log",
+      "bytes": 205,
+      "sha256": "24ad6aa1105d74015ed92efe191319301246dfe396b53453b4bfd8c520475fa3"
+    },
+    {
+      "path": "native/baseline-fallback-round2.stdout.log",
+      "bytes": 3028,
+      "sha256": "ab0d8664bcfd0620842a9facb1bdb60b4009c378bd5a5b61e26d54078ad8dd2b"
+    },
+    {
+      "path": "native/baseline-fallback-round2/commands.json",
+      "bytes": 13862,
+      "sha256": "47b2101f5c11fc2c88d482ac564baa3b790e5fefb2dab80850e23382e7ad9d09"
+    },
+    {
+      "path": "native/baseline-fallback-round2/junit.xml",
+      "bytes": 921,
+      "sha256": "592550c296352336fdf5c7220c3908a2f624ced1f12075f42a8537a0ebc441cc"
+    },
+    {
+      "path": "native/baseline-fallback-round2/original-main-package.log",
+      "bytes": 16508,
+      "sha256": "b871bf676604a314ccad5707ac2049df432517d408db103b4ef463b005c36c3c"
+    },
+    {
+      "path": "native/baseline-fallback-round2/original-test-package.log",
+      "bytes": 6801,
+      "sha256": "3e560ec2dacde8b0984c9f4b947cd1431a679dd1acddd61fb00e7cff3dc16b6a"
+    },
+    {
+      "path": "native/baseline-fallback-round2/release-main-package.log",
+      "bytes": 16484,
+      "sha256": "79217386fe2a459c9560ab218bf5da9f75ff92428fb2630e446bb06ce840e399"
+    },
+    {
+      "path": "native/baseline-fallback-round2/report.json",
+      "bytes": 3028,
+      "sha256": "ab0d8664bcfd0620842a9facb1bdb60b4009c378bd5a5b61e26d54078ad8dd2b"
+    },
+    {
+      "path": "native/baseline-fallback-round2/restored-main-package.log",
+      "bytes": 17240,
+      "sha256": "5b9d8bc90757ebb11a5c2c6dc353140e22f3d38755618266e660a7268c07c49c"
+    },
+    {
+      "path": "native/baseline-fallback-round2/restored-test-package.log",
+      "bytes": 7523,
+      "sha256": "ca23a3c7987b866905fe9850be6b2842fbebaae8a90b9fcf35264d7e2bf30be0"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4.live.json",
+      "bytes": 1093,
+      "sha256": "817a17ad04a57b6e80cb454dcb81b2701f09c79998baf972df5222e1ec503083"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4.receipt.json",
+      "bytes": 620,
+      "sha256": "72030cc3ca462347cc12fb50bd3840f943a8ac6b58603770fa30d76430b8ff3b"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4.stderr.log",
+      "bytes": 373,
+      "sha256": "34290c784ca747ad79849e5f36e9488cf912a3a65e425cc4fcd1b72db4b411c8"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4.stdout.log",
+      "bytes": 2970,
+      "sha256": "35c37a98a7331f53a2d5f0b796fee78450b263c12abc56b0577c75423675f84b"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/commands.json",
+      "bytes": 18998,
+      "sha256": "d0cdabe38313e76ef9dd24d91da08ead6834bc4507a64dcc4943763f5cbaba98"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/enhanced-dark-after-unlock.png",
+      "bytes": 130113,
+      "sha256": "830c99cd87328f5198fed9beb557ea3a6e5fb6a13e88ec7a97cb2277b0ece9fd"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/enhanced-dark.png",
+      "bytes": 130113,
+      "sha256": "830c99cd87328f5198fed9beb557ea3a6e5fb6a13e88ec7a97cb2277b0ece9fd"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/enhanced-light.png",
+      "bytes": 129014,
+      "sha256": "2c7d26c1e705dc2bf28322f918f2c76f79c5090c5fd7a1722f96ebcec2285383"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/local-light.png",
+      "bytes": 101147,
+      "sha256": "437ffc2a07a6b72b5f591a713dedc253a15cdedfbda489c448d3bae26c8b6277"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/object-actions-dark.png",
+      "bytes": 106712,
+      "sha256": "317a100afb8e148f698f4cfe522b14407fd7f6bd77c1b82a86511c633987b7c4"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/object-detail-dark.png",
+      "bytes": 118072,
+      "sha256": "cd9680985ae3e2b5110c6ee8d629bb5975d153dbf8582af444002f91bc26762e"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/object-editor-dark.png",
+      "bytes": 100993,
+      "sha256": "f57e95e7bfdf6128eda954b06f38adb93df7f36227a41e3535a892f430270765"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/object-list-after-system-back.png",
+      "bytes": 111145,
+      "sha256": "b55a7472318874f964f0f5c374253075d5862ec8d0827a90eea65873f9d09932"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/object-list-dark.png",
+      "bytes": 119262,
+      "sha256": "37600eeb920aafaf27aff14f75e965ac396cb72729bab564f6027a7af173dbc1"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/populated-enhanced-dark.png",
+      "bytes": 143294,
+      "sha256": "237c017f342c92c9749d0ce4b83f3de486908da5a9ac2b8fd45f3460b1d5e7f1"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/populated-enhanced-light.png",
+      "bytes": 128044,
+      "sha256": "78fb019ceb9159ee1ec579fabf1ec3865dc482252f87d741580f8e402375d82d"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/device-files/report.json",
+      "bytes": 30266,
+      "sha256": "2a6e8747b91a381ea9d868bad3890ff01ce995f520a95b418cc5d54ada11c512"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/junit.xml",
+      "bytes": 234,
+      "sha256": "a986edd0c57c3a4c3856c46929b5cd1677998809acd856b1939b3c7018a2ca21"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/native.log",
+      "bytes": 945,
+      "sha256": "94a1697bc2b5cbbd28a0b3803673c4188ce2d8a25bacf821317661a2fe1a6245"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/original-main-package.log",
+      "bytes": 17285,
+      "sha256": "1afe92c41e69b7230f1995c43af8f7c14169690ff83b14c3bd78a511a3c32b6f"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/original-test-package.log",
+      "bytes": 7574,
+      "sha256": "401cc21243e9998be336ad05e00337237c305bfd11b32696af49d965b734c004"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/probe-before-uninstall-package.log",
+      "bytes": 8291,
+      "sha256": "01117bfb45a6cfdc008d3aaf2e117cb81943dd4b7f304c68820276eeb3dfee6b"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/release-main-package.log",
+      "bytes": 17367,
+      "sha256": "a6c5bd4bacf14ea5721ae56603a0e224035f522d2b95e2629ff879b400a30243"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/report.json",
+      "bytes": 2970,
+      "sha256": "35c37a98a7331f53a2d5f0b796fee78450b263c12abc56b0577c75423675f84b"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/restored-main-package.log",
+      "bytes": 17385,
+      "sha256": "1ef14c81d9fdb4261b082c15cc18783c86c36915dbd3b8119c226f9432853f2f"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/restored-test-package.log",
+      "bytes": 7573,
+      "sha256": "b89b86c56470b346b79d3ab0d73245b1fe6299989fa05e88910b0e14ad33794d"
+    },
+    {
+      "path": "native/baseline-supported-probe-aligned-round4/runtime-probe-package.log",
+      "bytes": 8247,
+      "sha256": "3906077916a9158dca398ebd0dfb1ee88a72ceefc3efeb27eca25572629131dc"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3.live.json",
+      "bytes": 1068,
+      "sha256": "13912d972a9b7ea2f0351f0f4368ff8602bfb8c8d59867829cb132daa758040e"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3.receipt.json",
+      "bytes": 686,
+      "sha256": "86982d01134e64858cecbac52b6b15dc0d6bb3e9e20a70e32a18438a163a2dba"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3.stderr.log",
+      "bytes": 361,
+      "sha256": "a3c5774c05a8adc2fba2f49875b5ad279057051b999b05581115ff417f28a25a"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3.stdout.log",
+      "bytes": 2644,
+      "sha256": "e107e53ce01bd72cc46c9b09916d6af8afee9aefb85adcfcb832794eb3d9f81e"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/commands.json",
+      "bytes": 18885,
+      "sha256": "7ab591ed07687e345f48590f7011745d361d687878fcff9af8c06999be319996"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/device-files/failure.png",
+      "bytes": 11113,
+      "sha256": "592bfff0d96ac2b70876ef8b3005df765d3018af96f64443dea0df715b50f79e"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/device-files/report.json",
+      "bytes": 795,
+      "sha256": "74acc82c9001a8be070703def6f79e996ea3606ecb1d5764e14be7d75c7edbd3"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/junit.xml",
+      "bytes": 332,
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/native.log",
+      "bytes": 2056,
+      "sha256": "5af8d94ea3a54bb09a00997cc780a2bab2c767ca83b36d649f0fa5625f353e5a"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/original-main-package.log",
+      "bytes": 17238,
+      "sha256": "a78d34272ff4c50399feda75fb624da50675f0c4dc0db020ba8f82e35ef602e0"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/original-test-package.log",
+      "bytes": 7521,
+      "sha256": "957172ced0028b14b876ed240ee723a3cf5ae32a9e9c73b5537136a640b83886"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/probe-before-uninstall-package.log",
+      "bytes": 9489,
+      "sha256": "813174677d4f99cfad94d0daa9b28b808530ba9778d0767016b8b583fc603850"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/release-main-package.log",
+      "bytes": 17362,
+      "sha256": "18ae0861b4038c0083ddaa0b85d3a010dc15711a0b91d589b03afca0d3dcba0d"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/report.json",
+      "bytes": 2644,
+      "sha256": "e107e53ce01bd72cc46c9b09916d6af8afee9aefb85adcfcb832794eb3d9f81e"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/restored-main-package.log",
+      "bytes": 17393,
+      "sha256": "b75bdc7470e9dc6ddaee1bfd177f1b7cbb76736a6fc84a5a9e8c4b939fd9a135"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/restored-test-package.log",
+      "bytes": 7573,
+      "sha256": "1ceb45afbe737387df6e9c35b15482644e48ce2c16ccdfbaff638bc5da20d168"
+    },
+    {
+      "path": "native/baseline-supported-probe-round3/runtime-probe-package.log",
+      "bytes": 9442,
+      "sha256": "014059e600f55eb89cc8f322423ff07880ed6b9058649b9b8507541ee7e80c5f"
+    },
+    {
+      "path": "native/baseline-supported-round2.live.json",
+      "bytes": 1067,
+      "sha256": "b3779533a1bae661980d8f46ddc82d3722ea8f74620a46ce9703295d4b3a9a20"
+    },
+    {
+      "path": "native/baseline-supported-round2.receipt.json",
+      "bytes": 1287,
+      "sha256": "23ab36567a88a84b64de45a87ece81527639835f0e211b3bb2edf8e19e7c9fb8"
+    },
+    {
+      "path": "native/baseline-supported-round2.stderr.log",
+      "bytes": 205,
+      "sha256": "ac53ff1ceffd942f6a759c187b58dd6e148373409a3a8ddd80406494a73cd5f5"
+    },
+    {
+      "path": "native/baseline-supported-round2.stdout.log",
+      "bytes": 3029,
+      "sha256": "8f0405c287b886a4a3044b60966532b172e74434eac95c8e226c55c7d55edb88"
+    },
+    {
+      "path": "native/baseline-supported-round2/commands.json",
+      "bytes": 13852,
+      "sha256": "b98c04cd6e7b54fe037c03f0073cf174f7ed17e42d4e93f8d21e58a18e2c92b7"
+    },
+    {
+      "path": "native/baseline-supported-round2/junit.xml",
+      "bytes": 921,
+      "sha256": "fa2079aaec40171c418dfdf13c1d851000dafb83633337dca5792b80b1e26a54"
+    },
+    {
+      "path": "native/baseline-supported-round2/original-main-package.log",
+      "bytes": 14609,
+      "sha256": "ff0e0a7157744defc4962e5a2b211ffbf5159e2518015f437a2538b03f14ed80"
+    },
+    {
+      "path": "native/baseline-supported-round2/original-test-package.log",
+      "bytes": 4845,
+      "sha256": "11c9495601fdf64f703cb9fcaf96531d7d7661bff8353ddad06ee755fb14cdec"
+    },
+    {
+      "path": "native/baseline-supported-round2/release-main-package.log",
+      "bytes": 14673,
+      "sha256": "dbde8b5d8395e5c344e0b813cd00118f656b1205c589405fcc2dd255a3df0c4d"
+    },
+    {
+      "path": "native/baseline-supported-round2/report.json",
+      "bytes": 3029,
+      "sha256": "8f0405c287b886a4a3044b60966532b172e74434eac95c8e226c55c7d55edb88"
+    },
+    {
+      "path": "native/baseline-supported-round2/restored-main-package.log",
+      "bytes": 16146,
+      "sha256": "2c66815913117a3f87bc6dff3a170713bba1a6aceb3dc426a5770a9fd91bc7ac"
+    },
+    {
+      "path": "native/baseline-supported-round2/restored-test-package.log",
+      "bytes": 6438,
+      "sha256": "0ef54dc047d2569b3e214afef96c57c3f26f4ce16210709e18948dd0de3d6fe2"
+    },
+    {
+      "path": "native/baseline-supported.live.json",
+      "bytes": 1061,
+      "sha256": "3820f1aa34a489a0155d9ca8c653f541ca06651c42851e7cfe6a7fe083deefc1"
+    },
+    {
+      "path": "native/baseline-supported.receipt.json",
+      "bytes": 657,
+      "sha256": "e81721365f6a2700fcd371f57bae2a76d1b7b9a0924da35e3cb93d8a4da544e8"
+    },
+    {
+      "path": "native/baseline-supported.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/baseline-supported.stdout.log",
+      "bytes": 397,
+      "sha256": "28550121c2b554feb367d0ac5e418fe0081f3e211f38c724a03207d32c046e92"
+    },
+    {
+      "path": "native/baseline-supported/commands.json",
+      "bytes": 1247,
+      "sha256": "84e5c81b896d4f3696b5911dd09d36da8385a128b22ba352bd4af07c09d03afd"
+    },
+    {
+      "path": "native/baseline-supported/junit.xml",
+      "bytes": 301,
+      "sha256": "23f7ef2565d71ce9291e623198a89035417e6f7729fe49018343c353fd4566f1"
+    },
+    {
+      "path": "native/baseline-supported/report.json",
+      "bytes": 397,
+      "sha256": "28550121c2b554feb367d0ac5e418fe0081f3e211f38c724a03207d32c046e92"
+    },
+    {
+      "path": "native/debug-test-incompatible-final-runtime.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/debug-test-rejected-owned-emulator-preflight.json",
+      "bytes": 523,
+      "sha256": "82ccd7089ff9828b94fd9b823ab87057561c4c3ca926f82df778e80022b22d56"
+    },
+    {
+      "path": "native/debug-test-rejected-progress.json",
+      "bytes": 2814,
+      "sha256": "f94105f799532d11db1df8e6d42c6ca80ecdf5d1a04a139f031cdf51c9a42c2e"
+    },
+    {
+      "path": "native/debug-test-rejected-verification.json",
+      "bytes": 3116,
+      "sha256": "3e3f531486761edb868e1b7367665a5cc2e5af3b8588a716b5f120dc35a7d1a7"
+    },
+    {
+      "path": "native/first-rejected-baseline-supported.receipt.json",
+      "bytes": 657,
+      "sha256": "e81721365f6a2700fcd371f57bae2a76d1b7b9a0924da35e3cb93d8a4da544e8"
+    },
+    {
+      "path": "native/first-rejected-progress.json",
+      "bytes": 788,
+      "sha256": "b48463892be2c5f67804b829705e2eaca8473f3850432ae7ed6de4d29c2c7d49"
+    },
+    {
+      "path": "native/first-rejected-verification.json",
+      "bytes": 882,
+      "sha256": "12274f5c68204bcf26fdf283330072410e40ad120853eceb86982ff95c7443a7"
+    },
+    {
+      "path": "native/first-release-runtime-current.log",
+      "bytes": 2228,
+      "sha256": "9e686ec3d1d9f71c2c2f3f9aa6e650aef7d76c2d9d01a2ebedcdf62279cafac1"
+    },
+    {
+      "path": "native/independent-verification.json",
+      "bytes": 22219,
+      "sha256": "fe2b6abbb9c51864d11c0b1d5744ee633c7dbd674934eb0f4fbe54f3fa587ca2"
+    },
+    {
+      "path": "native/inputs-debug-test-original.json",
+      "bytes": 237877,
+      "sha256": "9c1f99e20049f5b42d5e8abe1fa8cb23dd78ea783aa37cfd8877bfa7d52a5c5f"
+    },
+    {
+      "path": "native/inputs.json",
+      "bytes": 238813,
+      "sha256": "decbd108d185de67f3c3da4a4eb341c33973134bd08e63a22de40ed6302eeecb"
+    },
+    {
+      "path": "native/original-driver.py",
+      "bytes": 57129,
+      "sha256": "6b0067bea91d2bd0d35505d19a22d26315a01f905faa9edb68ad56753927d7e6"
+    },
+    {
+      "path": "native/original-system.json",
+      "bytes": 137,
+      "sha256": "c3f32958224bb2b949514fa93a332096995578cd1d7024c74d53ad2d0657507b"
+    },
+    {
+      "path": "native/owned-emulator-preflight.json",
+      "bytes": 523,
+      "sha256": "82ccd7089ff9828b94fd9b823ab87057561c4c3ca926f82df778e80022b22d56"
+    },
+    {
+      "path": "native/pre-alignment-inputs.json",
+      "bytes": 238796,
+      "sha256": "56c8c358f29652288468e78bf34c0dd08a3900377deb80f600dc0d8bb7ef02da"
+    },
+    {
+      "path": "native/pre-alignment-owned-emulator-preflight.json",
+      "bytes": 523,
+      "sha256": "82ccd7089ff9828b94fd9b823ab87057561c4c3ca926f82df778e80022b22d56"
+    },
+    {
+      "path": "native/pre-alignment-preparation.json",
+      "bytes": 946,
+      "sha256": "e090512830e13242a4a8dff93bb764f7828d8a28f7eeaaf0d20c735c20efc16c"
+    },
+    {
+      "path": "native/pre-alignment-progress.json",
+      "bytes": 1611,
+      "sha256": "2d1fa66633d58d972bf7043b123e556f326c7b833c9cfbdda87c70ee87c49e1a"
+    },
+    {
+      "path": "native/pre-alignment-verification.json",
+      "bytes": 1913,
+      "sha256": "8a6e81c16bfe5c6f742797dad193455b779d0fe5a440c56aa791e7b0aedc418e"
+    },
+    {
+      "path": "native/preparation-debug-test-rejected.json",
+      "bytes": 712,
+      "sha256": "f3a5dd55f325f8e87a76e27b9de18580206ef84bdeea83ef9b034da88554d684"
+    },
+    {
+      "path": "native/preparation-first-rejected.json",
+      "bytes": 500,
+      "sha256": "3aa95d1b24c035695f32f6d8713e75c9c2780591a003d0503c916aad888d97e6"
+    },
+    {
+      "path": "native/preparation.json",
+      "bytes": 1069,
+      "sha256": "5de6bd6aa8dc93d52ce59c753095c6d8d5af268959b8458f4c6e2e1e0a7f18cc"
+    },
+    {
+      "path": "native/private-pairs-verification.json",
+      "bytes": 8592,
+      "sha256": "708ad387e3eb20d177b9066aa53c994cb9c0810860093a217a34e19cac9008aa"
+    },
+    {
+      "path": "native/probe-runtime-current.log",
+      "bytes": 610,
+      "sha256": "641c17f6dcde770ccb1ca34bf12f670b4ac91ba8f65720950d0c84fc828fc614"
+    },
+    {
+      "path": "native/progress.json",
+      "bytes": 1480,
+      "sha256": "fcdaa64faf0aea3375a5c37be9372b3b4217d58fe41e5c6cd7097b816d3da03d"
+    },
+    {
+      "path": "native/release-home-native-driver-debug-test-rejected.py",
+      "bytes": 61337,
+      "sha256": "54fd03080c178db4f2d43be2c80af60e13c400193f3e7c64282b70485e9aa575"
+    },
+    {
+      "path": "native/release-home-native-driver-first-rejected.py",
+      "bytes": 61260,
+      "sha256": "1cc3b865cfe6685296d30f1fb831e2eca595da58ce5d82c1c1998957b50e46c5"
+    },
+    {
+      "path": "native/release-home-native-driver.py",
+      "bytes": 62850,
+      "sha256": "a54f989b2ac29772cf49be19c4c579a8078716651ada57b37eedd61a6110893b"
+    },
+    {
+      "path": "native/release-supported-process-2664.log",
+      "bytes": 14077,
+      "sha256": "092a6265285d5b216ea3a8cb3ba1705ce2b058b487832434419f465821b6873f"
+    },
+    {
+      "path": "native/run-debug-test-rejected.py",
+      "bytes": 5868,
+      "sha256": "5f058b254519c1e2ff1a56fd63501e9d29040edac4fd27640e7209c3559139f6"
+    },
+    {
+      "path": "native/run-first-rejected.py",
+      "bytes": 5850,
+      "sha256": "64182863b5afdc832a204d3e361dbc13b16d40ab9222f4d613fdf3caf63e2457"
+    },
+    {
+      "path": "native/run-pre-alignment.py",
+      "bytes": 5931,
+      "sha256": "407e485f86655ea2abccf335db40da27475d50d51c6a339185c2ae4c5adeede1"
+    },
+    {
+      "path": "native/verification.json",
+      "bytes": 1781,
+      "sha256": "536692acaba46cbd90be8905ac4cc02d154fd660894e19e2bff4f460a9b4479f"
+    },
+    {
+      "path": "native/visual-review.json",
+      "bytes": 671,
+      "sha256": "cbb02d9b6b7002c92f2dfa3d0427c6fdc577f9cda143c9d088fa448f9eb33ece"
+    },
+    {
+      "path": "probe-build-first/input-proof.json",
+      "bytes": 258451,
+      "sha256": "35f7e79df8e4b203a7e73e23cac9917a476fd67796fa84f84924a165daf5d4ca"
+    },
+    {
+      "path": "probe-build-first/probe-build.live.json",
+      "bytes": 344,
+      "sha256": "66456d456a314434712b823a02bb7cfdaeda9e777ad860d3222ec1531685c28e"
+    },
+    {
+      "path": "probe-build-first/probe-build.receipt.json",
+      "bytes": 438,
+      "sha256": "7b6e81141c66939664b3c27adabf7899b4b783831de2cd989eb91d759390736c"
+    },
+    {
+      "path": "probe-build-first/probe-build.stderr.log",
+      "bytes": 3171,
+      "sha256": "9e9bbeb5ab81b94a5e10fb2de7f534249a9ef84ef3b0ec1dfa93c5e81fb7d908"
+    },
+    {
+      "path": "probe-build-first/probe-build.stdout.log",
+      "bytes": 1108,
+      "sha256": "0094dbf5a15060657f61574b6e0e010a13f201d73166d3d60090589680031412"
+    },
+    {
+      "path": "probe-build-first/producer-first-rejected.py",
+      "bytes": 8970,
+      "sha256": "33ec925c8938d42953732c802c09ae380a8288d68297007f738f465a23eccb78"
+    },
+    {
+      "path": "probe-build-first/project/build.gradle.kts",
+      "bytes": 1941,
+      "sha256": "b67b5425b454cadef09ff79ed6de1ce4e592c90ad4d3636c0a88339064c86071"
+    },
+    {
+      "path": "probe-build-first/project/settings.gradle.kts",
+      "bytes": 49,
+      "sha256": "05bd383f6e7242d96519ad6f6ce8c61cbc8318592aa8beb57b7545294385d81c"
+    },
+    {
+      "path": "probe-build-first/project/src/main/AndroidManifest.xml",
+      "bytes": 454,
+      "sha256": "5534588ae9b9dbb97b24da1c9a39dba5f94bb33da202acdb1586b3552cb1a720"
+    },
+    {
+      "path": "probe-build-first/project/src/main/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt",
+      "bytes": 144144,
+      "sha256": "ff485fd1a2de8cb1e99a6c1524d9256d0d49f81fbe83ae0905b3b0255cb07ca7"
+    },
+    {
+      "path": "probe-build/aligned-probe-final-verifier-tail.py",
+      "bytes": 2180,
+      "sha256": "31459834fbcc21438cd05eee0125a876fda514006f428b80204d980386ce60ca"
+    },
+    {
+      "path": "probe-build/alignment-verification.json",
+      "bytes": 358,
+      "sha256": "97bd0b9f8b5a11e4a43f9a51fd46c7157057e6b16f9af9b94e04a2bdd505f09a"
+    },
+    {
+      "path": "probe-build/build-before-runtime-alignment.gradle.kts",
+      "bytes": 2000,
+      "sha256": "bfab10cef79b225d1d24c8d125a54a2dc123ab1c72246da14ae92b6a20179195"
+    },
+    {
+      "path": "probe-build/build-before-webkit.gradle.kts",
+      "bytes": 1941,
+      "sha256": "b67b5425b454cadef09ff79ed6de1ce4e592c90ad4d3636c0a88339064c86071"
+    },
+    {
+      "path": "probe-build/continuation-build-tail.py",
+      "bytes": 3776,
+      "sha256": "18aac5b5d9c3b416bc4a59563fcbc7774f1af752777e273bb657be3f6b76fdd0"
+    },
+    {
+      "path": "probe-build/continuation-input.json",
+      "bytes": 328,
+      "sha256": "9a80a7fc360bc2acd78a56d18e91874a61bc6a0a884fce06abd923b11f30a642"
+    },
+    {
+      "path": "probe-build/continue-round3-producer.py",
+      "bytes": 2041,
+      "sha256": "f14195b81ebca778c91296a74c9928ff749195b5152c63afe7b202ddf350ef54"
+    },
+    {
+      "path": "probe-build/continue-round4-producer.py",
+      "bytes": 2041,
+      "sha256": "5693bcb9d71d939713814a45f2305ea708f779b68ab04847a300cdbc25fcb9e5"
+    },
+    {
+      "path": "probe-build/continue-round5-producer.py",
+      "bytes": 2041,
+      "sha256": "4e4b940d20d00e0f7ae34e68f1e2a614f7e0715afd83f731962df25358964ddd"
+    },
+    {
+      "path": "probe-build/current-test-apk.json",
+      "bytes": 866,
+      "sha256": "1c3f50dc3cb1cd65b46447be0f906792f1cdf00fbf0d77bb87ad7219e3839b7c"
+    },
+    {
+      "path": "probe-build/dependency-fetch-compile/live.json",
+      "bytes": 537,
+      "sha256": "73ce0e69faf4e94d3326c23fd24ee6a6b4dd8b8536d8b42411fbf4366bc76e10"
+    },
+    {
+      "path": "probe-build/dependency-fetch-compile/receipt.json",
+      "bytes": 779,
+      "sha256": "fd8f0d0ba1f7fa77f344bc5cb21b9d67371a04d71e14d70d37c8ca9039079e5f"
+    },
+    {
+      "path": "probe-build/dependency-fetch-compile/resolve-runtime.gradle",
+      "bytes": 1075,
+      "sha256": "0296eb8e1616b1899ecb964b9d4de3be65c5dd2f237b3a3b3475d870e2e24450"
+    },
+    {
+      "path": "probe-build/dependency-fetch-compile/resolved-compile.json",
+      "bytes": 27743,
+      "sha256": "37a6aca0079b1248efff3739cdae9ae9579abe885dadfd5afe9213c971697756"
+    },
+    {
+      "path": "probe-build/dependency-fetch-compile/stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "probe-build/dependency-fetch-compile/stdout.log",
+      "bytes": 973,
+      "sha256": "8fb8ce7eb51f68bd95bfc60420fe651a4d278115fcf02c8ec878dcb50edb2d05"
+    },
+    {
+      "path": "probe-build/dependency-fetch/live.json",
+      "bytes": 530,
+      "sha256": "4f30dffb56da7b7cb5131c64874bfa903234d84200ed54e5e06298df6c344595"
+    },
+    {
+      "path": "probe-build/dependency-fetch/receipt.json",
+      "bytes": 771,
+      "sha256": "cb678f632c98f9bdf3b1360b7cb583ff8f7b45a411e782e2ec53ef65387088fb"
+    },
+    {
+      "path": "probe-build/dependency-fetch/resolve-runtime.gradle",
+      "bytes": 1067,
+      "sha256": "2a14730444f5da4a43b6dccba94649ae969e4d224d27433aa325dc2d61e9b692"
+    },
+    {
+      "path": "probe-build/dependency-fetch/resolved-runtime.json",
+      "bytes": 18755,
+      "sha256": "bf59234336ccfcaedf01e93959459f717c923dfc2ba9110e51ef7fc726ac7a09"
+    },
+    {
+      "path": "probe-build/dependency-fetch/stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "probe-build/dependency-fetch/stdout.log",
+      "bytes": 973,
+      "sha256": "e4098453e7db90e9fe477352a1500f914badf87566a28114be6cd4acf0fabd35"
+    },
+    {
+      "path": "probe-build/dex-defined-classes.json",
+      "bytes": 314109,
+      "sha256": "f96e63b8f3f443e682c1dd89962eac533046396b712030ce0511a89164c42d0e"
+    },
+    {
+      "path": "probe-build/first-probe-current-test-apk.json",
+      "bytes": 849,
+      "sha256": "a29c9a31331cc89cdb4ec04e23a09dbdda3c6cef2c9631a38364d5c8ae842693"
+    },
+    {
+      "path": "probe-build/first-probe-dex-defined-classes.json",
+      "bytes": 316696,
+      "sha256": "76bf715e91c0c2ef4ca39fe8eca75583463fcf2a54e2bfe2a6a507275e81df9f"
+    },
+    {
+      "path": "probe-build/first-probe-probe-badging.receipt.json",
+      "bytes": 395,
+      "sha256": "008d8c5a5d5ca70fbb1a7e9b428b056504a63c6c1ab3259a3d4d7dd9b92ae96a"
+    },
+    {
+      "path": "probe-build/first-probe-probe-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe-build/first-probe-probe-badging.stdout.log",
+      "bytes": 6148,
+      "sha256": "b1eb5dc0ecef3130b0d3cc0479a20514399c5bb3bae4465a488bc8e81975b7ec"
+    },
+    {
+      "path": "probe-build/first-probe-probe-signature.receipt.json",
+      "bytes": 500,
+      "sha256": "34213ef6bbfa91867f9c3bf5d1cabe0d461e91119e6c0874e06f13110546a0e6"
+    },
+    {
+      "path": "probe-build/first-probe-probe-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "probe-build/first-probe-probe-signature.stdout.log",
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    {
+      "path": "probe-build/input-proof.json",
+      "bytes": 258451,
+      "sha256": "50296e9b2b6204e5041172b89d6535d5c452ae1688c1b8c4493622d37e5e1494"
+    },
+    {
+      "path": "probe-build/manifest-before-alignment.xml",
+      "bytes": 454,
+      "sha256": "5534588ae9b9dbb97b24da1c9a39dba5f94bb33da202acdb1586b3552cb1a720"
+    },
+    {
+      "path": "probe-build/probe-aligned-badging.receipt.json",
+      "bytes": 402,
+      "sha256": "94475910e4137371e194a7e3623969dfdcf4e8e9fd482b75f04d64a16a6fbda0"
+    },
+    {
+      "path": "probe-build/probe-aligned-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe-build/probe-aligned-badging.stdout.log",
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    {
+      "path": "probe-build/probe-aligned-signature.receipt.json",
+      "bytes": 508,
+      "sha256": "84d935c6685d09338a0ddf201286e779c683dd14595ce2147ea6312eff298600"
+    },
+    {
+      "path": "probe-build/probe-aligned-signature.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe-build/probe-aligned-signature.stdout.log",
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    {
+      "path": "probe-build/probe-badging.live.json",
+      "bytes": 300,
+      "sha256": "87f8906a58def4ffcb8c70de7ff94b96840cb25c89e3591ca423e186d6ef617f"
+    },
+    {
+      "path": "probe-build/probe-badging.receipt.json",
+      "bytes": 395,
+      "sha256": "008d8c5a5d5ca70fbb1a7e9b428b056504a63c6c1ab3259a3d4d7dd9b92ae96a"
+    },
+    {
+      "path": "probe-build/probe-badging.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe-build/probe-badging.stdout.log",
+      "bytes": 6148,
+      "sha256": "b1eb5dc0ecef3130b0d3cc0479a20514399c5bb3bae4465a488bc8e81975b7ec"
+    },
+    {
+      "path": "probe-build/probe-build-round3.live.json",
+      "bytes": 350,
+      "sha256": "10fafbd5c3d2b4ca9470cd8364739289046b01e111e813f3391ab4391c1f0937"
+    },
+    {
+      "path": "probe-build/probe-build-round3.receipt.json",
+      "bytes": 445,
+      "sha256": "9875bebbbe3258689927ca1cde74d0d100431d2bb47d5b7c8115562128dd46b4"
+    },
+    {
+      "path": "probe-build/probe-build-round3.stderr.log",
+      "bytes": 3076,
+      "sha256": "8ddeb791af2c7b921ef9f66105d44b19b8a55acd9ded824833b697f1c4945fe3"
+    },
+    {
+      "path": "probe-build/probe-build-round3.stdout.log",
+      "bytes": 1548,
+      "sha256": "385851c5d665fc46e110ce33d8259cdb6f0312f4318940885f1221ac25d83a90"
+    },
+    {
+      "path": "probe-build/probe-build-round4.live.json",
+      "bytes": 351,
+      "sha256": "826647e43955d39b84625ba87316cf46760531cf5f40298eebc1c52f84f826a7"
+    },
+    {
+      "path": "probe-build/probe-build-round4.receipt.json",
+      "bytes": 445,
+      "sha256": "9ce3d634839122da6c21c2722a6d1bbec2be5616743ae65cb98c5fa348efb361"
+    },
+    {
+      "path": "probe-build/probe-build-round4.stderr.log",
+      "bytes": 1399,
+      "sha256": "ca87257bdcea3ba1dfc09be79d14c085631abb0abed81250183e98e7c960662c"
+    },
+    {
+      "path": "probe-build/probe-build-round4.stdout.log",
+      "bytes": 2026,
+      "sha256": "b083a8a073b3f31fda66f5e0f0ec62ba5d38b5f1288a25d6a6cc8e18451bda36"
+    },
+    {
+      "path": "probe-build/probe-build-round5.live.json",
+      "bytes": 351,
+      "sha256": "b659fe2251b7970442cc2cba8127680c9ef46e0a7ece40eb3ca9a03a702afcd9"
+    },
+    {
+      "path": "probe-build/probe-build-round5.receipt.json",
+      "bytes": 445,
+      "sha256": "d6b3bee66b726ee801aaac9f14471f0011a180d12bde63d00a42f836c0ec910b"
+    },
+    {
+      "path": "probe-build/probe-build-round5.stderr.log",
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "probe-build/probe-build-round5.stdout.log",
+      "bytes": 3660,
+      "sha256": "d7ebdd7f65168b62bbefdfa8334147d1b73eaef91a0cb2c08941956887c9db66"
+    },
+    {
+      "path": "probe-build/probe-build-round6.live.json",
+      "bytes": 351,
+      "sha256": "20ce477998ae9fea4ec2e8903f1da93fafa47a7918df6ac9c962a3ddcfda345f"
+    },
+    {
+      "path": "probe-build/probe-build-round6.receipt.json",
+      "bytes": 445,
+      "sha256": "477bf46d7320674aef1bce2fc4777dd48b82a8b455617dbd0df40544813a0471"
+    },
+    {
+      "path": "probe-build/probe-build-round6.stderr.log",
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    {
+      "path": "probe-build/probe-build-round6.stdout.log",
+      "bytes": 3175,
+      "sha256": "5e08b7bca9bd0b55453aa2287675329739da0208e2d301ef7c311dc95eb8f614"
+    },
+    {
+      "path": "probe-build/probe-build.live.json",
+      "bytes": 351,
+      "sha256": "d220cd1e70fff6f700d93266c01af76a9ab6ae569a52f7fcc7773bf949b5cd7f"
+    },
+    {
+      "path": "probe-build/probe-build.receipt.json",
+      "bytes": 446,
+      "sha256": "461e94bad2203fc9bfb3c0e93c5f975ffee978d2cd76562d0ccd5731795b3198"
+    },
+    {
+      "path": "probe-build/probe-build.stderr.log",
+      "bytes": 1984,
+      "sha256": "0040ba95725ffc255db83c4937fcb0437ea3cc721aedc9ee01d2ed032dd9777c"
+    },
+    {
+      "path": "probe-build/probe-build.stdout.log",
+      "bytes": 1115,
+      "sha256": "89341253198f2a444c538c93dfe20217b6aed9a08e7dfe5e3bbd3c5222dbeee0"
+    },
+    {
+      "path": "probe-build/probe-signature.live.json",
+      "bytes": 404,
+      "sha256": "c8ddc674e46f2504a58ecc71dd32fb2f5ed0df2f2979906864a6d1fd15cf36e0"
+    },
+    {
+      "path": "probe-build/probe-signature.receipt.json",
+      "bytes": 500,
+      "sha256": "34213ef6bbfa91867f9c3bf5d1cabe0d461e91119e6c0874e06f13110546a0e6"
+    },
+    {
+      "path": "probe-build/probe-signature.stderr.log",
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    {
+      "path": "probe-build/probe-signature.stdout.log",
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    {
+      "path": "probe-build/project/build.gradle.kts",
+      "bytes": 2357,
+      "sha256": "a7ffcc7868eecf497c75465ac12b2bcbee8bb8ea0d98c9542bc8a0283fc2a46a"
+    },
+    {
+      "path": "probe-build/project/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml",
+      "bytes": 2623,
+      "sha256": "d2236c09d32efc8777a274600a398aef270aa2b2d0e3c81a9e3d7f15d9e24329"
+    },
+    {
+      "path": "probe-build/project/build/outputs/apk/debug/output-metadata.json",
+      "bytes": 445,
+      "sha256": "aadde7b4bbd4a648235a0a6d3b25c8cd1ebf84fbbbc9f450f834f6774626e03e"
+    },
+    {
+      "path": "probe-build/project/gradle.properties",
+      "bytes": 110,
+      "sha256": "c938566673db0d9791ceb898af2ee30aeedd97cab1bf806d42eeca538e2605ad"
+    },
+    {
+      "path": "probe-build/project/settings.gradle.kts",
+      "bytes": 49,
+      "sha256": "05bd383f6e7242d96519ad6f6ce8c61cbc8318592aa8beb57b7545294385d81c"
+    },
+    {
+      "path": "probe-build/project/src/main/AndroidManifest.xml",
+      "bytes": 848,
+      "sha256": "fea0f8f1efc71061c5dd6df00ee069eb684d048ce5b24621344db86c7a7c39b3"
+    },
+    {
+      "path": "probe-build/project/src/main/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt",
+      "bytes": 144144,
+      "sha256": "ff485fd1a2de8cb1e99a6c1524d9256d0d49f81fbe83ae0905b3b0255cb07ca7"
+    },
+    {
+      "path": "probe-build/round3-continuation-build-tail.py",
+      "bytes": 3759,
+      "sha256": "b06c8873a0c58ec9335c3394218a2afe92a36016d20574fe0bf806771660894e"
+    },
+    {
+      "path": "probe-build/round3-continuation-input.json",
+      "bytes": 328,
+      "sha256": "9a80a7fc360bc2acd78a56d18e91874a61bc6a0a884fce06abd923b11f30a642"
+    },
+    {
+      "path": "probe-build/round4-continuation-build-tail.py",
+      "bytes": 3759,
+      "sha256": "538ed7e3392272c60baf81ecdc54528867e0a1babe51d2077c504c71731b514d"
+    },
+    {
+      "path": "probe-build/round4-continuation-input.json",
+      "bytes": 328,
+      "sha256": "9a80a7fc360bc2acd78a56d18e91874a61bc6a0a884fce06abd923b11f30a642"
+    },
+    {
+      "path": "probe-build/round5-continuation-build-tail.py",
+      "bytes": 3759,
+      "sha256": "a2d22f9a7aa288d7d74f9e313849a647513bd084ec8fcf643755493831fd9e2e"
+    },
+    {
+      "path": "probe-build/round5-continuation-input.json",
+      "bytes": 328,
+      "sha256": "9a80a7fc360bc2acd78a56d18e91874a61bc6a0a884fce06abd923b11f30a642"
+    },
+    {
+      "path": "probe-build/round6-verifier-prefix-rejected.py",
+      "bytes": 3833,
+      "sha256": "025ff7cef9683c8220a3b37b9bb7fb1a02ae94f1bdcfc37854ff97e7cf10f785"
+    },
+    {
+      "path": "tools/archive-rf312-release-native-20261012.py",
+      "bytes": 4972,
+      "sha256": "656f184879dd29ca018d9eed55079a3063d04c47a19a7141bb1660a5cf40a4bd"
+    },
+    {
+      "path": "tools/boot-rf312-release-api31.py",
+      "bytes": 4093,
+      "sha256": "20595f528556af2eae4bc95f49c9f9e51a643ce7089b33deaf8f4fda7c6c3281"
+    },
+    {
+      "path": "tools/build-rf312-release-probe-20261012.py",
+      "bytes": 9263,
+      "sha256": "0a558fd85b21e07dda7a67e6595e91f18956cb87b4f11ec22a1068f936207734"
+    },
+    {
+      "path": "tools/continue-rf312-release-probe-20261012.py",
+      "bytes": 2151,
+      "sha256": "c9179a0f5e457cf34cc705ac58c23de4f2b38573796ffa5d1a259e76544a7e07"
+    },
+    {
+      "path": "tools/correct-rf312-release-preflight-20261012.py",
+      "bytes": 2208,
+      "sha256": "ab4eecb8fa49093c1bda613a16d1eec3e2bc9333e9445f6f9cbff315309c3b6a"
+    },
+    {
+      "path": "tools/fetch-rf312-probe-compile-dependencies-20261012.py",
+      "bytes": 3379,
+      "sha256": "c3a5fee9c716dee6a8d231473eace1c6ac1041cd046c82ceffff66f637573d53"
+    },
+    {
+      "path": "tools/fetch-rf312-probe-dependencies-20261012.py",
+      "bytes": 3361,
+      "sha256": "2c15c7b7dc7a30d52fc5e39909030106f4de8bbffb95d37bebb2d62b0fd90252"
+    },
+    {
+      "path": "tools/finalize-rf312-aligned-probe-20261012.py",
+      "bytes": 3199,
+      "sha256": "faa295a5d749fe4cf93aaff7435f95ac366bf43f208503a640e53b971fe2708d"
+    },
+    {
+      "path": "tools/finish-rf312-release-native-20261012.py",
+      "bytes": 4983,
+      "sha256": "73e42278b83f3a617ddcce1b586dbe06863f8382e386ffd182ce51dda0ce234d"
+    },
+    {
+      "path": "tools/prepare-rf312-aligned-native-20261012.py",
+      "bytes": 1716,
+      "sha256": "f9687e0aea46e4868bf51220d6b85d1fed6fff5419517f67e22c5ed60f286b56"
+    },
+    {
+      "path": "tools/prepare-rf312-probe-compile-fetch-20261012.py",
+      "bytes": 858,
+      "sha256": "2584da5d7c76a86a7c1e2a398f14a257c5f7d93727157cef38985079c9b5ee33"
+    },
+    {
+      "path": "tools/prepare-rf312-probe-debug-control-20261012.py",
+      "bytes": 3024,
+      "sha256": "655cebecacb5d15b59c3860cee9c267a8de11948f65f61c7438004243ace5b0b"
+    },
+    {
+      "path": "tools/prepare-rf312-probe-manifest-alignment-20261012.py",
+      "bytes": 2896,
+      "sha256": "8a4556a6430fd02a0494ad377197f6478211bf1177c692d60a9a9e0b68f6c1c3"
+    },
+    {
+      "path": "tools/prepare-rf312-probe-native-20261012.py",
+      "bytes": 5852,
+      "sha256": "0d956cf7a726646bc22deabb4c0a1dff4f34604e8d906300afefbc11bd923cab"
+    },
+    {
+      "path": "tools/prepare-rf312-probe-round4-20261012.py",
+      "bytes": 678,
+      "sha256": "cfd8fe6737f5bf422ba04795e3cd3156f62b6f03b047099b39d2986e60e95036"
+    },
+    {
+      "path": "tools/prepare-rf312-probe-round5-20261012.py",
+      "bytes": 1095,
+      "sha256": "c08704a2dc7d7466af6ae38be1d673f1103a2bde6f0513c5ed16dd08f75e32f8"
+    },
+    {
+      "path": "tools/prepare-rf312-release-native-20261012.py",
+      "bytes": 8829,
+      "sha256": "5d70b22c52485779e4f50d1bbe73370c006ecf46056e03d491e7bf2f57e10346"
+    },
+    {
+      "path": "tools/retry-rf312-release-probe-20261012.py",
+      "bytes": 1481,
+      "sha256": "8e62e15a2d463158b0f4fe9ba5767c61f487c8b94c0f030a988fa384181d2182"
+    },
+    {
+      "path": "tools/run-rf312-probe-debug-control-20261012.py",
+      "bytes": 5942,
+      "sha256": "2f709890b9e7310a498ba8e63ff8a1fce17e741452b263c1f9fb7ee2ab85dc55"
+    },
+    {
+      "path": "tools/run-rf312-release-home-20261012.py",
+      "bytes": 5939,
+      "sha256": "c7b3bf27217fa82bf69bce838a71555717d176088ee27d0ac1518a57da64b443"
+    },
+    {
+      "path": "tools/verify-rf312-release-native-20261012.py",
+      "bytes": 8522,
+      "sha256": "543c0148368c479bd795cffa701b9979cc9026df2b45ab615d37c081947d7fd3"
+    }
+  ],
+  "memberCount": 335,
+  "rawSha256": "2f79bafb07db74b5f2e2a8b40ade2a8cccd52d3dc8dbb22c9305a7806f071d5b",
+  "rawBytes": 4892974,
+  "privateTarApkJarNativeLibrariesKeystoreExcluded": true,
+  "allMembersReadBackVerified": true
+}

@@ -1,0 +1,3033 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1105",
+  "archive": "raw.tar.gz",
+  "archiveSha256": "d397651048b4aea5daec8276512ee02cfa84252f8e7b169b2349579ab75139c7",
+  "archiveBytes": 1680911,
+  "memberCount": 604,
+  "members": [
+    {
+      "path": "application-logs/after-rf1106/round4/samples100/sample-001/app.log",
+      "bytes": 2792,
+      "sha256": "dba27f2503c869a6aa5601d66ea0b9c2ca97181ce69dd5af998ed4d34425fd92"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples100/sample-002/app.log",
+      "bytes": 2792,
+      "sha256": "064af4d67b118015fb88e014c9e5cc3fe631126b25b51b0a41c7528125bd671a"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples100/sample-003/app.log",
+      "bytes": 2792,
+      "sha256": "a98f2a65f8a140f102c9450f2ee7cbead08c5d9e8c06bd756f4a86ac9c362b0f"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples100/sample-004/app.log",
+      "bytes": 2792,
+      "sha256": "0d525e1b72913b33ce1f6204a57352ec8cc618f11e654cc22faf1218c398ab5d"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples100/sample-005/app.log",
+      "bytes": 2792,
+      "sha256": "edbd68fc5cc38d82d3f480a7f118f93c84bb76ff285bfa60c105e2c1c39b7bfe"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples5000/sample-001/app.log",
+      "bytes": 2794,
+      "sha256": "17be2b3cd4d24cfc2a203c6d6b637034a2824f00c3b4271c0bdaa41fa7fdd050"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples5000/sample-002/app.log",
+      "bytes": 2794,
+      "sha256": "5e6fc4eea9fc22e749cecd54825325ffb230d30b5b9bd13aa8ef273b55587d23"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples5000/sample-003/app.log",
+      "bytes": 2794,
+      "sha256": "d84c5568b71e10ad116cb09d99adfe9a9b806119be5843dc73c486b62f27ed0f"
+    },
+    {
+      "path": "application-logs/after-rf1106/round4/samples5000/sample-004/app.log",
+      "bytes": 1385,
+      "sha256": "89f2ec2e7b8332b123fb31b8a72b8c2d8dbba742bfc883dc7e5a8c19a19585a3"
+    },
+    {
+      "path": "application-logs/after-rf1106/round5/samples5000/sample-001/app.log",
+      "bytes": 2794,
+      "sha256": "576532371d319d93852668be8c1a6c59c4a6aed628940f4e8d40669947591d50"
+    },
+    {
+      "path": "application-logs/after-rf1106/round5/samples5000/sample-002/app.log",
+      "bytes": 2794,
+      "sha256": "92234e87a40f99290bd0c2e35b759a94888cb267b4e832c665d3dbc72a90095a"
+    },
+    {
+      "path": "application-logs/after-rf1106/round5/samples5000/sample-003/app.log",
+      "bytes": 2794,
+      "sha256": "5210950e2a2721799c17dd016822213949c75c51a5e56b514aac2b233d20f079"
+    },
+    {
+      "path": "application-logs/after-rf1106/round5/samples5000/sample-004/app.log",
+      "bytes": 2794,
+      "sha256": "edfd121db54f53e0e5e762dc0017029b4df7852ccd32ea3d51598219cec4d43a"
+    },
+    {
+      "path": "application-logs/after-rf1106/round5/samples5000/sample-005/app.log",
+      "bytes": 2794,
+      "sha256": "bf8170689a4b1fc110cd027e4b3a490115cdd3cfd068f09ebb123f1b96efefe4"
+    },
+    {
+      "path": "application-logs/round2/samples100/sample-001/app.log",
+      "bytes": 1358,
+      "sha256": "21b040ae2d61b0d1bea8121a60f40ad93fbecbe3642087250e95b1e1422c1237"
+    },
+    {
+      "path": "application-logs/samples100/sample-001/app.log",
+      "bytes": 1351,
+      "sha256": "ec3da707be8b0368e2a5e6e1b5a9a539dabd620e4b299e1b7e759fda107aee90"
+    },
+    {
+      "path": "application-logs/samples100/sample-002/app.log",
+      "bytes": 1351,
+      "sha256": "ad37bde222485a8918c56391c3f77312585d8949b52846aa42935656e48076f6"
+    },
+    {
+      "path": "application-logs/samples100/sample-003/app.log",
+      "bytes": 1351,
+      "sha256": "71ea81851463c43a766a215dce92e4b476f64181f2aa2b326d79bc2e165eb90e"
+    },
+    {
+      "path": "application-logs/samples100/sample-004/app.log",
+      "bytes": 1141,
+      "sha256": "fcdcd9de7a0a3e4c57af2275946e7b5aa8d4455da4f20d9726d1cf5829be5337"
+    },
+    {
+      "path": "current-checks-and-tools/archive-complete.py",
+      "bytes": 7245,
+      "sha256": "8aae9517ced524af3d8d966c2f1cbb44a0715530441fcf8a96b8b731dcf311f1"
+    },
+    {
+      "path": "current-checks-and-tools/archive-round4-complete.py",
+      "bytes": 7976,
+      "sha256": "2673b1d694a76595529204f2c2d85fa4a24896bbab8b661464df120c4baf76d9"
+    },
+    {
+      "path": "current-checks-and-tools/archive-round45-complete.py",
+      "bytes": 8297,
+      "sha256": "438dfcccda893f9a78f4864401e6e973579227d27dff666aa87e2f8e2dc1b81c"
+    },
+    {
+      "path": "current-checks-and-tools/archive-round45-final-v2.py",
+      "bytes": 9052,
+      "sha256": "904991a3e775294c9db376a365884591298f9c97eaca75647a132c61cd7c6049"
+    },
+    {
+      "path": "current-checks-and-tools/archive-round45-final.py",
+      "bytes": 8990,
+      "sha256": "bab819ee2abc4089397e7b2e12cf4c78daf0c78823d71996368cbda7ed1ecb94"
+    },
+    {
+      "path": "current-checks-and-tools/archive-round45-original-failure.json",
+      "bytes": 868,
+      "sha256": "98194a4ecc44a7443556c8d4f8f53a4a79253152b642120916f05967ec246c0b"
+    },
+    {
+      "path": "current-checks-and-tools/build-Cargo-after.toml",
+      "bytes": 5244,
+      "sha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810"
+    },
+    {
+      "path": "current-checks-and-tools/build-Cargo-before.toml",
+      "bytes": 5395,
+      "sha256": "edff461c8e2cbeebef93e06a2f4f9af78839cfa5c3657f1677b63a8961151ece"
+    },
+    {
+      "path": "current-checks-and-tools/build-manifest-newline-parity.json",
+      "bytes": 322,
+      "sha256": "62ae25f001e1d6c76a4f2bc7e0197d02f0200d5d39336856f60697466e872f35"
+    },
+    {
+      "path": "current-checks-and-tools/cleanup-owned-round45-all.ps1",
+      "bytes": 10191,
+      "sha256": "245084a510c7ed8df3ce42067cfdeb89af11b0b1750c1b5b83d7ff92d23ce14c"
+    },
+    {
+      "path": "current-checks-and-tools/cleanup-plan-v2.json",
+      "bytes": 70351,
+      "sha256": "8f898789ebb0573d7507639882278befeee989127dd076f7c7df62577314eb34"
+    },
+    {
+      "path": "current-checks-and-tools/cleanup-plan.json",
+      "bytes": 70351,
+      "sha256": "8f898789ebb0573d7507639882278befeee989127dd076f7c7df62577314eb34"
+    },
+    {
+      "path": "current-checks-and-tools/close-report.py",
+      "bytes": 7227,
+      "sha256": "6d3b06f5180e0ec3bb6cc570dc42e38ca1fbbebf243be6fb8309fb3f6da8e9fd"
+    },
+    {
+      "path": "current-checks-and-tools/close-round4-report.py",
+      "bytes": 7943,
+      "sha256": "d3c91dc2aaa8b546bd07b1b22f5d19f3b87be6825a835402d8c6282b4baee800"
+    },
+    {
+      "path": "current-checks-and-tools/close-round45-final-report.py",
+      "bytes": 9345,
+      "sha256": "85950af154f3396c3d57121493f3ef141245b64446a6fb4850cd87d90070e5a8"
+    },
+    {
+      "path": "current-checks-and-tools/close-round45-report.py",
+      "bytes": 8708,
+      "sha256": "9a8e52752ab6c6e5902408024003c63c0320f672ea0b0263a6596314428a922a"
+    },
+    {
+      "path": "current-checks-and-tools/desktop-preflight-stop.json",
+      "bytes": 1040,
+      "sha256": "47c72c0c339a02a38c388bd09330e575f330d6bdf5c968e5b6e732ecdc9e7686"
+    },
+    {
+      "path": "current-checks-and-tools/failed-offline-validation.json",
+      "bytes": 10126,
+      "sha256": "4a8bc6c030b0c8b78fe8c99420893c8410fb0b13e11ce1046259bb1e7daf618f"
+    },
+    {
+      "path": "current-checks-and-tools/finalize-round4-verification.py",
+      "bytes": 2220,
+      "sha256": "fdf68c775343514adc195b78bb3d1032f3f856b4466195ff2b57ffbe0745e7ec"
+    },
+    {
+      "path": "current-checks-and-tools/finalize-round45-verification-v2.py",
+      "bytes": 4198,
+      "sha256": "1e9886e47d06497aca3ee6fb9df45d9c9cfd4dafecd497492098943c3f01e400"
+    },
+    {
+      "path": "current-checks-and-tools/finalize-round45-verification-v3.py",
+      "bytes": 4198,
+      "sha256": "0a759059976bcfc6025ffa213e76cb5bd5b77fb9c17294b0d9233799e79fa89f"
+    },
+    {
+      "path": "current-checks-and-tools/finalize-round45-verification.py",
+      "bytes": 4131,
+      "sha256": "fc8e13d4eddf91f59b5f086dfb483fd110c9c0a31af51270124b8c3f6289d558"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-cleanup-all.py",
+      "bytes": 5192,
+      "sha256": "837cc919d2e4b264f3be2f51a12b1a29894b10f5aad78fd389562e589fd9fa99"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-cleanup-round45-v2.py",
+      "bytes": 6291,
+      "sha256": "e5ff342c21d32499c91e18737f312ff27efc772d0dcc6d79b774b45b125ba58b"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-cleanup-round45.py",
+      "bytes": 6293,
+      "sha256": "889c0fd3a5ea635594bf334b54af34f62bb789182b45739611ed553512c74069"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round4-archive.py",
+      "bytes": 2004,
+      "sha256": "4bc7f294df0bc13cd5834a030cba553b0a4e49f65cd6b830aae37001e22ff774"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round4-close.py",
+      "bytes": 3126,
+      "sha256": "d82e84e69e580fbb69793a1c694d4b58bd39565c00d6b45938c3e74a3315cff3"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round4-current-inputs.py",
+      "bytes": 3371,
+      "sha256": "b58872f0e7f8b8338d3b289e9fe1f4066d433b4e6eaef511070b79dce8dda706"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round45-archive.py",
+      "bytes": 2863,
+      "sha256": "c8cb930f74a4b84fa1ef12de40f5820f05c2a15c7a906f6e46bf2fe3c2dc4081"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round45-final-archive.py",
+      "bytes": 2389,
+      "sha256": "683590c9fa540f2533ea7e79024fb1a2dea011ad0f6412e967166a8318288853"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round45-verifier-v2.py",
+      "bytes": 1490,
+      "sha256": "bed00db03f268ad1364baa46907125fbd6edbcf98ad4a75fe32de4dabe0727fa"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round45-verifier-v3.py",
+      "bytes": 1722,
+      "sha256": "944417e7f8a99da51cb6ff08f5009de91514c43a9760343dd9a9990e07918442"
+    },
+    {
+      "path": "current-checks-and-tools/prepare-round5-5000.py",
+      "bytes": 2178,
+      "sha256": "7b55260452c6f0dbe0cad644baf2389ace6b14878cee9d2817a2b4f3a4073cfe"
+    },
+    {
+      "path": "current-checks-and-tools/record-desktop-stop.py",
+      "bytes": 3632,
+      "sha256": "c75e37afd97e3bda2d23cb2c07eddaad9bf799d29f583b463e6ec440b4375447"
+    },
+    {
+      "path": "current-checks-and-tools/repair-cleanup-driver.py",
+      "bytes": 658,
+      "sha256": "bd3427421a2af941b684144dae0419fe308e77d55ac0a4fa92f047e0682a5fe2"
+    },
+    {
+      "path": "current-checks-and-tools/repair-final-archive-v2.py",
+      "bytes": 1678,
+      "sha256": "842d637e31c10be8d8dc16ea6db8a35397220321421d12926aff41eefb14b428"
+    },
+    {
+      "path": "current-checks-and-tools/repair-final-archive.py",
+      "bytes": 1463,
+      "sha256": "17d2689f3876cb0ad21b9379c3f0ea6be29dbe6714d877c1ab4537e7c14f00db"
+    },
+    {
+      "path": "current-checks-and-tools/reused-checks.json",
+      "bytes": 10875,
+      "sha256": "31f2adfea6e7e2a45a5bf0221cd843a11d9bced87f7f63fb3bb280a57b43c08e"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-clippy-default.receipt.json",
+      "bytes": 1764,
+      "sha256": "24dd82e8eb1ddbe70e2b6aaf027f953789cf708d248bb12d2f2f16a9a0ba9c28"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-clippy-default.stderr.log",
+      "bytes": 132,
+      "sha256": "c7aade0dc2ce88043b3cf988215ce684c1c7771e0c0459842e70fd68f4614111"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-clippy-native.receipt.json",
+      "bytes": 1801,
+      "sha256": "ad837939326b42692c2860889852aaff87773ff9dbe35bfe1a60d562bc30f480"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-clippy-native.stderr.log",
+      "bytes": 132,
+      "sha256": "7f2e33a7076be92b0e6f5f90d8d676cffb0df0f2bc63af6a753c4f761dc2aeb9"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-clippy-native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-current-warm-groups.live.json",
+      "bytes": 233,
+      "sha256": "03ffe9bf2f16d5bdb8c3519a063f4a3af72d7e0b51a30a3ece3f76ec5b686ca7"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-current-warm-groups.receipt.json",
+      "bytes": 1808,
+      "sha256": "dd856ec347768f5dd6eccdba6297a3a806d30c9ce42cd82476124822f8b768bd"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-current-warm-groups.stderr.log",
+      "bytes": 344,
+      "sha256": "8d2032602a8ac0f6d9b2ed03e7f74155670bc94d1691ac6cced3c32a08a77d52"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-current-warm-groups.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-format-green.receipt.json",
+      "bytes": 280,
+      "sha256": "ce279ca9bf549e78cea625e1539ddf0ec0334d908bd70eeda64f3a5284b36801"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-format-green.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-format-green.stdout.log",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-native-release-build.live.json",
+      "bytes": 273,
+      "sha256": "bc254de651140dbf27b1cad5752a8960dd84c0f0da09a55a228cc9f47c0c3d37"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-native-release-build.receipt.json",
+      "bytes": 458,
+      "sha256": "8eb61d8284a4ecb186b3b8ad4f945f77061c85eb75fa4d02e40e66c1770eb2ba"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-native-release-build.stderr.log",
+      "bytes": 2781,
+      "sha256": "a9ae4f7556ea52e17fbc54f2fa448ddb94b224c7567809d4c68a4b684cee478b"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-native-release-build.stdout.log",
+      "bytes": 3595,
+      "sha256": "d5f4551656357d7981c7227b263c1f4bcd76c9ac1ae30c41240bce6f1a204a47"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-node-full.receipt.json",
+      "bytes": 169,
+      "sha256": "98b54121accc31784ac889a6ea2ab70446a5f0108829219ee6a6496123e87eda"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-node-full.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-node-full.stdout.log",
+      "bytes": 23152,
+      "sha256": "f1eaa484d9563722fc3981b5b7f5833567cde21e8ecac39530b94f46ab30bfc7"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-red.receipt.json",
+      "bytes": 274,
+      "sha256": "31f8077eb215a882d96dc15fffdce08b32892170bbc688ab3d5de75c2f6375ef"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-red.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-red.stdout.log",
+      "bytes": 888,
+      "sha256": "1770fa452b08f6e421038f4c1059a0e9c6ff6631ab81e954c228c68da167b26d"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-archive-v2.live.json",
+      "bytes": 220,
+      "sha256": "27e3c54b85cc940b90c125e08fecf4bf624220bfed19c8c71fa8b5a9570b1710"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-archive-v2.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-archive-v2.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup-v2.live.json",
+      "bytes": 375,
+      "sha256": "5d2530a58d6d93b7e2386fae7ace28100683b534846d6ef9cef89412532e3c7c"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup-v2.receipt.json",
+      "bytes": 1948,
+      "sha256": "ad449a5dfc1ef982a9a555d14cb81090cd244d763711ec97bcc49ba7b1271004"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup-v2.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup-v2.stdout.log",
+      "bytes": 98,
+      "sha256": "6916eb82ee0416b87b717e0f6412be1d5c9a3aa066b2693c0ced7d762b9bc61f"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup.live.json",
+      "bytes": 279,
+      "sha256": "8eb3ebdcbab8e8e3acb2016b6d0dd135c0037b1933734a1bb11502a8159fdca6"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup.receipt.json",
+      "bytes": 1852,
+      "sha256": "535d45b2cbabbb6c8610586bc1636ba62ff3366105067cf08bb88e7b464b157c"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup.stderr.log",
+      "bytes": 656,
+      "sha256": "e4b39a95e18dfd1506e4951b9ba896dcc621e8bfbfd9904845c4d94e2d0ecdb3"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-cache-cleanup.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent-v2.receipt.json",
+      "bytes": 234713,
+      "sha256": "c8f2383185fb9380c32e8f2197fd9e551d1148b8c5fa8e549b098176a77ac013"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent-v2.stderr.log",
+      "bytes": 486,
+      "sha256": "f6ec7f27989b7808656722c5beb3987aea6d1258a8d735cf88630c93b8a7ff7d"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent-v2.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent-v3.receipt.json",
+      "bytes": 234712,
+      "sha256": "7fa1ad6df80e7aae9fe5b7259871aaeb103a2571f960a755f3fe82b09825e145"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent-v3.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent-v3.stdout.log",
+      "bytes": 94,
+      "sha256": "66c6d29fb34b68d93af6b69a39ea8627fe1132dc4034ecb212b38431a9d851c9"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent.receipt.json",
+      "bytes": 234711,
+      "sha256": "309577665e393e60fd41875e861b574328db6fc0ca3623a6bbd16e3f3a3f689a"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent.stderr.log",
+      "bytes": 415,
+      "sha256": "da285a7ed50114809040e8870b2a85be3372373b985dfd9fa4dd08d424d65be2"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-independent.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v3.receipt.json",
+      "bytes": 234727,
+      "sha256": "f8978cb49b0e585243ebb830ca8c14dd0ec217f949c764e1879fb0aed514639f"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v3.stderr.log",
+      "bytes": 304,
+      "sha256": "2a0b361f5ae0cd22c684282ca390b5e0b797d33992e8dd2068a7e86cca696acb"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v3.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v4.live.json",
+      "bytes": 222,
+      "sha256": "77ceb1b516e99c27babdf2936ba4dcabdeef12a7110de35217d7e3eb731d882f"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v4.receipt.json",
+      "bytes": 1798,
+      "sha256": "cfb097c194540992b72618e17d11b5e5de15d7c433c3241b1a0ce641d359a6a4"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v4.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-round45-prepare-cleanup-v4.stdout.log",
+      "bytes": 96,
+      "sha256": "760c43f3b7f0463929b0bc5b3cfa68770b27a62d5e2dfcf2d1ed5134684d8e33"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-default.receipt.json",
+      "bytes": 1725,
+      "sha256": "07606034f9b2b853e69c3a87caeee5b88c5610e69d361f1d774f6f63fc4bf89c"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-default.stderr.log",
+      "bytes": 3614,
+      "sha256": "a37f9a05247a84ec04171bdd33726af607d691268b4e7a2027017a057422e09e"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-default.stdout.log",
+      "bytes": 737941,
+      "sha256": "faf5cf435cae9c91a78d9049c15f9bb43d03b280937ffce2a5104d71a64b0603"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-format-check.receipt.json",
+      "bytes": 1716,
+      "sha256": "3b203bf7b61fc08d8cd53cd95ba4a2a41d0f0224d51319a75658d7a72c4c5b57"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-format-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-format-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-native.receipt.json",
+      "bytes": 1832,
+      "sha256": "1dd40c62fb4ce89b9ddfed60f580c0b3d419eafbd5f0acd70f8fda196b17c2b6"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-native.stderr.log",
+      "bytes": 270,
+      "sha256": "01a6860a9d7630e13372d37b38d94f21b658ea407ad72eeea508c75f20be2833"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-native.stdout.log",
+      "bytes": 43763,
+      "sha256": "bdc5f373787a3b1fe94a0c1c55638dc3f47b11cbf25e163ca091ecf26e72a245"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-preferences.receipt.json",
+      "bytes": 1854,
+      "sha256": "8d99096c0b67c700d61fc879347de3518843c1aef614fe0a90a8cf0d09a1e044"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-preferences.stderr.log",
+      "bytes": 208,
+      "sha256": "03644cd475c034da220020d6f5bd51f5223d96d5b8fab07b552e21fe80be3110"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-preferences.stdout.log",
+      "bytes": 7528,
+      "sha256": "ce04638b1c44bd33d56409377dc6dfaad7e28493380b8818784a9f6c9974a6ea"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-red.receipt.json",
+      "bytes": 908,
+      "sha256": "861d9bcf951bb3256abeebdf3bec5a2385de93abe39d3d4bc605d95cc79703a1"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-red.stderr.log",
+      "bytes": 704,
+      "sha256": "747f04cfa966ced3cb8c83be41dd2917f51d3b7035206b240479430c9df3a60e"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-red.stdout.log",
+      "bytes": 1340,
+      "sha256": "cc84a0637197c179e1b250236b5638087c4e4febf875d1ac90bdacfec45c9c32"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-rf905.live.json",
+      "bytes": 257,
+      "sha256": "7305117ed6f50c5ee313cce837d0aaaa897b7ee311b54728d3d0015ece047052"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-rf905.receipt.json",
+      "bytes": 1824,
+      "sha256": "3735c9448ce0d2abf9562aad5a703bff1bb2256b603505ee8eb975b764d8f43d"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-rf905.stderr.log",
+      "bytes": 208,
+      "sha256": "8f10240649edd1a8dcc834a02cf3fe97d2a467dc3551dc589095c24ce2a2ce79"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-rust-rf905.stdout.log",
+      "bytes": 14491,
+      "sha256": "9df98e03bd38094db87b520fc7b0cf1a5ca6b22e11fb751cc26ae026d4395f30"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-targeted.receipt.json",
+      "bytes": 193,
+      "sha256": "78bd6824749f639c0b6089cebbd84990fb9fca105dd4f16863ef476acf4a5fdd"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-targeted.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks-and-tools/rf1105-targeted.stdout.log",
+      "bytes": 1003,
+      "sha256": "67637bff4ae22f0eca234881723a9dd256c8d6a9c1f68e76417394688ce14aee"
+    },
+    {
+      "path": "current-checks-and-tools/round4-offline-check-source-parity.json",
+      "bytes": 1185,
+      "sha256": "cdc3cb1b998dccd0d359fcea8397094525e24939c94c1f501a2eb27f95268d9b"
+    },
+    {
+      "path": "current-checks-and-tools/round4-sample004-fresh-exit-check.json",
+      "bytes": 273,
+      "sha256": "e89f774deba5ea2af4d1eefeb66595ffac747a493f23ba271793462182d50bb3"
+    },
+    {
+      "path": "current-checks-and-tools/round4-source-provenance.json",
+      "bytes": 1996,
+      "sha256": "37044c404c16d663c4cc767dcc33805547c1fa7f08f0882e84dba14f23e72e63"
+    },
+    {
+      "path": "current-checks-and-tools/run-complete.py",
+      "bytes": 5600,
+      "sha256": "0ed0b9e69727e7153109232271fb0a7beec26aabfea8a5f0be5aa76d9a29ec2e"
+    },
+    {
+      "path": "current-checks-and-tools/run-current.py",
+      "bytes": 4020,
+      "sha256": "f37aafc0d7b6f02f21a0e92763ad1d85d9ac2cf5f4adf03923e046e7dd14173c"
+    },
+    {
+      "path": "current-checks-and-tools/run-new-build.py",
+      "bytes": 4054,
+      "sha256": "352174952ad5bc9af4d4d49de659960937a780e1d2c83a5b40db69b9178d93eb"
+    },
+    {
+      "path": "current-checks-and-tools/run-round4-current.py",
+      "bytes": 4131,
+      "sha256": "5ed38365f67bf495e6733f83d3f2c2c1c7930a33a9cec2e5ac468251e36a5616"
+    },
+    {
+      "path": "current-checks-and-tools/run-round5-5000.py",
+      "bytes": 4227,
+      "sha256": "1c47fe6924bc55c6dc6be71737dbce38a99c806f8d5a7530e1f71892c6489d11"
+    },
+    {
+      "path": "current-checks-and-tools/run-rust-check.py",
+      "bytes": 2219,
+      "sha256": "a1bc5eed420f19e06ded65e95189bab436af4fa18b2247a538973412bee43539"
+    },
+    {
+      "path": "current-checks-and-tools/runtime-new.json",
+      "bytes": 35888,
+      "sha256": "16d9ac0398d75a93aa1fc6ae6194ed1a7bab3cf6d55d06c2565d8e0f67b1e7c4"
+    },
+    {
+      "path": "current-checks-and-tools/source-delta-fixed.json",
+      "bytes": 1659,
+      "sha256": "2f2073603d5b33cce5c81d97ba9b1daf47a4b9a3e8abeb844d25e6d87f78b0f6"
+    },
+    {
+      "path": "current-checks-and-tools/sources-fixed.json",
+      "bytes": 228919,
+      "sha256": "f047d029590b6aa4864b45727e8ddcfd4b0f0500124ff6cf4dda3db69121458b"
+    },
+    {
+      "path": "current-checks-and-tools/sources-round4.json",
+      "bytes": 230751,
+      "sha256": "e6287b1a1775f820a6ef87357dd1e3955353b2159ddb9f9c67d6267b26ef81ab"
+    },
+    {
+      "path": "current-checks-and-tools/stage-round45-task.py",
+      "bytes": 2373,
+      "sha256": "b3dc1c21e1427ae122bf858a743fd0a8c0b7c6b9c0b4d4f09346a9dff677f913"
+    },
+    {
+      "path": "current-checks-and-tools/validation-round45.json",
+      "bytes": 50205,
+      "sha256": "5d0ac19f178691e507bacec7d24153defaf2e65df5dddd1031c565f7f9bb840f"
+    },
+    {
+      "path": "current-checks-and-tools/verify-fixed.mjs",
+      "bytes": 8754,
+      "sha256": "f83358cb28e8e394af3b44f355e87311832249780399da6bdb6dd59aba2d837b"
+    },
+    {
+      "path": "current-checks-and-tools/verify-round4.mjs",
+      "bytes": 8891,
+      "sha256": "11ef1672d73b35841a62f6b3fd3de42ccb4f9377ceef3213c0bf157e0403401d"
+    },
+    {
+      "path": "current-checks-and-tools/verify-round45-v2.mjs",
+      "bytes": 9417,
+      "sha256": "6af178f7022b8fabbf457bd028fa83bdb7dc29d8e1195da0330ab9eee6d6ba0a"
+    },
+    {
+      "path": "current-checks-and-tools/verify-round45-v3.mjs",
+      "bytes": 9967,
+      "sha256": "055e72d8fdbf264795606a795455dd61d1d8c58e3a74c1b3a91ef9f6d585d972"
+    },
+    {
+      "path": "current-checks-and-tools/verify-round45.mjs",
+      "bytes": 8982,
+      "sha256": "1056bca8a4582c0fc7723c4cc538f5069f2eb04c60a079280bf4c2d7a42cb02d"
+    },
+    {
+      "path": "current-checks-and-tools/verify-staged.py",
+      "bytes": 2387,
+      "sha256": "2ce72bfcd9a27b62c5f3b7f2ad0754e7866b39272e3c63ec16d750394e694cbd"
+    },
+    {
+      "path": "current/round4/samples100/report.json",
+      "bytes": 341710,
+      "sha256": "ce7afb716961f958bb0838fefa45a17addbf5f2c6156857aaacfe1f85eed1c8d"
+    },
+    {
+      "path": "current/round4/samples100/sample-001.json",
+      "bytes": 59842,
+      "sha256": "68cd43541d69c6a67ee3ed0f93a4fcc68b81435f654013bb0584339011eac9b6"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "637478b5b69fda0fabbc4fd9f28d7207f8a66fbe7e1f3f042f42974deb882967"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/native-perf-owned.json",
+      "bytes": 3307,
+      "sha256": "3b14b32e585bd213e2572ed8fc1d97651bc43b4c30e6323ffeb594ae2356cd2f"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/native-perf-startup-restart-consumed.json",
+      "bytes": 682,
+      "sha256": "14dd5152572f86e9653d194eb0c5d358eee4ace38fb2318b8fb497d5ec20c5f9"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/native-perf-startup-restart-ticket.json",
+      "bytes": 2683,
+      "sha256": "29983bb1719d077922d959834caca2b5777f4eff9beb42bb36c7aae394557bf6"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1747,
+      "sha256": "4b35816892614f2cf14e4334881fe3e31c409b051a6fdfd6005f2fa1c03604b3"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2966,
+      "sha256": "bf89436bd365dd99856c23729d438477d7c31abf3bf1b065772a9d45ed92d4bf"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "382548a1da3b1475821bd6930bba316d1ae68efbbfb15a3c42b606ed3c116aca"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "2274276b3ce303cdea36ab5c8b4c045b2177d506479064cf46428ae549c878f3"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "03993c710272027e8da9e08748c0d43e732caa0351d7f2755334603800cedf81"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "e50a1cfd523f2b6ac3c05220ed1f8f05d1230b7c4b2acb19fb77396811611a5b"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7192,
+      "sha256": "a10fa85d7a2de4f4b5e0a75009daeeb4b6c814d21baabd7e44c6da8cc256a97b"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "5439754fa2f37f29b1b9092a1c13ee0acbc3f7bb5d5c3c1ed5b38a5c112e9677"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2944,
+      "sha256": "2f1032094de95671ed0d0c6df7f64531f0744a451549547e57e39d3fda524f92"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "c3a5fe5cccad03d68fd8418fbb07dcda1a5577dc403963148eadaa6aba91688b"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "68bf4fdc7745b193e35b98090d2b97fe9c7522d86cd9310e9620043a885f7569"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "68d7fb6912c8a82d8e7f846cb9ceb237c4f894c9cb3ae451cae668a8f0be8841"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "b1f8cd4abdc5b97a707359225049c0657b394f7b2403741a80e9c88ee8cb4d02"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6405,
+      "sha256": "ca8f6617d1fb050f9d655d758b713fc9e09204f18cfcc81ce44e019daff10863"
+    },
+    {
+      "path": "current/round4/samples100/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "dd92308a62880c7b6d4c6c35f1a02cec678c1286c9f286906b3921ba4830c9bd"
+    },
+    {
+      "path": "current/round4/samples100/sample-002.json",
+      "bytes": 59933,
+      "sha256": "af171a2eb0f0bc5811014fc3142b907b4d444419a19446e60cb195945eae2478"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "3cb8a571b8ea104096cd9e606c9b6111d9a415ab7f10e9cb16c2a9e4d023651b"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/native-perf-owned.json",
+      "bytes": 3307,
+      "sha256": "0e681dac8b6e4927e38ad14a8d3c1beb04869fff9ed5b35ab7fa4a25f7137935"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/native-perf-startup-restart-consumed.json",
+      "bytes": 683,
+      "sha256": "7e590fa944e0921211fbf5ab9602140eef1bdf707d65d1d67a8ca8fcb90d04ff"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/native-perf-startup-restart-ticket.json",
+      "bytes": 2683,
+      "sha256": "a36928d9b3f98dc4d944c31949b0331822ed57e1eb6a2fec800cc08278e7ad92"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/native-perf-startup-stopped.json",
+      "bytes": 1747,
+      "sha256": "e5e2cf032ef4cbb02226eac59c88a910aa2f103b8396092453f0979dd4895b64"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-auth-attribution.json",
+      "bytes": 3001,
+      "sha256": "aacd61705da1adab12fcc02a1ce8fecbbfe3007b1e7ceb458d9bf3870607e492"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "39f2dd579b1976cd132c69deb59763742633cc92204113fd3c0646008419cacd"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "98e73ceb09f6fceaee6aca851cbe0b3a827de7994b33b819b3e647b2c0e20602"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "a4d12dcff458798213f43dc8a769aee058a29d69679aba1bcbd4522abd3212dd"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "48b279b0346c6e41cb74c1c62bd69342009c5ffbf4be9df285a880199beeaf3d"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7051,
+      "sha256": "422268c8aeef43d0e8d790d246ed2442404c0f583c386205380fc03f063147c7"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "f4f1126f6390b5cb8e9f67dcd0580c50ef5688d9c58c871b9b97aaf32ff9b3ba"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2956,
+      "sha256": "9862b436c0bf7284bf47642cb61ea703e4e0dc382868ff10a8e1ed3da5d80afb"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "7e8cbbf27f3d06a58bf37ee71835060283a75fc01cdb03dd0d4e49ec088cd684"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "8dc8dd65e32e03e92673d93b8ffcc75f80083f1be0f3c39bba7912a9463c04b0"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "1d56dd27164ef2557ee0dddf3412bd2462babe643cde2f4a9fef1d506e4a2a47"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "29885cd2309d87bab59c922cd134b113c7aee44b6ba4ef0be4cfca4cf13d4e22"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6381,
+      "sha256": "75ae7cca86847f8b4bfc8f05d669d9eb41aa6cdfd9f8a7b2cbf2a6c2d693cc7e"
+    },
+    {
+      "path": "current/round4/samples100/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "7ea53734980c3f9e8331886c4de1e9fa01acb6d0809268d662096ba8fce86b64"
+    },
+    {
+      "path": "current/round4/samples100/sample-003.json",
+      "bytes": 59930,
+      "sha256": "e11c388866f1ac32cf6c83eb390e185c03b56a8f985940ece02062bbece4aff7"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "19f79596e845fa5a3086c9b755277b99bd4ddfc16ae2594206443e8d813bbb73"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/native-perf-owned.json",
+      "bytes": 3307,
+      "sha256": "f8cda491a8a377907c83d88be20a0ca33b4b7f8f63c7a910919b7af4b8691e2b"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/native-perf-startup-restart-consumed.json",
+      "bytes": 683,
+      "sha256": "ccfd509042b6bcfa00ba3456fdf09ab17b268ce03e0118f2b4f0bf49f4468bfc"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/native-perf-startup-restart-ticket.json",
+      "bytes": 2683,
+      "sha256": "c885b1e63f221e72ad3111ca94e3fc69e1b305e54c8d58d3b448a4651782c43f"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/native-perf-startup-stopped.json",
+      "bytes": 1748,
+      "sha256": "b69e0e265a66c5797b5905c222c4a71fafa668c7fbae6856f1192317dc3680c6"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2960,
+      "sha256": "2936fa4af9f7dbd22bc00ac2c535da36dc6267a74b5044dad9bf05f8450346c7"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "f822f18959fe08a83166c64cf8fcd60d478ab9c1b514a57918b72ae932388138"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "5cd3316e7be13812fbcf33d0ed8ece27e4949462d96d7eae4948f62be39ea74e"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "b9c9650baaee0e6a386a98f3225e5d151cd2dacd1a18559a047507ad7e597db9"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "7b50dde321ee5af456431557771a7761510c4d5228fdecf2eb69d3dd14d0be89"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6980,
+      "sha256": "d440669bd3b738807b4c21c97941a3fd1a5e9dd0db7641aa0ca7f922f108e8ce"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "24d4fa818899393534b7bbc73faaabc01b364d4586378dc4cbfc85952f821e99"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2949,
+      "sha256": "432edfde3b20a6a0a1b3f1cc50d7b3608578de9ceb9f21cee6ec70c5517a95b9"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "b919f8027e28fd76616018d86eb63bc402ded02935f48c7518111b1a623507ee"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "c7783336da2158d8c65ccde79de6def2970bd248f8daeab10766d81efd041dba"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "c2e91429a04ae63cbaba856fc40bbb9135c46a035e91e6f9db9237be2d58a9b0"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "2b1f58869c98af9b721ecb0999e81c9d08e33bef717ce36bc3d752bc21893ee3"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6366,
+      "sha256": "e33c868ecbd2487022866310e45d5f800b71676b1a198a03e70da0c1bd725348"
+    },
+    {
+      "path": "current/round4/samples100/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "35ed0cdf3035e96d8f359994b59bd8aab695cb029cfe53356d36c87e6982ba7c"
+    },
+    {
+      "path": "current/round4/samples100/sample-004.json",
+      "bytes": 59696,
+      "sha256": "a19c68ad17204c38bc95559fca06a22eb1b978264ee47f4b312b65c501f6f3af"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "86cbe49e644c09396691e6e0b6eb2f835bab546ad7a7b036948a56899302fc85"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/native-perf-owned.json",
+      "bytes": 3307,
+      "sha256": "e534cf4d1eab5fcc302f188b30845c911628a1b8d98e32c450ef6e907f154100"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/native-perf-startup-restart-consumed.json",
+      "bytes": 683,
+      "sha256": "d1eb5afe02e1e22506b814419b29f654d016565a8dfe959a6ec617264c9ebc60"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/native-perf-startup-restart-ticket.json",
+      "bytes": 2681,
+      "sha256": "2ae54eb2e2aeb85118e31478dba260ba5d74cbd7562cdcaabc4758f998756837"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/native-perf-startup-stopped.json",
+      "bytes": 1744,
+      "sha256": "73fe556809a0f69bcf81a91a779f598cdcc2ca370d4ba012935d63a4f4c1279f"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2979,
+      "sha256": "bf580abf5da57ef4dd37fbae1059ec75bb716a8f5fe350ae8fb1304a47e35478"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "be44640d9fb8ae62c5ff04077815ce880522128c1dfdf6ccf841a4e6b24e8bd9"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "dba7710e44ba07087da9e53669708518d5f26aa08b2a4a16ec790205f92311e3"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 573,
+      "sha256": "e68b95861f8aa292a17be0d12d8bccb995f435bc937ef4ff32417ca092660b8b"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "e29f3c09769731399909c90e780da2a7e80c7f9b0f3bcd7a912a157dab54c22b"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6958,
+      "sha256": "a78a095b0344a55bd454b05aafd350194520d179e10217ea1a1fde13276ed00f"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 817,
+      "sha256": "edb6c7774d30b6174e3fdbdebff1ff64e5bfb5b5a17dd5286faec71abfba0c41"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-auth-attribution.json",
+      "bytes": 3020,
+      "sha256": "50ea9b0f4892f72bf182db74394d0fc7383fd6fe43fef2f2158b835c2ddfa7d0"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "900fc7bfc442d5bb97b942696be689726497510f6dc08b7f378cd9230ccfbefa"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f7383aae84c5a7ef197b8c3875c5e8c4b9a8ebeedd4df8dee7e4a944b1588015"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "42bfb249b01c3d4cf32335094db3576eb862a8559c3e0171da40da63cdaf408b"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "b2604d7d9c6a6bbd3f5b6c4f2ecc2fa133da3b635a44525ffbd4e49b876a393b"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6283,
+      "sha256": "d7ca94a7dfb1eff180b22bcf91a4c77d64a01dbc37cf776f9f9b2047c5ab2214"
+    },
+    {
+      "path": "current/round4/samples100/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 702,
+      "sha256": "0b361404d13f00a8753a67a768efef3f03536798e6629c49eb4081f21cba5c73"
+    },
+    {
+      "path": "current/round4/samples100/sample-005.json",
+      "bytes": 59832,
+      "sha256": "199f84fc85925a622a7eaebcf71d4bc2c91695ac010fafd2f6b7af17d637d291"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/native-perf-consumed.json",
+      "bytes": 263,
+      "sha256": "dae8b9ee98c897f6620f6b0a4e4ba3c3328d0c4ce0c8a882274bb1971445b128"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/native-perf-owned.json",
+      "bytes": 3307,
+      "sha256": "6719cbb5ad174c5436418dc9cf8faf61d947e43f169054142cba03173c1ee356"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/native-perf-startup-restart-consumed.json",
+      "bytes": 682,
+      "sha256": "e5c8a41e565b7d912e5cf46a6e62789f287fa77f7e835a958cab93917683ec99"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/native-perf-startup-restart-ticket.json",
+      "bytes": 2683,
+      "sha256": "4e7d5650f712c20e40eee34fb9903baf0a859d66e7968cb8fee1052342beb9b3"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/native-perf-startup-stopped.json",
+      "bytes": 1746,
+      "sha256": "b6d9e5acac5b62e6e44e7d26c0b61ab773d3d689bbbd06190f992c8263f06f6c"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-auth-attribution.json",
+      "bytes": 3019,
+      "sha256": "fbea70e93eeb4c7620ceda05bded076ab68aa643833d66f99a38d0325991f73b"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "db75b0a657ee10611e7164537f7f728592753305cdd1a42cf6c53540283ac4db"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "886e1472f3c99261804503cf1634ace1d6faf4db94d6faf843ff50dc4e0f3449"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "74fb1f556c7b341c8ca60f8229e35b850ad89bc05fb227856b277b5dfbad606f"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 356,
+      "sha256": "1308705df9074663cf2527c4dcb338fef03902489247ba0f833dff9e5a31a97b"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6991,
+      "sha256": "357dd0b59030f415e9a49f790c4aeeec27c9632a070c86085e70c26fd5404514"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "346a4aa344de0b40ac70968d679e44d05d68ce747d1322a46919acdd2ccb877d"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2971,
+      "sha256": "32e127202cf8d245eb7a794b90c75e231db0659fcbdb617a7c145a63057ece27"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 410,
+      "sha256": "edd9627f6b7074006dcd9a4fa11ca8c508f2f5709ad7524f07bc472fe0669c4d"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-permission-commands.json",
+      "bytes": 273,
+      "sha256": "60e621af85ab720f41d6a421ad0e52ca5fe9abddf19f85906d75243d297bc604"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 572,
+      "sha256": "b289d2e8e53cb2f7f4ca4231b8f4101161fcbed6b4126c97b3c234512a76f30f"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 355,
+      "sha256": "0e18a2cba4cbf116f7392e5c81732eed53808f6c131bcd5042fe8cf29c290ca1"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6375,
+      "sha256": "b793e6517c43f23dc4a3c61dffa0993e965e8b0918ad18a5f8efd0ce29e7c861"
+    },
+    {
+      "path": "current/round4/samples100/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "1c05f9a5aae9fc073420c25f05a58c8ecd93fcd5930a32d1f405029c28e73121"
+    },
+    {
+      "path": "current/round4/samples5000/report.json",
+      "bytes": 235754,
+      "sha256": "3e457281a19e7efa2436f1b1a22598c6a6ddcb5ea646e9f1382a8cf5dbc25eb9"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001.json",
+      "bytes": 60256,
+      "sha256": "9b7530be9b95096dac7b07d0546030bbce3babbafda91786185376fa4c4cc9cd"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "d409530cb4dab4bde7e6bb42b0d9af1739f7838d6c6e637c959f57ad76bc2113"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "dc540791dac653b03e089eb7564ae4aae4b5e6ad2a7bab9af4d207d18bbfaa60"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/native-perf-startup-restart-consumed.json",
+      "bytes": 685,
+      "sha256": "c31e32b079a2c54917af7e6c58be1a4afa824515052267492ae8990293e56498"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/native-perf-startup-restart-ticket.json",
+      "bytes": 2683,
+      "sha256": "855fb8dbdcd401011ef2d58427231d4861b30f4fe37a0544e5bd6597df94dce8"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1746,
+      "sha256": "adcd9df0b02cf4dad7eb9fe15ef00294e4b9549c7051825b154bea86fed420f6"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2983,
+      "sha256": "f8980c47e6487705a167d0d1107b7e15380ceae207bb16b75996a8981f32102f"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "15ba389c8945b0ba8fbc90d481cdabd7cdaa6d5c55b4bf8743f583459752227a"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "fd87e459bec34f31524b7d60921e01071ea7f774d4456aa77d7f184b655f0320"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "25aa6b79da0c03bfb4cc13e021a99f85bd32a327803f18d4aff05b2dc3a42b56"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "e2b1c5800990d75b588a80dfe613fd534a1f3a89042fd321164d108fca2e6805"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7230,
+      "sha256": "2a2c83f79255466c28edc65ad90fb7470054e404a20a8e518f3270ed56cdf22b"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "d3a0674cfa2048038329e618c281222bf8bc9f408dc2e4d9ef2a3d29a4e5b92e"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2999,
+      "sha256": "87c54074c11627fb8ed98d41f55d2cf7459c9c3a383f3361a79b2d42f01199f7"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "9819a46f1952a30efb1aa75a4f21459d094eafc6a0834b560c6ebc7df43b2a7e"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "9b45ae4b59b7a09c7ef10b5ba27613cee4987352414092ca7f1bc977dfe89ee7"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "7e85ccaf1d9fec7b693404e107608840ad8c6dbd9d2eae29ee6b6a13fe2f7e94"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "3c6813bd81755c758d264bdd8f5d9a1c23ecf9ab931b9f56648f6ee540628d9f"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6372,
+      "sha256": "99f23e3a791c8d78328f4afbfba9949cc5ce8cb2b5065822aae1a1fadc67273f"
+    },
+    {
+      "path": "current/round4/samples5000/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "01a7208331623bc23f327de1ec0c47737cdfb215f4518c70f27ca3d203fb25c5"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002.json",
+      "bytes": 60058,
+      "sha256": "a8f6f4956bff6215bcf124494088fc4311449ec3106b2011effa7f0e0ba69035"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "51d6028afcdcba4c8ae68e275de74ee1725c16ae8abface865d8ff63bdb13bb0"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "0483b25c777a09a5a145582cc093a7dd102f2a715de7f4341977606dafddf66c"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/native-perf-startup-restart-consumed.json",
+      "bytes": 684,
+      "sha256": "ec96e54faf0f46521030e981e549c33d7b05875a94ba0e72be1f8aecf87a3e89"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/native-perf-startup-restart-ticket.json",
+      "bytes": 2685,
+      "sha256": "33f7ea970744fc005181d3bdbb5f28512cf73a30dda327388b01a33b2dcf0314"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/native-perf-startup-stopped.json",
+      "bytes": 1748,
+      "sha256": "736cac08a6e0de7a43648054379bca1565fb52f0c40eb8892a062b27a21e4add"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2987,
+      "sha256": "e8f397f58e4e4ca68ee7c28b2fb964f3e813033744c9ecdae9a9ceffbec9e08d"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "4f6f8039f0fbd799a231b547f85a10c75ecb6f1ac488b6b015cd13d4cc946297"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "51ce31939e7fd8ccb8fe2198fa64c12087620523538c4756c93fa1297608c476"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "63033e63cb0f01cbb8680a94473b49d52509aaa9912e62e3c68a7e02defbe6a8"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "aef36378ad21511912fb36f1cafe3f74b9db484eca99d4d11f0dee65a037da32"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7036,
+      "sha256": "f3c73e6d6c839ff8f37ec9d2ab3e5974e11e803604ad9ee3c7b7d5ddfd147e52"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 829,
+      "sha256": "c4878700f24f4352cee84899b6137806345ad8755540a6caa7816f1d92a5b556"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-auth-attribution.json",
+      "bytes": 3000,
+      "sha256": "3c5c010d7b042b0078a3cfe50a5817dec72cf138710dbdee15da019366c1f585"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "6b68d3012af495d37f4ae083fd88f6d724ddec73569a8215df848df19730676e"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "c1abafe6f7adb17762837a76af0774a6c415b3f71eaee68e0db7df333266dda2"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "e63eb895a9acbaab7f04eab25a929227cedb4a3541b1038b8176fae3baba558e"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "54f1ee3427f727017dfe147209cfb57f290a56f22bdf3405edfdca827ffb7827"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6383,
+      "sha256": "14818fabf3d2a4dba502a82afe2964e4b714fb3fd5dc88f8034be88518c5e56a"
+    },
+    {
+      "path": "current/round4/samples5000/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "9a9bddce8fdca644112993e7b59b3e84d8e491db6d9b1089778bd9fb133ae18d"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003.json",
+      "bytes": 59597,
+      "sha256": "7441c121bf808dcd57af3704a75626e7d2947961a28d109dcc3e0edf8490f235"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "d29f50143a67ffc57f2b6350ee0c2d4a4055d9aa747f4c6c2fc92124c7ec14ad"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "4afd5585ba5ab2a9edb18671f0ffa91a9a3b11c1d8d4c7eb2a90b88071c42a30"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/native-perf-startup-restart-consumed.json",
+      "bytes": 685,
+      "sha256": "45df16ff5bb66b0cf1b0a9e168f7bf79323390f69467a9515cd0f36e1345f81b"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/native-perf-startup-restart-ticket.json",
+      "bytes": 2685,
+      "sha256": "762248da85e3ac15e5021add62ad37c42a192d709fcb3233134ae5d04122d052"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/native-perf-startup-stopped.json",
+      "bytes": 1747,
+      "sha256": "535512c5cb60a92ae0fa9f65e99b63215b1fd13a80660bcb409aea85f8585254"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2923,
+      "sha256": "52900cb542b87285d734794148959d0a28a83bf2525f5496bbdbe936633d50b2"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "8e68ee4cbd75f71f956048456d4da705cc381ef3b798d3d672dfb61f50f4a84e"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "56c23e66f932322139ed6e5379660ee850a00a4358c147aa4a082448d005a108"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "ef39a562000f8afdae5082d470da5db6beed68ae12f03fed4063246da8c92e89"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "36a6755275313f538f914d508aef5769950b5bd22ec6a04ca614dfdc3ea0d7bd"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7035,
+      "sha256": "5281e211f2e7e6fc4aba3f0a4df24cd2bcb8368874c15bf2777123bc99ba55a4"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "a0344a16888d52fc374a4a7780f98bf2f0714ab8b7c105478245f6a4d80fca3a"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2969,
+      "sha256": "9e9d5153c0384f3b137dd246184287546369fa7c9c80ea92fb434bb68577262f"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "59287b78742bebdb9c5995dc2ff23a3e553b451a23a6b5b391ec115b00f00adf"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "c22c063c76dfce888985372ba6be4fc29ec7de80b71174db2384e6a4bcd9acbd"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "c80fccb04a6c5e48286fd51f288a11a4761e88c94330a44d88e4ae7342c26da7"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "4e9012a0e91d8959463fdbdb1bbc32ccbff5e5c7d9984d3d8565d23fd090c2d1"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6297,
+      "sha256": "c0953b21fada76ab0d6128461b2071192896dd2e3c674cfc855df770a77437d2"
+    },
+    {
+      "path": "current/round4/samples5000/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "998b7ac9194613004c48b31f96562673416f45ac9a32df5287f15afd1d0f6b06"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004.json",
+      "bytes": 25568,
+      "sha256": "757bef5a8b329c104434a99d9d884913c3dcf94ff4df1521354e10fa5c712f28"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "bbde5585099ae0c50da49a2055d6b11715f8a9399daaef1f337918df81dba640"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "af132b2f4c230a6a5cd5b10dbfc475df5383859b282b09eb99b35c2672edcebf"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-auth-attribution.json",
+      "bytes": 3003,
+      "sha256": "f13a1a4244935cb852485798ca1b3264a81489ecc0513b52b1179649793dd76a"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "17e930387f5cdfe88eb642996e66eef0733dc47a62436f092fa9f202cbd66d40"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "c932cd37b66d96939ef675ba1af9e3dfcba2d5d92b832963db75c7123d380113"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "edaea2aa551a1c108bb128283989917eab7c0d95561c802dac87bedf6b0769b9"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "ba144bfd650c74f8ba4648df49d8d447382bce9cfb90f893edf5ee16acb8191d"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7199,
+      "sha256": "000cf8f9764bbf5fb00a5730b406299b4a43c80d1166c4835c5e8a868b47bb23"
+    },
+    {
+      "path": "current/round4/samples5000/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 817,
+      "sha256": "1e278053226a7986a7adf41c1e171b399dbaeff773f51b19e7b0a9a0c66816d0"
+    },
+    {
+      "path": "current/round5/samples5000/report.json",
+      "bytes": 343282,
+      "sha256": "c8e867aac9ed43f1f09d1f0106af8d0f1c567dafd2cd199c18c62f86ae31c0d2"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001.json",
+      "bytes": 60032,
+      "sha256": "b0f4af106c6cdce69b7a8b60e9b4b8e2d60ec336a47a7114a99c69458cba2cc1"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "e624e36d8ffe4253fd0620f3be210a4ede95573ff9ab14a30acd6827f882b2f6"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "7fc3fd43c4984e061a8b65364cf104017ff7098deae320808d567c218c8015fb"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/native-perf-startup-restart-consumed.json",
+      "bytes": 685,
+      "sha256": "4b45c8f7a6543955f4280e22fee5d1a40770e4b1cff93e450aa54dbe4af54f39"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/native-perf-startup-restart-ticket.json",
+      "bytes": 2684,
+      "sha256": "7004e538c36fdf790d40ab463ceca69f15f338df24a2a5a87536f4ddc38db4ff"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1745,
+      "sha256": "c6356cff1deecdda57faca6950241eec48af19e83270e213a5240e0f1f1ed3cd"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2951,
+      "sha256": "4a0d646b02c44f097adef25d30e599f8192687f8f99fb8f8bb52db2133b3ba13"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "15b0c8141f174cafe9b07910bbdd4edbbb0cf4df0c49670ffdf7a4fcaef19a54"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "d5f71a89ba50edc88bad21adfeadbabb638838f3283442537b3c2f993b2529a7"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "c6d305f4a10a8a17847351f60a2231b52ee4088407f7f32a94c5b7644c6af58e"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "a3db12fb1eae7041b5fb64c8248560e7256fa58beec6cc701a2338f7e1270adb"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7157,
+      "sha256": "8d8d4bea59cc1599acd87d36e4adc12440b5ab770f81d40bf664371c6b6d1603"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 819,
+      "sha256": "10d8cdc8ebf3bca866280c61433a08b95118db948423a1b11f3658304199fb61"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2941,
+      "sha256": "9d6bf0947bacdf05d0a028f65386c12f1f9b51ccad0fc4db473ee512984c82b6"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "c4b1cfd07ea169209596dbcad81a8795bd15689da7324c753f91ff8e915e851c"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f8ca3298fc91facc3961bd34f6f8c6a4a934fa608c59616b105857eafc140fca"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "13ed7f2e18f926fd8fa2e34243585aeef3849102d661dbf05a96b591f21534a7"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "c0f52b75e9b7c3fa8c6dd05e55d3f92b2783136b8f840b40c1db55e960ab3a82"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6320,
+      "sha256": "ffacd6c6f3263267c59abb08ac3505754aa8f268df6a86e39991ac44b656d22f"
+    },
+    {
+      "path": "current/round5/samples5000/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 701,
+      "sha256": "19de5656e8dfca6750229308873fd17af7b6b1e4016027ba6f28ff9e73ee9ce7"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002.json",
+      "bytes": 60073,
+      "sha256": "ee96fa5214c9f788fa4aed95492a0d07707d2e516e6b585fcd5743a6f9341a95"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "977f77efe30b3825e2eb6119384f8072015aeee700fe4b62339c291f449f72f9"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "cce593264f2c363c3b57d77de26eb2a8a72053837ccdef6df1b3c77ea0215b89"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/native-perf-startup-restart-consumed.json",
+      "bytes": 685,
+      "sha256": "fd4f139fce8343a21ddb0c7a688ff812fe1c10e2d0d265087015beb152242aac"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/native-perf-startup-restart-ticket.json",
+      "bytes": 2685,
+      "sha256": "357fbfe540ff75ba5b5416b730570a364e0ae0d8eef4007120b7f7b9b0a3592a"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/native-perf-startup-stopped.json",
+      "bytes": 1747,
+      "sha256": "51eff520c6242528abebe0da471e96016a9c8b1e5efeea68dc349e962b6ca9f4"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2990,
+      "sha256": "7a7615ada5fef3e20082cad6412f74f98da4afd6d599e7205b718f9d4e6bf64d"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "9acd68060e897790161c118a496c27faa8f120b617d35bacc70873a74d13fe32"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "84786c49cf2ddceafde56d433d4918caa8ba89a86925a3f9f4ce2179a8de7181"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "45f23145bc39a60e4915ef9ad8e573149b1de267ec93c30d671560971e316960"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "de1e3a794844c2ae46a23a0b3732ede754b81346c1163e8b4d643088f1fccb1b"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7209,
+      "sha256": "fe75c89169211bb3d57bbe343ea38688f95699d66c76cb51869ff2419bd77464"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 808,
+      "sha256": "255ac3b94dfd7de8cd9b51d088a1d65fef82a981fda66bb138a97baeccfd89b6"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2944,
+      "sha256": "4cac35f57fd2523492084abaa9058c6b1d2db3143ebfe9c0a8d055b6d210c92d"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "0e2ee8bf5b0c9eff548f1d7593f31ab72e72a1a717bc71b83c4c8b23f6f434f9"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "fedb9b387684e64ff70708bda5ccda7a8193980e9505bbc7644af60227d07cfb"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "2f2d5ca390cae3b6626e43a410dd36aac9229f3393133f21b25541df5d88ad7d"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "0045d091afcf2099d51cccd25cea7bb28dd948912e48df8d5f5eb54ba479a3ff"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6308,
+      "sha256": "fa856abd5877145e1115222ff098cbd004a3c81f9cf4d2ef9b3ff604092b5432"
+    },
+    {
+      "path": "current/round5/samples5000/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "64c669facbbe5ce939e2a929e4ed6094717b7bd63cfe7d684a7947f2a7553a64"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003.json",
+      "bytes": 60172,
+      "sha256": "bd9a289e4ad09a2f34e9e8da65f976c3ffc85ac3e315fafff06f5bc4b098dfa2"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "38a1c0892d78382a5f487c15336e8c5e25c816798ea6f481c5352b602a24752f"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "23545abea65fb52134798d4f5f48fcfdfda8a0fb8cf2ede4bd37ba3542777806"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/native-perf-startup-restart-consumed.json",
+      "bytes": 684,
+      "sha256": "53737ab4f001bdf99846d623b57c6ec7b6bc600d15327f6397cd8d4bdb55bd60"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/native-perf-startup-restart-ticket.json",
+      "bytes": 2685,
+      "sha256": "7baa315480fad108072bf55db2940c9f95f24f0005b11988d4d20b16ff554f27"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/native-perf-startup-stopped.json",
+      "bytes": 1748,
+      "sha256": "7c235bcd390313bc1d74926256a407a4ffe411552be3b16fe6ae2f0535ff9f8f"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2967,
+      "sha256": "305089cc6a1965cf29a2e02476095355f850343b0d64272156fe02ea5a685316"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 410,
+      "sha256": "1277defebea201b68e9656899fa9df778533a65dfa5e4db24f7ffda127912923"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-permission-commands.json",
+      "bytes": 273,
+      "sha256": "cd46d26c7632561034072f5de55d7dd1cfc56dcdda3df328e414676f917c5399"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "895144f01c6153992840c5c39c1a50bca32f3fce4e76124ebc43750681824967"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "1a5d7980f4336816938c27d6e5a9216d1df90b986b16c226603f070a83c91a45"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7235,
+      "sha256": "3af61653147218f086e64bf3f3001f8cd3bb66a18a30047b10939081b3c0ea13"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 806,
+      "sha256": "24f7cb4e3fd17af060056846f017ab88b369a1efaeefad48ce918d578f1049f8"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-auth-attribution.json",
+      "bytes": 3006,
+      "sha256": "e85ac4a0c2495bce723cf24eca45a98fb21f3f6eedec55452b8330da5a27e246"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 410,
+      "sha256": "5ae05c9025e84d504c46273d8e2b5607caed2b37782b78a8e99481502a456ea1"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-permission-commands.json",
+      "bytes": 273,
+      "sha256": "1e76c36ea47d872ebf7c75b1984f07d06a38ca23212ce71f0c1ae1bf8937cfa5"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "bb3a4d3d5fa7ce4afe55e332fbefc22b0bc8c122cdbf741009101b448854b427"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 357,
+      "sha256": "053a685afb0a9cdda77f56c9eb3b95c33775dd09f3a1de99919b3526a6610c4e"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6371,
+      "sha256": "c0e5ff45610603ea81a130db5606d8b5a7c0dca5c9ac7c95235ba98d1a33be68"
+    },
+    {
+      "path": "current/round5/samples5000/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "2f3d71f65ea4ad4ea3d9c6f38c44be3182a7a7c83b6d1470f9ca56070d03c886"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004.json",
+      "bytes": 60153,
+      "sha256": "e823f83b741cda679e49145e402feebcfac2799843cd0de0cc84fc44c5504d4f"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "983b421c9cbf8975d513ecbd1810a134c8385136f7759753e930f942af0cfcd2"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "ec14b058c90ec619999411a7ab2d58e1778ab2f8c317610fa783d501ba51f408"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/native-perf-startup-restart-consumed.json",
+      "bytes": 685,
+      "sha256": "9c1d7a36045a7b94a1977a71f476bddfbfc9d1e23b3dce9b749e3d859c997f7b"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/native-perf-startup-restart-ticket.json",
+      "bytes": 2685,
+      "sha256": "689bfd1d7ce0c8c12adf431db0527bf7a673b52a639a7b0db12d221d6b266ab7"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/native-perf-startup-stopped.json",
+      "bytes": 1748,
+      "sha256": "d44e0e16d51b3a27bf7f8486a27fa7f358524c91f09820dfd866db704fb4e4dc"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2997,
+      "sha256": "b443290131957c46cc20922d5a12e463b7e8e6dc6caba206b4f143b187311ddd"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "39b6d56b9bf539649fbc6d262c77df837a20826452f0e66989c2480b1bed8cc2"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "1630c617210d6942d3e2647036a46daaeb6d3e580e5492a49a977e71a19f9238"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "55aa5d692e72e16fb746bea87234f4745046766bc727403ed6886193303efe2d"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "04c7d87bfd12a4546a2f9bb0dcf9f03b0b695da79ffb68127c189cc86518249c"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7218,
+      "sha256": "d2da554e03a2acbacf8a370e04a0fe8d31b3b83f2666927a65e99a792be45011"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "4251bf908ca14d273a23609ac646a4cd6bb52031161b4c8b697f1db412a4038d"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-auth-attribution.json",
+      "bytes": 3011,
+      "sha256": "71240ce561780e6c558b00d0c92ef7fe606ca8108e74ea3edaf624d9fa2e5d3f"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "f4684958703394f1b341b4c5f679c8811fc42f1293309ca5d6492d2649c8d443"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-permission-commands.json",
+      "bytes": 284,
+      "sha256": "3ed4f413109db6ed7411e295d6c6eac812ebf1dba6f8c7997fb70ce6a451c753"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 574,
+      "sha256": "f50d344350910fa0b5d6707eed4fc60c5291294f6b2cb9b7be5ae89abbe579f6"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "1c8bef69e66bdb3e93b96d7ff980c61a0981e38afbc4f26f182a4379c7f26609"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6393,
+      "sha256": "f634039b968136fa3e6bdb46592287f5281a15a616df4ad914f81e728ee0f900"
+    },
+    {
+      "path": "current/round5/samples5000/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 689,
+      "sha256": "2e1098678549f75e4c13872d3dc4d0457910f6c5a0247113b40ba5d96a280788"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005.json",
+      "bytes": 60206,
+      "sha256": "fede8d47345a4272bc3ac5fa66ec3f25cd7dd75f8b2b553442b49ab63db136dd"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/native-perf-consumed.json",
+      "bytes": 264,
+      "sha256": "a85ce7766d4bbd50a2e5855792283fa6e6a27b56e17339cb831bc941709ee89c"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/native-perf-owned.json",
+      "bytes": 3323,
+      "sha256": "87af687ec2f5a9682a7b1039839ed87930c30ce86a4b72babc7d071018d08efb"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/native-perf-startup-restart-consumed.json",
+      "bytes": 685,
+      "sha256": "cffd93d9ca50c7eaf74a5c03a1dc5ca33704fdff6800b0c4a204c9acba471545"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/native-perf-startup-restart-ticket.json",
+      "bytes": 2685,
+      "sha256": "6bb904ac4799d3abc64f2502278106294392269efdbd710e758daa7f83d4431e"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/native-perf-startup-stopped.json",
+      "bytes": 1749,
+      "sha256": "a7ddc4c1a50e482ae9a9d58fac09a4e941746393d5bac532f0c43c0dbe9c8427"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2995,
+      "sha256": "860e94c5497813e83130ca7cb25bf63a4c1fb749ec0b89ce165875d4c1ff5a34"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "ccb8a8fecfae6c6000eb0ff6d19e9050d2ad01c8985d2302d7a2333f84ac8721"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "a0d6964a2e8589ee4ccba621659c5d81cf42ee327587755814a913b4edcdfd80"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "fdec052991a7bfe5fa374473871471dbc24d29c001ab0d63dd529bdb68dff758"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "63122d0d267ed39e139779f4e41c057a9b2777ae8a5b16db8ddaea81f1d5a40a"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7225,
+      "sha256": "c83f63c4d5e7973a154e5c60437e94a9bcd7e87e800f33863c83655a96a48e19"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "14b68ef993d369d2e998809702099596975c3e4b2e22d7a20f4fc4fcea9ad71c"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-auth-attribution.json",
+      "bytes": 2995,
+      "sha256": "44fc43c4ed6ceb00577e758a804dc25ceb232a26126764a6fade8f7a859c7eec"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "53979482d9798994433a72a1618b873cd35e277b3e43a3597b850bf520a39231"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-permission-commands.json",
+      "bytes": 284,
+      "sha256": "1dcdce45c5163dca58c7f26bce729b3cd59342685737f622bf2378dfb5e3d602"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "bytes": 575,
+      "sha256": "331641ad4dcbe5a2053d108c4fa4605e5fe9d592e99afd4225dd75497b52c834"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "bytes": 358,
+      "sha256": "aecf5642233920e9102cbe7a56d8dee4500e78180a6897e844ef0ffc8dda2cbc"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-sdk-journey.json",
+      "bytes": 6387,
+      "sha256": "cfecb85f13526ea65c90f894a432c68f6d5e5ce7ae344fcf0ef6e5b9cc885cc6"
+    },
+    {
+      "path": "current/round5/samples5000/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "bytes": 703,
+      "sha256": "8f08972c5f0ca4854dd6b5e8dce2e766d0beefbe2732e352a2393233f880b240"
+    },
+    {
+      "path": "initial-checks-and-tools/archive-complete.py",
+      "bytes": 6855,
+      "sha256": "7206a449180af45a0b17ce2c3579f4ad12bdfe0dd76876060472573da39ea058"
+    },
+    {
+      "path": "initial-checks-and-tools/cache-cleanup-preflight.json",
+      "bytes": 84447,
+      "sha256": "85aa737b1e3c804c12916f2cc0d074588539e13e625203e0bee0ce374e0c9678"
+    },
+    {
+      "path": "initial-checks-and-tools/cache-cleanup.json",
+      "bytes": 84589,
+      "sha256": "de56d94536a0e42dd0a5496d51b0cb17bb951729fccc4bb2e3274548f1f81819"
+    },
+    {
+      "path": "initial-checks-and-tools/close-report.py",
+      "bytes": 7061,
+      "sha256": "77b29c64536a672e1ccbe2fca73a53150863e156a17d868536daa52261c6615b"
+    },
+    {
+      "path": "initial-checks-and-tools/complete-rust-fix.py",
+      "bytes": 2398,
+      "sha256": "cf769ec28379bafc48936ffa03be0d40720d7c786046b8d06a2884b0852a5f5a"
+    },
+    {
+      "path": "initial-checks-and-tools/failed-offline-validation.json",
+      "bytes": 10126,
+      "sha256": "4a8bc6c030b0c8b78fe8c99420893c8410fb0b13e11ce1046259bb1e7daf618f"
+    },
+    {
+      "path": "initial-checks-and-tools/failure-exit-recheck.json",
+      "bytes": 165,
+      "sha256": "19c576ffdfd3a704fcbfff2f2266830169ffa7097271632b86956fe56635498f"
+    },
+    {
+      "path": "initial-checks-and-tools/input-proof.json",
+      "bytes": 269243,
+      "sha256": "9392541bd9d55d0cadd6e03cef4a59c0881d087613b7236c82f1114ce7659b40"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-cleanup-all.py",
+      "bytes": 5107,
+      "sha256": "4f5c5d994ee29b910b34d0dbd125ad6e32320314a830a320b3c576a48a1534c1"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-final-helpers.py",
+      "bytes": 5701,
+      "sha256": "8dc9c5b57f5ffc05f26fbdd7be1ed5b9da1cab7e27a9b141424733018fd6896d"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-fixed-run.py",
+      "bytes": 1369,
+      "sha256": "4352477689fbcae2ce9d4b8c8831c3903df8248fa643b87eec3d72bcd26da42a"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-resume-after-fixes.generated.py",
+      "bytes": 6625,
+      "sha256": "98439613fe89db13bae9e69bbf85447a820fa7a4fe72c807eaf783f194e59e0a"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-resume-after-fixes.py",
+      "bytes": 3009,
+      "sha256": "6795a620903d2ee7a36a2b8b771022fa19fb2dea539d86b6817b254182d2adaf"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-resume-after-rf1106.py",
+      "bytes": 5929,
+      "sha256": "6d52903f6ad5e012ada9171ee8d0b9400a764348ed9629963fb5f41dd821aade"
+    },
+    {
+      "path": "initial-checks-and-tools/prepare-rust-red.py",
+      "bytes": 365,
+      "sha256": "6d7e0a0d04013425322ae86ae1e6690faaa18cb3fff4c3261c519de9f9750036"
+    },
+    {
+      "path": "initial-checks-and-tools/register-rf1105.py",
+      "bytes": 3088,
+      "sha256": "51392107a2dcfee7273331d349634590864b74c4c46982e3f2725d2e05849da4"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-default.live.json",
+      "bytes": 193,
+      "sha256": "1f159c9e35aa4b2419e3065d2c6f9bed83ad46f90d77ab5704d0332ce1332142"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-default.receipt.json",
+      "bytes": 775,
+      "sha256": "ddc9b940cec369f9a0afe7631a98e4eca74ef62a9ac7e0df1cbb27f83d3a6da1"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-default.stderr.log",
+      "bytes": 132,
+      "sha256": "037eefc24c6744a8ba75cfb69fada0dbee28b99e12cba9a31dfe14775f725f5f"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-native.live.json",
+      "bytes": 232,
+      "sha256": "f1f37bc5f8591e9684ddc1c6db04d83309d9b97aefa0b77832f6f00561f5bed6"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-native.receipt.json",
+      "bytes": 812,
+      "sha256": "a123db9f8e10f90dd52b337f9abfac5806a1c931e19a14bcfbdc1c629217478f"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-native.stderr.log",
+      "bytes": 132,
+      "sha256": "39d4d10769ccfdb377338f89d8d9c29f9aa4c6d878655cb4529990b3ad4cafb6"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-clippy-native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-format-green.receipt.json",
+      "bytes": 280,
+      "sha256": "ce279ca9bf549e78cea625e1539ddf0ec0334d908bd70eeda64f3a5284b36801"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-format-green.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-format-green.stdout.log",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-format.receipt.json",
+      "bytes": 279,
+      "sha256": "5fc0dbaa5c36dff54e6ee20aa8c7b4b38d37a305b572371598cd294837ff2e37"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-format.stderr.log",
+      "bytes": 160,
+      "sha256": "d1f2a30168dbe2e2dd6d3df9f6c50d4656cefa23d9afa7e63d39018bac1080f8"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-format.stdout.log",
+      "bytes": 23,
+      "sha256": "ebe82dad128d5e5d8936334ceac09492f3c60bd9e0b4a16cc7fd7075513b33de"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-node-full.receipt.json",
+      "bytes": 169,
+      "sha256": "98b54121accc31784ac889a6ea2ab70446a5f0108829219ee6a6496123e87eda"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-node-full.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-node-full.stdout.log",
+      "bytes": 23152,
+      "sha256": "f1eaa484d9563722fc3981b5b7f5833567cde21e8ecac39530b94f46ab30bfc7"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-red.receipt.json",
+      "bytes": 274,
+      "sha256": "31f8077eb215a882d96dc15fffdce08b32892170bbc688ab3d5de75c2f6375ef"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-red.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-red.stdout.log",
+      "bytes": 888,
+      "sha256": "1770fa452b08f6e421038f4c1059a0e9c6ff6631ab81e954c228c68da167b26d"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-default.live.json",
+      "bytes": 150,
+      "sha256": "2a8bb231cfd996493a4d9996793b5d31a269db18cbd79b42a8716d3e40797c0b"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-default.receipt.json",
+      "bytes": 738,
+      "sha256": "0ac4ce8040ff1d5d98dc67e664fcab7dd3e66dfe00b6f64d47439e9c845d6f54"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-default.stderr.log",
+      "bytes": 1034,
+      "sha256": "5adc9b9bcfffb84d324467e9d2d9e131a2ec8487fb94022f85dae19d0611ca54"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-default.stdout.log",
+      "bytes": 417308,
+      "sha256": "dbe267d702eb902a708d2d5a1881e14bec9eb97f0739320f24d5ae39df1bf14a"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-check.live.json",
+      "bytes": 142,
+      "sha256": "90d88df378e462af61fe2a5c5ec31a8fceb883857d04643691bd8feab9ada6fd"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-check.receipt.json",
+      "bytes": 728,
+      "sha256": "12c8a1836c58865d5f1674c6a2763f6078f441b2311fc94e978ebb9969e46b73"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-write.live.json",
+      "bytes": 126,
+      "sha256": "d8b39eb891f55af6ae386bcdf2072683109a094f8584782615a97b440b4db4c5"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-write.receipt.json",
+      "bytes": 714,
+      "sha256": "74860122b155499e13d46eed291107ca7290f4410ccdac4531cb5baff02ca8ac"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-write.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-format-write.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-native.live.json",
+      "bytes": 265,
+      "sha256": "b9baf52884e1c43e6de65c7cb6183a793d906b421aee4c52d717d347e9aa368b"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-native.receipt.json",
+      "bytes": 843,
+      "sha256": "43ceba90002cd9f1b16f1f9f2a4a5c6bc3312147796cdeae89691c69acc47250"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-native.stderr.log",
+      "bytes": 269,
+      "sha256": "3fdeefbfd5401b0041633896dcfb1414cb87b85c76caf32ae6f790511ddfad1b"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-native.stdout.log",
+      "bytes": 43495,
+      "sha256": "36be607d3e1d4c5f6e6d68284cd75d1792c8588e585b9937cd9371f83d9b4e3d"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-preferences.live.json",
+      "bytes": 287,
+      "sha256": "740bfb5b8d25ae43252b1d7a80fb4a7ca22e3dbd5be7a030ea7a27f6112e84be"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-preferences.receipt.json",
+      "bytes": 866,
+      "sha256": "ed98c6172e40bfb3d2b68731e7d5d7b1cb0e48cefd757b6f0398cffe33375773"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-preferences.stderr.log",
+      "bytes": 207,
+      "sha256": "f2d4f3c6aba0e84a643e9913d55aef31e66b08fbdb3e20f8cef66b0436ac528f"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-preferences.stdout.log",
+      "bytes": 7528,
+      "sha256": "48d4d409e932db7f6054324c078f4128454907e9d803e83441952780418a4c6c"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-red.live.json",
+      "bytes": 327,
+      "sha256": "604c4fbb313f1131ca051ca74c328b4ffcbefba9231201d1641ccb908c950650"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-red.receipt.json",
+      "bytes": 908,
+      "sha256": "861d9bcf951bb3256abeebdf3bec5a2385de93abe39d3d4bc605d95cc79703a1"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-red.stderr.log",
+      "bytes": 704,
+      "sha256": "747f04cfa966ced3cb8c83be41dd2917f51d3b7035206b240479430c9df3a60e"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-red.stdout.log",
+      "bytes": 1340,
+      "sha256": "cc84a0637197c179e1b250236b5638087c4e4febf875d1ac90bdacfec45c9c32"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-rf905.live.json",
+      "bytes": 257,
+      "sha256": "8612df79cdc238fcbf0501d719e21cea1fb15579c8be46a40b6621e52322e008"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-rf905.receipt.json",
+      "bytes": 835,
+      "sha256": "d666b532b0468cd47b0e1d628d4450db0fea28df47ebf2abefefbdebb08eb70f"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-rf905.stderr.log",
+      "bytes": 208,
+      "sha256": "5692dc9c960c011c36c72fd9d34430c996e75144237d11e5a026e12aabc12b0a"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-rust-rf905.stdout.log",
+      "bytes": 14491,
+      "sha256": "997c5f7719e0d72b1743a2cdc9a3fdd006f91455edb2605910915e91c1fd38ee"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-targeted.receipt.json",
+      "bytes": 193,
+      "sha256": "78bd6824749f639c0b6089cebbd84990fb9fca105dd4f16863ef476acf4a5fdd"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-targeted.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/rf1105-targeted.stdout.log",
+      "bytes": 1003,
+      "sha256": "67637bff4ae22f0eca234881723a9dd256c8d6a9c1f68e76417394688ce14aee"
+    },
+    {
+      "path": "initial-checks-and-tools/run-check.py",
+      "bytes": 1508,
+      "sha256": "1186e56c02d1c83e37c7fb26ec8929efe27c94b930f10c45429ef1922da10686"
+    },
+    {
+      "path": "initial-checks-and-tools/run-complete.py",
+      "bytes": 7365,
+      "sha256": "341d66e33e1c57b21f83639ce63906dd2f220178146a55a561ae557e4c64222a"
+    },
+    {
+      "path": "initial-checks-and-tools/run-current.py",
+      "bytes": 4020,
+      "sha256": "f37aafc0d7b6f02f21a0e92763ad1d85d9ac2cf5f4adf03923e046e7dd14173c"
+    },
+    {
+      "path": "initial-checks-and-tools/run-fixed.py",
+      "bytes": 4502,
+      "sha256": "724033852a55814ac284010219ed955b8c58d91849031f81f1fae1603c83fe6e"
+    },
+    {
+      "path": "initial-checks-and-tools/run-rust-check.py",
+      "bytes": 2022,
+      "sha256": "66ba76fb390b74bdccc41a1c62cd070cae883d479f4e2af1950942fcf99135ac"
+    },
+    {
+      "path": "initial-checks-and-tools/session-preflight.json",
+      "bytes": 319,
+      "sha256": "93a8fa9c27ce90cc7b779ea70681eb2c903ea43eacd4815162a6a8f6438a4f78"
+    },
+    {
+      "path": "initial-checks-and-tools/session-preflight.py",
+      "bytes": 2123,
+      "sha256": "f5175f7c7527d56feb3d0a29d094b59e37d9b950a9eb97479eb43d94da9e5ad0"
+    },
+    {
+      "path": "initial-checks-and-tools/source-delta-fixed.json",
+      "bytes": 1048,
+      "sha256": "afe2cb3364109e666b9b7cde1194c615de8a76ac15fb741ccea0774e515f99f8"
+    },
+    {
+      "path": "initial-checks-and-tools/sources-fixed.json",
+      "bytes": 228919,
+      "sha256": "eaee9e59aaf23f36fdab842e80b5d1bd9375b5d97abb66972073ba9d818eecd7"
+    },
+    {
+      "path": "initial-checks-and-tools/startup-100.live.json",
+      "bytes": 442,
+      "sha256": "12e2e7bca3293c0748bd87ae102acc16b1709afdf42b9b8b4032be2882af666c"
+    },
+    {
+      "path": "initial-checks-and-tools/startup-100.receipt.json",
+      "bytes": 622,
+      "sha256": "5f0d31f23e454c192adf277bf6fee697cac6712ecbc6185d51e3b359281e8b2e"
+    },
+    {
+      "path": "initial-checks-and-tools/startup-100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-checks-and-tools/startup-100.stdout.log",
+      "bytes": 167,
+      "sha256": "d473932a713cae492bae1a827a79765d97468c1f90ff8a3e555df50a1069c008"
+    },
+    {
+      "path": "initial-checks-and-tools/verify-fixed.mjs",
+      "bytes": 8736,
+      "sha256": "ba4ab716fd058df888a00eb1b0eaeafa6ad97e881682df957049ebc62dc57814"
+    },
+    {
+      "path": "initial-checks-and-tools/verify-staged.py",
+      "bytes": 1839,
+      "sha256": "861f9cad632e2f7c70b5b3524ca83dec47d78df517abaaa95d21409a36c12a05"
+    },
+    {
+      "path": "initial/round2/samples100/report.json",
+      "bytes": 38298,
+      "sha256": "79883870af84a2e0a4c9a1bd853f8facc5b1fe4836c8fa1479ae26eb5dff2a3e"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001.json",
+      "bytes": 30020,
+      "sha256": "0a77f80532df4dd718f66ea72382da33d9b358f3cb9d1333d6f9080d095ed125"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/native-perf-consumed.json",
+      "bytes": 249,
+      "sha256": "6f31b6e12c04df2933e976d9da31ea8e1ef71e9e4908db85d12d316bff2cb4da"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/native-perf-owned.json",
+      "bytes": 3237,
+      "sha256": "b39740f4dcad477ce440e17f30027b8c18ef80a3b4099df8ab43ad229e67a9a3"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/native-perf-startup-stopped.json",
+      "bytes": 1730,
+      "sha256": "a6605365f75574f07b4cfdf8e2c358957607cbe9fcf0af4e349102f5b3155098"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2944,
+      "sha256": "5cdb75422eb92cb2c221ef66c1293b914fb092d9b18a9b01c8fb326e11b23e7e"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "47110116b389fffa1a141081ec96d1e1d1bdff07277640823fe97ae21feed439"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f374de0885ec8130b01b0169f8427b81bac30392d3b96b230801144045909f8f"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 559,
+      "sha256": "1e30df093b78c400f44ab295672bc4fd4d9949429419dc5d4894edcacb354593"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 342,
+      "sha256": "e150f50b802c51544f6a98e8171c05d71937680c5b4e474fde55abbbc99e4ad4"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6922,
+      "sha256": "3e265224662d8125b58b5ebe0742ff18e021673da76dd5204fa0d967e712507d"
+    },
+    {
+      "path": "initial/round2/samples100/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 829,
+      "sha256": "e31b52bd88c297f1a5224ce10feb376afb414b336a2c5a77835b2de28f076f2a"
+    },
+    {
+      "path": "initial/samples100/report.json",
+      "bytes": 101676,
+      "sha256": "fd815ee1bc0d444b44af686d5bf7071c57ed9fe25283fb4a07552e7fd061606d"
+    },
+    {
+      "path": "initial/samples100/sample-001.json",
+      "bytes": 21722,
+      "sha256": "53e137435b757ce08c4eeedaba9868e434cca8a78ee4bd754b28b6fccbb6d9bd"
+    },
+    {
+      "path": "initial/samples100/sample-001/native-perf-consumed.json",
+      "bytes": 241,
+      "sha256": "dc8e359ff9c3f8a1054f88314e6dd41e7e7afb15c2900beca13034decca67124"
+    },
+    {
+      "path": "initial/samples100/sample-001/native-perf-owned.json",
+      "bytes": 3197,
+      "sha256": "f68d9b85fa7da57cb75d02d3ea4c585eb182e2123ec4151a7626c4d66a24c768"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2972,
+      "sha256": "aa2e1eb6a6e7723cc83724f33946ec7f8fadaa0a8ac03e10aa5b622edcbacae2"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "606fdd96c43a8e5702deef458b1512ce7db635e0a2f9d9514cf8b9d9c1aed0e6"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "6d082c56b891e5b4705d65d21272355ef1309b9144a4c867bb6fce83bdba5dba"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 552,
+      "sha256": "bbefbe691b7690d36edf25232cfd556e5c6949877b2dc69e26915e5158c75a8c"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 334,
+      "sha256": "2824f3ef626d3dbc92c85cd744b9e3e01cd45aaff40e48ceee8847568e79a4a3"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-sdk-journey.json",
+      "bytes": 7185,
+      "sha256": "5ab1f2946d3e09921048fed7019c52f93825dcf0388d7cd2a92d0060769e2a38"
+    },
+    {
+      "path": "initial/samples100/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 829,
+      "sha256": "bd01223fe6c9750d0012869f12c753d77427fcae009fef16b121340277889d7f"
+    },
+    {
+      "path": "initial/samples100/sample-002.json",
+      "bytes": 21415,
+      "sha256": "9c51fbbd66451904a2f6772ebee6368eac9753e35068dd4cb82197b5f1a57595"
+    },
+    {
+      "path": "initial/samples100/sample-002/native-perf-consumed.json",
+      "bytes": 241,
+      "sha256": "6c8fa8b06f7137121d55fc951afef7062ac0d7bb826270ac9cfdb3b96507e9b8"
+    },
+    {
+      "path": "initial/samples100/sample-002/native-perf-owned.json",
+      "bytes": 3197,
+      "sha256": "1e6c93809e9b0978e5276c97168e44ea11e130de0446127f7e4551fc58260bf9"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2997,
+      "sha256": "d0ac670880408d56236ae556b218be0f90aa3b91ace710e2d641d551c01b597d"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "5ea5a543699657ade3c6f4da1abf73bca4061aab9238f9906372f004be14228c"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "029b3027afa97966a3c98c5e2548eba99d5364c48225c9366a71fdb9c49bd697"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 552,
+      "sha256": "0bb9189819a363931f4682bee3e1bcc037c128000322e32c5d1fcfe618dffda2"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 334,
+      "sha256": "83984ca8845efff351d00f34d6564589f5e094e3329ed3ea39809bcd51f1afaa"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6915,
+      "sha256": "4f88a3a5d9469768ce128f5fec103ad56c86d27e82fa702370a44ea4c0cb4416"
+    },
+    {
+      "path": "initial/samples100/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 806,
+      "sha256": "1fda18ce2508d30452bbf33de056cba81c4568862ee5806159ecce45d363749d"
+    },
+    {
+      "path": "initial/samples100/sample-003.json",
+      "bytes": 21422,
+      "sha256": "304ee088a25ccec28be98f7e218c1138c60dac0987fa6979dea1c81b4d5d1812"
+    },
+    {
+      "path": "initial/samples100/sample-003/native-perf-consumed.json",
+      "bytes": 241,
+      "sha256": "bfa1dd6c76bdddbce349958a93383fdf343e72c95b37fae74e58eea43b1334ae"
+    },
+    {
+      "path": "initial/samples100/sample-003/native-perf-owned.json",
+      "bytes": 3197,
+      "sha256": "c7ea185463e76ab75b962c34689df4cf02f276926694d6ca6e343f3dceae0266"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2969,
+      "sha256": "b71cfa989e3384b1d6d443ad127ddb655eedca2fae49e9f680b1c52d8d7aa626"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "8d1e283da79cb1f60c5a16b7339bb6fa523044ed444e68071864ce9a54ef5a27"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-permission-commands.json",
+      "bytes": 275,
+      "sha256": "dec7923b2d3b9644354caade6c8cd4fce0d734e024fd55fd646a64a8cccff612"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 552,
+      "sha256": "85b9abeaaa78bca5aba7589663101d55e71d00c11f32cc5742ff4d380f681935"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 334,
+      "sha256": "3d055856eb1e95a4cbc18708d1cb0fac94150f117485cc68ef836305b21d7548"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6918,
+      "sha256": "571cf4eb6fe632eb7a8efde52fc04f4f62160f3ff5ece912db61906e48d201c3"
+    },
+    {
+      "path": "initial/samples100/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 828,
+      "sha256": "ad5c83c4fc03f60a89c93d9c3b072c68480940f32b1c5e1e0a2f088152253564"
+    },
+    {
+      "path": "initial/samples100/sample-004.json",
+      "bytes": 21620,
+      "sha256": "413b6d93446db041676db0280e3e39e132ebfc04df5c67741f4fa0fdf0c86073"
+    },
+    {
+      "path": "initial/samples100/sample-004/native-perf-consumed.json",
+      "bytes": 240,
+      "sha256": "5b55c0d5343f28f4f841331cbdae1b08e365c60cb10751991d661c0ec40b3eeb"
+    },
+    {
+      "path": "initial/samples100/sample-004/native-perf-owned.json",
+      "bytes": 3197,
+      "sha256": "bf8b4fab29065e38cd2ed4f3435767432577ef17deec5975c30f7e5ad82fe44e"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-auth-attribution.json",
+      "bytes": 2973,
+      "sha256": "0292be3e43b066b42a06b90ec064e261077040aeb007288699a08adf1190d40f"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "548f25fa591914038f9170eff8c24f2141aa67917c62d5b9d0d27807def74ffd"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f2f5de80745c353b36832cd50896bd4eaf20ec8e134d7437f7ed9a414035bbda"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "bytes": 551,
+      "sha256": "faea4322988991a9e06af0cdd41e2ed72a35153b9ab1147bfeb890e91e3078b1"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "bytes": 333,
+      "sha256": "a7772241d07e774d8ac6e4908cef8bc2317eae633b268a2865a0bf5bf411b51f"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-sdk-journey.json",
+      "bytes": 6957,
+      "sha256": "67e00d26aaa46b98b1ee65d6bb84a32e3b54eb5e2551db05cb66ffe28c711eb8"
+    },
+    {
+      "path": "initial/samples100/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "bytes": 820,
+      "sha256": "8e4380b6dedd61787394e93fa17dffabb4d4bcbfdcdad312394ee9e44aef0b5a"
+    },
+    {
+      "path": "round2/input-proof.json",
+      "bytes": 269243,
+      "sha256": "3e46c1b8cb7828965689093b76c00876afa51fb31f0004fd19c7cafdfbc52eab"
+    },
+    {
+      "path": "round2/session-preflight.json",
+      "bytes": 319,
+      "sha256": "d85fd6b3ff758031d9a228defbd38f8a3d53a4755ae3d84c07afa40352debcc1"
+    },
+    {
+      "path": "round2/session-preflight.py",
+      "bytes": 2123,
+      "sha256": "f5175f7c7527d56feb3d0a29d094b59e37d9b950a9eb97479eb43d94da9e5ad0"
+    },
+    {
+      "path": "round2/source-delta.json",
+      "bytes": 543,
+      "sha256": "ea1c2e05dfefafc53b2f3bb97acf48b6cbc75dfb1ec1200057502449f7095f8e"
+    },
+    {
+      "path": "round2/sources-current.json",
+      "bytes": 228919,
+      "sha256": "eeac9061e2fe3fb6abf8d69f18237118b1c589066397ed70e213533a2901ee3e"
+    },
+    {
+      "path": "round2/startup-100.live.json",
+      "bytes": 451,
+      "sha256": "7c26aeb043f671d257f5fb97c84b350b348130fdd82f0ef428a61e1eb757a733"
+    },
+    {
+      "path": "round2/startup-100.receipt.json",
+      "bytes": 632,
+      "sha256": "a53e006615bbc755f68401156aae63323862b032901e7dcfb7b7f60bf4411c06"
+    },
+    {
+      "path": "round2/startup-100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "round2/startup-100.stdout.log",
+      "bytes": 95,
+      "sha256": "ab27d2db0719ba95751fb5e930125649648f63e78b1c5b7f0d110ff924b5e393"
+    },
+    {
+      "path": "round3/session-preflight.json",
+      "bytes": 352,
+      "sha256": "0d83fd2d1cc34932a774d93aca61ffa1fded7c1e72ad004bfa467a5478e843d9"
+    },
+    {
+      "path": "round3/session-preflight.py",
+      "bytes": 2123,
+      "sha256": "f5175f7c7527d56feb3d0a29d094b59e37d9b950a9eb97479eb43d94da9e5ad0"
+    },
+    {
+      "path": "round4/input-proof.json",
+      "bytes": 270572,
+      "sha256": "a1607ad29cd9d760d8a77c8159d1a6ad8d1aa9e3212152ec63136e4e081c13d0"
+    },
+    {
+      "path": "round4/session-preflight.json",
+      "bytes": 318,
+      "sha256": "ef45073d2589726194df3202bea6610722221d2072b90b5635deacca9f0eff16"
+    },
+    {
+      "path": "round4/session-preflight.py",
+      "bytes": 2123,
+      "sha256": "f5175f7c7527d56feb3d0a29d094b59e37d9b950a9eb97479eb43d94da9e5ad0"
+    },
+    {
+      "path": "round4/startup-100.live.json",
+      "bytes": 479,
+      "sha256": "1e6ae01357b3edee48dd670ac5a90aed27f5bf485a1a17047398a9e95d7084da"
+    },
+    {
+      "path": "round4/startup-100.receipt.json",
+      "bytes": 660,
+      "sha256": "71f4e82bde21fbad28902ac7fc62a684a2d4ea99d8e8d440134fb21a4f0c4e6b"
+    },
+    {
+      "path": "round4/startup-100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "round4/startup-100.stdout.log",
+      "bytes": 429,
+      "sha256": "00d93571aa314e929cf9888436d65d3aaadbc29a2d6fb905144769cbbe87464c"
+    },
+    {
+      "path": "round4/startup-5000.live.json",
+      "bytes": 481,
+      "sha256": "5097b340bf9699537b297b2e5de6067924d4a5c67eaa9dd4c6409cf957dd8610"
+    },
+    {
+      "path": "round4/startup-5000.receipt.json",
+      "bytes": 662,
+      "sha256": "50bc957d0d89a69272b1005ba93a8f38ba0876c9584f222c3a997aad2b2a4d34"
+    },
+    {
+      "path": "round4/startup-5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "round4/startup-5000.stdout.log",
+      "bytes": 167,
+      "sha256": "d473932a713cae492bae1a827a79765d97468c1f90ff8a3e555df50a1069c008"
+    },
+    {
+      "path": "round5/input-proof.json",
+      "bytes": 270696,
+      "sha256": "a82ff783e840f489a11052e5c6d90439a63a5167b3fcac1afa1ac5b3c894afa3"
+    },
+    {
+      "path": "round5/session-preflight.json",
+      "bytes": 319,
+      "sha256": "20af99779f9990909175774f0ac40c762b51aaad16a39f49e1758346ddd87793"
+    },
+    {
+      "path": "round5/session-preflight.py",
+      "bytes": 2123,
+      "sha256": "f5175f7c7527d56feb3d0a29d094b59e37d9b950a9eb97479eb43d94da9e5ad0"
+    },
+    {
+      "path": "round5/startup-5000.live.json",
+      "bytes": 481,
+      "sha256": "db0c7ed470b6276b8269758e6df18e695689828f8f48a375819f444e09414abd"
+    },
+    {
+      "path": "round5/startup-5000.receipt.json",
+      "bytes": 662,
+      "sha256": "cad716ce10a99767508f8105e190ef2972fb926646a627599a80125c887ecc40"
+    },
+    {
+      "path": "round5/startup-5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "round5/startup-5000.stdout.log",
+      "bytes": 420,
+      "sha256": "74cfd126e438696adaa9e270b5ea9fe907404599b5b3dd73cdf9d23207d13619"
+    },
+    {
+      "path": "session-and-device-context/api31-swangle-round1/boot.receipt.json",
+      "bytes": 7123,
+      "sha256": "15ea65c997d8c98c643407da14a972166ead33c294f025a89c1cf325bdaa69d6"
+    },
+    {
+      "path": "session-and-device-context/api31-swangle-round1/owned-stop-before-windows.json",
+      "bytes": 191,
+      "sha256": "fbf244671a64e7b732c4e71840bc7130b0e330a8b2e37b74086d8b21417d2888"
+    },
+    {
+      "path": "session-and-device-context/session2-dispatch-probe-round1/dispatch-receipt.json",
+      "bytes": 566,
+      "sha256": "9463f5d5c89ac3fbdf62acf8c26a2369b8c6388444754f6e8928b3cd50879f7f"
+    },
+    {
+      "path": "session-and-device-context/session2-dispatch-probe-round1/target-session-state.json",
+      "bytes": 505,
+      "sha256": "b5e736430a1d14c57418b2ddffffbcaf10b2498b4a7e1a21c7b058da2c4aa458"
+    },
+    {
+      "path": "session-and-device-context/verify-session-20261010-2228-connected.json",
+      "bytes": 319,
+      "sha256": "abf024948f8643f6ebada29b7d32ef0813d071391ab2b93ec402c8a084b1e570"
+    },
+    {
+      "path": "source-after/tauri/scripts/native-perf-startup.mjs",
+      "bytes": 28785,
+      "sha256": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec"
+    },
+    {
+      "path": "source-after/tauri/scripts/native-perf-startup.test.mjs",
+      "bytes": 13084,
+      "sha256": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e"
+    },
+    {
+      "path": "source-after/tauri/src-tauri/src/native_perf/preflight_tests.rs",
+      "bytes": 56002,
+      "sha256": "d01af4210e0fed2516de0c98ad6811bf29c27b8dfb6ca645af6c2565fb88dd70"
+    },
+    {
+      "path": "source-after/tauri/src-tauri/src/native_perf/startup.rs",
+      "bytes": 26073,
+      "sha256": "ec82129ae26cc00a24331455e452a6a2e1a27fa1048bcd7afab2e5a5dee024b8"
+    },
+    {
+      "path": "source-before/tauri/scripts/native-perf-startup.mjs",
+      "bytes": 29538,
+      "sha256": "137663b2819b420cf2b7707ba1c1f64aab16a31373f86a55a98dc7723d4670fb"
+    },
+    {
+      "path": "source-before/tauri/scripts/native-perf-startup.test.mjs",
+      "bytes": 12731,
+      "sha256": "f3b0d7c2d92c9a36e8f461f85f54a6b92242b6c9c91e941cef36465605da5a40"
+    },
+    {
+      "path": "source-before/tauri/src-tauri/src/native_perf/preflight_tests.rs",
+      "bytes": 56103,
+      "sha256": "1bef7837ae05fd5585f19660dfeb0a8bad4e13b6a54af8c5d0bf7a9c5de8c66a"
+    },
+    {
+      "path": "source-before/tauri/src-tauri/src/native_perf/startup.rs",
+      "bytes": 26627,
+      "sha256": "f396c503c3550821f9eeb81df7fcdf41cc1701694e11b858d6f491c4a9058ea2"
+    },
+    {
+      "path": "source-rust-red/tauri/scripts/native-perf-startup.mjs",
+      "bytes": 28785,
+      "sha256": "2410968ebe223a9ea0326702d43d80fdb8b2fa8d6d49c85e6d882ddf279292ec"
+    },
+    {
+      "path": "source-rust-red/tauri/scripts/native-perf-startup.test.mjs",
+      "bytes": 13084,
+      "sha256": "572fb6c049e6685487bff67cf4136696dec2ea207c08b729e58b8439cdc1277e"
+    },
+    {
+      "path": "source-rust-red/tauri/src-tauri/src/native_perf/preflight_tests.rs",
+      "bytes": 56142,
+      "sha256": "d456a64b081f736456bb2a216991c7a901b1ecbd81fcce6d7fda5ce84a3908c0"
+    },
+    {
+      "path": "source-rust-red/tauri/src-tauri/src/native_perf/startup.rs",
+      "bytes": 26627,
+      "sha256": "f396c503c3550821f9eeb81df7fcdf41cc1701694e11b858d6f491c4a9058ea2"
+    }
+  ],
+  "readbackAllMembersVerified": true,
+  "includesPhysicalVaults": false,
+  "includesExecutablesModelsOrCaches": false
+}

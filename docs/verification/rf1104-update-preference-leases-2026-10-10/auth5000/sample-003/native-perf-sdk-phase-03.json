@@ -1,0 +1,41 @@
+{
+  "durationMs": 1078.5696,
+  "fromAtMs": 7358.59999999404,
+  "inputTrust": {
+    "pointer": 4,
+    "text": 1,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 34,
+    "commands": {
+      "backup_list": 1,
+      "biometric_check_availability": 1,
+      "export_get_scope_tree": 1,
+      "get_vault_stats": 1,
+      "llm_get_config": 1,
+      "llm_get_providers": 1,
+      "object_list": 3,
+      "object_trash_list": 1,
+      "ocr_get_active_tier": 1,
+      "ocr_get_model_status": 3,
+      "ocr_list_available_tiers": 1,
+      "plugin:event|listen": 1,
+      "plugin:event|unlisten": 1,
+      "plugin_list_all": 1,
+      "plugin_list_installed": 1,
+      "sync_get_auto_status": 1,
+      "sync_get_status": 1,
+      "sync_get_ui_prefs_sync": 1,
+      "sync_list_conflicts": 1,
+      "sync_listen_addr": 1,
+      "template_list": 2,
+      "ui_update_preference": 7,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "workspace",
+  "success": true,
+  "toAtMs": 8575.59999999404
+}

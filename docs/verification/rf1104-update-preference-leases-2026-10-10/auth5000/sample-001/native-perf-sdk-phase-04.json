@@ -1,0 +1,23 @@
+{
+  "durationMs": 567.4724,
+  "fromAtMs": 12415.59999999404,
+  "inputTrust": {
+    "pointer": 7,
+    "text": 2,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 5,
+    "commands": {
+      "backup_list": 1,
+      "search_unified": 1,
+      "ui_get_preferences": 1,
+      "user_data_get_preferences": 1,
+      "user_data_update_preference": 1
+    },
+    "reason": null
+  },
+  "name": "search-needle",
+  "success": true,
+  "toAtMs": 12989.40000000596
+}

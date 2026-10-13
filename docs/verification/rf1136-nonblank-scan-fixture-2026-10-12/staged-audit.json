@@ -1,0 +1,15 @@
+{
+  "task": "RF-1136",
+  "validatedMediaSourceWorkingSha256": "d122ac347962f101bfbef7131b26fe93ce67f724bf3029686c9d5626a02045cd",
+  "stagedMediaSourceSha256": "d122ac347962f101bfbef7131b26fe93ce67f724bf3029686c9d5626a02045cd",
+  "sourceEolOnlyParity": true,
+  "pdfWorkingStagedAndCheckoutBytesIdentical": true,
+  "pdfBinaryAttributes": [
+    "tauri/crates/solosoul-core/examples/perf_baseline/fixtures/scanned.pdf: text: unset",
+    "tauri/crates/solosoul-core/examples/perf_baseline/fixtures/scanned.pdf: diff: unset",
+    "tauri/crates/solosoul-core/examples/perf_baseline/fixtures/scanned.pdf: merge: unset"
+  ],
+  "stagedRawMembers": 146,
+  "allStagedRawHashesAndLengthsMatch": true,
+  "defaultDependenciesAndMainApkUnchanged": true
+}

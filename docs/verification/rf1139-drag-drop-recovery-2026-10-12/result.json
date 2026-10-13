@@ -1,0 +1,164 @@
+{
+  "task": "RF-1139",
+  "baseline": "b5e2f2192",
+  "closed": true,
+  "red": {
+    "exitCode": 1,
+    "passed": 7,
+    "failed": 1,
+    "expectedRegistrations": 2,
+    "actualRegistrations": 1
+  },
+  "checks": {
+    "targeted": {
+      "exitCode": 0,
+      "passed": 17,
+      "failed": 0
+    },
+    "coverage": {
+      "exitCode": 0,
+      "nodePassed": 257,
+      "nodeSkipped": 1,
+      "nodeFailed": 0,
+      "vitestPassed": 2361,
+      "vitestFilesPassed": 262,
+      "vitestFailed": 0,
+      "statementsPercent": 85.95,
+      "branchesPercent": 73.37,
+      "functionsPercent": 80.96,
+      "linesPercent": 87.85,
+      "thresholdsUnchanged": true
+    },
+    "tscExitCode": 0,
+    "lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 1,
+      "existingWarning": "syncStore.ts:838"
+    },
+    "prettierExitCode": 0,
+    "productionBuildExitCode": 0,
+    "productionBrowserSmoke": {
+      "exitCode": 0,
+      "passed": 32,
+      "failed": 0,
+      "browser": "installed Chrome headless",
+      "workers": 2,
+      "nativePlatformVerification": false
+    }
+  },
+  "recoveryInvariants": {
+    "retainsOriginalReceivers": true,
+    "onePendingRetryForConcurrentNewReceivers": true,
+    "partialNativeHandlesRolledBackBeforeRetry": true,
+    "obsoleteCallbacksDisabled": true,
+    "allCleanupAttemptedAndFailuresObserved": true,
+    "sameFourWindowEventsAndPhysicalPositionAsInstalledSdk": true,
+    "automaticRetryLoopAdded": false
+  },
+  "otherTasksAndGoalRemainPaused": true,
+  "originalRF1137NativeValidationComplete": false,
+  "sdkApiVersion": "2.11.0",
+  "logs": {
+    "red.log": {
+      "bytes": 1062,
+      "sha256": "8f532b676a525ffecaa834f2e27304552996a70d8e38b3b494950621a9f879ed"
+    },
+    "targeted.log": {
+      "bytes": 216,
+      "sha256": "b753fca099f8c4940d6ffe8114d017d3bcdffe2b72cdea94fbe035b941291d26"
+    },
+    "targeted-final.log": {
+      "bytes": 216,
+      "sha256": "1b15d8b0eab8a109c2842de2b736607bfc2c18f3106a84b90e4f00c0c3ab6ada"
+    },
+    "coverage.log": {
+      "bytes": 58774,
+      "sha256": "01a61335e8a794c989b108ca6ab5762774d7d9808e497b4dee27b8c70a98a37e"
+    },
+    "tsc.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "lint.log": {
+      "bytes": 270,
+      "sha256": "9e89446757cc7804b6e7a218956a54c851dc2ab907f0bd1dc861ffb5216bea28"
+    },
+    "build.log": {
+      "bytes": 6063,
+      "sha256": "a52b7aca074916a6099ab41b956f181f1e6968a99b58c2b97593d9c536bef26d"
+    },
+    "production-smoke.log": {
+      "bytes": 7528,
+      "sha256": "f4eccd5fb0b2bca6e949eb4f0bff84812ad1e9efbdd3c84f6aab5586983936f2"
+    }
+  },
+  "sources": {
+    "tauri/src/lib/windowDragDrop.ts": {
+      "worktreeSha256": "8e6aa473d2c87d2a18327027e13522f7c9b9602edf162e0e993824942121bca6",
+      "lfNormalizedSha256": "8e6aa473d2c87d2a18327027e13522f7c9b9602edf162e0e993824942121bca6"
+    },
+    "tauri/src/lib/windowDragDrop.test.ts": {
+      "worktreeSha256": "e5f6c22f402d150e707e43c54749f14142d142e1821b360340a36597b50232ea",
+      "lfNormalizedSha256": "e5f6c22f402d150e707e43c54749f14142d142e1821b360340a36597b50232ea"
+    },
+    "tauri/src/lib/nativeWindowDragDrop.ts": {
+      "worktreeSha256": "6d9bfadb50d591f5973a697afb3a65d4e4845366581951f6cbb54d4cada1e38e",
+      "lfNormalizedSha256": "6d9bfadb50d591f5973a697afb3a65d4e4845366581951f6cbb54d4cada1e38e"
+    },
+    "tauri/src/lib/nativeWindowDragDrop.test.ts": {
+      "worktreeSha256": "be59bcb8e5339fd57fad28ad30099a316c8ca95378197e0785a077793439b8a0",
+      "lfNormalizedSha256": "be59bcb8e5339fd57fad28ad30099a316c8ca95378197e0785a077793439b8a0"
+    },
+    "tauri/src/hooks/useDragToAttach.test.tsx": {
+      "worktreeSha256": "e3af008a7ea0f305371d11251d3ea139c948c9f0cbeab1b865734392824e729a",
+      "lfNormalizedSha256": "e3af008a7ea0f305371d11251d3ea139c948c9f0cbeab1b865734392824e729a"
+    },
+    "tauri/vitest.config.ts": {
+      "worktreeSha256": "b316371e0a605a362df4f0ebc54e1342f3a5d4088c2352d44d5284ded4b88e23",
+      "lfNormalizedSha256": "b316371e0a605a362df4f0ebc54e1342f3a5d4088c2352d44d5284ded4b88e23"
+    },
+    "tauri/scripts/run-node-tests.mjs": {
+      "worktreeSha256": "c6a90ac6af7a64db5f7442207fcc6ae2972b9b180d6428e43032847225ecf43a",
+      "lfNormalizedSha256": "c6a90ac6af7a64db5f7442207fcc6ae2972b9b180d6428e43032847225ecf43a"
+    },
+    "tauri/node_modules/@tauri-apps/api/webview.js": {
+      "worktreeSha256": "29b803a82322bac10e08a809f257725367ce9200f251563c73b7113722db1c46",
+      "lfNormalizedSha256": "29b803a82322bac10e08a809f257725367ce9200f251563c73b7113722db1c46"
+    },
+    "tauri/node_modules/@tauri-apps/api/webviewWindow.js": {
+      "worktreeSha256": "9948d28eb4d1df5c531941c9d13a83d9cdff2e024e917bebdb9a7d3a75a1932e",
+      "lfNormalizedSha256": "9948d28eb4d1df5c531941c9d13a83d9cdff2e024e917bebdb9a7d3a75a1932e"
+    }
+  },
+  "buildGeneratedOriginalBytesRestored": [
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+      "beforeSha256": "a86d85077a00ecb0f33f9ab9d9c73483e7aaf8f9f434ee20f7d7ce625c7f786a",
+      "afterBuildSha256": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+      "restoredExactOriginalBytes": true,
+      "changedByBuild": true
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+      "beforeSha256": "a8043888dccfe4bb4a892d2a7098ccc3041738d5c972ae19b0488cdf6b7a432c",
+      "afterBuildSha256": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+      "restoredExactOriginalBytes": true,
+      "changedByBuild": true
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+      "beforeSha256": "46568409f5c7b1c27e1424f7f8d0f7a5421cb3d6dd2e2dc7f2afcf63ba062a90",
+      "afterBuildSha256": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+      "restoredExactOriginalBytes": true,
+      "changedByBuild": true
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/search-index.json",
+      "beforeSha256": "d8b6c658d214e326e3b73ebe3729a8b93b5d00244f78464b5da6b7a50cd0110e",
+      "afterBuildSha256": "a7ae55e10012abcb6a23a0ea9775bbc968346f7e9527e132fb6737ec380f2ae3",
+      "restoredExactOriginalBytes": true,
+      "changedByBuild": true
+    }
+  ]
+}

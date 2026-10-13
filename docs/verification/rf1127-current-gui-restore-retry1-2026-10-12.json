@@ -1,0 +1,143 @@
+{
+  "task": "RF-1127",
+  "sourceHead": "067fe8c7adc58ce4fe210d96c794934e81b8f213",
+  "accepted": false,
+  "exeSha256": "6f9e1c33a449eafd3843549b56db8e5c3ecee5f24157416ed655ee4a66a0c682",
+  "sources": 1839,
+  "requestedCohorts": 4,
+  "executedCohorts": 2,
+  "sdkJourneysPassed": 5,
+  "sdkJourneysFailed": 1,
+  "rawWindowFrames": 5,
+  "independentlyAcceptedFrames": 3,
+  "humanReviewedFrames": 1,
+  "failureReason": "owned-window-restoration-incomplete",
+  "captionError": "caption-point-hits-other-window",
+  "captionInputEventsSent": 0,
+  "occupyingWindowOwnerRecorded": false,
+  "failureCauseResolved": false,
+  "failure": {
+    "after": {
+      "clientRect": [
+        0,
+        0,
+        1200,
+        800
+      ],
+      "dpi": 96,
+      "systemBackdrop": {
+        "errorHresult": null,
+        "ok": true,
+        "value": 2
+      },
+      "windowRect": [
+        112,
+        10,
+        1328,
+        849
+      ]
+    },
+    "backdropPreserved": true,
+    "before": {
+      "clientRect": [
+        0,
+        0,
+        1200,
+        800
+      ],
+      "dpi": 96,
+      "systemBackdrop": {
+        "errorHresult": null,
+        "ok": true,
+        "value": 2
+      },
+      "windowRect": [
+        112,
+        10,
+        1328,
+        849
+      ]
+    },
+    "captionActivation": {
+      "attempted": true,
+      "cursorRestored": null,
+      "error": "caption-point-hits-other-window",
+      "extraReleaseEventsSent": 0,
+      "inputEventsSent": 0
+    },
+    "creationMs": 1791758531629,
+    "elapsedMilliseconds": 2182.5260000000003,
+    "foregroundApiReturned": false,
+    "fullMaterialMatrixAccepted": false,
+    "geometryAndDpiPreserved": true,
+    "heldProcessAndWindowIdentityVerifiedBeforeAndAfter": true,
+    "hwnd": 44434732,
+    "inputEventsSent": 0,
+    "minimizeApiReturnedPreviousVisibility": true,
+    "minimizeError": null,
+    "minimizedObserved": true,
+    "otherWindowsModified": 0,
+    "pid": 28088,
+    "pixelsRead": 0,
+    "restoreApiReturnedPreviousVisibility": true,
+    "restoredVisibleNormalForeground": false,
+    "runId": "c781cadb765a417ea1ee772e37603b3b",
+    "schemaVersion": 1,
+    "scope": "rf121-owned-window-minimize-restore",
+    "stylesPreserved": true,
+    "systemSettingsChanged": false,
+    "tag": "minimize-restore-owned"
+  },
+  "cleanup": {
+    "task": "RF-1127",
+    "at": "2026-10-11T22:56:13.8081783Z",
+    "identitiesChecked": 54,
+    "matchingOwnedIdentitiesLive": 0,
+    "processesTerminatedByThisTool": 0,
+    "removedCachePaths": 48,
+    "linksUnlinked": 6,
+    "preservedVaultAndRootFiles": 286,
+    "applicationLogs": 6,
+    "preservedBytesVerified": true
+  },
+  "fullRF121Accepted": false,
+  "RF1128Accepted": false,
+  "performanceAccepted": false,
+  "consoleComputerUse": {
+    "at": "2026-10-11T23:03:30.365378+00:00",
+    "callerPid": 11900,
+    "callerSessionId": 1,
+    "activeConsoleSessionId": 1,
+    "systemSettingsChanged": false,
+    "inputDesktopAvailable": true,
+    "inputDesktopName": "Default",
+    "computerUse": {
+      "runtime": "node_repl @oai/sky",
+      "listAppsSucceeded": true,
+      "launchPreexistingCalculatorSucceeded": true,
+      "calculatorPid": 29328,
+      "calculatorHwnd": 17762960,
+      "accessibilityTreeSucceeded": true,
+      "requestedScreenshotWidth": 214,
+      "requestedScreenshotHeight": 316,
+      "screenshotMatchesTarget": false,
+      "observedImage": "Codex sidebar rather than Calculator; image not retained",
+      "activationAttempts": 2,
+      "activationErrors": [
+        "failed to activate captured window",
+        "failed to activate captured window"
+      ],
+      "clickActionsAttempted": 0,
+      "typingActionsAttempted": 0,
+      "screenshotAccepted": false,
+      "inputVerified": false
+    }
+  },
+  "archive": {
+    "path": "rf1127-current-gui-restore-retry1-2026-10-12/raw.tar.gz",
+    "members": 328,
+    "bytes": 981698,
+    "sha256": "01ead969b0077b4e0f179f013e26093629e93d93ab8bd9f75b8790526feb560a",
+    "allMembersReadbackVerified": true
+  }
+}

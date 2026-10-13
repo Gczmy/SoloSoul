@@ -1,0 +1,21 @@
+{
+  "pid": 11172,
+  "command": [
+    "node",
+    "scripts/android-native-regression.mjs",
+    "--adb",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+    "--serial",
+    "emulator-5586",
+    "--avd",
+    "SoloSoul_RF121_20261010",
+    "--apk",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+    "--test-apk",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\card-visual-state-test-build2\\app-x86_64-debug-androidTest.apk",
+    "--output",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-visual-state-round3\\supported",
+    "--mode",
+    "supported"
+  ]
+}

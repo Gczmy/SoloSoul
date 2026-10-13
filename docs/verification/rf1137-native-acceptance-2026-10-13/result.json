@@ -1,0 +1,291 @@
+{
+  "task": "RF-1137",
+  "runtimeSourceHead": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+  "closed": true,
+  "android": {
+    "task": "RF-1137",
+    "head": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+    "apk": {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1137-native-acceptance-round2-20261012\\android-release-package\\app-x86_64-release-early-observer-internal-validation.apk",
+      "sha256": "1f9d1054237f722dbb2dd3842f6b10cc88250ac56b6f6f758704b9c66a145a1c",
+      "bytes": 78630239
+    },
+    "sourceManifestSha256": "f9d3fea534e8d329ebd4e8edbcf64fb693b6ca3f51d73a1cbd75bdac8ef8f9b1",
+    "frontendManifestSha256": "8d3b70d5568ff6c399f454d74b5dbafa2656eea7260a312aff5217c671ed279b",
+    "groups": [
+      {
+        "objectCount": 100,
+        "all12PhasesPassed": true,
+        "actualNativeFingerAndReadiness": {
+          "gates": 201,
+          "maximumReadinessAndCommitMs": 1731.0119
+        },
+        "listen": 35,
+        "unlisten": 25,
+        "ipcTotal": 235,
+        "priorCompleteJourneyListen": 435,
+        "priorCompleteJourneyUnlisten": 425,
+        "phases": [
+          {
+            "name": "activity-startup",
+            "listen": 7,
+            "unlisten": 1
+          },
+          {
+            "name": "password-unlock",
+            "listen": 5,
+            "unlisten": 1
+          },
+          {
+            "name": "first-ocr-user-flow",
+            "listen": 4,
+            "unlisten": 4
+          },
+          {
+            "name": "workspace",
+            "listen": 3,
+            "unlisten": 1
+          },
+          {
+            "name": "search-needle",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "attachments-open",
+            "listen": 4,
+            "unlisten": 0
+          },
+          {
+            "name": "image-preview",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "text-preview",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "pdf-text-native-diagnostic",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "pdf-scanned-native-diagnostic",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "application-lock",
+            "listen": 1,
+            "unlisten": 9
+          },
+          {
+            "name": "password-reunlock",
+            "listen": 5,
+            "unlisten": 1
+          }
+        ],
+        "originalPackageUidAnd216EntriesRestored": true,
+        "privateTarsRemoved": true,
+        "hostReportSha256": "89f6426d4e1d54a01973452737cbbc94f5e6889a4f9c674f6ce8aca8ae8ead7d",
+        "deviceReportSha256": "9797d7d93dd3da1faaee0290688cee6306f8fbba3d20c1b7cbae4dde2cd007cf"
+      },
+      {
+        "objectCount": 5000,
+        "all12PhasesPassed": true,
+        "actualNativeFingerAndReadiness": {
+          "gates": 197,
+          "maximumReadinessAndCommitMs": 568.3046
+        },
+        "listen": 35,
+        "unlisten": 25,
+        "ipcTotal": 234,
+        "priorCompleteJourneyListen": 435,
+        "priorCompleteJourneyUnlisten": 425,
+        "phases": [
+          {
+            "name": "activity-startup",
+            "listen": 7,
+            "unlisten": 1
+          },
+          {
+            "name": "password-unlock",
+            "listen": 5,
+            "unlisten": 1
+          },
+          {
+            "name": "first-ocr-user-flow",
+            "listen": 4,
+            "unlisten": 4
+          },
+          {
+            "name": "workspace",
+            "listen": 1,
+            "unlisten": 1
+          },
+          {
+            "name": "search-needle",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "attachments-open",
+            "listen": 2,
+            "unlisten": 0
+          },
+          {
+            "name": "image-preview",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "text-preview",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "pdf-text-native-diagnostic",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "pdf-scanned-native-diagnostic",
+            "listen": 0,
+            "unlisten": 0
+          },
+          {
+            "name": "application-lock",
+            "listen": 1,
+            "unlisten": 9
+          },
+          {
+            "name": "password-reunlock",
+            "listen": 5,
+            "unlisten": 1
+          }
+        ],
+        "originalPackageUidAnd216EntriesRestored": true,
+        "privateTarsRemoved": true,
+        "hostReportSha256": "c53f2b9252e383c88716e5f46a2b1a2f7aa09bd701e119efc726a2e90fe28e7c",
+        "deviceReportSha256": "5191412284a637562677a7229c87d8f20d17d156bf452a278d8073b0507497de"
+      }
+    ],
+    "listenerCountScope": "all event IPC attempts;event names and arguments not captured;do not attribute every call to drag-drop",
+    "currentSamplesPerGroup": 1,
+    "priorBaseline": "RF-312 existing ten complete journeys;five per100/5000",
+    "performanceBenchmarkAccepted": false,
+    "desktopRealDragStillRequired": true,
+    "otherTasksRemainPaused": true
+  },
+  "windows": {
+    "task": "RF-1137",
+    "head": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+    "runId": "925912a09dd04985b345d134ec33479e",
+    "pid": 11368,
+    "exeSha256": "a7ffc0217f226460cf56081bc7224f96c941e04d000d3eb5eee92c9b2219b9e8",
+    "sourcesVerified": 1963,
+    "resourcesVerified": 94,
+    "nativeDropPerformedBy": "human user; both successful drops reported in this chat",
+    "sequence": "A to object0; Home/Identity/Clear; B to object1, instructed and manually performed; transition not separately instrumented",
+    "accepted": true,
+    "attachments": [
+      {
+        "objectId": "obj_perf_00000000",
+        "fileName": "rf1137-native-drop-a.txt",
+        "activeAttachments": 1,
+        "sourceBytes": 43,
+        "sourceSha256": "0fc2dacc7e19af8207b5cfae464d3c1541e8562c184aead79e755666556a8ba0",
+        "previewMatchesPublicText": true,
+        "storagePath": "D:\\SoloSoul\\build\\rf1137-current-windows-20261012\\attempt3\\ss-rf1137-public-drag-run\\vault\\attachments\\obj_perf_00000000\\b10f26e0-4be3-4377-811a-02324ad74b48\\rf1137-native-drop-a.txt",
+        "storedBytes": 84,
+        "storedSha256": "758ee5cc630d0c4f5b68f9c69a58a25ec28a47afc46982ac12ec519b6223e9e7"
+      },
+      {
+        "objectId": "obj_perf_00000001",
+        "fileName": "rf1137-native-drop-b.txt",
+        "activeAttachments": 1,
+        "sourceBytes": 43,
+        "sourceSha256": "82c7858353fb8409caaf7fbb9ccdd3e939e4a5bda03d888e63b4c9d07bd950aa",
+        "previewMatchesPublicText": true,
+        "storagePath": "D:\\SoloSoul\\build\\rf1137-current-windows-20261012\\attempt3\\ss-rf1137-public-drag-run\\vault\\attachments\\obj_perf_00000001\\7413af3a-a8eb-4e2a-b6e9-c7096decf8a4\\rf1137-native-drop-b.txt",
+        "storedBytes": 84,
+        "storedSha256": "c283916b7a35d14a7fdb20963b7b5117ca952a9aa151e25b63888c7262b4dde1"
+      }
+    ],
+    "globalActiveAttachments": 2,
+    "noDuplicateOrCrossObjectUploadObserved": true,
+    "sourceFilesUnchanged": true,
+    "ownedGuiCleanupComplete": true,
+    "bootstrapWrapperExitCode": 0,
+    "originalExplorerPreserved": true,
+    "ownedExplorerClosed": true,
+    "firstAttempt": "two failures retained: external fixture was outside existing native-perf FS base",
+    "correction": "same public file bytes placed under owned profile/Documents; product and FS policy unchanged",
+    "intermediateRetry": "user corrected previous successful reply to not completed; old GUI was idle-locked, preserved then closed; fresh public SDK fixture unlocked",
+    "otherTasksAndGoalRemainPaused": true,
+    "performanceBenchmarkAccepted": false
+  },
+  "ciSourceHead": {
+    "verifiedHead": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+    "runId": 38321064496,
+    "snapshot": {
+      "headRevision": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+      "checks": [],
+      "statuses": [],
+      "annotations": [],
+      "hasMore": false,
+      "job": null,
+      "jobs": [
+        {
+          "id": 115049014500,
+          "head_sha": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+          "name": "Frontend TypeScript & Lint",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115049014624,
+          "head_sha": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+          "name": "Plugin Market Registry Check",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115049014632,
+          "head_sha": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+          "name": "Incremental IPC Contract Check",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115049014727,
+          "head_sha": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+          "name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115049014825,
+          "head_sha": "01f78fdb1d964e27805f19eaa85ee9acbe88cb2d",
+          "name": "Rust Format, Clippy & Tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "log": null,
+      "logTruncated": false,
+      "providerGuidance": "GitHub guidance for this response only: use checkRunId for output and annotations, runId from a GitHub Actions /runs/<id> link to list jobs, or jobId from a /jobs/<id> link for logs. page paginates checks, jobs or annotations. Keep the supplied account and returned headRevision on follow-up reads. Third-party CI exposes only the output reported to GitHub."
+    },
+    "otherTasksRemainPaused": true
+  },
+  "androidGithubWorkflow": "manually disabled; verified in GitHub UI, not changed",
+  "otherTasksAndGoalRemainPaused": true,
+  "mergeRecommendation": "native acceptance complete; assess latest pushed head CI and remote merge state separately",
+  "temporaryRuntimeCleanup": {
+    "ownedDirectoriesRemoved": 27,
+    "originalExplorerPreserved": true,
+    "publicOriginalFixturesRetained": true
+  }
+}

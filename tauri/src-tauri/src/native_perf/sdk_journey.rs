@@ -9,6 +9,8 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 mod ocr;
 #[path = "sdk_pdf.rs"]
 mod pdf;
+#[path = "sdk_surface.rs"]
+mod surface;
 pub(super) fn prepare_ocr_input(config: &RuntimeConfig) -> Result<(), String> {
     ocr::prepare(config)
 }
@@ -157,6 +159,29 @@ fn allowed_source(source: &str) -> bool {
     )
 }
 fn parse_frame(value: &Value, source: &str) -> Outcome<Value> {
+    parse_frame_policy(value, source, false)
+}
+fn theme_source(source: &str) -> bool {
+    matches!(
+        source,
+        "http://tauri.localhost/"
+            | "http://tauri.localhost/settings"
+            | "http://tauri.localhost/settings/appearance"
+    )
+}
+fn call_source_allowed(source: &str, theme_scene: bool, session: bool, method: &str) -> bool {
+    if theme_scene {
+        !session
+            && theme_source(source)
+            && matches!(
+                method,
+                "Runtime.evaluate" | "Page.getFrameTree" | "Input.dispatchMouseEvent"
+            )
+    } else {
+        allowed_source(source)
+    }
+}
+fn parse_frame_policy(value: &Value, source: &str, theme_scene: bool) -> Outcome<Value> {
     let tree = &value["frameTree"];
     let frame = &tree["frame"];
     let identifier = |value: &Value| {
@@ -169,7 +194,11 @@ fn parse_frame(value: &Value, source: &str) -> Outcome<Value> {
         })
     };
     if value.get("error").is_some()
-        || !allowed_source(source)
+        || !(if theme_scene {
+            theme_source(source)
+        } else {
+            allowed_source(source)
+        })
         || !tree.is_object()
         || !frame.is_object()
         || frame.get("parentId").is_some()
@@ -198,6 +227,7 @@ struct Capture {
     frame: Option<Value>,
     time_origin: Option<Value>,
     invalidated: Arc<AtomicBool>,
+    theme_scene: bool,
     pdf_frame_window: Arc<AtomicBool>,
     pdf_frame_events: Arc<AtomicU32>,
     pdf_diagnostic: Option<Value>,
@@ -298,6 +328,8 @@ impl Capture {
         self.calls.push(method);
         let (sender, receiver) = oneshot::channel();
         let expected_pid = self.browser_pid;
+        let theme_scene = self.theme_scene;
+        let session_call = session.is_some();
         let invalidated = self.invalidated.clone();
         let app = self.window.app_handle().clone();
         self.window
@@ -321,7 +353,7 @@ impl Capture {
                     fail(sender, "sdk-binding-unavailable");
                     return;
                 };
-                if !allowed_source(&source)
+                if !call_source_allowed(&source, theme_scene, session_call, method)
                     || (pdf_source_required(session.is_some(), method)
                         && source != "http://tauri.localhost/settings/attachments")
                     || expected_pid.is_some_and(|expected| pid != expected)
@@ -1083,6 +1115,7 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         frame: None,
         time_origin: None,
         invalidated: Arc::new(AtomicBool::new(false)),
+        theme_scene: false,
         pdf_frame_window: Arc::new(AtomicBool::new(false)),
         pdf_frame_events: Arc::new(AtomicU32::new(0)),
         pdf_diagnostic: None,
@@ -1125,6 +1158,11 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
                     outcome = Err("auth-diagnostic-invalid");
                 }
             }
+        }
+    }
+    if outcome.is_ok() {
+        if let Err(reason) = surface::capture(&mut capture).await {
+            outcome = Err(reason);
         }
     }
     if let Err(reason) = capture.release_guards().await {
@@ -1459,6 +1497,68 @@ mod probe_tests {
 #[cfg(test)]
 mod frame_tests {
     use super::*;
+    #[test]
+    fn appearance_routes_are_only_for_the_explicit_scene_and_three_top_frame_methods() {
+        for source in [
+            "http://tauri.localhost/settings",
+            "http://tauri.localhost/settings/appearance",
+        ] {
+            assert!(!allowed_source(source));
+            assert!(!call_source_allowed(
+                source,
+                false,
+                false,
+                "Runtime.evaluate"
+            ));
+            for method in [
+                "Runtime.evaluate",
+                "Page.getFrameTree",
+                "Input.dispatchMouseEvent",
+            ] {
+                assert!(call_source_allowed(source, true, false, method));
+                assert!(!call_source_allowed(source, true, true, method));
+            }
+            assert!(!call_source_allowed(
+                source,
+                true,
+                false,
+                "Network.getResponseBody"
+            ));
+        }
+        for source in [
+            "http://tauri.localhost/settings/appearance?other=1",
+            "http://tauri.localhost/settings/account",
+            "http://other/settings",
+            "http://tauri.localhost/ocr",
+        ] {
+            assert!(!call_source_allowed(
+                source,
+                true,
+                false,
+                "Runtime.evaluate"
+            ));
+        }
+    }
+    #[test]
+    fn appearance_frame_policy_still_rejects_children_wrong_origin_and_document_replacement() {
+        let source = "http://tauri.localhost/settings/appearance";
+        let tree = json!({"frameTree":{"frame":{"id":"FRAME","loaderId":"LOADER","url":source,"securityOrigin":"http://tauri.localhost"}}});
+        assert!(parse_frame(&tree, source).is_err());
+        assert!(parse_frame_policy(&tree, source, true).is_ok());
+        for (key, value) in [
+            ("parentId", json!("PARENT")),
+            ("loaderId", json!(null)),
+            ("securityOrigin", json!("http://other")),
+            ("url", json!("http://tauri.localhost/settings")),
+        ] {
+            let mut bad = tree.clone();
+            bad["frameTree"]["frame"][key] = value;
+            assert!(parse_frame_policy(&bad, source, true).is_err());
+        }
+        let mut bad = tree;
+        bad["frameTree"]["childFrames"] = json!([{}]);
+        assert!(parse_frame_policy(&bad, source, true).is_err());
+    }
     #[test]
     fn journey_accepts_exact_identity_spa_route_and_keeps_single_main_document_rules() {
         let source = "http://tauri.localhost/workspace?section=identity";

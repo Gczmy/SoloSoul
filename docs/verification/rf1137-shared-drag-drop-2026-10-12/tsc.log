@@ -1,0 +1,4 @@
+src/lib/windowDragDrop.test.ts(43,16): error TS2322: Type 'DragDropPayload | { readonly type: "leave"; readonly paths?: undefined; readonly position?: undefined; } | { readonly type: "enter"; readonly paths: readonly ["a"]; readonly position: { ...; } | undefined; } | { ...; }' is not assignable to type 'DragDropPayload'.
+  Type '{ readonly type: "enter"; readonly paths: readonly ["a"]; readonly position: { x: number; y: number; } | undefined; }' is not assignable to type 'DragDropPayload'.
+    Types of property 'paths' are incompatible.
+      The type 'readonly ["a"]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.

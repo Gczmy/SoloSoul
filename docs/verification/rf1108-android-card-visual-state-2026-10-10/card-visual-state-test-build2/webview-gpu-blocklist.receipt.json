@@ -1,0 +1,21 @@
+{
+  "command": [
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+    "-H",
+    "localhost",
+    "-P",
+    "5049",
+    "-s",
+    "emulator-5586",
+    "logcat",
+    "-d",
+    "-t",
+    "900",
+    "chromium:I",
+    "*:S"
+  ],
+  "exitCode": 0,
+  "at": "2026-10-10T20:32:19.746740+00:00",
+  "readOnly": true,
+  "webglBlocked": true
+}

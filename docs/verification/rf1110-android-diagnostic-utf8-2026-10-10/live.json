@@ -1,0 +1,23 @@
+{
+  "pid": 22348,
+  "command": [
+    "python",
+    "scripts/android-home-native-regression.py",
+    "--adb",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+    "--serial",
+    "emulator-5586",
+    "--avd",
+    "SoloSoul_RF121_20261010",
+    "--apk",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+    "--test-apk",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk",
+    "--output",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1110-utf8-native-round1\\baseline-supported",
+    "--mode",
+    "supported",
+    "--scenario",
+    "baseline"
+  ]
+}

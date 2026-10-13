@@ -1,0 +1,52 @@
+{
+  "task": "RF-1138",
+  "baseline": "c255c11c3",
+  "closed": true,
+  "red": {
+    "exitCode": 1,
+    "tests": 0,
+    "reason": "Android Node observer incorrectly collected by Vitest"
+  },
+  "green": {
+    "command": "npm run test:coverage",
+    "exitCode": 0,
+    "nodePassed": 257,
+    "nodeSkipped": 1,
+    "nodeFailures": 0,
+    "addedAndroidObserverTests": 12,
+    "vitestPassed": 2354,
+    "vitestFilesPassed": 261,
+    "vitestFailures": 0,
+    "coverage": {
+      "statements": 85.94,
+      "branches": 73.35,
+      "functions": 80.94,
+      "lines": 87.83
+    },
+    "coverageThresholdsUnchanged": true
+  },
+  "typeScriptExitCode": 0,
+  "nodeSyntaxExitCode": 0,
+  "formattingLineEndingsOnly": true,
+  "otherTasksRemainPaused": true,
+  "logs": {
+    "red-vitest.log": {
+      "bytes": 935,
+      "sha256": "82b3f5b767ba8777246caeba58514d4a73c1f82a9fd170c2e5f3f9be3792db4b"
+    },
+    "coverage.log": {
+      "bytes": 58771,
+      "sha256": "9b80860d2a8d991f104ac0dad34f1f4e06e068c12eb8f1e583187c31192ff933"
+    },
+    "tsc.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "sources": {
+    "tauri/scripts/run-node-tests.mjs": "c6a90ac6af7a64db5f7442207fcc6ae2972b9b180d6428e43032847225ecf43a",
+    "tauri/vitest.config.ts": "b316371e0a605a362df4f0ebc54e1342f3a5d4088c2352d44d5284ded4b88e23",
+    "tauri/src-tauri/src/android_native_perf/observer.node.test.mjs": "cb68d4f9a4ab84c7d7b6c32b92779970c3c95a5863021fbefa342305d45ca915",
+    "tauri/package.json": "4a46bb582b7eac2c16acb08523b77c787892aba983525a353c7f0c0d275fd548"
+  }
+}

@@ -1,0 +1,1 @@
+{"pid": 23192, "command": ["cmd.exe", "/d", "/c", "npm.cmd", "run", "test:contracts"], "at": "2026-10-12T22:29:38.633369+00:00"}

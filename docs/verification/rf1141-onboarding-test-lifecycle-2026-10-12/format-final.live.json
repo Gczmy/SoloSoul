@@ -1,0 +1,1 @@
+{"pid": 32468, "command": ["node.exe", "node_modules/prettier/bin/prettier.cjs", "--check", "src/components/onboarding/OnboardingDialog.test.tsx"], "at": "2026-10-12T23:07:56.541852+00:00"}

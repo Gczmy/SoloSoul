@@ -1,0 +1,26 @@
+{
+  "pid": 29804,
+  "command": [
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe",
+    "-avd",
+    "SoloSoul_RF121_20261010",
+    "-port",
+    "5586",
+    "-accel",
+    "on",
+    "-gpu",
+    "host",
+    "-memory",
+    "2048",
+    "-cores",
+    "2",
+    "-no-window",
+    "-no-snapshot",
+    "-no-audio",
+    "-no-boot-anim"
+  ],
+  "avd": "SoloSoul_RF121_20261010",
+  "serial": "emulator-5586",
+  "applicationAcceptance": false,
+  "systemSecuritySettingsChanged": false
+}

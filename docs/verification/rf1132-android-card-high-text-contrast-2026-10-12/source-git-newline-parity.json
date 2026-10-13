@@ -1,0 +1,28 @@
+{
+  "task": "RF-1132",
+  "sourceParity": [
+    {
+      "path": "tauri/native-regression/card-surfaces/README.md",
+      "archivedExecutedRawSha256": "61a007e5936da8c8905d1618794caa94abd1e9f6d8eb1c575e4352587d83587b",
+      "stagedSha256": "5c63e2524d780fc02b7d827d58e10804e799ac1d77134fb2cf067332bed042a2",
+      "normalizedBytesEqual": true,
+      "rawBytesEqual": false
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidCardSurfaceInstrumentedTest.kt",
+      "archivedExecutedRawSha256": "5654ec65a2454a533f7011242875be0a666a679d39d9da609153de02ee469fc8",
+      "stagedSha256": "478773ddc35adb7b2a85fb7b7c85f2025b323c9c56baac85ef75eb1a43e77892",
+      "normalizedBytesEqual": true,
+      "rawBytesEqual": false
+    }
+  ],
+  "archiveMembersVerified": 97,
+  "taskCounts": {
+    "closed": 310,
+    "total": 322,
+    "waiting": 6,
+    "pending": 6
+  },
+  "onlyTaskPathsStaged": true,
+  "exactPrivateCopiesAbsent": true
+}

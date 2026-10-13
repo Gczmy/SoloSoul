@@ -1,0 +1,200 @@
+{
+  "scope": "RF-1104 required Rust checks; native application journeys still require separate evidence",
+  "sourceFileCount": 1827,
+  "sourcesManifestSha256": "7d32a9b6e0181bd0f016d8855be1d96f661744422a4722010eddd565dbfaa798",
+  "existingIgnoredTestNames": [
+    "field::tests::test_field_metadata",
+    "field::tests::test_resolve_legacy_unchanged",
+    "p025_hold_baseline_large_dataset"
+  ],
+  "checks": {
+    "regression-green": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "commands::update_preferences::tests",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 30548,
+        "exitCode": 0,
+        "elapsedSeconds": 631.6257545999979,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:56:26.353123+00:00"
+      },
+      "testTotals": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "rust-format": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "fmt",
+          "--check"
+        ],
+        "pid": 3292,
+        "exitCode": 0,
+        "elapsedSeconds": 4.233334599994123,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:56:34.514527+00:00"
+      },
+      "testTotals": null
+    },
+    "rust-clippy-default": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 3468,
+        "exitCode": 0,
+        "elapsedSeconds": 109.27474509998865,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-09T23:58:25.198177+00:00"
+      },
+      "testTotals": null
+    },
+    "rust-tests-default": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--verbose"
+        ],
+        "pid": 27572,
+        "exitCode": 0,
+        "elapsedSeconds": 3557.3894929000235,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T00:58:00.521185+00:00"
+      },
+      "testTotals": {
+        "passed": 1871,
+        "failed": 0,
+        "ignored": 3
+      }
+    },
+    "rust-clippy-native": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--features",
+          "native-perf",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 2480,
+        "exitCode": 0,
+        "elapsedSeconds": 375.9521792999876,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:04:19.116152+00:00"
+      },
+      "testTotals": null
+    },
+    "rust-tests-native": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "native_perf::",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 7512,
+        "exitCode": 0,
+        "elapsedSeconds": 793.7317391000106,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:17:55.593593+00:00"
+      },
+      "testTotals": {
+        "passed": 113,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "rust-tests-rf905": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "rf905",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 26128,
+        "exitCode": 0,
+        "elapsedSeconds": 110.47897070000181,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:19:47.434859+00:00"
+      },
+      "testTotals": {
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "rust-tests-preferences-native": {
+      "receipt": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "commands::update_preferences::tests",
+          "--",
+          "--nocapture"
+        ],
+        "pid": 29920,
+        "exitCode": 0,
+        "elapsedSeconds": 15.589214100007666,
+        "sourceUnchanged": true,
+        "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+        "at": "2026-10-10T01:20:21.955071+00:00"
+      },
+      "testTotals": {
+        "passed": 15,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  }
+}

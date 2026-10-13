@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-10T20:29:09.004906+00:00",
+  "callerPid": 19476,
+  "callerSessionId": 1,
+  "activeConsoleSessionId": 2,
+  "userNamesRead": false,
+  "pixelsRead": 0,
+  "inputEventsSent": 0,
+  "systemSettingsChanged": false,
+  "connectionState": 4,
+  "connectionStateName": "Disconnected",
+  "inputDesktopAvailable": false,
+  "inputDesktopError": 5
+}

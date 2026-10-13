@@ -13,6 +13,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import java.io.File
 import java.io.IOException
 import org.json.JSONObject
@@ -48,6 +50,7 @@ class MainActivity : TauriActivity() {
 
   override fun onWebViewCreate(webView: WebView) {
     super.onWebViewCreate(webView)
+    syncLegacyWebViewSystemTheme(webView, resources.configuration)
     safeArea?.dispose()
     val area = AndroidSafeArea(this, webView)
     safeArea = area
@@ -91,6 +94,24 @@ class MainActivity : TauriActivity() {
       ViewCompat.requestApplyInsets(view)
     }
     webView.post { ViewCompat.requestApplyInsets(webView) }
+  }
+
+  // 旧 provider 不会从 DayNight 的 isLightTheme 更新媒体查询；仅使用网页自己的配色。
+  // 按 provider 能力而非 Android 版本选择，新 WebView 保留自动主题传递。
+  @Suppress("DEPRECATION")
+  private fun syncLegacyWebViewSystemTheme(webView: WebView, configuration: Configuration) {
+    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING) ||
+      !WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) ||
+      !WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) return
+    WebSettingsCompat.setForceDarkStrategy(webView.settings, WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
+    val dark = configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+    WebSettingsCompat.setForceDark(webView.settings,
+      if (dark) WebSettingsCompat.FORCE_DARK_ON else WebSettingsCompat.FORCE_DARK_OFF)
+  }
+
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    findWebView(window.decorView)?.let { syncLegacyWebViewSystemTheme(it, newConfig) }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {

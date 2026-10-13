@@ -40,6 +40,82 @@ def font_scale(text):
     return value
 
 
+def activity_font_scale(text):
+    lines = [line.strip() for line in text.splitlines()
+             if line.strip().startswith('mGlobalConfiguration:')]
+    match = re.fullmatch(r'mGlobalConfiguration:\s*\{(\S+)\s+.*\}', lines[0]) if len(lines) == 1 else None
+    if match is None or match[1] == 'null':
+        raise RuntimeError('Unrecognized global font configuration; refusing mutation')
+    return float(font_scale(match[1]))
+
+
+def effective_font_scale(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 < value <= 10:
+        raise RuntimeError('Unrecognized effective font scale; refusing mutation')
+    return float(value)
+
+
+def font_deadline(timeout, clock):
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or not 0 < timeout <= 30:
+        raise RuntimeError('Invalid font restoration budget')
+    deadline = clock() + timeout
+
+    def remaining():
+        value = deadline - clock()
+        if value <= 0:
+            raise RuntimeError('System font configuration did not converge within restoration budget')
+        return value
+
+    return remaining
+
+
+def capture_font_scale(read_raw, read_effective, *, timeout=10.0, clock=time.monotonic):
+    remaining = font_deadline(timeout, clock)
+    original = font_scale(read_raw(remaining()))
+    effective = effective_font_scale(read_effective(remaining()))
+    if (font_scale(read_raw(remaining())) != original or
+            (original != 'null' and not math.isclose(float(original), effective, rel_tol=0, abs_tol=0.001))):
+        raise RuntimeError('Original font setting/configuration changed; refusing mutation')
+    return original, effective
+
+
+def restore_font_scale(original, effective, write, read_raw, read_effective, *,
+                       timeout=10.0, clock=time.monotonic, pause=time.sleep, trace=None):
+    """Settle the effective configuration, then restore exact raw presence/bytes."""
+    original = font_scale(original)
+    effective = effective_font_scale(effective)
+    if original != 'null' and not math.isclose(float(original), effective, rel_tol=0, abs_tol=0.001):
+        raise RuntimeError('Original font setting/configuration differs; refusing mutation')
+    remaining = font_deadline(timeout, clock)
+    trace = {} if trace is None else trace
+    trace.update(originalRawValue=original, originalEffectiveValue=effective,
+                 budgetSeconds=timeout, configurationObservations=[], finalRawValues=[], verified=False)
+    # Reset configuration first. Android may normalize/write back this value.
+    write('put', str(effective), remaining())
+    while True:
+        actual = effective_font_scale(read_effective(remaining()))
+        trace['configurationObservations'].append(actual)
+        if math.isclose(actual, effective, rel_tol=0, abs_tol=0.001):
+            break
+        pause(min(0.05, remaining()))
+    # The effective scale now stays unchanged, so the final raw write cannot
+    # trigger the configuration-reset writeback that lost the absent key.
+    write('delete' if original == 'null' else 'put', None if original == 'null' else original, remaining())
+    actual_raw = font_scale(read_raw(remaining()))
+    trace['finalRawValues'].append(actual_raw)
+    if actual_raw != original:
+        raise RuntimeError('System font scale differs from original state')
+    final_effective = effective_font_scale(read_effective(remaining()))
+    trace['finalEffectiveValue'] = final_effective
+    if not math.isclose(final_effective, effective, rel_tol=0, abs_tol=0.001):
+        raise RuntimeError('Effective system font scale differs from original state')
+    actual_raw = font_scale(read_raw(remaining()))
+    trace['finalRawValues'].append(actual_raw)
+    if actual_raw != original:
+        raise RuntimeError('System font scale changed after configuration readback')
+    trace['verified'] = True
+
+
 def validate_previous_process(actual, expected):
     # instrumentation 完成后 Android 可能已结束目标进程。空结果是已退出，
     # 不能把 pidof 的退出 1 当成故障，也不能停止不属于第一阶段的其他进程。
@@ -88,6 +164,49 @@ def inventory(path, require_empty=False):
                 raise RuntimeError("Backup contains unsupported special file")
             result[name] = entry
     return result
+
+
+def stage_private_restore(adb, read, backup, expected_sha256, report):
+    """先确认备份在目标应用身份下可读且完整，再允许清空私有目录。"""
+    if digest(backup) != expected_sha256:
+        raise RuntimeError("Original private backup changed; refusing restore")
+    remote = f"/data/local/tmp/fe2-private-backup-{uuid.uuid4().hex}.tar"
+    staging = {"remotePath": remote, "sha256": expected_sha256,
+               "ready": False, "privateRootClearAttempted": False}
+    report["restoreStaging"] = staging
+    # exec-in 曾发生截断仍返回成功；先上传完整 TAR，并用实际 run-as 身份校验。
+    adb("push", str(backup), remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    adb("shell", "chmod", "644", remote, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = read("shell", "run-as", APP, "sha256sum", remote).split()
+    if result != [expected_sha256, remote] or digest(backup) != expected_sha256:
+        raise RuntimeError("Staged private backup digest/path differs; refusing clear")
+    staging["ready"] = True
+    return remote
+
+
+def restore_private_data(adb, read, archive, backup, before, root_mode, output, report):
+    remote = stage_private_restore(adb, read, backup, report["backup"]["sha256"], report)
+    names = read("shell", "run-as", APP, "ls", "-A").splitlines()
+    if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in (".", "..") for name in names):
+        raise RuntimeError("Unsafe private root entry; keep backup for manual recovery")
+    if names:
+        report["restoreStaging"]["privateRootClearAttempted"] = True
+        adb("shell", "run-as", APP, "rm", "-rf", "--", *names, stdout=subprocess.PIPE)
+    adb("shell", "run-as", APP, "tar", "-xpf", remote,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    adb("shell", "run-as", APP, "chmod", root_mode, ".", stdout=subprocess.PIPE)
+    restored = output / "private-data-restored.tar"
+    archive(restored)
+    after = inventory(restored, require_empty=True)
+    if before != after:
+        report["restoreChangedPaths"] = sorted(
+            name for name in before.keys() | after.keys() if before.get(name) != after.get(name))
+        raise RuntimeError("Private data does not match backup")
+    report["restoreVerification"] = {"entries": len(after), "allFileContentsLinksAndModesMatch": True}
+    if read("shell", "run-as", APP, "stat", "-c", "%a", ".") != root_mode:
+        raise RuntimeError("Private root mode differs from backup")
+    adb("shell", "rm", remote, stdout=subprocess.PIPE)
+    report["restored"] = True
 
 
 def verify_native(text, method=METHOD):
@@ -423,7 +542,7 @@ def verify_evidence(evidence, scenario, motion=False, *, require_preview_bars=Fa
                 or login.get('path') != '/login' or login.get('home') or not login.get('locked')
                 or not login.get('passwordRequired') or login.get('accountCount') != 2
                 or login.get('theme') != 'dark' or login.get('glass') != 'enhanced'
-                or login.get('background') != '#1a211d' or login.get('foreground') != '#d6ddd8'
+                or login.get('background') != '#1a211d' or login.get('foreground') != '#ffffff'
                 or login.get('accent') != '#112233' or (motion and login.get('reduceMotion') != 'true')):
             raise RuntimeError('Missing actual new-process locked startup')
     if scenario in ('accounts', 'lifecycle', 'cold'):
@@ -459,7 +578,7 @@ def verify_evidence(evidence, scenario, motion=False, *, require_preview_bars=Fa
                     or record.get('theme') != prefs['theme'] or record.get('glass') != prefs['androidGlass']
                     or record.get('accent') != prefs['customAccentHex'] or record.get('surface') != surface
                     or record.get('background') != ('#1a211d' if dark else '#f6f8fa')
-                    or record.get('foreground') != ('#d6ddd8' if dark else '#1f2328')
+                    or record.get('foreground') != ('#ffffff' if dark else '#111111')
                     or record.get('primaryInk') != ('#ffffff' if dark else '#000000')
                     or record.get('liquidBase') != surface or record.get('count') != ('1' if dark else '0')
                     or bars.get('statusBarLight') is not (not dark) or bars.get('navigationBarLight') is not (not dark)
@@ -516,16 +635,30 @@ def main():
     old_notification = None
     old_night = None
     old_font_scale = None
+    old_font_effective = None
     backup = output / "private-data-before.tar"
     before = None
     root_mode = None
 
     def adb(*command, **kwargs):
         return subprocess.run([args.adb, "-s", args.serial, *command], check=True,
-                              timeout=240, **kwargs)
+                              timeout=kwargs.pop('timeout', 240), **kwargs)
 
     def read(*command):
         return adb(*command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode().strip()
+
+    def read_font_raw(remaining):
+        return adb('shell', 'settings', 'get', 'system', 'font_scale', timeout=remaining,
+                   stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode()
+
+    def read_font_effective(remaining):
+        return activity_font_scale(adb('shell', 'dumpsys', 'activity', 'processes', timeout=remaining,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode())
+
+    def write_font(action, value, remaining):
+        adb('shell', 'settings', action, 'system', 'font_scale',
+            *(() if value is None else (value,)), timeout=remaining,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def archive(path):
         with open(path, "xb") as stream:
@@ -540,8 +673,9 @@ def main():
             raise RuntimeError("AVD identity mismatch")
         selected = True
         if args.font_scale is not None:
-            old_font_scale = font_scale(read('shell', 'settings', 'get', 'system', 'font_scale'))
+            old_font_scale, old_font_effective = capture_font_scale(read_font_raw, read_font_effective)
             report['fontScaleBefore'] = old_font_scale
+            report['fontScaleBeforeEffective'] = old_font_effective
         if args.scenario in ('lifecycle', 'cold'):
             old_night = night_mode(read('shell', 'cmd', 'uimode', 'night'))
             report['nightModeBefore'] = old_night
@@ -580,10 +714,10 @@ def main():
                      "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner",
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         text = result.stdout.decode()
-        (output / "native.log").write_text(text)
+        (output / "native.log").write_text(text, encoding="utf-8")
         adb("pull", f"/sdcard/Android/data/{APP}/files/{tag}", str(output / "device-files"), stdout=subprocess.PIPE)
         verify_native(text)
-        evidence = json.loads((output / "device-files/report.json").read_text())
+        evidence = json.loads((output / "device-files/report.json").read_text(encoding="utf-8"))
         stages = verify_evidence(evidence, "accounts" if args.scenario == "cold" else args.scenario,
                                  args.motion_preferences, require_preview_bars=args.scenario == "previews",
                                  require_preview_ink=args.scenario == "previews",
@@ -617,10 +751,10 @@ def main():
                          'com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner',
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             text = result.stdout.decode()
-            (output / 'cold-native.log').write_text(text)
+            (output / 'cold-native.log').write_text(text, encoding="utf-8")
             adb('pull', f'/sdcard/Android/data/{APP}/files/{cold_tag}', str(output / 'cold-device-files'), stdout=subprocess.PIPE)
             verify_native(text, COLD_METHOD)
-            cold = json.loads((output / 'cold-device-files/report.json').read_text())
+            cold = json.loads((output / 'cold-device-files/report.json').read_text(encoding="utf-8"))
             report['coldStages'] = verify_evidence(cold, 'cold', args.motion_preferences)
             if (cold['records'][0]['previousProcessId'] != previous_pid
                     or {row['accountId'] for row in cold['records'] if row['stage'].startswith(('account-a-', 'account-b-'))} != set(ids)):
@@ -640,32 +774,7 @@ def main():
             try:
                 adb("shell", "am", "force-stop", APP, stdout=subprocess.PIPE)
                 if backup_valid and mutation_started:
-                    # 只移除专用应用私有根下的成员，拒绝不符合单一文件名的输出。
-                    names = read("shell", "run-as", APP, "ls", "-A").splitlines()
-                    if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in (".", "..") for name in names):
-                        raise RuntimeError("Unsafe private root entry; keep backup for manual recovery")
-                    if names:
-                        adb("shell", "run-as", APP, "rm", "-rf", "--", *names, stdout=subprocess.PIPE)
-                    # adb exec-in 的 stdin 在部分版本会提前结束，toybox tar 对截断
-                    # 归档仍可能退出 0；使用完整落盘归档并保持权限，最终逐文件校验。
-                    remote_backup = f"/data/local/tmp/fe2-private-backup-{uuid.uuid4().hex}.tar"
-                    adb("push", str(backup), remote_backup, stdout=subprocess.PIPE)
-                    adb("shell", "chmod", "644", remote_backup, stdout=subprocess.PIPE)
-                    adb("shell", "run-as", APP, "tar", "-xpf", remote_backup,
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    adb("shell", "run-as", APP, "chmod", root_mode, ".", stdout=subprocess.PIPE)
-                    restored = output / "private-data-restored.tar"
-                    archive(restored)
-                    after = inventory(restored, require_empty=True)
-                    if before != after:
-                        changed = sorted(name for name in before.keys() | after.keys() if before.get(name) != after.get(name))
-                        report["restoreChangedPaths"] = changed
-                        raise RuntimeError("Private data does not match backup")
-                    report["restoreVerification"] = {"entries": len(after), "allFileContentsLinksAndModesMatch": True}
-                    if read("shell", "run-as", APP, "stat", "-c", "%a", ".") != root_mode:
-                        raise RuntimeError("Private root mode differs from backup")
-                    adb("shell", "rm", remote_backup, stdout=subprocess.PIPE)
-                    report["restored"] = True
+                    restore_private_data(adb, read, archive, backup, before, root_mode, output, report)
             except Exception as error:
                 report["restoreError"] = str(error)
             # 私有目录恢复异常也必须尝试恢复系统模糊设置，两项清理互不依赖。
@@ -707,17 +816,16 @@ def main():
                     report['nightModeRestoreError'] = str(error)
             if old_font_scale is not None:
                 try:
-                    command = ('delete',) if old_font_scale == 'null' else ('put',)
-                    adb('shell', 'settings', *command, 'system', 'font_scale',
-                        *(() if old_font_scale == 'null' else (old_font_scale,)), stdout=subprocess.PIPE)
-                    if font_scale(read('shell', 'settings', 'get', 'system', 'font_scale')) != old_font_scale:
-                        raise RuntimeError('System font scale differs from original state')
+                    report['fontScaleRestoreTrace'] = {}
+                    restore_font_scale(old_font_scale, old_font_effective, write_font,
+                                       read_font_raw, read_font_effective,
+                                       trace=report['fontScaleRestoreTrace'])
                     report['fontScaleRestored'] = True
                 except Exception as error:
                     report['fontScaleRestoreError'] = str(error)
         report["passed"] = verification_passed(report, old_notification is not None)
         report["finishedAt"] = time.time()
-        (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+        (output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         cases = [(METHOD, bool(report.get('stages')) if args.scenario == 'cold' else report['passed'])]
         if args.scenario == 'cold':
             cases.append((COLD_METHOD, report['passed']))

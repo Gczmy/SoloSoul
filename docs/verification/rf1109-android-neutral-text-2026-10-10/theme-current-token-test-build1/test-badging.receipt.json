@@ -1,0 +1,11 @@
+{
+  "exitCode": 0,
+  "elapsedSeconds": 1.0494033000140917,
+  "sourceUnchanged": true,
+  "command": [
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\aapt2.exe",
+    "dump",
+    "badging",
+    "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk"
+  ]
+}

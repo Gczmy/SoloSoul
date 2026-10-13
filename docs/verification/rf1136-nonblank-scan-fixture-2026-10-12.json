@@ -1,0 +1,750 @@
+{
+  "task": "RF-1136",
+  "status": "completed",
+  "asset": {
+    "task": "RF-1136",
+    "sourcePng": {
+      "path": "D:\\SoloSoul\\tauri\\crates\\solosoul-core\\tests\\fixtures\\ocr_test.png",
+      "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+      "width": 500,
+      "height": 200,
+      "rgbSha256": "d86850ab151b492a7efbd2d448cace0ce13df72d02aa63aa1b861b06f0a3cb27"
+    },
+    "legacyBlankPdfUnchangedSha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1",
+    "output": {
+      "path": "D:\\SoloSoul\\tauri\\crates\\solosoul-core\\examples\\perf_baseline\\fixtures\\scanned.pdf",
+      "sha256": "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525",
+      "bytes": 5082
+    },
+    "exactDeterministicRegeneration": true,
+    "pages": 1,
+    "imageXObjects": 1,
+    "textLayerEmpty": true,
+    "decodedRasterEqualsSourceRgb": true,
+    "nativeUiOrPerformanceAccepted": false
+  },
+  "currentSourceChecks": {
+    "rows": [
+      {
+        "label": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 2.8421615000115708
+      },
+      {
+        "label": "media-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-core",
+          "--example",
+          "perf_baseline",
+          "media::tests",
+          "--",
+          "--test-threads=1"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 178.23112529999344
+      },
+      {
+        "label": "media-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-core",
+          "--example",
+          "perf_baseline",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 14.476815599948168
+      },
+      {
+        "label": "release-generator",
+        "command": [
+          "cargo",
+          "build",
+          "--locked",
+          "--offline",
+          "-p",
+          "solosoul-core",
+          "--release",
+          "--example",
+          "perf_baseline"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 79.69001489999937
+      }
+    ],
+    "sourcesUnchanged": true,
+    "defaultDependenciesAndLockfileUnchanged": true,
+    "nativeUiOrPerformanceAccepted": false
+  },
+  "sharedConsumerChecks": {
+    "rows": [
+      {
+        "label": "windows-consumer-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--offline",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 331.64562760002445
+      },
+      {
+        "label": "windows-consumer-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "solo_soul",
+          "--lib",
+          "--features",
+          "native-perf",
+          "native_perf::media_fixture::",
+          "--",
+          "--test-threads=1"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 650.6454194000107
+      }
+    ],
+    "sourcesUnchanged": true,
+    "nativeWindowsGuiOrAndroidRuntimeNotExecutedByTheseChecks": true
+  },
+  "newDatasetPreparation": {
+    "task": "RF-1136",
+    "passed": true,
+    "rows": [
+      {
+        "label": "new-100-generate",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--media-fixture-output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\host-vault100",
+          "--objects",
+          "100"
+        ],
+        "elapsedSeconds": 15.141530800028704
+      },
+      {
+        "label": "new-100-host-verify",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\host-vault100"
+        ],
+        "elapsedSeconds": 1.3945054999785498
+      },
+      {
+        "label": "new-100-android-copy",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--copy-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\host-vault100",
+          "--media-fixture-output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\android-vault100"
+        ],
+        "elapsedSeconds": 7.023916199977975
+      },
+      {
+        "label": "new-100-android-verify",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\android-vault100"
+        ],
+        "elapsedSeconds": 1.5513675000402145
+      },
+      {
+        "label": "old-host-100-asset-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-media-fixtures-d-20261012\\vault100"
+        ],
+        "elapsedSeconds": 0.08021909999661148
+      },
+      {
+        "label": "old-android-100-asset-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100"
+        ],
+        "elapsedSeconds": 0.08356270001968369
+      },
+      {
+        "label": "new-5000-generate",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--media-fixture-output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\host-vault5000",
+          "--objects",
+          "5000"
+        ],
+        "elapsedSeconds": 264.20436259999406
+      },
+      {
+        "label": "new-5000-host-verify",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\host-vault5000"
+        ],
+        "elapsedSeconds": 1.6784579000086524
+      },
+      {
+        "label": "new-5000-android-copy",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--copy-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\host-vault5000",
+          "--media-fixture-output",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\android-vault5000"
+        ],
+        "elapsedSeconds": 7.367478600004688
+      },
+      {
+        "label": "new-5000-android-verify",
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\android-vault5000"
+        ],
+        "elapsedSeconds": 2.1333054999704473
+      },
+      {
+        "label": "old-host-5000-asset-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-media-fixtures-d-20261012\\vault5000"
+        ],
+        "elapsedSeconds": 0.07812069996725768
+      },
+      {
+        "label": "old-android-5000-asset-rejection",
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-nonblank-scanned-fixture-20261012\\current-nonblank-media-generator.exe",
+          "--verify-android-media-fixture",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000"
+        ],
+        "elapsedSeconds": 0.09342589997686446
+      }
+    ],
+    "freshWhole1005000ProductionKdfSet": true,
+    "fixtures": {
+      "100": {
+        "hostFiles": {
+          ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "accounts.bak": "e9000203e5a725f56e0033a26e4cc8ec84c1869e7bb2050441155fbf8902c38e",
+          "accounts.json": "449f320a38dacd7fbd70bd0b2c272c86d913c1e6619a88678e4ec334321dfc56",
+          "rf312-media-fixture.json": "5196a447c3886d884545974a2de2aeedf08414950018235dd33649aae95154e1",
+          "ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+          "acc_rf312_100/config.json": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+          "acc_rf312_100/vault.db": "b5acf226c2554dea515cb974a9d4149b556aebe29d6c6ba555a9b673566bc20d",
+          "acc_rf312_100/vault.db.pre_enc.bak": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489",
+          "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+          "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+          "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+          "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb"
+        },
+        "androidFiles": {
+          ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "accounts.bak": "f570e1303b03cfe72bb3bb61dfabf06a9cf9d9908db7e9b76e9b0586d65ce816",
+          "accounts.json": "35a90c466ae87f871242b9f39274305480170b3d0910944a50bad1b04efe231b",
+          "rf312-media-fixture.json": "c39aa05d1c7bd5cdb9396e34b4b82e6870e3d7bbe845f64a93559ad2d7ca4738",
+          "ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+          "acc_rf312_100/config.json": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+          "acc_rf312_100/vault.db": "a66122e8736a27b412681141c6364226b7d4ee81c3c31cfb1a5a4c35b93e7930",
+          "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+          "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+          "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+          "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb"
+        },
+        "allObjectsVerified": 100,
+        "allFourAssetBytesVerified": true,
+        "newScanAsset": {
+          "bytes": 5082,
+          "fileName": "scanned.pdf",
+          "mimeType": "application/pdf",
+          "sha256": "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525"
+        },
+        "hostHistoricalSourceUnchanged": true,
+        "androidHistoricalSourceUnchanged": true
+      },
+      "5000": {
+        "hostFiles": {
+          ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "accounts.bak": "2b7704f83cc6438ca1e03cfa27c06532725b6a7cc09455100aebeba17ba931e0",
+          "accounts.json": "3881088e71da7cf900e63f26e182e0617fa356e7eb34086119a1f694d8cadb37",
+          "rf312-media-fixture.json": "d0d7e50a83fdfaae7cac4a20785b1125f5e6f44ec1b9630d7519287291dcd8a8",
+          "ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+          "acc_rf312_5000/config.json": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+          "acc_rf312_5000/vault.db": "47cedda2030bd7739c7c5dce59e1aa0b9cb8eb7b7e7e7840177a4dbad1fa0fb9",
+          "acc_rf312_5000/vault.db.pre_enc.bak": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489",
+          "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+          "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+          "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+          "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e"
+        },
+        "androidFiles": {
+          ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "accounts.bak": "3bd88073252cadd68ec662431379bcf28201d3349c37ab1747b462b0a29268e9",
+          "accounts.json": "3ad3febd3c6e67e788ef4bb26f3ad1076f9061915d54c680aa7e58edec7d91d4",
+          "rf312-media-fixture.json": "29d325c994c06bb35102a0a20893c426aa0123c88f13f547caaf3debd900d546",
+          "ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+          "acc_rf312_5000/config.json": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+          "acc_rf312_5000/vault.db": "fa2503d0bef5c70bed15ae1fc849866edc0a82d58d868d40d52a9e15318b0842",
+          "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+          "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+          "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+          "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e"
+        },
+        "allObjectsVerified": 5000,
+        "allFourAssetBytesVerified": true,
+        "newScanAsset": {
+          "bytes": 5082,
+          "fileName": "scanned.pdf",
+          "mimeType": "application/pdf",
+          "sha256": "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525"
+        },
+        "hostHistoricalSourceUnchanged": true,
+        "androidHistoricalSourceUnchanged": true
+      }
+    },
+    "historicalSourcesUnchangedAndOldAssetRejected": true,
+    "nativeUiOrPerformanceAccepted": false
+  },
+  "nativeFunctionalRuns": {
+    "100": {
+      "receipt": {
+        "exitCode": 0,
+        "elapsedSeconds": 96.0905172000057,
+        "passed": true,
+        "restored": true,
+        "originalApksRestored": true,
+        "ownedProbeRemoved": true,
+        "blurRestored": true,
+        "fullRF312Accepted": false,
+        "samplesRequested": 1,
+        "sourceInputsUnchanged": true
+      },
+      "nativePdf": {
+        "activity": "com.solosoul.app.PdfPreviewActivity",
+        "sameUid": true,
+        "focused": true,
+        "attached": true,
+        "titleMatches": true,
+        "pageInfo": "1 / 1",
+        "viewWidth": 720,
+        "viewHeight": 1232,
+        "shown": true,
+        "bitmapWidth": 720,
+        "bitmapHeight": 931,
+        "inkPixels": 8930,
+        "lightPixels": 149482,
+        "nonTransparentPixels": 162180,
+        "plaintextSha256": "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525",
+        "knownPublicPlaintextVerified": true,
+        "windowPixels": {
+          "screenshot": "diagnostic-native-scanned.pdf.png",
+          "actualWindowPageDarkPixels": 10306,
+          "actualWindowPageWhitePixels": 874831,
+          "left": 0,
+          "top": 160,
+          "right": 720,
+          "bottom": 1392
+        },
+        "closedToOriginalAttachmentList": true
+      },
+      "phases": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "nativeStartedAtNs": 17375270357813,
+          "nativeFinishedAtNs": 17380487717213,
+          "durationMs": 5217.3594,
+          "transportAttempts": 29,
+          "ipcStart": 0,
+          "ipcEnd": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "nativeStartedAtNs": 17380491927813,
+          "nativeFinishedAtNs": 17385265754413,
+          "durationMs": 4773.8266,
+          "transportAttempts": 49,
+          "ipcStart": 29,
+          "ipcEnd": 78
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "nativeStartedAtNs": 17385294012413,
+          "nativeFinishedAtNs": 17395737261513,
+          "durationMs": 10443.2491,
+          "transportAttempts": 14,
+          "ipcStart": 79,
+          "ipcEnd": 93
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "nativeStartedAtNs": 17395846163913,
+          "nativeFinishedAtNs": 17398345171813,
+          "durationMs": 2499.0079,
+          "transportAttempts": 180,
+          "ipcStart": 129,
+          "ipcEnd": 309
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "nativeStartedAtNs": 17398358213713,
+          "nativeFinishedAtNs": 17401117594313,
+          "durationMs": 2759.3806,
+          "transportAttempts": 3,
+          "ipcStart": 309,
+          "ipcEnd": 312
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "nativeStartedAtNs": 17401134439613,
+          "nativeFinishedAtNs": 17403574937913,
+          "durationMs": 2440.4983,
+          "transportAttempts": 3,
+          "ipcStart": 312,
+          "ipcEnd": 315
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "nativeStartedAtNs": 17403591987113,
+          "nativeFinishedAtNs": 17408025369113,
+          "durationMs": 4433.382,
+          "transportAttempts": 5,
+          "ipcStart": 315,
+          "ipcEnd": 320
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "nativeStartedAtNs": 17408047102613,
+          "nativeFinishedAtNs": 17411795584113,
+          "durationMs": 3748.4815,
+          "transportAttempts": 4,
+          "ipcStart": 320,
+          "ipcEnd": 324
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "nativeStartedAtNs": 17412533754213,
+          "nativeFinishedAtNs": 17414300258913,
+          "durationMs": 1766.5047,
+          "transportAttempts": 216,
+          "ipcStart": 332,
+          "ipcEnd": 548
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "nativeStartedAtNs": 17414339481413,
+          "nativeFinishedAtNs": 17418457971113,
+          "durationMs": 4118.4897,
+          "transportAttempts": 30,
+          "ipcStart": 548,
+          "ipcEnd": 578
+        }
+      ],
+      "scope": "single functional diagnostic; no OCR/repeated full performance accepted",
+      "completeNativeReportRawMember": "rf1136-android-nonblank-media-20261012/first-100-diagnostic/device-files/report.json",
+      "completeNativeReportSha256": "f59dd74fd06e5bd1db080c2eb063af5428f1aa0012cf7ac7158fdbd0adedd545"
+    },
+    "5000": {
+      "receipt": {
+        "exitCode": 0,
+        "elapsedSeconds": 124.79506609996315,
+        "passed": true,
+        "restored": true,
+        "originalApksRestored": true,
+        "ownedProbeRemoved": true,
+        "blurRestored": true,
+        "fullRF312Accepted": false,
+        "samplesRequested": 1,
+        "sourceInputsUnchanged": true
+      },
+      "nativePdf": {
+        "activity": "com.solosoul.app.PdfPreviewActivity",
+        "sameUid": true,
+        "focused": true,
+        "attached": true,
+        "titleMatches": true,
+        "pageInfo": "1 / 1",
+        "viewWidth": 720,
+        "viewHeight": 1232,
+        "shown": true,
+        "bitmapWidth": 720,
+        "bitmapHeight": 931,
+        "inkPixels": 8930,
+        "lightPixels": 149482,
+        "nonTransparentPixels": 162180,
+        "plaintextSha256": "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525",
+        "knownPublicPlaintextVerified": true,
+        "windowPixels": {
+          "screenshot": "diagnostic-native-scanned.pdf.png",
+          "actualWindowPageDarkPixels": 10306,
+          "actualWindowPageWhitePixels": 874831,
+          "left": 0,
+          "top": 160,
+          "right": 720,
+          "bottom": 1392
+        },
+        "closedToOriginalAttachmentList": true
+      },
+      "phases": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "nativeStartedAtNs": 17550578658913,
+          "nativeFinishedAtNs": 17556509517213,
+          "durationMs": 5930.8583,
+          "transportAttempts": 29,
+          "ipcStart": 0,
+          "ipcEnd": 29
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "nativeStartedAtNs": 17556514654313,
+          "nativeFinishedAtNs": 17561347385213,
+          "durationMs": 4832.7309,
+          "transportAttempts": 52,
+          "ipcStart": 29,
+          "ipcEnd": 81
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "nativeStartedAtNs": 17561393089913,
+          "nativeFinishedAtNs": 17572196813713,
+          "durationMs": 10803.7238,
+          "transportAttempts": 10,
+          "ipcStart": 81,
+          "ipcEnd": 91
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "nativeStartedAtNs": 17572429817113,
+          "nativeFinishedAtNs": 17574925657213,
+          "durationMs": 2495.8401,
+          "transportAttempts": 116,
+          "ipcStart": 192,
+          "ipcEnd": 308
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "nativeStartedAtNs": 17574946101813,
+          "nativeFinishedAtNs": 17577839082613,
+          "durationMs": 2892.9808,
+          "transportAttempts": 3,
+          "ipcStart": 308,
+          "ipcEnd": 311
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "nativeStartedAtNs": 17577869650913,
+          "nativeFinishedAtNs": 17580326922013,
+          "durationMs": 2457.2711,
+          "transportAttempts": 3,
+          "ipcStart": 311,
+          "ipcEnd": 314
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "nativeStartedAtNs": 17580366751413,
+          "nativeFinishedAtNs": 17584709416713,
+          "durationMs": 4342.6653,
+          "transportAttempts": 5,
+          "ipcStart": 314,
+          "ipcEnd": 319
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "nativeStartedAtNs": 17584731947213,
+          "nativeFinishedAtNs": 17588212074513,
+          "durationMs": 3480.1273,
+          "transportAttempts": 4,
+          "ipcStart": 319,
+          "ipcEnd": 323
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "nativeStartedAtNs": 17588931615713,
+          "nativeFinishedAtNs": 17590480530913,
+          "durationMs": 1548.9152,
+          "transportAttempts": 216,
+          "ipcStart": 331,
+          "ipcEnd": 547
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "nativeStartedAtNs": 17590504335413,
+          "nativeFinishedAtNs": 17594227707813,
+          "durationMs": 3723.3724,
+          "transportAttempts": 46,
+          "ipcStart": 547,
+          "ipcEnd": 593
+        }
+      ],
+      "scope": "single functional diagnostic; no OCR/repeated full performance accepted",
+      "completeNativeReportRawMember": "rf1136-android-nonblank-media-20261012/first-5000-diagnostic/device-files/report.json",
+      "completeNativeReportSha256": "b1646398834bb4a02112da6b4d163eaa7b4ecc8b9c8550a904e01ca1c022e55f"
+    }
+  },
+  "restorationAudit": [
+    {
+      "objectCount": 100,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "objectCount": 5000,
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterTarSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "rawIndex": "rf1136-nonblank-scan-fixture-2026-10-12/index.json",
+  "legacyBlankAssetAndHistoricalDatasetsUnchanged": true,
+  "productionDefaultDependenciesAndAndroidMainUnchanged": true,
+  "fullRF312Accepted": false,
+  "pushed": false,
+  "independentRenderReview": {
+    "task": "RF-1136",
+    "popplerReference": {
+      "sha256": "a7935df94db6bb60c2a45e4e90bd1c4730d0ea6e5542f8be08fb59777c594dc6",
+      "visiblePublicCorpusReviewed": true
+    },
+    "nativeWindowReviews": {
+      "100": {
+        "screenshotSha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b",
+        "visibleHelloSoloSoulDigitsReviewed": true
+      },
+      "5000": {
+        "screenshotSha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b",
+        "visibleHelloSoloSoulDigitsReviewed": true
+      }
+    },
+    "inspectionOnlyCrop5000": {
+      "originalRegion": [
+        30,
+        450,
+        690,
+        1100
+      ],
+      "originalScreenshotUnmodified": true
+    },
+    "textVisibleScreenshotAccepted": false,
+    "firstOcrAccepted": false,
+    "fullRF312Accepted": false
+  },
+  "cleanup": {
+    "task": "RF-1136",
+    "verifiedPrivateArchiveFilesRemoved": [
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-100-diagnostic\\private-data-before.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+        "bytes": 276992
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-100-diagnostic\\private-data-restored.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+        "bytes": 276992
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-5000-diagnostic\\private-data-before.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+        "bytes": 276992
+      },
+      {
+        "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-5000-diagnostic\\private-data-restored.tar",
+        "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+        "bytes": 276992
+      }
+    ],
+    "temporaryDeterminismPdfAndInspectionCropRemoved": true,
+    "publicDatasetsAndGeneratorRetainedForNextScope": true
+  },
+  "scopeLimitations": [
+    "100/5000 each one functional diagnostic, not repeated full performance",
+    "first OCR and complete renderer memory remain pending",
+    "text DOM content passed but visible text screenshot remains pending",
+    "Windows consumer checks do not replace Windows native GUI"
+  ],
+  "compactSummaryKeepsCompleteReportsInVerifiedRawArchive": true
+}

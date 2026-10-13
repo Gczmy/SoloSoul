@@ -1,0 +1,9 @@
+{
+  "scope": "independent-staged-reader-line-ending-expectation-error",
+  "actualExitCode": 1,
+  "sourceArchiveMember": "tools/verify-rf1123-git.py",
+  "sourceSha256": "20e53a1ff51124b80eb1b1e15534bffadc0e3602149fea5e4a310cb734aa2d52",
+  "reason": "Binary attribute file retained CRLF; reader incorrectly required LF bytes",
+  "archiveBytesChanged": false,
+  "productFailure": false
+}

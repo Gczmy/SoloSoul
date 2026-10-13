@@ -1,0 +1,7 @@
+{
+  "originalDriverSha256": "8e36089ccbbc3139293afe581a92004a054072864d5c3ebf905a09d057347bba",
+  "derivedDriverSha256": "9da835550b3265973b9f8b3d6dd8e082671c127a25b1fe05add7bb09ca6b4b3b",
+  "exactChange": "casesFor(options.mode).slice(-7)",
+  "fullGroupAcceptance": false,
+  "productionSourcesChanged": false
+}

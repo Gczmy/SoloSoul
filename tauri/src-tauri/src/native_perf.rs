@@ -9,6 +9,7 @@ mod maintenance_contract;
 pub mod maintenance_trace;
 mod media_fixture;
 mod permission_contract;
+pub mod preference_trace;
 #[cfg(test)]
 mod preflight_tests;
 mod runtime;
@@ -820,8 +821,8 @@ fn consume_mode(
         "port": port,
         "pid": std::process::id(),
     });
-    // create_new 是一次运行的原子竞争点；失败后不退回 ready、不重用样本。
-    write_new_json(&root.join(CONSUMED_FILE), &consumed)?;
+    // 完整负载同步后独占发布，避免消费者读取半成品；失败后不重用已消费样本。
+    publish_consumed_json(&root.join(CONSUMED_FILE), &consumed)?;
     fs::remove_file(root.join(READY_FILE))
         .map_err(|e| format!("cannot consume native-perf ready marker: {e}"))?;
     Ok(RuntimeConfig {
@@ -918,6 +919,18 @@ fn write_new_json(path: &Path, value: &Value) -> Result<(), String> {
     serde_json::to_writer_pretty(&mut file, value).map_err(|e| e.to_string())?;
     file.write_all(b"\n").map_err(|e| e.to_string())?;
     file.sync_all().map_err(|e| e.to_string())
+}
+
+fn publish_consumed_json<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), String> {
+    let parent = path.parent().ok_or("consumed marker requires a parent")?;
+    let mut staged = tempfile::NamedTempFile::new_in(parent).map_err(|e| e.to_string())?;
+    serde_json::to_writer_pretty(&mut staged, value).map_err(|e| e.to_string())?;
+    staged.write_all(b"\n").map_err(|e| e.to_string())?;
+    staged.as_file().sync_all().map_err(|e| e.to_string())?;
+    staged
+        .persist_noclobber(path)
+        .map_err(|e| format!("cannot exclusively publish native-perf marker: {e}"))?;
+    Ok(())
 }
 
 fn replace_owned_json(path: &Path, value: &Value) -> Result<(), String> {

@@ -1,0 +1,246 @@
+{
+  "deletedExactFiles": 47,
+  "recursive": false,
+  "allAncestorsChecked": true,
+  "archiveVerified": true,
+  "emulatorStopped": false,
+  "emulatorRetainedForNextOwnedRestorationTask": true,
+  "files": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\baseline-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "879b6a2bc00859ed8f8a75d332c371845111073ba5135956cb010731a61d0ed8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\baseline-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\baseline-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\baseline-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\cold-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\cold-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\cold-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-20261012\\cold-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\overlays-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\overlays-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\overlays-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\overlays-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\keyboard-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\keyboard-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\keyboard-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\keyboard-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\accounts-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\accounts-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\accounts-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\accounts-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\insets-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\insets-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\insets-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\insets-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\lifecycle-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\lifecycle-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\lifecycle-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\lifecycle-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\cold-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\cold-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\cold-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\cold-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\previews-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\previews-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\previews-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\previews-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\rendering-supported\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\rendering-supported\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\rendering-fallback\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\rendering-fallback\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-supported-font-1.3\\private-data-before.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-supported-font-1.3\\private-data-restored.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-home-console-full-20261012\\baseline-supported-font-1.3\\private-data-after-compensation.tar",
+      "bytes": 276992,
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "at": "2026-10-12T00:02:29.5918127+00:00"
+}

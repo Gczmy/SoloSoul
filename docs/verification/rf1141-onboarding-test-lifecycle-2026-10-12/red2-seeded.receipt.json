@@ -1,0 +1,17 @@
+{
+  "exitCode": 1,
+  "command": [
+    "node.exe",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "--config",
+    "D:\\SoloSoul\\build\\rf1141-onboarding-test-lifecycle-20261012\\red2-seeded.config.ts",
+    "--maxWorkers",
+    "2",
+    "-t",
+    "does not allow leaving the vault step while SAF initialization is pending"
+  ],
+  "seconds": 44.9619499000255,
+  "scope": "test-only seeded previous SAF URI; not a product change",
+  "expectedExitCode": 1
+}

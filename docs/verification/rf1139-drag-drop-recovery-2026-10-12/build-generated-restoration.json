@@ -1,0 +1,30 @@
+[
+  {
+    "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+    "beforeSha256": "a86d85077a00ecb0f33f9ab9d9c73483e7aaf8f9f434ee20f7d7ce625c7f786a",
+    "afterBuildSha256": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+    "restoredExactOriginalBytes": true,
+    "changedByBuild": true
+  },
+  {
+    "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+    "beforeSha256": "a8043888dccfe4bb4a892d2a7098ccc3041738d5c972ae19b0488cdf6b7a432c",
+    "afterBuildSha256": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "restoredExactOriginalBytes": true,
+    "changedByBuild": true
+  },
+  {
+    "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+    "beforeSha256": "46568409f5c7b1c27e1424f7f8d0f7a5421cb3d6dd2e2dc7f2afcf63ba062a90",
+    "afterBuildSha256": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "restoredExactOriginalBytes": true,
+    "changedByBuild": true
+  },
+  {
+    "path": "tauri/src-tauri/resources/docs/guides/search-index.json",
+    "beforeSha256": "d8b6c658d214e326e3b73ebe3729a8b93b5d00244f78464b5da6b7a50cd0110e",
+    "afterBuildSha256": "a7ae55e10012abcb6a23a0ea9775bbc968346f7e9527e132fb6737ec380f2ae3",
+    "restoredExactOriginalBytes": true,
+    "changedByBuild": true
+  }
+]

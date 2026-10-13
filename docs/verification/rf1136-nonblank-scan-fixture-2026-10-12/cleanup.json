@@ -1,0 +1,27 @@
+{
+  "task": "RF-1136",
+  "verifiedPrivateArchiveFilesRemoved": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-100-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-100-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-5000-diagnostic\\private-data-before.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1136-android-nonblank-media-20261012\\first-5000-diagnostic\\private-data-restored.tar",
+      "sha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "bytes": 276992
+    }
+  ],
+  "temporaryDeterminismPdfAndInspectionCropRemoved": true,
+  "publicDatasetsAndGeneratorRetainedForNextScope": true
+}

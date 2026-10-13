@@ -1,0 +1,9 @@
+{
+  "observedExitCode": 1,
+  "error": "Cleanup root not reached",
+  "stage": "all-target prevalidation, before removal loop",
+  "removedFiles": 0,
+  "all16PrivateTarsStillPresentVerified": true,
+  "cause": "PowerShell single pipeline result was a scalar string; indexing selected its first character",
+  "correction": "Force the root selection to remain a one-element array; preserve all other path/hash/ancestor guards"
+}

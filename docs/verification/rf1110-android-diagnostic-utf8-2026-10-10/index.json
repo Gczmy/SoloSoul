@@ -1,0 +1,73 @@
+{
+  "members": [
+    {
+      "path": "baseline-supported/device-files/failure.png",
+      "sha256": "edec540dc52f4bc2acaaa04925b5b85a2bfbfe6c9cf2a5f31b24ac836980e376",
+      "bytes": 112730
+    },
+    {
+      "path": "baseline-supported/device-files/local-light.png",
+      "sha256": "4ab39291417e6c0dfafbd3956720ea4016a1a59970f32a12f6337b568d2664cc",
+      "bytes": 98864
+    },
+    {
+      "path": "baseline-supported/device-files/report.json",
+      "sha256": "ee485daf95cc2df2d6e47f0a37be70e06cf323e2e1b7a91f4deae8f868c1ea9d",
+      "bytes": 4264
+    },
+    {
+      "path": "baseline-supported/junit.xml",
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5",
+      "bytes": 332
+    },
+    {
+      "path": "baseline-supported/native.log",
+      "sha256": "51b6db4ef7953ee2876d046cd24fe8b2598526134898b50dc5f3599a9771f392",
+      "bytes": 5747
+    },
+    {
+      "path": "baseline-supported/report.json",
+      "sha256": "b2291bf7a362170c564ffdb48e8087c88c0812a43ac1b6ae2f155ae15d154f90",
+      "bytes": 1507
+    },
+    {
+      "path": "input-proof.json",
+      "sha256": "1738b5dd85448c049d736557cebf9081a7885b74fea52e497236427451927101",
+      "bytes": 236271
+    },
+    {
+      "path": "live.json",
+      "sha256": "47eb15cd8f720cd6b01e0fa904fb25f08152d5f7d438add4cf190b98bd1f246a",
+      "bytes": 776
+    },
+    {
+      "path": "stderr.log",
+      "sha256": "a2162a2b424120c56197767cad04f246ba65857c5752ef008ec4d3059cde68c0",
+      "bytes": 338
+    },
+    {
+      "path": "stdout.log",
+      "sha256": "b2291bf7a362170c564ffdb48e8087c88c0812a43ac1b6ae2f155ae15d154f90",
+      "bytes": 1507
+    },
+    {
+      "path": "verification.json",
+      "sha256": "69631f63bb603a555a389e2afc987a56b5259df6f874f1710cb19ea739f3ca69",
+      "bytes": 802
+    },
+    {
+      "path": "drivers/verify-rf1110-utf8.py",
+      "sha256": "d5c1eb508efb4a77abea2d5eab8a26bf5d3e54a9c22a67452a9c488e8445d998",
+      "bytes": 5512
+    },
+    {
+      "path": "drivers/verify-session-20261010-2222.json",
+      "sha256": "ed19dd6dc01d8ff6b55ae4b99cae04f413295ab9c0830e9fc5b01c32b393b0a3",
+      "bytes": 351
+    }
+  ],
+  "count": 13,
+  "readBackVerified": true,
+  "privateBackupTarFilesIncluded": false,
+  "apkFilesIncluded": false
+}

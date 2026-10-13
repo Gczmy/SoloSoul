@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tauri::Emitter;
 use tauri::Manager;
 
@@ -260,6 +261,7 @@ fn setup_init_resource_dir(app: &mut tauri::App) {
         }
     }
 }
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {
     let app_handle = app.clone();
     tauri::async_runtime::spawn(async move {

@@ -37,6 +37,7 @@ class AndroidHomeInstrumentedTest {
     private lateinit var evidence: File
     private var directoryAttempts = 0
     private val unlockAttempts = JSONArray()
+    private val previewReminderRenewals = JSONArray()
     private var notificationPrompts = 0
     private var overlayChecks = false
     private var keyboardChecks = false
@@ -57,6 +58,7 @@ class AndroidHomeInstrumentedTest {
                 .put("webViewPackage", provider?.packageName).put("webViewVersion", provider?.versionName)
                 .put("webViewVersionCode", provider?.longVersionCode))
             .put("directoryAttempts", directoryAttempts).put("unlockAttempts", unlockAttempts)
+            .put("previewReminderRenewals", previewReminderRenewals)
             .put("notificationPrompts", notificationPrompts).put("motionPreferenceChecks", motionChecks)
             .put("requestedFontScale", requestedFontScale ?: JSONObject.NULL)
             .put("fontMenuBeforeDetail", requestedFontScale != null)
@@ -257,7 +259,8 @@ class AndroidHomeInstrumentedTest {
                 navigationChannels.size == 4 && navigationChannels[3].trim().toDouble() >= 0.85))
         assertEquals(if (dark) "#1f1c18" else "#fafaf6", result.getString("background"))
         assertEquals(if (dark) "#2a2620" else "#fdfcf9", result.getString("surface"))
-        assertEquals(if (dark) "#ddd8c8" else "#1f1c18", result.getString("foreground"))
+        assertEquals(if (dark) "#ffffff" else "#111111", result.getString("foreground"))
+        assertEquals(if (dark) "rgb(255, 255, 255)" else "rgb(17, 17, 17)", result.getString("copyColor"))
         if (enhanced) {
             assertTrue("实际首页画布必须可见", result.getBoolean("canvasVisible"))
             assertTrue(result.getInt("canvasWidth") > 0 && result.getInt("canvasHeight") > 0)
@@ -305,7 +308,7 @@ class AndroidHomeInstrumentedTest {
         val top = (location[1] + copy.getDouble("y") * scale).toInt().coerceIn(0, bitmap.height - 1)
         val right = (location[0] + copy.getDouble("right") * scale).toInt().coerceIn(left + 1, bitmap.width)
         val bottom = (location[1] + copy.getDouble("bottom") * scale).toInt().coerceIn(top + 1, bitmap.height)
-        val target = if (dark) intArrayOf(221, 216, 200) else intArrayOf(31, 28, 24)
+        val target = if (dark) intArrayOf(255, 255, 255) else intArrayOf(17, 17, 17)
         var inkPixels = 0
         for (y in top until bottom) for (x in left until right) {
             val pixel = bitmap.getPixel(x, y)
@@ -326,7 +329,8 @@ class AndroidHomeInstrumentedTest {
     /** 放大后内容可以滚动，使用实际触屏滑动把目标带入阅读区。 */
     private fun scrollTypographyIntoView(scenario: ActivityScenario<MainActivity>,
                                          targetSelector: String = ".android-overview",
-                                         viewportSelector: String = "[data-shell-content]") {
+                                         viewportSelector: String = "[data-shell-content]",
+                                         avoidSelector: String = "") {
         val geometry = js(scenario, """(() => {
           const card=document.querySelector(${JSONObject.quote(targetSelector)}),main=document.querySelector(${JSONObject.quote(viewportSelector)});
           // 概览在大字号下可能高于视口；只将本次测量的标题与数量带入阅读区。
@@ -335,9 +339,11 @@ class AndroidHomeInstrumentedTest {
             [...document.querySelectorAll('.android-overview-copy > p:first-child,.android-overview-copy strong')].map(e=>{
               const range=document.createRange();range.selectNodeContents(e);return range.getBoundingClientRect();}):[];
           const r=textRects.length===2?{top:Math.min(...textRects.map(r=>r.top)),bottom:Math.max(...textRects.map(r=>r.bottom))}:card?.getBoundingClientRect(),
-            m=main?.getBoundingClientRect();
+            m=main?.getBoundingClientRect(),avoidSelector=${JSONObject.quote(avoidSelector)},
+            avoid=avoidSelector?document.querySelector(avoidSelector)?.getBoundingClientRect():null;
+          const bottom=avoid&&r&&r.right>avoid.x&&r.left<avoid.right?Math.min(m.bottom,avoid.top):m?.bottom;
           return JSON.stringify({found:!!r&&!!m,cardTop:r?.top,cardBottom:r?.bottom,
-            mainTop:m?.top,mainBottom:m?.bottom,width:innerWidth});
+            mainTop:m?.top,mainBottom:bottom,width:innerWidth});
         })()""")
         assertTrue("必须有生产滚动区域和目标", geometry.getBoolean("found"))
         // 原生手势起始移动会被 touch slop 消耗，留 24 CSS px 的阅读余量，
@@ -724,7 +730,11 @@ class AndroidHomeInstrumentedTest {
             val geometry = it.optJSONObject("imageRect")?.toString()
             val stable = geometry != null && geometry == previousImageGeometry
             previousImageGeometry = geometry
-            (kind !in listOf("image","viewer") || stable) && it.optBoolean("visible") && it.optBoolean("settled") && it.optString("theme") == (if (dark) "dark" else "light") &&
+            val toastReady = it.optInt("toastCount") == 1 &&
+                listOf("toastInPanel","toastInFlow","toastVisible","toastHittable").all { key -> it.optBoolean(key) }
+            val notificationReady = if (notificationKind == "none") it.optInt("toastCount") == 0 || toastReady
+                else toastReady && it.optBoolean(if (notificationKind == "saved") "savedNotification" else "backupReminder")
+            notificationReady && (kind !in listOf("image","viewer") || stable) && it.optBoolean("visible") && it.optBoolean("settled") && it.optString("theme") == (if (dark) "dark" else "light") &&
                 (if (kind == "text") it.optString("preText").contains("FE2 public preview text") else if (kind in listOf("image", "album", "viewer")) it.optBoolean("imageDecoded") else it.optString("text").contains("FE2-public-notes.txt"))
         }
         assertFalse(result.toString(), result.getBoolean("overflow"))
@@ -775,6 +785,14 @@ class AndroidHomeInstrumentedTest {
         }
         if (kind == "text") {
             val count = countInk(result.getJSONObject("textRect"),result.getString("textColor"))
+            if (count < 20) {
+                record(JSONObject(result.toString()).put("stage", "failure-preview-text-pixels")
+                    .put("expectedStage", stage).put("textInkPixels", count)
+                    .put("nativeViewport", native).put("afterScreenshot", js(scenario, expression)))
+                File(evidence, "$stage-pixel-failure.png").outputStream().use {
+                    frame.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+            }
             assertTrue("解密文本必须在最终合成帧中有实际文字像素", count>=20)
             result.put("textInkPixels",count)
         }
@@ -809,25 +827,86 @@ class AndroidHomeInstrumentedTest {
         record(result)
     }
 
+    /** 为每个限时提醒场景重置仅公开账户的夹具，再执行真实锁定/主密码解锁。 */
+    private fun renewPublicBackupReminder(scenario: ActivityScenario<MainActivity>) {
+        js(scenario, """(() => {window.fe2InsetsReminder={pending:true};
+          const invoke=window.__TAURI_INTERNALS__.invoke;
+          invoke('vault_list_accounts',{}).then(async accounts=>{
+            if(accounts.length!==1||accounts[0].name!=='FE2 public visual test')throw Error('not isolated public account');
+            await invoke('user_data_update_preference',{payload:{accountId:accounts[0].id,preferences:{lastBackupReminderAt:0}}});
+            const prefs=await invoke('user_data_get_preferences',{accountId:accounts[0].id});
+            if(prefs.lastBackupReminderAt!==0)throw Error('reminder fixture not persisted');
+            window.fe2InsetsReminder={persisted:true};
+          }).catch(error=>window.fe2InsetsReminder={error:String(error)});
+          return JSON.stringify({started:true});})()""")
+        val fixture=waitFor(scenario,"仅公开账户提醒夹具落盘","JSON.stringify(window.fe2InsetsReminder||{})") {
+            it.optBoolean("persisted") || it.has("error")
+        }
+        assertFalse("公开提醒夹具失败: $fixture",fixture.has("error"))
+        lockToPassword(scenario)
+        unlockPublicVisualAccount(scenario)
+        waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({present:[...document.querySelectorAll('[data-shell-notifications] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
+            it.optBoolean("present")
+        }
+    }
+
+    /** 每次在未过期的生产提醒下重新进入对象附件，避免多次截图耗尽同一8秒提醒。 */
+    private fun reopenPreviewWithBackupReminder(scenario: ActivityScenario<MainActivity>) {
+        val panel = "[data-macos-glass-backdrop][style*='z-index: 5100'] > [data-macos-glass='panel']"
+        val state = js(scenario, "JSON.stringify({attachments:!!document.querySelector(\"$panel\"),detail:!!document.querySelector('[data-testid=object-detail-modal]')})")
+        assertTrue("提醒复验须从公开对象详情进入", state.getBoolean("detail"))
+        if (state.getBoolean("attachments")) {
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+            waitFor(scenario,"提醒复验返回详情","JSON.stringify({attachments:!!document.querySelector(\"$panel\"),detail:!!document.querySelector('[data-testid=object-detail-modal]')})") {
+                !it.optBoolean("attachments") && it.optBoolean("detail")
+            }
+        }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+        waitFor(scenario,"提醒复验返回对象列表","JSON.stringify({detail:!!document.querySelector('[data-testid=object-detail-modal]'),card:!!document.querySelector('[data-testid=workspace-object-card]')})") {
+            !it.optBoolean("detail") && it.optBoolean("card")
+        }
+        waitFor(scenario,"上一轮真实通知自然到期","JSON.stringify({present:!!document.querySelector('[data-toast-container]')})") {
+            !it.optBoolean("present")
+        }
+        renewPublicBackupReminder(scenario)
+        val category = js(scenario, """(() => {const b=[...document.querySelectorAll('.android-category button')].find(e=>e.querySelector('strong')?.textContent==='Travel');b?.click();return JSON.stringify({clicked:!!b})})()""")
+        assertTrue("实际返回公开对象分类", category.getBoolean("clicked"))
+        waitFor(scenario,"公开对象列表重新就绪","JSON.stringify({card:!!document.querySelector('[data-testid=workspace-object-card]')})") { it.optBoolean("card") }
+        clickSelector(scenario,"[data-testid='workspace-object-card'] .android-row-button")
+        waitFor(scenario,"公开对象详情重新就绪","JSON.stringify({detail:!!document.querySelector('[data-testid=object-detail-modal]')})") { it.optBoolean("detail") }
+        clickSelector(scenario,".android-object-detail-footer button[aria-label^='Attachments']")
+        waitFor(scenario,"重新加载真实加密附件列表","JSON.stringify({text:!!document.querySelector(\"button[aria-haspopup='dialog'][aria-label*='FE2-public-notes.txt']\"),image:!!document.querySelector(\"button[aria-haspopup='dialog'][aria-label*='FE2-public-quadrants.png']\")})") {
+            it.optBoolean("text") && it.optBoolean("image")
+        }
+        previewReminderRenewals.put(JSONObject().put("unlockAttempt", unlockAttempts.length())
+            .put("realLockUnlock",true).put("recordedAtMs",System.currentTimeMillis()))
+    }
+
     private fun verifyNonemptyPreviews(scenario: ActivityScenario<MainActivity>, dark: Boolean, seed: Boolean) {
         if (seed) seedPreviewFixtures(scenario)
         val suffix = if (dark) "dark" else "light"
         val panel = "[data-macos-glass-backdrop][style*='z-index: 5100'] > [data-macos-glass='panel']"
-        clickSelector(scenario, ".android-object-detail-footer button[aria-label^='Attachments']")
+        if (dark) reopenPreviewWithBackupReminder(scenario)
+        else clickSelector(scenario, ".android-object-detail-footer button[aria-label^='Attachments']")
         capturePreview(scenario,"nonempty-attachments-$suffix",panel,dark,"attachments")
         for ((file,kind) in listOf("FE2-public-notes.txt" to "text", "FE2-public-quadrants.png" to "image")) {
+            if (dark) reopenPreviewWithBackupReminder(scenario)
             clickSelector(scenario,"button[aria-haspopup='dialog'][aria-label*='$file']")
             clickText(scenario,"Preview")
             capturePreview(scenario,"file-preview-$kind-$suffix","[data-testid='attachment-preview-overlay']",dark,kind)
             clickSelector(scenario,"[data-testid='attachment-preview-overlay'] button[aria-label='Back']")
             waitFor(scenario,"文件返回非空附件", "JSON.stringify({preview:!!document.querySelector('[data-testid=attachment-preview-overlay]')})") { !it.optBoolean("preview") }
         }
+        if (dark) reopenPreviewWithBackupReminder(scenario)
         val album = js(scenario, """(() => {const b=[...document.querySelectorAll('button')].find(b=>[...b.querySelectorAll('span')].some(s=>s.textContent.trim()==='Photo Album'));b?.click();return JSON.stringify({clicked:!!b})})()""")
         assertTrue("点击带数量的真实相册入口",album.getBoolean("clicked"))
         capturePreview(scenario,"photo-album-$suffix","[data-testid='photo-album-overlay']",dark,"album")
         clickSelector(scenario,"[data-testid='photo-album-grid'] [role='button'][aria-label='FE2-public-quadrants.png']")
         waitFor(scenario,"懒加载查看器实际就绪", "JSON.stringify({ready:[...document.querySelectorAll('[data-testid=photo-viewer] button')].some(b=>b.title==='Edit Attachment Attributes'),decoded:[...document.querySelectorAll('[data-testid=photo-viewer] img')].some(i=>i.complete&&i.naturalWidth===320)})") { it.optBoolean("ready") && it.optBoolean("decoded") }
-        // 原提醒自然到期；真实编辑公开描述，由保存操作产生新通知，不修改计时。
+        waitFor(scenario,"保存通知复验前原提醒自然到期","JSON.stringify({backup:[...document.querySelectorAll('[data-toast-container] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
+            !it.optBoolean("backup")
+        }
+        // 真实编辑公开描述，由保存操作产生新通知，不修改两种提醒的计时。
         clickSelector(scenario,"[data-testid='photo-viewer'] button[title='Edit Attachment Attributes']")
         waitFor(scenario,"真实附件属性编辑", "JSON.stringify({editor:!!document.querySelector('[role=dialog] textarea')})") { it.optBoolean("editor") }
         val edited = js(scenario, """(() => {const e=document.querySelector('[role=dialog] textarea');if(!e)return JSON.stringify({edited:false});
@@ -949,25 +1028,7 @@ class AndroidHomeInstrumentedTest {
         // 公开合成账户的首次解锁提醒已在前面的对象场景自然到期。
         // 只重置其加密提醒时间，再经真实锁定/密码解锁触发生产的8秒提醒；
         // 不注入Toast、不修改duration，也不替换通知或登录处理器。
-        js(scenario, """(() => {window.fe2InsetsReminder={pending:true};
-          const invoke=window.__TAURI_INTERNALS__.invoke;
-          invoke('vault_list_accounts',{}).then(async accounts=>{
-            if(accounts.length!==1||accounts[0].name!=='FE2 public visual test')throw Error('not isolated public account');
-            await invoke('user_data_update_preference',{payload:{accountId:accounts[0].id,preferences:{lastBackupReminderAt:0}}});
-            const prefs=await invoke('user_data_get_preferences',{accountId:accounts[0].id});
-            if(prefs.lastBackupReminderAt!==0)throw Error('reminder fixture not persisted');
-            window.fe2InsetsReminder={persisted:true};
-          }).catch(error=>window.fe2InsetsReminder={error:String(error)});
-          return JSON.stringify({started:true});})()""")
-        val fixture=waitFor(scenario,"仅公开账户提醒夹具落盘","JSON.stringify(window.fe2InsetsReminder||{})") {
-            it.optBoolean("persisted") || it.has("error")
-        }
-        assertFalse("公开提醒夹具失败: $fixture",fixture.has("error"))
-        lockToPassword(scenario)
-        unlockPublicVisualAccount(scenario)
-        waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({present:[...document.querySelectorAll('[data-shell-notifications] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
-            it.optBoolean("present")
-        }
+        renewPublicBackupReminder(scenario)
         val portrait = captureInsets(scenario,"safe-home-portrait",login=false)
         var original = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         scenario.onActivity { activity -> original=activity.requestedOrientation;activity.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
@@ -1241,12 +1302,21 @@ class AndroidHomeInstrumentedTest {
         return result
     }
 
+    private fun recordAccountFailure(scenario: ActivityScenario<MainActivity>, stage: String,
+                                     result: JSONObject, expression: String, bitmap: Bitmap? = null) {
+        val frame = bitmap ?: screenshot(scenario)
+        File(evidence, "$stage.png").outputStream().use { frame.compress(Bitmap.CompressFormat.PNG,100,it) }
+        record(JSONObject(result.toString()).put("stage",stage)
+            .put("afterScreenshot",js(scenario,expression)).put("nativeViewport",nativeViewport(scenario)))
+        if (bitmap == null) frame.recycle()
+    }
+
     private fun captureAccount(scenario: ActivityScenario<MainActivity>, stage: String, name: String,
                                dark: Boolean, enhanced: Boolean, count: String, expectedPrefs: JSONObject,
                                accountCount: Int): JSONObject {
         val background = if (dark) "#1a211d" else "#f6f8fa"
         val surface = if (dark) "#242d28" else "#ffffff"
-        val foreground = if (dark) "#d6ddd8" else "#1f2328"
+        val foreground = if (dark) "#ffffff" else "#111111"
         val expression = """(() => {const state=JSON.parse($home),s=getComputedStyle(document.documentElement);
           const link=document.querySelector('.android-section-heading .android-text-button');
           const rgb=c=>c.startsWith('#')?[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)):c.match(/[\d.]+/g).slice(0,3).map(Number);
@@ -1263,7 +1333,7 @@ class AndroidHomeInstrumentedTest {
             motionEffect:{navigationTransition:getComputedStyle(document.querySelector('.android-navigation')).transitionDuration,
               systemReduced:matchMedia('(prefers-reduced-motion: reduce)').matches},
             navBackdrop:getComputedStyle(document.querySelector('.android-navigation')).backdropFilter});})()"""
-        val result = waitFor(scenario, stage, expression) {
+        var result = waitFor(scenario, stage, expression) {
             val bars = accountBars(scenario)
             it.optBoolean("home") && it.optString("name").contains(name) && it.optString("count") == count &&
                 it.optString("theme") == (if (dark) "dark" else "light") &&
@@ -1275,6 +1345,35 @@ class AndroidHomeInstrumentedTest {
                 (!enhanced || (it.optBoolean("ready") && it.optBoolean("canvasVisible"))) &&
                 (!motionChecks || it.optString("reduceMotion") == dark.toString())
         }
+        val saved = readAccountPreferences(scenario, name, expectedPrefs, accountCount)
+        // 解锁提醒会改变首页布局；只重采几何变化的帧，像素断言仍只执行一次。
+        val frameDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45)
+        var frame: Bitmap? = null
+        val framePreparations = JSONArray()
+        do {
+            result = js(scenario, expression)
+            val currentAction = result.optJSONObject("action")
+            if (currentAction?.optBoolean("visible") == true && currentAction.optBoolean("hittable")) {
+                val candidate = screenshot(scenario)
+                val after = js(scenario, expression)
+                val stable = listOf("name","count","theme","glass","reduceMotion","background","surface",
+                    "foreground","accent","copyRect","copyColor","action").all {
+                    result.opt(it).toString() == after.opt(it).toString()
+                }
+                framePreparations.put(JSONObject().put("beforeCopy",result.opt("copyRect"))
+                    .put("afterCopy",after.opt("copyRect")).put("beforeAction",result.opt("action"))
+                    .put("afterAction",after.opt("action")).put("stable",stable))
+                if (stable) { result = after; frame = candidate; break }
+                candidate.recycle()
+            } else {
+                framePreparations.put(JSONObject().put("actionBeforeScroll",currentAction))
+                scrollTypographyIntoView(scenario,".android-section-heading",avoidSelector=".android-fab")
+            }
+        } while (System.nanoTime() < frameDeadline)
+        if (frame == null) recordAccountFailure(scenario,"failure-account-stable-frame",
+            JSONObject(result.toString()).put("framePreparations",framePreparations),expression)
+        val bitmap = requireNotNull(frame) { "账户操作必须可见可命中，且截图前后几何稳定: $framePreparations" }
+        result.put("framePreparations",framePreparations)
         if (motionChecks && dark) {
             val durations = result.getJSONObject("motionEffect").getString("navigationTransition").split(',')
                 .map { value -> val text=value.trim(); if(text.endsWith("ms"))text.removeSuffix("ms").toDouble()/1000 else text.removeSuffix("s").toDouble() }
@@ -1286,14 +1385,14 @@ class AndroidHomeInstrumentedTest {
         assertEquals(if (dark) "#ffffff" else "#000000", result.getString("primaryInk"))
         val action = result.getJSONObject("action")
         assertTrue("无填色首页操作文字应对比实际底色至少 4.5", action.getDouble("contrast") >= 4.5)
+        if (!action.getBoolean("visible") || !action.getBoolean("hittable"))
+            recordAccountFailure(scenario,"failure-account-action-hit",result,expression)
         assertTrue("首页操作应完整可见且可命中", action.getBoolean("visible") && action.getBoolean("hittable"))
         if (enhanced) {
             assertTrue("当前账户增强画布应可见", result.getBoolean("canvasVisible"))
             assertTrue("当前账户装饰仍需与正文分区", result.getJSONObject("copyRect").getDouble("right") <=
                 result.getJSONObject("artRect").getDouble("x") + 1)
         } else assertTrue("局部档位不保留上一账户的画布", result.isNull("artRect"))
-        val saved = readAccountPreferences(scenario, name, expectedPrefs, accountCount)
-        val bitmap = screenshot(scenario)
         val native = nativeViewport(scenario)
         val scale = native.getDouble("webViewWidthPx") / result.getDouble("viewportWidth")
         val copy = result.getJSONObject("copyRect")
@@ -1323,6 +1422,8 @@ class AndroidHomeInstrumentedTest {
                        android.graphics.Color.green(pixel)-actionRgb.getInt(1),
                        android.graphics.Color.blue(pixel)-actionRgb.getInt(2)).all { kotlin.math.abs(it) <= 8 }) actionInkPixels++
         }
+        if (actionInkPixels < 20) recordAccountFailure(scenario,"failure-account-action-pixels",
+            JSONObject(result.toString()).put("actionInkPixels",actionInkPixels),expression,bitmap)
         assertTrue("最终合成帧必须有可读的首页操作文字像素", actionInkPixels >= 20)
         action.put("inkPixels", actionInkPixels)
         File(evidence, "$stage.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
@@ -1601,7 +1702,7 @@ class AndroidHomeInstrumentedTest {
                     it.optJSONArray("buttons")?.toString()?.contains("Unlock") == true &&
                     it.optBoolean("passwordRequired") && it.optInt("accountCount") == 2 &&
                     it.optString("theme") == "dark" && it.optString("glass") == "enhanced" &&
-                    it.optString("background") == "#1a211d" && it.optString("foreground") == "#d6ddd8" &&
+                    it.optString("background") == "#1a211d" && it.optString("foreground") == "#ffffff" &&
                     it.optString("accent") == "#112233" &&
                     (!motionChecks || it.optString("reduceMotion") == "true")
             }

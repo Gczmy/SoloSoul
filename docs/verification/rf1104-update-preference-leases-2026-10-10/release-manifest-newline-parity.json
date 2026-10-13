@@ -1,0 +1,8 @@
+{
+  "rawBuildReceiptSourceUnchanged": false,
+  "beforeSha256": "edff461c8e2cbeebef93e06a2f4f9af78839cfa5c3657f1677b63a8961151ece",
+  "afterSha256": "6606035220f7bb6de3150eb030638b6607398dc26fbb3872b3cf6c8368805810",
+  "normalizedBytesEqual": true,
+  "parsedTomlEqual": true,
+  "action": "Restore only original Cargo.toml newline bytes; preserve raw build receipt"
+}

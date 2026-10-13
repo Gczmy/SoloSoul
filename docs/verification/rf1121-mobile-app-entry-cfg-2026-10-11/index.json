@@ -1,0 +1,251 @@
+{
+  "task": "RF-1121",
+  "archiveSha256": "1b34722b2af3ab88897fa1c7de0dfb60a62aad01049797578ea24e74af7a22e4",
+  "members": [
+    {
+      "path": "checks/checks-complete.json",
+      "size": 198,
+      "sha256": "1b197abfea7c982d7970ab3cf5c96f97eff480487077a42b103f26e833749158"
+    },
+    {
+      "path": "checks/commands-discovery.rs.before",
+      "size": 30273,
+      "sha256": "9f08d4e9de9c82c467a05a2559a97970d136e36da9768cf66752a688326b5f83"
+    },
+    {
+      "path": "checks/commands-recovery.rs.before",
+      "size": 28102,
+      "sha256": "efd7b0369332ccf6c26fffc4f6122b365e838fd564071f79a86d1b64e092a4df"
+    },
+    {
+      "path": "checks/commands-window.rs.before",
+      "size": 11169,
+      "sha256": "4a74af18d8cddaf14f661781f86290a846121c9c4e7946192659f8ca292ef5b7"
+    },
+    {
+      "path": "checks/continuation-live-state.json",
+      "size": 471,
+      "sha256": "210faed695c7bc994c41cab08fbc925e15e43baa0d4ff57353dc60465267bf1b"
+    },
+    {
+      "path": "checks/format.live.json",
+      "size": 144,
+      "sha256": "3f4319c5286276a984a8a7164593f9c0f3998e3466bbcb1b3d5afc8cb19248b3"
+    },
+    {
+      "path": "checks/format.receipt.json",
+      "size": 401,
+      "sha256": "807c050e895bb3ddd0a9600db25f3face2c05cfe9ea70f75813a5decc33f2052"
+    },
+    {
+      "path": "checks/format.stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/format.stdout.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/green-android-toolchain.json",
+      "size": 791,
+      "sha256": "60c292060d6daa293ad0caddac6721cfce6b5e1047604b3f86c7ec359c6a8740"
+    },
+    {
+      "path": "checks/green-android.live.json",
+      "size": 379,
+      "sha256": "4064bf264cd11a7d8dbc1325d7302bb98bfa84db81a47f0b7f07125041a955da"
+    },
+    {
+      "path": "checks/green-android.receipt.json",
+      "size": 655,
+      "sha256": "68bad36db3b34699717f230a4e173e105713ae0ea0485c0c892ffedc1d810d66"
+    },
+    {
+      "path": "checks/green-android.stderr.log",
+      "size": 132,
+      "sha256": "42957a827938502dddefcbf6e70290fb812b71b76d90a1cf50ebdddf3d848373"
+    },
+    {
+      "path": "checks/green-android.stdout.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/green-commands-discovery.rs.executed",
+      "size": 29599,
+      "sha256": "11c4ba947d3e6626be00fe64d4ae41f2588c47d84046c6ee0c2783cb685c8b11"
+    },
+    {
+      "path": "checks/green-commands-recovery.rs.executed",
+      "size": 27363,
+      "sha256": "9bc690c3d8e950f5e5a36ff6467fd859fd1ea2a646828ab6bfef897fe7f3526b"
+    },
+    {
+      "path": "checks/green-commands-window.rs.executed",
+      "size": 10877,
+      "sha256": "b94910b8665b955bc4ff2a3ab86b13ff0f27503b1d612e515bab22690a7fd45f"
+    },
+    {
+      "path": "checks/green-setup-mod.rs.executed",
+      "size": 15668,
+      "sha256": "571f7888672aae919a04febd66edf8a45b40d68124999d232d7b2343155a8ef1"
+    },
+    {
+      "path": "checks/green-sources.json",
+      "size": 229437,
+      "sha256": "667c4d02d014d6973b0bf6d3ab421f6e56a9128514df8020cad6519e36e1a081"
+    },
+    {
+      "path": "checks/ledger-before.md",
+      "size": 1166022,
+      "sha256": "9057dc2a238806ffb027fd959210de40195cb1e1504df29ece1c52c8b7c17564"
+    },
+    {
+      "path": "checks/red-android-owned-live-observation.json",
+      "size": 478,
+      "sha256": "95c65db02e683b06f2262e07e5076a7e73af992d682293454684fb82b2e105f1"
+    },
+    {
+      "path": "checks/red-android-toolchain.json",
+      "size": 791,
+      "sha256": "60c292060d6daa293ad0caddac6721cfce6b5e1047604b3f86c7ec359c6a8740"
+    },
+    {
+      "path": "checks/red-android.live.json",
+      "size": 379,
+      "sha256": "e04ec9f9e8c84c78e11e1b03db61542f865e9bd13e9f752e41aa2a888e6e8daa"
+    },
+    {
+      "path": "checks/red-android.receipt.json",
+      "size": 654,
+      "sha256": "de1a3ae17b402abfda54d72746fc31853493765c036cc7c44a01763160656e76"
+    },
+    {
+      "path": "checks/red-android.stderr.log",
+      "size": 17266,
+      "sha256": "5e938abce845714e68bb2186ae0f8c318d4ad60bffb1cbcb22398abcd1f36a21"
+    },
+    {
+      "path": "checks/red-android.stdout.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/red-commands-discovery.rs.executed",
+      "size": 30273,
+      "sha256": "9f08d4e9de9c82c467a05a2559a97970d136e36da9768cf66752a688326b5f83"
+    },
+    {
+      "path": "checks/red-commands-recovery.rs.executed",
+      "size": 28102,
+      "sha256": "efd7b0369332ccf6c26fffc4f6122b365e838fd564071f79a86d1b64e092a4df"
+    },
+    {
+      "path": "checks/red-commands-window.rs.executed",
+      "size": 11169,
+      "sha256": "4a74af18d8cddaf14f661781f86290a846121c9c4e7946192659f8ca292ef5b7"
+    },
+    {
+      "path": "checks/red-setup-mod.rs.executed",
+      "size": 15943,
+      "sha256": "a871489ca205aaac0487836cee3aa22106f3681d7ec79a3b2b210af37079a496"
+    },
+    {
+      "path": "checks/red-sources.json",
+      "size": 229437,
+      "sha256": "98cf0d2e0db42fa705d50ac29cc33c89b1a906d0ecdf5d8a217342d6e47031ea"
+    },
+    {
+      "path": "checks/red-wait-progress-20261011T0622.json",
+      "size": 634,
+      "sha256": "8ac0023cb003cc7a3c915a16d32a028b7a3266244f69b99be69e0826be0f280c"
+    },
+    {
+      "path": "checks/registration.json",
+      "size": 679,
+      "sha256": "62f7cbc47546ea8b140687f382798677dbf51af84312aaa265438cfe2444acaa"
+    },
+    {
+      "path": "checks/setup-mod.rs.before",
+      "size": 15943,
+      "sha256": "a871489ca205aaac0487836cee3aa22106f3681d7ec79a3b2b210af37079a496"
+    },
+    {
+      "path": "checks/source-provenance.json",
+      "size": 516,
+      "sha256": "44f30055941894f7b47b631ff7e52fcdf4f039f869d2f7e507554734b3cdb5f9"
+    },
+    {
+      "path": "checks/windows-workspace-clippy.live.json",
+      "size": 161,
+      "sha256": "91571a6bcff8d7ac9e57c2de58aff6d612c3cb9b1d8abf48f6759ff4407c01cf"
+    },
+    {
+      "path": "checks/windows-workspace-clippy.receipt.json",
+      "size": 419,
+      "sha256": "208c71978f854b63a740b47eadbbc9698ff3bdd93586c6a924a7eaf48bd1dad6"
+    },
+    {
+      "path": "checks/windows-workspace-clippy.stderr.log",
+      "size": 364,
+      "sha256": "58b6699473f9eb9248f2f46ac1d1f9e961af8cde89fe7616632db0feb3a1c85e"
+    },
+    {
+      "path": "checks/windows-workspace-clippy.stdout.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "checks/windows-workspace-tests.live.json",
+      "size": 140,
+      "sha256": "f891a207b2e6e4099e3340b7004f7ec2ebcb07ad1c2750462e54a917b3f98c6c"
+    },
+    {
+      "path": "checks/windows-workspace-tests.receipt.json",
+      "size": 397,
+      "sha256": "6be2e0615681e0cfda44341146c16fc1a7a576df5376eb992efe247f91bf1da8"
+    },
+    {
+      "path": "checks/windows-workspace-tests.stderr.log",
+      "size": 209308,
+      "sha256": "5e7a6e7c31e033afca271556999ec8c8ec10efe2987e683b3813365732045ff8"
+    },
+    {
+      "path": "checks/windows-workspace-tests.stdout.log",
+      "size": 735743,
+      "sha256": "3c445d53b1db02447c26eac6f9f5450d6beb721d62606d4acb7bedc75f76b4b1"
+    },
+    {
+      "path": "original-warning/android-main-app-cfg-warnings.json",
+      "size": 3553,
+      "sha256": "649118d06dc73f4577979d19b70d9f7596267d85e87030c8d21bb951f924f4f1"
+    },
+    {
+      "path": "tools/rf1121-apply.py",
+      "size": 2949,
+      "sha256": "101d18d1e7764be28c1e5cfeb0e6c8a9c90df699126868111a93d66e4462b72f"
+    },
+    {
+      "path": "tools/rf1121-archive-close.py",
+      "size": 9969,
+      "sha256": "712ef314d0196f76db4eb944360c47e6fb9db06d70dd9cae9daa8def4359537a"
+    },
+    {
+      "path": "tools/rf1121-register.py",
+      "size": 3581,
+      "sha256": "819a8273f775f0206fdaa29c9c03187768d7e03d08607a37307fb2b629125cdb"
+    },
+    {
+      "path": "tools/rf1121-run-checks.py",
+      "size": 4986,
+      "sha256": "d701059923f476354f713f175b647f7dcbb42b14eda33cbe5b4226ddbf49d4b2"
+    },
+    {
+      "path": "tools/rf1121-verify-git.py",
+      "size": 3298,
+      "sha256": "7ce740958df948273e2d3e1da887ea711bd516a38e67efd17605eb555d7acc60"
+    }
+  ]
+}

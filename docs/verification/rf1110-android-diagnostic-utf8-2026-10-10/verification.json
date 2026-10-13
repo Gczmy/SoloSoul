@@ -1,0 +1,26 @@
+{
+  "accepted": true,
+  "scope": "RF1110 diagnostic UTF-8 only",
+  "nativeExitCode": 1,
+  "utf8StrictDecode": true,
+  "middleDotPreserved": true,
+  "originalUiFailurePreserved": true,
+  "fullHomeMatrixAccepted": false,
+  "restored": true,
+  "settingsBefore": {
+    "blur": "null",
+    "night": "Night mode: no",
+    "fontScale": "1.0"
+  },
+  "settingsAfter": {
+    "blur": "null",
+    "night": "Night mode: no",
+    "fontScale": "1.0"
+  },
+  "sourceAndApkHashesUnchanged": true,
+  "deviceEvidenceJsonReadable": true,
+  "nativeLogSha256": "51b6db4ef7953ee2876d046cd24fe8b2598526134898b50dc5f3599a9771f392",
+  "reportSha256": "b2291bf7a362170c564ffdb48e8087c88c0812a43ac1b6ae2f155ae15d154f90",
+  "elapsedSeconds": 62.81913259997964,
+  "at": "2026-10-10T21:22:40.076977+00:00"
+}

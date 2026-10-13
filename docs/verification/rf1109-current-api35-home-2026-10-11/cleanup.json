@@ -1,0 +1,49 @@
+{
+  "deletedExactFiles": 8,
+  "recursive": false,
+  "allAncestorsChecked": true,
+  "archiveVerified": true,
+  "files": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\baseline-supported\\private-data-before.tar",
+      "sha256": "ffdfb489d6e02e6b02c4eb64bb9cac2f10fd4aea5f0bcbf86312d7593df4794d",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\baseline-supported\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\baseline-fallback\\private-data-before.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\baseline-fallback\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\cold-supported\\private-data-before.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\cold-supported\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\cold-fallback\\private-data-before.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-rf1109-closure-20261011\\cold-fallback\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    }
+  ],
+  "at": "2026-10-11T17:09:30.1723591+00:00"
+}

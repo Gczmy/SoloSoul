@@ -12,17 +12,13 @@ const mocks = vi.hoisted(() => ({
   listener: null as null | ((event: { payload: DragPayload }) => void),
   upload: vi.fn(),
   filter: vi.fn(),
+  register: vi.fn(),
+  unlisten: vi.fn(),
 }));
 
-vi.mock('@tauri-apps/api/webviewWindow', () => ({
-  getCurrentWebviewWindow: () => ({
-    onDragDropEvent: async (listener: (event: { payload: DragPayload }) => void) => {
-      mocks.listener = listener;
-      return () => {
-        mocks.listener = null;
-      };
-    },
-  }),
+vi.mock('@/lib/nativeWindowDragDrop', () => ({
+  registerNativeWindowDragDrop: (handler: (payload: DragPayload) => void) =>
+    mocks.register((event: { payload: DragPayload }) => handler(event.payload)),
 }));
 
 vi.mock('@/lib/attachmentUpload', () => ({
@@ -57,6 +53,15 @@ describe('useDragToAttach upload ownership', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.listener = null;
+    mocks.register.mockImplementation(
+      async (listener: (event: { payload: DragPayload }) => void) => {
+        mocks.listener = listener;
+        return mocks.unlisten;
+      },
+    );
+    mocks.unlisten.mockImplementation(() => {
+      mocks.listener = null;
+    });
     mocks.filter.mockImplementation(async (paths: string[]) => ({ files: paths, dirs: [] }));
     Object.defineProperty(document, 'elementFromPoint', {
       configurable: true,
@@ -135,5 +140,38 @@ describe('useDragToAttach upload ownership', () => {
       'object-b',
       expect.any(Function),
     );
+  });
+
+  it('shares the native listener while only the top card receives a drop', async () => {
+    mocks.upload.mockResolvedValue(undefined);
+    const view = render(<DropTarget key="back" objectId="object-back" />);
+    await waitFor(() => expect(mocks.listener).not.toBeNull());
+    view.rerender(
+      <>
+        <DropTarget key="back" objectId="object-back" />
+        <DropTarget key="front" objectId="object-front" />
+      </>,
+    );
+    await act(async () => {
+      await vi.dynamicImportSettled();
+    });
+    expect(mocks.register).toHaveBeenCalledTimes(1);
+    vi.mocked(document.elementFromPoint).mockReturnValue(view.getAllByTestId('drop-target')[1]);
+    await drop('front.pdf');
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledTimes(1));
+    expect(mocks.upload).toHaveBeenCalledWith(['front.pdf'], 'object-front', expect.any(Function));
+
+    view.rerender(<DropTarget key="front" objectId="object-front" />);
+    expect(mocks.unlisten).not.toHaveBeenCalled();
+    vi.mocked(document.elementFromPoint).mockReturnValue(view.getByTestId('drop-target'));
+    await drop('remaining.pdf');
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledTimes(2));
+    expect(mocks.upload).toHaveBeenLastCalledWith(
+      ['remaining.pdf'],
+      'object-front',
+      expect.any(Function),
+    );
+    view.unmount();
+    await waitFor(() => expect(mocks.unlisten).toHaveBeenCalledTimes(1));
   });
 });

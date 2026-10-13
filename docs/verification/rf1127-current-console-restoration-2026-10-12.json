@@ -1,0 +1,166 @@
+{
+  "task": "RF-1127",
+  "sourceHead": "016667e35284fe1babf54b85e865226bef57ddef",
+  "accepted": false,
+  "scope": "same current-source diagnostic GUI after real calculator screenshot/click/key recovery; full four-cohort window matrix still rejected",
+  "currentNativeTests": 137,
+  "sourceCount": 1843,
+  "exeSha256": "2371a33f745a99011d8db5e186f8af5b1a5a0b3dda431026b39b8670ceab0b20",
+  "resourceCount": 94,
+  "cargoRawBytesRestored": true,
+  "frontendBuildInputsUnchanged": true,
+  "rounds": [
+    {
+      "flavor": "current-skill",
+      "requestedCohorts": 4,
+      "executedCohorts": 1,
+      "samplesRequested": 3,
+      "wholeMatrixAccepted": false,
+      "captureAccepted": 2,
+      "sdkJourneysPassed": 2,
+      "captureFailures": [
+        {
+          "index": 1,
+          "error": "Error: \"owned-window-restoration-incomplete\"\n"
+        }
+      ],
+      "readerRuns": 0,
+      "rendererRuns": 0,
+      "cleanup": {
+        "task": "RF-1127",
+        "at": "2026-10-12T11:16:27.8198539Z",
+        "identitiesChecked": 27,
+        "matchingOwnedIdentitiesLive": 0,
+        "processesTerminatedByThisTool": 0,
+        "removedCachePaths": 24,
+        "linksUnlinked": 3,
+        "preservedVaultAndRootFiles": 133,
+        "applicationLogs": 3,
+        "preservedBytesVerified": true
+      }
+    },
+    {
+      "flavor": "current-hitmeta",
+      "requestedCohorts": 4,
+      "executedCohorts": 1,
+      "samplesRequested": 3,
+      "wholeMatrixAccepted": false,
+      "captureAccepted": 1,
+      "sdkJourneysPassed": 1,
+      "captureFailures": [
+        {
+          "index": 1,
+          "error": "Error: \"owned-window-restoration-incomplete\"\n"
+        },
+        {
+          "index": 3,
+          "error": "stage: capture-item\nstage: hardware-device\nstage: waiting-for-frame\nstage: frame-received\nError: \"window-focus-or-dpi-changed-during-capture\"\n"
+        }
+      ],
+      "readerRuns": 0,
+      "rendererRuns": 0,
+      "cleanup": {
+        "task": "RF-1127",
+        "at": "2026-10-12T11:24:03.6476924Z",
+        "identitiesChecked": 27,
+        "matchingOwnedIdentitiesLive": 0,
+        "processesTerminatedByThisTool": 0,
+        "removedCachePaths": 24,
+        "linksUnlinked": 3,
+        "preservedVaultAndRootFiles": 129,
+        "applicationLogs": 3,
+        "preservedBytesVerified": true
+      }
+    }
+  ],
+  "refusedRestorePoint": {
+    "atomicIdentityProof": false,
+    "authorizesInput": false,
+    "diagnosticOnly": true,
+    "foreground": {
+      "hwnd": 4456668,
+      "pid": 17856,
+      "threadAndPidAvailable": true,
+      "threadId": 31016,
+      "windowExistsAtRead": true
+    },
+    "hit": {
+      "hwnd": 3213730,
+      "pid": 17856,
+      "threadAndPidAvailable": true,
+      "threadId": 31016,
+      "windowExistsAtRead": true
+    },
+    "hitEqualsTarget": false,
+    "hitRoot": {
+      "hwnd": 4456668,
+      "pid": 17856,
+      "threadAndPidAvailable": true,
+      "threadId": 31016,
+      "windowExistsAtRead": true
+    },
+    "hitRootEqualsTarget": false,
+    "hitRootOwner": {
+      "hwnd": 4456668,
+      "pid": 17856,
+      "threadAndPidAvailable": true,
+      "threadId": 31016,
+      "windowExistsAtRead": true
+    },
+    "hitRootOwnerEqualsTarget": false,
+    "inputEventsSentByDiagnostic": 0,
+    "pixelsRead": 0,
+    "pointScreen": [
+      960,
+      118
+    ],
+    "schemaVersion": 1,
+    "scope": "rf1130-refused-caption-hit-metadata",
+    "systemSettingsChanged": false,
+    "target": {
+      "hwnd": 19269328,
+      "pid": 21820,
+      "threadAndPidAvailable": true,
+      "threadId": 25032,
+      "windowExistsAtRead": true
+    },
+    "windowTextRead": false
+  },
+  "postTerminalProcessLookup": {
+    "at": "2026-10-12T11:30:24.3890378Z",
+    "scope": "post-terminal read-only lookup of recorded refused-hit PID, not atomic failure-point process identity",
+    "recordedHitPid": 17856,
+    "process": {
+      "ProcessId": 17856,
+      "Name": "ChatGPT.exe",
+      "CreationDate": "2026-10-12T11:17:58.733993+01:00",
+      "ExecutablePath": "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1007.2314.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+    },
+    "windowsModified": 0,
+    "pixelsRead": 0,
+    "inputEventsSent": 0
+  },
+  "lookupIsNotAtomicFailurePointIdentity": true,
+  "sharedReaderTests": {
+    "run": 11,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 1,
+    "skipReason": "missing SeCreateSymbolicLinkPrivilege"
+  },
+  "noBudgetsRelaxed": true,
+  "noExtraInputRetries": true,
+  "successfulSamplesNotSpliced": true,
+  "otherWindowsNotModified": true,
+  "RF1127Closed": false,
+  "RF1128Closed": false,
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "archive": {
+    "path": "rf1127-current-console-restoration-2026-10-12/raw.tar.gz",
+    "members": 358,
+    "bytes": 809715,
+    "sha256": "781678b6c39d26510025dffb3381bae87d0f9db2eb288ff0efdcbff8930ac79c",
+    "allMembersReadbackVerified": true
+  }
+}

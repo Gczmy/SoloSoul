@@ -1,0 +1,236 @@
+{
+  "task": "RF-1107",
+  "archiveSha256": "c6e15adec8a9bad69a9eeab02a77417c9e15dfbfe21a6f86ae5aac5d36325cfd",
+  "archiveBytes": 331266,
+  "memberCount": 45,
+  "readbackAllMembersVerified": true,
+  "includesPhysicalVaults": false,
+  "includesExecutablesModelsOrCaches": false,
+  "members": [
+    {
+      "path": "current-checks/archive-accepted.py",
+      "bytes": 6131,
+      "sha256": "e046161a8164ef11608d1b4d3d843cd44fea010dd06f8d22af0700400d3ac032"
+    },
+    {
+      "path": "current-checks/close-one-report.py",
+      "bytes": 5141,
+      "sha256": "2e863f1391666134cd828e7da7b110d45201754d14b771b54649bf5b3e4dbde5"
+    },
+    {
+      "path": "current-checks/initial-evidence.json",
+      "bytes": 490,
+      "sha256": "a66ce567b1ca1b08f50b24ea34c9575246741cb94458df2c538e71b21de60dea"
+    },
+    {
+      "path": "current-checks/original-default-failure.live.json",
+      "bytes": 149,
+      "sha256": "abb719422a01af2ed1869cc1770ffeb083fa063b80efd2eafe8c092e1eab9ced"
+    },
+    {
+      "path": "current-checks/original-default-failure.receipt.json",
+      "bytes": 1480,
+      "sha256": "fb31f582730f8b477a87e4b0776cd9f30928566c4c38fbcb60d009b364a3f97f"
+    },
+    {
+      "path": "current-checks/original-default-failure.stderr.log",
+      "bytes": 1034,
+      "sha256": "d6829952fea343f256bc923449ae82ee655fcf9bae68c6baa860ad15f4f22620"
+    },
+    {
+      "path": "current-checks/original-default-failure.stdout.log",
+      "bytes": 416830,
+      "sha256": "302dabe7e409ed33e80e127435dd415ff8beb4d95465af4079a45eb003ac8ba9"
+    },
+    {
+      "path": "current-checks/prepare-checks.py",
+      "bytes": 1266,
+      "sha256": "94666a0fcf46c511ace06a03f9e035588274ed1e1a85d18e7a66c45d3c5b5eb7"
+    },
+    {
+      "path": "current-checks/production-parity.json",
+      "bytes": 323,
+      "sha256": "9d4e10d37d459048b88d10c1b34055286b0ddd813e104aca5a321769b2a3e5fe"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-default.live.json",
+      "bytes": 192,
+      "sha256": "e5fe017a6e530595a40ba79d95f8c14cb284f88ac933227eb7967b95f59f7bfa"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-default.receipt.json",
+      "bytes": 1764,
+      "sha256": "24dd82e8eb1ddbe70e2b6aaf027f953789cf708d248bb12d2f2f16a9a0ba9c28"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-default.stderr.log",
+      "bytes": 132,
+      "sha256": "c7aade0dc2ce88043b3cf988215ce684c1c7771e0c0459842e70fd68f4614111"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-native.live.json",
+      "bytes": 232,
+      "sha256": "b74f0ab744250fb577c732a5b5c9092a211c8892c199fa108d411f87e0d9fb47"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-native.receipt.json",
+      "bytes": 1801,
+      "sha256": "ad837939326b42692c2860889852aaff87773ff9dbe35bfe1a60d562bc30f480"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-native.stderr.log",
+      "bytes": 132,
+      "sha256": "7f2e33a7076be92b0e6f5f90d8d676cffb0df0f2bc63af6a753c4f761dc2aeb9"
+    },
+    {
+      "path": "current-checks/rf1107-clippy-native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks/rf1107-default-workspace.live.json",
+      "bytes": 150,
+      "sha256": "fbd98d535a18acd29d658d24348762ba59855901e5a10fadd61272307befb2d4"
+    },
+    {
+      "path": "current-checks/rf1107-default-workspace.receipt.json",
+      "bytes": 1725,
+      "sha256": "07606034f9b2b853e69c3a87caeee5b88c5610e69d361f1d774f6f63fc4bf89c"
+    },
+    {
+      "path": "current-checks/rf1107-default-workspace.stderr.log",
+      "bytes": 3614,
+      "sha256": "a37f9a05247a84ec04171bdd33726af607d691268b4e7a2027017a057422e09e"
+    },
+    {
+      "path": "current-checks/rf1107-default-workspace.stdout.log",
+      "bytes": 737941,
+      "sha256": "faf5cf435cae9c91a78d9049c15f9bb43d03b280937ffce2a5104d71a64b0603"
+    },
+    {
+      "path": "current-checks/rf1107-download-tests.live.json",
+      "bytes": 245,
+      "sha256": "1e8e2791aed37a42e301d5f4311f22ebcf186925858cc0d015847bcad8b2701a"
+    },
+    {
+      "path": "current-checks/rf1107-download-tests.receipt.json",
+      "bytes": 1814,
+      "sha256": "7d8906d8924cd1cfe6e806f57c4da4ddbdb1d74743370bffa19d2f4a131f0316"
+    },
+    {
+      "path": "current-checks/rf1107-download-tests.stderr.log",
+      "bytes": 269,
+      "sha256": "d0364c14423bb2c1150343aa26751f1fd25a0ece643f7ccc74c33197cca86f4b"
+    },
+    {
+      "path": "current-checks/rf1107-download-tests.stdout.log",
+      "bytes": 1852,
+      "sha256": "210947bb2b6ef290a997e07153b655438585b9e8a7bd856924b81fd1bf621dc6"
+    },
+    {
+      "path": "current-checks/rf1107-format-check.live.json",
+      "bytes": 142,
+      "sha256": "04228be3c2179f6a600e773650660b209dc9b6bec7d54b823c0e386e0f5fa69b"
+    },
+    {
+      "path": "current-checks/rf1107-format-check.receipt.json",
+      "bytes": 1716,
+      "sha256": "3b203bf7b61fc08d8cd53cd95ba4a2a41d0f0224d51319a75658d7a72c4c5b57"
+    },
+    {
+      "path": "current-checks/rf1107-format-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks/rf1107-format-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "current-checks/rf1107-native-preferences.live.json",
+      "bytes": 287,
+      "sha256": "a34f52f4b74962b0689974bb7fd9cd9ff81b316d430bc707d7623b37147cc039"
+    },
+    {
+      "path": "current-checks/rf1107-native-preferences.receipt.json",
+      "bytes": 1854,
+      "sha256": "8d99096c0b67c700d61fc879347de3518843c1aef614fe0a90a8cf0d09a1e044"
+    },
+    {
+      "path": "current-checks/rf1107-native-preferences.stderr.log",
+      "bytes": 208,
+      "sha256": "03644cd475c034da220020d6f5bd51f5223d96d5b8fab07b552e21fe80be3110"
+    },
+    {
+      "path": "current-checks/rf1107-native-preferences.stdout.log",
+      "bytes": 7528,
+      "sha256": "ce04638b1c44bd33d56409377dc6dfaad7e28493380b8818784a9f6c9974a6ea"
+    },
+    {
+      "path": "current-checks/rf1107-native-regression.live.json",
+      "bytes": 265,
+      "sha256": "5594d374fac0b3974975f17a7e78ffc42ba8296aa89c68c50383b60c98ffcc47"
+    },
+    {
+      "path": "current-checks/rf1107-native-regression.receipt.json",
+      "bytes": 1832,
+      "sha256": "1dd40c62fb4ce89b9ddfed60f580c0b3d419eafbd5f0acd70f8fda196b17c2b6"
+    },
+    {
+      "path": "current-checks/rf1107-native-regression.stderr.log",
+      "bytes": 270,
+      "sha256": "01a6860a9d7630e13372d37b38d94f21b658ea407ad72eeea508c75f20be2833"
+    },
+    {
+      "path": "current-checks/rf1107-native-regression.stdout.log",
+      "bytes": 43763,
+      "sha256": "bdc5f373787a3b1fe94a0c1c55638dc3f47b11cbf25e163ca091ecf26e72a245"
+    },
+    {
+      "path": "current-checks/run-check.py",
+      "bytes": 2219,
+      "sha256": "a1bc5eed420f19e06ded65e95189bab436af4fa18b2247a538973412bee43539"
+    },
+    {
+      "path": "current-checks/run-remaining.py",
+      "bytes": 2029,
+      "sha256": "9a2fd607c676b9f8dbc53d86b70584124a1bed60dbef86b47da6fc3a66e1e9dd"
+    },
+    {
+      "path": "current-checks/sources-before.json",
+      "bytes": 230749,
+      "sha256": "688f2c7c9217ebb75ae2c346b14c4b10b43f81165e95d449f97e0ae0853ad650"
+    },
+    {
+      "path": "current-checks/sources-final.json",
+      "bytes": 230749,
+      "sha256": "d9d88a4bee1ea6db20842af6eb38c990f1585ba7c1faeeafc8a6349bae2784a2"
+    },
+    {
+      "path": "current-checks/update_download.before.rs",
+      "bytes": 47174,
+      "sha256": "4d485b36344abbae5c37257e3717fcda1b136ac736c86a377d353fdb73448a1e"
+    },
+    {
+      "path": "current-checks/verify-staged.py",
+      "bytes": 2527,
+      "sha256": "7cb8abab402fe50ca0112b27b07f71f0de5a673e26aff8d2d9106e3a1c0ce125"
+    },
+    {
+      "path": "source-after/tauri/src-tauri/src/commands/update_download.rs",
+      "bytes": 46791,
+      "sha256": "898b09ec8aced2ee984f232200526ecaf76544e04e02a5450675da9425db8324"
+    },
+    {
+      "path": "source-before/tauri/src-tauri/src/commands/update_download.rs",
+      "bytes": 45902,
+      "sha256": "38cd1f808df7603135acbe04c435e36b27eeb03a911c1b1dd4fc8c989d2fa722"
+    }
+  ]
+}

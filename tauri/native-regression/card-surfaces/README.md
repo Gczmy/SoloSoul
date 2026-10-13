@@ -26,6 +26,17 @@ Debug `merge*DebugAssets` 自动运行构建脚本，生成专用 `src/debug/ass
 
 设备驱动两组各加入该用例，总计支持11/回退9项。API34 ARM64 专用模拟器20项通过；默认场景、背景像素不代表辅助功能、全部文本或多端矩阵完成。详见[Android补证](../../../docs/verification/rf121-android-native-checkpoint-2026-10-02.json)。
 
+`AndroidCardSurfaceInstrumentedTest#lightAndDarkHighTextContrastCardsRenderWithoutOverflow`
+是独立的 Android 高文字对比入口。它要求实际 `Settings.Secure.high_text_contrast_enabled`
+为 `1`，使用原生读取值交付同一生产 Card 测试页，逐主题前后核对系统状态、真实绘制、
+default/floating Card 的长文本、背景像素及正文对比度至少 4.5。默认入口继续要求原生值为 `0`；
+错误环境必须失败，不能当作 skip 或模拟 DOM flag 后通过。高对比输出使用 `rf121-hc-` 前缀，
+避免覆盖默认原件。
+
+外部驱动只在专用可恢复 AVD 上切换该设置，保留原始键存在状态/字面值、实际系统状态和
+私有目录前后快照，逐项恢复后才接受整组。Android 高文字对比不等同于 Windows forced-colors；
+本入口只证明真实组件在当前系统交付下的表现，不证明 MainActivity 的辅助功能订阅/传递或完整多端矩阵。
+
 ## Windows 独立验收
 
 `src-tauri/examples/windows_card_surfaces.rs` 复用生产 Windows 窗口配置与材质命令，仅注册合成页的测量报告。独立应用标识、窗口标签和新建输出目录中的 WebView2 profile 与正式客户端分离，不运行正式 setup，不访问账户、日志或插件。使用已有、默认关闭的 `native-perf` SDK 依赖，不新增依赖。

@@ -1,0 +1,93 @@
+{
+  "accepted": false,
+  "results": [
+    {
+      "mode": "supported",
+      "scenario": "baseline",
+      "exitCode": 1,
+      "accepted": false,
+      "elapsedSeconds": 63.9370078999782,
+      "restored": true,
+      "settingsBefore": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "settingsAfter": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "sourceAndApkHashesUnchanged": true,
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "21409bbdd4efbf08be9e38f1b503f613b9f62e2c2745f8903b7dbf6537b0625e"
+    },
+    {
+      "mode": "fallback",
+      "scenario": "baseline",
+      "exitCode": 1,
+      "accepted": false,
+      "elapsedSeconds": 62.69593129999703,
+      "restored": true,
+      "settingsBefore": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "settingsAfter": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "sourceAndApkHashesUnchanged": true,
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "bb2f90a10c188ada709eb53e59a227763e0295c4231828e00359ce6edf802569"
+    },
+    {
+      "mode": "supported",
+      "scenario": "cold",
+      "exitCode": 1,
+      "accepted": false,
+      "elapsedSeconds": 61.28519589998177,
+      "restored": true,
+      "settingsBefore": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "settingsAfter": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "sourceAndApkHashesUnchanged": true,
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "79b01d59559ea68b283913df5f6b336ffc162617619a31c4330e66167dc51689"
+    },
+    {
+      "mode": "fallback",
+      "scenario": "cold",
+      "exitCode": 1,
+      "accepted": false,
+      "elapsedSeconds": 63.83411729999352,
+      "restored": true,
+      "settingsBefore": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "settingsAfter": {
+        "blur": "null",
+        "night": "Night mode: no",
+        "fontScale": "1.0"
+      },
+      "sourceAndApkHashesUnchanged": true,
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "550e6e69e9baf73db1c30b43c5f2d64d174d4e36db7f25cd2a46c02e2016a528"
+    }
+  ],
+  "scope": "API35 baseline/cold in both native glass modes",
+  "fullHomeMatrixAccepted": false,
+  "api31Accepted": false,
+  "at": "2026-10-10T21:04:56.240340+00:00"
+}

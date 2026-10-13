@@ -1,0 +1,44 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF121_20261010",
+  "mode": "fallback",
+  "startedAt": "2026-10-10T20:19:15.502Z",
+  "tests": [
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "verifiesRequestedEnvironment",
+      "passed": true,
+      "seconds": 3.9
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu",
+      "passed": true,
+      "seconds": 4.785
+    },
+    {
+      "class": "AndroidCardSurfaceInstrumentedTest",
+      "method": "lightAndDarkCardsRenderWithoutOverflow",
+      "passed": false,
+      "error": "Native test failed or skipped",
+      "seconds": 7.835
+    }
+  ],
+  "passed": false,
+  "api": 35,
+  "abi": "x86_64",
+  "artifacts": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+      "sha256": "4f84d60e7740b9804ced6080e09cb35421a89f1d3c02de2faaecdede676da003"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug-androidTest.apk",
+      "sha256": "52a9b942f116e4fcb502b96305d18a023cd1ac047e3708164935c60c7f9f22c0"
+    }
+  ],
+  "error": "AndroidCardSurfaceInstrumentedTest#lightAndDarkCardsRenderWithoutOverflow: Native test failed or skipped",
+  "count": 3,
+  "successes": 2,
+  "finishedAt": "2026-10-10T20:19:35.317Z"
+}

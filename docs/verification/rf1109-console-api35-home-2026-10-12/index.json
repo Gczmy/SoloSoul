@@ -1,0 +1,354 @@
+{
+  "archive": "raw.tar.gz",
+  "archiveSha256": "9ee6edd7617f07c0e41c2f88f9494dfac14594d3512794004cd159ff5d475464",
+  "memberCount": 69,
+  "members": [
+    {
+      "path": "boot/boot.receipt.json",
+      "bytes": 3903,
+      "sha256": "8a2726aae0ac6feffd3363537ea590372bc808068815fbb96c832b25d332e804"
+    },
+    {
+      "path": "boot/emulator.live.json",
+      "bytes": 487,
+      "sha256": "40b4c605440f53120ca2588f93d211603033750ca41cdae9138d290ccd13077d"
+    },
+    {
+      "path": "boot/emulator.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "boot/emulator.stdout.log",
+      "bytes": 16973,
+      "sha256": "a13ca4d8692d11b5b14532eb272aeeb4270ddd9b26eff6a9d7bc2751daef2951"
+    },
+    {
+      "path": "boot/logcat-after-baseline-supported.log",
+      "bytes": 2918451,
+      "sha256": "bc4138e51a40a679ed6a4447d5686fecfecf4056f27a83b5695af54fa9441104"
+    },
+    {
+      "path": "boot/logcat-after-baseline-supported.receipt.json",
+      "bytes": 352,
+      "sha256": "14357bb51f1b3293844241743ece7a047aa9421469b645dfd88ab730db197c6e"
+    },
+    {
+      "path": "boot/owned-processes-after-launch.json",
+      "bytes": 475,
+      "sha256": "74e5c0e92c8be58851009ea0e2ad771c6a3844bf874ae9a34715b630a3c3992a"
+    },
+    {
+      "path": "boot/process-preflight.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "boot/processes-after-owned-exit.json",
+      "bytes": 157,
+      "sha256": "a150723ec353903fd79566283ab42f2e743b00f93ab6a7ebdce540b7d010193f"
+    },
+    {
+      "path": "boot/stop.receipt.json",
+      "bytes": 801,
+      "sha256": "56c10372c2732b0a62f7f1ff0c1d9db3ab8a4674a4583cc84a761fae34f8fc2a"
+    },
+    {
+      "path": "boot/surfaceflinger.log",
+      "bytes": 28082,
+      "sha256": "2d2a9ddb803a44673382a318a3917b41bb15f3194f8cf17603023858a388e973"
+    },
+    {
+      "path": "boot/webview.log",
+      "bytes": 585,
+      "sha256": "31ce17661761b498d0dafbf2a7de392935a51b70d8ee98d6d11283453ce5b83c"
+    },
+    {
+      "path": "build-provenance/current-apks.json",
+      "bytes": 234969,
+      "sha256": "76c0a2a26c9710adacc558aaf8727d05fdf098c02f77587b9029347423b5d576"
+    },
+    {
+      "path": "build-provenance/rf1109-console-source-provenance-20261012.json",
+      "bytes": 469435,
+      "sha256": "b86619af94950114d4c0db539ad0883993aa02f1d98c1ffb8374ed5cacdee3a3"
+    },
+    {
+      "path": "build-provenance/source-and-checks-proof.json",
+      "bytes": 4552,
+      "sha256": "b7ce958c49cf106f70ee9c2bff739cf9818a6668a3f0a75e7ea40b5b79b6f9e6"
+    },
+    {
+      "path": "build-provenance/unchanged-native-assets.json",
+      "bytes": 18015,
+      "sha256": "2cf2fba9ea57cfced108331645ba3e6829c695560fbef7594ddee2089cae3112"
+    },
+    {
+      "path": "helpers/archive-rf1109-console-api35.py",
+      "bytes": 7592,
+      "sha256": "1fb625bd35306fb2d7dd60e76ce0859f5dffbfccc561bb88ddafd9ffb3581d6c"
+    },
+    {
+      "path": "helpers/boot-rf1109-api35-console.py",
+      "bytes": 4081,
+      "sha256": "f893b3253cc9ad0be3a2df90a9e6a4c46475f50d4f4fb533f73fd618742fa65b"
+    },
+    {
+      "path": "helpers/stop-rf1109-console-api35.py",
+      "bytes": 2732,
+      "sha256": "4aecc04df8f6fdc638b3dfc79fa18e4b383c2eff14b563537818e7f8e199f28d"
+    },
+    {
+      "path": "helpers/verify-rf1109-api35-home-console.py",
+      "bytes": 6723,
+      "sha256": "41cc8ee21adaf002e76eac94e5e31a04a33a381d9bdb67c31dd12b1e4f82b409"
+    },
+    {
+      "path": "native/baseline-fallback.live.json",
+      "bytes": 806,
+      "sha256": "251dfd229ab9aed6304c9be323735b8a7f7fd50888f3ac98a9538704a5c90a2c"
+    },
+    {
+      "path": "native/baseline-fallback.receipt.json",
+      "bytes": 584,
+      "sha256": "6b5ca3caea5041b9e57fb3d044b740fcf53a5e28094b4903607c4f0d2f2cf742"
+    },
+    {
+      "path": "native/baseline-fallback.stderr.log",
+      "bytes": 336,
+      "sha256": "00c34a3ea486e406ee98f560bb1a9c85ec12461e44d9c3bc5131ec68c5952db8"
+    },
+    {
+      "path": "native/baseline-fallback.stdout.log",
+      "bytes": 1521,
+      "sha256": "8eb700072e853fe954db3ce1bdf20d2f7409b16c1cee1041981ffbf366069c87"
+    },
+    {
+      "path": "native/baseline-fallback/device-files/failure.png",
+      "bytes": 112238,
+      "sha256": "cfe5b8b81e33e56db960a4dbc7e0602454fc068bdb5253bee9d1ae2e433da711"
+    },
+    {
+      "path": "native/baseline-fallback/device-files/local-light.png",
+      "bytes": 99476,
+      "sha256": "98459f482bb28086d850015462c3b6b3cefa4703e8e95ec799bd100d376edba8"
+    },
+    {
+      "path": "native/baseline-fallback/device-files/report.json",
+      "bytes": 4298,
+      "sha256": "2f356912dfb105b79ea8021effe5fe441f724b62c8806d79c84003786b8a2832"
+    },
+    {
+      "path": "native/baseline-fallback/junit.xml",
+      "bytes": 332,
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5"
+    },
+    {
+      "path": "native/baseline-fallback/native.log",
+      "bytes": 5747,
+      "sha256": "1dd801e9c6c3d2da8044f1107014c943902d824a348ad97aa3b916645cc866af"
+    },
+    {
+      "path": "native/baseline-fallback/report.json",
+      "bytes": 1521,
+      "sha256": "8eb700072e853fe954db3ce1bdf20d2f7409b16c1cee1041981ffbf366069c87"
+    },
+    {
+      "path": "native/baseline-supported.live.json",
+      "bytes": 808,
+      "sha256": "bc1c2bf221ab524903c1401ef00f4f3bbe17058163ed74c4c0f3a6211a6b24db"
+    },
+    {
+      "path": "native/baseline-supported.receipt.json",
+      "bytes": 585,
+      "sha256": "590ac15b592a3d561da6ee97ed287dc9f949dc70a7fb01ce03df0a1ad5fde20b"
+    },
+    {
+      "path": "native/baseline-supported.stderr.log",
+      "bytes": 337,
+      "sha256": "ddafdf0bf9cf58437d60a0a98d248686a9446c0301a2fd7a6393ce17aaf37931"
+    },
+    {
+      "path": "native/baseline-supported.stdout.log",
+      "bytes": 1524,
+      "sha256": "2a80eaf090f85302f039b102438cbb4a378c70dda84190a4f6c7e2a3c4871094"
+    },
+    {
+      "path": "native/baseline-supported/device-files/failure.png",
+      "bytes": 112090,
+      "sha256": "b3adbcaa766b3a619de9826cf03141283b42ec584bef341f998810d05ad8f155"
+    },
+    {
+      "path": "native/baseline-supported/device-files/local-light.png",
+      "bytes": 99788,
+      "sha256": "aa562d4cb8f71d5f57cc0ab98c905d1eef2b0a324da2944df2717e4e7bd58f3d"
+    },
+    {
+      "path": "native/baseline-supported/device-files/report.json",
+      "bytes": 4298,
+      "sha256": "a0aa3d51ee38a0198b70d7f44e56dbccdcf399e1bc1efd4022ebf97dde043c59"
+    },
+    {
+      "path": "native/baseline-supported/junit.xml",
+      "bytes": 332,
+      "sha256": "5ece2de917690757b119f22ccad3bad3a4367c4c6ad5cf0230f6be8c46d231d5"
+    },
+    {
+      "path": "native/baseline-supported/native.log",
+      "bytes": 5747,
+      "sha256": "ec3efcd7c721bf7cf2de99f101e2c2e3b603149d2606602ac53fdc9945d5da91"
+    },
+    {
+      "path": "native/baseline-supported/report.json",
+      "bytes": 1524,
+      "sha256": "2a80eaf090f85302f039b102438cbb4a378c70dda84190a4f6c7e2a3c4871094"
+    },
+    {
+      "path": "native/cold-fallback.live.json",
+      "bytes": 827,
+      "sha256": "35993d8883e2c0fa1ce69bc1e6409e5264b2f70cf591a05355a4b2c90b301e52"
+    },
+    {
+      "path": "native/cold-fallback.receipt.json",
+      "bytes": 580,
+      "sha256": "dd08576ccba2d4c88f56787d7b0751f3ba26b5c31678e3c6e220980ea6f1566f"
+    },
+    {
+      "path": "native/cold-fallback.stderr.log",
+      "bytes": 332,
+      "sha256": "d175c8cea00e76e806fa87d6b14ce931286cbd386b33a61bfd3768771bb15f52"
+    },
+    {
+      "path": "native/cold-fallback.stdout.log",
+      "bytes": 1571,
+      "sha256": "8b6595d2f4634a80398c07a4cf18f06f2d4657324f3d3fdbb3a0fa97018cb3ef"
+    },
+    {
+      "path": "native/cold-fallback/device-files/failure.png",
+      "bytes": 112071,
+      "sha256": "15737f2f6f2efe46c9f90f54847720cd79c00d12e1ffa3e824f43708864f7bea"
+    },
+    {
+      "path": "native/cold-fallback/device-files/local-light.png",
+      "bytes": 99704,
+      "sha256": "40b39f8e65f9b7f7242d2393a2c687290be5b8d26c527e4442a83cae645b92ef"
+    },
+    {
+      "path": "native/cold-fallback/device-files/report.json",
+      "bytes": 4423,
+      "sha256": "bf4287fcefaf3c6a6df13cc65aad8c8dd70165490f816c55129c7f4eb58d0bb3"
+    },
+    {
+      "path": "native/cold-fallback/junit.xml",
+      "bytes": 533,
+      "sha256": "070bd0dd7447ba42c1cb97a39f8901b10f5004255c56fa8822af6571be6850a7"
+    },
+    {
+      "path": "native/cold-fallback/native.log",
+      "bytes": 5747,
+      "sha256": "5d19da8d0ddfdecb547d448f38f73cdcfcfe4cda185b17ac892dc0a037ce7c25"
+    },
+    {
+      "path": "native/cold-fallback/report.json",
+      "bytes": 1571,
+      "sha256": "8b6595d2f4634a80398c07a4cf18f06f2d4657324f3d3fdbb3a0fa97018cb3ef"
+    },
+    {
+      "path": "native/cold-supported.live.json",
+      "bytes": 829,
+      "sha256": "41a31ca5e7c5f57ba4d14d75635e5526201a005532abdd251496c3b870bc6513"
+    },
+    {
+      "path": "native/cold-supported.receipt.json",
+      "bytes": 581,
+      "sha256": "7cf3de23c631411eb6a26785cae7ebd36fe8f5653979d214f91fdc93787c9243"
+    },
+    {
+      "path": "native/cold-supported.stderr.log",
+      "bytes": 333,
+      "sha256": "8276de3a0bbbdeb9a80f5f4536f81090361cef421e0f080aa7525ab639c42941"
+    },
+    {
+      "path": "native/cold-supported.stdout.log",
+      "bytes": 1572,
+      "sha256": "72ed775a8eddca1e3e48d23a86c4b079314f8a543a2c591b37b357cd1b72f119"
+    },
+    {
+      "path": "native/cold-supported/device-files/failure.png",
+      "bytes": 112306,
+      "sha256": "1b4838adcf5775be77909bc94f2f0fb4f9679f99b29e6ae937f75e49eb7994c2"
+    },
+    {
+      "path": "native/cold-supported/device-files/local-light.png",
+      "bytes": 99705,
+      "sha256": "d1e48246c63dd2d557e1ab5dfecbea77a555de639431bc1d6e695575ce369879"
+    },
+    {
+      "path": "native/cold-supported/device-files/report.json",
+      "bytes": 4423,
+      "sha256": "e306680d93bb665f2663ec343f4ddbd5dda2f837c13c0a344d03f4bbdafdd21d"
+    },
+    {
+      "path": "native/cold-supported/junit.xml",
+      "bytes": 533,
+      "sha256": "070bd0dd7447ba42c1cb97a39f8901b10f5004255c56fa8822af6571be6850a7"
+    },
+    {
+      "path": "native/cold-supported/native.log",
+      "bytes": 5747,
+      "sha256": "0cff315062c2d1aed1b6495226302937764efba1facabf25c0efc58170f14ab6"
+    },
+    {
+      "path": "native/cold-supported/report.json",
+      "bytes": 1572,
+      "sha256": "72ed775a8eddca1e3e48d23a86c4b079314f8a543a2c591b37b357cd1b72f119"
+    },
+    {
+      "path": "native/independent-validation.json",
+      "bytes": 6147,
+      "sha256": "a5b2d12977e3c064d43e70302dfc1826632315a3f455258b18ecea4b1c986c5e"
+    },
+    {
+      "path": "native/input-proof.json",
+      "bytes": 471967,
+      "sha256": "63c2a3e4a615a4a938bcbca56b95596e91012c07ea87ef9c82f970527551eb66"
+    },
+    {
+      "path": "native/owned-emulator-preflight.json",
+      "bytes": 531,
+      "sha256": "2f663dc98cc95ceecc5dc2dd0eb1af54d4b12c33e6606ea717d4ec1cddb5679b"
+    },
+    {
+      "path": "native/verification.json",
+      "bytes": 2937,
+      "sha256": "5dea14970ee82c889cd9b512e4846162cfe6c1dfc982fed2ccee73afc286395f"
+    },
+    {
+      "path": "native/visual-review.json",
+      "bytes": 551,
+      "sha256": "1fbc064a866d49fdc9691c54eeb88ef0998b5b89ba82d502219479f34392c81d"
+    },
+    {
+      "path": "source/tauri/scripts/android-home-native-regression.py",
+      "bytes": 52575,
+      "sha256": "952fda0c10b42e6178d0326166626148c801047fe7adf84c6f68e2b47ed00817"
+    },
+    {
+      "path": "source/tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt",
+      "bytes": 144144,
+      "sha256": "ff485fd1a2de8cb1e99a6c1524d9256d0d49f81fbe83ae0905b3b0255cb07ca7"
+    },
+    {
+      "path": "source/tauri/src-tauri/src/lib.rs",
+      "bytes": 29769,
+      "sha256": "d300f92f2770ccdbef1f8c48153d921853fea5f4234f72a50df00658b28ed8c8"
+    },
+    {
+      "path": "source/tauri/src-tauri/src/native_perf.rs",
+      "bytes": 37120,
+      "sha256": "7f38ce5dbc4d025c989543773ab6e4e08419f69adb02187ce5a558f0c381e73e"
+    }
+  ],
+  "allMembersReadBackVerified": true,
+  "privateBackupsAndApksExcluded": true
+}

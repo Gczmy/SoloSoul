@@ -1,0 +1,62 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF121_20261010",
+  "mode": "supported",
+  "startedAt": "2026-10-10T20:32:53.625Z",
+  "tests": [
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "verifiesRequestedEnvironment",
+      "passed": true,
+      "seconds": 4.139
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "nativeMenuSelectsExactlyOnceAndPauseCancels",
+      "passed": true,
+      "seconds": 6.754
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "cancelledRequestCannotReopenAndBackCancelDoesNotNavigate",
+      "passed": true,
+      "seconds": 5.109
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "systemDisablingBlurKeepsExistingMenuReadable",
+      "passed": true,
+      "seconds": 5.443
+    },
+    {
+      "class": "AndroidCardSurfaceInstrumentedTest",
+      "method": "lightAndDarkCardsRenderWithoutOverflow",
+      "passed": true,
+      "seconds": 8.164
+    },
+    {
+      "class": "AndroidCardSurfaceInstrumentedTest",
+      "method": "sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing",
+      "passed": false,
+      "error": "Native test failed or skipped",
+      "seconds": 12.218
+    }
+  ],
+  "passed": false,
+  "api": 35,
+  "abi": "x86_64",
+  "artifacts": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+      "sha256": "4f84d60e7740b9804ced6080e09cb35421a89f1d3c02de2faaecdede676da003"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\card-visual-state-test-build2\\app-x86_64-debug-androidTest.apk",
+      "sha256": "01869484acb25c8c907972a5ccc7c4d8f6f6919636463c29ddb3a8e1bce2d7ff"
+    }
+  ],
+  "error": "AndroidCardSurfaceInstrumentedTest#sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing: Native test failed or skipped",
+  "count": 6,
+  "successes": 5,
+  "finishedAt": "2026-10-10T20:33:38.238Z"
+}

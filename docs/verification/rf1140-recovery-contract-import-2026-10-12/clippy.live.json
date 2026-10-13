@@ -1,0 +1,1 @@
+{"pid": 14988, "command": ["cargo", "clippy", "--locked", "--offline", "-p", "solo_soul", "--all-targets", "--features", "native-perf", "--", "-D", "warnings"], "at": "2026-10-12T22:30:36.645121+00:00"}

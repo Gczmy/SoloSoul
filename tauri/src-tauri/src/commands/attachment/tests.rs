@@ -593,6 +593,7 @@ fn test_decrypt_to_temp_dir_unique_and_delayed_cleanup() {
         &att_key,
         &src,
         "a.pdf",
+        tmp.path(),
         "solosoul_open",
         Duration::from_secs(30 * 60),
     )
@@ -601,13 +602,14 @@ fn test_decrypt_to_temp_dir_unique_and_delayed_cleanup() {
         &att_key,
         &src,
         "a.pdf",
+        tmp.path(),
         "solosoul_open",
         Duration::from_secs(30 * 60),
     )
     .unwrap();
     assert_ne!(d1.parent(), d2.parent(), "每次调用应生成独立子目录");
     assert!(d1.exists() && d2.exists());
-    assert!(d1.starts_with(std::env::temp_dir().join("solosoul_open")));
+    assert!(d1.starts_with(tmp.path().join("solosoul_open")));
     // 内容解密一致
     assert_eq!(
         solosoul_core::attachment_crypto::read_file_decrypted(&att_key, &d1, 10_000).unwrap(),
@@ -619,6 +621,7 @@ fn test_decrypt_to_temp_dir_unique_and_delayed_cleanup() {
         &att_key,
         &src,
         "b.bin",
+        tmp.path(),
         "solosoul_open",
         Duration::from_millis(300),
     )
@@ -628,6 +631,63 @@ fn test_decrypt_to_temp_dir_unique_and_delayed_cleanup() {
     std::thread::sleep(Duration::from_millis(900));
     assert!(!d3.exists(), "grace 过后临时明文应被删除");
     assert!(!parent.exists(), "grace 过后子目录应被删除");
+}
+
+#[test]
+fn test_decrypt_to_temp_dir_uses_private_base_for_encrypted_attachment() {
+    let tmp = tempfile::tempdir().unwrap();
+    let plain_path = tmp.path().join("public-input.pdf");
+    let cipher_path = tmp.path().join("encrypted.pdf");
+    let plain = b"public synthetic PDF bytes";
+    let key = [0x36u8; 32];
+    std::fs::write(&plain_path, plain).unwrap();
+    solosoul_core::attachment_crypto::encrypt_file_stream(&key, &plain_path, &cipher_path).unwrap();
+    let cipher_before = std::fs::read(&cipher_path).unwrap();
+    std::fs::remove_file(plain_path).unwrap();
+    let cache = tmp.path().join("private-app-cache");
+    let opened = decrypt_to_temp_dir(
+        &key,
+        &cipher_path,
+        "public.pdf",
+        &cache,
+        "solosoul_open",
+        Duration::from_secs(30 * 60),
+    )
+    .unwrap();
+    let shared = decrypt_to_temp_dir(
+        &key,
+        &cipher_path,
+        "public.pdf",
+        &cache,
+        "solosoul_share",
+        Duration::from_secs(30 * 60),
+    )
+    .unwrap();
+    assert!(opened.starts_with(cache.join("solosoul_open")));
+    assert!(shared.starts_with(cache.join("solosoul_share")));
+    assert_ne!(opened.parent(), shared.parent());
+    assert_eq!(std::fs::read(&opened).unwrap(), plain);
+    assert_eq!(std::fs::read(&shared).unwrap(), plain);
+    assert_eq!(std::fs::read(cipher_path).unwrap(), cipher_before);
+}
+
+#[test]
+fn test_decrypt_to_temp_dir_unavailable_base_does_not_fall_back() {
+    let tmp = tempfile::tempdir().unwrap();
+    let unavailable = tmp.path().join("not-a-directory");
+    std::fs::write(&unavailable, b"occupied").unwrap();
+    let error = decrypt_to_temp_dir(
+        &[0x36u8; 32],
+        &tmp.path().join("never-read.pdf"),
+        "public.pdf",
+        &unavailable,
+        "solosoul_open",
+        Duration::ZERO,
+    )
+    .unwrap_err();
+    assert!(error.starts_with("Failed to prepare temp dir:"));
+    assert_eq!(std::fs::read(unavailable).unwrap(), b"occupied");
+    assert_eq!(std::fs::read_dir(tmp.path()).unwrap().count(), 1);
 }
 
 // ── resolve_verified_attachment_path（attachment_open / attachment_share 共享路径） ──

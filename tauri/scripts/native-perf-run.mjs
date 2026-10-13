@@ -434,6 +434,11 @@ do {
     $pidValue = [int]$row.ProcessId
     if ($owned.ContainsKey($pidValue) -or !$owned.ContainsKey($parent)) { continue }
     if ($confirmedAbsent.ContainsKey($pidValue)) { continue }
+    # 父 PID 可复用；出生早于已核验父实例的历史候选，即使路径不可读也不是当前后代。
+    if ($row.CreationDate) {
+      $candidateCreated = ([DateTimeOffset]$row.CreationDate.ToUniversalTime()).ToUnixTimeMilliseconds()
+      if ($candidateCreated -lt $owned[$parent].creationMs) { continue }
+    }
     $child = Identity $row
     if (!$child -and $action -eq 'memory-series') {
       # startup CIM 行可能先出现 PID，随后才有路径。每个缺字段候选至多复核一次，绝不读取未核验进程内存。

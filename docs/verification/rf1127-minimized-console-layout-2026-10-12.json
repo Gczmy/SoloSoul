@@ -1,0 +1,307 @@
+{
+  "task": "RF-1127",
+  "accepted": false,
+  "sameCurrentGuiSha256": "2371a33f745a99011d8db5e186f8af5b1a5a0b3dda431026b39b8670ceab0b20",
+  "sourceCount": 1843,
+  "requestedCohorts": 4,
+  "executedCohorts": 3,
+  "groups": [
+    {
+      "scene": "baseline",
+      "captureExitCode": 0,
+      "readerExitCode": 0,
+      "rendererExitCode": 0,
+      "captureBindingsPassed": 3,
+      "sdkJourneysPassed": 3,
+      "samplesRequested": 3,
+      "failedBindings": []
+    },
+    {
+      "scene": "light-collapsed",
+      "captureExitCode": 0,
+      "readerExitCode": 0,
+      "rendererExitCode": 0,
+      "captureBindingsPassed": 3,
+      "sdkJourneysPassed": 3,
+      "samplesRequested": 3,
+      "failedBindings": []
+    },
+    {
+      "scene": "dark-expanded",
+      "captureExitCode": 1,
+      "readerExitCode": null,
+      "rendererExitCode": null,
+      "captureBindingsPassed": 2,
+      "sdkJourneysPassed": 2,
+      "samplesRequested": 3,
+      "failedBindings": [
+        {
+          "index": 3,
+          "root": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-current-minimized-20261012\\actual100\\sample-003",
+          "success": false,
+          "diagnosticOnly": true,
+          "performanceMetrics": null,
+          "errorCategory": "AssertionError",
+          "error": "",
+          "traceback": "Traceback (most recent call last):\n  File \"D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\run-rf1127-current-minimized.py\", line 231, in watch\n    assert after['stable'] is True and after['applicationMaterialAccepted'] is False\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+          "errno": null,
+          "winerror": null
+        }
+      ]
+    }
+  ],
+  "successfulSamplesNotSpliced": true,
+  "manuallyInspected": [
+    {
+      "scene": "baseline",
+      "index": 1,
+      "pngSha256": "73c4df5635350dca7675c2822ff537e2af2be9bcd5369271763fd6c88589e1b8",
+      "manuallyInspected": true,
+      "observed": "correct light theme, expected expanded/collapsed sidebar, coherent content/appbar/card palette, no foreign-window pixels; OCR completion banner present in some frames"
+    },
+    {
+      "scene": "baseline",
+      "index": 2,
+      "pngSha256": "73c4df5635350dca7675c2822ff537e2af2be9bcd5369271763fd6c88589e1b8",
+      "manuallyInspected": true,
+      "observed": "correct light theme, expected expanded/collapsed sidebar, coherent content/appbar/card palette, no foreign-window pixels; OCR completion banner present in some frames"
+    },
+    {
+      "scene": "baseline",
+      "index": 3,
+      "pngSha256": "e0859a45c548e9f31f59c9916fba80cc2b3a4ba6c006cf17f3acb3a08af855ec",
+      "manuallyInspected": true,
+      "observed": "correct light theme, expected expanded/collapsed sidebar, coherent content/appbar/card palette, no foreign-window pixels; OCR completion banner present in some frames"
+    },
+    {
+      "scene": "light-collapsed",
+      "index": 1,
+      "pngSha256": "bdc2a1c13f67840e16a212554341ae2cec6cbfc911ebe55be20da40e741dde69",
+      "manuallyInspected": true,
+      "observed": "correct light theme, expected expanded/collapsed sidebar, coherent content/appbar/card palette, no foreign-window pixels; OCR completion banner present in some frames"
+    },
+    {
+      "scene": "light-collapsed",
+      "index": 2,
+      "pngSha256": "49cbc4d858cc17beaf7a899be1a9a6db25298ad10c27064a9c5533ae7e1eb853",
+      "manuallyInspected": true,
+      "observed": "correct light theme, expected expanded/collapsed sidebar, coherent content/appbar/card palette, no foreign-window pixels; OCR completion banner present in some frames"
+    },
+    {
+      "scene": "light-collapsed",
+      "index": 3,
+      "pngSha256": "49cbc4d858cc17beaf7a899be1a9a6db25298ad10c27064a9c5533ae7e1eb853",
+      "manuallyInspected": true,
+      "observed": "correct light theme, expected expanded/collapsed sidebar, coherent content/appbar/card palette, no foreign-window pixels; OCR completion banner present in some frames"
+    }
+  ],
+  "failureStateDifferences": {
+    "atMs": {
+      "before": 13426.69999998808,
+      "after": 14440.399999976158
+    },
+    "surfaces": {
+      "before": {
+        "appbar": {
+          "background": [
+            31,
+            28,
+            24,
+            1
+          ],
+          "radius": 12,
+          "rect": [
+            186,
+            0,
+            1006,
+            40
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        "card": {
+          "background": [
+            42,
+            38,
+            32,
+            1
+          ],
+          "radius": 12,
+          "rect": [
+            326,
+            112,
+            720,
+            84
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        "content": {
+          "background": [
+            31,
+            28,
+            24,
+            1
+          ],
+          "radius": 0,
+          "rect": [
+            186,
+            88,
+            1006,
+            704
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        "navigation": {
+          "background": [
+            0,
+            0,
+            0,
+            0.45
+          ],
+          "radius": 0,
+          "rect": [
+            0,
+            0,
+            186,
+            800
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        }
+      },
+      "after": {
+        "appbar": {
+          "background": [
+            31,
+            28,
+            24,
+            1
+          ],
+          "radius": 12,
+          "rect": [
+            186,
+            0,
+            1006,
+            40
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        "card": {
+          "background": [
+            42,
+            38,
+            32,
+            1
+          ],
+          "radius": 12,
+          "rect": [
+            326,
+            64,
+            720,
+            84
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        "content": {
+          "background": [
+            31,
+            28,
+            24,
+            1
+          ],
+          "radius": 0,
+          "rect": [
+            186,
+            40,
+            1006,
+            752
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        "navigation": {
+          "background": [
+            0,
+            0,
+            0,
+            0.45
+          ],
+          "radius": 0,
+          "rect": [
+            0,
+            0,
+            186,
+            800
+          ],
+          "text": [
+            255,
+            255,
+            255,
+            1
+          ]
+        }
+      }
+    }
+  },
+  "failureMatchesOcrBannerDismissalGeometry": true,
+  "causeStatus": "actual geometry shift proved; OCR timer attribution inferred from canonical banner code, not a recorded banner lifecycle",
+  "nativeWindowRestorePassedForAll9": true,
+  "darkSample003ThemeAndPreferenceRestorePassed": true,
+  "fullMatrixAccepted": false,
+  "RF1127Closed": false,
+  "RF1128Closed": false,
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "cleanup": {
+    "task": "RF-1127",
+    "at": "2026-10-12T11:43:24.4663517Z",
+    "identitiesChecked": 81,
+    "matchingOwnedIdentitiesLive": 0,
+    "processesTerminatedByThisTool": 0,
+    "removedCachePaths": 72,
+    "linksUnlinked": 9,
+    "preservedVaultAndRootFiles": 447,
+    "applicationLogs": 9,
+    "preservedBytesVerified": true
+  },
+  "previousRounds": "rf1127-current-console-restoration-2026-10-12.json",
+  "archive": {
+    "path": "rf1127-minimized-console-layout-2026-10-12/raw.tar.gz",
+    "members": 494,
+    "sha256": "c3a735bd612158641d7e7c6b8afe3daf04d80be97acc5867067c218758d2e1cf",
+    "bytes": 1713593,
+    "allMembersReadbackVerified": true
+  }
+}

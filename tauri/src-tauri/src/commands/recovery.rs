@@ -17,7 +17,7 @@ use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, Rec
 use solosoul_vault::ImportSourceKind;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use tauri::{Emitter, Manager, State};
+use tauri::{Emitter, State};
 
 /// 从 VaultService 读取当前解锁账户的名称。
 fn get_current_account_name(state: &AppState, account_id: &str) -> Result<String, String> {
@@ -74,11 +74,8 @@ pub async fn recovery_host_start(
         let host_cancel_for_thread = host_cancel.clone();
 
         // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
-        #[cfg(desktop)]
         let mdns_instance_name =
             advertise_recovery_mdns(&app, &info.fingerprint, &info.display_addr).await?;
-        #[cfg(not(desktop))]
-        let mdns_instance_name: Option<String> = None;
 
         {
             let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
@@ -172,6 +169,8 @@ async fn advertise_recovery_mdns(
     fingerprint: &str,
     display_addr: &str,
 ) -> Result<Option<String>, String> {
+    use tauri::Manager;
+
     let daemon_state = app.state::<crate::commands::discovery::SharedDaemon>();
     let daemon_arc = daemon_state.get().await?;
     let guard = daemon_arc.lock().await;
@@ -241,6 +240,8 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Back
                     }
                 }
             }
+            #[cfg(not(desktop))]
+            drop(instance_name);
         }
 
         if let Some(thread) = thread {

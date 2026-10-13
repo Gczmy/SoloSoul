@@ -1,0 +1,44 @@
+{
+  "task": "RF-1128",
+  "accepted": false,
+  "taskClosed": false,
+  "currentNativeFourByThreePassed": true,
+  "nativeReference": "rf1133-surface-readiness-2026-10-12.json",
+  "readerSha256Unchanged": "9274f04c86b447ddfbbbb9ea3eca8a69ee0a5f1ce69b0b4df759c2eb53d9f1b1",
+  "localRouteProbe": {
+    "task": "RF-1128",
+    "scope": "owned local fixture creation capability only; actual native NTFS file-symlink gate remains mandatory",
+    "expectedNativeSymlinkTag": "0xa000000c",
+    "systemSettingsChanged": false,
+    "privilegesChanged": false,
+    "accepted": false,
+    "command": [
+      "wsl.exe",
+      "-d",
+      "Ubuntu-22.04",
+      "--exec",
+      "/usr/bin/ln",
+      "-s",
+      "published.json",
+      "/mnt/d/SoloSoul/build/rf121-theme-binding-20261010/rf1128-wsl-link-probe-20261012/alias.json"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 3.683513199968729,
+    "reparseTag": "0xa000001d",
+    "attributes": 1056,
+    "windowsIsSymlink": false,
+    "errorClass": "AssertionError",
+    "error": "Not an actual standard Windows file symlink",
+    "ownedAliasUnlinked": true,
+    "publicTargetUnchanged": true
+  },
+  "standardWindowsFileSymlinkCoverageAccepted": false,
+  "linuxReparseLinkNotSubstitutedForWindowsSymlink": true,
+  "remaining": "original actual file-symlink case requires missing SeCreateSymbolicLinkPrivilege; installed WSL produces a different Linux reparse tag",
+  "archive": {
+    "path": "rf1128-local-link-route-2026-10-12/raw.tar.gz",
+    "members": 6,
+    "sha256": "6d55209f75fe516af56cb75a3d878abc168178ed519f6f9715d23a6f13f7b440",
+    "allMembersReadbackVerified": true
+  }
+}

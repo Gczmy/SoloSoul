@@ -1,0 +1,55 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF121_API31_20261010",
+  "mode": "fallback",
+  "scenario": "accounts",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791672726.0923982,
+  "passed": true,
+  "restored": true,
+  "requestedFontScale": null,
+  "api": 31,
+  "abi": "x86_64",
+  "artifacts": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+      "sha256": "4f84d60e7740b9804ced6080e09cb35421a89f1d3c02de2faaecdede676da003"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1114-account-stable-frame-test-build2\\app-x86_64-debug-androidTest.apk",
+      "sha256": "1fbaeee1042d8559c2d40491651070627cc77622299882f48869f6df077185bb"
+    }
+  ],
+  "backup": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1114-account-stable-frame-native-round2\\accounts-fallback\\private-data-before.tar",
+    "sha256": "47e51372ce67e5db1418e67a0040545c82f93b6eeadf4b9ff9354d0276d9a919",
+    "entries": 2
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "account-a-custom-dark",
+    "account-b-custom-light",
+    "account-a-after-switch",
+    "account-b-after-switch",
+    "account-a-after-second-switch",
+    "account-preferences-isolated"
+  ],
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 2,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "finishedAt": 1791672776.5467765
+}

@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-10T18:54:33.3330117Z",
+  "scope": "Owned API35 emulator and private ADB server; read-only live identities",
+  "processes": [
+    {
+      "Name": "adb.exe",
+      "ProcessId": 24228,
+      "ParentProcessId": 10496,
+      "CreationDate": "2026-10-10T19:45:17.375105+01:00",
+      "ExecutablePath": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+      "CommandLine": "adb -L tcp:localhost:5049 fork-server server --reply-fd 704 --one-device emulator-5586"
+    },
+    {
+      "Name": "emulator.exe",
+      "ProcessId": 26600,
+      "ParentProcessId": 8816,
+      "CreationDate": "2026-10-10T19:45:18.120485+01:00",
+      "ExecutablePath": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe",
+      "CommandLine": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe -avd SoloSoul_RF121_20261010 -port 5586 -accel on -gpu auto -memory 2048 -cores 2 -no-window -no-snapshot -no-audio -no-boot-anim"
+    }
+  ]
+}

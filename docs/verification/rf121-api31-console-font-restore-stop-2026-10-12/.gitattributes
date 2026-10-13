@@ -1,0 +1,2 @@
+raw.tar.gz -text
+cleanup-owned.ps1 text eol=lf

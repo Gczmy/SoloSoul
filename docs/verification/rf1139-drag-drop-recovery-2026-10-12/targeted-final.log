@@ -1,0 +1,9 @@
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+
+
+ Test Files  3 passed (3)
+      Tests  17 passed (17)
+   Start at  22:48:19
+   Duration  2.93s (transform 516ms, setup 605ms, import 538ms, tests 284ms, environment 2.84s)
+

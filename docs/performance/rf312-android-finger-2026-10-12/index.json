@@ -1,0 +1,664 @@
+{
+  "task": "RF-312",
+  "scope": "ordinary native finger event selection and strict draw readiness",
+  "archiveSha256": "8bff71aec2d4977c83c3d852531cb7d93d12216d8110f35fcd2991c6fca3082a",
+  "members": {
+    "orchestration/archive-rf312-finger-journey.py": {
+      "bytes": 7850,
+      "sha256": "3a07398622651bfbfb835666ebea50cf3bb18375b07d39845d899aa6701a23aa"
+    },
+    "orchestration/build-rf312-first-ocr-probe-round14.py": {
+      "bytes": 4287,
+      "sha256": "b4c519668a69be5121ee2dba44a971b8d38e92e351a787a2440eaee11de9f321"
+    },
+    "orchestration/build-rf312-first-ocr-probe-round15.py": {
+      "bytes": 4287,
+      "sha256": "c362346eaf43fea49f03e88f84fcdbd4705d89c679cc33e821ca25a422302b20"
+    },
+    "rf312-first-ocr-probe-round14-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 66945,
+      "sha256": "2cbed1e9de9d0513db2b3577fac1917b2faa86bf61b9f37ca1cd402f263f0812"
+    },
+    "rf312-first-ocr-probe-round14-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-first-ocr-probe-round14-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf312-first-ocr-probe-round14-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-first-ocr-probe-round14-20261012/current-test-apk.json": {
+      "bytes": 876,
+      "sha256": "e8b7b36c96c2f4c067be92f4ac3cc3d618bb3ed3828dc7a243cd07f75aecf7eb"
+    },
+    "rf312-first-ocr-probe-round14-20261012/dex-defined-classes.json": {
+      "bytes": 318342,
+      "sha256": "3e110641f1528f18390612a5d8345832f552cfffab510f1a2989e50505e24ef3"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1640,
+      "sha256": "03a67c6fae9602011e7dc035b4d085f97c897e8f25a795700dc08598d6ac4b0e"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 283,
+      "sha256": "beae859d8e7e5de07c44af5b3dbd48fef865a98f00001b6f3cfb191dc53646b1"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 486,
+      "sha256": "da24872ede86e355623c56003af61f9f30263ce52fa44ddaaf3eb33738026515"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 9950,
+      "sha256": "c8ede998c52e84c65e5ca82fee4be6d8457e2418d7776e67cc7b20a581749390"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27363,
+      "sha256": "b9c8c4c8cb2432593988f08608e1912458bc9a266576cb1e0aa067c2f56a0b85"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 160992,
+      "sha256": "1887e02bea9be9d759328f09b51d5f735e85019b1005979f96192b7a626f2605"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 113399,
+      "sha256": "e8e991ec7c1f3f1bb6ab8e65323764a130be0a2b50a0b5a61847f85c1e126a1c"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 111233,
+      "sha256": "44e702422b22321c9e40315e03d43fdb507b7c54e8335cc416cbe8bbcb11d672"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 124181,
+      "sha256": "8364607bc72a17689cd49b15bc3d02784abd5962537b7a134e740a9c8b8571c2"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50611,
+      "sha256": "28309c12b142d21c0e9815d4087fc4867dc51fa2a58e171b1fe0d16c80edca5f"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 32204,
+      "sha256": "baccbfab78b6d1a548c9bee04aab22c360ca7dc0e247db355cddf171ecae99fd"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46046,
+      "sha256": "4acc3bb44b46c32896157fd5f6e19a9ee736957fce9641d244b152d43a609ad7"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 101703,
+      "sha256": "2b947da4cd698fb06d6de5f10b466dfc8d00b5d5571275e776858c7da5e1a70a"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 110947,
+      "sha256": "5f35ee3e67978110df304a3d29c97018caf8d845c43b9d9f2aeb30d12e67bf81"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 110947,
+      "sha256": "5f35ee3e67978110df304a3d29c97018caf8d845c43b9d9f2aeb30d12e67bf81"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/failure-pdf-scanned-native-diagnostic.png": {
+      "bytes": 160999,
+      "sha256": "2f6feff112152aa396ac78c14adf346b7daf81873baad48a896743a7f0bae0f5"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 822479,
+      "sha256": "4d9d37de53c4d71b53654d4e046ebf354bc722c3dd922e57d81ddbc51134b251"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/native.log": {
+      "bytes": 5487,
+      "sha256": "4f6e1b4d5f5ae087818cc1f0b6134c1e9031e43f0432c3b86c66808e7c8b9e3c"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17296,
+      "sha256": "348b949f9c19be547799f709ca09d3ad768cf64126868d70fcce2a4ecd79e78f"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "97db79abebe19412b8bef8ada9f99fdc2980426576105dd8b13e24ed8caffc24"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "61d8d996a5a40000b785b4ad9e61fd42f6437c6b720a744a4d1675f2de0d65ed"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "92aed619ebf6a9721683396e90eae18dbcabdb24ba1a210c97743a0ac46cbec2"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17370,
+      "sha256": "d9ec543e1079cde1ea8f729d9a7766d1a33f9a3c02e621377b82d3429ec2f35b"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/report.json": {
+      "bytes": 9950,
+      "sha256": "c8ede998c52e84c65e5ca82fee4be6d8457e2418d7776e67cc7b20a581749390"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17389,
+      "sha256": "6c8c0dbf0961d4996d2d91fd0e9141bb2ecb33ab0417432791eb2d08a8014518"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "1ed805afc3ba25b9482cf2c9c4834413ae5cd359c430479a23e19c9a881e904a"
+    },
+    "rf312-first-ocr-probe-round14-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "4424fd811cb76cb8438438db932c33a56a60495435abd44613ad7334ff0ebef9"
+    },
+    "rf312-first-ocr-probe-round14-20261012/independent-restoration-audit.json": {
+      "bytes": 705,
+      "sha256": "62e62ae50ed558baa950e19b855df133dba405f54f6248be649b6e55b12f05c5"
+    },
+    "rf312-first-ocr-probe-round14-20261012/input-proof.json": {
+      "bytes": 238861,
+      "sha256": "36677db720ce2bc771f3c96e36e6e85f8c827068f1e8449f24dd60e13a382da8"
+    },
+    "rf312-first-ocr-probe-round14-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "b121c055a3fca9d9d757499e7b9cc439eae6abd9e7a655f51d104ec2f4003f0f"
+    },
+    "rf312-first-ocr-probe-round14-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-first-ocr-probe-round14-20261012/preparation-consumer-call-failure.json": {
+      "bytes": 191,
+      "sha256": "2d4d18d6b4d683779d6f305746af103ef7019cd41ae3557fbfb4a89d2544a7ac"
+    },
+    "rf312-first-ocr-probe-round14-20261012/private-backup-cleanup.json": {
+      "bytes": 73,
+      "sha256": "17b196bc166f7b293b30bbd06aae6a4192364b49ce1a4e1dfec81ef11a66e449"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-badging.live.json": {
+      "bytes": 317,
+      "sha256": "ce7df4a56b0e515939b9d93eb07ad031ce30b998daf3438bc847324bc2b5bc6a"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-badging.receipt.json": {
+      "bytes": 440,
+      "sha256": "3c842d20e4240827102576c48a303dd1b8e4a74d08c4552d9e968fe3f682afad"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-build.live.json": {
+      "bytes": 364,
+      "sha256": "d5b24fb9bc522d82bd74f7bdbe67c8981c9458984ed51e7ff2aad3ba4ecd82b3"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-build.receipt.json": {
+      "bytes": 485,
+      "sha256": "a3ca9480d85948b50235c01659f535629be63d101440a97900b9c52f6a741e6f"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-build.stdout.log": {
+      "bytes": 4391,
+      "sha256": "edab253eb06d90760dd026122ce5165ff4ce1b87a7635bb13b7bf94969d41f91"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-signature.live.json": {
+      "bytes": 425,
+      "sha256": "26401fc1f9b3f5423986134fa274f291c2500f0036cb2ed305ab69703373ed20"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-signature.receipt.json": {
+      "bytes": 547,
+      "sha256": "2fc09afab687bae66336834001412fd9a66fd6676da7922ac2c23ed959f61725"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf312-first-ocr-probe-round14-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic.live.json": {
+      "bytes": 1675,
+      "sha256": "14d20120822413dd2f78db6d87992a3bb08d3dfdf606d7c3c9fd8a931e0df378"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic.receipt.json": {
+      "bytes": 284,
+      "sha256": "c53d6e453ce0624c3930f303a71af70e0df3b2a02e4a38e261d80b2da36e55b4"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic.stderr.log": {
+      "bytes": 481,
+      "sha256": "7bd3598a658f8cb456c9b41d9253e7a72e870d882d8e957ef9baf391571440e9"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic.stdout.log": {
+      "bytes": 9949,
+      "sha256": "098fd088f5e4f5da887ea944b6357057670a560295fedb8bc3c98fba5433fb63"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/commands.json": {
+      "bytes": 27366,
+      "sha256": "0986334c6e432b2492fc0b40885b63a705e47012fb925a1f3d58d32f0526cd14"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46392,
+      "sha256": "4806da264851dec24c2f34d19044402073e19388329809eedb9387db06dde881"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/device-files/failure-picker-after-file-click.png": {
+      "bytes": 45920,
+      "sha256": "0deceac7e4edb5a916231f48ae194e5e89111dc095a882c65e5fc40f50887742"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/device-files/report.json": {
+      "bytes": 92018,
+      "sha256": "485352729b4d19250a0f4f96a115efb7010bb22fd0f05112bd96891a9c7e78b1"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/native.log": {
+      "bytes": 3830,
+      "sha256": "990c807314bd27a4cc744add87e7503b13fe023dd8b8c901191dd681f63d487c"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/original-main-package.log": {
+      "bytes": 17295,
+      "sha256": "fd1f06d3b2d58659ca96ec528a82fc38ba0ad17bff2bcf11a79ae192c67f8dc7"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "4a43d5dad31fa2a5c4ccd3b6556b3b25f4fa312a2a1121bbe4e967bf2ed08685"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "a42c82ac5362e6bd6a95bc2147557e63a00589cb64f6702c092cbbead89f9e56"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "4e7efbbee93d770dbb01b3283b5b0b0ae567ac3ef35540ac0b923fd4fbfc293c"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/release-main-package.log": {
+      "bytes": 17371,
+      "sha256": "c37b19ab49efcd04482aff154e0c13633c6ca42ab165cc8ce8e8a1c5193a0987"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/report.json": {
+      "bytes": 9949,
+      "sha256": "098fd088f5e4f5da887ea944b6357057670a560295fedb8bc3c98fba5433fb63"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/restored-main-package.log": {
+      "bytes": 17395,
+      "sha256": "f2dc998171cf10b368280ba16a755b940832198a2dab1725f176102dc728f3f2"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/restored-test-package.log": {
+      "bytes": 7585,
+      "sha256": "f065d5f23b9d85e98dd3dae7567872e6cd44e439fb9a10aef91ddcce3e0079df"
+    },
+    "rf312-first-ocr-probe-round14-20261012/red-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "caafe32ec3a82adc4afe6f9425166ca198a51dbfbe4afcb0a7d991c55d2799df"
+    },
+    "rf312-first-ocr-probe-round14-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3736,
+      "sha256": "5309893f925c952631b2fb21af0ab4fcd0fca240f5e49dc8b16970dde4ffc203"
+    },
+    "rf312-first-ocr-probe-round14-20261012/run-first-5000-diagnostic.py": {
+      "bytes": 3746,
+      "sha256": "02bc271e6cdab95b41bace5f4cd134f1933430648766623673561b324f5ed601"
+    },
+    "rf312-first-ocr-probe-round14-20261012/run-red-100-diagnostic.py": {
+      "bytes": 3755,
+      "sha256": "c9357558b377d891679079bd1ba0d5008d81ec99b7cfa9f81e662d8086dd4bbf"
+    },
+    "rf312-first-ocr-probe-round15-20261012/AndroidMediaPerfInstrumentedTest.kt": {
+      "bytes": 68273,
+      "sha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26"
+    },
+    "rf312-first-ocr-probe-round15-20261012/actual-build-tail.py": {
+      "bytes": 3822,
+      "sha256": "bb01d495b199626fb924055b6ab7efc6dcbe59a84628dbfba7395d727b13c1ee"
+    },
+    "rf312-first-ocr-probe-round15-20261012/all-finger-readiness-verification.json": {
+      "bytes": 468,
+      "sha256": "299a259dbb59370d0d498d9ed9dac9e9fa01940fa9f19a5334e530b1e9f6bd8c"
+    },
+    "rf312-first-ocr-probe-round15-20261012/complete.json": {
+      "bytes": 306,
+      "sha256": "62648fdf047c17d11670445959d114ff8964d0a881321486af5283e189541acc"
+    },
+    "rf312-first-ocr-probe-round15-20261012/current-runtime-sources.json": {
+      "bytes": 230931,
+      "sha256": "fbbb6e3533cbbe9626372e100a8286f9aea379b3869c7ab837bbd2706f8135c7"
+    },
+    "rf312-first-ocr-probe-round15-20261012/current-test-apk.json": {
+      "bytes": 876,
+      "sha256": "111119d298568264cc473c0f01af6ee43c1bcd3b88fa841aed50dd05c095760c"
+    },
+    "rf312-first-ocr-probe-round15-20261012/dex-defined-classes.json": {
+      "bytes": 318342,
+      "sha256": "3e110641f1528f18390612a5d8345832f552cfffab510f1a2989e50505e24ef3"
+    },
+    "rf312-first-ocr-probe-round15-20261012/finger-readiness-verifier-checks.json": {
+      "bytes": 1085,
+      "sha256": "c74683683b71d837195454027577b50436bc0480461b3ce55f790b39acb320d2"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic.live.json": {
+      "bytes": 1641,
+      "sha256": "72459074f566d0e176eaf71d6d1b8627b2506a1a8848e6628ae35ccd4065fb52"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic.receipt.json": {
+      "bytes": 282,
+      "sha256": "b4a327c400cd1d3e5a7159b9089fc043ed0666c977c11adb0fd6a695bf2b92f5"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic.stderr.log": {
+      "bytes": 486,
+      "sha256": "8221afb500fa9df38c831cc1ffb1075a6b6403467e586893aa54313e4a507382"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic.stdout.log": {
+      "bytes": 1391279,
+      "sha256": "65325c3252d4fda7438b0e92d8bb36672e9364c7a136fc4dbd61b2eb16119f93"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/commands.json": {
+      "bytes": 27360,
+      "sha256": "b3a2c4c35d9d85dd3d866cc4aab457ce08771efd76eccf9fe64c1accf9eccb6a"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 162646,
+      "sha256": "5e7674325c05bfa72c27547639a6d631022c9b745ca1eb5bc2b09780bef0c441"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 93511,
+      "sha256": "cec21de47f13e50ce4a430ba09b9ab7da694b3729319d65e7d5a3260a3b07e4f"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 113180,
+      "sha256": "e6c388bea818225f1b1f5dac40d2474b13a7854cfe6dad60fea32ab3705b86fe"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116173,
+      "sha256": "bdd2b8cc51668e0cce9c3b074eebd152a4c70eade57644d2821f8d4d269667cf"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 30774,
+      "sha256": "9367be66125e4793679fdfd064e5439f1f5a13215242aecd5d571dcdf8ace757"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46451,
+      "sha256": "413353d6436e3e0dd449a19c6f99b0fddda7af21ed9b781fb0202ee2f01b5352"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 111293,
+      "sha256": "4311d3055c75784bae385882c0fbc9f3c5f4aa404728e7dac3cad099fab589f7"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104659,
+      "sha256": "30c55cd67ee2076b72e444a3b1c3c481f8141dbca264605e8a6c94fb54ec7f8f"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104659,
+      "sha256": "30c55cd67ee2076b72e444a3b1c3c481f8141dbca264605e8a6c94fb54ec7f8f"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/device-files/report.json": {
+      "bytes": 1260188,
+      "sha256": "067e8f767595fdff05a18c17ebf7a9ac078f79daf745d6bf340405cec5a4be28"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "d5a59ea6ad25b9c8ef13a748c45d87a8c9703440e4483fd0d4be74fa05480260"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/original-main-package.log": {
+      "bytes": 17290,
+      "sha256": "830b636080a2cd6c2d0664ceb54815bf8cdff35d9e92e97c4c6bcf0391c77840"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/original-test-package.log": {
+      "bytes": 7587,
+      "sha256": "5562901ce0c256bc3f0960881add2908560e94bcba01f034a7a6e89b84914bdb"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "1257d406465170b243fd6611886f9f284cdb9d8731c3a800b6df91c6cdd4b548"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8296,
+      "sha256": "f2f8e6d7646c247bce8dfcb98e8c81199d1984dce44a66368ed7f7503e1db431"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/release-main-package.log": {
+      "bytes": 17364,
+      "sha256": "00fe7d2c37dd9f39da4ce8de708502f84afd86d3ef873a75c5063b47bb6866b6"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/report.json": {
+      "bytes": 1391279,
+      "sha256": "65325c3252d4fda7438b0e92d8bb36672e9364c7a136fc4dbd61b2eb16119f93"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/restored-main-package.log": {
+      "bytes": 17389,
+      "sha256": "548e5d0e26e014e126db6c4eb8ad890e14c3465dfeda2aa09745255406a2f395"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/restored-test-package.log": {
+      "bytes": 7586,
+      "sha256": "770093391e78048cd1e976fa0f4397118031407dd166197c05bc0df8cc94ebde"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-100-diagnostic/runtime-probe-package.log": {
+      "bytes": 8251,
+      "sha256": "9489479d66c2006f4b3243ef4fc3714752ab28425aff59c697dd65d8f3c703f2"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic.live.json": {
+      "bytes": 1644,
+      "sha256": "48a43e18afcb96f73a37f231204db3175ea6c72e83a6165860eb8fb1d80a2a6b"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic.receipt.json": {
+      "bytes": 281,
+      "sha256": "f30a415df1895a237f091738ea0503acafa0a14355387bd81fcc0da04a3d096a"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic.stderr.log": {
+      "bytes": 488,
+      "sha256": "a0bd398a5bb36cf6b1af2475f6f25a8c493e3ebb017043b6e63722888eeec41e"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic.stdout.log": {
+      "bytes": 1379023,
+      "sha256": "40be8da394ae71c75892bcb44e6b72b5b284d1ef861aebc49198874731a55ce8"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/commands.json": {
+      "bytes": 27379,
+      "sha256": "7309e3fb92ed52b867f37591c217960200b86e02cc65d76c246adc3aaa3a162c"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-attachments.png": {
+      "bytes": 179007,
+      "sha256": "32ad5b09dd45026fb505b9a29b9654f9b686315efee56e97cd90fe4024033de0"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-scanned.pdf.png": {
+      "bytes": 29182,
+      "sha256": "e5609c19f8a0d1874de2a3205db8f1a443087eac68dc4e42123665e12459b694"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-bitmap-text_only.pdf.png": {
+      "bytes": 5879,
+      "sha256": "618bc93dbd4af83a44fb9635c5b4c737ee8d981876ac7c764edefa0fc207644c"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result-visible.png": {
+      "bytes": 114263,
+      "sha256": "52d92f6809baa0eabf420b3095ee1ccbfe44990b4cfa18670446f08a0bcbfb30"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-first-ocr-result.png": {
+      "bytes": 112181,
+      "sha256": "59477f2d8131b02935823ad9a272756a70ede2148993ab29d6308c20fbfe5ce7"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-image-preview.png": {
+      "bytes": 116173,
+      "sha256": "bdd2b8cc51668e0cce9c3b074eebd152a4c70eade57644d2821f8d4d269667cf"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-native-scanned.pdf.png": {
+      "bytes": 50940,
+      "sha256": "48e52c0e7d9ba8a00a047e82ce60008aff89c28146f861405fdc28eabe14465b"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-native-second-text_only.pdf.png": {
+      "bytes": 31342,
+      "sha256": "e1e9127e7ddc5fb2fbbbf7a7edea717f817e130e6e2c2bc5cc9fe8fb48b3f753"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-native-text_only.pdf.png": {
+      "bytes": 26476,
+      "sha256": "3ead4e041e2c26baba8340df0bf32b455ebeb01ffc4253d7cab80be22b928e16"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-picker-known-file.png": {
+      "bytes": 46213,
+      "sha256": "b71fb67a94f5c2308b72afc1ee3e344a0e2e942ba489dbc284549b6c8fe7f747"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-search-results.png": {
+      "bytes": 69514,
+      "sha256": "df3742e3ae0008cc2fdf462751ebbe98696ac7953bd4b50f436d7903f5b80a4f"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-text-after-commit.png": {
+      "bytes": 104659,
+      "sha256": "30c55cd67ee2076b72e444a3b1c3c481f8141dbca264605e8a6c94fb54ec7f8f"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/diagnostic-text-before-commit.png": {
+      "bytes": 104659,
+      "sha256": "30c55cd67ee2076b72e444a3b1c3c481f8141dbca264605e8a6c94fb54ec7f8f"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/device-files/report.json": {
+      "bytes": 1248818,
+      "sha256": "a4cd59e21232d64084ce7f70a0c831051282c3b69899e52634cf779dd88f6010"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/native.log": {
+      "bytes": 914,
+      "sha256": "15e0eb8ac4695b6c5ddbdcf78b95f4386b180f87f89234c2c7914e67eee355a0"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/original-main-package.log": {
+      "bytes": 17289,
+      "sha256": "ebcfb8cc9294e3433260d82dcb9bb65ecf8504601ba47792c552202d47e3d818"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/original-test-package.log": {
+      "bytes": 7586,
+      "sha256": "ca948bd07cc65e173b55b22453e9a8cd599f75c1ff493ebd57cf518803e6a708"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/owned-public-image-media-before.log": {
+      "bytes": 136,
+      "sha256": "04f88f8109cc090646d742096c442d5c790d01d97397ff8b06702e09d2fbe3ae"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/probe-before-uninstall-package.log": {
+      "bytes": 8297,
+      "sha256": "afb06c21f9cc69eb915f9af278ecf465233bfd83d5a424ea2f5d25ac1df33a4a"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/release-main-package.log": {
+      "bytes": 17369,
+      "sha256": "ed52313172d2053984827d54e2c35e35c1363fcd76369696040b869988b5abd8"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/report.json": {
+      "bytes": 1379023,
+      "sha256": "40be8da394ae71c75892bcb44e6b72b5b284d1ef861aebc49198874731a55ce8"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/restored-main-package.log": {
+      "bytes": 17386,
+      "sha256": "7d3f457b7cfdf8f01b4776587e85bd126dce904d43fcef1ac6e800c0fdd315fc"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/restored-test-package.log": {
+      "bytes": 7586,
+      "sha256": "4a43e1b529e8f557ed43405341b7952cf7ea0461c5c54c53498e7c010771daaf"
+    },
+    "rf312-first-ocr-probe-round15-20261012/first-5000-diagnostic/runtime-probe-package.log": {
+      "bytes": 8252,
+      "sha256": "4f9c53ccc78d3ef38e3777382f6249cac767c0f7718421aed2e70ad8a4a94df4"
+    },
+    "rf312-first-ocr-probe-round15-20261012/independent-restoration-audit.json": {
+      "bytes": 566,
+      "sha256": "6d1e3cca4d58172394b976d202b8c7e652b8e232316e710a687c4a161842de05"
+    },
+    "rf312-first-ocr-probe-round15-20261012/input-proof.json": {
+      "bytes": 238861,
+      "sha256": "9efb362df50e7a28ed60fe486870c9a2bb507492c50dad8f3fed3c10963ee7ca"
+    },
+    "rf312-first-ocr-probe-round15-20261012/inputs.json": {
+      "bytes": 253866,
+      "sha256": "12e52046de55f2c6bafdab82b42115d59c45fdc79cfbd1cc5e8442b447f2cba4"
+    },
+    "rf312-first-ocr-probe-round15-20261012/media-native-driver.py": {
+      "bytes": 74978,
+      "sha256": "8b25daf5c18cdd6c6ac6eb21b3cba515f90be8aa4ca6eb34e9602217123ab634"
+    },
+    "rf312-first-ocr-probe-round15-20261012/private-backup-cleanup.json": {
+      "bytes": 84,
+      "sha256": "ee665a74dfa1603a8605881aedbd9b04f44f9b8093eeed7d19dadbbde336ea12"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-badging.live.json": {
+      "bytes": 318,
+      "sha256": "a0e2c5fe9e54d6e1b72f4baeedeaca046c5e87b2fb2641f16fcb4738a9ba658d"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-badging.receipt.json": {
+      "bytes": 440,
+      "sha256": "82710c871540f24cb5b71c2a5735480b7c52b6623f1de0de9bcd999828da8dbe"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-badging.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-badging.stdout.log": {
+      "bytes": 6167,
+      "sha256": "53009a31da5791fddc9ee1a62dde88b2036e967cdc5dbaa37b7910aa549495c9"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-build.live.json": {
+      "bytes": 363,
+      "sha256": "7097b744f4143d85e015ee0cb74c5b77d494bbc5a90bfb0757387bc9a5a37218"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-build.receipt.json": {
+      "bytes": 484,
+      "sha256": "4cb29d92282e82c1c4c82fa87ca1299cc11e0da159b954ef4b81847687ca24c1"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-build.stderr.log": {
+      "bytes": 431,
+      "sha256": "eb2b0b380e00add3aee6b40277eefd0cbe29aff7c818a582aece5b7186b5a152"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-build.stdout.log": {
+      "bytes": 4388,
+      "sha256": "38e4a4f6962889de5906feb2cf3d6499e30ac1492d30249cfb943482e1eaebdd"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-signature.live.json": {
+      "bytes": 426,
+      "sha256": "64423df808464518058973ae1619c24182d9b5ab03c88f258598a7d11ad4924e"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-signature.receipt.json": {
+      "bytes": 547,
+      "sha256": "5f00b21bfc046dd3d9063ef1a643bd0d12018a1ac84e798df350bb7d9674fdab"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-signature.stderr.log": {
+      "bytes": 180,
+      "sha256": "7cf027b9a5ccdde283878eef274d5e03239fcb08b97fa8851f586ea1cc4e18ce"
+    },
+    "rf312-first-ocr-probe-round15-20261012/probe-signature.stdout.log": {
+      "bytes": 972,
+      "sha256": "5f87b3f16a2339deb1d7569e0f8ec36a44ce117169dc92f9c5347b69affa4f73"
+    },
+    "rf312-first-ocr-probe-round15-20261012/run-first-100-diagnostic.py": {
+      "bytes": 3736,
+      "sha256": "1010fd43505c497f9cd47bf547061d0eb54aead16da5bcdd64f6122be3c8d353"
+    },
+    "rf312-first-ocr-probe-round15-20261012/run-first-5000-diagnostic.py": {
+      "bytes": 3746,
+      "sha256": "4a18402c455da521c66b4396e4703e4146486216fb11cb1953914b67e1e34d87"
+    },
+    "rf312-first-ocr-probe-round15-20261012/verify-finger-readiness.py": {
+      "bytes": 3757,
+      "sha256": "a1c486969e38ab6f771b86ba041ccb5fde815125a7e2b08e3921ec92a3c2f299"
+    }
+  },
+  "privateDataCompiledProgramsKeysAndDatabasesExcluded": true
+}

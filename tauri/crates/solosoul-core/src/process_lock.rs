@@ -23,6 +23,7 @@ pub struct ProcessLock {
 impl ProcessLock {
     /// 尝试获取排他锁。若锁已被其他进程持有，返回错误。
     pub fn acquire(base_path: &Path) -> Result<Self, String> {
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let lock_path = base_path.join(".lock");
         std::fs::create_dir_all(base_path)
             .map_err(|e| format!("无法创建数据目录 {}: {}", base_path.display(), e))?;

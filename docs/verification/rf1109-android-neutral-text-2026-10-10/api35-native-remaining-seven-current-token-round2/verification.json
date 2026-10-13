@@ -1,0 +1,88 @@
+{
+  "accepted": true,
+  "results": [
+    {
+      "mode": "supported",
+      "command": [
+        "node",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\native-remaining-seven.mjs",
+        "--adb",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+        "--serial",
+        "emulator-5586",
+        "--avd",
+        "SoloSoul_RF121_20261010",
+        "--apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+        "--test-apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk",
+        "--output",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-remaining-seven-current-token-round2\\supported",
+        "--mode",
+        "supported"
+      ],
+      "exitCode": 0,
+      "accepted": true,
+      "elapsedSeconds": 73.88823920002324,
+      "expectedTests": 7,
+      "observedTests": 7,
+      "successes": 7,
+      "restorationErrorsAbsent": true,
+      "sourceAndApkHashesUnchanged": true,
+      "settingsBefore": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "settingsAfter": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "7ad4177af15cc155c950fe027a67c1f3268bba077a2d956209b26284c2a19b2d"
+    },
+    {
+      "mode": "fallback",
+      "command": [
+        "node",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\native-remaining-seven.mjs",
+        "--adb",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+        "--serial",
+        "emulator-5586",
+        "--avd",
+        "SoloSoul_RF121_20261010",
+        "--apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+        "--test-apk",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\theme-current-token-test-build1\\app-x86_64-debug-androidTest.apk",
+        "--output",
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-native-remaining-seven-current-token-round2\\fallback",
+        "--mode",
+        "fallback"
+      ],
+      "exitCode": 0,
+      "accepted": true,
+      "elapsedSeconds": 53.132109400001355,
+      "expectedTests": 7,
+      "observedTests": 7,
+      "successes": 7,
+      "restorationErrorsAbsent": true,
+      "sourceAndApkHashesUnchanged": true,
+      "settingsBefore": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "settingsAfter": {
+        "disableWindowBlurs": "null",
+        "nightMode": "Night mode: no"
+      },
+      "dedicatedAvdIdentityConfirmedAfter": true,
+      "reportSha256": "4dbd01d38a3f8e85ecb396701be07f8f55b5f770d3143db72841f940080d8512"
+    }
+  ],
+  "scope": "Independent last seven methods per mode; original full groups remain failed on WebGL",
+  "homeMatrixAccepted": false,
+  "api31Accepted": false,
+  "physicalDeviceAccepted": false,
+  "at": "2026-10-10T20:59:07.853610+00:00"
+}

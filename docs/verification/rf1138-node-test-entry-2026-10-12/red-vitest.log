@@ -1,0 +1,25 @@
+
+ RUN  v4.1.8 D:/SoloSoul/tauri
+
+ ❯ src-tauri/src/android_native_perf/observer.node.test.mjs (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src-tauri/src/android_native_perf/observer.node.test.mjs [ src-tauri/src/android_native_perf/observer.node.test.mjs ]
+TypeError: The URL must be of scheme file
+ ❯ src-tauri/src/android_native_perf/observer.node.test.mjs:5:22
+      3| import vm from 'node:vm';
+      4| import { readFile } from 'node:fs/promises';
+      5| const script = await readFile(new URL('./observer.js', import.meta.url…
+       |                      ^
+      6| const id = 'a'.repeat(32);
+      7| function setup({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  22:36:23
+   Duration  1.41s (transform 146ms, setup 270ms, import 0ms, tests 0ms, environment 877ms)
+

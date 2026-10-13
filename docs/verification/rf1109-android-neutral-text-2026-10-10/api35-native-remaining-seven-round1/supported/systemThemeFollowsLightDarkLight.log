@@ -1,0 +1,47 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidThemeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidThemeInstrumentedTest:
+INSTRUMENTATION_STATUS: test=systemThemeFollowsLightDarkLight
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidThemeInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: system-light: theme=light, media=false required; actual={"platform":"android","theme":"light","darkMedia":false,"mounted":true,"startupGone":true,"background":"#fafaf6","surface":"#fdfcf9","foreground":"#111111","accent":"#5b7c99","materialContainer":"#eaeded","materialInk":"#000000","statusBarLight":true,"navigationBarLight":true}
+	at org.junit.Assert.fail(Assert.java:89)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.waitForTheme(AndroidThemeInstrumentedTest.kt:128)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.verify(AndroidThemeInstrumentedTest.kt:158)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.verify$default(AndroidThemeInstrumentedTest.kt:131)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.systemThemeFollowsLightDarkLight(AndroidThemeInstrumentedTest.kt:170)
+
+INSTRUMENTATION_STATUS: stream=
+Error in systemThemeFollowsLightDarkLight(com.solosoul.app.AndroidThemeInstrumentedTest):
+java.lang.AssertionError: system-light: theme=light, media=false required; actual={"platform":"android","theme":"light","darkMedia":false,"mounted":true,"startupGone":true,"background":"#fafaf6","surface":"#fdfcf9","foreground":"#111111","accent":"#5b7c99","materialContainer":"#eaeded","materialInk":"#000000","statusBarLight":true,"navigationBarLight":true}
+	at org.junit.Assert.fail(Assert.java:89)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.waitForTheme(AndroidThemeInstrumentedTest.kt:128)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.verify(AndroidThemeInstrumentedTest.kt:158)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.verify$default(AndroidThemeInstrumentedTest.kt:131)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.systemThemeFollowsLightDarkLight(AndroidThemeInstrumentedTest.kt:170)
+
+INSTRUMENTATION_STATUS: test=systemThemeFollowsLightDarkLight
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 45.694
+There was 1 failure:
+1) systemThemeFollowsLightDarkLight(com.solosoul.app.AndroidThemeInstrumentedTest)
+java.lang.AssertionError: system-light: theme=light, media=false required; actual={"platform":"android","theme":"light","darkMedia":false,"mounted":true,"startupGone":true,"background":"#fafaf6","surface":"#fdfcf9","foreground":"#111111","accent":"#5b7c99","materialContainer":"#eaeded","materialInk":"#000000","statusBarLight":true,"navigationBarLight":true}
+	at org.junit.Assert.fail(Assert.java:89)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.waitForTheme(AndroidThemeInstrumentedTest.kt:128)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.verify(AndroidThemeInstrumentedTest.kt:158)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.verify$default(AndroidThemeInstrumentedTest.kt:131)
+	at com.solosoul.app.AndroidThemeInstrumentedTest.systemThemeFollowsLightDarkLight(AndroidThemeInstrumentedTest.kt:170)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

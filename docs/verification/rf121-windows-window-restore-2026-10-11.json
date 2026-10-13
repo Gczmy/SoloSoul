@@ -1,0 +1,125 @@
+{
+  "task": "RF-121",
+  "accepted": false,
+  "status": "partial-window-restoration-endpoints; aggregate-dark-gate-rejected",
+  "sourceHead": "63f66d8abb16f005152db361226eed84e63be1b1",
+  "productionCodeChanged": false,
+  "windowsGuiReused": true,
+  "guiSha256": "d77e575287c7d18f6124a7aa42cfa56f0ba20625d8b00309c1e7d2c07355da74",
+  "sourceFiles": 1837,
+  "resourceFiles": 94,
+  "sourceDifferencesFromBuild": [
+    "Android MainActivity.kt",
+    "AndroidThemeInstrumentedTest.kt"
+  ],
+  "dpi": 96,
+  "nativeEndpointCaptures": 12,
+  "aggregateAppearancePassed": 6,
+  "aggregateAppearanceFailedSamplesInRejectedGroups": 6,
+  "groups": [
+    {
+      "scene": "baseline",
+      "samples": 3,
+      "nativeCaptureExitCode": 0,
+      "primaryReaderExitCode": 0,
+      "endpointBindingVerified": true,
+      "aggregateAppearanceAccepted": true,
+      "proof": "ss-rf121-composed-window-restore-baseline-caption-round2-20261011/validation.json"
+    },
+    {
+      "scene": "light-collapsed",
+      "samples": 3,
+      "nativeCaptureExitCode": 0,
+      "primaryReaderExitCode": 0,
+      "endpointBindingVerified": true,
+      "aggregateAppearanceAccepted": true,
+      "proof": "ss-rf121-composed-window-restore-light-collapsed-caption-round2-20261011/validation.json"
+    },
+    {
+      "scene": "dark-expanded",
+      "samples": 3,
+      "nativeCaptureExitCode": 0,
+      "primaryReaderExitCode": 1,
+      "endpointBindingVerified": true,
+      "aggregateAppearanceAccepted": false,
+      "proof": "ss-rf121-composed-window-restore-dark-expanded-caption-round2-20261011/restoration-endpoints.json"
+    },
+    {
+      "scene": "dark-collapsed",
+      "samples": 3,
+      "nativeCaptureExitCode": 0,
+      "primaryReaderExitCode": 1,
+      "endpointBindingVerified": true,
+      "aggregateAppearanceAccepted": false,
+      "proof": "ss-rf121-composed-window-restore-dark-collapsed-caption-round2-20261011/restoration-endpoints.json"
+    }
+  ],
+  "earlierRejectedCohortsRetained": [
+    "ss-rf121-composed-window-restore-baseline-20261011",
+    "ss-rf121-composed-window-restore-baseline-caption-20261011"
+  ],
+  "themeWriteFinding": "dark-expanded sample002 has one completed theme and one running backup-reminder at original checkpoint; same reminder ID completed at later native checkpoint",
+  "originalStrictCorrelationAccepted": false,
+  "originalRunningObservationUnmodified": true,
+  "restoreGuardTamperCasesRejected": 18,
+  "helperExistingTestsExecuted": 18,
+  "helperUniqueGuardTests": 6,
+  "visualReview": [
+    {
+      "scene": "baseline",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-baseline-caption-round2-20261011\\surface-sample-001.png",
+      "sha256": "25b88da79935b5a1fd8e3f5007ed74425eaea0d19665027afa237e99dc37cd51",
+      "humanReviewed": true,
+      "observation": "首页文案、卡片及导航可见，最终帧未空白；仅审阅恢复后端点，不证明过渡无闪烁。"
+    },
+    {
+      "scene": "light-collapsed",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-light-collapsed-caption-round2-20261011\\surface-sample-001.png",
+      "sha256": "6015bf9da8ddb1ef8790bb90b010c01fa3251c386bb0e8e68d1ce42e73ae438f",
+      "humanReviewed": true,
+      "observation": "首页文案、卡片及导航可见，最终帧未空白；仅审阅恢复后端点，不证明过渡无闪烁。"
+    },
+    {
+      "scene": "dark-expanded",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-expanded-caption-round2-20261011\\surface-sample-001.png",
+      "sha256": "8466338a9d8885caf1449f406cb9121f11fe6deb19f0875e1d8cd8b5eec6cd65",
+      "humanReviewed": true,
+      "observation": "首页文案、卡片及导航可见，最终帧未空白；仅审阅恢复后端点，不证明过渡无闪烁。"
+    },
+    {
+      "scene": "dark-collapsed",
+      "source": "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\ss-rf121-composed-window-restore-dark-collapsed-caption-round2-20261011\\surface-sample-001.png",
+      "sha256": "4bc94af600ca97530d69302a7958dbd97ca956e99a0ff010babaa01066cb6066",
+      "humanReviewed": true,
+      "observation": "首页文案、卡片及导航可见，最终帧未空白；仅审阅恢复后端点，不证明过渡无闪烁。"
+    }
+  ],
+  "otherEightFramesHumanReviewed": false,
+  "nativeGetter": {
+    "attribute": 38,
+    "SystemBackdropType": 2,
+    "stable": true,
+    "fullMaterialAccepted": false
+  },
+  "cleanup": {
+    "pathsRemoved": 144,
+    "liveOwnedIdentities": 0,
+    "processesTerminated": 0,
+    "preservedBytesVerified": true
+  },
+  "userApplicationControlled": false,
+  "transientFlickerVerified": false,
+  "scalingAccessibilityOtherPlatformsAccepted": false,
+  "performanceAccepted": false,
+  "fullRF121Accepted": false,
+  "nextTask": "RF-1127",
+  "archive": {
+    "path": "rf121-windows-window-restore-2026-10-11/raw.tar.gz",
+    "members": 999,
+    "bytes": 3261997,
+    "sha256": "ac7cb1fdf7d77c5d1dca0367c38cee6560c378cfd7225e948121670f3fb7e74b",
+    "allMembersReadbackVerified": true
+  },
+  "ledgerClosed": false,
+  "commitCreated": false
+}

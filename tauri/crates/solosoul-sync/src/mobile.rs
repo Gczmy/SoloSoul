@@ -9,7 +9,6 @@ use crate::shared::{
     audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
     local_fingerprint_fallback, trust_peer_fallback,
 };
-use crate::transport::SyncTransport;
 use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
 use crate::workers::{StopCompletion, SyncWorkers};
 use solosoul_core::vault_service::VaultService;
@@ -212,10 +211,7 @@ impl SyncService {
             .spawn_session(vault.clone(), active_sessions, move |permit| {
                 let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
                     .map_err(SyncFailure::connection)?;
-                permit
-                    .track_stream(&stream)
-                    .map_err(SyncFailure::activity)?;
-                let mut transport = SyncTransport::from_stream(stream);
+                let mut transport = permit.transport(stream).map_err(SyncFailure::activity)?;
                 run_initiator_session(
                     &mut transport,
                     &node_id,

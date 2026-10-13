@@ -1,0 +1,26 @@
+[
+  {
+    "Name": "emulator.exe",
+    "ProcessId": 29804,
+    "ParentProcessId": 23964,
+    "CreationDate": "2026-10-10T21:47:43.991587+01:00",
+    "ExecutablePath": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe",
+    "CommandLine": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\emulator.exe -avd SoloSoul_RF121_20261010 -port 5586 -accel on -gpu host -memory 2048 -cores 2 -no-window -no-snapshot -no-audio -no-boot-anim"
+  },
+  {
+    "Name": "conhost.exe",
+    "ProcessId": 25632,
+    "ParentProcessId": 29804,
+    "CreationDate": "2026-10-10T21:47:44.009016+01:00",
+    "ExecutablePath": "C:\\windows\\system32\\conhost.exe",
+    "CommandLine": "\\??\\C:\\windows\\system32\\conhost.exe 0x4"
+  },
+  {
+    "Name": "qemu-system-x86_64-headless.exe",
+    "ProcessId": 14420,
+    "ParentProcessId": 29804,
+    "CreationDate": "2026-10-10T21:47:44.861968+01:00",
+    "ExecutablePath": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\qemu\\windows-x86_64\\qemu-system-x86_64-headless.exe",
+    "CommandLine": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\emulator\\qemu\\windows-x86_64\\qemu-system-x86_64-headless.exe -avd SoloSoul_RF121_20261010 -port 5586 -accel on -gpu host -memory 2048 -cores 2 -no-window -no-snapshot -no-audio -no-boot-anim"
+  }
+]

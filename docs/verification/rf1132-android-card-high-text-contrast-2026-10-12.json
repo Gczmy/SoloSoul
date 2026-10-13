@@ -1,0 +1,509 @@
+{
+  "task": "RF-1132",
+  "sourceHead": "3b69f0bf1",
+  "accepted": true,
+  "scope": "standalone production Android Card native high-text-contrast fixture; no production application code changed",
+  "device": {
+    "api": 31,
+    "abi": "x86_64",
+    "avd": "SoloSoul_RF121_API31_20261010",
+    "gpu": "host",
+    "adbPort": 5049
+  },
+  "nativeTestsPassed": 4,
+  "expectedWrongSystemAssertionFailures": 1,
+  "unexpectedNativeFailures": 0,
+  "nativeSkipped": 0,
+  "nativePixelChecks": 16,
+  "computedTextContrastChecks": 8,
+  "minimumComputedTextContrast": 15.03705221746749,
+  "allPrivateContentsLinksModesExact": true,
+  "privateEntries": 216,
+  "allSystemSettingsExact": true,
+  "originalSystem": {
+    "contrast": "null",
+    "blur": "null",
+    "font": "null",
+    "animations": "null",
+    "night": "Night mode: no",
+    "effectiveFont": 1.0
+  },
+  "finalSystem": {
+    "contrast": "null",
+    "blur": "null",
+    "font": "null",
+    "animations": "null",
+    "night": "Night mode: no",
+    "effectiveFont": 1.0
+  },
+  "newTestApkSha256": "deeb46cc47870b8a63699d37d7737e782c33ddd98ccc06c6325f0e40dd2d7725",
+  "originalMainApkSha256": "f896b3c1e2f6ab00ba577d595905983668da67fc7be7d993f94d9709c33c459e",
+  "originalMainApkByteUnchanged": true,
+  "currentSourceFiles": 1837,
+  "originalMainBuildSourcesDifferAt": [
+    "tauri/native-regression/card-surfaces/README.md",
+    "tauri/scripts/android-home-native-regression.py",
+    "tauri/scripts/test_android_home_native_regression.py",
+    "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidCardSurfaceInstrumentedTest.kt",
+    "tauri/src-tauri/src/native_perf/sdk_surface_appearance.rs",
+    "tauri/scripts/native-perf-preference-contract.mjs",
+    "tauri/scripts/native-perf-preference.node.test.mjs"
+  ],
+  "actualKotlinInstrumentationCompile": true,
+  "unitTaskUpToDateNotFreshRun": true,
+  "retainedUnitXmlTests": 10,
+  "independentValidation": {
+    "accepted": true,
+    "observedNativeDriverExitCode": 0,
+    "positiveNativeTests": 4,
+    "expectedNegativeAssertions": 1,
+    "skipped": 0,
+    "pixels": [
+      {
+        "case": "normal-supported",
+        "theme": "light",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-light-default.png",
+        "sha256": "52ddcdb835004518dbce485587cf996714e9ffe48ed18fd3c92e3d894aaeee6b",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          253,
+          252,
+          249
+        ],
+        "expected": [
+          253,
+          252,
+          249
+        ]
+      },
+      {
+        "case": "normal-supported",
+        "theme": "light",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-light-floating.png",
+        "sha256": "b74761673ee4726ca94ce8ce9fe21c514de98dd9551da59a4859715dbac0607f",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          242,
+          240,
+          233
+        ],
+        "expected": [
+          242,
+          240,
+          233
+        ]
+      },
+      {
+        "case": "normal-supported",
+        "theme": "dark",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-dark-default.png",
+        "sha256": "98bfed1d976529cb3a2ca81e51e2efa2c01f3b06b1b66be09fc47a09ed601449",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "normal-supported",
+        "theme": "dark",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-supported\\rf121-card-dark-floating.png",
+        "sha256": "982b95c22fe540451b757f77aeb81cb5c411d2ea72f200913f346a7085d03acb",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "normal-fallback",
+        "theme": "light",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-light-default.png",
+        "sha256": "8bf9fa3223ccdffe620c8f6a825712f53a91fdcf343284344466d92c496305f2",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          253,
+          252,
+          249
+        ],
+        "expected": [
+          253,
+          252,
+          249
+        ]
+      },
+      {
+        "case": "normal-fallback",
+        "theme": "light",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-light-floating.png",
+        "sha256": "d1be1612fa4961c339ccd98e89c1aa088230a6bb1905897c6fb476c8587047d4",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          242,
+          240,
+          233
+        ],
+        "expected": [
+          242,
+          240,
+          233
+        ]
+      },
+      {
+        "case": "normal-fallback",
+        "theme": "dark",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-dark-default.png",
+        "sha256": "98bfed1d976529cb3a2ca81e51e2efa2c01f3b06b1b66be09fc47a09ed601449",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "normal-fallback",
+        "theme": "dark",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\normal-fallback\\rf121-card-dark-floating.png",
+        "sha256": "b72d92f27976fbc6b0bede5098e5ab93ad8243c44def8f7dcd7f7cc271f883ee",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "hc-supported",
+        "theme": "light",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-light-default.png",
+        "sha256": "22a31493b2c9aaa1a612c8bbd6eafcd03e29e3de2631cae1cdd63b7e9ae06459",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          253,
+          252,
+          249
+        ],
+        "expected": [
+          253,
+          252,
+          249
+        ]
+      },
+      {
+        "case": "hc-supported",
+        "theme": "light",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-light-floating.png",
+        "sha256": "0777888a8929e96e3cc8e3a0886fb0315e743a7b96fdab06a588cfbf92623ad5",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          242,
+          240,
+          233
+        ],
+        "expected": [
+          242,
+          240,
+          233
+        ]
+      },
+      {
+        "case": "hc-supported",
+        "theme": "dark",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-dark-default.png",
+        "sha256": "6384c03d4579c2973c45c15bc2794f5e926ba77a847004e9206245e62893aeba",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "hc-supported",
+        "theme": "dark",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-supported\\rf121-hc-card-dark-floating.png",
+        "sha256": "d75a8a07ef25f079fbda45a8995e7e5ab2abe4c720996fc2511ae8b0fbfa8acb",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "hc-fallback",
+        "theme": "light",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-light-default.png",
+        "sha256": "22a31493b2c9aaa1a612c8bbd6eafcd03e29e3de2631cae1cdd63b7e9ae06459",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          253,
+          252,
+          249
+        ],
+        "expected": [
+          253,
+          252,
+          249
+        ]
+      },
+      {
+        "case": "hc-fallback",
+        "theme": "light",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-light-floating.png",
+        "sha256": "0777888a8929e96e3cc8e3a0886fb0315e743a7b96fdab06a588cfbf92623ad5",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          242,
+          240,
+          233
+        ],
+        "expected": [
+          242,
+          240,
+          233
+        ]
+      },
+      {
+        "case": "hc-fallback",
+        "theme": "dark",
+        "surface": "default",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-dark-default.png",
+        "sha256": "6384c03d4579c2973c45c15bc2794f5e926ba77a847004e9206245e62893aeba",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      },
+      {
+        "case": "hc-fallback",
+        "theme": "dark",
+        "surface": "floating",
+        "file": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-native-20261012\\hc-fallback\\rf121-hc-card-dark-floating.png",
+        "sha256": "d75a8a07ef25f079fbda45a8995e7e5ab2abe4c720996fc2511ae8b0fbfa8acb",
+        "width": 720,
+        "height": 1600,
+        "actual": [
+          42,
+          38,
+          32
+        ],
+        "expected": [
+          42,
+          38,
+          32
+        ]
+      }
+    ],
+    "computedTextContrastRatios": [
+      18.405230873339367,
+      16.559655711981343,
+      15.03705221746749,
+      15.03705221746749,
+      18.405230873339367,
+      16.559655711981343,
+      15.03705221746749,
+      15.03705221746749
+    ],
+    "minimumComputedTextContrast": 15.03705221746749,
+    "privateAndSystemRestored": true,
+    "all216PrivateEntriesExact": true,
+    "sourceInputCount": 1837,
+    "productionSourcesChanged": false,
+    "independentLiquidTestSourceUnchanged": true,
+    "actualKotlinInstrumentationCompile": true,
+    "unitTaskUpToDateNotFreshRun": true,
+    "retainedUnitXmlTests": 10,
+    "buildReceipts": {
+      "kotlin-unit-tests": {
+        "exitCode": 0,
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+          ":app:testX86_64DebugUnitTest",
+          "-x",
+          ":app:rustBuildX86_64Debug",
+          "--init-script",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\private-packaging-assets.init.gradle",
+          "--offline",
+          "--no-daemon",
+          "--max-workers",
+          "2"
+        ],
+        "elapsedSeconds": 99.03457369998796,
+        "sourcesUnchanged": true
+      },
+      "test-build": {
+        "exitCode": 0,
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+          ":app:assembleX86_64DebugAndroidTest",
+          "-x",
+          ":app:rustBuildX86_64Debug",
+          "--init-script",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\private-packaging-assets.init.gradle",
+          "--offline",
+          "--no-daemon",
+          "--max-workers",
+          "2"
+        ],
+        "elapsedSeconds": 80.01209899998503,
+        "sourcesUnchanged": true
+      },
+      "test-badging": {
+        "exitCode": 0,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\aapt2.exe",
+          "dump",
+          "badging",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\app-x86_64-debug-androidTest.apk"
+        ],
+        "elapsedSeconds": 1.305075799988117,
+        "sourcesUnchanged": true
+      },
+      "test-signature": {
+        "exitCode": 0,
+        "command": [
+          "C:\\Users\\40299571\\ss-android\\jdk\\bin\\java.exe",
+          "-jar",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\lib\\apksigner.jar",
+          "verify",
+          "--verbose",
+          "--print-certs",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1132-card-high-contrast-build-20261012\\app-x86_64-debug-androidTest.apk"
+        ],
+        "elapsedSeconds": 1.1683029000414535,
+        "sourcesUnchanged": true
+      },
+      "main-existing-signature": {
+        "exitCode": 0,
+        "command": [
+          "C:\\Users\\40299571\\ss-android\\jdk\\bin\\java.exe",
+          "-jar",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\lib\\apksigner.jar",
+          "verify",
+          "--verbose",
+          "--print-certs",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1126-legacy-theme-build-20261011\\app-x86_64-debug.apk"
+        ],
+        "elapsedSeconds": 2.02598219999345,
+        "sourcesUnchanged": true
+      }
+    },
+    "all16PngsPixelReadbackVerified": true,
+    "allPngsHumanReviewed": false,
+    "humanReviewedImages": [
+      "normal-supported/rf121-card-light-default.png",
+      "hc-supported/rf121-hc-card-light-default.png",
+      "hc-fallback/rf121-hc-card-dark-floating.png"
+    ],
+    "actualRenderedTextPixelsFullyValidated": false,
+    "fullApplicationAccessibilityAccepted": false,
+    "fullRF121Accepted": false
+  },
+  "toolOutcomes": {
+    "nativeDriverObservedExitCode": 0,
+    "independentVerifierObservedExitCodes": [
+      1,
+      1,
+      0
+    ],
+    "initialVerifierError": "ValueError: substring not found",
+    "initialVerifierReason": "ASCII FE2 colon marker differed from fullwidth colon in existing source comment",
+    "attemptedShellCorrectionError": "SyntaxError: ( was never closed; file unchanged",
+    "secondVerifierError": "same ValueError: substring not found",
+    "readonlyInspectionError": "cp1252 stdout could not print Chinese comment; no code or device mutation",
+    "correctedVerifierOnlyAsciiSourceMarkerChanged": true,
+    "nativeTestsRerunAfterVerifierFix": false,
+    "expectedWrongSystemNativeFailureRetained": true,
+    "unexpectedNativeFailures": 0,
+    "deviceDataAndSettingsHadRestoredBeforeAllVerifierCalls": true
+  },
+  "ownedEmulatorGracefullyExited": true,
+  "fullApplicationAccessibilityAccepted": false,
+  "fullRF121Accepted": false,
+  "RF312Accepted": false,
+  "windowsForcedColorsAccepted": false,
+  "archive": {
+    "path": "rf1132-android-card-high-text-contrast-2026-10-12/raw.tar.gz",
+    "members": 97,
+    "bytes": 3393109,
+    "sha256": "7b380831c12d1c015d50d2f390e5836b56fb33e572c87710a118a9dbf97a8600",
+    "allMembersReadbackVerified": true
+  },
+  "cleanupCompletedExactLocalTarCopies": 2
+}

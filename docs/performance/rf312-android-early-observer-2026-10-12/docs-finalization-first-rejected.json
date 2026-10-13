@@ -1,0 +1,8 @@
+{
+  "observedExitCode": 1,
+  "reason": "RF312 link also appears in dependency columns; finalizer matched links instead of the execution index row.",
+  "canonicalReportModifiedByFailedFinalizer": false,
+  "perScopeDocumentCreatedBeforeRejection": true,
+  "sourceCopiedExactlyFromVerifiedArchive": true,
+  "next": "Constrain match to execution index number90 and task ID"
+}

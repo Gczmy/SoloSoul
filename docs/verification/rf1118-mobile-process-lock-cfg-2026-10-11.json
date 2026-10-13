@@ -1,0 +1,383 @@
+{
+  "task": "RF-1118",
+  "at": "2026-10-11T04:36:50.369714+00:00",
+  "accepted": true,
+  "baseCommit": "bc5c531a7",
+  "sourceChanges": [
+    "tauri/crates/solosoul-core/src/process_lock.rs"
+  ],
+  "sourceCount": 1834,
+  "afterSha256": "2dd59237fd243a478628f9b66f6cf2a8de28abf1f14129c3e1ed87760fa90f19",
+  "androidCompilerTarget": "x86_64-linux-android",
+  "strictAndroidCompiler": "rustc -D warnings",
+  "androidClippyExecuted": false,
+  "androidPrivateClippyAvailable": false,
+  "windowsClippyExecuted": true,
+  "windowsExistingLockTests": {
+    "passed": 1,
+    "failed": 0,
+    "ignored": 0
+  },
+  "red": {
+    "at": "2026-10-11T04:20:03.421541+00:00",
+    "exitCode": 101,
+    "pid": 30696,
+    "command": [
+      "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rustup\\toolchains\\1.96.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "rustc",
+      "--locked",
+      "--offline",
+      "-p",
+      "solosoul-core",
+      "--lib",
+      "--target",
+      "x86_64-linux-android",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "elapsedSeconds": 479.56716519998736,
+    "sourceSha256": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+    "sourceUnchanged": true,
+    "cargoHome": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-home",
+    "targetDirectory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-target",
+    "temp": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\tmp",
+    "target": "x86_64-linux-android"
+  },
+  "checks": {
+    "green-android": {
+      "at": "2026-10-11T04:21:14.622653+00:00",
+      "exitCode": 0,
+      "pid": 11892,
+      "command": [
+        "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rustup\\toolchains\\1.96.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+        "rustc",
+        "--locked",
+        "--offline",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "--target",
+        "x86_64-linux-android",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "elapsedSeconds": 63.15563480000128,
+      "sourceSha256": "2dd59237fd243a478628f9b66f6cf2a8de28abf1f14129c3e1ed87760fa90f19",
+      "sourceUnchanged": true,
+      "cargoHome": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-home",
+      "targetDirectory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-target",
+      "temp": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\tmp",
+      "target": "x86_64-linux-android"
+    },
+    "format": {
+      "at": "2026-10-11T04:21:17.332175+00:00",
+      "exitCode": 0,
+      "pid": 27912,
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "elapsedSeconds": 2.708269900002051,
+      "sourceSha256": "2dd59237fd243a478628f9b66f6cf2a8de28abf1f14129c3e1ed87760fa90f19",
+      "sourceUnchanged": true,
+      "cargoHome": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-home",
+      "targetDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target",
+      "temp": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "target": "x86_64-pc-windows-msvc"
+    },
+    "windows-clippy": {
+      "at": "2026-10-11T04:24:38.891857+00:00",
+      "exitCode": 0,
+      "pid": 10008,
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "elapsedSeconds": 201.55630370002473,
+      "sourceSha256": "2dd59237fd243a478628f9b66f6cf2a8de28abf1f14129c3e1ed87760fa90f19",
+      "sourceUnchanged": true,
+      "cargoHome": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-home",
+      "targetDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target",
+      "temp": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "target": "x86_64-pc-windows-msvc"
+    },
+    "windows-lock-tests": {
+      "at": "2026-10-11T04:35:42.975799+00:00",
+      "exitCode": 0,
+      "pid": 20464,
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "process_lock::",
+        "--",
+        "--nocapture"
+      ],
+      "elapsedSeconds": 664.0757840999868,
+      "sourceSha256": "2dd59237fd243a478628f9b66f6cf2a8de28abf1f14129c3e1ed87760fa90f19",
+      "sourceUnchanged": true,
+      "cargoHome": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-home",
+      "targetDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\cargo-target",
+      "temp": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "target": "x86_64-pc-windows-msvc"
+    }
+  },
+  "iosCompilerExecuted": false,
+  "mobileSingleInstancePolicyUnchanged": true,
+  "sharedCreateDirectoryUnchanged": true,
+  "dependenciesChanged": false,
+  "apkBuiltOrInstalled": false,
+  "nativeUiAcceptance": false,
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "archive": {
+    "task": "RF-1118",
+    "archiveSha256": "153d1aebc186b17ab5cb670d535bb49ff47ca6f966287f12e2ae0cd6541677b4",
+    "archiveBytes": 994958,
+    "members": [
+      {
+        "path": "checks/checks-complete.json",
+        "bytes": 221,
+        "sha256": "f268aa9fb6da590223a4c5ddf3aa5def5fd3f8e3ee7afbd2ab38c46e6bdb24a4"
+      },
+      {
+        "path": "checks/format.live.json",
+        "bytes": 100,
+        "sha256": "84d6d248e0300006a379fa3cee77f0c58ce6f236cc8c83a7f8a66b4a24779357"
+      },
+      {
+        "path": "checks/format.receipt.json",
+        "bytes": 581,
+        "sha256": "fec98febb6eeccdb9c4d27af9b202f4b3836c40380e6e6e368e541d56a1a8309"
+      },
+      {
+        "path": "checks/format.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "checks/format.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "checks/git-line-ending-review/failure-review.json",
+        "bytes": 516,
+        "sha256": "275bddb5f6b14bab301f39ead6c5c94e122168d999a7ce8e704fa628e2ba4a1e"
+      },
+      {
+        "path": "checks/git-line-ending-review/index.json",
+        "bytes": 5964,
+        "sha256": "7c0c02031341780b7baf092f6d990ec7cac2fb4dd2c7b5fefa092de56423c114"
+      },
+      {
+        "path": "checks/git-line-ending-review/raw.tar.gz",
+        "bytes": 492306,
+        "sha256": "6304c5703a93e681845370c3eac04494d5833b624559a5e20fa9d535e33c00c7"
+      },
+      {
+        "path": "checks/git-line-ending-review/rf1118-archive-close.py",
+        "bytes": 7470,
+        "sha256": "1c5532a2683be33bfada98714ac3c2338ac60806820cdda9b2f28a55d54a5e54"
+      },
+      {
+        "path": "checks/git-line-ending-review/rf1118-mobile-process-lock-cfg-2026-10-11.json",
+        "bytes": 11303,
+        "sha256": "d0979594870eafce12b4a6590b871240e67542741cc88b04d167837295532de6"
+      },
+      {
+        "path": "checks/git-line-ending-review/rf1118-verify-git.py",
+        "bytes": 1674,
+        "sha256": "b4503b51cd182dd95da9ba2123cb108ad5c69a72b0f7d0b30614024a31da32bd"
+      },
+      {
+        "path": "checks/green-android.live.json",
+        "bytes": 339,
+        "sha256": "0f97115f5c73abbe5242f3f8febc2a19966fcecab040ad58b6e83779636f367a"
+      },
+      {
+        "path": "checks/green-android.receipt.json",
+        "bytes": 845,
+        "sha256": "4828e08722cff5372f38c4408a8c86316a0e7240cc08c1b1167becdbcc5854c7"
+      },
+      {
+        "path": "checks/green-android.stderr.log",
+        "bytes": 147,
+        "sha256": "35665a365922083185acb7501883bf72dbb5800ee72399525b02fa32f333bbba"
+      },
+      {
+        "path": "checks/green-android.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "checks/green-toolchain.json",
+        "bytes": 940,
+        "sha256": "5805ec726c8de2f5088edd4a649fb3c2fa3b037ddd1e1ed0d1ceb04661255093"
+      },
+      {
+        "path": "checks/ledger-before.md",
+        "bytes": 1154180,
+        "sha256": "9725e23147c2f6c43c4ad782a45f2f9c3467bf1fed54157f125dc2ae878d80a6"
+      },
+      {
+        "path": "checks/process_lock-before.rs",
+        "bytes": 2694,
+        "sha256": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34"
+      },
+      {
+        "path": "checks/red-android.live.json",
+        "bytes": 339,
+        "sha256": "a0d6e12ffcfbca156c07e8c476391d780da23215c82c838711b9fa76644df826"
+      },
+      {
+        "path": "checks/red-android.receipt.json",
+        "bytes": 848,
+        "sha256": "67bcec8883db24b572c4fd9831b36e21d37959590f649a8b24f0adc22ae7b75d"
+      },
+      {
+        "path": "checks/red-android.stderr.log",
+        "bytes": 5794,
+        "sha256": "474a28e198c295da0cca40048a966b0dbb728395323ca0dab153080e96e84979"
+      },
+      {
+        "path": "checks/red-android.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "checks/red-toolchain.json",
+        "bytes": 940,
+        "sha256": "f5257343bd005d1bfa73feffdd4f286d732debcee0340d4f30177df024a87965"
+      },
+      {
+        "path": "checks/registration.json",
+        "bytes": 262,
+        "sha256": "e642edac358d92c8e0b33a769dc33a4b77722e481b7b7db94b0897bb884d5a10"
+      },
+      {
+        "path": "checks/source-provenance.json",
+        "bytes": 336,
+        "sha256": "ff54238461318179f2259b444285d78ac1be1cf57eef5a49ba5c499e850ce223"
+      },
+      {
+        "path": "checks/sources.json",
+        "bytes": 229437,
+        "sha256": "0f5a69c57e3a88268bbc433f52f25059537563548826dde51c78919d2df8f7a0"
+      },
+      {
+        "path": "checks/windows-clippy.live.json",
+        "bytes": 161,
+        "sha256": "e4b129d1379acf3066c8b45fa55685c63c9035812f571c341b583854d6d20d51"
+      },
+      {
+        "path": "checks/windows-clippy.receipt.json",
+        "bytes": 643,
+        "sha256": "a4f68c827978b0344c1fc1b7675d1c75ba2516aa590307aa624baec07bbbf3fe"
+      },
+      {
+        "path": "checks/windows-clippy.stderr.log",
+        "bytes": 3648,
+        "sha256": "5cd62e93c95fd6782708607deb3e21015c82b3055a18b64f1f691380f9b64b3b"
+      },
+      {
+        "path": "checks/windows-clippy.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "checks/windows-lock-tests-direct-children.json",
+        "bytes": 128,
+        "sha256": "f466a184278af089c92cc0e671e758ea4ede897951b0f4b464b4c4287367e745"
+      },
+      {
+        "path": "checks/windows-lock-tests-process-status.json",
+        "bytes": 891,
+        "sha256": "cff8a404f603d461e71cbde4e4725fb060ecb42cfdb69d2914a9aca9b1dcf68e"
+      },
+      {
+        "path": "checks/windows-lock-tests.live.json",
+        "bytes": 174,
+        "sha256": "8f51bc3e6d0b1d1ca6032c6782a5dc8246dcec8899fbf4b8d17615bfaff5fce2"
+      },
+      {
+        "path": "checks/windows-lock-tests.receipt.json",
+        "bytes": 655,
+        "sha256": "c2388b075aa0c1be0aa118a08ff7b06918a3dd4c9a0496beb9dc3ba54b8b9122"
+      },
+      {
+        "path": "checks/windows-lock-tests.stderr.log",
+        "bytes": 2189,
+        "sha256": "612b2206d955b10d57a6dbe67041b6a96eb7e8c332044657c82230a85eb35cd5"
+      },
+      {
+        "path": "checks/windows-lock-tests.stdout.log",
+        "bytes": 183,
+        "sha256": "2a11795854e77a25bf7be4cca63cb8a05c08772aae45f8a9e61a6e0826d9dbdf"
+      },
+      {
+        "path": "executed-source/process_lock.rs",
+        "bytes": 2759,
+        "sha256": "2dd59237fd243a478628f9b66f6cf2a8de28abf1f14129c3e1ed87760fa90f19"
+      },
+      {
+        "path": "original-warning/android-process-lock-unused-warning.json",
+        "bytes": 1219,
+        "sha256": "42f445a2b33e78d6013d73a346b50ba2e3493716db76fa057c6128c638e4403c"
+      },
+      {
+        "path": "tools/rf1118-archive-close.py",
+        "bytes": 7470,
+        "sha256": "1c5532a2683be33bfada98714ac3c2338ac60806820cdda9b2f28a55d54a5e54"
+      },
+      {
+        "path": "tools/rf1118-refresh-git-proof.py",
+        "bytes": 3711,
+        "sha256": "dcf620b96e74b6b79ced74b61d3a80151fa77be12e2dff578a59c2a2ec2866cf"
+      },
+      {
+        "path": "tools/rf1118-register.py",
+        "bytes": 2871,
+        "sha256": "88dd49fc51ee27390fbebb771798d081598d447f90cea4f81e36d51b8f065ef0"
+      },
+      {
+        "path": "tools/rf1118-run-checks.py",
+        "bytes": 4074,
+        "sha256": "77ac17e1776c2263d6c392db9fc6dcbced9b8a48f691df797fd698715de50aed"
+      },
+      {
+        "path": "tools/rf1118-verify-git.py",
+        "bytes": 1877,
+        "sha256": "2ab79b7b524d37e33cd9e6fc7676d8236de38f18c2ebf56c7b33542ffe050818"
+      }
+    ],
+    "allMembersReadbackVerified": true
+  },
+  "gitLineEndingReview": {
+    "action": "Initial staged verification stopped before commit on strict raw-byte comparison",
+    "actualWorkingBytes": 2759,
+    "actualStagedBytes": 2683,
+    "actualCRLFCount": 76,
+    "rawEquality": false,
+    "LFNormalizedEquality": true,
+    "compiledSourceChanged": false,
+    "testsRerun": false,
+    "oldVerifierAndArchivePreserved": true,
+    "repair": "Keep exact compiled bytes in executed-source archive; compare Git canonical LF bytes after only CRLF normalization. No other byte differences accepted."
+  }
+}

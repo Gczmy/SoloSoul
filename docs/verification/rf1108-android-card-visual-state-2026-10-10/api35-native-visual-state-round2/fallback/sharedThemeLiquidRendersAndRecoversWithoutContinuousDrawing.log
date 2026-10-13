@@ -1,0 +1,47 @@
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidCardSurfaceInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+com.solosoul.app.AndroidCardSurfaceInstrumentedTest:
+INSTRUMENTATION_STATUS: test=sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=com.solosoul.app.AndroidCardSurfaceInstrumentedTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: Actual context availability must change expected:<true> but was:<false>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at com.solosoul.app.AndroidCardSurfaceInstrumentedTest.sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing$lambda$15$awaitReady(AndroidCardSurfaceInstrumentedTest.kt:165)
+	at com.solosoul.app.AndroidCardSurfaceInstrumentedTest.sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing(AndroidCardSurfaceInstrumentedTest.kt:170)
+
+INSTRUMENTATION_STATUS: stream=
+Error in sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing(com.solosoul.app.AndroidCardSurfaceInstrumentedTest):
+java.lang.AssertionError: Actual context availability must change expected:<true> but was:<false>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at com.solosoul.app.AndroidCardSurfaceInstrumentedTest.sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing$lambda$15$awaitReady(AndroidCardSurfaceInstrumentedTest.kt:165)
+	at com.solosoul.app.AndroidCardSurfaceInstrumentedTest.sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing(AndroidCardSurfaceInstrumentedTest.kt:170)
+
+INSTRUMENTATION_STATUS: test=sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.068
+There was 1 failure:
+1) sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing(com.solosoul.app.AndroidCardSurfaceInstrumentedTest)
+java.lang.AssertionError: Actual context availability must change expected:<true> but was:<false>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at com.solosoul.app.AndroidCardSurfaceInstrumentedTest.sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing$lambda$15$awaitReady(AndroidCardSurfaceInstrumentedTest.kt:165)
+	at com.solosoul.app.AndroidCardSurfaceInstrumentedTest.sharedThemeLiquidRendersAndRecoversWithoutContinuousDrawing(AndroidCardSurfaceInstrumentedTest.kt:170)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

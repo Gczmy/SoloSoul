@@ -1,0 +1,528 @@
+{
+  "members": [
+    {
+      "member": "adapter/android-100-copy.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-copy.live.json",
+      "bytes": 441,
+      "sha256": "312423295e9ed378a14972e56004a16acc0684676c195ce912a3d1a0afb1619b"
+    },
+    {
+      "member": "adapter/android-100-copy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-copy.receipt.json",
+      "bytes": 579,
+      "sha256": "4e4f180753276e515f7693a3f292c835e09539b62f1c0a42ec1236bee28e58bf"
+    },
+    {
+      "member": "adapter/android-100-copy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-copy.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/android-100-copy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-copy.stdout.log",
+      "bytes": 14325,
+      "sha256": "196ca90c0cbdc1b974b7d12de35658c65210dacef9e349dfda1545576f056cdd"
+    },
+    {
+      "member": "adapter/android-100-verify.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-verify.live.json",
+      "bytes": 314,
+      "sha256": "1f055edbd93ae56eff46e7bc46aeedebb1019b1aa3ff6a77d2c1d201765bbec5"
+    },
+    {
+      "member": "adapter/android-100-verify.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-verify.receipt.json",
+      "bytes": 445,
+      "sha256": "61f9f2f7a4664c7eb2bbf763da2d8ec8929a173e47554c7d7482cb6645092066"
+    },
+    {
+      "member": "adapter/android-100-verify.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-verify.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/android-100-verify.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-100-verify.stdout.log",
+      "bytes": 3651,
+      "sha256": "2d805cb0f4fa576c14d0c781bdbd8cd81a21c4eae45460cf623d5388bf679035"
+    },
+    {
+      "member": "adapter/android-vault100/rf312-media-fixture.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\android-vault100\\rf312-media-fixture.json",
+      "bytes": 4242,
+      "sha256": "f0ff6abd29976c5e86e191f4c3571ac941f29508ba7edc8e221092bc5ddec8cf"
+    },
+    {
+      "member": "adapter/checks.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\checks.receipt.json",
+      "bytes": 1440,
+      "sha256": "993e20224b98218e52b413acee7a1d71d8076a7aed628b9b2a365ba2e09c46f2"
+    },
+    {
+      "member": "adapter/consumer-checks.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\consumer-checks.receipt.json",
+      "bytes": 923,
+      "sha256": "e01d757995c99a2a1767de3f7a736cef1ef849c317fe7ce77add8d97381bfd0e"
+    },
+    {
+      "member": "adapter/consumer-sources.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\consumer-sources.json",
+      "bytes": 44981,
+      "sha256": "dafe8f235814ef49440bcd9f9088cb2fc5d9995e668d6825860b0f8aff05c893"
+    },
+    {
+      "member": "adapter/fmt.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\fmt.live.json",
+      "bytes": 71,
+      "sha256": "79ecbf7475bffb51d9bda8bb0c7287bbc65e20132a664eb2528467dd1be1de19"
+    },
+    {
+      "member": "adapter/fmt.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\fmt.receipt.json",
+      "bytes": 170,
+      "sha256": "40b7d5e0489c01890d3ca72c967747f1692fe341c94a61d7b56207419a58c737"
+    },
+    {
+      "member": "adapter/fmt.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\fmt.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/fmt.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\fmt.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/generator.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\generator.json",
+      "bytes": 1935,
+      "sha256": "c8ce4231efb1587b599bcbd5fdd3ae1ed80b590928a7dd4ff272ed5f882da3c3"
+    },
+    {
+      "member": "adapter/media-clippy.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-clippy.live.json",
+      "bytes": 150,
+      "sha256": "74e1f28bd56ad04269470926a573d845bbf6098ce13062ff2fb29d3df0a37908"
+    },
+    {
+      "member": "adapter/media-clippy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-clippy.receipt.json",
+      "bytes": 288,
+      "sha256": "b7938b6a574197c97458e19f7e810348df1212bac955b1d5dfb9a922cd75a4a4"
+    },
+    {
+      "member": "adapter/media-clippy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-clippy.stderr.log",
+      "bytes": 147,
+      "sha256": "34c395b5f610811f061da5b6ced93a0bb3d0485831ce0995eee20d5923bde904"
+    },
+    {
+      "member": "adapter/media-clippy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/media-tests.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-tests.live.json",
+      "bytes": 166,
+      "sha256": "8f8d03dc3982ba3738a82204c95e7538ecc55c5894c05f68cf356ecb8b7c9b78"
+    },
+    {
+      "member": "adapter/media-tests.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-tests.receipt.json",
+      "bytes": 303,
+      "sha256": "d7e5e9d1573e6e5973de4f8699a2d07bf680326f8af1e6be54d0debc3bf8ff71"
+    },
+    {
+      "member": "adapter/media-tests.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-tests.stderr.log",
+      "bytes": 307,
+      "sha256": "1d977acac224c77d07c54a61335224e8a32e0e31de26a5457957411af2341ce4"
+    },
+    {
+      "member": "adapter/media-tests.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media-tests.stdout.log",
+      "bytes": 35273,
+      "sha256": "d29f54ea89c3afebe2be3cde3d2b45e32a569567546531353ccca7baa5df0b9a"
+    },
+    {
+      "member": "adapter/media.before.rs",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\media.before.rs",
+      "bytes": 28116,
+      "sha256": "0181147f034355b1a33a4b09c6f43774178a1d14ea898d5cdaeebe029ada43e5"
+    },
+    {
+      "member": "adapter/preparation-stdout-json-failure.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\preparation-stdout-json-failure.json",
+      "bytes": 322,
+      "sha256": "01f2994f0a372d984001c8dbdf57a060b8cc002da2cd6dcf6dbdeeb28e89824f"
+    },
+    {
+      "member": "adapter/release-generator.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\release-generator.live.json",
+      "bytes": 138,
+      "sha256": "4e30d1f5636cfd031ec882b214bacfd7db2acff0dd3bb7cc186b9bf9d2bb4aa3"
+    },
+    {
+      "member": "adapter/release-generator.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\release-generator.receipt.json",
+      "bytes": 272,
+      "sha256": "8767cf92d08a267bcc5659bdabebc0b83a3f3bdb7089a05c1cda09ca7575652f"
+    },
+    {
+      "member": "adapter/release-generator.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\release-generator.stderr.log",
+      "bytes": 139,
+      "sha256": "0d73f835a9d6d56250f85104c694ad82c1657381ea99592f9695b982c1d6a5f9"
+    },
+    {
+      "member": "adapter/release-generator.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\release-generator.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/run-android-media-preparation.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\run-android-media-preparation.py",
+      "bytes": 3477,
+      "sha256": "f7c26a8a842a35c6a0cf9bf5a92f5761c9dc92ad46eb5e25ef4e3d56e0ba970e"
+    },
+    {
+      "member": "adapter/run-checks-and-build.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\run-checks-and-build.py",
+      "bytes": 2659,
+      "sha256": "5debce6d984255088405147f1a758ed57b6509336107d848335a8a7366043cff"
+    },
+    {
+      "member": "adapter/run-windows-consumer-checks.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\run-windows-consumer-checks.py",
+      "bytes": 2210,
+      "sha256": "51375dcfccc0acc2c084283b94046a2d2fe198e3bf71ce36ad457d49b05591f7"
+    },
+    {
+      "member": "adapter/solosoul-core-Cargo.toml",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\solosoul-core-Cargo.toml",
+      "bytes": 4197,
+      "sha256": "79dc00b81f70c26567a53aca4d125fbaca92e59447b71682c8af3be11088b5f7"
+    },
+    {
+      "member": "adapter/source-fixture-proof.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\source-fixture-proof.json",
+      "bytes": 2861,
+      "sha256": "8710c5a5e867ef1d35a1c0d375f00e7ade5e0e070d2e2e3391995e649ff8fd0d"
+    },
+    {
+      "member": "adapter/sources.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\sources.json",
+      "bytes": 21237,
+      "sha256": "eff1b4eb6b5d4f7a750bfa2d8f5a24757ff7839a4117e10084ce04e955093264"
+    },
+    {
+      "member": "adapter/tauri-Cargo.lock",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\tauri-Cargo.lock",
+      "bytes": 254652,
+      "sha256": "b329a6d743971f5057fc14c9f6c1c0c23f88f2f17fdc3070a2c73110bf1801a7"
+    },
+    {
+      "member": "adapter/tauri-Cargo.toml",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\tauri-Cargo.toml",
+      "bytes": 2000,
+      "sha256": "415f75297cdbc768161072e7872bb7faf1435401067de1160ca70bcf3d8c7a00"
+    },
+    {
+      "member": "adapter/windows-consumer-clippy.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-clippy.live.json",
+      "bytes": 154,
+      "sha256": "4ff23e1eb0bb65b31ea613524877b1989be8c20461fa6888fc77d6b60e34dcfc"
+    },
+    {
+      "member": "adapter/windows-consumer-clippy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-clippy.receipt.json",
+      "bytes": 309,
+      "sha256": "511442764b15229aabb0582070e63bb2099e20c8bedd4e386977e2931df8d4ac"
+    },
+    {
+      "member": "adapter/windows-consumer-clippy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-clippy.stderr.log",
+      "bytes": 1285,
+      "sha256": "78cb13c4da1671a65752943f4555ee7d9a198c6063af7c3bf0a49722944058d6"
+    },
+    {
+      "member": "adapter/windows-consumer-clippy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "adapter/windows-consumer-tests.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-tests.live.json",
+      "bytes": 186,
+      "sha256": "e04c42438febca32a54e402d1e873d26ce1f403a6ccb0711fa8313559801acda"
+    },
+    {
+      "member": "adapter/windows-consumer-tests.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-tests.receipt.json",
+      "bytes": 339,
+      "sha256": "5cd871f35ecbd6183b03e620142b9193e89d7102e6a258a0e53b12bf83124a29"
+    },
+    {
+      "member": "adapter/windows-consumer-tests.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-tests.stderr.log",
+      "bytes": 1422,
+      "sha256": "70afa415af2f3d6c9b0b8403ef479d10ef558ac8aefe0a1a827c64c273d56143"
+    },
+    {
+      "member": "adapter/windows-consumer-tests.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-adapter-20261012\\windows-consumer-tests.stdout.log",
+      "bytes": 38102,
+      "sha256": "42d955756c75d3cecda3ccbf6122dcbc2f554554f5aa0b475bc3b1ce8d67548b"
+    },
+    {
+      "member": "preparation-round2/android-100-copy.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-copy.live.json",
+      "bytes": 452,
+      "sha256": "57ac2637476c7157c43719ef9ff6a79320041a3df725a6cc9853074d11862000"
+    },
+    {
+      "member": "preparation-round2/android-100-copy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-copy.receipt.json",
+      "bytes": 590,
+      "sha256": "8134a80891c33d60265fd39bd4d522df1351d5faf2ce24d07ab463a4e6c81eb4"
+    },
+    {
+      "member": "preparation-round2/android-100-copy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-copy.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/android-100-copy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-copy.stdout.log",
+      "bytes": 14567,
+      "sha256": "5035e232c0b02609d10166159ec847a52b55d386c63414b9d5e6e0941fc4611b"
+    },
+    {
+      "member": "preparation-round2/android-100-host-rejection.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-host-rejection.live.json",
+      "bytes": 317,
+      "sha256": "ef030244455fa8a0d6e3d32fb7c3ec78293025d8c2e8be47f45b44d55bb5c36e"
+    },
+    {
+      "member": "preparation-round2/android-100-host-rejection.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-host-rejection.receipt.json",
+      "bytes": 457,
+      "sha256": "9e252b757f985f8190f0e0f5fcc02da147543e85d48634d35a5dd4dd842ceb49"
+    },
+    {
+      "member": "preparation-round2/android-100-host-rejection.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-host-rejection.stderr.log",
+      "bytes": 252,
+      "sha256": "452eca9bf3bdcb986e2e84841cbead7cb8f4d9efcfd4bffc77b1758ca5110d72"
+    },
+    {
+      "member": "preparation-round2/android-100-host-rejection.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-host-rejection.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/android-100-verify.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-verify.live.json",
+      "bytes": 325,
+      "sha256": "4bf15950ab9ceea27eb532033fa93c6fd236f0b0e06fa13029ff4a298f14034e"
+    },
+    {
+      "member": "preparation-round2/android-100-verify.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-verify.receipt.json",
+      "bytes": 456,
+      "sha256": "6a3126152ed50abfef3e0ffb5b2c987ecfaa9c3a997550b2acc0d306e243c6cf"
+    },
+    {
+      "member": "preparation-round2/android-100-verify.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-verify.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/android-100-verify.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-100-verify.stdout.log",
+      "bytes": 3706,
+      "sha256": "dff4e3f070d92c583272f175fa563e23319c9868122227a64ddfb11b0ac50559"
+    },
+    {
+      "member": "preparation-round2/android-5000-copy.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-copy.live.json",
+      "bytes": 454,
+      "sha256": "03ca5c96aa25e37376ea709f821bee15382db1ffbb54faddee902bc74d08ffab"
+    },
+    {
+      "member": "preparation-round2/android-5000-copy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-copy.receipt.json",
+      "bytes": 593,
+      "sha256": "ef31ad8ad0074186cd3dcb399998ad9783d89a51bb4b145b1e68540e21a24c2d"
+    },
+    {
+      "member": "preparation-round2/android-5000-copy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-copy.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/android-5000-copy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-copy.stdout.log",
+      "bytes": 14611,
+      "sha256": "202dab61a5468d1b63899096db9e6be5f4c558ad05779602141663a8bd83e2f5"
+    },
+    {
+      "member": "preparation-round2/android-5000-host-rejection.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-host-rejection.live.json",
+      "bytes": 318,
+      "sha256": "06758285ff7baa407a8b25a8ff6674442c8ac5ae89de7a5f0ef89c5568c49c87"
+    },
+    {
+      "member": "preparation-round2/android-5000-host-rejection.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-host-rejection.receipt.json",
+      "bytes": 459,
+      "sha256": "06aa74f001b52051605bf33fdcf6ecd8b5dbdff8b9a4f673e765414108f081f8"
+    },
+    {
+      "member": "preparation-round2/android-5000-host-rejection.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-host-rejection.stderr.log",
+      "bytes": 252,
+      "sha256": "452eca9bf3bdcb986e2e84841cbead7cb8f4d9efcfd4bffc77b1758ca5110d72"
+    },
+    {
+      "member": "preparation-round2/android-5000-host-rejection.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-host-rejection.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/android-5000-verify.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-verify.live.json",
+      "bytes": 326,
+      "sha256": "e46a52ed99f983a5620842d6319adc01166e73e0c8c7c18d4df92d87a4bb609d"
+    },
+    {
+      "member": "preparation-round2/android-5000-verify.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-verify.receipt.json",
+      "bytes": 458,
+      "sha256": "5c07f5c166dedc8ed85f4444cd4bea85e1bcda8e6494d4ecb5b61aaf3164bff1"
+    },
+    {
+      "member": "preparation-round2/android-5000-verify.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-verify.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/android-5000-verify.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-5000-verify.stdout.log",
+      "bytes": 3714,
+      "sha256": "2696665cf039fd9d9aa997887416c767f24e525d660c42fdae47681e98115f25"
+    },
+    {
+      "member": "preparation-round2/android-vault100/rf312-media-fixture.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault100\\rf312-media-fixture.json",
+      "bytes": 4242,
+      "sha256": "076e7e9bc313171e0b95f8794c4303bed122065dd5924870c2851b6d83a5f710"
+    },
+    {
+      "member": "preparation-round2/android-vault5000/rf312-media-fixture.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\android-vault5000\\rf312-media-fixture.json",
+      "bytes": 4248,
+      "sha256": "eb70071a5c950a0869b5ac8bade98a482f8c10118ff1f2ec88382044522d9856"
+    },
+    {
+      "member": "preparation-round2/fixture-preparation.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\fixture-preparation.receipt.json",
+      "bytes": 4556,
+      "sha256": "465a3c7a1f493610854fae1a674399195933a358726b28ea883aba6f3eb0b470"
+    },
+    {
+      "member": "preparation-round2/generator.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\generator.json",
+      "bytes": 1935,
+      "sha256": "c8ce4231efb1587b599bcbd5fdd3ae1ed80b590928a7dd4ff272ed5f882da3c3"
+    },
+    {
+      "member": "preparation-round2/host-100-android-rejection.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-100-android-rejection.live.json",
+      "bytes": 301,
+      "sha256": "3333c3085baf67aa81e41bf1b993267e8b61f91f22fc3648599ee5b2b833ccf0"
+    },
+    {
+      "member": "preparation-round2/host-100-android-rejection.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-100-android-rejection.receipt.json",
+      "bytes": 441,
+      "sha256": "be8a95550de9900f742655772490b49783963af78f97be9b1b7f54b648403596"
+    },
+    {
+      "member": "preparation-round2/host-100-android-rejection.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-100-android-rejection.stderr.log",
+      "bytes": 152,
+      "sha256": "abe1b7e274fb0eb7cc3f6e35d3e4ca8513985aaaa9b9adcf8bebd913e3c8bd93"
+    },
+    {
+      "member": "preparation-round2/host-100-android-rejection.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-100-android-rejection.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/host-5000-android-rejection.live.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-5000-android-rejection.live.json",
+      "bytes": 302,
+      "sha256": "2776eade3c785a3fd9b2508ddde3f932a0f36acebf88a00de93067124ea1f7e5"
+    },
+    {
+      "member": "preparation-round2/host-5000-android-rejection.receipt.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-5000-android-rejection.receipt.json",
+      "bytes": 444,
+      "sha256": "b37c50a7d9e0ff6087f3b3242aabf0ca1d7cb53f3f69a0f13fe78401e9009a80"
+    },
+    {
+      "member": "preparation-round2/host-5000-android-rejection.stderr.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-5000-android-rejection.stderr.log",
+      "bytes": 152,
+      "sha256": "abe1b7e274fb0eb7cc3f6e35d3e4ca8513985aaaa9b9adcf8bebd913e3c8bd93"
+    },
+    {
+      "member": "preparation-round2/host-5000-android-rejection.stdout.log",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\host-5000-android-rejection.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "preparation-round2/run-android-media-preparation.py",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\run-android-media-preparation.py",
+      "bytes": 3800,
+      "sha256": "6ac90c4abdd159f60a4450071c4c40aa2c7cb7ed8e8e7ac6c0c30123be5dfe54"
+    },
+    {
+      "member": "preparation-round2/source-fixture-proof.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\source-fixture-proof.json",
+      "bytes": 2861,
+      "sha256": "8710c5a5e867ef1d35a1c0d375f00e7ade5e0e070d2e2e3391995e649ff8fd0d"
+    },
+    {
+      "member": "preparation-round2/sources.json",
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-android-media-preparation-round2-20261012\\sources.json",
+      "bytes": 21237,
+      "sha256": "eff1b4eb6b5d4f7a750bfa2d8f5a24757ff7839a4117e10084ce04e955093264"
+    },
+    {
+      "member": "sources/media.rs",
+      "source": "D:\\SoloSoul\\tauri\\crates\\solosoul-core\\examples\\perf_baseline\\media.rs",
+      "bytes": 37893,
+      "sha256": "64568beb6dd069a9c4ea6fe8e619afd0124f5dfaf014d29be3110796bf44332f"
+    }
+  ],
+  "allMembersReadbackVerified": true,
+  "vaultDatabasesProgramsCachesAndKeysExcluded": true
+}

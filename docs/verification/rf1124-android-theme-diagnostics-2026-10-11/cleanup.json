@@ -1,0 +1,244 @@
+{
+  "task": "RF-1124",
+  "removedFiles": 39,
+  "removedBytes": 91552588.0,
+  "removed": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported\\private-data-before.tar",
+      "bytes": 7387648,
+      "sha256": "a0b9980cb12d04fdcaadd3a7d15f6e6c8566167997a4607dbffda730e5603207"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported\\private-data-restored.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported\\external-before\\rf201-system.json",
+      "bytes": 393,
+      "sha256": "cb2b6e4b3dae703cd5483cc2f7e68023b03281bfc94c8e2770a7203cd414c5e5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported\\external-before\\rf201-system-light.png",
+      "bytes": 122130,
+      "sha256": "6699defaf339a03af959a7527d25ba8ba2ab22a0b625e86797751a030533bf0c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported\\external-before\\rf201-system-dark.png",
+      "bytes": 98,
+      "sha256": "0dbca3bb12b04ac24e33e01c70f9c4c02fd080f7c0796a1ee01b361219467fd5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported\\external-before\\rf201-system-light-again.png",
+      "bytes": 105,
+      "sha256": "556afa9ce11059d558c3ca5d46e5d17e3adf2164e979f6359bb14e7d83d160ec"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback\\private-data-before.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback\\private-data-restored.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback\\external-before\\rf201-system.json",
+      "bytes": 393,
+      "sha256": "cb2b6e4b3dae703cd5483cc2f7e68023b03281bfc94c8e2770a7203cd414c5e5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback\\external-before\\rf201-system-light.png",
+      "bytes": 122130,
+      "sha256": "6699defaf339a03af959a7527d25ba8ba2ab22a0b625e86797751a030533bf0c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback\\external-before\\rf201-system-dark.png",
+      "bytes": 98,
+      "sha256": "0dbca3bb12b04ac24e33e01c70f9c4c02fd080f7c0796a1ee01b361219467fd5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback\\external-before\\rf201-system-light-again.png",
+      "bytes": 105,
+      "sha256": "556afa9ce11059d558c3ca5d46e5d17e3adf2164e979f6359bb14e7d83d160ec"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported\\private-data-before.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported\\private-data-restored.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system.json",
+      "bytes": 393,
+      "sha256": "cb2b6e4b3dae703cd5483cc2f7e68023b03281bfc94c8e2770a7203cd414c5e5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system-light.png",
+      "bytes": 122130,
+      "sha256": "6699defaf339a03af959a7527d25ba8ba2ab22a0b625e86797751a030533bf0c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system-dark.png",
+      "bytes": 98,
+      "sha256": "0dbca3bb12b04ac24e33e01c70f9c4c02fd080f7c0796a1ee01b361219467fd5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system-light-again.png",
+      "bytes": 105,
+      "sha256": "556afa9ce11059d558c3ca5d46e5d17e3adf2164e979f6359bb14e7d83d160ec"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback\\private-data-before.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback\\private-data-restored.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system.json",
+      "bytes": 393,
+      "sha256": "cb2b6e4b3dae703cd5483cc2f7e68023b03281bfc94c8e2770a7203cd414c5e5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system-light.png",
+      "bytes": 122130,
+      "sha256": "6699defaf339a03af959a7527d25ba8ba2ab22a0b625e86797751a030533bf0c"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system-dark.png",
+      "bytes": 98,
+      "sha256": "0dbca3bb12b04ac24e33e01c70f9c4c02fd080f7c0796a1ee01b361219467fd5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system-light-again.png",
+      "bytes": 105,
+      "sha256": "556afa9ce11059d558c3ca5d46e5d17e3adf2164e979f6359bb14e7d83d160ec"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported\\private-data-before.tar",
+      "bytes": 4075008,
+      "sha256": "a246d4bdb4fa972be9c9adf85eb3b313f19ec466d1c1fa18237209a6a2b92a9a"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported\\private-data-restored.tar",
+      "bytes": 4075008,
+      "sha256": "e2ed6543c03d8974eecf18fb2c32cd5331ae14d89a296816033178130fdbb646"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system.json",
+      "bytes": 1180,
+      "sha256": "16173d90591bb8b850bd65c10f547b0115076ed9cfe5d994edce8f0f43e68dbc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system-light.png",
+      "bytes": 120213,
+      "sha256": "8a25ed1cf19e12a1c0e0e0b82f182181e580e0a311ad419e31e9e55b95d97ef5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system-dark.png",
+      "bytes": 118802,
+      "sha256": "4001f9424dc7095b09f109e91779413c5e5544d0e97f879eb8f52f35f4f904c8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported\\external-before\\rf201-system-light-again.png",
+      "bytes": 120513,
+      "sha256": "28702e51ab5dbf1868d2d28d1c17ce56865049349915e10c669de7bebf3c5b62"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback\\private-data-before.tar",
+      "bytes": 4075008,
+      "sha256": "e2ed6543c03d8974eecf18fb2c32cd5331ae14d89a296816033178130fdbb646"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback\\private-data-restored.tar",
+      "bytes": 4075008,
+      "sha256": "e2ed6543c03d8974eecf18fb2c32cd5331ae14d89a296816033178130fdbb646"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system.json",
+      "bytes": 1180,
+      "sha256": "16173d90591bb8b850bd65c10f547b0115076ed9cfe5d994edce8f0f43e68dbc"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system-light.png",
+      "bytes": 120213,
+      "sha256": "8a25ed1cf19e12a1c0e0e0b82f182181e580e0a311ad419e31e9e55b95d97ef5"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system-dark.png",
+      "bytes": 118802,
+      "sha256": "4001f9424dc7095b09f109e91779413c5e5544d0e97f879eb8f52f35f4f904c8"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback\\external-before\\rf201-system-light-again.png",
+      "bytes": 120513,
+      "sha256": "28702e51ab5dbf1868d2d28d1c17ce56865049349915e10c669de7bebf3c5b62"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-external-owner-recovery-20261011\\private-data-before.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-external-owner-recovery-20261011\\private-data-restored.tar",
+      "bytes": 7387648,
+      "sha256": "28c5ca33658c555c6f45e1d334b4a2ff91890e3c2b7e347fbb2dabd82895862e"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-external-owner-recovery-20261011\\rf1124-restore-723c3f7630d1425f8447c2cc0896055b.json",
+      "bytes": 163756,
+      "sha256": "098d972441f1dcd56092b57b9e57adab99d5401cd384668ee87ae6b949ff83f1"
+    }
+  ],
+  "privatePairs": [
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\supported",
+      "entries": 216,
+      "contentsLinksAndModesMatched": true
+    },
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-20261011\\fallback",
+      "entries": 216,
+      "contentsLinksAndModesMatched": true
+    },
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\supported",
+      "entries": 216,
+      "contentsLinksAndModesMatched": true
+    },
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api31-theme-rf1124-retry1-20261011\\fallback",
+      "entries": 216,
+      "contentsLinksAndModesMatched": true
+    },
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\supported",
+      "entries": 249,
+      "contentsLinksAndModesMatched": true
+    },
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-theme-rf1124-retry1-20261011\\fallback",
+      "entries": 249,
+      "contentsLinksAndModesMatched": true
+    },
+    {
+      "directory": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1124-external-owner-recovery-20261011",
+      "entries": 216,
+      "contentsLinksAndModesMatched": true
+    }
+  ],
+  "archiveSha256": "d4389159b35639f4ec40943b7d1d27fded5124fcb2b523e1796322763da89272",
+  "recursiveRemoval": false,
+  "userProcessesTerminated": 0,
+  "ownedEmulatorsExited": true,
+  "at": "2026-10-11T15:45:14.3449799Z"
+}

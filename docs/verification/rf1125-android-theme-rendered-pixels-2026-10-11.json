@@ -1,0 +1,1684 @@
+{
+  "task": "RF-1125",
+  "base": "e6c55233be520f37fbd2bfeb9f3deb1f210fe614",
+  "status": "render-capture-verification-complete",
+  "checks": {
+    "task": "RF-1125",
+    "base": "e6c55233be520f37fbd2bfeb9f3deb1f210fe614",
+    "themeAcceptanceBodyAnd45SecondBudgetUnchanged": true,
+    "originalLightDarkLightCommandsUnchanged": true,
+    "productionSourcesUnchanged": true,
+    "unit": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "unitReusedFromRF1124": true,
+    "receipts": {
+      "kotlin-unit-tests": {
+        "exitCode": 0,
+        "elapsedSeconds": 123.14728150004521,
+        "sourceUnchanged": true,
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+          ":app:testX86_64DebugUnitTest",
+          "-x",
+          ":app:rustBuildX86_64Debug",
+          "--init-script",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\private-packaging-assets.init.gradle",
+          "--offline",
+          "--no-daemon",
+          "--max-workers",
+          "2"
+        ]
+      },
+      "test-build": {
+        "exitCode": 0,
+        "elapsedSeconds": 69.32670520001557,
+        "sourceUnchanged": true,
+        "command": [
+          "cmd.exe",
+          "/d",
+          "/c",
+          "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\gradlew.bat",
+          ":app:assembleX86_64DebugAndroidTest",
+          "-x",
+          ":app:rustBuildX86_64Debug",
+          "--init-script",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\private-packaging-assets.init.gradle",
+          "--no-daemon",
+          "--max-workers",
+          "2"
+        ]
+      },
+      "test-badging": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.301723700016737,
+        "sourceUnchanged": true,
+        "command": [
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\aapt2.exe",
+          "dump",
+          "badging",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1125-theme-render-test-build-20261011\\app-x86_64-debug-androidTest.apk"
+        ]
+      },
+      "test-signature": {
+        "exitCode": 0,
+        "elapsedSeconds": 1.1490299999713898,
+        "sourceUnchanged": true,
+        "command": [
+          "C:\\Users\\40299571\\ss-android\\jdk\\bin\\java.exe",
+          "-jar",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\build-tools\\35.0.0\\lib\\apksigner.jar",
+          "verify",
+          "--verbose",
+          "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1125-theme-render-test-build-20261011\\app-x86_64-debug-androidTest.apk"
+        ]
+      }
+    },
+    "sourceSha256": "a3319755bbd059b12be28dcda12634cbabc96cd40a171185d6a427fe27c8bfa5"
+  },
+  "artifacts": [
+    {
+      "kind": "main",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\x86_64\\debug\\app-x86_64-debug.apk",
+      "copy": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-rf1121-20261011\\app-x86_64-debug.apk",
+      "sha256": "7e536087723d9211ace0f9a0b20db0225d453a22258f71ba14e348936c0f49e2",
+      "bytes": 218619845,
+      "package": "com.solosoul.app",
+      "zipEntries": 1033,
+      "nativeLibraries": [
+        "lib/x86_64/libmlkit_google_ocr_pipeline.so",
+        "lib/x86_64/libsolo_soul.so"
+      ],
+      "signatureVerified": true
+    },
+    {
+      "kind": "test",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\androidTest\\x86_64\\debug\\app-x86_64-debug-androidTest.apk",
+      "copy": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1125-theme-render-test-build-20261011\\app-x86_64-debug-androidTest.apk",
+      "sha256": "d55795db2f8d3f5a458025a58a1dd880462d3c27398d389dcb8791f58cc97fb4",
+      "bytes": 1957887,
+      "package": "com.solosoul.app.test",
+      "zipEntries": 39,
+      "nativeLibraries": [],
+      "signatureVerified": true
+    }
+  ],
+  "observations": [
+    {
+      "api": 31,
+      "mode": "supported",
+      "nativePassed": false,
+      "runId": "b867c787bd2144f19684f93fbd2f5b4f",
+      "records": [
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 31,
+            "nightMode": 1,
+            "activityNight": 16,
+            "applicationNight": 16,
+            "systemResourcesNight": 16,
+            "androidLightTheme": true,
+            "appCompatLightTheme": true,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "91.0.4472.114",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": null,
+            "processId": 2210,
+            "webViewIdentity": 241243099,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-light",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 554800394503,
+            "webViewIdentity": 241243099,
+            "callbackRequestId": 554800394503,
+            "callbackAtNs": 554965482850,
+            "drawAtNs": 555023092867,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "light",
+              "darkMedia": false,
+              "colorScheme": "light",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#fafaf6",
+              "surface": "#fdfcf9",
+              "foreground": "#111111",
+              "accent": "#5b7c99",
+              "materialContainer": "#eaeded",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(250, 250, 246)",
+                "cardFound": true,
+                "cardBackground": "rgb(253, 252, 249)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": true,
+              "navigationBarLight": true,
+              "native": {
+                "api": 31,
+                "nightMode": 1,
+                "activityNight": 16,
+                "applicationNight": 16,
+                "systemResourcesNight": 16,
+                "androidLightTheme": true,
+                "appCompatLightTheme": true,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "91.0.4472.114",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": null,
+                "processId": 2210,
+                "webViewIdentity": 241243099,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 556549772971,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              }
+            ]
+          }
+        },
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 31,
+            "nightMode": 2,
+            "activityNight": 32,
+            "applicationNight": 32,
+            "systemResourcesNight": 32,
+            "androidLightTheme": false,
+            "appCompatLightTheme": false,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "91.0.4472.114",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": null,
+            "processId": 2210,
+            "webViewIdentity": 241243099,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-dark",
+          "result": "timeout"
+        }
+      ]
+    },
+    {
+      "api": 31,
+      "mode": "fallback",
+      "nativePassed": false,
+      "runId": "6f200235b43c4643ade2f69763edaa80",
+      "records": [
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 31,
+            "nightMode": 1,
+            "activityNight": 16,
+            "applicationNight": 16,
+            "systemResourcesNight": 16,
+            "androidLightTheme": true,
+            "appCompatLightTheme": true,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "91.0.4472.114",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": null,
+            "processId": 2559,
+            "webViewIdentity": 163864184,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-light",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 677824690024,
+            "webViewIdentity": 163864184,
+            "callbackRequestId": 677824690024,
+            "callbackAtNs": 677845334686,
+            "drawAtNs": 677858860922,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "light",
+              "darkMedia": false,
+              "colorScheme": "light",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#fafaf6",
+              "surface": "#fdfcf9",
+              "foreground": "#111111",
+              "accent": "#5b7c99",
+              "materialContainer": "#eaeded",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(250, 250, 246)",
+                "cardFound": true,
+                "cardBackground": "rgb(253, 252, 249)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": true,
+              "navigationBarLight": true,
+              "native": {
+                "api": 31,
+                "nightMode": 1,
+                "activityNight": 16,
+                "applicationNight": 16,
+                "systemResourcesNight": 16,
+                "androidLightTheme": true,
+                "appCompatLightTheme": true,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "91.0.4472.114",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": null,
+                "processId": 2559,
+                "webViewIdentity": 163864184,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 678043237576,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              }
+            ]
+          }
+        },
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 12; Android SDK built for x86_64 Build/SE1A.220826.006.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 31,
+            "nightMode": 2,
+            "activityNight": 32,
+            "applicationNight": 32,
+            "systemResourcesNight": 32,
+            "androidLightTheme": false,
+            "appCompatLightTheme": false,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "91.0.4472.114",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": null,
+            "processId": 2559,
+            "webViewIdentity": 163864184,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-dark",
+          "result": "timeout"
+        }
+      ]
+    },
+    {
+      "api": 35,
+      "mode": "supported",
+      "nativePassed": true,
+      "runId": "aa0387afd5e94ffda18010838cccb5bc",
+      "records": [
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 35,
+            "nightMode": 1,
+            "activityNight": 16,
+            "applicationNight": 16,
+            "systemResourcesNight": 16,
+            "androidLightTheme": true,
+            "appCompatLightTheme": true,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "124.0.6367.219",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": false,
+            "processId": 2026,
+            "webViewIdentity": 113985857,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-light",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 302170174900,
+            "webViewIdentity": 113985857,
+            "callbackRequestId": 302170174900,
+            "callbackAtNs": 302189249900,
+            "drawAtNs": 302203304900,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "light",
+              "darkMedia": false,
+              "colorScheme": "light",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#fafaf6",
+              "surface": "#fdfcf9",
+              "foreground": "#111111",
+              "accent": "#5b7c99",
+              "materialContainer": "#eaeded",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(250, 250, 246)",
+                "cardFound": true,
+                "cardBackground": "rgb(253, 252, 249)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": true,
+              "navigationBarLight": true,
+              "native": {
+                "api": 35,
+                "nightMode": 1,
+                "activityNight": 16,
+                "applicationNight": 16,
+                "systemResourcesNight": 16,
+                "androidLightTheme": true,
+                "appCompatLightTheme": true,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "124.0.6367.219",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": false,
+                "processId": 2026,
+                "webViewIdentity": 113985857,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 302288483800,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              }
+            ]
+          }
+        },
+        {
+          "platform": "android",
+          "theme": "dark",
+          "darkMedia": true,
+          "colorScheme": "dark",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#1f1c18",
+          "surface": "#2a2620",
+          "foreground": "#ffffff",
+          "accent": "#7a9ab5",
+          "materialContainer": "#343432",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(31, 28, 24)",
+            "cardFound": true,
+            "cardBackground": "rgb(42, 38, 32)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": false,
+          "navigationBarLight": false,
+          "native": {
+            "api": 35,
+            "nightMode": 2,
+            "activityNight": 32,
+            "applicationNight": 32,
+            "systemResourcesNight": 32,
+            "androidLightTheme": false,
+            "appCompatLightTheme": false,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "124.0.6367.219",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": false,
+            "processId": 2026,
+            "webViewIdentity": 113985857,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-dark",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 303130039300,
+            "webViewIdentity": 113985857,
+            "callbackRequestId": 303130039300,
+            "callbackAtNs": 303159066200,
+            "drawAtNs": 303175250800,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "dark",
+              "darkMedia": true,
+              "colorScheme": "dark",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#1f1c18",
+              "surface": "#2a2620",
+              "foreground": "#ffffff",
+              "accent": "#7a9ab5",
+              "materialContainer": "#343432",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(31, 28, 24)",
+                "cardFound": true,
+                "cardBackground": "rgb(42, 38, 32)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": false,
+              "navigationBarLight": false,
+              "native": {
+                "api": 35,
+                "nightMode": 2,
+                "activityNight": 32,
+                "applicationNight": 32,
+                "systemResourcesNight": 32,
+                "androidLightTheme": false,
+                "appCompatLightTheme": false,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "124.0.6367.219",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": false,
+                "processId": 2026,
+                "webViewIdentity": 113985857,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 303297641100,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "expectedRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "expectedRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "matched": true
+              }
+            ]
+          }
+        },
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 35,
+            "nightMode": 1,
+            "activityNight": 16,
+            "applicationNight": 16,
+            "systemResourcesNight": 16,
+            "androidLightTheme": true,
+            "appCompatLightTheme": true,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "124.0.6367.219",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": false,
+            "processId": 2026,
+            "webViewIdentity": 113985857,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-light-again",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 303929617100,
+            "webViewIdentity": 113985857,
+            "callbackRequestId": 303929617100,
+            "callbackAtNs": 303957416600,
+            "drawAtNs": 303971725100,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "light",
+              "darkMedia": false,
+              "colorScheme": "light",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#fafaf6",
+              "surface": "#fdfcf9",
+              "foreground": "#111111",
+              "accent": "#5b7c99",
+              "materialContainer": "#eaeded",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(250, 250, 246)",
+                "cardFound": true,
+                "cardBackground": "rgb(253, 252, 249)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": true,
+              "navigationBarLight": true,
+              "native": {
+                "api": 35,
+                "nightMode": 1,
+                "activityNight": 16,
+                "applicationNight": 16,
+                "systemResourcesNight": 16,
+                "androidLightTheme": true,
+                "appCompatLightTheme": true,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "124.0.6367.219",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": false,
+                "processId": 2026,
+                "webViewIdentity": 113985857,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 304071122200,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "api": 35,
+      "mode": "fallback",
+      "nativePassed": true,
+      "runId": "c74f15f9657a4371875249530854c323",
+      "records": [
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 35,
+            "nightMode": 1,
+            "activityNight": 16,
+            "applicationNight": 16,
+            "systemResourcesNight": 16,
+            "androidLightTheme": true,
+            "appCompatLightTheme": true,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "124.0.6367.219",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": false,
+            "processId": 2363,
+            "webViewIdentity": 207949487,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-light",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 319246366200,
+            "webViewIdentity": 207949487,
+            "callbackRequestId": 319246366200,
+            "callbackAtNs": 319272849600,
+            "drawAtNs": 319285587200,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "light",
+              "darkMedia": false,
+              "colorScheme": "light",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#fafaf6",
+              "surface": "#fdfcf9",
+              "foreground": "#111111",
+              "accent": "#5b7c99",
+              "materialContainer": "#eaeded",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(250, 250, 246)",
+                "cardFound": true,
+                "cardBackground": "rgb(253, 252, 249)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": true,
+              "navigationBarLight": true,
+              "native": {
+                "api": 35,
+                "nightMode": 1,
+                "activityNight": 16,
+                "applicationNight": 16,
+                "systemResourcesNight": 16,
+                "androidLightTheme": true,
+                "appCompatLightTheme": true,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "124.0.6367.219",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": false,
+                "processId": 2363,
+                "webViewIdentity": 207949487,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 319377400500,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              }
+            ]
+          }
+        },
+        {
+          "platform": "android",
+          "theme": "dark",
+          "darkMedia": true,
+          "colorScheme": "dark",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#1f1c18",
+          "surface": "#2a2620",
+          "foreground": "#ffffff",
+          "accent": "#7a9ab5",
+          "materialContainer": "#343432",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(31, 28, 24)",
+            "cardFound": true,
+            "cardBackground": "rgb(42, 38, 32)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": false,
+          "navigationBarLight": false,
+          "native": {
+            "api": 35,
+            "nightMode": 2,
+            "activityNight": 32,
+            "applicationNight": 32,
+            "systemResourcesNight": 32,
+            "androidLightTheme": false,
+            "appCompatLightTheme": false,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "124.0.6367.219",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": false,
+            "processId": 2363,
+            "webViewIdentity": 207949487,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-dark",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 320109372300,
+            "webViewIdentity": 207949487,
+            "callbackRequestId": 320109372300,
+            "callbackAtNs": 320123456500,
+            "drawAtNs": 320139736500,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "dark",
+              "darkMedia": true,
+              "colorScheme": "dark",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#1f1c18",
+              "surface": "#2a2620",
+              "foreground": "#ffffff",
+              "accent": "#7a9ab5",
+              "materialContainer": "#343432",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(31, 28, 24)",
+                "cardFound": true,
+                "cardBackground": "rgb(42, 38, 32)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": false,
+              "navigationBarLight": false,
+              "native": {
+                "api": 35,
+                "nightMode": 2,
+                "activityNight": 32,
+                "applicationNight": 32,
+                "systemResourcesNight": 32,
+                "androidLightTheme": false,
+                "appCompatLightTheme": false,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "124.0.6367.219",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": false,
+                "processId": 2363,
+                "webViewIdentity": 207949487,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 320240782000,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "expectedRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "expectedRgb": [
+                  42,
+                  38,
+                  32
+                ],
+                "matched": true
+              }
+            ]
+          }
+        },
+        {
+          "platform": "android",
+          "theme": "light",
+          "darkMedia": false,
+          "colorScheme": "light",
+          "colorSchemeMeta": "",
+          "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+          "mounted": true,
+          "startupGone": true,
+          "background": "#fafaf6",
+          "surface": "#fdfcf9",
+          "foreground": "#111111",
+          "accent": "#5b7c99",
+          "materialContainer": "#eaeded",
+          "materialInk": "#000000",
+          "render": {
+            "path": "/bootstrap",
+            "viewportWidth": 360,
+            "viewportHeight": 800,
+            "devicePixelRatio": 2,
+            "viewportScale": 1,
+            "viewportOffsetX": 0,
+            "viewportOffsetY": 0,
+            "bodyBackground": "rgb(250, 250, 246)",
+            "cardFound": true,
+            "cardBackground": "rgb(253, 252, 249)",
+            "points": [
+              {
+                "x": 32,
+                "y": 56,
+                "hitsCard": true
+              },
+              {
+                "x": 322,
+                "y": 56,
+                "hitsCard": true
+              }
+            ]
+          },
+          "statusBarLight": true,
+          "navigationBarLight": true,
+          "native": {
+            "api": 35,
+            "nightMode": 1,
+            "activityNight": 16,
+            "applicationNight": 16,
+            "systemResourcesNight": 16,
+            "androidLightTheme": true,
+            "appCompatLightTheme": true,
+            "providerPackage": "com.android.webview",
+            "providerVersion": "124.0.6367.219",
+            "forceDark": 1,
+            "algorithmicDarkeningAllowed": false,
+            "processId": 2363,
+            "webViewIdentity": 207949487,
+            "attached": true,
+            "shown": true,
+            "windowFocused": true,
+            "hardwareAccelerated": true
+          },
+          "stage": "system-light-again",
+          "renderCapture": {
+            "visualCallback": true,
+            "nextDrawCompleted": true,
+            "pixelMatched": true,
+            "requestId": 321069886300,
+            "webViewIdentity": 207949487,
+            "callbackRequestId": 321069886300,
+            "callbackAtNs": 321101933800,
+            "drawAtNs": 321103334400,
+            "stateAtCapture": {
+              "platform": "android",
+              "theme": "light",
+              "darkMedia": false,
+              "colorScheme": "light",
+              "colorSchemeMeta": "",
+              "userAgent": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+              "mounted": true,
+              "startupGone": true,
+              "background": "#fafaf6",
+              "surface": "#fdfcf9",
+              "foreground": "#111111",
+              "accent": "#5b7c99",
+              "materialContainer": "#eaeded",
+              "materialInk": "#000000",
+              "render": {
+                "path": "/bootstrap",
+                "viewportWidth": 360,
+                "viewportHeight": 800,
+                "devicePixelRatio": 2,
+                "viewportScale": 1,
+                "viewportOffsetX": 0,
+                "viewportOffsetY": 0,
+                "bodyBackground": "rgb(250, 250, 246)",
+                "cardFound": true,
+                "cardBackground": "rgb(253, 252, 249)",
+                "points": [
+                  {
+                    "x": 32,
+                    "y": 56,
+                    "hitsCard": true
+                  },
+                  {
+                    "x": 322,
+                    "y": 56,
+                    "hitsCard": true
+                  }
+                ]
+              },
+              "statusBarLight": true,
+              "navigationBarLight": true,
+              "native": {
+                "api": 35,
+                "nightMode": 1,
+                "activityNight": 16,
+                "applicationNight": 16,
+                "systemResourcesNight": 16,
+                "androidLightTheme": true,
+                "appCompatLightTheme": true,
+                "providerPackage": "com.android.webview",
+                "providerVersion": "124.0.6367.219",
+                "forceDark": 1,
+                "algorithmicDarkeningAllowed": false,
+                "processId": 2363,
+                "webViewIdentity": 207949487,
+                "attached": true,
+                "shown": true,
+                "windowFocused": true,
+                "hardwareAccelerated": true
+              }
+            },
+            "screenX": 0,
+            "screenY": 0,
+            "webViewWidth": 720,
+            "webViewHeight": 1600,
+            "cssToPixelRatio": 2,
+            "captureAtNs": 321173205000,
+            "imageWidth": 720,
+            "imageHeight": 1600,
+            "pixels": [
+              {
+                "x": 64,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              },
+              {
+                "x": 644,
+                "y": 112,
+                "actualRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "expectedRgb": [
+                  253,
+                  252,
+                  249
+                ],
+                "matched": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "sourcePath": "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidThemeInstrumentedTest.kt",
+  "finalSourceSha256": "a3319755bbd059b12be28dcda12634cbabc96cd40a171185d6a427fe27c8bfa5",
+  "nativeThemeTests": {
+    "api35Passed": 2,
+    "api35Failed": 0,
+    "api31Passed": 0,
+    "api31Failed": 2,
+    "skipped": 0
+  },
+  "verifiedFrames": 8,
+  "verifiedPixels": 16,
+  "adversarialRejectedPerApi": 6,
+  "productionThemeFixed": false,
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "physicalDeviceAccepted": false,
+  "performanceAccepted": false,
+  "scope": "Actual bootstrap opaque card pixels only; legacy dark media failure retained",
+  "originalFailuresRetained": true,
+  "priorStartupNativeSourceClaimWithdrawn": true,
+  "archive": {
+    "path": "docs/verification/rf1125-android-theme-rendered-pixels-2026-10-11/raw.tar.gz",
+    "sha256": "091f1b50c2fb70c76112dc46113897dc6e302095f724715be49d522e664fe7f9",
+    "members": 107
+  },
+  "ledgerClosed": false,
+  "commitCreated": false,
+  "at": "2026-10-11T16:27:33.493556+00:00"
+}

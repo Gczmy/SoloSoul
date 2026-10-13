@@ -1,0 +1,750 @@
+{
+  "task": "RF-1127",
+  "accepted": true,
+  "taskClosed": true,
+  "commitCreated": false,
+  "sourceHead": "2ae69abc2a43618401fbabe28796fe31c826b9ef",
+  "acceptanceScope": "original strict theme interval plus finite later completion contract, actual same-GUI full four-cohort native journeys with complete window/pixel/theme/preference restoration",
+  "contractAndTestsUnchangedSinceOriginalImplementation": true,
+  "historicalNativeIntervalsReverified": 12,
+  "historicalStrictContractStillRejectsEarlyRunning": 2,
+  "historicalEvidenceIsNotNewNativeRun": true,
+  "historicalOriginalFailuresUnmodified": true,
+  "currentNativeThemeIntervals": [
+    {
+      "index": 1,
+      "runId": "3fb3c9ea50e5443eb7df79bc23e5dbc8",
+      "pid": 11120,
+      "from": "dark",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 894.3081999999999,
+              "id": 1,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 866.035
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 894.3081999999999,
+            "id": 1,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 866.035
+          }
+        ],
+        "settlementAtMs": 7245.9271,
+        "laterAdded": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 1368.709,
+              "id": 2,
+              "kind": "backup-reminder",
+              "outcome": "completed",
+              "startedAtMs": 1332.7683000000002
+            },
+            {
+              "accountVerified": true,
+              "endedAtMs": 6534.8179,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6509.197999999999
+            }
+          ],
+          "total": 2,
+          "theme": 1,
+          "backupReminder": 1,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 1,
+      "runId": "3fb3c9ea50e5443eb7df79bc23e5dbc8",
+      "pid": 11120,
+      "from": "original",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 6534.8179,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6509.197999999999
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 6534.8179,
+            "id": 3,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 6509.197999999999
+          }
+        ],
+        "settlementAtMs": 7245.9271,
+        "laterAdded": {
+          "attempts": [],
+          "total": 0,
+          "theme": 0,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 2,
+      "runId": "c0ed4cb05798412fa0cf1e973eb815cc",
+      "pid": 19552,
+      "from": "dark",
+      "to": "home",
+      "transportAttempts": 2,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 860.8715,
+              "id": 1,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 829.5053
+            },
+            {
+              "accountVerified": true,
+              "endedAtMs": 1111.2693,
+              "id": 2,
+              "kind": "backup-reminder",
+              "outcome": "completed",
+              "startedAtMs": 1091.769
+            }
+          ],
+          "total": 2,
+          "theme": 1,
+          "backupReminder": 1,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 860.8715,
+            "id": 1,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 829.5053
+          },
+          {
+            "accountVerified": true,
+            "endedAtMs": 1111.2693,
+            "id": 2,
+            "kind": "backup-reminder",
+            "outcome": "completed",
+            "startedAtMs": 1091.769
+          }
+        ],
+        "settlementAtMs": 4873.920700000001,
+        "laterAdded": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 4085.9138000000003,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 4068.7843
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 2,
+      "runId": "c0ed4cb05798412fa0cf1e973eb815cc",
+      "pid": 19552,
+      "from": "original",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 4085.9138000000003,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 4068.7843
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 4085.9138000000003,
+            "id": 3,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 4068.7843
+          }
+        ],
+        "settlementAtMs": 4873.920700000001,
+        "laterAdded": {
+          "attempts": [],
+          "total": 0,
+          "theme": 0,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 3,
+      "runId": "3ec6e491d6b2400a804e8b89ed1679dc",
+      "pid": 4984,
+      "from": "dark",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 854.391,
+              "id": 1,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 816.5409999999999
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 854.391,
+            "id": 1,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 816.5409999999999
+          }
+        ],
+        "settlementAtMs": 7165.9223,
+        "laterAdded": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 1264.104,
+              "id": 2,
+              "kind": "backup-reminder",
+              "outcome": "completed",
+              "startedAtMs": 1243.3688
+            },
+            {
+              "accountVerified": true,
+              "endedAtMs": 6387.2011,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6367.7747
+            }
+          ],
+          "total": 2,
+          "theme": 1,
+          "backupReminder": 1,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 3,
+      "runId": "3ec6e491d6b2400a804e8b89ed1679dc",
+      "pid": 4984,
+      "from": "original",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 6387.2011,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6367.7747
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 6387.2011,
+            "id": 3,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 6367.7747
+          }
+        ],
+        "settlementAtMs": 7165.9223,
+        "laterAdded": {
+          "attempts": [],
+          "total": 0,
+          "theme": 0,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 1,
+      "runId": "c0e5badf9f8049a8ba8f30a081fad5ef",
+      "pid": 10380,
+      "from": "dark",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 851.0129,
+              "id": 1,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 812.8876
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 851.0129,
+            "id": 1,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 812.8876
+          }
+        ],
+        "settlementAtMs": 7695.528,
+        "laterAdded": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 1276.3126,
+              "id": 2,
+              "kind": "backup-reminder",
+              "outcome": "completed",
+              "startedAtMs": 1251.7775
+            },
+            {
+              "accountVerified": true,
+              "endedAtMs": 6925.4567,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6902.9373
+            }
+          ],
+          "total": 2,
+          "theme": 1,
+          "backupReminder": 1,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 1,
+      "runId": "c0e5badf9f8049a8ba8f30a081fad5ef",
+      "pid": 10380,
+      "from": "original",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 6925.4567,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6902.9373
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 6925.4567,
+            "id": 3,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 6902.9373
+          }
+        ],
+        "settlementAtMs": 7695.528,
+        "laterAdded": {
+          "attempts": [],
+          "total": 0,
+          "theme": 0,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 2,
+      "runId": "60b0818e0afe4bc29c3e4e33af8227ad",
+      "pid": 28916,
+      "from": "dark",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 848.6013999999999,
+              "id": 1,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 815.4894
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 848.6013999999999,
+            "id": 1,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 815.4894
+          }
+        ],
+        "settlementAtMs": 7592.3733,
+        "laterAdded": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 1330.5339000000001,
+              "id": 2,
+              "kind": "backup-reminder",
+              "outcome": "completed",
+              "startedAtMs": 1282.7744
+            },
+            {
+              "accountVerified": true,
+              "endedAtMs": 6965.1158,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6852.0716999999995
+            }
+          ],
+          "total": 2,
+          "theme": 1,
+          "backupReminder": 1,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 2,
+      "runId": "60b0818e0afe4bc29c3e4e33af8227ad",
+      "pid": 28916,
+      "from": "original",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 6965.1158,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6852.0716999999995
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 6965.1158,
+            "id": 3,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 6852.0716999999995
+          }
+        ],
+        "settlementAtMs": 7592.3733,
+        "laterAdded": {
+          "attempts": [],
+          "total": 0,
+          "theme": 0,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 3,
+      "runId": "e8c6f24f895f497d97293b3554f74ec0",
+      "pid": 27296,
+      "from": "dark",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 870.2073,
+              "id": 1,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 834.7059
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 870.2073,
+            "id": 1,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 834.7059
+          }
+        ],
+        "settlementAtMs": 7747.9443,
+        "laterAdded": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 1378.9534999999998,
+              "id": 2,
+              "kind": "backup-reminder",
+              "outcome": "completed",
+              "startedAtMs": 1356.9181
+            },
+            {
+              "accountVerified": true,
+              "endedAtMs": 6970.0605,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6942.6875
+            }
+          ],
+          "total": 2,
+          "theme": 1,
+          "backupReminder": 1,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    },
+    {
+      "index": 3,
+      "runId": "e8c6f24f895f497d97293b3554f74ec0",
+      "pid": 27296,
+      "from": "original",
+      "to": "home",
+      "transportAttempts": 1,
+      "backend": {
+        "interval": {
+          "attempts": [
+            {
+              "accountVerified": true,
+              "endedAtMs": 6970.0605,
+              "id": 3,
+              "kind": "theme",
+              "outcome": "completed",
+              "startedAtMs": 6942.6875
+            }
+          ],
+          "total": 1,
+          "theme": 1,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "settledAttempts": [
+          {
+            "accountVerified": true,
+            "endedAtMs": 6970.0605,
+            "id": 3,
+            "kind": "theme",
+            "outcome": "completed",
+            "startedAtMs": 6942.6875
+          }
+        ],
+        "settlementAtMs": 7747.9443,
+        "laterAdded": {
+          "attempts": [],
+          "total": 0,
+          "theme": 0,
+          "backupReminder": 0,
+          "other": 0,
+          "allCompleted": true,
+          "performanceMetrics": null
+        },
+        "performanceMetrics": null
+      }
+    }
+  ],
+  "nativeReference": {
+    "result": "rf1133-surface-readiness-2026-10-12.json",
+    "archivePath": "rf1133-surface-readiness-2026-10-12/raw.tar.gz",
+    "sha256": "c340655d37fdc574ebdcdf7c5dd5d2bc9c2f75009780e319c2676c3bf8c482b5",
+    "membersReadbackVerified": 741,
+    "guiSha256": "56d50e60abfeeee01be5e7cdb060e7906a6015cb9bea0ee6eeb56ab4d2fc2857",
+    "sameFrozenSourceInputs": 1843,
+    "cohorts": 4,
+    "samplesPerCohort": 3,
+    "manuallyInspected": 12,
+    "cleanup": {
+      "task": "RF-1133",
+      "at": "2026-10-12T12:43:25.8551080Z",
+      "identitiesChecked": 108,
+      "matchingOwnedIdentitiesLive": 0,
+      "processesTerminatedByThisTool": 0,
+      "removedCachePaths": 96,
+      "linksUnlinked": 12,
+      "preservedVaultAndRootFiles": 600,
+      "applicationLogs": 12,
+      "preservedBytesVerified": true
+    }
+  },
+  "noNativeReRunOrSuccessSplicing": true,
+  "RF1128Closed": false,
+  "fullRF121Accepted": false,
+  "performanceAccepted": false,
+  "remaining": {
+    "RF1128": "actual Windows file symlink regression remains unavailable in original token; full native reader matrix now passed"
+  },
+  "archive": {
+    "path": "rf1127-final-contract-2026-10-12/raw.tar.gz",
+    "sha256": "7c60e8f2fc82c92a76c4ad674c497370e2eb2f65d89441a904ee139c4aaeb6fd",
+    "members": 8,
+    "bytes": 9559,
+    "allMembersReadbackVerified": true
+  }
+}

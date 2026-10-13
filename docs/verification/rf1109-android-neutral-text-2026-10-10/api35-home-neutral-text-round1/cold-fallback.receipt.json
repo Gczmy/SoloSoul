@@ -1,0 +1,21 @@
+{
+  "mode": "fallback",
+  "scenario": "cold",
+  "exitCode": 1,
+  "accepted": false,
+  "elapsedSeconds": 63.83411729999352,
+  "restored": true,
+  "settingsBefore": {
+    "blur": "null",
+    "night": "Night mode: no",
+    "fontScale": "1.0"
+  },
+  "settingsAfter": {
+    "blur": "null",
+    "night": "Night mode: no",
+    "fontScale": "1.0"
+  },
+  "sourceAndApkHashesUnchanged": true,
+  "dedicatedAvdIdentityConfirmedAfter": true,
+  "reportSha256": "550e6e69e9baf73db1c30b43c5f2d64d174d4e36db7f25cd2a46c02e2016a528"
+}

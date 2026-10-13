@@ -1,0 +1,20 @@
+{
+  "before": {
+    "guide": "pending",
+    "plugins": "pending",
+    "info": "ready"
+  },
+  "recreated": {
+    "guide": "pending",
+    "plugins": "pending",
+    "info": "ready"
+  },
+  "ready": {
+    "guide": "ready",
+    "plugins": "ready",
+    "info": "ready"
+  },
+  "installCount": 1,
+  "mainFrameDuringInstall": true,
+  "writtenFiles": 89
+}

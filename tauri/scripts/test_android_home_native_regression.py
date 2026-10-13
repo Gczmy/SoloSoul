@@ -13,6 +13,89 @@ spec.loader.exec_module(runner)
 
 
 class HomeRunnerTests(unittest.TestCase):
+    def test_font_restore_survives_framework_default_and_decimal_writeback(self):
+        for original, effective in [('null', 1.0), ('1.30', 1.3)]:
+            with self.subTest(original=original):
+                state = {'raw': '2.0', 'effective': 2.0}
+
+                def write(action, value, remaining):
+                    self.assertGreater(remaining, 0)
+                    target = 1.0 if action == 'delete' else float(value)
+                    state['raw'] = 'null' if action == 'delete' else value
+                    if target != state['effective']:
+                        # Android writes the new effective configuration back to Settings.
+                        state['effective'] = target
+                        state['raw'] = str(target)
+
+                runner.restore_font_scale(original, effective, write,
+                                          lambda _: state['raw'], lambda _: state['effective'])
+                self.assertEqual(state['raw'], original)
+                self.assertEqual(state['effective'], effective)
+
+    def test_global_font_configuration_requires_one_complete_real_field(self):
+        line = '  mGlobalConfiguration: {1.3 310mcc260mnc [en_US] 320dpi winConfig={ mBounds=Rect(0, 0 - 720, 1600) } s.20}'
+        self.assertEqual(runner.activity_font_scale(line), 1.3)
+        for invalid in ('', line + '\n' + line, line.replace('mGlobalConfiguration', 'CurrentConfiguration'),
+                        line[:-1], line.replace('{1.3 ', '{NaN '), line.replace('{1.3 ', '{null '),
+                        line.replace('{1.3 ', '{0 ')):
+            with self.subTest(invalid=invalid), self.assertRaises(RuntimeError):
+                runner.activity_font_scale(invalid)
+
+    def test_font_capture_rejects_changed_raw_or_disagreed_effective_configuration(self):
+        values = iter(['null', '1.0'])
+        with self.assertRaisesRegex(RuntimeError, 'changed'):
+            runner.capture_font_scale(lambda _: next(values), lambda _: 1.0)
+        with self.assertRaisesRegex(RuntimeError, 'changed'):
+            runner.capture_font_scale(lambda _: '1.30', lambda _: 2.0)
+        self.assertEqual(runner.capture_font_scale(lambda _: '1.30', lambda _: 1.3), ('1.30', 1.3))
+
+    def test_font_restore_observes_configuration_before_final_raw_write_and_times_out(self):
+        for converges in (True, False):
+            with self.subTest(converges=converges):
+                state = {'time': 0.0, 'raw': '2.0', 'reads': 0}
+                writes = []
+
+                def write(action, value, remaining):
+                    self.assertGreater(remaining, 0)
+                    if action == 'delete':
+                        self.assertGreaterEqual(state['reads'], 2)
+                    writes.append((action, value))
+                    state['raw'] = 'null' if action == 'delete' else value
+
+                def read_effective(_):
+                    state['reads'] += 1
+                    return 1.0 if converges and state['reads'] >= 2 else 2.0
+
+                def pause(seconds):
+                    state['time'] += seconds
+
+                arguments = ('null', 1.0, write, lambda _: state['raw'], read_effective)
+                if converges:
+                    runner.restore_font_scale(*arguments, timeout=0.1, clock=lambda: state['time'], pause=pause)
+                    self.assertEqual(writes, [('put', '1.0'), ('delete', None)])
+                    self.assertEqual(state['raw'], 'null')
+                else:
+                    with self.assertRaisesRegex(RuntimeError, 'budget'):
+                        runner.restore_font_scale(*arguments, timeout=0.1, clock=lambda: state['time'], pause=pause)
+                    self.assertEqual(writes, [('put', '1.0')])
+
+    def test_font_restore_preserves_late_writeback_and_raw_mismatch_failures(self):
+        for late in (True, False):
+            with self.subTest(late=late):
+                state = {'raw': '2.0', 'reads': 0}
+
+                def write(action, value, _):
+                    state['raw'] = 'null' if action == 'delete' and late else '1.0'
+
+                def read_effective(_):
+                    state['reads'] += 1
+                    if state['reads'] == 2:
+                        state['raw'] = '1.0'
+                    return 1.0
+
+                with self.assertRaisesRegex(RuntimeError, 'differs|changed'):
+                    runner.restore_font_scale('null', 1.0, write, lambda _: state['raw'], read_effective)
+
     def test_keyboard_cancel_requires_its_own_actual_ime_and_touch_geometry(self):
         root = Path(__file__).parents[2] / 'docs/verification/fe2-keyboard-2026-10-07'
         candidates = list(root.rglob('report.json'))
@@ -251,7 +334,7 @@ class HomeRunnerTests(unittest.TestCase):
             runner.verify_evidence(json.loads((failed / 'device-files/report.json').read_text()), 'previews')
 
     def test_actual_motion_matrix_rejects_wrong_preference_delivery_and_duration(self):
-        root = Path(__file__).parents[2] / 'docs/verification/fe2-motion-2026-10-08/native-supported'
+        root = Path(__file__).parents[2] / 'docs/verification/rf1113-account-cold-text-2026-10-10/current-native/cold-supported'
         accepted = json.loads((root / 'cold-device-files/report.json').read_text())
         runner.verify_evidence(accepted, 'cold', True)
         changes = [
@@ -272,15 +355,16 @@ class HomeRunnerTests(unittest.TestCase):
             runner.verify_evidence(invalid, 'cold', True)
 
     def test_previous_cold_report_does_not_prove_motion_or_partial_acceptance(self):
-        path = Path(__file__).parents[2] / 'docs/verification/fe2-cold-2026-10-08/final-supported/cold-device-files/report.json'
+        path = Path(__file__).parents[2] / 'docs/verification/rf1113-account-cold-text-2026-10-10/current-native/cold-plain-supported/cold-device-files/report.json'
         old = json.loads(path.read_text())
         runner.verify_evidence(old, 'cold')
         with self.assertRaisesRegex(RuntimeError, 'reduced-motion'):
             runner.verify_evidence(old, 'cold', True)
         report = json.loads((path.parent.parent / 'report.json').read_text())
-        self.assertTrue(runner.verification_passed(report, True))
+        # 当前真实快照来自API31，不适用Android13通知权限。
+        self.assertTrue(runner.verification_passed(report, False))
         report['motionPreferenceChecks'] = True
-        self.assertFalse(runner.verification_passed(report, True))
+        self.assertFalse(runner.verification_passed(report, False))
 
     def test_cold_previous_process_can_be_already_exited_but_not_another_process(self):
         self.assertTrue(runner.validate_previous_process('', 8044))
@@ -309,7 +393,7 @@ class HomeRunnerTests(unittest.TestCase):
             runner.verify_native(text)
 
     def test_actual_lifecycle_rejects_missing_recreation_and_wrong_native_mode(self):
-        accepted = json.loads((Path(__file__).parents[2] / 'docs/verification/fe2-lifecycle-2026-10-08/native-supported/device-files/report.json').read_text())
+        accepted = json.loads((Path(__file__).parents[2] / 'docs/verification/rf1113-account-cold-text-2026-10-10/current-native/lifecycle-supported/device-files/report.json').read_text())
         runner.verify_evidence(accepted, 'lifecycle')
         for stage, mutate in [
             ('account-a-after-activity-recreate', lambda row: row.update(activityRecreated=False)),
@@ -371,8 +455,13 @@ class HomeRunnerTests(unittest.TestCase):
                 runner.verify_evidence(json.loads(path.read_text()), 'insets')
 
     def test_actual_account_acceptance_rejects_unreadable_or_missing_action_pixels(self):
-        accepted = json.loads((Path(__file__).parents[2] / "docs/verification/fe2-accounts-2026-10-07/contrast-native-supported/device-files/report.json").read_text())
+        accepted = json.loads((Path(__file__).parents[2] / "docs/verification/rf1114-account-frame-stability-2026-10-10/current-native/accounts-supported/device-files/report.json").read_text())
         runner.verify_evidence(accepted, 'accounts')
+        for stage, foreground in [('account-a-after-switch', '#d6ddd8'), ('account-b-after-switch', '#1f2328')]:
+            invalid = json.loads(json.dumps(accepted))
+            next(row for row in invalid['records'] if row['stage'] == stage)['foreground'] = foreground
+            with self.subTest(stage=stage), self.assertRaises(RuntimeError):
+                runner.verify_evidence(invalid, 'accounts')
         for key, value in [('contrast', 1.0), ('inkPixels', 0), ('visible', False), ('hittable', False)]:
             invalid = json.loads(json.dumps(accepted))
             next(row for row in invalid['records'] if row['stage'] == 'account-a-after-switch')['action'][key] = value
@@ -507,6 +596,127 @@ class HomeRunnerTests(unittest.TestCase):
                         text + "Process crashed", text.replace("INSTRUMENTATION_CODE: -1", "")):
             with self.assertRaises(RuntimeError):
                 runner.verify_native(invalid)
+
+
+class PrivateRestoreStagingTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.output = Path(self.temp.name)
+        self.backup = self.output / 'before.tar'
+        self.original = {'ui_preferences.json': (b'{"theme":"dark"}', 0o600)}
+        self.write_archive(self.backup, self.original)
+        self.before = runner.inventory(self.backup, require_empty=True)
+        self.root = {'runtime.json': (b'public active test state', 0o600)}
+        self.initial = dict(self.root)
+        self.remote = {}
+        self.commands = []
+        self.failure = None
+        self.root_mode = '700'
+        self.report = {'backup': {'sha256': runner.digest(self.backup)},
+                       'nativePassed': True, 'blurRestored': True, 'restored': False}
+
+    def write_archive(self, path, contents):
+        with tarfile.open(path, 'w') as archive:
+            for name, (data, mode) in contents.items():
+                member = tarfile.TarInfo(name)
+                member.mode = mode
+                member.size = len(data)
+                archive.addfile(member, io.BytesIO(data))
+
+    def adb(self, *command, **kwargs):
+        self.commands.append(command)
+        if command[0] == 'push':
+            if self.failure == 'push':
+                raise ConnectionError('injected upload disconnect')
+            self.remote[command[2]] = Path(command[1]).read_bytes()
+            if self.failure == 'source-change':
+                self.backup.write_bytes(b'changed after upload')
+        elif command[:2] == ('shell', 'chmod'):
+            if self.failure == 'chmod':
+                raise ConnectionError('injected chmod disconnect')
+            if self.failure == 'corrupt':
+                self.remote[command[3]] = b'truncated upload'
+        elif command[:5] == ('shell', 'run-as', runner.APP, 'rm', '-rf'):
+            self.root.clear()
+        elif command[:4] == ('shell', 'run-as', runner.APP, 'tar'):
+            with tarfile.open(fileobj=io.BytesIO(self.remote[command[-1]])) as archive:
+                self.root = {m.name: (archive.extractfile(m).read(), m.mode)
+                             for m in archive if m.isfile()}
+            if self.failure == 'restored-bytes':
+                self.root['ui_preferences.json'] = (b'wrong', 0o600)
+            if self.failure == 'restored-mode':
+                self.root['ui_preferences.json'] = (self.root['ui_preferences.json'][0], 0o644)
+        elif command[:4] == ('shell', 'run-as', runner.APP, 'chmod'):
+            self.root_mode = command[4]
+        elif command[:2] == ('shell', 'rm'):
+            del self.remote[command[2]]
+
+    def read(self, *command):
+        self.commands.append(command)
+        if command[:4] == ('shell', 'run-as', runner.APP, 'sha256sum'):
+            if self.failure == 'unreadable':
+                raise PermissionError('target app cannot read staged backup')
+            value = runner.hashlib.sha256(self.remote[command[4]]).hexdigest()
+            path = '/other.tar' if self.failure == 'checksum-path' else command[4]
+            extra = '\nextra' if self.failure == 'checksum-extra' else ''
+            return f'{value}  {path}{extra}'
+        if command[:4] == ('shell', 'run-as', runner.APP, 'ls'):
+            return '\n'.join(self.root)
+        if command[:4] == ('shell', 'run-as', runner.APP, 'stat'):
+            return '755' if self.failure == 'root-mode' else self.root_mode
+        raise AssertionError(command)
+
+    def restore(self):
+        runner.restore_private_data(self.adb, self.read,
+                                    lambda path: self.write_archive(path, self.root),
+                                    self.backup, self.before, '700', self.output, self.report)
+
+    def test_stage_faults_preserve_current_private_contents(self):
+        for failure in ['push', 'chmod', 'corrupt', 'unreadable', 'checksum-path',
+                        'checksum-extra', 'source-change']:
+            with self.subTest(failure=failure):
+                self.root = dict(self.initial)
+                self.write_archive(self.backup, self.original)
+                self.report['backup']['sha256'] = runner.digest(self.backup)
+                self.report['restored'] = False
+                self.failure = failure
+                with self.assertRaises((ConnectionError, PermissionError, RuntimeError, tarfile.TarError)):
+                    self.restore()
+                self.assertEqual(self.root, self.initial)
+                self.assertFalse(self.report['restored'])
+
+    def test_changed_local_backup_is_rejected_before_upload_or_clear(self):
+        self.backup.write_bytes(b'changed before restore')
+        with self.assertRaises((RuntimeError, tarfile.TarError)):
+            self.restore()
+        self.assertEqual(self.root, self.initial)
+        self.assertEqual(self.remote, {})
+
+    def test_success_requires_target_readable_digest_and_complete_restore(self):
+        self.restore()
+        self.assertEqual(self.root, self.original)
+        self.assertEqual(self.remote, {})
+        self.assertTrue(self.report['restored'])
+        self.assertTrue(self.report['restoreStaging']['ready'])
+        self.assertTrue(self.report['restoreStaging']['privateRootClearAttempted'])
+        self.assertTrue(runner.verification_passed(self.report, False))
+
+    def test_unsafe_root_names_are_not_deleted(self):
+        self.root = {'../outside': (b'untouched', 0o600)}
+        with self.assertRaises(RuntimeError):
+            self.restore()
+        self.assertEqual(self.root, {'../outside': (b'untouched', 0o600)})
+
+    def test_post_extract_contents_modes_and_root_mode_remain_required(self):
+        for failure in ['restored-bytes', 'restored-mode', 'root-mode']:
+            with self.subTest(failure=failure):
+                self.failure = failure
+                self.report['restored'] = False
+                with self.assertRaises(RuntimeError):
+                    self.restore()
+                self.assertFalse(runner.verification_passed(self.report, False))
+                self.assertTrue(self.remote)  # keep staged backup for recovery
 
 
 if __name__ == "__main__":

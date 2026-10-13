@@ -1,0 +1,26 @@
+{
+  "originalStagedSourceRawShaCheckExitCode": 1,
+  "failureWasRetainedNotAccepted": true,
+  "actualNativeWorkingBytesRetainedInRawArchive": true,
+  "stagedBytesCheckedSeparately": true,
+  "rows": [
+    {
+      "path": "tauri/scripts/android-home-native-regression.py",
+      "nativeWorkingBytesSha256": "8bcf10eb27ac2b91acbb3e5f0b49249781bb36756016aa05cad597f2087014d6",
+      "gitStagedBytesSha256": "8e67e96ea19fd1ec8067d2fbd00cb3ec946bc25671c91c7251db34249c4efc5c",
+      "workingCRLF": 732,
+      "stagedCRLF": 0,
+      "onlyCRLFNormalizationDiffers": true,
+      "pythonASTExactlyEqual": true
+    },
+    {
+      "path": "tauri/scripts/test_android_home_native_regression.py",
+      "nativeWorkingBytesSha256": "9a9ad2eb9501ee8c4f86f52e8b99c907a3f16adcd95e1e44a42dde42d5749727",
+      "gitStagedBytesSha256": "9a9ad2eb9501ee8c4f86f52e8b99c907a3f16adcd95e1e44a42dde42d5749727",
+      "workingCRLF": 0,
+      "stagedCRLF": 0,
+      "onlyCRLFNormalizationDiffers": true,
+      "pythonASTExactlyEqual": true
+    }
+  ]
+}

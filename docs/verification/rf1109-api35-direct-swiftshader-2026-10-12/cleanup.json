@@ -1,0 +1,49 @@
+{
+  "deletedExactFiles": 8,
+  "recursive": false,
+  "allAncestorsChecked": true,
+  "archiveVerified": true,
+  "files": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\baseline-supported\\private-data-before.tar",
+      "sha256": "dbb050e6c3a53fcd5d44cf95012259539f0352e826e5fc058bdf4c4b9bfc02dc",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\baseline-supported\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\baseline-fallback\\private-data-before.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\baseline-fallback\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\cold-supported\\private-data-before.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\cold-supported\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\cold-fallback\\private-data-before.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\api35-home-direct-swiftshader-20261012\\cold-fallback\\private-data-restored.tar",
+      "sha256": "3c8ea1c230d3fc29fa059e33f524f2744034703ef121c7e94080f67088b98aac",
+      "bytes": 129024
+    }
+  ],
+  "at": "2026-10-12T01:01:26.0317017+00:00"
+}

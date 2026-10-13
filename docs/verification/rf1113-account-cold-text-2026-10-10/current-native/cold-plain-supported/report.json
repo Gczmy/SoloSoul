@@ -1,0 +1,70 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF121_API31_20261010",
+  "mode": "supported",
+  "scenario": "cold",
+  "motionPreferenceChecks": false,
+  "startedAt": 1791673335.6274307,
+  "passed": true,
+  "restored": true,
+  "requestedFontScale": null,
+  "nightModeBefore": "no",
+  "api": 31,
+  "abi": "x86_64",
+  "artifacts": [
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\current-apks-recovery2\\app-x86_64-debug.apk",
+      "sha256": "4f84d60e7740b9804ced6080e09cb35421a89f1d3c02de2faaecdede676da003"
+    },
+    {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1113-account-cold-text-test-build1\\app-x86_64-debug-androidTest.apk",
+      "sha256": "a0ea2cb26b5f99ab17c9c0ccd991771c6f29c35ae18f97cc2d412fec975e6450"
+    }
+  ],
+  "backup": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1113-account-cold-text-native-round1\\cold-plain-supported\\private-data-before.tar",
+    "sha256": "47e51372ce67e5db1418e67a0040545c82f93b6eeadf4b9ff9354d0276d9a919",
+    "entries": 2
+  },
+  "stages": [
+    "local-light",
+    "enhanced-light",
+    "enhanced-dark",
+    "enhanced-dark-after-unlock",
+    "encrypted-preferences",
+    "object-editor-dark",
+    "object-list-dark",
+    "object-detail-dark",
+    "object-actions-dark",
+    "object-list-after-system-back",
+    "populated-enhanced-dark",
+    "populated-enhanced-light",
+    "account-a-custom-dark",
+    "account-b-custom-light",
+    "account-a-after-switch",
+    "account-b-after-switch",
+    "account-a-after-second-switch",
+    "account-preferences-isolated"
+  ],
+  "oldProcessAlreadyExited": true,
+  "oldProcessStopped": true,
+  "coldStages": [
+    "cold-login",
+    "account-a-cold-system-light",
+    "account-a-cold-system-dark",
+    "account-b-cold-system-dark",
+    "account-preferences-isolated"
+  ],
+  "coldProcessAlreadyExited": true,
+  "previousProcessId": 12881,
+  "coldProcessId": 13172,
+  "coldPassed": true,
+  "nativePassed": true,
+  "restoreVerification": {
+    "entries": 2,
+    "allFileContentsLinksAndModesMatch": true
+  },
+  "blurRestored": true,
+  "nightModeRestored": true,
+  "finishedAt": 1791673399.3345864
+}

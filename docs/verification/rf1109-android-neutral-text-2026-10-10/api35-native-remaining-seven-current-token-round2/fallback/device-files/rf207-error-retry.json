@@ -1,0 +1,14 @@
+{
+  "failed": {
+    "guide": "error",
+    "plugins": "error",
+    "info": "ready",
+    "error": "ANDROID_RESOURCES_FAILED"
+  },
+  "recovered": {
+    "guide": "ready",
+    "plugins": "ready",
+    "info": "ready"
+  },
+  "attempts": 2
+}
