@@ -4,6 +4,7 @@ import { isAndroidSync } from '@/lib/platform';
 import { ShellNotificationSlot } from './ShellNotifications';
 import styles from './AuthLayout.module.css';
 import { useAndroidGlassSurface } from '@/hooks/useAndroidGlass';
+import { WindowsTitlebar } from './WindowsTitlebar';
 
 /** 认证页共用布局；只分配通知与表单空间，鉴权仍由路由负责。 */
 export function AuthLayout() {
@@ -45,6 +46,7 @@ export function AuthLayout() {
 
   return (
     <div ref={rootRef} className={styles.layout} data-auth-layout>
+      <WindowsTitlebar />
       <ShellNotificationSlot />
       <div className={styles.content} data-auth-content>
         <Outlet />

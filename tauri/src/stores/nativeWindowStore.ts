@@ -1,14 +1,24 @@
 import { create } from 'zustand';
 
-/** 原生标题栏几何与平台状态；浏览器、Windows 和移动端的几何均为 0，不持久化。 */
+export interface WindowsFrameLayout {
+  enabled: boolean;
+  headerHeight: number;
+  dpi: number;
+  maximized: boolean;
+  captionBounds: [number, number, number, number];
+}
+
+/** 原生标题栏几何与平台状态；只保存当前窗口测量，不持久化。 */
 export const useNativeWindowStore = create<{
   isMacOS: boolean;
   isWindows: boolean;
   titlebarHeight: number;
   trafficLightsRight: number;
+  windowsFrame: WindowsFrameLayout | null;
 }>(() => ({
   isMacOS: false,
   isWindows: false,
   titlebarHeight: 0,
   trafficLightsRight: 0,
+  windowsFrame: null,
 }));

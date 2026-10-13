@@ -213,3 +213,76 @@
     height: 20px;
   }
 }
+
+/* 原生Windows按钮仍由DWM绘制；业务控件只占用剩余的同一行。 */
+.appBar[data-windows-shell] {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 52px;
+  border: 0;
+  border-radius: 0;
+  padding: 0
+    max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
+    var(--windows-page-title-left, 44px);
+  background: var(--bg-base);
+}
+.windowBrand {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.windowBrand span {
+  margin-left: 44px;
+}
+.appBar[data-windows-shell] .sidebarToggle {
+  position: absolute;
+  left: 44px;
+  top: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+:global(html[data-desktop-platform='windows']) .appBar[data-windows-shell] {
+  left: 0;
+  right: 0;
+  border-radius: 0;
+  border-bottom: 0;
+  padding: 0
+    max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
+    var(--windows-page-title-left, 44px);
+}
+:global(html[data-native-material='mica']) .appBar[data-windows-shell] {
+  background: transparent;
+}
+.appBar[data-windows-shell] .title {
+  font-size: 16px;
+}
+.appBar[data-windows-shell] .sidebarToggle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+.appBar[data-windows-shell] .sidebarToggle:active {
+  background: var(--state-pressed);
+}
+@media (hover: hover) and (pointer: fine) {
+  .appBar[data-windows-shell] .sidebarToggle:hover {
+    background: var(--state-hover);
+    color: var(--text-primary);
+  }
+}

@@ -30,6 +30,7 @@ export function SideNavigation() {
   const expanded = useUiStore((s) => s.sidebarExpanded) && !isHorizontal;
   const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
+  const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const ToggleIcon =
     sidebarPosition === 'right'
       ? expanded
@@ -88,7 +89,7 @@ export function SideNavigation() {
         style={navStyle}
         data-expanded={expanded}
       >
-        {!isHorizontal && (expanded || !isMacOS) && (
+        {!isHorizontal && !windowsShell && (expanded || !isMacOS) && (
           <div className={styles.brandHeader}>
             {expanded && <span className={styles.brandName}>SoloSoul</span>}
             {!isMacOS && (

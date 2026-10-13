@@ -1,0 +1,584 @@
+{
+  "task": "RF-1144",
+  "branch": "codex/windows-integrated-titlebar-ui",
+  "base": "2298298976ca75a25b19328f40855492c592e044",
+  "started": "2026-10-13",
+  "completed": "2026-10-14",
+  "scope": "Windows integrated titlebar frontend rollout; all other tasks and goal remain paused",
+  "checks": {
+    "typecheck-bound": {
+      "exitCode": 0,
+      "seconds": 35.20312289998401,
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ]
+    },
+    "lint-bound": {
+      "exitCode": 0,
+      "seconds": 78.35981029999675,
+      "command": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ]
+    },
+    "production-build-final": {
+      "exitCode": 0,
+      "seconds": 101.64214539999375,
+      "command": [
+        "npm.cmd",
+        "run",
+        "build"
+      ]
+    },
+    "production-startup-final": {
+      "exitCode": 0,
+      "seconds": 94.29970050003612,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.production.config.ts",
+        "--workers=1"
+      ]
+    },
+    "node-final": {
+      "exitCode": 0,
+      "seconds": 45.77456719998736,
+      "command": [
+        "C:/Users/40299571/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "scripts/run-node-tests.mjs"
+      ]
+    },
+    "coverage-merged": {
+      "exitCode": 0,
+      "seconds": 14.93921500002034,
+      "command": [
+        "C:/Users/40299571/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "--mergeReports",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-blob-reports",
+        "--coverage",
+        "--coverage.reportsDirectory",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/coverage-merged",
+        "--reporter",
+        "default"
+      ]
+    },
+    "native-build-final": {
+      "exitCode": 0,
+      "seconds": 216.82496329996502,
+      "command": [
+        "cargo",
+        "build",
+        "--offline",
+        "--manifest-path",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/native-build-2/Cargo.toml"
+      ]
+    },
+    "native-clippy-final": {
+      "exitCode": 0,
+      "seconds": 187.98814269999275,
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/native-build-2/Cargo.toml",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    "native-tests": {
+      "exitCode": 0,
+      "seconds": 191.6861830999842,
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/native-build-2/Cargo.toml"
+      ]
+    },
+    "rust-format-final": {
+      "exitCode": 0,
+      "seconds": 30.123478699999396,
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ]
+    },
+    "ipc-contract-final": {
+      "exitCode": 0,
+      "seconds": 49.41079570003785,
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:contracts"
+      ]
+    },
+    "acl-final": {
+      "exitCode": 0,
+      "seconds": 4.273216200002935,
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:acl"
+      ]
+    },
+    "browser-failed-rerun": {
+      "exitCode": 0,
+      "seconds": 41.05798230000073,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/native-theme.spec.ts",
+        "e2e/desktop-controls.spec.ts",
+        "--project=chromium",
+        "--workers=1",
+        "--grep",
+        "desktop button layout: /$|system.*IPC=light|同一深色模式|RF-201 android system"
+      ]
+    },
+    "fixture-build-bound": {
+      "exitCode": 0,
+      "seconds": 4.4902817999827676,
+      "command": [
+        "node",
+        "scripts/build-windows-shell-fixture.mjs",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/shell-bound.html"
+      ]
+    },
+    "native-ui-bound": {
+      "exitCode": 0,
+      "seconds": 125.32143229997018,
+      "command": [
+        "D:/SoloSoul/build/rf312-maintenance-20261009/cargo-target/debug/windows-frame-regression.exe",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/native-ui-bound",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/shell-bound.html"
+      ]
+    },
+    "source-format-selected": {
+      "exitCode": 0,
+      "seconds": 1.6159124999539927,
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "e2e/native-theme.spec.ts",
+        "src/components/attachment/PreviewTitlebar.tsx",
+        "src/components/attachment/PreviewWindow.tsx",
+        "src/components/attachment/preview-window.css",
+        "src/components/layout/AppBar.module.css",
+        "src/components/layout/AppBar.tsx",
+        "src/components/layout/AppShell.module.css",
+        "src/components/layout/AppShell.tsx",
+        "src/components/layout/AuthLayout.module.css",
+        "src/components/layout/AuthLayout.tsx",
+        "src/components/layout/SideNavigation.module.css",
+        "src/components/layout/SideNavigation.tsx",
+        "src/components/layout/ToolbarActions.tsx",
+        "src/components/layout/TopFunctionBar.module.css",
+        "src/lib/nativeTitlebarControls.ts",
+        "src/lib/nativeWindow.ts",
+        "src/stores/nativeWindowStore.ts",
+        "e2e/windows-integrated-titlebar.spec.ts",
+        "native-regression/windows-shell/bridge.ts",
+        "native-regression/windows-shell/i18n.ts",
+        "native-regression/windows-shell/main.tsx",
+        "native-regression/windows-shell/platform.ts",
+        "native-regression/windows-shell/slots.tsx",
+        "native-regression/windows-shell/stores.ts",
+        "scripts/build-windows-shell-fixture.mjs",
+        "src/components/layout/ToolbarActions.test.tsx",
+        "src/components/layout/WindowsTitlebar.module.css",
+        "src/components/layout/WindowsTitlebar.tsx",
+        "src/lib/nativeTitlebarControls.test.ts",
+        "src/lib/nativeWindowsFrame.test.ts"
+      ]
+    },
+    "final-shard-1": {
+      "exitCode": 0,
+      "seconds": 262.60267260001274,
+      "command": [
+        "C:/Users/40299571/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--coverage",
+        "--pool=threads",
+        "--maxWorkers",
+        "1",
+        "--testTimeout",
+        "15000",
+        "--shard",
+        "1/4",
+        "--reporter",
+        "default",
+        "--reporter",
+        "blob",
+        "--outputFile.blob",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-blob-reports/shard-1.json",
+        "--coverage.reportsDirectory",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-coverage-shard-1",
+        "--coverage.thresholds.statements",
+        "0",
+        "--coverage.thresholds.branches",
+        "0",
+        "--coverage.thresholds.functions",
+        "0",
+        "--coverage.thresholds.lines",
+        "0"
+      ]
+    },
+    "final-shard-2": {
+      "exitCode": 0,
+      "seconds": 174.98322529997677,
+      "command": [
+        "C:/Users/40299571/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--coverage",
+        "--pool=threads",
+        "--maxWorkers",
+        "1",
+        "--testTimeout",
+        "15000",
+        "--shard",
+        "2/4",
+        "--reporter",
+        "default",
+        "--reporter",
+        "blob",
+        "--outputFile.blob",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-blob-reports/shard-2.json",
+        "--coverage.reportsDirectory",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-coverage-shard-2",
+        "--coverage.thresholds.statements",
+        "0",
+        "--coverage.thresholds.branches",
+        "0",
+        "--coverage.thresholds.functions",
+        "0",
+        "--coverage.thresholds.lines",
+        "0"
+      ]
+    },
+    "final-shard-3": {
+      "exitCode": 0,
+      "seconds": 150.2803842999856,
+      "command": [
+        "C:/Users/40299571/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--coverage",
+        "--pool=threads",
+        "--maxWorkers",
+        "1",
+        "--testTimeout",
+        "15000",
+        "--shard",
+        "3/4",
+        "--reporter",
+        "default",
+        "--reporter",
+        "blob",
+        "--outputFile.blob",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-blob-reports/shard-3.json",
+        "--coverage.reportsDirectory",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-coverage-shard-3",
+        "--coverage.thresholds.statements",
+        "0",
+        "--coverage.thresholds.branches",
+        "0",
+        "--coverage.thresholds.functions",
+        "0",
+        "--coverage.thresholds.lines",
+        "0"
+      ]
+    },
+    "final-shard-4": {
+      "exitCode": 0,
+      "seconds": 211.51749880000716,
+      "command": [
+        "C:/Users/40299571/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--coverage",
+        "--pool=threads",
+        "--maxWorkers",
+        "1",
+        "--testTimeout",
+        "15000",
+        "--shard",
+        "4/4",
+        "--reporter",
+        "default",
+        "--reporter",
+        "blob",
+        "--outputFile.blob",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-blob-reports/shard-4.json",
+        "--coverage.reportsDirectory",
+        "D:/SoloSoul/build/rf1144-windows-titlebar-ui-20261013/final-coverage-shard-4",
+        "--coverage.thresholds.statements",
+        "0",
+        "--coverage.thresholds.branches",
+        "0",
+        "--coverage.thresholds.functions",
+        "0",
+        "--coverage.thresholds.lines",
+        "0"
+      ]
+    }
+  },
+  "vitest": {
+    "files": 265,
+    "tests": 2369,
+    "coverage": {
+      "Statements": 85.98,
+      "Branches": 73.42,
+      "Functions": 80.96,
+      "Lines": 87.86
+    },
+    "thresholds": {
+      "Statements": 80,
+      "Branches": 70,
+      "Functions": 80,
+      "Lines": 80
+    },
+    "execution": "Four sequential disjoint shards; isolated threads, maxWorkers=1, testTimeout=15000; final merge uses unchanged project thresholds",
+    "partialThresholds": "Zero only while collecting each partial shard; full merged coverage enforced at 80/70/80/80",
+    "runtime": "Bundled Node 24.19.0",
+    "unhandledErrors": 0
+  },
+  "node": {
+    "passed": 257,
+    "skipped": 1,
+    "failed": 0,
+    "source": "node-final.stdout.log"
+  },
+  "browser": {
+    "selected": 94,
+    "initialPassed": 90,
+    "initialFailed": 4,
+    "targetedRerunPassed": 5,
+    "note": "Three startup wait timeouts passed without changing budgets; one Mica navigation assertion updated to the transparent material contract; overlapping Windows home case also reran"
+  },
+  "productionStartup": {
+    "passed": 32,
+    "failed": 0
+  },
+  "nativeTests": {
+    "passed": 18,
+    "failed": 0
+  },
+  "native": {
+    "os": "Windows 11",
+    "dpi": 96,
+    "windowTitle": "RF-1144 — Windows frontend regression",
+    "headerHeight": 52,
+    "nativeCaptionWidth": 146,
+    "finalSourceRun": "native-ui-bound",
+    "passed": [
+      "frontend Interact click",
+      "fixed sidebar toggle and 186/96 layout",
+      "native maximize/restore and action collection after restore",
+      "native minimize/activate restore inside preview",
+      "native Close -> close/destroy events and exit 0",
+      "actual Mica: transparent html/body/appbar/navigation, separate themed content",
+      "light/dark theme",
+      "public authentication layout",
+      "attachment preview open/close"
+    ],
+    "earlierSameProductionBehavior": [
+      "public draft retained through collapse and maximize/restore",
+      "right navigation",
+      "blank titlebar double click maximize",
+      "user confirmed blank titlebar drag; measured delta [30,-11]",
+      "user confirmed Snap hover"
+    ],
+    "earlierRunLimit": "native-ui-final/verified initially omitted startup.css; they prove input/state behavior, not Mica appearance. Final bound run includes production startup.css.",
+    "dragBefore": [
+      104,
+      104,
+      1020,
+      743
+    ],
+    "dragAfter": [
+      134,
+      93,
+      1050,
+      732
+    ],
+    "userDragReply": "拖动成功，Snap 出现",
+    "userDragReplySource": "call_fbefaad200c64ba5b2017dfc5c0ec0b9",
+    "automatedDrag": "Short sky.drag produced no displacement; not counted as passing; manual drag subsequently verified",
+    "captionCapture": {
+      "userReply": "三个图标正常可见",
+      "source": "call_11f9a9542f2a4c02ab0797b4ce41c67d",
+      "finding": "WGC screenshot omitted DWM caption glyphs while the human saw them. Final run also captured glyphs after minimize/restore; native buttons remained operable.",
+      "reverted": [
+        "native repaint after control updates",
+        "appearance refresh after titlebar ownership changes",
+        "CSS caption notches",
+        "temporary IPC tracing"
+      ],
+      "noClaim": "No production caption rendering defect or repaint fix claimed"
+    },
+    "hostLimit": "Fixture show_main_window only shows the public window; formal application setup/authentication/persisted window state restoration excluded",
+    "untested": [
+      "cross DPI/screens",
+      "older Windows material fallback",
+      "native high contrast/transparency disabled",
+      "native fullscreen matrix"
+    ],
+    "unchangedFoundation": "Production native window modules remain identical to merged RF-1142/RF-1143; original drag/Snap and edge resize evidence remains applicable"
+  },
+  "sourceBinding": {
+    "frontend": {
+      "src/locales/en-US/common.json": "d35d86bba5916e21556e0d0b17670d59df223206a2e335a13e90ed780caa72f4",
+      "src/locales/en-US/navigation.json": "9ff85cf049a977d71a9cd60b7719d79a0991d2ce3c4bdd536d083e122b2d8593",
+      "src/locales/en-US/settings.json": "0a32f002bf5f4b70bc5d60692cc0d51b6bf6eb3b346b527ac3684519c516dd67",
+      "src/components/layout/DesktopSidebarContext.ts": "97165f40794ed5a53a168313b70ed436223ee9568e1d3de376fbadb0feeae491",
+      "src/components/layout/NavButton.module.css": "f8b2b304a0d392b9011f6eecbdce74f7332d916046939c1c70ffc8b884d30120",
+      "native-regression/windows-shell/platform.ts": "c01ad9c9ac583c638698610093ce171d8cf3025841318334a7c1c2cf9a130a8d",
+      "src/hooks/useHoverCardPosition.ts": "6f83283ebcc3ad9c34b97b09f08011dd793a1752252b64bae402088e1997eb6e",
+      "native-regression/windows-shell/stores.ts": "d0a0972bdf04127eb5db09739dded11a5ccc0e3377a21df331ad362318f820b4",
+      "src/hooks/useMediaPreference.ts": "a78832bb88852b80520adbfa45a2ac6bde7682f1a0b0357e2ab3a2f2c2f43445",
+      "src/hooks/useScrollingNavLabel.ts": "4b6d3026547ca911206de63a65a5e15f0f94f61af5828a79f14393edb57ff2b1",
+      "src/components/layout/NavButton.tsx": "2585148d9147f2b06f8a01a827223b1128e319394bfff404b86d89906fb445b1",
+      "native-regression/windows-shell/slots.tsx": "4f89ffb87fa92ff0821c277d11657e755f4cd4eaaa4b8cf48a3dc11fe234a74a",
+      "native-regression/windows-shell/i18n.ts": "ea1278e215ae3137092de0dd0a7c8d6158fd1613ac225a70c7103bccd1fb5e64",
+      "src/lib/utils.ts": "b6d1ce362bd3556696520a0c143c64c139d10bf738f22fdc645dc62bc094543a",
+      "src/lib/logger.ts": "fe55fe62d0e1fb6f2fa976a02f26b0026aad0f43f53717039c6e0e955bda3169",
+      "src/lib/asyncListener.ts": "8d800dda8e15c5bcb7564c57c34764afbece2e86346ebac478e1f4bff23d289f",
+      "src/components/layout/AppShell.module.css": "fa15dd59dccc9c25de516586362def8652cf3fad0b54e28cea45c15bee39a3f1",
+      "src/stores/uiStore.ts": "e5affbaefb9143917e76d220c866cf7314235033c83a6f45e82d0d0b55f7b88e",
+      "src/components/layout/SideNavigation.module.css": "52603f544059f042a3d5ad4ffd979e0a4bc4938b4388ce6f38a6553e2a513e76",
+      "src/lib/pageIcons.ts": "86966a210e0bcf86da2ca3025fbfdf81a27274573a185be12351957c796badd6",
+      "src/stores/nativeWindowStore.ts": "5d71c3fccc651bd49c8efd639c641c11e09fa4372467be3bb83594148c81b041",
+      "src/lib/constants.ts": "8b834121e4ae48f5b81d68d4102d33ea29a66888407622244e27449cedbb0377",
+      "native-regression/windows-shell/bridge.ts": "aab9e34690448906d48827034ab533625d412802b931e42659daaf463c1c4910",
+      "src/lib/backendErrorWire.ts": "15c735d74fb257ef7185b1fc12772d60f38992b644462809b69dcc6f435ff299",
+      "src/lib/ipcClient.ts": "97f687183e0f7641d12d0da2004d8fe420229788dda3ac6898be183e78a4c985",
+      "src/lib/typedIpc.ts": "94cc839ace735f1b1838798e6e3c288cad0c92543eb5e65c6a4db02e1fe0b0e6",
+      "src/lib/sessionRequests.ts": "b285288a66ec25bc48df7e1307089bb8660312b22040ba41b99b5afe458ca32a",
+      "src/components/layout/navCardPosition.ts": "f15e69fb55993aa0c62e174b06ee3e106e92cfcae6602dab6296e3c3809f025b",
+      "src/lib/platformCapabilities.ts": "9ce11ec1e52e5a44c59f7b33d9c624d770941490893a58d8721ea7e57fdd87de",
+      "src/lib/ocrCapabilities.ts": "df8b5d36d282f459da7cca02654283314e705b0ad75b3006ad59f019170997ec",
+      "src/lib/ocrScanOperation.ts": "61a9ad03deaa7033eeff03d506626556ed91db30a724abdbe991baadd2288212",
+      "src/stores/ocrScanStore.ts": "586a33713d4d4e5466d54bec634a6b99f488f723c225e759bd5eee5f1ecd9879",
+      "src/stores/pluginQuickStore.ts": "189273ce7d6065bf47a7e522c1b09d9de82ad97060ac2178933039cb797b9604",
+      "src/components/layout/useNavigationItems.ts": "c87c7f42b88486183579f7229caa82d6c74d64bbba28cdb5ff43457a1ee8f019",
+      "src/components/layout/IconCategoryPicker.tsx": "b3dae31d7ceb62c46231f2ddb8ff3e0203ee42ecd8b3c237f24b5f096decd46f",
+      "src/hooks/useOverlayBackGuard.ts": "0a56ae2ae935798b0917a1c9b70d09947aa9cd9adb18ba6cba7b64c7ffcd7c23",
+      "src/stores/toastOutletStore.ts": "a6922cfbe978584c2f1d744240f7af6f319e2b4dd0a151aa02d247eacc873a04",
+      "src/components/ui/ToastContainer.module.css": "3af84daceeef6528ca40e80eed533d6bfe58307722ed4f0c60ac9e6f2e01d311",
+      "src/components/ui/ToastOutlet.tsx": "63fbf4ab35dad5336ca37c48cb5b51649af69bb061462618998e7a88b81d1809",
+      "src/components/android/AndroidSheet.tsx": "16fabc631f8e7dfef358f7f08376a9038e558aea15e8637bee4ff64daeeba5e7",
+      "src/components/ui/Input.module.css": "4177992339bc6f97190386f49d6c273ebbabfcf5d3577e0a314fb2bbe8bfc84d",
+      "src/components/ui/Input.tsx": "3d9680808e329b44a591bb732e1e7134b98d14f03ae3a240c412897e83f8cc5f",
+      "src/components/ui/Button.module.css": "cb5a850f450cd60131738b7b3842c8e86da61086ca2c67423c50432a16c438b6",
+      "src/components/ui/Button.tsx": "8a04eb153a329a9e8ab60a12e91e94de05a33a2db1051e3cb98011372799803e",
+      "src/components/layout/CustomPageEditPopover.tsx": "43ce9fca97cb3592be64995af99f451ad4a0dbef661b648bdc5152a20e28944a",
+      "src/components/layout/RenameableNavButton.tsx": "7362a6819c71beee2f9f24ca3f19c072d6608585e6ce5580f459822a73e376c9",
+      "src/lib/withTimeout.ts": "f7bbc1c9275c07eb4f9ff3cc68e495deab77884de69c53ea54807f8d1041417e",
+      "src/locales/en-US/auth.json": "b52d63cfda014f1437b7369e7857a66ba448acfd3273e612ac0a5aa63e7bdb50",
+      "src/locales/en-US/sensitivity.json": "a99a8296598824b0683b34a0997bd9864fbd94dd2b5a7ebe3d8cca7cfec2dd16",
+      "src/locales/en-US/editor.json": "dbd49a2c91f44b70e82c1d2ba38bf330f28bae4c9167002d0b32f4aa0728b235",
+      "src/locales/en-US/plugin.json": "b83933f6d9aa7e92ef5e71fe581c11168077fe9eca2341f95e7a55707a0b9307",
+      "src/locales/en-US/ocr.json": "1263c4e32cad1ad4f1bb902dd81be88d9d4ce27626cd901054f726802ff05771",
+      "src/locales/zh-CN/common.json": "018f4bbe4a186d0cedade870e57b03cd1255f793a6b5bdc977761d7d96402405",
+      "src/locales/zh-CN/navigation.json": "fa70ddbaeb6509b1f6a0ddacf95e80d37ae2e1d26bed5864d537896aaedc920b",
+      "src/locales/zh-CN/settings.json": "5b986e174a0e84bb9c20b1a77a42a024f1e575211cfbf983b16e33ff1ecadd64",
+      "src/locales/zh-CN/auth.json": "cff14867199b690c2cc235902016a752e58c78c39a591654d4701136653516c9",
+      "src/locales/zh-CN/sensitivity.json": "329d766e9d175e300e898f3547ddf25ec48f4359245468a3e30fce5ccb04a525",
+      "src/locales/zh-CN/editor.json": "c3303fa5e82eb11623fa6795f0295be78b1a734e15a842040cb5163ddfc4cf61",
+      "src/locales/zh-CN/plugin.json": "907785c6273d770735fa0516439cf381b0a91d33d61ba15448afbb386d2d69a8",
+      "src/locales/zh-CN/ocr.json": "bf871611c509d2f9b36629c1b6a5a3b6de440204bada3883aec55636b2561522",
+      "src/lib/i18n.ts": "ea013def9e0fdc18fa656b1927b4dd798b61cf3861aa11aed1d07007802d0184",
+      "src/lib/backendError.ts": "35bdf92aaccc34d0163d4f1f65161005bb1d90e3706e1c5c0eb89aa50369a685",
+      "src/lib/rustErrors.ts": "013db778ec87c5fac7db9ba0217113f48c291bf889184377d2d6f8b1254797e5",
+      "src/hooks/useToastError.ts": "f8d549c1ae4cf842a0ac746cdf1607b32a132b61bed3e3359f4a9334ed8d93ff",
+      "src/hooks/useAddPageForm.ts": "0a96db5aa65c8356500cc588cd2a6e41bdf41e158fc6ce665cc36167f607ad97",
+      "src/components/layout/AddPagePopover.tsx": "fb1daeaac3c2e83416405cd4d9181e7bc6085b3398713a1f2972d94a3327a1c2",
+      "src/components/layout/AddPageButton.tsx": "fa6f696cef34a31e65a5474c5c80de0e931cf79c652e976e675935451984a304",
+      "src/components/layout/SideNavigation.tsx": "59036e42b041b8da7060e9ee60b79f5dff86a0443eeef84ea09545611d6ad6b5",
+      "src/components/layout/AppBar.module.css": "bfb0649c4dd6aeb58a5cb710acb286ff4109cfb62074c535141056c197ead444",
+      "src/components/layout/ToolbarActions.module.css": "deab8cb35c2193a3efd218cfcd8ef9a54626ae1105ab3a1e0780848570b7abe5",
+      "src/components/layout/ToolbarActions.tsx": "28e54fff22c623a1dd6a188a7fee8fa89172d3908e1883a02d052cf4214d8f75",
+      "src/lib/nativeTitlebarControls.ts": "a4da9bc2efdb54e348360bd80d2fac2a92f24bf6806251c537208cfdb497d8a5",
+      "src/components/android/AndroidAppBar.tsx": "c01728e2fceb87c7804e33ec9aa3930b6b6dcfde1d7a6a1f32493858c9696290",
+      "src/hooks/useIsNarrowViewport.ts": "5e732913bb19077647bc4c141fc91de9cc0f5399f6d2e750f798633e9b69992f",
+      "src-tauri/icons/128x128@2x.png": "0f12a1e1a66ffc4cd851d88081763a13033e4bc6804f93a5296e3d39b576918f",
+      "src/components/ui/ShieldLogo.tsx": "01cb3b1ded6bceacfa37af7b7b1ac4f82145a2189cd6ca0bb07cba86f243452e",
+      "src/components/layout/WindowsTitlebar.module.css": "e6919e49e09c104a89dea2efe270550b9708ad44f3ea116ad65cc018492b4a20",
+      "src/components/layout/WindowsTitlebar.tsx": "862b2df2db16651a7778adc3e50a1e36676e8cab0999c770a7d097236009190c",
+      "src/components/layout/AppBar.tsx": "2c91827c656840ce0b3dd27a5d779eb97e75580c8599965f6f0ffbb86d2791a8",
+      "src/components/layout/ShellNotifications.module.css": "71feaf306b81c125561beff7191a2ec37983d023b99e644ad014d48973f7098c",
+      "src/components/layout/ShellNotifications.tsx": "d18745088a920cd9213df23564dd9c29ca4d69475e03aa2d282823e8f2d7ec08",
+      "src/components/layout/AppShell.tsx": "8185c790d1a4b488d0e8f2b480ade1a9f317e577404061a3f9c94f4895c7b247",
+      "src/components/layout/AuthLayout.module.css": "edaa2e5fbc299bdcd61920d9607f90dd0a7db23fa86c0fb4bb2244331cee9cbe",
+      "src/components/layout/AuthLayout.tsx": "d3ccba20bf8d7a0e307bfe9c2334daa05918c4fccc4cc72585f3274c7f237633",
+      "src/components/attachment/preview-window.css": "d1b73fb2aafffa33cd8bd0a03cbccac539fcc8937a458b0e7cafdb49a978f503",
+      "src/components/attachment/PreviewWindow.tsx": "acbb1bb3034025664c1d6cec13701057c92fd6eaed9175b9b83aeb41de44e280",
+      "src/components/attachment/PreviewTitlebar.tsx": "2173c199119dd8782969cf64c3a2dfaf667fa5d522d1c85a7e45a9f0ce516c18",
+      "src/lib/nativeWindow.ts": "799cae17812d2fdfac471a6a19ada1b1b006020410bc299521a4a75460cc4896",
+      "src/styles/tokens.css": "c9838ddb93f689edcda97d33ed396f1e7b830609a614b0d7b450021610760d2f",
+      "src/styles/global.css": "890afe746cc0b510bca73f611e4d4c148808d720131901ddf13d175cc7be01b2",
+      "src/styles/themes.css": "d3513f73789737e8fe65bdb458fcdcb7cbbe1be3544092a643d58b9c9c618851",
+      "src/styles/action-buttons.css": "b8421ae71f8a1948b0612dce87a6805aef84ec55c61adfade7ed430d619b45ac",
+      "src/styles/icon-buttons.css": "6e3e70e6b2883563e284df5042ddc78bf79bedd99cae3eff12036330d2ff1f62",
+      "src/styles/desktop-controls.css": "fb2c8d134b7a22b0dc6469feffcec2f4ef5b84886279b46cc26ac498b58df031",
+      "src/styles/windows-material.css": "25b9019060a291e3bab022b1111fb2453258c95716a9617c6c33830dad349786",
+      "src/styles/startup.css": "a27f275bcefc73619b5872f4e716aa3a052a81e07778e8fe1e873a6aded4d809",
+      "native-regression/windows-shell/main.tsx": "1102849cbc5c83e015c16c18181f9492cd4fbc39ce5be72eaa24ee7fafb15085"
+    },
+    "native": {
+      "tauri/src-tauri/examples/windows_frame_regression.rs": "e2aa9d6bd950f427e11fecda4ffbce74af293b0fb093d0ae0f8a08b94a5fd864",
+      "tauri/src-tauri/src/commands/window.rs": "c8bc0e1ec880d31c86ea69c2df3305fdf6031e66f6e0fb888b3563910c87971b",
+      "tauri/src-tauri/src/commands/window/ios.rs": "f3485a26f8c237cdfe5b1a2b80896c24644372e9f4dc12302fe41f49466e0516",
+      "tauri/src-tauri/src/commands/window/macos.rs": "aa129f8b21e0be40d0be6832a5ea64a875b50e3b3a578a03e92e4ec2f9b2df42",
+      "tauri/src-tauri/src/commands/window/macos_titlebar.rs": "a50d695a20e535ea8cbfbd6405484c9baa1be4378a66e3093cf1385dabf5cf90",
+      "tauri/src-tauri/src/commands/window/windows.rs": "869cf1a0edac78be9d91b281059bd2e09f2e1403770d5b554d93996b1ea75ed0",
+      "tauri/src-tauri/src/commands/window/windows_frame.rs": "fe7d14eee098c858bab8e5ec02d4c81f9a2ca0da3c8e26b4a607aa96568c8888",
+      "tauri/src-tauri/Cargo.toml": "315d0bf8137fd02a93c32a0a63bb6a960574078b2983a8cea1a358fd8ed47c22",
+      "tauri/Cargo.lock": "b329a6d743971f5057fc14c9f6c1c0c23f88f2f17fdc3070a2c73110bf1801a7"
+    },
+    "fixtureHtmlSha256": "370932baa32d249d928ef92d56e65bb3526760100e154f90ba9549c145ad930b",
+    "executableSha256": "c2e63ba13577773c4bb13e7163a1916af841860c8a9c8c8c747b770538ff35c8"
+  },
+  "failuresRetained": [
+    "baseline lifecycle/overflow red",
+    "sandbox junction/server restrictions",
+    "fixture build retries",
+    "isolated Clippy argument count corrected",
+    "first native run watchdog before interactive validation",
+    "three monolithic coverage runs failed on worker startup despite passing test assertions",
+    "earlier first partial shard failed global coverage gate because only a quarter of the suite ran",
+    "browser startup timeouts and stale material assertion",
+    "native overflow discovered on restore and corrected by measuring expanded actions",
+    "WGC caption capture discrepancy and reverted diagnostic attempts",
+    "Whole src Prettier check reported 875 pre-existing formatting issues; only modified/new files were checked for this task",
+    "temporary trace bootstrap attempted read-only invoke override and failed; public helper stopped after verifying its identity"
+  ],
+  "warnings": [
+    "existing syncStore.ts unused event lint warning",
+    "existing bundle size/dynamic import warnings",
+    "Cargo incremental hard-link fallback",
+    "existing React act warnings in tests"
+  ],
+  "excluded": [
+    "WebView profiles",
+    "exe/dependency/model/cache files",
+    "any occluded/private application screenshots",
+    "accounts/Vault/keys"
+  ]
+}

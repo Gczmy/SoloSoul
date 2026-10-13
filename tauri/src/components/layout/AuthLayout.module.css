@@ -25,3 +25,7 @@
   min-width: 0;
   overflow: hidden;
 }
+
+:global(html[data-windows-frame='true']) .layout {
+  padding-top: 52px;
+}
