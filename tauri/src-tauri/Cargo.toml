@@ -108,7 +108,7 @@ objc2-ui-kit = { version = "0.3", default-features = false, features = ["std", "
 
 [target.'cfg(target_os = "windows")'.dependencies]
 window-vibrancy = "0.8.0"
-windows = { version = "0.61.3", features = ["Globalization", "Win32_Foundation", "Win32_Globalization", "Win32_Graphics_Dwm", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell", "Win32_System_WinRT", "Win32_System_Registry", "Win32_UI_Accessibility", "ApplicationModel_DataTransfer", "Storage", "Storage_Streams", "Foundation"] }
+windows = { version = "0.61.3", features = ["Globalization", "Win32_Foundation", "Win32_Globalization", "Win32_Graphics_Dwm", "Win32_Graphics_Gdi", "Win32_UI_Controls", "Win32_UI_HiDpi", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell", "Win32_System_WinRT", "Win32_System_Registry", "Win32_UI_Accessibility", "ApplicationModel_DataTransfer", "Storage", "Storage_Streams", "Foundation"] }
 windows-collections = "0.2"
 webview2-com = { version = "=0.38.2", optional = true }
 windows-core = { version = "=0.61.2", optional = true }

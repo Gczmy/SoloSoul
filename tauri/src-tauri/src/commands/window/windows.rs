@@ -93,13 +93,21 @@ pub fn apply(
         let _ = window_vibrancy::clear_mica(window);
     }
     // WebView2 的背景必须也透明，CSS 才能透出 DWM 材质；旧系统与禁用透明度使用实色。
-    window
-        .set_background_color(Some(tauri::window::Color(
+    // Tao's WM_ERASEBKGND uses RGB and ignores alpha. A light RGB brush would
+    // paint over the extended DWM caption even with alpha=0. Glass uses black
+    // pixels as transparent frame backing; keep legacy windows unchanged.
+    let background = if mica && super::windows_frame::enabled(hwnd) {
+        tauri::window::Color(0, 0, 0, 0)
+    } else {
+        tauri::window::Color(
             color.red,
             color.green,
             color.blue,
             if mica { 0 } else { 255 },
-        )))
+        )
+    };
+    window
+        .set_background_color(Some(background))
         .map_err(|e| e.to_string())?;
     // Mica 标题栏由系统绘制，不覆盖应用主题色；实色回退才采用主题底色。
     // 高对比度继续使用系统颜色。
@@ -124,13 +132,22 @@ pub fn apply(
             (&dark_mode as *const u32).cast(),
             std::mem::size_of::<u32>() as u32,
         );
+        // An extended caption no longer has the normal non-client repaint trigger.
+        // Recalculate it after both theme attributes change so DWM redraws its glyphs.
+        if super::windows_frame::enabled(hwnd) {
+            super::windows_frame::refresh_appearance(hwnd)?;
+        }
     }
     Ok(WindowAppearance {
         material: if mica { "mica" } else { "solid" },
         platform: "windows",
         reduce_motion,
         high_contrast,
-        titlebar_height: 0.0,
+        titlebar_height: if super::windows_frame::enabled(hwnd) {
+            super::windows_frame::layout(hwnd)?.header_height
+        } else {
+            0.0
+        },
         traffic_lights_right: 0.0,
     })
 }
