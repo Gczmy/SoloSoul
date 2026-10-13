@@ -1,0 +1,41 @@
+{
+  "task": "RF-1143",
+  "date": "2026-10-13",
+  "status": "awaiting-current-head-macos-ci",
+  "baseline": "df7ba39fdbe026990043d60455b66912b33dd81d",
+  "failure": {
+    "runId": 38429791540,
+    "jobId": 115408641121,
+    "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38429791540/job/115408641121",
+    "diagnostic": "2026-10-13T16:58:54.5688500Z error[E0061]: this function takes 3 arguments but 2 arguments were supplied\n2026-10-13T16:58:54.5788210Z    --> src-tauri/examples/macos_window_appearance.rs:225:9\n2026-10-13T16:58:54.5891390Z     |\n2026-10-13T16:58:54.5996750Z 225 |         window::set_titlebar_controls(window.clone(), regions)\n2026-10-13T16:58:54.6100170Z     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------------------------- argument #3 of type `Option<bool>` is missing\n2026-10-13T16:58:54.6219140Z     |\n2026-10-13T16:58:54.6220370Z note: function defined here\n2026-10-13T16:58:54.6322480Z    --> src-tauri/src/commands/window.rs:126:14\n2026-10-13T16:58:54.6424010Z     |\n2026-10-13T16:58:54.6525380Z 126 | pub async fn set_titlebar_controls(\n2026-10-13T16:58:54.6628850Z     |              ^^^^^^^^^^^^^^^^^^^^^\n2026-10-13T16:58:54.6731670Z help: provide the argument\n2026-10-13T16:58:54.6834170Z     |\n2026-10-13T16:58:54.6939130Z 225 |         window::set_titlebar_controls(window.clone(), regions, /* Option<bool> */)\n2026-10-13T16:58:54.7042020Z     |                                                              ++++++++++++++++++++\n2026-10-13T16:58:54.7143610Z \n2026-10-13T16:58:54.8739580Z For more information about this error, try `rustc --explain E0061`.\n2026-10-13T16:58:54.8907290Z error: could not compile `solo_soul` (example \"macos_window_appearance\") due to 1 previous error"
+  },
+  "fix": {
+    "path": "tauri/src-tauri/examples/macos_window_appearance.rs",
+    "line": 225,
+    "addedArgument": "None",
+    "effect": "Synchronize the Rust example caller with the optional windows_frame argument; preserve macOS behavior."
+  },
+  "validation": {
+    "format": {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exitCode": 0,
+      "seconds": 7.893082300026435
+    },
+    "callerAudit": {
+      "scope": "All Rust source under tauri excluding generated targets and node_modules",
+      "sites": [
+        "tauri/src-tauri/src/commands/window.rs",
+        "tauri/src-tauri/examples/windows_frame_regression.rs",
+        "tauri/src-tauri/examples/macos_window_appearance.rs"
+      ],
+      "result": "Both Rust callers supply the third argument."
+    },
+    "platformLimit": "The changed call is macOS-only. Windows local checks cannot compile that cfg branch; merge requires fresh macOS CI."
+  },
+  "pausedScope": "All pre-existing unfinished tasks and the global goal remain paused."
+}
