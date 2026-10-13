@@ -27,6 +27,7 @@ pub fn layout(native: tauri::webview::PlatformWebview) -> super::WindowLayout {
         platform: "macos",
         titlebar_height: titlebar::height(window),
         traffic_lights_right: titlebar::traffic_lights_right(window),
+        windows_frame: None,
     }
 }
 

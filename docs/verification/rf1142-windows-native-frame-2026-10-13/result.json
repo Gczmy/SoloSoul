@@ -1,0 +1,198 @@
+{
+  "task": "RF-1142",
+  "status": "passed-native-stage-windows11-96dpi",
+  "completed": true,
+  "otherTasksRemainPaused": true,
+  "scope": "Opt-in native frame only; production frontend layout migration has not started.",
+  "checks": {
+    "acl": {
+      "exitCode": 0,
+      "seconds": 0.4907124000019394,
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_acl_consistency.py"
+      ]
+    },
+    "contracts": {
+      "exitCode": 0,
+      "seconds": 348.2780174999498,
+      "command": [
+        "node",
+        "scripts/generate-ipc-contracts.mjs",
+        "--check"
+      ]
+    },
+    "rust-format-final2": {
+      "exitCode": 0,
+      "seconds": 3.6040780000039376,
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ]
+    },
+    "isolated-tests-4": {
+      "exitCode": 0,
+      "seconds": 16.38454850000562,
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "D:/SoloSoul/build/rf1142-windows-frame-20261013/isolated11/Cargo.toml"
+      ]
+    },
+    "isolated-clippy-final2": {
+      "exitCode": 0,
+      "seconds": 12.292703400016762,
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "D:/SoloSoul/build/rf1142-windows-frame-20261013/isolated11/Cargo.toml",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    "production-clippy-final": {
+      "exitCode": 0,
+      "seconds": 100.59426169999642,
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    "build-isolated-11": {
+      "exitCode": 0,
+      "seconds": 99.07391490001464,
+      "command": [
+        "python",
+        "native-regression/windows-frame/build.py",
+        "D:/SoloSoul/build/rf1142-windows-frame-20261013/isolated11"
+      ]
+    }
+  },
+  "nativeSourceManifest": {
+    "tauri/src-tauri/examples/windows_frame_regression.rs": "083939fbfc13d420926fbacc8f7b15699964f349f0a5326c2df3a382cbe327f8",
+    "tauri/src-tauri/src/commands/window.rs": "5b09ad8044b9e6f7d689ab69b5545fdb66ee2ca2e5c222c05897179bf9a6a554",
+    "tauri/src-tauri/src/commands/window/ios.rs": "f3485a26f8c237cdfe5b1a2b80896c24644372e9f4dc12302fe41f49466e0516",
+    "tauri/src-tauri/src/commands/window/macos.rs": "aa129f8b21e0be40d0be6832a5ea64a875b50e3b3a578a03e92e4ec2f9b2df42",
+    "tauri/src-tauri/src/commands/window/macos_titlebar.rs": "a50d695a20e535ea8cbfbd6405484c9baa1be4378a66e3093cf1385dabf5cf90",
+    "tauri/src-tauri/src/commands/window/windows.rs": "0cf783cba35581e92a76c5440ffb71554cef6f1f375e1cd39f7dcbdfa73f0414",
+    "tauri/src-tauri/src/commands/window/windows_frame.rs": "c07ed46aa5cbe6b309d5676e58f03324600c49354ed04752b744364399bb309b",
+    "tauri/src-tauri/Cargo.toml": "a9b609bccb2660de6227c0454e57652217bcc729b5d54bda921a7e58d1353894",
+    "tauri/Cargo.lock": "b329a6d743971f5057fc14c9f6c1c0c23f88f2f17fdc3070a2c73110bf1801a7"
+  },
+  "nativeInteractive": {
+    "run": "acceptance6",
+    "receipt": {
+      "exitCode": 0,
+      "seconds": 763.9077356000198
+    },
+    "runIdentity": {
+      "pid": 33716,
+      "exe": "D:\\SoloSoul\\build\\rf1142-windows-frame-20261013\\bin\\windows_frame_regression.exe",
+      "exeSha256": "78512d3250dd8cb0550efd3c916b397ee7c9c60ab5f1635802e2c19f2543a9f6",
+      "command": [
+        "D:\\SoloSoul\\build\\rf1142-windows-frame-20261013\\bin\\windows_frame_regression.exe",
+        "D:\\SoloSoul\\build\\rf1142-windows-frame-20261013\\acceptance6"
+      ],
+      "startedUtc": "2026-10-13T14:42:46.704000+00:00"
+    },
+    "actualMouseInputAccepted": true,
+    "visualCaptureAccepted": true,
+    "dpi": 96,
+    "headerHeight": 52,
+    "relatedUnitTests": 18,
+    "manualRun": "manual8",
+    "manualRunIdentity": {
+      "pid": 26024,
+      "exe": "D:\\SoloSoul\\build\\rf1142-windows-frame-20261013\\bin\\windows_frame_regression.exe",
+      "exeSha256": "78512d3250dd8cb0550efd3c916b397ee7c9c60ab5f1635802e2c19f2543a9f6",
+      "command": [
+        "D:\\SoloSoul\\build\\rf1142-windows-frame-20261013\\bin\\windows_frame_regression.exe",
+        "D:\\SoloSoul\\build\\rf1142-windows-frame-20261013\\manual8"
+      ],
+      "startedUtc": "2026-10-13T15:44:36.280287+00:00"
+    },
+    "manualReceipt": {
+      "exitCode": 0,
+      "seconds": 180.01446890004445
+    },
+    "manualDragBefore": [
+      26,
+      26,
+      942,
+      665
+    ],
+    "manualDragAfter": [
+      169,
+      282,
+      1085,
+      921
+    ],
+    "manualEvidence": {
+      "dragPassed": true,
+      "snapPassed": true,
+      "snapEvidenceKind": "human-observed-popup",
+      "userStatement": "\u62d6\u52a8\u6210\u529f\uff0cSnap \u51fa\u73b0\u3002\u7ee7\u7eed\u6838\u9a8c\u4f4d\u79fb\u548c\u5173\u95ed\u6309\u94ae\uff0c\u8865\u9f50\u65e5\u5fd7\u540e\u63d0\u4ea4\u63a8\u9001\uff0c\u5176\u4ed6\u4efb\u52a1\u7ee7\u7eed\u6682\u505c\u3002",
+      "nativeDisplacementVerified": true,
+      "deltaPixels": [
+        143,
+        256
+      ],
+      "outerSizeBeforeAndAfter": [
+        916,
+        639
+      ],
+      "clientSizeBeforeAndAfter": [
+        900,
+        631
+      ],
+      "nativeCloseEvidence": "computer-use click followed by native-close, destroyed and exitCode 0",
+      "otherTasksRemainPaused": true
+    },
+    "minimizeAfterResize": true,
+    "restoreFromMinimize": true,
+    "nativeMaximizeRestoreClose": true,
+    "doubleClickMaximizeRestore": true,
+    "rightAndTopEdgeResize": true,
+    "webControls": true,
+    "themeLightDark": true,
+    "disableEnable": true,
+    "legacyOptInGuard": true
+  },
+  "notVerified": [
+    "cross-DPI/multi-monitor matrix",
+    "Windows 10 and older compositor fallback",
+    "high-contrast/reduced-transparency native matrix",
+    "fullscreen matrix"
+  ],
+  "failuresRetained": [
+    "initial build path/module/doc-comment and Clippy failures",
+    "stopped superseded compiler; no tests executed",
+    "old mock watchdog returned0, rejected; fixed watchdog exits2",
+    "computer-use approval/capture/session failures",
+    "native restore/close failed before explicit caption hit types",
+    "light RGB brush hid caption before transparent black backing",
+    "top WebView strip and stale caption exclusion after resize",
+    "build6 input freeze rejected concurrent source change",
+    "read-only native snapshot approval timed out; sandboxed retry succeeded",
+    "sandboxed external WM_NCHITTEST returned0; not accepted as native hit proof",
+    "short computer-use drag did not move Tauri IPC drag region; manual native displacement required"
+  ]
+}

@@ -1,11 +1,17 @@
 use serde::{Deserialize, Serialize};
 
 #[cfg(target_os = "ios")]
+#[path = "window/ios.rs"]
 mod ios;
 #[cfg(target_os = "macos")]
+#[path = "window/macos.rs"]
 mod macos;
 #[cfg(target_os = "windows")]
+#[path = "window/windows.rs"]
 mod windows;
+#[cfg(target_os = "windows")]
+#[path = "window/windows_frame.rs"]
+pub(crate) mod windows_frame;
 
 #[derive(Clone, Copy, Deserialize)]
 pub struct TitlebarColor {
@@ -39,6 +45,19 @@ pub struct WindowLayout {
     pub platform: &'static str,
     pub titlebar_height: f64,
     pub traffic_lights_right: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub windows_frame: Option<WindowsFrameLayout>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowsFrameLayout {
+    pub enabled: bool,
+    pub header_height: f64,
+    pub dpi: u32,
+    pub maximized: bool,
+    /// Logical client coordinates: x, y, width, height.
+    pub caption_bounds: [f64; 4],
 }
 
 /// 只读窗口几何，避免恢复/缩放时经由主题命令重复进入材质合成路径。
@@ -54,7 +73,31 @@ pub async fn get_window_layout(window: tauri::WebviewWindow) -> Result<WindowLay
             .map_err(|e| e.to_string())?;
         rx.await.map_err(|e| e.to_string())
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let target = window.clone();
+        window
+            .run_on_main_thread(move || {
+                let result = target.hwnd().map_err(|e| e.to_string()).and_then(|hwnd| {
+                    let frame = if windows_frame::enabled(hwnd) {
+                        Some(windows_frame::layout(hwnd)?)
+                    } else {
+                        None
+                    };
+                    Ok(WindowLayout {
+                        platform: "windows",
+                        titlebar_height: frame.as_ref().map_or(0.0, |f| f.header_height),
+                        traffic_lights_right: 0.0,
+                        windows_frame: frame,
+                    })
+                });
+                let _ = tx.send(result);
+            })
+            .map_err(|e| e.to_string())?;
+        rx.await.map_err(|e| e.to_string())?
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = window;
         Ok(WindowLayout {
@@ -65,6 +108,7 @@ pub async fn get_window_layout(window: tauri::WebviewWindow) -> Result<WindowLay
             },
             titlebar_height: 0.0,
             traffic_lights_right: 0.0,
+            windows_frame: None,
         })
     }
 }
@@ -82,6 +126,7 @@ pub struct TitlebarControlRect {
 pub async fn set_titlebar_controls(
     window: tauri::WebviewWindow,
     regions: Vec<TitlebarControlRect>,
+    windows_frame: Option<bool>,
 ) -> Result<(), String> {
     if regions.len() > 128
         || regions.iter().any(|r| {
@@ -94,6 +139,7 @@ pub async fn set_titlebar_controls(
     }
     #[cfg(target_os = "macos")]
     {
+        let _ = windows_frame;
         let (tx, rx) = tokio::sync::oneshot::channel();
         window
             .with_webview(move |native| {
@@ -102,9 +148,26 @@ pub async fn set_titlebar_controls(
             .map_err(|e| e.to_string())?;
         rx.await.map_err(|e| e.to_string())?
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
     {
-        let _ = (window, regions);
+        // Opt-in only: old clients do not extend their WebView into the caption.
+        // All HWND/subclass changes must execute on the window's UI thread.
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let target = window.clone();
+        window
+            .run_on_main_thread(move || {
+                let result = target
+                    .hwnd()
+                    .map_err(|e| e.to_string())
+                    .and_then(|hwnd| windows_frame::configure(hwnd, windows_frame, regions));
+                let _ = tx.send(result);
+            })
+            .map_err(|e| e.to_string())?;
+        rx.await.map_err(|e| e.to_string())?
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        let _ = (window, regions, windows_frame);
         Ok(())
     }
 }
@@ -129,7 +192,14 @@ pub async fn set_titlebar_color(
 
     #[cfg(target_os = "windows")]
     {
-        windows::apply(&window, color)
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let target = window.clone();
+        window
+            .run_on_main_thread(move || {
+                let _ = tx.send(windows::apply(&target, color));
+            })
+            .map_err(|e| e.to_string())?;
+        rx.await.map_err(|e| e.to_string())?
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -215,6 +285,22 @@ pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_window_layout_omits_windows_frame_extension() {
+        let layout = WindowLayout {
+            platform: "windows",
+            titlebar_height: 0.0,
+            traffic_lights_right: 0.0,
+            windows_frame: None,
+        };
+        assert_eq!(
+            serde_json::to_value(layout).unwrap(),
+            serde_json::json!({
+                "platform":"windows", "titlebarHeight":0.0, "trafficLightsRight":0.0
+            })
+        );
+    }
 
     #[test]
     fn test_titlebar_color_deserialization() {

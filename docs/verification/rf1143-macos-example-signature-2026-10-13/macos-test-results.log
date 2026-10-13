@@ -1,0 +1,29 @@
+2026-10-13T17:44:21.1646160Z     Finished `test` profile [optimized + debuginfo] target(s) in 19m 51s
+2026-10-13T17:44:51.6855300Z test result: ok. 795 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.13s
+2026-10-13T17:44:51.7003420Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:44:51.8671120Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+2026-10-13T17:44:53.9959950Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.09s
+2026-10-13T17:44:54.0334260Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+2026-10-13T17:44:54.0560790Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+2026-10-13T17:45:23.2155580Z test result: ok. 447 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.11s
+2026-10-13T17:45:23.3635540Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+2026-10-13T17:45:23.7524870Z test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+2026-10-13T17:45:23.8072660Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:45:23.8726470Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:45:23.9405370Z test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+2026-10-13T17:45:24.0194730Z test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+2026-10-13T17:45:24.3960210Z test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+2026-10-13T17:45:25.6162960Z test result: ok. 102 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.64s
+2026-10-13T17:45:57.7150270Z test result: ok. 93 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 32.09s
+2026-10-13T17:46:03.7513230Z test result: ok. 312 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.99s
+2026-10-13T17:46:03.8046930Z test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:08.7444030Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:09.4428750Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:09.5207050Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:09.6355070Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:09.9844610Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:10.2270130Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:46:10.6603670Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-13T17:45:24.4044220Z test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts
+2026-10-13T17:45:24.4052280Z test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts
+2026-10-13T17:46:03.7966980Z test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）

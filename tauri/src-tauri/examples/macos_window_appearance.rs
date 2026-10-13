@@ -222,7 +222,7 @@ async fn check_titlebar_controls(window: &tauri::WebviewWindow) {
         } else {
             vec![]
         };
-        window::set_titlebar_controls(window.clone(), regions)
+        window::set_titlebar_controls(window.clone(), regions, None)
             .await
             .unwrap();
         let (tx, rx) = tokio::sync::oneshot::channel();

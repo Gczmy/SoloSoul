@@ -1,0 +1,60 @@
+{
+  "pullRequest": "https://github.com/Gczmy/SoloSoul/pull/6",
+  "headRevision": "c37c7f30e9e59bff706e12be4d9cf8a5a5986bb6",
+  "runId": 38436180386,
+  "checks": [
+    {
+      "id": 115430627352,
+      "name": "Rust Format, Clippy & Tests",
+      "headSha": "c37c7f30e9e59bff706e12be4d9cf8a5a5986bb6",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38436180386/job/115430627352"
+    },
+    {
+      "id": 115430627265,
+      "name": "Incremental IPC Contract Check",
+      "headSha": "c37c7f30e9e59bff706e12be4d9cf8a5a5986bb6",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38436180386/job/115430627265"
+    },
+    {
+      "id": 115430627068,
+      "name": "Plugin Market Registry Check",
+      "headSha": "c37c7f30e9e59bff706e12be4d9cf8a5a5986bb6",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38436180386/job/115430627068"
+    },
+    {
+      "id": 115430627013,
+      "name": "Frontend TypeScript & Lint",
+      "headSha": "c37c7f30e9e59bff706e12be4d9cf8a5a5986bb6",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38436180386/job/115430627013"
+    },
+    {
+      "id": 115430626775,
+      "name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "headSha": "c37c7f30e9e59bff706e12be4d9cf8a5a5986bb6",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38436180386/job/115430626775"
+    }
+  ],
+  "rust": {
+    "jobId": 115430627352,
+    "exampleCompileInvocationObserved": true,
+    "passed": 1880,
+    "failed": 0,
+    "ignored": 3,
+    "ignoredTests": [
+      "2026-10-13T17:45:24.4044220Z test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+      "2026-10-13T17:45:24.4052280Z test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+      "2026-10-13T17:46:03.7966980Z test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+    ]
+  },
+  "scope": "CI validates the PR head. The merge commit adds only acceptance records beyond that head; product source must compare identical."
+}
