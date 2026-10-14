@@ -1,0 +1,618 @@
+{
+  "task": "RF-312",
+  "acceptedScope": "API31 frozen prior optimized APK: safe local-only owned app/renderer sampler capability",
+  "wholeRF312Accepted": false,
+  "currentMainPerformanceAccepted": false,
+  "initialRemoteDumpDiagnosticFailed": true,
+  "oldFailuresRetained": true,
+  "groups": [
+    {
+      "objectCount": 100,
+      "actualExitCode": 0,
+      "full12NativePhasesPassed": true,
+      "requestedJourneySamples": 1,
+      "totalSnapshotAttempts": 27,
+      "validNativeJourneySnapshots": 14,
+      "samples": [
+        {
+          "ordinal": 9,
+          "pssBytes": 152651776,
+          "mainPssBytes": 106840064,
+          "rendererPssBytes": 45811712,
+          "rendererCount": 1,
+          "collectionMs": 1969.4055000436492,
+          "samplerElapsedMs": 2328.0511000193655,
+          "dumpHeaderRealtimeMs": [
+            127347571,
+            127348277
+          ]
+        },
+        {
+          "ordinal": 10,
+          "pssBytes": 202750976,
+          "mainPssBytes": 127732736,
+          "rendererPssBytes": 75018240,
+          "rendererCount": 1,
+          "collectionMs": 2022.6353000034578,
+          "samplerElapsedMs": 2215.204400010407,
+          "dumpHeaderRealtimeMs": [
+            127354579,
+            127355154
+          ]
+        },
+        {
+          "ordinal": 11,
+          "pssBytes": 204783616,
+          "mainPssBytes": 123730944,
+          "rendererPssBytes": 81052672,
+          "rendererCount": 1,
+          "collectionMs": 1336.158099991735,
+          "samplerElapsedMs": 1591.6827999753878,
+          "dumpHeaderRealtimeMs": [
+            127361752,
+            127362178
+          ]
+        },
+        {
+          "ordinal": 12,
+          "pssBytes": 205945856,
+          "mainPssBytes": 127655936,
+          "rendererPssBytes": 78289920,
+          "rendererCount": 1,
+          "collectionMs": 1417.0533000142314,
+          "samplerElapsedMs": 1515.580500010401,
+          "dumpHeaderRealtimeMs": [
+            127368248,
+            127368679
+          ]
+        },
+        {
+          "ordinal": 13,
+          "pssBytes": 207826944,
+          "mainPssBytes": 126303232,
+          "rendererPssBytes": 81523712,
+          "rendererCount": 1,
+          "collectionMs": 1603.5251999855973,
+          "samplerElapsedMs": 1969.3408000166528,
+          "dumpHeaderRealtimeMs": [
+            127375227,
+            127375684
+          ]
+        },
+        {
+          "ordinal": 14,
+          "pssBytes": 228675584,
+          "mainPssBytes": 152064000,
+          "rendererPssBytes": 76611584,
+          "rendererCount": 1,
+          "collectionMs": 1700.9472999488935,
+          "samplerElapsedMs": 1902.795200003311,
+          "dumpHeaderRealtimeMs": [
+            127381994,
+            127382475
+          ]
+        },
+        {
+          "ordinal": 15,
+          "pssBytes": 247038976,
+          "mainPssBytes": 164965376,
+          "rendererPssBytes": 82073600,
+          "rendererCount": 1,
+          "collectionMs": 1558.7183000170626,
+          "samplerElapsedMs": 2493.5066000325605,
+          "dumpHeaderRealtimeMs": [
+            127389609,
+            127390098
+          ]
+        },
+        {
+          "ordinal": 16,
+          "pssBytes": 267161600,
+          "mainPssBytes": 165502976,
+          "rendererPssBytes": 101658624,
+          "rendererCount": 1,
+          "collectionMs": 1463.6013000272214,
+          "samplerElapsedMs": 1567.0467999880202,
+          "dumpHeaderRealtimeMs": [
+            127396188,
+            127396599
+          ]
+        },
+        {
+          "ordinal": 17,
+          "pssBytes": 275725312,
+          "mainPssBytes": 168373248,
+          "rendererPssBytes": 107352064,
+          "rendererCount": 1,
+          "collectionMs": 1548.995900026057,
+          "samplerElapsedMs": 1780.0613999716006,
+          "dumpHeaderRealtimeMs": [
+            127402855,
+            127403387
+          ]
+        },
+        {
+          "ordinal": 18,
+          "pssBytes": 283508736,
+          "mainPssBytes": 174382080,
+          "rendererPssBytes": 109126656,
+          "rendererCount": 1,
+          "collectionMs": 1495.0376000488177,
+          "samplerElapsedMs": 1733.55810000794,
+          "dumpHeaderRealtimeMs": [
+            127409652,
+            127410093
+          ]
+        },
+        {
+          "ordinal": 19,
+          "pssBytes": 275975168,
+          "mainPssBytes": 175628288,
+          "rendererPssBytes": 100346880,
+          "rendererCount": 1,
+          "collectionMs": 1869.8183999513276,
+          "samplerElapsedMs": 2046.0635999916121,
+          "dumpHeaderRealtimeMs": [
+            127416411,
+            127417240
+          ]
+        },
+        {
+          "ordinal": 20,
+          "pssBytes": 287372288,
+          "mainPssBytes": 184725504,
+          "rendererPssBytes": 102646784,
+          "rendererCount": 1,
+          "collectionMs": 1814.2451000167057,
+          "samplerElapsedMs": 1991.6046999860555,
+          "dumpHeaderRealtimeMs": [
+            127423487,
+            127424067
+          ]
+        },
+        {
+          "ordinal": 21,
+          "pssBytes": 283143168,
+          "mainPssBytes": 177375232,
+          "rendererPssBytes": 105767936,
+          "rendererCount": 1,
+          "collectionMs": 1409.5695999567397,
+          "samplerElapsedMs": 1607.2584000066854,
+          "dumpHeaderRealtimeMs": [
+            127430414,
+            127430881
+          ]
+        },
+        {
+          "ordinal": 22,
+          "pssBytes": 294577152,
+          "mainPssBytes": 184372224,
+          "rendererPssBytes": 110204928,
+          "rendererCount": 1,
+          "collectionMs": 1541.9151000096463,
+          "samplerElapsedMs": 1741.2823000340723,
+          "dumpHeaderRealtimeMs": [
+            127437098,
+            127437603
+          ]
+        }
+      ],
+      "acceptedIdentitySnapshotsOutsideNativeJourney": [],
+      "incompleteSnapshots": [
+        {
+          "ordinal": 1,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 2,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 3,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 4,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 5,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 6,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 7,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 8,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 23,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 24,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 25,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 26,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 27,
+          "state": "not-running",
+          "error": null
+        }
+      ],
+      "maximumSampledCombinedPssBytes": 294577152,
+      "maximumSnapshotCollectionMs": 2022.6353000034578,
+      "maximumOuterSamplerMs": 2493.5066000325605,
+      "mainApkSha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+      "testApkSha256": "ea896d90db399a8cab6160835edbaf45ed2a6b544ec53c0f0e46bbd8f6b114d8",
+      "memoryToolSourceHashes": {
+        "tauri/scripts/android-process-memory.py": "ec2c383762700fb983d7a82f2c3963c2da1c56934586a908df2d11a515fd1518",
+        "tauri/scripts/test_android_process_memory.py": "594cef605e92cec36cb37d63b9b357d94893687b769bbc601834a003c78f9d09"
+      }
+    },
+    {
+      "objectCount": 5000,
+      "actualExitCode": 0,
+      "full12NativePhasesPassed": true,
+      "requestedJourneySamples": 1,
+      "totalSnapshotAttempts": 28,
+      "validNativeJourneySnapshots": 13,
+      "samples": [
+        {
+          "ordinal": 10,
+          "pssBytes": 203926528,
+          "mainPssBytes": 127614976,
+          "rendererPssBytes": 76311552,
+          "rendererCount": 1,
+          "collectionMs": 1600.7179000298493,
+          "samplerElapsedMs": 1851.4958000159822,
+          "dumpHeaderRealtimeMs": [
+            127587361,
+            127587889
+          ]
+        },
+        {
+          "ordinal": 11,
+          "pssBytes": 230795264,
+          "mainPssBytes": 144964608,
+          "rendererPssBytes": 85830656,
+          "rendererCount": 1,
+          "collectionMs": 1718.5780000290833,
+          "samplerElapsedMs": 1915.8285000012256,
+          "dumpHeaderRealtimeMs": [
+            127594142,
+            127594740
+          ]
+        },
+        {
+          "ordinal": 12,
+          "pssBytes": 230091776,
+          "mainPssBytes": 142022656,
+          "rendererPssBytes": 88069120,
+          "rendererCount": 1,
+          "collectionMs": 1382.6145000057295,
+          "samplerElapsedMs": 1560.8691000379622,
+          "dumpHeaderRealtimeMs": [
+            127600937,
+            127601417
+          ]
+        },
+        {
+          "ordinal": 13,
+          "pssBytes": 221129728,
+          "mainPssBytes": 142500864,
+          "rendererPssBytes": 78628864,
+          "rendererCount": 1,
+          "collectionMs": 1943.2195000117645,
+          "samplerElapsedMs": 2044.7865999885835,
+          "dumpHeaderRealtimeMs": [
+            127607500,
+            127607999
+          ]
+        },
+        {
+          "ordinal": 14,
+          "pssBytes": 251251712,
+          "mainPssBytes": 172481536,
+          "rendererPssBytes": 78770176,
+          "rendererCount": 1,
+          "collectionMs": 1521.891999989748,
+          "samplerElapsedMs": 1694.474799965974,
+          "dumpHeaderRealtimeMs": [
+            127614596,
+            127615093
+          ]
+        },
+        {
+          "ordinal": 15,
+          "pssBytes": 264343552,
+          "mainPssBytes": 172173312,
+          "rendererPssBytes": 92170240,
+          "rendererCount": 1,
+          "collectionMs": 1476.929199998267,
+          "samplerElapsedMs": 1628.769500006456,
+          "dumpHeaderRealtimeMs": [
+            127621320,
+            127621778
+          ]
+        },
+        {
+          "ordinal": 16,
+          "pssBytes": 280865792,
+          "mainPssBytes": 174161920,
+          "rendererPssBytes": 106703872,
+          "rendererCount": 1,
+          "collectionMs": 2354.214499995578,
+          "samplerElapsedMs": 2779.517999966629,
+          "dumpHeaderRealtimeMs": [
+            127628549,
+            127629456
+          ]
+        },
+        {
+          "ordinal": 17,
+          "pssBytes": 299411456,
+          "mainPssBytes": 181642240,
+          "rendererPssBytes": 117769216,
+          "rendererCount": 1,
+          "collectionMs": 1573.3886999660172,
+          "samplerElapsedMs": 1743.7656000256538,
+          "dumpHeaderRealtimeMs": [
+            127635806,
+            127636286
+          ]
+        },
+        {
+          "ordinal": 18,
+          "pssBytes": 298040320,
+          "mainPssBytes": 178164736,
+          "rendererPssBytes": 119875584,
+          "rendererCount": 1,
+          "collectionMs": 1397.2195999813266,
+          "samplerElapsedMs": 1526.5453000320122,
+          "dumpHeaderRealtimeMs": [
+            127642432,
+            127642910
+          ]
+        },
+        {
+          "ordinal": 19,
+          "pssBytes": 313193472,
+          "mainPssBytes": 194259968,
+          "rendererPssBytes": 118933504,
+          "rendererCount": 1,
+          "collectionMs": 1763.806900009513,
+          "samplerElapsedMs": 2043.1160000152886,
+          "dumpHeaderRealtimeMs": [
+            127649236,
+            127649840
+          ]
+        },
+        {
+          "ordinal": 20,
+          "pssBytes": 294707200,
+          "mainPssBytes": 190320640,
+          "rendererPssBytes": 104386560,
+          "rendererCount": 1,
+          "collectionMs": 2845.523399999365,
+          "samplerElapsedMs": 3034.5497999805957,
+          "dumpHeaderRealtimeMs": [
+            127656303,
+            127657506
+          ]
+        },
+        {
+          "ordinal": 21,
+          "pssBytes": 303484928,
+          "mainPssBytes": 198156288,
+          "rendererPssBytes": 105328640,
+          "rendererCount": 1,
+          "collectionMs": 1520.992000005208,
+          "samplerElapsedMs": 1721.603200014215,
+          "dumpHeaderRealtimeMs": [
+            127664272,
+            127664737
+          ]
+        },
+        {
+          "ordinal": 22,
+          "pssBytes": 302676992,
+          "mainPssBytes": 194590720,
+          "rendererPssBytes": 108086272,
+          "rendererCount": 1,
+          "collectionMs": 1783.0700000049546,
+          "samplerElapsedMs": 1886.735600011889,
+          "dumpHeaderRealtimeMs": [
+            127670846,
+            127671443
+          ]
+        }
+      ],
+      "acceptedIdentitySnapshotsOutsideNativeJourney": [],
+      "incompleteSnapshots": [
+        {
+          "ordinal": 1,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 2,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 3,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 4,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 5,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 6,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 7,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 8,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 9,
+          "state": null,
+          "error": "Renderer service has no unique owned client binding"
+        },
+        {
+          "ordinal": 23,
+          "state": null,
+          "error": "Read-only Android diagnostic command failed"
+        },
+        {
+          "ordinal": 24,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 25,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 26,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 27,
+          "state": "not-running",
+          "error": null
+        },
+        {
+          "ordinal": 28,
+          "state": "not-running",
+          "error": null
+        }
+      ],
+      "maximumSampledCombinedPssBytes": 313193472,
+      "maximumSnapshotCollectionMs": 2845.523399999365,
+      "maximumOuterSamplerMs": 3034.5497999805957,
+      "mainApkSha256": "098c26120fc4ab6954efb10116d62c294f1f4afa5478a4a5cff35adc24ba7f6f",
+      "testApkSha256": "ea896d90db399a8cab6160835edbaf45ed2a6b544ec53c0f0e46bbd8f6b114d8",
+      "memoryToolSourceHashes": {
+        "tauri/scripts/android-process-memory.py": "ec2c383762700fb983d7a82f2c3963c2da1c56934586a908df2d11a515fd1518",
+        "tauri/scripts/test_android_process_memory.py": "594cef605e92cec36cb37d63b9b357d94893687b769bbc601834a003c78f9d09"
+      }
+    }
+  ],
+  "restorationAudit": [
+    {
+      "name": "memory-100-capability",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "name": "memory-100-local",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    },
+    {
+      "name": "memory-5000-local",
+      "entries": 216,
+      "allContentsLinksModesMatch": true,
+      "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+      "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+    }
+  ],
+  "limits": [
+    "one complete native journey each, not a repeated distribution",
+    "same prior APK, not current main",
+    "serial process reads, not an atomic snapshot or continuous peak",
+    "app includes test runner; query/instrument overhead remains",
+    "shared provider service and zygote/system processes excluded",
+    "software emulator, no physical hardware claim"
+  ],
+  "remaining": [
+    "current source Android build and repeated full-process memory",
+    "remaining listener owner attribution only if needed after the accepted RF-1137 reduction",
+    "instrumentation overhead and process cold start",
+    "physical hardware and other platforms",
+    "stable IME exit capture"
+  ],
+  "rawArchive": {
+    "archive": "raw.zip",
+    "sha256": "0e24971407efa118dd4043fae675e8c2c606acf8b12d32cba88655844a03aa7f",
+    "bytes": 6290458,
+    "members": 1566,
+    "allMemberBytesReadbackVerified": true
+  },
+  "toolUnitTests": {
+    "command": "python -m unittest test_android_process_memory -v",
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "sourceUnchangedThroughBothNativeJourneys": true,
+    "evidence": "Tool invocation in this session; no separate original test log file was captured"
+  },
+  "initialRemoteRendererDump": {
+    "command": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "10626"
+    ],
+    "nativeExitCode": null,
+    "nativeExitCodeNotSeparatelyCaptured": true,
+    "outputHadHeaderWithoutMemoryValues": true,
+    "rendererBinderThreadNullDereferenceObserved": true,
+    "mainAbortedBecauseRendererCrashWasUnhandled": true,
+    "uniqueCausationNotClaimed": true,
+    "originalRawCrashBufferSha256": "281f719e62880e9c404c88178821f6f2458b2873e45403f311b879c70bedebad"
+  },
+  "knownHighSubscriptionFollowup": {
+    "reference": "../verification/rf1137-native-acceptance-2026-10-13/result.json",
+    "status": "RF-1137 already reduced native listen/unlisten 435/425 to35/25 in each 100/5000 journey; this sampler capability uses the older pre-RF1137 APK"
+  }
+}
