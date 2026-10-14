@@ -1,0 +1,36 @@
+[
+  {
+    "command": [
+      "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+      "-H",
+      "localhost",
+      "-P",
+      "5049",
+      "-s",
+      "emulator-5586",
+      "shell",
+      "getconf",
+      "CLK_TCK"
+    ],
+    "exitCode": 0,
+    "stdout": "100\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\sdk\\platform-tools\\adb.exe",
+      "-H",
+      "localhost",
+      "-P",
+      "5049",
+      "-s",
+      "emulator-5586",
+      "shell",
+      "uname",
+      "-r"
+    ],
+    "exitCode": 0,
+    "stdout": "5.10.136-android12-9-00005-gf9a66cbe7091-ab9177899\n",
+    "stderr": ""
+  }
+]
