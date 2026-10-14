@@ -1,0 +1,2326 @@
+{
+  "task": "RF-312",
+  "sourceHead": "ab848624e6475364b81a0e36353909267ca026ef",
+  "apk": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1145-android-script-newlines-20261014\\fixed-android\\android-release-package\\app-x86_64-release-early-observer-internal-validation.apk",
+    "sha256": "4bbd8b8eccf6e10a170bffe0ffe0a3e60c1d40e10611e318bbfa67785ad73e90",
+    "bytes": 78638431
+  },
+  "independentTestApk": {
+    "acceptedPackagePreparation": true,
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-first-ocr-probe-round15-20261012\\solosoul-fixed-vault-releaseprobe.apk",
+    "sha256": "ea896d90db399a8cab6160835edbaf45ed2a6b544ec53c0f0e46bbd8f6b114d8",
+    "bytes": 7974409,
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "package": "com.solosoul.app.releaseprobe",
+    "targetPackage": "com.solosoul.app",
+    "testClassDefined": true,
+    "traceRuntimeDefined": true,
+    "targetMainActivityAndTauriClassesNotPackaged": true,
+    "nativeLibrariesNotPackaged": true,
+    "homeTestSourceSha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26",
+    "mainReleaseBytesUnchanged": true,
+    "nativeRuntimeAccepted": false,
+    "fullRF312Accepted": false,
+    "at": "2026-10-12T20:28:05.594577+00:00"
+  },
+  "all20NativeJourneysPassed": true,
+  "phaseNames": [
+    "activity-startup",
+    "password-unlock",
+    "first-ocr-user-flow",
+    "workspace",
+    "search-needle",
+    "attachments-open",
+    "image-preview",
+    "text-preview",
+    "pdf-text-native-diagnostic",
+    "pdf-scanned-native-diagnostic",
+    "application-lock",
+    "password-reunlock"
+  ],
+  "executionOrder": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "mode": "sampled",
+      "pid": 14759
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "mode": "control",
+      "pid": 15704
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "mode": "control",
+      "pid": 16282
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "mode": "sampled",
+      "pid": 16918
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "mode": "control",
+      "pid": 17949
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "mode": "sampled",
+      "pid": 18584
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "mode": "sampled",
+      "pid": 19531
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "mode": "control",
+      "pid": 20466
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "mode": "sampled",
+      "pid": 21101
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "mode": "control",
+      "pid": 22068
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "mode": "control",
+      "pid": 22644
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "mode": "sampled",
+      "pid": 23285
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "mode": "control",
+      "pid": 24269
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "mode": "sampled",
+      "pid": 24928
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "mode": "sampled",
+      "pid": 26000
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "mode": "control",
+      "pid": 26976
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "mode": "sampled",
+      "pid": 27631
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "mode": "control",
+      "pid": 28625
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "mode": "control",
+      "pid": 29202
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "mode": "sampled",
+      "pid": 29860
+    }
+  ],
+  "pairedJourneys": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "sampled": {
+        "nativePid": 14759,
+        "durations": {
+          "activity-startup": 3840.589327,
+          "password-unlock": 3842.778179,
+          "first-ocr-user-flow": 18028.648886,
+          "workspace": 2360.150459,
+          "search-needle": 1862.428513,
+          "attachments-open": 1707.480426,
+          "image-preview": 2986.134424,
+          "text-preview": 2534.047731,
+          "pdf-text-native-diagnostic": 3880.278254,
+          "pdf-scanned-native-diagnostic": 3447.304627,
+          "application-lock": 855.502124,
+          "password-reunlock": 2626.983194
+        },
+        "totalTransportAttempts": 231,
+        "endToEndNativeJourneyMs": 52785.777513,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 15704,
+        "durations": {
+          "activity-startup": 4224.957717,
+          "password-unlock": 3629.348123,
+          "first-ocr-user-flow": 17953.841834,
+          "workspace": 2485.531651,
+          "search-needle": 1379.320634,
+          "attachments-open": 2037.500878,
+          "image-preview": 2699.03279,
+          "text-preview": 2729.299578,
+          "pdf-text-native-diagnostic": 4115.769899,
+          "pdf-scanned-native-diagnostic": 3701.808723,
+          "application-lock": 1020.849001,
+          "password-reunlock": 2623.140014
+        },
+        "totalTransportAttempts": 231,
+        "endToEndNativeJourneyMs": 53734.93091,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "sampled": {
+        "nativePid": 18584,
+        "durations": {
+          "activity-startup": 4170.959366,
+          "password-unlock": 3915.819527,
+          "first-ocr-user-flow": 17787.684175,
+          "workspace": 2432.265157,
+          "search-needle": 1442.748342,
+          "attachments-open": 1911.947084,
+          "image-preview": 3075.533215,
+          "text-preview": 2649.375799,
+          "pdf-text-native-diagnostic": 4527.352111,
+          "pdf-scanned-native-diagnostic": 3283.199481,
+          "application-lock": 1057.459494,
+          "password-reunlock": 2449.068361
+        },
+        "totalTransportAttempts": 215,
+        "endToEndNativeJourneyMs": 54019.286491,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 17949,
+        "durations": {
+          "activity-startup": 3898.99122,
+          "password-unlock": 3736.562929,
+          "first-ocr-user-flow": 18067.01037,
+          "workspace": 2480.353138,
+          "search-needle": 1611.451761,
+          "attachments-open": 1902.180322,
+          "image-preview": 2717.08207,
+          "text-preview": 2578.853869,
+          "pdf-text-native-diagnostic": 4080.520231,
+          "pdf-scanned-native-diagnostic": 3152.731348,
+          "application-lock": 1089.632718,
+          "password-reunlock": 3023.388868
+        },
+        "totalTransportAttempts": 231,
+        "endToEndNativeJourneyMs": 53159.697236,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "sampled": {
+        "nativePid": 21101,
+        "durations": {
+          "activity-startup": 3922.872431,
+          "password-unlock": 4810.289005,
+          "first-ocr-user-flow": 17580.059838,
+          "workspace": 2693.647786,
+          "search-needle": 1789.071718,
+          "attachments-open": 2351.22348,
+          "image-preview": 3431.098449,
+          "text-preview": 3101.388148,
+          "pdf-text-native-diagnostic": 4530.514151,
+          "pdf-scanned-native-diagnostic": 3336.904825,
+          "application-lock": 1086.635581,
+          "password-reunlock": 2791.467365
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 56614.831155,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 22068,
+        "durations": {
+          "activity-startup": 4272.318376,
+          "password-unlock": 3846.659157,
+          "first-ocr-user-flow": 17640.361353,
+          "workspace": 2418.827187,
+          "search-needle": 1630.522861,
+          "attachments-open": 1821.578517,
+          "image-preview": 2781.637128,
+          "text-preview": 2782.491729,
+          "pdf-text-native-diagnostic": 4647.728395,
+          "pdf-scanned-native-diagnostic": 3057.41084,
+          "application-lock": 976.408498,
+          "password-reunlock": 2835.705639
+        },
+        "totalTransportAttempts": 233,
+        "endToEndNativeJourneyMs": 53793.382653,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "sampled": {
+        "nativePid": 24928,
+        "durations": {
+          "activity-startup": 4791.221657,
+          "password-unlock": 4226.758247,
+          "first-ocr-user-flow": 17669.172337,
+          "workspace": 2596.638666,
+          "search-needle": 1829.775447,
+          "attachments-open": 1963.592307,
+          "image-preview": 2783.962344,
+          "text-preview": 2698.884159,
+          "pdf-text-native-diagnostic": 4119.513679,
+          "pdf-scanned-native-diagnostic": 3218.570021,
+          "application-lock": 1008.399827,
+          "password-reunlock": 3133.778499
+        },
+        "totalTransportAttempts": 233,
+        "endToEndNativeJourneyMs": 55433.933107,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 24269,
+        "durations": {
+          "activity-startup": 4451.662158,
+          "password-unlock": 4189.813566,
+          "first-ocr-user-flow": 17548.456323,
+          "workspace": 2584.093534,
+          "search-needle": 1556.343643,
+          "attachments-open": 2050.703493,
+          "image-preview": 2749.991625,
+          "text-preview": 2577.175779,
+          "pdf-text-native-diagnostic": 3870.310146,
+          "pdf-scanned-native-diagnostic": 3313.754551,
+          "application-lock": 1027.352191,
+          "password-reunlock": 2744.874449
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 54342.387408,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "sampled": {
+        "nativePid": 27631,
+        "durations": {
+          "activity-startup": 4219.636703,
+          "password-unlock": 3839.903189,
+          "first-ocr-user-flow": 18195.188785,
+          "workspace": 2759.731763,
+          "search-needle": 1341.502744,
+          "attachments-open": 1960.957152,
+          "image-preview": 2641.659995,
+          "text-preview": 2768.155716,
+          "pdf-text-native-diagnostic": 4062.561362,
+          "pdf-scanned-native-diagnostic": 3268.636074,
+          "application-lock": 965.602936,
+          "password-reunlock": 3874.447689
+        },
+        "totalTransportAttempts": 235,
+        "endToEndNativeJourneyMs": 55208.58496,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 28625,
+        "durations": {
+          "activity-startup": 4001.625501,
+          "password-unlock": 3744.94742,
+          "first-ocr-user-flow": 18118.028879,
+          "workspace": 2479.287295,
+          "search-needle": 1634.777431,
+          "attachments-open": 1839.709477,
+          "image-preview": 2922.270618,
+          "text-preview": 2940.367265,
+          "pdf-text-native-diagnostic": 4293.314316,
+          "pdf-scanned-native-diagnostic": 3221.574752,
+          "application-lock": 1051.609256,
+          "password-reunlock": 2569.386838
+        },
+        "totalTransportAttempts": 231,
+        "endToEndNativeJourneyMs": 53759.937762,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "sampled": {
+        "nativePid": 16918,
+        "durations": {
+          "activity-startup": 4960.62754,
+          "password-unlock": 3839.517032,
+          "first-ocr-user-flow": 17557.100241,
+          "workspace": 3080.513838,
+          "search-needle": 2582.565894,
+          "attachments-open": 1918.39733,
+          "image-preview": 2905.067367,
+          "text-preview": 2604.012081,
+          "pdf-text-native-diagnostic": 4259.950198,
+          "pdf-scanned-native-diagnostic": 3272.627856,
+          "application-lock": 946.685828,
+          "password-reunlock": 2894.339938
+        },
+        "totalTransportAttempts": 234,
+        "endToEndNativeJourneyMs": 56192.102456,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 16282,
+        "durations": {
+          "activity-startup": 3902.476801,
+          "password-unlock": 4779.750737,
+          "first-ocr-user-flow": 17137.320397,
+          "workspace": 2192.599081,
+          "search-needle": 1831.694413,
+          "attachments-open": 2295.560716,
+          "image-preview": 2704.191036,
+          "text-preview": 2829.579287,
+          "pdf-text-native-diagnostic": 3984.311231,
+          "pdf-scanned-native-diagnostic": 3408.477521,
+          "application-lock": 970.317619,
+          "password-reunlock": 2867.853132
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 54208.131417,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "sampled": {
+        "nativePid": 19531,
+        "durations": {
+          "activity-startup": 3889.262207,
+          "password-unlock": 4393.650353,
+          "first-ocr-user-flow": 17499.830572,
+          "workspace": 2584.600333,
+          "search-needle": 2030.804951,
+          "attachments-open": 2152.762766,
+          "image-preview": 2711.39535,
+          "text-preview": 3258.622925,
+          "pdf-text-native-diagnostic": 3874.786965,
+          "pdf-scanned-native-diagnostic": 3401.852566,
+          "application-lock": 903.57649,
+          "password-reunlock": 2943.224625
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 54634.597255,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 20466,
+        "durations": {
+          "activity-startup": 4692.201661,
+          "password-unlock": 4228.553887,
+          "first-ocr-user-flow": 17604.883686,
+          "workspace": 2662.599059,
+          "search-needle": 2233.089077,
+          "attachments-open": 2074.713644,
+          "image-preview": 2925.043973,
+          "text-preview": 2710.473359,
+          "pdf-text-native-diagnostic": 3763.252753,
+          "pdf-scanned-native-diagnostic": 3251.027018,
+          "application-lock": 895.74414,
+          "password-reunlock": 2781.622263
+        },
+        "totalTransportAttempts": 234,
+        "endToEndNativeJourneyMs": 55025.228368,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "sampled": {
+        "nativePid": 23285,
+        "durations": {
+          "activity-startup": 4204.438205,
+          "password-unlock": 3872.662836,
+          "first-ocr-user-flow": 18747.242032,
+          "workspace": 2625.207624,
+          "search-needle": 1798.011229,
+          "attachments-open": 2386.167118,
+          "image-preview": 2814.141644,
+          "text-preview": 2989.809628,
+          "pdf-text-native-diagnostic": 3730.630561,
+          "pdf-scanned-native-diagnostic": 4086.877327,
+          "application-lock": 887.58364,
+          "password-reunlock": 3899.309722
+        },
+        "totalTransportAttempts": 234,
+        "endToEndNativeJourneyMs": 57206.229335,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 22644,
+        "durations": {
+          "activity-startup": 4576.249485,
+          "password-unlock": 3793.955482,
+          "first-ocr-user-flow": 17666.728038,
+          "workspace": 2479.521488,
+          "search-needle": 2080.858377,
+          "attachments-open": 1899.920603,
+          "image-preview": 2755.362435,
+          "text-preview": 2744.162509,
+          "pdf-text-native-diagnostic": 3852.287839,
+          "pdf-scanned-native-diagnostic": 3208.89269,
+          "application-lock": 947.971363,
+          "password-reunlock": 2731.716976
+        },
+        "totalTransportAttempts": 233,
+        "endToEndNativeJourneyMs": 54121.845252,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "sampled": {
+        "nativePid": 26000,
+        "durations": {
+          "activity-startup": 4036.676824,
+          "password-unlock": 4054.799237,
+          "first-ocr-user-flow": 18389.049537,
+          "workspace": 2936.287427,
+          "search-needle": 2228.813881,
+          "attachments-open": 1995.81596,
+          "image-preview": 2857.584707,
+          "text-preview": 2826.357117,
+          "pdf-text-native-diagnostic": 4330.860564,
+          "pdf-scanned-native-diagnostic": 4192.417065,
+          "application-lock": 964.207532,
+          "password-reunlock": 3570.134563
+        },
+        "totalTransportAttempts": 234,
+        "endToEndNativeJourneyMs": 57661.833702,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 26976,
+        "durations": {
+          "activity-startup": 4995.688329,
+          "password-unlock": 3633.105667,
+          "first-ocr-user-flow": 18026.848096,
+          "workspace": 2600.227473,
+          "search-needle": 1879.899072,
+          "attachments-open": 1952.943888,
+          "image-preview": 2710.716324,
+          "text-preview": 2727.718628,
+          "pdf-text-native-diagnostic": 3954.901353,
+          "pdf-scanned-native-diagnostic": 3609.990485,
+          "application-lock": 933.645122,
+          "password-reunlock": 3312.12324
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 56023.295474,
+        "nativeIpcObserverStillValidated": true
+      }
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "sampled": {
+        "nativePid": 29860,
+        "durations": {
+          "activity-startup": 4041.813796,
+          "password-unlock": 4072.682091,
+          "first-ocr-user-flow": 19043.548112,
+          "workspace": 2497.078401,
+          "search-needle": 1968.604935,
+          "attachments-open": 2070.319025,
+          "image-preview": 2853.880727,
+          "text-preview": 2469.304522,
+          "pdf-text-native-diagnostic": 4107.990357,
+          "pdf-scanned-native-diagnostic": 3906.361118,
+          "application-lock": 816.375018,
+          "password-reunlock": 3371.251098
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 56582.398193,
+        "nativeIpcObserverStillValidated": true
+      },
+      "control": {
+        "nativePid": 29202,
+        "durations": {
+          "activity-startup": 4371.642741,
+          "password-unlock": 4144.735193,
+          "first-ocr-user-flow": 17549.943176,
+          "workspace": 2584.285857,
+          "search-needle": 1930.368661,
+          "attachments-open": 2187.479705,
+          "image-preview": 2742.435627,
+          "text-preview": 2714.383973,
+          "pdf-text-native-diagnostic": 3817.306629,
+          "pdf-scanned-native-diagnostic": 3420.78115,
+          "application-lock": 948.410922,
+          "password-reunlock": 3102.759027
+        },
+        "totalTransportAttempts": 232,
+        "endToEndNativeJourneyMs": 55023.540219,
+        "nativeIpcObserverStillValidated": true
+      }
+    }
+  ],
+  "groups": [
+    {
+      "objectCount": 100,
+      "pairedMetrics": {
+        "activity-startup": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3840.589327,
+              4170.959366,
+              3922.872431,
+              4791.221657,
+              4219.636703
+            ],
+            "median": 4170.959366,
+            "minimum": 3840.589327,
+            "maximum": 4791.221657,
+            "p95NearestRank": 4791.221657
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              4224.957717,
+              3898.99122,
+              4272.318376,
+              4451.662158,
+              4001.625501
+            ],
+            "median": 4224.957717,
+            "minimum": 3898.99122,
+            "maximum": 4451.662158,
+            "p95NearestRank": 4451.662158
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -384.3683900000001,
+              271.96814600000016,
+              -349.4459450000004,
+              339.55949899999996,
+              218.01120200000014
+            ],
+            "median": 218.01120200000014,
+            "minimum": -384.3683900000001,
+            "maximum": 339.55949899999996,
+            "p95NearestRank": 339.55949899999996
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -9.097567733125791,
+              6.975346458974591,
+              -8.179304870232368,
+              7.627701450564568,
+              5.448066090780347
+            ],
+            "median": 5.448066090780347,
+            "minimum": -9.097567733125791,
+            "maximum": 7.627701450564568,
+            "p95NearestRank": 7.627701450564568
+          }
+        },
+        "password-unlock": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3842.778179,
+              3915.819527,
+              4810.289005,
+              4226.758247,
+              3839.903189
+            ],
+            "median": 3915.819527,
+            "minimum": 3839.903189,
+            "maximum": 4810.289005,
+            "p95NearestRank": 4810.289005
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              3629.348123,
+              3736.562929,
+              3846.659157,
+              4189.813566,
+              3744.94742
+            ],
+            "median": 3744.94742,
+            "minimum": 3629.348123,
+            "maximum": 4189.813566,
+            "p95NearestRank": 4189.813566
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              213.4300559999997,
+              179.25659799999994,
+              963.6298479999996,
+              36.944680999999946,
+              94.95576900000015
+            ],
+            "median": 179.25659799999994,
+            "minimum": 36.944680999999946,
+            "maximum": 963.6298479999996,
+            "p95NearestRank": 963.6298479999996
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              5.880671921424267,
+              4.797365959201805,
+              25.05108481593498,
+              0.8817738645891804,
+              2.5355701522773355
+            ],
+            "median": 4.797365959201805,
+            "minimum": 0.8817738645891804,
+            "maximum": 25.05108481593498,
+            "p95NearestRank": 25.05108481593498
+          }
+        },
+        "first-ocr-user-flow": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              18028.648886,
+              17787.684175,
+              17580.059838,
+              17669.172337,
+              18195.188785
+            ],
+            "median": 17787.684175,
+            "minimum": 17580.059838,
+            "maximum": 18195.188785,
+            "p95NearestRank": 18195.188785
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              17953.841834,
+              18067.01037,
+              17640.361353,
+              17548.456323,
+              18118.028879
+            ],
+            "median": 17953.841834,
+            "minimum": 17548.456323,
+            "maximum": 18118.028879,
+            "p95NearestRank": 18118.028879
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              74.80705200000011,
+              -279.32619500000146,
+              -60.3015149999992,
+              120.71601400000145,
+              77.15990599999714
+            ],
+            "median": 74.80705200000011,
+            "minimum": -279.32619500000146,
+            "maximum": 120.71601400000145,
+            "p95NearestRank": 120.71601400000145
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              0.41666320050973504,
+              -1.5460565377425057,
+              -0.3418383206177579,
+              0.6879010425651185,
+              0.42587362298241277
+            ],
+            "median": 0.41666320050973504,
+            "minimum": -1.5460565377425057,
+            "maximum": 0.6879010425651185,
+            "p95NearestRank": 0.6879010425651185
+          }
+        },
+        "workspace": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2360.150459,
+              2432.265157,
+              2693.647786,
+              2596.638666,
+              2759.731763
+            ],
+            "median": 2596.638666,
+            "minimum": 2360.150459,
+            "maximum": 2759.731763,
+            "p95NearestRank": 2759.731763
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2485.531651,
+              2480.353138,
+              2418.827187,
+              2584.093534,
+              2479.287295
+            ],
+            "median": 2480.353138,
+            "minimum": 2418.827187,
+            "maximum": 2584.093534,
+            "p95NearestRank": 2584.093534
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -125.38119199999983,
+              -48.08798100000013,
+              274.82059900000013,
+              12.54513199999974,
+              280.4444679999997
+            ],
+            "median": 12.54513199999974,
+            "minimum": -125.38119199999983,
+            "maximum": 280.4444679999997,
+            "p95NearestRank": 280.4444679999997
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -5.044441576495533,
+              -1.9387554241076834,
+              11.361729373517255,
+              0.4854751515352748,
+              11.311495386822433
+            ],
+            "median": 0.4854751515352748,
+            "minimum": -5.044441576495533,
+            "maximum": 11.361729373517255,
+            "p95NearestRank": 11.361729373517255
+          }
+        },
+        "search-needle": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              1862.428513,
+              1442.748342,
+              1789.071718,
+              1829.775447,
+              1341.502744
+            ],
+            "median": 1789.071718,
+            "minimum": 1341.502744,
+            "maximum": 1862.428513,
+            "p95NearestRank": 1862.428513
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              1379.320634,
+              1611.451761,
+              1630.522861,
+              1556.343643,
+              1634.777431
+            ],
+            "median": 1611.451761,
+            "minimum": 1379.320634,
+            "maximum": 1634.777431,
+            "p95NearestRank": 1634.777431
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              483.10787900000014,
+              -168.70341899999994,
+              158.548857,
+              273.43180400000006,
+              -293.2746870000001
+            ],
+            "median": 158.548857,
+            "minimum": -293.2746870000001,
+            "maximum": 483.10787900000014,
+            "p95NearestRank": 483.10787900000014
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              35.02505995281153,
+              -10.469033146565282,
+              9.723804602332404,
+              17.568857959475732,
+              -17.9397318215118
+            ],
+            "median": 9.723804602332404,
+            "minimum": -17.9397318215118,
+            "maximum": 35.02505995281153,
+            "p95NearestRank": 35.02505995281153
+          }
+        },
+        "attachments-open": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              1707.480426,
+              1911.947084,
+              2351.22348,
+              1963.592307,
+              1960.957152
+            ],
+            "median": 1960.957152,
+            "minimum": 1707.480426,
+            "maximum": 2351.22348,
+            "p95NearestRank": 2351.22348
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2037.500878,
+              1902.180322,
+              1821.578517,
+              2050.703493,
+              1839.709477
+            ],
+            "median": 1902.180322,
+            "minimum": 1821.578517,
+            "maximum": 2050.703493,
+            "p95NearestRank": 2050.703493
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -330.020452,
+              9.766761999999972,
+              529.6449630000002,
+              -87.11118600000009,
+              121.24767499999984
+            ],
+            "median": 9.766761999999972,
+            "minimum": -330.020452,
+            "maximum": 529.6449630000002,
+            "p95NearestRank": 529.6449630000002
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -16.197315817794703,
+              0.5134509008972901,
+              29.076153350352683,
+              -4.247868416733618,
+              6.590588161654605
+            ],
+            "median": 0.5134509008972901,
+            "minimum": -16.197315817794703,
+            "maximum": 29.076153350352683,
+            "p95NearestRank": 29.076153350352683
+          }
+        },
+        "image-preview": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2986.134424,
+              3075.533215,
+              3431.098449,
+              2783.962344,
+              2641.659995
+            ],
+            "median": 2986.134424,
+            "minimum": 2641.659995,
+            "maximum": 3431.098449,
+            "p95NearestRank": 3431.098449
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2699.03279,
+              2717.08207,
+              2781.637128,
+              2749.991625,
+              2922.270618
+            ],
+            "median": 2749.991625,
+            "minimum": 2699.03279,
+            "maximum": 2922.270618,
+            "p95NearestRank": 2922.270618
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              287.10163399999965,
+              358.451145,
+              649.4613210000002,
+              33.97071899999992,
+              -280.61062300000003
+            ],
+            "median": 287.10163399999965,
+            "minimum": -280.61062300000003,
+            "maximum": 649.4613210000002,
+            "p95NearestRank": 649.4613210000002
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              10.637204374238063,
+              13.192503419670354,
+              23.348168402791046,
+              1.2353026347852938,
+              -9.602485863956357
+            ],
+            "median": 10.637204374238063,
+            "minimum": -9.602485863956357,
+            "maximum": 23.348168402791046,
+            "p95NearestRank": 23.348168402791046
+          }
+        },
+        "text-preview": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2534.047731,
+              2649.375799,
+              3101.388148,
+              2698.884159,
+              2768.155716
+            ],
+            "median": 2698.884159,
+            "minimum": 2534.047731,
+            "maximum": 3101.388148,
+            "p95NearestRank": 3101.388148
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2729.299578,
+              2578.853869,
+              2782.491729,
+              2577.175779,
+              2940.367265
+            ],
+            "median": 2729.299578,
+            "minimum": 2577.175779,
+            "maximum": 2940.367265,
+            "p95NearestRank": 2940.367265
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -195.251847,
+              70.52192999999988,
+              318.89641900000015,
+              121.70838000000003,
+              -172.21154899999965
+            ],
+            "median": 70.52192999999988,
+            "minimum": -195.251847,
+            "maximum": 318.89641900000015,
+            "p95NearestRank": 318.89641900000015
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -7.153917751420984,
+              2.73462295974708,
+              11.460821812203854,
+              4.72254865157958,
+              -5.85680404791201
+            ],
+            "median": 2.73462295974708,
+            "minimum": -7.153917751420984,
+            "maximum": 11.460821812203854,
+            "p95NearestRank": 11.460821812203854
+          }
+        },
+        "pdf-text-native-diagnostic": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3880.278254,
+              4527.352111,
+              4530.514151,
+              4119.513679,
+              4062.561362
+            ],
+            "median": 4119.513679,
+            "minimum": 3880.278254,
+            "maximum": 4530.514151,
+            "p95NearestRank": 4530.514151
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              4115.769899,
+              4080.520231,
+              4647.728395,
+              3870.310146,
+              4293.314316
+            ],
+            "median": 4115.769899,
+            "minimum": 3870.310146,
+            "maximum": 4647.728395,
+            "p95NearestRank": 4647.728395
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -235.49164500000006,
+              446.8318800000002,
+              -117.21424399999978,
+              249.20353299999988,
+              -230.75295400000005
+            ],
+            "median": -117.21424399999978,
+            "minimum": -235.49164500000006,
+            "maximum": 446.8318800000002,
+            "p95NearestRank": 446.8318800000002
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -5.721691221300223,
+              10.950365509902067,
+              -2.5219684550865367,
+              6.438851761209731,
+              -5.374704412859951
+            ],
+            "median": -2.5219684550865367,
+            "minimum": -5.721691221300223,
+            "maximum": 10.950365509902067,
+            "p95NearestRank": 10.950365509902067
+          }
+        },
+        "pdf-scanned-native-diagnostic": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3447.304627,
+              3283.199481,
+              3336.904825,
+              3218.570021,
+              3268.636074
+            ],
+            "median": 3283.199481,
+            "minimum": 3218.570021,
+            "maximum": 3447.304627,
+            "p95NearestRank": 3447.304627
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              3701.808723,
+              3152.731348,
+              3057.41084,
+              3313.754551,
+              3221.574752
+            ],
+            "median": 3221.574752,
+            "minimum": 3057.41084,
+            "maximum": 3701.808723,
+            "p95NearestRank": 3701.808723
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -254.50409600000012,
+              130.4681330000003,
+              279.49398500000007,
+              -95.18453,
+              47.06132200000002
+            ],
+            "median": 47.06132200000002,
+            "minimum": -254.50409600000012,
+            "maximum": 279.49398500000007,
+            "p95NearestRank": 279.49398500000007
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -6.875128215532062,
+              4.138257231551475,
+              9.141525284838725,
+              -2.8724073716104264,
+              1.4608173214290208
+            ],
+            "median": 1.4608173214290208,
+            "minimum": -6.875128215532062,
+            "maximum": 9.141525284838725,
+            "p95NearestRank": 9.141525284838725
+          }
+        },
+        "application-lock": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              855.502124,
+              1057.459494,
+              1086.635581,
+              1008.399827,
+              965.602936
+            ],
+            "median": 1008.399827,
+            "minimum": 855.502124,
+            "maximum": 1086.635581,
+            "p95NearestRank": 1086.635581
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              1020.849001,
+              1089.632718,
+              976.408498,
+              1027.352191,
+              1051.609256
+            ],
+            "median": 1027.352191,
+            "minimum": 976.408498,
+            "maximum": 1089.632718,
+            "p95NearestRank": 1089.632718
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -165.34687700000006,
+              -32.17322400000012,
+              110.227083,
+              -18.95236399999999,
+              -86.00631999999996
+            ],
+            "median": -32.17322400000012,
+            "minimum": -165.34687700000006,
+            "maximum": 110.227083,
+            "p95NearestRank": 110.227083
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -16.196996503697424,
+              -2.952666845306688,
+              11.289033557755863,
+              -1.844777688316624,
+              -8.178543457019549
+            ],
+            "median": -2.952666845306688,
+            "minimum": -16.196996503697424,
+            "maximum": 11.289033557755863,
+            "p95NearestRank": 11.289033557755863
+          }
+        },
+        "password-reunlock": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2626.983194,
+              2449.068361,
+              2791.467365,
+              3133.778499,
+              3874.447689
+            ],
+            "median": 2791.467365,
+            "minimum": 2449.068361,
+            "maximum": 3874.447689,
+            "p95NearestRank": 3874.447689
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2623.140014,
+              3023.388868,
+              2835.705639,
+              2744.874449,
+              2569.386838
+            ],
+            "median": 2744.874449,
+            "minimum": 2569.386838,
+            "maximum": 3023.388868,
+            "p95NearestRank": 3023.388868
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              3.8431799999998475,
+              -574.3205069999999,
+              -44.23827399999982,
+              388.9040500000001,
+              1305.0608510000002
+            ],
+            "median": 3.8431799999998475,
+            "minimum": -574.3205069999999,
+            "maximum": 1305.0608510000002,
+            "p95NearestRank": 1305.0608510000002
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              0.146510669635946,
+              -18.995919217626753,
+              -1.5600446460867592,
+              14.1683729884871,
+              50.7926962066893
+            ],
+            "median": 0.146510669635946,
+            "minimum": -18.995919217626753,
+            "maximum": 50.7926962066893,
+            "p95NearestRank": 50.7926962066893
+          }
+        },
+        "end-to-end-native-journey": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              52785.777513,
+              54019.286491,
+              56614.831155,
+              55433.933107,
+              55208.58496
+            ],
+            "median": 55208.58496,
+            "minimum": 52785.777513,
+            "maximum": 56614.831155,
+            "p95NearestRank": 56614.831155
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              53734.93091,
+              53159.697236,
+              53793.382653,
+              54342.387408,
+              53759.937762
+            ],
+            "median": 53759.937762,
+            "minimum": 53159.697236,
+            "maximum": 54342.387408,
+            "p95NearestRank": 54342.387408
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -949.1533970000019,
+              859.589254999999,
+              2821.4485019999993,
+              1091.5456989999948,
+              1448.6471979999988
+            ],
+            "median": 1091.5456989999948,
+            "minimum": -949.1533970000019,
+            "maximum": 2821.4485019999993,
+            "p95NearestRank": 2821.4485019999993
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -1.7663619938206074,
+              1.6169942638760573,
+              5.244973197168239,
+              2.008645094674849,
+              2.694659365889313
+            ],
+            "median": 2.008645094674849,
+            "minimum": -1.7663619938206074,
+            "maximum": 5.244973197168239,
+            "p95NearestRank": 5.244973197168239
+          }
+        }
+      }
+    },
+    {
+      "objectCount": 5000,
+      "pairedMetrics": {
+        "activity-startup": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              4960.62754,
+              3889.262207,
+              4204.438205,
+              4036.676824,
+              4041.813796
+            ],
+            "median": 4041.813796,
+            "minimum": 3889.262207,
+            "maximum": 4960.62754,
+            "p95NearestRank": 4960.62754
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              3902.476801,
+              4692.201661,
+              4576.249485,
+              4995.688329,
+              4371.642741
+            ],
+            "median": 4576.249485,
+            "minimum": 3902.476801,
+            "maximum": 4995.688329,
+            "p95NearestRank": 4995.688329
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              1058.1507390000006,
+              -802.9394539999998,
+              -371.8112799999999,
+              -959.0115049999995,
+              -329.82894499999975
+            ],
+            "median": -371.8112799999999,
+            "minimum": -959.0115049999995,
+            "maximum": 1058.1507390000006,
+            "p95NearestRank": 1058.1507390000006
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              27.114850208176822,
+              -17.112211111337395,
+              -8.12480353657991,
+              -19.19678414349695,
+              -7.544736945374278
+            ],
+            "median": -8.12480353657991,
+            "minimum": -19.19678414349695,
+            "maximum": 27.114850208176822,
+            "p95NearestRank": 27.114850208176822
+          }
+        },
+        "password-unlock": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3839.517032,
+              4393.650353,
+              3872.662836,
+              4054.799237,
+              4072.682091
+            ],
+            "median": 4054.799237,
+            "minimum": 3839.517032,
+            "maximum": 4393.650353,
+            "p95NearestRank": 4393.650353
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              4779.750737,
+              4228.553887,
+              3793.955482,
+              3633.105667,
+              4144.735193
+            ],
+            "median": 4144.735193,
+            "minimum": 3633.105667,
+            "maximum": 4779.750737,
+            "p95NearestRank": 4779.750737
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -940.2337050000001,
+              165.09646599999996,
+              78.70735400000012,
+              421.69357000000036,
+              -72.05310200000031
+            ],
+            "median": 78.70735400000012,
+            "minimum": -940.2337050000001,
+            "maximum": 421.69357000000036,
+            "p95NearestRank": 421.69357000000036
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -19.671186987255652,
+              3.90432451405106,
+              2.0745460607911297,
+              11.60697234408295,
+              -1.7384247399373072
+            ],
+            "median": 2.0745460607911297,
+            "minimum": -19.671186987255652,
+            "maximum": 11.60697234408295,
+            "p95NearestRank": 11.60697234408295
+          }
+        },
+        "first-ocr-user-flow": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              17557.100241,
+              17499.830572,
+              18747.242032,
+              18389.049537,
+              19043.548112
+            ],
+            "median": 18389.049537,
+            "minimum": 17499.830572,
+            "maximum": 19043.548112,
+            "p95NearestRank": 19043.548112
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              17137.320397,
+              17604.883686,
+              17666.728038,
+              18026.848096,
+              17549.943176
+            ],
+            "median": 17604.883686,
+            "minimum": 17137.320397,
+            "maximum": 18026.848096,
+            "p95NearestRank": 18026.848096
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              419.7798440000006,
+              -105.0531140000021,
+              1080.5139939999972,
+              362.20144099999743,
+              1493.6049359999997
+            ],
+            "median": 419.7798440000006,
+            "minimum": -105.0531140000021,
+            "maximum": 1493.6049359999997,
+            "p95NearestRank": 1493.6049359999997
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              2.4495068906658584,
+              -0.5967271120543891,
+              6.116095700776515,
+              2.009233333920236,
+              8.510596991804183
+            ],
+            "median": 2.4495068906658584,
+            "minimum": -0.5967271120543891,
+            "maximum": 8.510596991804183,
+            "p95NearestRank": 8.510596991804183
+          }
+        },
+        "workspace": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3080.513838,
+              2584.600333,
+              2625.207624,
+              2936.287427,
+              2497.078401
+            ],
+            "median": 2625.207624,
+            "minimum": 2497.078401,
+            "maximum": 3080.513838,
+            "p95NearestRank": 3080.513838
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2192.599081,
+              2662.599059,
+              2479.521488,
+              2600.227473,
+              2584.285857
+            ],
+            "median": 2584.285857,
+            "minimum": 2192.599081,
+            "maximum": 2662.599059,
+            "p95NearestRank": 2662.599059
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              887.914757,
+              -77.99872600000026,
+              145.68613600000026,
+              336.0599540000003,
+              -87.20745599999964
+            ],
+            "median": 145.68613600000026,
+            "minimum": -87.20745599999964,
+            "maximum": 887.914757,
+            "p95NearestRank": 887.914757
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              40.495992390685494,
+              -2.929420625172701,
+              5.8755746503940065,
+              12.924252108307769,
+              -3.3745282381893884
+            ],
+            "median": 5.8755746503940065,
+            "minimum": -3.3745282381893884,
+            "maximum": 40.495992390685494,
+            "p95NearestRank": 40.495992390685494
+          }
+        },
+        "search-needle": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2582.565894,
+              2030.804951,
+              1798.011229,
+              2228.813881,
+              1968.604935
+            ],
+            "median": 2030.804951,
+            "minimum": 1798.011229,
+            "maximum": 2582.565894,
+            "p95NearestRank": 2582.565894
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              1831.694413,
+              2233.089077,
+              2080.858377,
+              1879.899072,
+              1930.368661
+            ],
+            "median": 1930.368661,
+            "minimum": 1831.694413,
+            "maximum": 2233.089077,
+            "p95NearestRank": 2233.089077
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              750.8714809999999,
+              -202.28412600000001,
+              -282.84714800000006,
+              348.9148090000001,
+              38.236274000000094
+            ],
+            "median": 38.236274000000094,
+            "minimum": -282.84714800000006,
+            "maximum": 750.8714809999999,
+            "p95NearestRank": 750.8714809999999
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              40.99327244058149,
+              -9.05848889251452,
+              -13.592811078656124,
+              18.56029476246266,
+              1.9807757332836278
+            ],
+            "median": 1.9807757332836278,
+            "minimum": -13.592811078656124,
+            "maximum": 40.99327244058149,
+            "p95NearestRank": 40.99327244058149
+          }
+        },
+        "attachments-open": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              1918.39733,
+              2152.762766,
+              2386.167118,
+              1995.81596,
+              2070.319025
+            ],
+            "median": 2070.319025,
+            "minimum": 1918.39733,
+            "maximum": 2386.167118,
+            "p95NearestRank": 2386.167118
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2295.560716,
+              2074.713644,
+              1899.920603,
+              1952.943888,
+              2187.479705
+            ],
+            "median": 2074.713644,
+            "minimum": 1899.920603,
+            "maximum": 2295.560716,
+            "p95NearestRank": 2295.560716
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -377.16338599999995,
+              78.0491219999999,
+              486.2465149999998,
+              42.87207199999989,
+              -117.16068000000041
+            ],
+            "median": 42.87207199999989,
+            "minimum": -377.16338599999995,
+            "maximum": 486.2465149999998,
+            "p95NearestRank": 486.2465149999998
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -16.43012024779744,
+              3.761922626079761,
+              25.59299131933251,
+              2.1952536508309493,
+              -5.355966491126847
+            ],
+            "median": 2.1952536508309493,
+            "minimum": -16.43012024779744,
+            "maximum": 25.59299131933251,
+            "p95NearestRank": 25.59299131933251
+          }
+        },
+        "image-preview": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2905.067367,
+              2711.39535,
+              2814.141644,
+              2857.584707,
+              2853.880727
+            ],
+            "median": 2853.880727,
+            "minimum": 2711.39535,
+            "maximum": 2905.067367,
+            "p95NearestRank": 2905.067367
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2704.191036,
+              2925.043973,
+              2755.362435,
+              2710.716324,
+              2742.435627
+            ],
+            "median": 2742.435627,
+            "minimum": 2704.191036,
+            "maximum": 2925.043973,
+            "p95NearestRank": 2925.043973
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              200.87633099999994,
+              -213.64862300000004,
+              58.77920899999981,
+              146.868383,
+              111.44510000000037
+            ],
+            "median": 111.44510000000037,
+            "minimum": -213.64862300000004,
+            "maximum": 200.87633099999994,
+            "p95NearestRank": 200.87633099999994
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              7.428333587597911,
+              -7.304116620881995,
+              2.1332659636117817,
+              5.418065391043109,
+              4.063727108224311
+            ],
+            "median": 4.063727108224311,
+            "minimum": -7.304116620881995,
+            "maximum": 7.428333587597911,
+            "p95NearestRank": 7.428333587597911
+          }
+        },
+        "text-preview": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2604.012081,
+              3258.622925,
+              2989.809628,
+              2826.357117,
+              2469.304522
+            ],
+            "median": 2826.357117,
+            "minimum": 2469.304522,
+            "maximum": 3258.622925,
+            "p95NearestRank": 3258.622925
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2829.579287,
+              2710.473359,
+              2744.162509,
+              2727.718628,
+              2714.383973
+            ],
+            "median": 2727.718628,
+            "minimum": 2710.473359,
+            "maximum": 2829.579287,
+            "p95NearestRank": 2829.579287
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -225.56720600000017,
+              548.149566,
+              245.6471190000002,
+              98.63848899999994,
+              -245.07945100000006
+            ],
+            "median": 98.63848899999994,
+            "minimum": -245.07945100000006,
+            "maximum": 548.149566,
+            "p95NearestRank": 548.149566
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -7.971757746331007,
+              20.22338881066272,
+              8.951624336909859,
+              3.6161533666807486,
+              -9.028916079589601
+            ],
+            "median": 3.6161533666807486,
+            "minimum": -9.028916079589601,
+            "maximum": 20.22338881066272,
+            "p95NearestRank": 20.22338881066272
+          }
+        },
+        "pdf-text-native-diagnostic": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              4259.950198,
+              3874.786965,
+              3730.630561,
+              4330.860564,
+              4107.990357
+            ],
+            "median": 4107.990357,
+            "minimum": 3730.630561,
+            "maximum": 4330.860564,
+            "p95NearestRank": 4330.860564
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              3984.311231,
+              3763.252753,
+              3852.287839,
+              3954.901353,
+              3817.306629
+            ],
+            "median": 3852.287839,
+            "minimum": 3763.252753,
+            "maximum": 3984.311231,
+            "p95NearestRank": 3984.311231
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              275.6389669999994,
+              111.53421199999957,
+              -121.65727800000013,
+              375.9592109999994,
+              290.6837279999995
+            ],
+            "median": 275.6389669999994,
+            "minimum": -121.65727800000013,
+            "maximum": 375.9592109999994,
+            "p95NearestRank": 375.9592109999994
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              6.918108325860335,
+              2.9637714849497265,
+              -3.158052645193321,
+              9.50615900229255,
+              7.614890713564407
+            ],
+            "median": 6.918108325860335,
+            "minimum": -3.158052645193321,
+            "maximum": 9.50615900229255,
+            "p95NearestRank": 9.50615900229255
+          }
+        },
+        "pdf-scanned-native-diagnostic": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              3272.627856,
+              3401.852566,
+              4086.877327,
+              4192.417065,
+              3906.361118
+            ],
+            "median": 3906.361118,
+            "minimum": 3272.627856,
+            "maximum": 4192.417065,
+            "p95NearestRank": 4192.417065
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              3408.477521,
+              3251.027018,
+              3208.89269,
+              3609.990485,
+              3420.78115
+            ],
+            "median": 3408.477521,
+            "minimum": 3208.89269,
+            "maximum": 3609.990485,
+            "p95NearestRank": 3609.990485
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -135.84966499999973,
+              150.8255479999998,
+              877.984637,
+              582.4265799999998,
+              485.579968
+            ],
+            "median": 485.579968,
+            "minimum": -135.84966499999973,
+            "maximum": 877.984637,
+            "p95NearestRank": 877.984637
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -3.985640631719447,
+              4.639320041479882,
+              27.36098467038485,
+              16.133742801263917,
+              14.195002448490456
+            ],
+            "median": 14.195002448490456,
+            "minimum": -3.985640631719447,
+            "maximum": 27.36098467038485,
+            "p95NearestRank": 27.36098467038485
+          }
+        },
+        "application-lock": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              946.685828,
+              903.57649,
+              887.58364,
+              964.207532,
+              816.375018
+            ],
+            "median": 903.57649,
+            "minimum": 816.375018,
+            "maximum": 964.207532,
+            "p95NearestRank": 964.207532
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              970.317619,
+              895.74414,
+              947.971363,
+              933.645122,
+              948.410922
+            ],
+            "median": 947.971363,
+            "minimum": 895.74414,
+            "maximum": 970.317619,
+            "p95NearestRank": 970.317619
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              -23.63179100000002,
+              7.8323500000000195,
+              -60.38772300000005,
+              30.56241,
+              -132.03590400000007
+            ],
+            "median": -23.63179100000002,
+            "minimum": -132.03590400000007,
+            "maximum": 30.56241,
+            "p95NearestRank": 30.56241
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              -2.43546963770015,
+              0.874395896131681,
+              -6.370205404612,
+              3.2734504020682924,
+              -13.921803401585041
+            ],
+            "median": -2.43546963770015,
+            "minimum": -13.921803401585041,
+            "maximum": 3.2734504020682924,
+            "p95NearestRank": 3.2734504020682924
+          }
+        },
+        "password-reunlock": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              2894.339938,
+              2943.224625,
+              3899.309722,
+              3570.134563,
+              3371.251098
+            ],
+            "median": 3371.251098,
+            "minimum": 2894.339938,
+            "maximum": 3899.309722,
+            "p95NearestRank": 3899.309722
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              2867.853132,
+              2781.622263,
+              2731.716976,
+              3312.12324,
+              3102.759027
+            ],
+            "median": 2867.853132,
+            "minimum": 2731.716976,
+            "maximum": 3312.12324,
+            "p95NearestRank": 3312.12324
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              26.486805999999888,
+              161.60236199999963,
+              1167.5927459999998,
+              258.0113230000002,
+              268.4920710000001
+            ],
+            "median": 258.0113230000002,
+            "minimum": 26.486805999999888,
+            "maximum": 1167.5927459999998,
+            "p95NearestRank": 1167.5927459999998
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              0.9235760961555366,
+              5.809644398866375,
+              42.74208332188509,
+              7.7899070869114215,
+              8.653333006643448
+            ],
+            "median": 7.7899070869114215,
+            "minimum": 0.9235760961555366,
+            "maximum": 42.74208332188509,
+            "p95NearestRank": 42.74208332188509
+          }
+        },
+        "end-to-end-native-journey": {
+          "sampledMs": {
+            "n": 5,
+            "samples": [
+              56192.102456,
+              54634.597255,
+              57206.229335,
+              57661.833702,
+              56582.398193
+            ],
+            "median": 56582.398193,
+            "minimum": 54634.597255,
+            "maximum": 57661.833702,
+            "p95NearestRank": 57661.833702
+          },
+          "controlMs": {
+            "n": 5,
+            "samples": [
+              54208.131417,
+              55025.228368,
+              54121.845252,
+              56023.295474,
+              55023.540219
+            ],
+            "median": 55023.540219,
+            "minimum": 54121.845252,
+            "maximum": 56023.295474,
+            "p95NearestRank": 56023.295474
+          },
+          "pairedDifferenceMs": {
+            "n": 5,
+            "samples": [
+              1983.9710390000037,
+              -390.6311129999958,
+              3084.3840830000045,
+              1638.538228000005,
+              1558.8579739999986
+            ],
+            "median": 1638.538228000005,
+            "minimum": -390.6311129999958,
+            "maximum": 3084.3840830000045,
+            "p95NearestRank": 3084.3840830000045
+          },
+          "pairedDifferencePercent": {
+            "n": 5,
+            "samples": [
+              3.659914088788935,
+              -0.7099127519971693,
+              5.698963271925813,
+              2.924744455206921,
+              2.8330746582200366
+            ],
+            "median": 2.924744455206921,
+            "minimum": -0.7099127519971693,
+            "maximum": 5.698963271925813,
+            "p95NearestRank": 5.698963271925813
+          }
+        }
+      }
+    }
+  ],
+  "scope": "paired external --local query impact only; same APK, observer, internal sampling, SDK UI actions and original budgets",
+  "previousTenJourneysNotMixedIntoPairs": true,
+  "nativeSdkAndObserverOverheadStillUnisolated": true,
+  "populationTailOrSignificanceClaimed": false,
+  "physicalDeviceOrDefaultProductionPerformanceAccepted": false,
+  "controlPssUnmeasuredNotZero": true,
+  "wholeRF312Accepted": false,
+  "goal": "active",
+  "rawReplay": {
+    "allRawCommandsConsumed": true,
+    "allIdentitiesAndMemoryValuesReplayedExactly": true,
+    "samples": [
+      {
+        "objectCount": 100,
+        "ordinal": 1,
+        "mode": "sampled",
+        "attempts": 17,
+        "accepted": 8,
+        "refused": 9
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 1,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 1,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 1,
+        "mode": "sampled",
+        "attempts": 20,
+        "accepted": 9,
+        "refused": 11
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 2,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 2,
+        "mode": "sampled",
+        "attempts": 14,
+        "accepted": 6,
+        "refused": 8
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 2,
+        "mode": "sampled",
+        "attempts": 15,
+        "accepted": 8,
+        "refused": 7
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 2,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 3,
+        "mode": "sampled",
+        "attempts": 16,
+        "accepted": 9,
+        "refused": 7
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 3,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 3,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 3,
+        "mode": "sampled",
+        "attempts": 17,
+        "accepted": 9,
+        "refused": 8
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 4,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 4,
+        "mode": "sampled",
+        "attempts": 17,
+        "accepted": 9,
+        "refused": 8
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 4,
+        "mode": "sampled",
+        "attempts": 17,
+        "accepted": 9,
+        "refused": 8
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 4,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 5,
+        "mode": "sampled",
+        "attempts": 17,
+        "accepted": 9,
+        "refused": 8
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 5,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 5,
+        "mode": "control",
+        "attempts": 0,
+        "accepted": 0,
+        "refused": 0
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 5,
+        "mode": "sampled",
+        "attempts": 17,
+        "accepted": 9,
+        "refused": 8
+      }
+    ],
+    "attempts": 167,
+    "accepted": 85,
+    "refused": 82
+  },
+  "allSnapshotStates": {
+    "not-running": 79,
+    "complete": 85,
+    "Owned process set or service binding changed during collection": 1,
+    "Command '['D:\\\\SoloSoul\\\\build\\\\android-native-feasibility-20261010\\\\sdk\\\\platform-tools\\\\adb.exe', '-H', 'localhost', '-P', '5049', '-s', 'emulator-5586', 'shell', 'cat', '/proc/18638/stat']' timed out after 10 seconds": 1,
+    "Read-only Android diagnostic command failed": 1
+  },
+  "restoration": {
+    "runs": 20,
+    "entriesPerRun": 216,
+    "contentsLinksModesEqual": true,
+    "privateBackupsRemoved": 40,
+    "publicFixtureCopiesRemoved": 20,
+    "originalApksUidSettingsPublicInputRestored": true
+  },
+  "evidence": {
+    "index": "rf312-local-query-overhead-2026-10-14/index.json",
+    "archive": "rf312-local-query-overhead-2026-10-14/raw.zip",
+    "sha256": "ce2a393ac43ca924f0fe7478d62cd1b534433e8b576063d43173353a4296457e",
+    "memberCount": 5112
+  },
+  "acceptedScope": "matched external --local query comparison only",
+  "commitCreated": false
+}
