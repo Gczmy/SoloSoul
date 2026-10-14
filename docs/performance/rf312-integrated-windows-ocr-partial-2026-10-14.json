@@ -1,0 +1,88 @@
+{
+  "task": "RF-312",
+  "accepted": false,
+  "fullRF312Accepted": false,
+  "goal": "active",
+  "sourceHead": "2e4952ad0",
+  "runtimeSha256": "446e6221baa45285607fa594ba4dd7ea151edf8de83ce281c6fcd80aad3734a1",
+  "sourceCount": 1983,
+  "runtimeNotRebuilt": true,
+  "objects": 100,
+  "requestedSamples": 3,
+  "acceptedSamples": 1,
+  "sampleOutcomes": [
+    {
+      "index": 1,
+      "success": true,
+      "reason": null,
+      "failedStep": null
+    },
+    {
+      "index": 2,
+      "success": false,
+      "reason": "ocr-picker-controls-changed",
+      "failedStep": "ocr-native-picker"
+    },
+    {
+      "index": 3,
+      "success": false,
+      "reason": "ocr-picker-controls-changed",
+      "failedStep": "ocr-native-picker"
+    }
+  ],
+  "completeGroupMetrics": [
+    {
+      "name": "pickerOpenedObservedMs",
+      "requestedSamples": 3,
+      "successfulSamples": 0,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "pickerSelectionClosedMs",
+      "requestedSamples": 3,
+      "successfulSamples": 0,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "firstOcrResultObservedMs",
+      "requestedSamples": 3,
+      "successfulSamples": 0,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "totalOcrObservedMs",
+      "requestedSamples": 3,
+      "successfulSamples": 0,
+      "medianMs": null,
+      "p95Ms": null
+    }
+  ],
+  "dataset5000NotStarted": true,
+  "originalBudgetsGuardsAndFailuresPreserved": true,
+  "successfulSampleOnly": {
+    "completeThreeLineResult": true,
+    "firstScanCount": 1,
+    "ownedForegroundPickerVerified": true,
+    "viewportAndTwoFrameReadinessVerified": true
+  },
+  "exactChangedControlSnapshotNotRecorded": true,
+  "rootCauseUnestablished": true,
+  "cleanup": {
+    "identitiesChecked": 27,
+    "cachePathsRemoved": 24,
+    "preservedFiles": 77,
+    "bytesVerified": true,
+    "otherProcessesTerminated": 0
+  },
+  "next": "Capture read-only expected/observed control snapshots and failing substep before changing any picker readiness logic; no broadening current strict ownership or message guards.",
+  "archive": {
+    "path": "rf312-integrated-windows-ocr-partial-2026-10-14/raw.zip",
+    "members": 61,
+    "bytes": 206887,
+    "sha256": "16cef1013007581e4b37cc1c0cd8bc40de1bdad20683f887ec96d8fa9c40a5b5",
+    "allLengthsSha256AndCrcVerified": true
+  }
+}
