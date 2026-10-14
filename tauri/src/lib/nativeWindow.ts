@@ -1,6 +1,6 @@
 import { invokeCommand as invoke } from './ipcClient';
 import { withTimeout } from './withTimeout';
-import { useNativeWindowStore } from '@/stores/nativeWindowStore';
+import { useNativeWindowStore, type WindowsFrameLayout } from '@/stores/nativeWindowStore';
 import { listen } from '@tauri-apps/api/event';
 import { trackAsyncListener } from './asyncListener';
 
@@ -8,6 +8,7 @@ interface WindowLayout {
   platform: 'macos' | 'windows' | 'other';
   titlebarHeight?: number;
   trafficLightsRight?: number;
+  windowsFrame?: WindowsFrameLayout;
 }
 
 interface WindowAppearance extends WindowLayout {
@@ -20,13 +21,47 @@ let appearanceRevision = 0;
 let layoutRevision = 0;
 let appearanceQueue: Promise<void> = Promise.resolve();
 
-function applyWindowLayout(appearance: WindowLayout) {
+function validWindowsFrame(frame: WindowsFrameLayout | undefined) {
+  if (
+    !frame ||
+    frame.enabled !== true ||
+    !Number.isFinite(frame.dpi) ||
+    frame.dpi <= 0 ||
+    !Number.isFinite(frame.headerHeight) ||
+    frame.headerHeight < 0 ||
+    frame.headerHeight > 52 ||
+    !Array.isArray(frame.captionBounds) ||
+    frame.captionBounds.length !== 4 ||
+    !frame.captionBounds.every(Number.isFinite) ||
+    frame.captionBounds[2] < 0 ||
+    frame.captionBounds[3] < 0 ||
+    (frame.headerHeight > 0 && frame.captionBounds[2] === 0)
+  )
+    return null;
+  return frame;
+}
+
+function applyWindowLayout(appearance: WindowLayout, appearanceOnly = false) {
   const root = document.documentElement;
   root.dataset.desktopPlatform = appearance.platform;
-  const height = appearance.platform === 'macos' ? appearance.titlebarHeight : 0;
+  // 外观响应不含窗口按钮几何，不能在切换主题时清除已安装窗框。
+  const windowsFrame =
+    appearance.platform === 'windows'
+      ? appearanceOnly
+        ? useNativeWindowStore.getState().windowsFrame
+        : validWindowsFrame(appearance.windowsFrame)
+      : null;
+  const height =
+    appearance.platform === 'macos' ? appearance.titlebarHeight : (windowsFrame?.headerHeight ?? 0);
   const titlebarHeight =
     typeof height === 'number' && Number.isFinite(height) ? Math.max(0, height) : 0;
   root.style.setProperty('--native-titlebar-height', `${titlebarHeight}px`);
+  root.dataset.windowsFrame = String(Boolean(windowsFrame));
+  const captionInset =
+    windowsFrame && windowsFrame.headerHeight > 0
+      ? Math.max(0, Math.min(window.innerWidth, window.innerWidth - windowsFrame.captionBounds[0]))
+      : 0;
+  root.style.setProperty('--native-caption-inset', `${captionInset}px`);
   const right = appearance.platform === 'macos' ? appearance.trafficLightsRight : 0;
   const trafficLightsRight =
     typeof right === 'number' && Number.isFinite(right) ? Math.max(0, right) : 0;
@@ -35,6 +70,7 @@ function applyWindowLayout(appearance: WindowLayout) {
     isWindows: appearance.platform === 'windows',
     titlebarHeight,
     trafficLightsRight,
+    windowsFrame,
   });
 }
 
@@ -60,7 +96,7 @@ export function syncNativeAppearance(color: { red: number; green: number; blue: 
       root.dataset.nativeMaterial = appearance.material;
       root.dataset.reduceMotion = String(appearance.reduceMotion);
       root.dataset.highContrast = String(appearance.highContrast);
-      if (geometryRevision === layoutRevision) applyWindowLayout(appearance);
+      if (geometryRevision === layoutRevision) applyWindowLayout(appearance, true);
     });
   appearanceQueue = next;
   return next;
@@ -89,7 +125,11 @@ export function observeNativeWindowLayout() {
     }
   };
   const update = () => {
-    if (stopped || document.documentElement.dataset.desktopPlatform !== 'macos') return;
+    if (
+      stopped ||
+      !['macos', 'windows'].includes(document.documentElement.dataset.desktopPlatform ?? '')
+    )
+      return;
     if (running) {
       dirty = true;
       return;
@@ -114,6 +154,7 @@ export function observeNativeWindowLayout() {
 /** 图标解码后显示原生窗口；隐藏 WebView 不保证调度 RAF，因此设置有界绘制等待。 */
 export async function prepareStartupWindow(): Promise<void> {
   await refreshNativeAppearance(true).catch(() => {});
+  if (useNativeWindowStore.getState().isWindows) await initializeWindowsFrame();
   const logo = document.querySelector<HTMLImageElement>('.startup-logo');
   if (logo) await withTimeout(logo.decode(), 400).catch(() => {});
   await new Promise<void>((resolve) => {
@@ -126,6 +167,43 @@ export async function prepareStartupWindow(): Promise<void> {
     );
   });
   await invoke('show_main_window').catch(() => {});
+  // show_main_window会恢复最大化/全屏状态，显示后再次读取实际按钮保留区。
+  if (useNativeWindowStore.getState().windowsFrame) {
+    const revision = ++layoutRevision;
+    try {
+      const layout = await withTimeout(invoke<WindowLayout>('get_window_layout'), 1000);
+      if (revision === layoutRevision && layout) applyWindowLayout(layout);
+    } catch {
+      /* 保留最后一次有效几何。 */
+    }
+  }
+}
+
+async function initializeWindowsFrame() {
+  let completed = false;
+  const enable = invoke('set_titlebar_controls', { regions: [], windowsFrame: true }).then(() => {
+    completed = true;
+  });
+  const rollback = async () => {
+    await invoke('set_titlebar_controls', { regions: [], windowsFrame: false });
+    await refreshNativeAppearance(true);
+  };
+  try {
+    await withTimeout(enable, 1000);
+    // 原生窗框安装后刷新背景刷，避免浅色RGB盖住DWM按钮。
+    await refreshNativeAppearance(true);
+    const revision = ++layoutRevision;
+    const layout = await withTimeout(invoke<WindowLayout>('get_window_layout'), 1000);
+    if (layout?.platform !== 'windows' || !validWindowsFrame(layout.windowsFrame))
+      throw new Error('Invalid Windows frame layout');
+    if (revision === layoutRevision) applyWindowLayout(layout);
+  } catch {
+    ++layoutRevision;
+    applyWindowLayout({ platform: 'windows' });
+    // 超时不取消原生请求，迟到安装完成后仍须撤除，不能留下网页旧布局与新窗框。
+    if (!completed) void enable.then(rollback, () => {}).catch(() => {});
+    await withTimeout(rollback(), 1000).catch(() => {});
+  }
 }
 
 export async function refreshNativeAppearance(startup = false): Promise<void> {

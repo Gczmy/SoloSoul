@@ -166,7 +166,7 @@ test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', asy
     await page.getByRole('button', { name, exact: true }).click();
     await expectThemeBackground(page, scheme, true);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await expect(page.locator('#desktop-navigation')).not.toHaveCSS(
+    await expect(page.locator('#desktop-navigation')).toHaveCSS(
       'background-color',
       'rgba(0, 0, 0, 0)',
     );

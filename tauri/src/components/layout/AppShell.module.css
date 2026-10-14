@@ -24,9 +24,29 @@
   touch-action: manipulation;
 }
 
-/* 非 macOS 保持原布局；只有桌面 macOS 有独立的内容表面。 */
+/* 默认沿用原布局；桌面原生外壳在对应平台规则中启用独立内容表面。 */
 .contentSurface {
   display: contents;
+}
+
+@media (min-width: 768px) {
+  :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    margin-top: 8px;
+    background: var(--shell-content-surface, var(--bg-base));
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appShell[data-windows-shell][data-navigation]
+    .content {
+    background: transparent;
+    border-radius: 0;
+  }
 }
 
 /* 键盘弹出时 .content 是主要滚动容器；overscroll-behavior 防止系统手势误触 */

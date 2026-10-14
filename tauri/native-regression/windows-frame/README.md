@@ -2,7 +2,7 @@
 
 独立例程使用真实 Tauri/WebView2 和生产窗口命令。它不调用正式应用 setup，不读取账户、Vault、插件或持久主题；WebView 数据目录在指定的新输出目录中。
 
-本阶段只验证、接入原生窗框。正式页面仍使用原布局，下一阶段登记控件避让区并显式启用后，才能合并 AppBar 与窗口标题栏。
+RF-1142验证并接入原生窗框。RF-1144的正式前端在启动时登记控件避让区并显式启用；不支持时撤除并回退旧布局。独立例程无第三个参数时仍运行原来的窗框验证页面；第三个参数可加载[公开前端布局夹具](../windows-shell/README.md)。
 
 为避免每次原生迭代链接OCR和Vault，可用轻量构建入口（保留当前D盘Cargo缓存环境）：
 
@@ -33,4 +33,4 @@ cargo build --locked -p solo_soul --example windows_frame_regression --features 
 
 原生方案参考：[微软自定义窗框](https://learn.microsoft.com/en-us/windows/win32/dwm/customframe)、[Snap Layout命中要求](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/ui/apply-snap-layout-menu)。实际验证结果另存于 `docs/verification`，不得将尚未执行的检查写成通过。
 
-2026-10-13原生阶段验收完成：18项窗口单测、隔离及生产库严格Clippy、Rust格式、IPC/ACL通过。Windows 11/96DPI真实按钮、交互、顶部/右侧缩放、双击、最小化/恢复、主题与安装/撤除通过；拖动与Snap由用户补验，原生位移/尺寸另行核验。跨DPI/跨屏、旧系统材质回退、高对比度/关闭透明度和全屏矩阵未实测。正式前端布局迁移未开始，其他任务及goal继续暂停。详见仓库验证结果。
+2026-10-13原生阶段验收完成：18项窗口单测、隔离及生产库严格Clippy、Rust格式、IPC/ACL通过。Windows 11/96DPI真实按钮、交互、顶部/右侧缩放、双击、最小化/恢复、主题与安装/撤除通过；拖动与Snap由用户补验，原生位移/尺寸另行核验。跨DPI/跨屏、旧系统材质回退、高对比度/关闭透明度和全屏矩阵未实测。RF-1144前端迁移及本轮原生结果另存于仓库验证记录，其他任务及goal继续暂停。

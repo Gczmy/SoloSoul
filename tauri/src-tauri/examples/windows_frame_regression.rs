@@ -37,15 +37,15 @@ mod regression {
     (async()=>{await invoke('set_titlebar_controls',{regions:[]});await report('legacy');enabled=true;await invoke('set_titlebar_controls',{regions:regions(),windowsFrame:true});await report('configure')})().catch(e=>document.querySelector('#status').textContent=String(e));
     </script></body></html>"#;
 
-    struct Assets;
+    struct Assets(String);
     impl tauri::Assets<tauri::Wry> for Assets {
         fn get(&self, key: &tauri::utils::assets::AssetKey) -> Option<Cow<'_, [u8]>> {
-            (key.as_ref() == "/index.html").then_some(Cow::Borrowed(HTML.as_bytes()))
+            (key.as_ref() == "/index.html").then_some(Cow::Borrowed(self.0.as_bytes()))
         }
         fn iter(&self) -> Box<tauri::utils::assets::AssetsIter<'_>> {
             Box::new(std::iter::once((
                 "index.html".into(),
-                HTML.as_bytes().into(),
+                self.0.as_bytes().into(),
             )))
         }
         fn csp_hashes(
@@ -140,6 +140,21 @@ mod regression {
         record(&reports, result.clone())?;
         Ok(result)
     }
+    // The public fixture avoids production setup, accounts and persisted window state.
+    #[tauri::command]
+    fn frame_frontend_report(
+        report: Value,
+        reports: tauri::State<'_, Arc<Reports>>,
+    ) -> Result<(), String> {
+        if report.to_string().len() > 65536 {
+            return Err("Frontend report bound exceeded".into());
+        }
+        record(&reports, report)
+    }
+    #[tauri::command]
+    fn show_main_window(window: WebviewWindow) -> Result<(), String> {
+        window.show().map_err(|e| e.to_string())
+    }
     pub fn run() -> Result<(), String> {
         let output = PathBuf::from(
             std::env::args()
@@ -154,7 +169,17 @@ mod regression {
             output: output.clone(),
             sequence: Mutex::new(0),
         });
-        let mut context = tauri::test::mock_context(Assets);
+        let fixture = std::env::args().nth(2);
+        let html = if let Some(path) = &fixture {
+            let html = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+            if !html.starts_with("<!-- SoloSoul RF-1144 isolated public fixture -->") {
+                return Err("Expected an RF-1144 public frontend fixture".into());
+            }
+            html
+        } else {
+            HTML.into()
+        };
+        let mut context = tauri::test::mock_context(Assets(html));
         context.config_mut().identifier = "com.solosoul.windows-frame-regression".into();
         context.config_mut().app.windows.clear();
         // mock_context has no core ACL. Permit only the two local commands used
@@ -162,6 +187,8 @@ mod regression {
         for command in [
             "plugin:window|start_dragging",
             "plugin:window|internal_toggle_maximize",
+            "plugin:event|listen",
+            "plugin:event|unlisten",
         ] {
             context
                 .runtime_authority_mut()
@@ -171,8 +198,11 @@ mod regression {
             .manage(reports.clone())
             .invoke_handler(tauri::generate_handler![
                 frame_action,
+                frame_frontend_report,
                 window::set_titlebar_controls,
-                window::get_window_layout
+                window::get_window_layout,
+                window::set_titlebar_color,
+                show_main_window
             ])
             .setup(move |app| {
                 let window = WebviewWindowBuilder::new(
@@ -180,11 +210,16 @@ mod regression {
                     "frame-regression",
                     WebviewUrl::App("index.html".into()),
                 )
-                .title("RF-1142 — Windows frame regression")
+                .title(if fixture.is_some() {
+                    "RF-1144 — Windows frontend regression"
+                } else {
+                    "RF-1142 — Windows frame regression"
+                })
                 .inner_size(900.0, 600.0)
                 .min_inner_size(400.0, 300.0)
                 .decorations(true)
                 .transparent(true)
+                .visible(fixture.is_none())
                 .data_directory(output.join("webview-profile"))
                 .build()?;
                 let events = reports.clone();

@@ -38,17 +38,20 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
   const isWindows = useNativeWindowStore((s) => s.isWindows);
+  const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
   const appbarHeight = isAndroid
     ? 64
-    : isNarrowViewport
-      ? 48
-      : isMacOS
-        ? // 全屏切换中的原生32pt临时几何不能压缩网页顶部栏。
-          Math.max(52, titlebarHeight)
-        : isWindows
-          ? titlebarHeight || 40
-          : 48;
+    : windowsShell
+      ? 52
+      : isNarrowViewport
+        ? 48
+        : isMacOS
+          ? // 全屏切换中的原生32pt临时几何不能压缩网页顶部栏。
+            Math.max(52, titlebarHeight)
+          : isWindows
+            ? titlebarHeight || 40
+            : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
@@ -196,6 +199,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       className={styles.appShell}
       data-android-shell={isAndroid || undefined}
       data-macos-shell={(isMacOS && !isNarrowViewport && !isAndroid) || undefined}
+      data-windows-shell={windowsShell || undefined}
       data-navigation={effectivePosition}
       style={
         {

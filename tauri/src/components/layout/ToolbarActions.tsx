@@ -15,6 +15,7 @@ export function ToolbarActions({
   const ref = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const secondary = useRef<HTMLDivElement>(null);
+  const expandedWidth = useRef(0);
   const [compact, setCompact] = useState(false);
   const [open, setOpen] = useState(false);
   const { t } = useTranslation('common');
@@ -27,13 +28,16 @@ export function ToolbarActions({
       const style = getComputedStyle(header);
       const available =
         header.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-      setCompact(available < 640);
+      // 保留标题空间，并记住横排宽度；收纳后的菜单宽度不能用于判断展开，避免来回切换。
+      if (!compact) expandedWidth.current = ref.current?.getBoundingClientRect().width ?? 0;
+      setCompact(available < Math.max(640, expandedWidth.current + 96));
     };
     const observer = new ResizeObserver(measure);
     observer.observe(header);
+    if (ref.current) observer.observe(ref.current);
     measure();
     return () => observer.disconnect();
-  }, []);
+  }, [compact, primary, children]);
 
   useEffect(() => setOpen(false), [location.key, compact]);
   useEffect(() => {

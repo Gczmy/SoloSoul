@@ -14,13 +14,14 @@ export function PreviewTitlebar({
   active?: boolean;
 }) {
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
+  const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
   const headerRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    if (!isMacOS || !active || !headerRef.current) return;
+    if ((!isMacOS && !windowsShell) || !active || !headerRef.current) return;
     return observeTitlebarControls(headerRef.current, { priority: 1, selector: 'button' });
-  }, [isMacOS, active]);
+  }, [isMacOS, windowsShell, active]);
 
   return (
     <div
@@ -46,6 +47,13 @@ export function PreviewTitlebar({
           // 全屏隐藏交通灯时恢复普通内边距，不额外增加一行空白。
           paddingLeft:
             trafficLightsRight > 0 ? trafficLightsRight + 12 : (style?.paddingLeft ?? 14),
+        }),
+        ...(windowsShell && {
+          minHeight: 52,
+          height: 52,
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 'calc(var(--native-caption-inset, 0px) + 14px)',
         }),
       }}
     >

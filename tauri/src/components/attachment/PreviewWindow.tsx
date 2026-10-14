@@ -10,6 +10,7 @@ export function PreviewWindow({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { portal?: boolean }) {
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
+  const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const surface = (
     <div
       {...props}
@@ -24,5 +25,5 @@ export function PreviewWindow({
     />
   );
   // 照片查看器及其加载态留在相册内，保留相册 → 查看器的层级和返回行为。
-  return isMacOS && portal ? createPortal(surface, document.body) : surface;
+  return (isMacOS || windowsShell) && portal ? createPortal(surface, document.body) : surface;
 }
