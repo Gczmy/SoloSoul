@@ -9,6 +9,7 @@ import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelect
 import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
 import { AndroidObjectDestination } from '@/components/android/AndroidObjectDestination';
 import { isAndroidSync } from '@/lib/platform';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { useObjectEditorPage } from './useObjectEditorPage';
 import styles from './ObjectEditorPage.module.css';
 
@@ -32,6 +33,7 @@ export function ObjectEditorPage() {
 
 function ObjectEditorForm() {
   const navigate = useNavigate();
+  const isWindows = useNativeWindowStore((s) => s.isWindows);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const {
     isNew,
@@ -61,8 +63,29 @@ function ObjectEditorForm() {
     isSaving,
   } = useObjectEditorPage();
 
+  const showForm = (isNew || loadedFor === objectId) && Boolean(selectedType || !isNew);
+  const formActions = (
+    <>
+      <Button variant="secondary" size={isWindows ? 'sm' : 'md'} onClick={() => navigate(-1)}>
+        {t('common:cancel')}
+      </Button>
+      <Button
+        variant="primary"
+        size={isWindows ? 'sm' : 'md'}
+        onClick={handleSave}
+        loading={isSaving}
+      >
+        {t('common:save')}
+      </Button>
+    </>
+  );
+
   return (
-    <PageShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={handleBack}>
+    <PageShell
+      title={isNew ? t('common:new_object') : t('common:edit_object')}
+      onBack={handleBack}
+      primaryActions={isWindows && showForm ? formActions : undefined}
+    >
       <PageContainer variant="xs" gap="default">
         <ObjectTemplateSelector
           isNew={isNew}
@@ -77,42 +100,33 @@ function ObjectEditorForm() {
           customPages={customPages}
         />
 
-        {!isNew && loadedFor !== objectId
-          ? null
-          : (selectedType || !isNew) && (
-              <>
-                <Card>
-                  <Input
-                    label={t('common:object_name')}
-                    aria-label={t('common:object_name')}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t('common:object_name_placeholder')}
-                  />
-                </Card>
-                <ObjectFieldList
-                  fields={fields}
-                  displayFields={displayFields}
-                  values={values}
-                  onChange={handleFieldChange}
-                  validationErrors={validationErrors}
-                  onClearError={handleClearError}
-                  currentObject={currentObject}
-                  contractTypeId={contractTypeId}
-                  getSensitivity={getSensitivity}
-                  isNew={isNew}
-                  suggestions={fieldSuggestions}
-                />
-                <div className={styles.formActions}>
-                  <Button variant="secondary" onClick={() => navigate(-1)}>
-                    {t('common:cancel')}
-                  </Button>
-                  <Button variant="primary" onClick={handleSave} loading={isSaving}>
-                    {t('common:save')}
-                  </Button>
-                </div>
-              </>
-            )}
+        {showForm && (
+          <>
+            <Card>
+              <Input
+                label={t('common:object_name')}
+                aria-label={t('common:object_name')}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('common:object_name_placeholder')}
+              />
+            </Card>
+            <ObjectFieldList
+              fields={fields}
+              displayFields={displayFields}
+              values={values}
+              onChange={handleFieldChange}
+              validationErrors={validationErrors}
+              onClearError={handleClearError}
+              currentObject={currentObject}
+              contractTypeId={contractTypeId}
+              getSensitivity={getSensitivity}
+              isNew={isNew}
+              suggestions={fieldSuggestions}
+            />
+            {!isWindows && <div className={styles.formActions}>{formActions}</div>}
+          </>
+        )}
       </PageContainer>
     </PageShell>
   );
