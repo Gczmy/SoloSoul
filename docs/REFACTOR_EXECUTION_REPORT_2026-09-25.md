@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-14（PR #7 已合并清理，恢复目标；推进 RF-312 Android 全进程内存验证）
+> 最后更新：2026-10-14（RF-1145 Android 测量脚本 CRLF/CSP 修复及原生验收完成，继续 RF-312）
 > 当前分支：`codex/rf312-android-process-memory`；调查基线：`f77c0e20`，本阶段起点：`f517ed45a`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**334**（P1：60；P2：273；P3：1）。
-- 已关闭：**323 / 334**；实际修复（已关闭）：323；排除：0；待验证/阻塞：5（RF-112、RF-121、RF-312、RF-1109、RF-1128）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093、RF-1094、RF-1095、RF-1096、RF-1097、RF-1098、RF-1099、RF-1100、RF-1101、RF-1102、RF-1103、RF-1104、RF-1105、RF-1106、RF-1107、RF-1108、RF-1109、RF-1110、RF-1111、RF-1112、RF-1113、RF-1114、RF-1115、RF-1116、RF-1117、RF-1118、RF-1119、RF-1120、RF-1121、RF-1122、RF-1123、RF-1124、RF-1125、RF-1126、RF-1127、RF-1128、RF-1129、RF-1130、RF-1131、RF-1132、RF-1133、RF-1134、RF-1135、RF-1136、RF-1137、RF-1138、RF-1139、RF-1140、RF-1141、RF-1142、RF-1143、RF-1144（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-312 当前源码 Android 构建与重复全进程内存准备；采集入口已验，goal active，按原依赖和逐项提交纪律继续。
+- 任务总数：**335**（P1：60；P2：274；P3：1）。
+- 已关闭：**324 / 335**；实际修复（已关闭）：324；排除：0；待验证/阻塞：5（RF-112、RF-121、RF-312、RF-1109、RF-1128）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093、RF-1094、RF-1095、RF-1096、RF-1097、RF-1098、RF-1099、RF-1100、RF-1101、RF-1102、RF-1103、RF-1104、RF-1105、RF-1106、RF-1107、RF-1108、RF-1109、RF-1110、RF-1111、RF-1112、RF-1113、RF-1114、RF-1115、RF-1116、RF-1117、RF-1118、RF-1119、RF-1120、RF-1121、RF-1122、RF-1123、RF-1124、RF-1125、RF-1126、RF-1127、RF-1128、RF-1129、RF-1130、RF-1131、RF-1132、RF-1133、RF-1134、RF-1135、RF-1136、RF-1137、RF-1138、RF-1139、RF-1140、RF-1141、RF-1142、RF-1143、RF-1144、RF-1145（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：RF-312 修复后当前源码 APK 的重复全进程内存、采集开销与冷启动；RF-1145 已独立验收，goal active。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -463,6 +463,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 332 | [RF-1142](#rf-1142) | P2 | Windows一体顶栏原生窗框验证与显式接入 | 无（用户新增任务） | [x] 已完成（原生阶段，Windows 11/96DPI） |
 | 333 | [RF-1143](#rf-1143) | P2 | macOS窗口例程同步新增可选参数 | 无（PR #6 CI实际失败） | [x] 完成（修复提交CI通过） |
 | 334 | [RF-1144](#rf-1144) | P2 | Windows一体顶栏前端布局与显式接入 | RF-1142、RF-1143 | [x] 已完成 |
+| 335 | [RF-1145](#rf-1145) | P2 | Android嵌入测量脚本统一HTML换行再生成CSP哈希 | 无（当前源码原生启动失败及CRLF浏览器对照） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -4244,6 +4245,16 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **执行：**启动时显式启用并读取实际窗口按钮保留区，失败撤除并回退旧窗框；主题响应保留几何，恢复/缩放只读几何。52px一体顶栏放置应用图标、固定侧栏开关、页面标题及业务操作，保留原生按钮；Mica顶栏/侧栏不再叠色，正文独立纯色圆角。同步认证与附件预览，并保留四种导航、窄窗口和其他平台路径。
 - **验收：**定向生命周期/控件避让回归，所属前端公共检查、生产构建与启动用例、浏览器布局/键盘/预览场景；隔离真实Tauri/WebView2窗口检查真实网页和系统按钮、最大化/恢复、拖动/缩放、主题、页面切换与预览避让。不以浏览器模拟替代原生材质；扩展平台矩阵如实记录。
 - **建议提交：**`feat(windows): integrate the desktop titlebar layout [RF-1144]`。
+
+### RF-1145
+
+**Android嵌入测量脚本统一HTML换行再生成CSP哈希** · P2 · 来源：RF-312当前构建首屏失败
+
+- **入口：**`tauri/src-tauri/src/android_native_perf.rs`；`tauri/src-tauri/src/lib.rs` 的非默认 Android 测量分支。
+- **问题：**Windows 检出产生 CRLF；Wry HTML 回退注入按原脚本字节计算 CSP 哈希，而 HTML 解析把 CRLF/CR 规范为 LF，内联脚本被拒绝。真实样本 `postMessage` 未安装、早期观察器缺失、账户查询失败；关闭外层采样仍复现。纯 LF 的较早冻结包通过不能替代当前检出验收。
+- **执行：**仅在测量脚本交给 Tauri 之前规范 CRLF/CR 为 LF，保留字符内容、前缀分号、默认功能、鉴权键、只读 invoke、CSP 和观察器原逻辑。不修改第三方缓存、放宽 script-src、延长 UI 预算或重新判定旧失败。
+- **验收：**Rust LF/CRLF/CR/Unicode/幂等和真实嵌入脚本回归，真实浏览器 CSP 红绿对照、已有观察器 Node 测试、Rust fmt/Clippy/默认测试；新冻结 Android 测量包重新执行原完整原生门禁并核验全部恢复。修复前队列仅首样本失败、其余9份未执行，不能算完成的重复基线。
+- **建议提交：**`fix(android): normalize embedded measurement script for CSP [RF-1145]`。
 
 ## 7. 每项执行记录模板
 
@@ -8431,3 +8442,15 @@ git commit -m "<任务卡的提交标题>"
 - 单轮最大采样合计 PSS 280.93/298.68MiB；单组串行查询最长2022.64/2845.52ms，含runner及采集开销，排除共享provider/zygote/系统进程，不是原子快照、连续峰值或未插桩性能。每档n1、软件模拟器、旧APK来源76项guard差异明示，不作为当前main或多端验收。RF-1137已将后续APK真实listen/unlisten降至35/25，不把这份更旧APK的435/425再报告成未修复缺陷。
 - Python12项回归实际通过，无失败/跳过；其原工具输出已在会话中保留，未另捕获原始日志文件，结构化结果明确记录。三次（含失败）各216条私有目录内容/链接/权限独立恢复一致，原包/UID/系统值/公开输入恢复，六份私有TAR精确删除。
 - [采集入口与复跑](performance/RF-312-android-process-memory.md)、[结构化结果](performance/rf312-android-process-memory-2026-10-14.json)及[1566成员原件索引](performance/rf312-android-process-memory-2026-10-14/index.json)逐成员长度/SHA和ZIP CRC回读通过，排除APK/库/签名密钥/Vault/TAR及压缩crashpad数据。本阶段按RF-312独立提交；保持323/334关闭、5待验证、6待执行，RF-312及整体goal未完成。继续当前源码Android构建与重复全进程内存、仪器开销/进程冷启动和其余设备范围。
+
+
+### RF-1145 执行记录（2026-10-14，Android 测量脚本换行与 CSP 一致，完成）
+
+- 当前源码优化 APK 的十次重复队列在首个启动样本失败后停止，另九次未执行；随后两个仅增加只读失败诊断的独立运行也在原45秒启动门禁失败。实际状态为 accounts/backend-unavailable，readonly invoke 存在，但早期观察器缺失；额外只读 check_has_account 返回 `window.__TAURI_INTERNALS__.postMessage is not a function`。不改写三次失败，也不将其归因于产品 OCR 或默认客户端。
+- Windows 检出后的观察器含182个CR，SHA为`c1cd09211ece81f477edcc9da3f44561c5c1b2172968211631f81cb127c68006`；已通过旧构建的LF原件为`a5dea3e79cfbea1876f20024058d5b183e20d2a237b9a5cd13f286e8ad74bbf1`，Git语义内容未变。Wry 0.55.1 的旧Android WebView回退将原脚本字节写入HTML并生成CSP哈希；[HTML解析规范](https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream)要求将CRLF/CR转为LF，[CSP哈希匹配](https://www.w3.org/TR/CSP3/#match-element-to-source-list)使用实际脚本内容。实际Chrome对照中CRLF/CR被阻止，LF及规范化版本执行成功，支持这一启动失败原因。
+- 在非默认Android测量脚本进入Tauri前统一换行，保留内容、分隔符和尾部空行；原工作文件仍含CRLF，两档原生通过证明运行时修复有效。默认cfg、CSP权限、依赖、readonly invoke、JNI入口、业务UI、独立测试APK及原45秒/12阶段验收均保持。
+- std-only Rust模块实际4项通过；原Android观察器Node12项通过，0失败/跳过。工作区fmt、严格默认Clippy与完整默认Rust测试均exit0，1881通过/0失败/3原有ignored，忽略项为两个legacy field用例及P025手动大数据工具。38份前端产物逐字未变，复用当前生产构建；1983源清单相对前次构建仅两份Rust文件变化。锁定离线Android优化主库构建exit0，实际585.75秒，未调用Tauri CLI的符号链接步骤。
+- 新主库ELF SHA `c354ec37f9274902cb813b612c0f2f57a9aee197de4ce77f0246a305dc256a74`，59,443,160字节；内部测试证书签名的非debuggable/x86_64/min28/target36 APK SHA `4bbd8b8eccf6e10a170bffe0ffe0a3e60c1d40e10611e318bbfa67785ad73e90`，78,638,431字节。unsigned-check退出1为预期未签名拒绝，其他打包/入口/签名检查实际exit0；原JNI、安装包及源保持。
+- 同专用API31/WebView91/SwiftShader下100和5000对象各一次完整12阶段通过、driver及外层exit0，早期观察器和readonly invoke校验通过。两次各216条私有内容/链接/权限独立恢复一致，原包/UID/系统值/公开输入恢复，四份私有TAR精确删除；之前三次失败同样恢复核验且六份私有TAR已删除。实际公开窗口截图已独立查看OCR、文本、图片、文本PDF和扫描PDF的可见内容。
+- 两次验证另保留35次外层内存快照尝试，17份行程内有效点；只用于本项完整行程验收，不作为重复性能分布。所有PSS仍为串行--local，包含runner/查询开销；RF-312仪器开销、进程冷启动、多端/实体硬件和其他原生条件不由本项关闭。
+- [结构化验收](verification/rf1145-script-newlines-2026-10-14.json)、[1622成员索引](verification/rf1145-script-newlines-2026-10-14/index.json)及[逐字原件包](verification/rf1145-script-newlines-2026-10-14/raw.zip)长度/SHA/ZIP CRC回读全部通过，保留失败、源码、检查、构建与原生证据；排除APK/库/密钥/Vault/TAR/压缩crashpad。RF-1145独立提交并推送，累计324/335关闭，原5待验证/6待执行不变。goal active，接着执行修复后当前源码的十次RF-312重复采样。

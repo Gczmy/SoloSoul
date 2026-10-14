@@ -1,0 +1,675 @@
+{
+  "task": "RF-1145",
+  "at": "2026-10-14T03:49:22.866514+00:00",
+  "accepted": true,
+  "sourceParentHead": "ecd53deb1df087f9f9d3e6d088b482c065f8040d",
+  "sourceFiles": 1983,
+  "changedSourceFiles": [
+    "tauri/src-tauri/src/android_native_perf.rs",
+    "tauri/src-tauri/src/lib.rs"
+  ],
+  "embeddedObserverWorkingFileCRCount": 182,
+  "observerContentUnchanged": true,
+  "runtimeNewlinesNormalizedBeforeFrameworkCspHash": true,
+  "defaultRuntimeCfgUnchanged": true,
+  "cspPermissionsUnchanged": true,
+  "dependenciesUnchanged": true,
+  "readonlyInvokeUnchanged": true,
+  "browserCspContrast": {
+    "accepted": true,
+    "results": [
+      {
+        "name": "lf",
+        "executed": true,
+        "htmlContainsCR": false,
+        "inputHash": "64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI=",
+        "htmlHash": "64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI=",
+        "hashEqual": true,
+        "consoleErrors": []
+      },
+      {
+        "name": "crlf",
+        "executed": false,
+        "htmlContainsCR": false,
+        "inputHash": "1GuJcFLLou9eEcmb2wO7oISmyYgtGJ1jgPjkegbr5s0=",
+        "htmlHash": "64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI=",
+        "hashEqual": false,
+        "consoleErrors": [
+          "Executing inline script violates the following Content Security Policy directive 'script-src 'sha256-1GuJcFLLou9eEcmb2wO7oISmyYgtGJ1jgPjkegbr5s0=''. Either the 'unsafe-inline' keyword, a hash ('sha256-64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked."
+        ]
+      },
+      {
+        "name": "cr",
+        "executed": false,
+        "htmlContainsCR": false,
+        "inputHash": "bJ+nlcWliDr5b6mDorVWAyQaqa+5Mc7DlOvwaJsToqo=",
+        "htmlHash": "64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI=",
+        "hashEqual": false,
+        "consoleErrors": [
+          "Executing inline script violates the following Content Security Policy directive 'script-src 'sha256-bJ+nlcWliDr5b6mDorVWAyQaqa+5Mc7DlOvwaJsToqo=''. Either the 'unsafe-inline' keyword, a hash ('sha256-64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked."
+        ]
+      },
+      {
+        "name": "normalized",
+        "executed": true,
+        "htmlContainsCR": false,
+        "inputHash": "64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI=",
+        "htmlHash": "64B3Pcd7l6oz6fMh3oDMduiZt/K4YsooKQiiyRa7CbI=",
+        "hashEqual": true,
+        "consoleErrors": []
+      }
+    ]
+  },
+  "originalNativeFailures": [
+    {
+      "name": "cohort/100-001",
+      "nativeProcessId": 2113,
+      "startupPhase": {
+        "name": "activity-startup",
+        "nativeStartedAtNs": 279451478305,
+        "success": false,
+        "errorClass": "java.lang.AssertionError",
+        "failureUi": {
+          "path": "/login",
+          "search": "",
+          "mounted": true,
+          "startupGone": false,
+          "platform": "android",
+          "home": false,
+          "password": false,
+          "enabled": false,
+          "singleAccount": false,
+          "publicAccountName": false,
+          "publicAccountId": false,
+          "cards": 0,
+          "firstPublicObject": false,
+          "searchResults": 0,
+          "publicSearch": false,
+          "errors": 0
+        },
+        "diagnosticErrorClass": "org.json.JSONException",
+        "nativeFinishedAtNs": 324482676776,
+        "durationMs": 45031.198471
+      },
+      "nativeSuccess": false,
+      "originalAttemptPreserved": true
+    },
+    {
+      "name": "startup-diagnostic-run",
+      "nativeProcessId": 2955,
+      "startupPhase": {
+        "name": "activity-startup",
+        "nativeStartedAtNs": 1021808209408,
+        "success": false,
+        "errorClass": "java.lang.AssertionError",
+        "startupDiagnostics": {
+          "startup": {
+            "schemaVersion": 1,
+            "state": "error",
+            "phase": "accounts",
+            "reason": "backend-unavailable"
+          },
+          "screenState": "error",
+          "screenReady": null,
+          "hasInternals": true,
+          "invokeType": "function",
+          "invokeReadonly": true,
+          "hasBridge": true,
+          "postMessageType": "function",
+          "bridgeWritable": true,
+          "bridgeConfigurable": true,
+          "observerPresent": false,
+          "observerSnapshotType": "undefined",
+          "platform": "android"
+        },
+        "failureUi": {
+          "path": "/login",
+          "search": "",
+          "mounted": true,
+          "startupGone": false,
+          "platform": "android",
+          "home": false,
+          "password": false,
+          "enabled": false,
+          "singleAccount": false,
+          "publicAccountName": false,
+          "publicAccountId": false,
+          "cards": 0,
+          "firstPublicObject": false,
+          "searchResults": 0,
+          "publicSearch": false,
+          "errors": 0
+        },
+        "diagnosticErrorClass": "org.json.JSONException",
+        "nativeFinishedAtNs": 1066965529930,
+        "durationMs": 45157.320522
+      },
+      "nativeSuccess": false,
+      "originalAttemptPreserved": true
+    },
+    {
+      "name": "startup-rpc-diagnostic-run",
+      "nativeProcessId": 3387,
+      "startupPhase": {
+        "name": "activity-startup",
+        "nativeStartedAtNs": 1573513340597,
+        "success": false,
+        "errorClass": "java.lang.AssertionError",
+        "startupDiagnostics": {
+          "startup": {
+            "schemaVersion": 1,
+            "state": "error",
+            "phase": "accounts",
+            "reason": "backend-unavailable"
+          },
+          "screenState": "error",
+          "screenReady": null,
+          "hasInternals": true,
+          "invokeType": "function",
+          "invokeReadonly": true,
+          "hasBridge": true,
+          "postMessageType": "function",
+          "bridgeWritable": true,
+          "bridgeConfigurable": true,
+          "observerPresent": false,
+          "observerSnapshotType": "undefined",
+          "platform": "android"
+        },
+        "startupRpcDiagnostics": {
+          "done": true,
+          "resolved": false,
+          "errorType": "object",
+          "messageClass": "other",
+          "message": "TypeError: window.__TAURI_INTERNALS__.postMessage is not a function"
+        },
+        "failureUi": {
+          "path": "/login",
+          "search": "",
+          "mounted": true,
+          "startupGone": false,
+          "platform": "android",
+          "home": false,
+          "password": false,
+          "enabled": false,
+          "singleAccount": false,
+          "publicAccountName": false,
+          "publicAccountId": false,
+          "cards": 0,
+          "firstPublicObject": false,
+          "searchResults": 0,
+          "publicSearch": false,
+          "errors": 0
+        },
+        "diagnosticErrorClass": "org.json.JSONException",
+        "nativeFinishedAtNs": 1618531649502,
+        "durationMs": 45018.308905
+      },
+      "nativeSuccess": false,
+      "originalAttemptPreserved": true
+    }
+  ],
+  "normalizationUnitTests": {
+    "passed": 4,
+    "failed": 0,
+    "ignored": 0,
+    "execution": "standalone std-only Rust module on Windows"
+  },
+  "androidObserverNodeTests": {
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0
+  },
+  "defaultRustTests": {
+    "passed": 1881,
+    "failed": 0,
+    "ignored": 3,
+    "ignoredNames": [
+      "field::tests::test_field_metadata",
+      "field::tests::test_resolve_legacy_unchanged",
+      "p025_hold_baseline_large_dataset"
+    ]
+  },
+  "strictDefaultClippyExitCode": 0,
+  "workspaceFmtExitCode": 0,
+  "optimizedAndroidBuild": {
+    "command": [
+      "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rustup\\toolchains\\1.96.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "build",
+      "--locked",
+      "--offline",
+      "-p",
+      "solo_soul",
+      "--lib",
+      "--release",
+      "--target",
+      "x86_64-linux-android",
+      "--features",
+      "android-native-perf"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 585.7492118999944,
+    "sourceUnchanged": true,
+    "changedSources": [],
+    "generatedDebugJniUnchanged": true
+  },
+  "fixedPackage": {
+    "acceptedPackagePreparation": true,
+    "apk": {
+      "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1145-android-script-newlines-20261014\\fixed-android\\android-release-package\\app-x86_64-release-early-observer-internal-validation.apk",
+      "sha256": "4bbd8b8eccf6e10a170bffe0ffe0a3e60c1d40e10611e318bbfa67785ad73e90",
+      "bytes": 78638431
+    },
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "abi": "x86_64",
+    "applicationDebuggable": false,
+    "minSdk": 28,
+    "targetSdk": 36,
+    "scope": "non-default Android early IPC transport measurement Release",
+    "frontend": {
+      "gitHead": "ecd53deb1df087f9f9d3e6d088b482c065f8040d",
+      "files": {
+        "assets/128x128@2x-lsnePcND.png": {
+          "sha256": "0f12a1e1a66ffc4cd851d88081763a13033e4bc6804f93a5296e3d39b576918f",
+          "bytes": 13596
+        },
+        "assets/AiQuickChatPopover-COQdbkQx.js": {
+          "sha256": "e33d1b3d9ebb3d521dd24f792e1714d5161a271d23a7046769de6bd2a1535f61",
+          "bytes": 14825
+        },
+        "assets/authStore-BtIfOb_t.js": {
+          "sha256": "196822a91512911b5255043452d72cfd425ecbc058d161a88d9d347324679c23",
+          "bytes": 5149
+        },
+        "assets/backendError-BqhC9Y46.js": {
+          "sha256": "fd4a94383439bf23807af389b18df63e4247abf2488a49faf36817cf519e0ed8",
+          "bytes": 53302
+        },
+        "assets/bootstrapApp-D8FwW5PD.css": {
+          "sha256": "3f1fc9ec3ba05dee07be41ad99e567c7d66c6e41a99b42a0d0bdc9922475a9c5",
+          "bytes": 270192
+        },
+        "assets/bootstrapApp-HrGlUzlM.js": {
+          "sha256": "bb41f72107406cae036fc8d0906acf0f402fb85032be3ec3f1c8661bb0fcc205",
+          "bytes": 1284725
+        },
+        "assets/constants-OmM7_JPu.js": {
+          "sha256": "a410bb09c901874ed82e1eb6c49d5ce24699e1aab519e89b23f6850d409e860d",
+          "bytes": 2438
+        },
+        "assets/core-BAM5JyGC.js": {
+          "sha256": "5e59ae288769dfaf806dc48a065e7f4e3592976f6e0882b6c3c7ddd54534b4d9",
+          "bytes": 2487
+        },
+        "assets/Dialog-CmFtOJHO.js": {
+          "sha256": "6c8de384d3bee62dd75e41ff523bcd3f01147bcd0b770d04c323bd917da2a116",
+          "bytes": 8269
+        },
+        "assets/dialog-DCS6yfxG.js": {
+          "sha256": "7644c260891da695bb63b7ac533b4d4694c58324a9e6ba267f1dce2869b7bca1",
+          "bytes": 100
+        },
+        "assets/Dialog-DF1XDdnW.css": {
+          "sha256": "7ab4267c5120738b7e5c229d1f5da981cc19d07c4b30e992cda2d30eca61025c",
+          "bytes": 7829
+        },
+        "assets/event-SFM-3aSQ.js": {
+          "sha256": "11d9bd77ff820355bc3b73103a993728b31223a4cccc0e3f2c117a1231657dfa",
+          "bytes": 1447
+        },
+        "assets/index-BNzNAeP1.css": {
+          "sha256": "f527ef8a20f47dd5cd88bfeae4771d8db5ebf76ed9d43a3813d5b12499d66b8b",
+          "bytes": 2532
+        },
+        "assets/index-DT0SMVz9.js": {
+          "sha256": "ab7bae5e3e255a1010ed5d469a4cc288d991ef0e554e6810a3cc200f7e15947a",
+          "bytes": 314322
+        },
+        "assets/ipcClient-DJ4NGuFV.js": {
+          "sha256": "98a1adb7f520f5c32c213e1c28d553ae9631f1f0a96cc3fd6ba756e6037de537",
+          "bytes": 20246
+        },
+        "assets/is-prop-valid_framer-motion-0Fmh8zwg.css": {
+          "sha256": "9b42950d72756f0e99c0bd19d783357dd994a460f5ec2e9791d2c080e655f2c6",
+          "bytes": 165
+        },
+        "assets/is-prop-valid_framer-motion-BNv027xg.js": {
+          "sha256": "7cb807a940dfb084794c9365b77a6db7533ec8f5f56d1369c81c05d48c70d587",
+          "bytes": 666
+        },
+        "assets/jsx-runtime-DCnwjhuG.js": {
+          "sha256": "a0ac6d9512f87a596811816432d6c82b7212b3ce5e2a116d372b349a8c3f97c5",
+          "bytes": 5139
+        },
+        "assets/loginAvailabilityPreflight-G8WM6MM7.js": {
+          "sha256": "9d4f2f5942bc801f731b3a5fbdcb3751470c4f683377d2cbd2e1bffa5376774d",
+          "bytes": 84
+        },
+        "assets/markdown-vendor-DyVcyg-_.js": {
+          "sha256": "372f322a91eb937ff3ccaeabadc53a804ef6a724540c899bf1b498d94487eb5d",
+          "bytes": 318007
+        },
+        "assets/motion-vendor-mv2auDpy.js": {
+          "sha256": "fef33f94e0733fe1b395bceca46bff154dbb98f07c5b9433116c39c1b2ded2e5",
+          "bytes": 125027
+        },
+        "assets/notification-CSp2IW9f.js": {
+          "sha256": "5f229a463a2abb2b657aea7b2a766998b140f61841b150c4fe25ccb2ab46fe34",
+          "bytes": 134499
+        },
+        "assets/photoAlbumPreview-BhjYIuUg.css": {
+          "sha256": "9e3d5ff81b75f55e53a4b9a71148cb66c9b4d325ee38ab972f57ca8ae995172b",
+          "bytes": 4320
+        },
+        "assets/photoAlbumPreview-DjxUF985.js": {
+          "sha256": "380cae2e8cef15a87b577ad92fd2a2c4fe6bfa79a540578f2ac681f83e5aa7e3",
+          "bytes": 12544
+        },
+        "assets/PhotoViewerOverlay-hOMIBx5a.js": {
+          "sha256": "1d8ad0138fa25e0787980ea35fa74e30fbbaaed53f68d1edb704eeca632e6117",
+          "bytes": 8236
+        },
+        "assets/preload-helper-zJ_50EbN.js": {
+          "sha256": "0c88c6aaef07b19239a2eac9faef82584f9e733114f85dc190e98dcea60b1753",
+          "bytes": 1193
+        },
+        "assets/react-SqCrPCpP.js": {
+          "sha256": "625af8051c35a565d8bc35e1393bb89a91a801f494b3a542b1897f1ee0492ed5",
+          "bytes": 8134
+        },
+        "assets/RecoveryQrScanner--CPiNR8U.js": {
+          "sha256": "63f79b6bf2bb7f054c9544a889619740ceef0359657b662aad2907e3b44bb415",
+          "bytes": 377188
+        },
+        "assets/RecoveryQrScanner-DcMf1r0X.css": {
+          "sha256": "f1355697ac9800cf420153e81652905c47dcdded96f6bbf6f163b4a3a34db85f",
+          "bytes": 1590
+        },
+        "assets/RecoveryReceiveDialog-DqcjTVvR.js": {
+          "sha256": "26ab04c1ba2ae69172393496105c27beb7debda937605e5b1f5e032e93d7d798",
+          "bytes": 31572
+        },
+        "assets/rolldown-runtime-Cyuzqnbw.js": {
+          "sha256": "6f5330f281c713c1b765ec52977b36599538b8d52c5dd3ce94d211f5b0e7debf",
+          "bytes": 826
+        },
+        "assets/useLlmChatCore-BOj-zT5L.js": {
+          "sha256": "4b44915ff25707439d6bc532eb2d49196d550ad43d662d4f54e6c774e32a798d",
+          "bytes": 20294
+        },
+        "assets/useLlmChatCore-C77BIXIX.css": {
+          "sha256": "a4cbb70101aaafe86a9c0ebed13a0636123129a6707326eea3bd3d18f7d080b7",
+          "bytes": 975
+        },
+        "assets/vaultDirectory-CUXWOwN4.js": {
+          "sha256": "858d688017eba96ca91fcc281e56aa9f1687c30f9693d2c681cea503fa87ac5a",
+          "bytes": 80
+        },
+        "assets/webviewWindow-MqE53BjL.js": {
+          "sha256": "5e5948c47a9181469e3fb20e1051ef6e4f732e76311674e00b7c301cab966ba0",
+          "bytes": 4651
+        },
+        "assets/window-Dq_nAI7g.js": {
+          "sha256": "d29a2dd4abb0514fed1b88176c69e654aca125eea7ca2f7637982ec61fe4fad6",
+          "bytes": 12983
+        },
+        "index.html": {
+          "sha256": "f29abf80ec3f75466fac274f89c646f1c6459a3e4c2d97fbd297b2fa0ec9b763",
+          "bytes": 1730
+        },
+        "startup.js": {
+          "sha256": "3af88760fa0d8c9d4daec2be27bf618bf0ecf61afc922860965a3e119b70157c",
+          "bytes": 4829
+        }
+      },
+      "reuseReason": "RF-1145 modifies Rust script preparation only; all 38 current frontend outputs byte-identical"
+    },
+    "library": {
+      "source": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\cargo-target\\x86_64-linux-android\\release\\libsolo_soul.so",
+      "copy": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1145-android-script-newlines-20261014\\fixed-android\\android-release-build\\release-libsolo_soul.so",
+      "sha256": "c354ec37f9274902cb813b612c0f2f57a9aee197de4ce77f0246a305dc256a74",
+      "bytes": 59443160,
+      "elfBits": 64,
+      "machine": 62,
+      "type": "ET_DYN",
+      "earlyObserverMarkersPresent": true,
+      "generatedDebugJniUnchanged": true,
+      "actualCargoReleaseBuilt": true,
+      "nativeRuntimeAccepted": false
+    },
+    "packagedStrippedLibrarySha256": "c354ec37f9274902cb813b612c0f2f57a9aee197de4ce77f0246a305dc256a74",
+    "observerMarkersPresent": true,
+    "jniExportsUnchanged": true,
+    "productionSigningNotUsed": true,
+    "onlyExistingTestCertificateUsed": true,
+    "generatedDebugJniUnchanged": true,
+    "sourceAndOriginalApksUnchanged": true,
+    "codeAndAssetsUnchangedBySigning": true,
+    "nativeRuntimeAccepted": false,
+    "fullRF312Accepted": false,
+    "at": "2026-10-14T03:41:06.184905+00:00"
+  },
+  "nativeValidation": [
+    {
+      "objectCount": 100,
+      "terminal": {
+        "objectCount": 100,
+        "ordinal": 1,
+        "driverExitCode": 0,
+        "passed": true,
+        "allOriginalStateRestored": true,
+        "restoreAudit": {
+          "entries": 216,
+          "allContentsLinksModesMatch": true,
+          "beforeSha256": "879b6a2bc00859ed8f8a75d332c371845111073ba5135956cb010731a61d0ed8",
+          "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+        },
+        "elapsedSeconds": 114.76594160002423,
+        "totalSnapshotAttempts": 19,
+        "identityAcceptedSnapshots": 9,
+        "nativeJourneyMemorySnapshots": 8,
+        "memoryEvidenceAvailable": true,
+        "sourceInputsUnchanged": true,
+        "error": null,
+        "currentSourceInstrumentedApkUsed": true,
+        "wholeRF312Accepted": false
+      },
+      "nativeProcessId": 2104,
+      "nativeUid": 10105,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 6184.144528
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 5197.977309
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "success": true,
+          "durationMs": 19667.876009
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 2833.974116
+        },
+        {
+          "name": "search-needle",
+          "success": true,
+          "durationMs": 1333.61035
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 1859.687016
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 2694.903871
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 2512.539958
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 3868.444991
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 3321.351494
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 978.612111
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 2777.004455
+        }
+      ],
+      "earlyObserverValidatedByOriginalTest": true
+    },
+    {
+      "objectCount": 5000,
+      "terminal": {
+        "objectCount": 5000,
+        "ordinal": 1,
+        "driverExitCode": 0,
+        "passed": true,
+        "allOriginalStateRestored": true,
+        "restoreAudit": {
+          "entries": 216,
+          "allContentsLinksModesMatch": true,
+          "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+          "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+        },
+        "elapsedSeconds": 95.40403639996657,
+        "totalSnapshotAttempts": 16,
+        "identityAcceptedSnapshots": 9,
+        "nativeJourneyMemorySnapshots": 9,
+        "memoryEvidenceAvailable": true,
+        "sourceInputsUnchanged": true,
+        "error": null,
+        "currentSourceInstrumentedApkUsed": true,
+        "wholeRF312Accepted": false
+      },
+      "nativeProcessId": 3239,
+      "nativeUid": 10105,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "success": true,
+          "durationMs": 3926.408811
+        },
+        {
+          "name": "password-unlock",
+          "success": true,
+          "durationMs": 3980.559029
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "success": true,
+          "durationMs": 20293.933331
+        },
+        {
+          "name": "workspace",
+          "success": true,
+          "durationMs": 2813.657634
+        },
+        {
+          "name": "search-needle",
+          "success": true,
+          "durationMs": 1715.987613
+        },
+        {
+          "name": "attachments-open",
+          "success": true,
+          "durationMs": 1882.763076
+        },
+        {
+          "name": "image-preview",
+          "success": true,
+          "durationMs": 3028.976527
+        },
+        {
+          "name": "text-preview",
+          "success": true,
+          "durationMs": 2716.097684
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "success": true,
+          "durationMs": 3992.592373
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "success": true,
+          "durationMs": 3231.070335
+        },
+        {
+          "name": "application-lock",
+          "success": true,
+          "durationMs": 1089.142418
+        },
+        {
+          "name": "password-reunlock",
+          "success": true,
+          "durationMs": 2940.233714
+        }
+      ],
+      "earlyObserverValidatedByOriginalTest": true
+    }
+  ],
+  "failedSamplesRestoration": {
+    "rows": [
+      {
+        "name": "startup-diagnostic-run",
+        "entries": 216,
+        "contentsLinksModesEqual": true,
+        "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+        "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "name": "startup-rpc-diagnostic-run",
+        "entries": 216,
+        "contentsLinksModesEqual": true,
+        "beforeSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c",
+        "afterSha256": "6a21647ff51a75b6bfef05997f2ae517af4789ed18a580d43c1ca16b7b5fc97c"
+      },
+      {
+        "name": "cohort/100-001",
+        "entries": 216,
+        "contentsLinksModesEqual": true,
+        "alreadyVerifiedAndRemoved": true
+      }
+    ],
+    "removedPrivateTars": 4,
+    "cohortPriorRemovedPrivateTars": 2
+  },
+  "original45SecondStartupBudgetAndTestApkPreserved": true,
+  "twoValidationJourneysAreNotAPerformanceDistribution": true,
+  "primaryReferences": [
+    "https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream",
+    "https://www.w3.org/TR/CSP3/#match-element-to-source-list"
+  ],
+  "evidence": {
+    "index": "rf1145-script-newlines-2026-10-14/index.json",
+    "archive": "rf1145-script-newlines-2026-10-14/raw.zip",
+    "memberCount": 1622,
+    "sha256": "1e6791c113b6cf80fb41d1392a02cfc8eb39d117e93c0883eaed323a90d1b63c"
+  },
+  "originalApksJniAndDeviceStateRestored": true,
+  "wholeRF312Accepted": false,
+  "goal": "active",
+  "commitCreated": false
+}
