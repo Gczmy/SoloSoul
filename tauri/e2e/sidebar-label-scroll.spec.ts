@@ -113,8 +113,11 @@ for (const platform of ['macos', 'windows']) {
       const renamed = nav.getByRole('button', { name: '新名称', exact: true });
       await expect(renamed.locator('[data-nav-label]')).toHaveAttribute('data-overflow', 'false');
       await expect(renamed.locator('[data-nav-label]')).toHaveCSS('mask-image', 'none');
+      const stableTrack = await renamed.locator('[data-label-track]').elementHandle();
       await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
       await expect(renamed.locator('[data-nav-label]')).toHaveCount(0);
+      expect(await stableTrack!.evaluate((element) => element.isConnected)).toBe(true);
+      await expect(renamed.locator('[data-label-track]')).toHaveCSS('transform', 'none');
       await renamed.hover();
       await expect(page.locator('[role="tooltip"]').filter({ hasText: '新名称' })).toBeVisible();
     });

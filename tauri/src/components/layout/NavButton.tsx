@@ -87,11 +87,11 @@ export function NavButton({
         onBlur={() => setIsFocused(false)}
       >
         <Icon size={20} />
-        {scrollingEnabled ? (
+        {scrollOverflowLabel ? (
           <span
             ref={viewportRef}
             className={`${styles.label} ${styles.scrollingLabel}`}
-            data-nav-label
+            data-nav-label={scrollingEnabled || undefined}
             data-overflow={isOverflowing}
           >
             <span ref={textRef} className={styles.labelTrack} data-label-track>

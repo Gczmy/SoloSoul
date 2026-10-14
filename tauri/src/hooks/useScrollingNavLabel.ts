@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useMediaPreference } from './useMediaPreference';
 
@@ -59,7 +59,7 @@ export function useScrollingNavLabel(label: string, enabled: boolean, active: bo
     };
   }, [enabled, label]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const viewport = viewportRef.current;
     const text = textRef.current;
     if (!enabled || !active || !overflow || staticMode || !viewport || !text) return;

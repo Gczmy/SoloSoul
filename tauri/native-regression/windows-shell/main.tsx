@@ -27,6 +27,12 @@ import '@/styles/global.css';
 import '@/styles/themes.css';
 import '@/styles/action-buttons.css';
 import '@/styles/icon-buttons.css';
+import '@/styles/choice-controls.css';
+import '@/styles/switch-controls.css';
+import '@/styles/checkbox-controls.css';
+import '@/styles/animations.css';
+import '@/styles/android.css';
+import '@/styles/macos-glass.css';
 import '@/styles/desktop-controls.css';
 import '@/styles/windows-material.css';
 import '@/styles/startup.css';
@@ -66,6 +72,9 @@ async function capture() {
     ),
     content: bounds('[data-shell-surface], [data-shell-content], [data-auth-content]'),
     navigation: bounds('#desktop-navigation'),
+    primary: bounds('#desktop-navigation [class*="navPrimary"]'),
+    addPage: bounds('[data-add-page-zone]'),
+    tools: bounds('[data-sidebar-tools]'),
     draft: (document.querySelector('[data-public-draft]') as HTMLInputElement)?.value ?? null,
   };
   const native = await invokeCommand('frame_action', {
@@ -164,7 +173,7 @@ function Fixture() {
               onBack={location.pathname === '/' ? undefined : () => navigate('/')}
             >
               <h2>Windows shell regression</h2>
-              <p>Production window chrome and layout components, synthetic business slots.</p>
+              <p>Production window chrome and full sidebar, synthetic business content.</p>
               <label>
                 Public fixture draft <input data-public-draft defaultValue="public fixture edit" />
               </label>

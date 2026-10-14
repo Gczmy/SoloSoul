@@ -181,6 +181,10 @@
   width: max-content;
   white-space: nowrap;
 }
+.compactLabels .labelTrack {
+  display: inline;
+  width: auto;
+}
 .scrollingLabel[data-overflow='true'] {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
 }

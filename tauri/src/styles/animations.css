@@ -1094,13 +1094,16 @@
 }
 
 /* ── Reduced Motion — respect user preference ───────────── */
+/* 非零全局 duration 会让默认 transition-property: all 的元素也产生布局过渡。
+   直接禁用 transition，避免宽度/内边距/字号先保留旧值、下一帧再跳到新值。
+   keyframe 保留极短时长，延续原有动画完成行为。 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }
@@ -1111,7 +1114,7 @@
 :root[data-reduce-motion='true'] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  transition: none !important;
   scroll-behavior: auto !important;
 }
 
