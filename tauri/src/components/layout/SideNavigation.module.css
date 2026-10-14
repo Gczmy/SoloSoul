@@ -678,7 +678,7 @@
   clip-path: inset(100% -24px 0 -24px);
   transition:
     clip-path var(--tools-reveal-duration) var(--tools-reveal-easing),
-    opacity 300ms ease,
+    opacity var(--tools-reveal-duration) var(--tools-reveal-easing),
     visibility 0s linear var(--tools-reveal-duration);
 }
 .sideNav .foldableAreaOpen {

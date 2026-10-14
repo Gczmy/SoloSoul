@@ -126,6 +126,7 @@ for (const position of ['left', 'right'] as const) {
     ).toBe(true);
     await list.getByRole('button', { name: 'Search', exact: true }).hover();
     await expect(list).toBeVisible();
+    await expect(list).toHaveCSS('opacity', '1');
     await page.screenshot({ path: test.info().outputPath(`tools-${position}.png`) });
     await page.mouse.move(640, 400);
     await expect(tools).toHaveAttribute('aria-expanded', 'false');
@@ -157,6 +158,7 @@ for (const position of ['left', 'right'] as const) {
     expect(menuBounds.y + menuBounds.height).toBeLessThanOrEqual(toolBounds.y);
     expect(menuBounds.x).toBeGreaterThan(navBounds.x);
     expect(menuBounds.x + menuBounds.width).toBeLessThan(navBounds.x + navBounds.width);
+    await expect(menu).toHaveCSS('opacity', '1');
     await page.screenshot({ path: test.info().outputPath(`compact-tools-${position}.png`) });
 
     // 保持菜单打开并缩小窗口，确认仍能滚动到最后一项并打开卡片。
@@ -478,109 +480,188 @@ test('工具入口支持点击、键盘和 Escape，关闭后菜单退出 Tab �
 });
 
 // 暂停真实 CSS transition 采样中间帧，验证展开/收起方向，而非只检查最终 class。
-async function armMenuSweep(menu: Locator) {
-  await menu.evaluate((element) => {
-    const nav = element.closest('nav')!;
-    const zone = nav.querySelector('[class*="primaryZone"]')!;
-    const capture = { menu: false, zone: false };
+async function armMenuSweep(menu: Locator, revealProperty = 'clip-path') {
+  await menu.evaluate((element, revealProperty) => {
+    const nav = element.closest('nav') ?? element;
+    const zone = nav.querySelector('[class*="primaryZone"]');
+    const capture = { menu: false, zone: !zone, opacity: false };
     (element as HTMLElement & { __menuSweepCapture?: typeof capture }).__menuSweepCapture = capture;
     // 在真实过渡开始时暂停，避免跨进程读取时420ms动画已经结束。
     const onRun = (event: TransitionEvent) => {
-      if (event.propertyName !== 'clip-path' || (event.target !== element && event.target !== zone))
+      if (
+        ![revealProperty, 'opacity'].includes(event.propertyName) ||
+        (event.target !== element && event.target !== zone)
+      )
         return;
-      const target = event.target === element ? element : zone;
-      const animation = target
-        .getAnimations()
+      for (const animation of element.getAnimations()) {
+        if (!(animation instanceof CSSTransition)) continue;
+        if (![revealProperty, 'opacity', 'visibility'].includes(animation.transitionProperty))
+          continue;
+        animation.pause();
+        if (animation.transitionProperty === revealProperty) capture.menu = true;
+        if (animation.transitionProperty === 'opacity') capture.opacity = true;
+      }
+      const zoneAnimation = zone
+        ?.getAnimations()
         .find(
           (value) => value instanceof CSSTransition && value.transitionProperty === 'clip-path',
         );
-      if (!animation) return;
-      animation.pause();
-      if (target === element) capture.menu = true;
-      else capture.zone = true;
-      if (capture.menu && capture.zone) nav.removeEventListener('transitionrun', onRun);
+      if (zoneAnimation) {
+        zoneAnimation.pause();
+        capture.zone = true;
+      }
+      if (capture.menu && capture.zone && capture.opacity)
+        nav.removeEventListener('transitionrun', onRun);
     };
     nav.addEventListener('transitionrun', onRun);
-  });
+  }, revealProperty);
 }
 
-async function sampleMenuSweep(menu: Locator) {
+async function sampleMenuSweep(menu: Locator, revealProperty = 'clip-path') {
   await expect
     .poll(() =>
       menu.evaluate((element) => {
         const capture = (
-          element as HTMLElement & { __menuSweepCapture?: { menu: boolean; zone: boolean } }
+          element as HTMLElement & {
+            __menuSweepCapture?: { menu: boolean; zone: boolean; opacity: boolean };
+          }
         ).__menuSweepCapture;
-        return Boolean(capture?.menu && capture.zone);
+        return Boolean(capture?.menu && capture.zone && capture.opacity);
       }),
     )
     .toBe(true);
-  return menu.evaluate(async (element) => {
-    const zone = element.closest('nav')!.querySelector('[class*="primaryZone"]')!;
+  return menu.evaluate(async (element, revealProperty) => {
+    const zone = element.closest('nav')?.querySelector('[class*="primaryZone"]');
     const animation = element
       .getAnimations()
-      .find((a) => a instanceof CSSTransition && a.transitionProperty === 'clip-path');
-    const zoneAnimation = zone
+      .find((a) => a instanceof CSSTransition && a.transitionProperty === revealProperty);
+    const opacityAnimation = element
       .getAnimations()
+      .find((a) => a instanceof CSSTransition && a.transitionProperty === 'opacity');
+    const visibilityAnimation = element
+      .getAnimations()
+      .find((a) => a instanceof CSSTransition && a.transitionProperty === 'visibility');
+    const zoneAnimation = zone
+      ?.getAnimations()
       .find((a) => a instanceof CSSTransition && a.transitionProperty === 'clip-path');
-    if (!animation || !zoneAnimation) throw new Error('Menu and navigation must animate together');
+    if (!animation || !opacityAnimation || (zone && !zoneAnimation))
+      throw new Error('Menu reveal, opacity and navigation must animate together');
     animation.pause();
-    zoneAnimation.pause();
+    opacityAnimation.pause();
+    zoneAnimation?.pause();
+    visibilityAnimation?.pause();
     const duration = Number(animation.effect!.getTiming().duration);
     const samples = [];
     for (const progress of [0.15, 0.5, 0.85]) {
       animation.currentTime = duration * progress;
-      zoneAnimation.currentTime = duration * progress;
+      opacityAnimation.currentTime = duration * progress;
+      if (zoneAnimation) zoneAnimation.currentTime = duration * progress;
+      if (visibilityAnimation) visibilityAnimation.currentTime = duration * progress;
       await new Promise(requestAnimationFrame);
       const rect = element.getBoundingClientRect();
-      const top = parseFloat(getComputedStyle(element).clipPath.slice(6));
-      const zoneBottom = parseFloat(getComputedStyle(zone).clipPath.split(' ')[2]);
+      const style = getComputedStyle(element);
+      const top = revealProperty === 'clip-path' ? parseFloat(style.clipPath.slice(6)) : 0;
+      const zoneBottom = zone ? parseFloat(getComputedStyle(zone).clipPath.split(' ')[2]) : 0;
       samples.push({
         top,
         revealed: rect.height * (1 - top / 100),
         zoneBottom,
         bottom: rect.bottom,
+        opacity: parseFloat(style.opacity),
+        visibility: style.visibility,
+        duration,
+        fadeDuration: Number(opacityAnimation.effect!.getTiming().duration),
       });
     }
     animation.finish();
-    zoneAnimation.finish();
+    opacityAnimation.finish();
+    zoneAnimation?.finish();
+    visibilityAnimation?.finish();
     return samples;
-  });
+  }, revealProperty);
 }
 
 for (const platform of ['macos', 'windows']) {
-  for (const collapsed of [false, true]) {
-    test(`${platform} ${collapsed ? '折叠' : '展开'}侧栏工具沿底边向上展开、向下收起且不缩放按钮`, async ({
-      page,
-    }) => {
-      await setupSidebar(page, 'left', platform);
-      const nav = page.locator('#desktop-navigation');
-      if (collapsed)
-        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
-      const tools = nav.getByRole('button', { name: 'Tools', exact: true });
-      const menu = nav.locator('[data-sidebar-tools]');
-      const toggleBounds = await tools.boundingBox();
-      await armMenuSweep(menu);
+  for (const position of ['left', 'right'] as const) {
+    for (const collapsed of [false, true]) {
+      test(`${platform} ${position} ${collapsed ? '折叠' : '展开'}侧栏工具沿底边向上展开、向下收起且不缩放按钮`, async ({
+        page,
+      }) => {
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await setupSidebar(page, position, platform);
+        const nav = page.locator('#desktop-navigation');
+        if (collapsed)
+          await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        const tools = nav.getByRole('button', { name: 'Tools', exact: true });
+        const menu = nav.locator('[data-sidebar-tools]');
+        const toggleBounds = await tools.boundingBox();
+        await armMenuSweep(menu);
+        await tools.hover();
+        const buttonBounds = await menu.locator('button').first().boundingBox();
+        const opening = await sampleMenuSweep(menu);
+        expect(opening[0].top).toBeGreaterThan(opening[1].top);
+        expect(opening[1].top).toBeGreaterThan(opening[2].top);
+        for (const sample of opening) {
+          expect(sample.opacity).toBeGreaterThan(0);
+          expect(sample.opacity).toBeLessThan(1);
+          expect(Math.abs(sample.opacity - (1 - sample.top / 100))).toBeLessThan(0.01);
+        }
+        expect(await menu.locator('button').first().boundingBox()).toEqual(buttonBounds);
+        await expect(menu).toHaveCSS('opacity', '1');
+        await armMenuSweep(menu);
+        await page.mouse.move(640, 400);
+        await expect(menu).toHaveJSProperty('inert', true);
+        const closing = await sampleMenuSweep(menu);
+        expect(closing[0].top).toBeLessThan(closing[1].top);
+        expect(closing[1].top).toBeLessThan(closing[2].top);
+        for (const sample of [...opening, ...closing]) {
+          expect(sample.fadeDuration).toBe(sample.duration);
+          expect(sample.visibility).toBe('visible');
+          expect(sample.opacity).toBeGreaterThan(0);
+          expect(sample.opacity).toBeLessThan(1);
+          expect(Math.abs(sample.opacity - (1 - sample.top / 100))).toBeLessThan(0.01);
+          expect(sample.bottom).toBe(opening[0].bottom);
+          expect(Math.abs(sample.zoneBottom - sample.revealed)).toBeLessThan(1);
+        }
+        await expect(menu).toBeHidden();
+        expect(await tools.boundingBox()).toEqual(toggleBounds);
+        // 快速反向悬停后仍能完成展开，卡片保持最终锚点位置。
+        await tools.hover();
+        await page.mouse.move(640, 400);
+        await tools.hover();
+        await menu.getByRole('button', { name: 'Search', exact: true }).click();
+        await expect(page.getByPlaceholder('Search objects, profiles...')).toBeFocused();
+      });
+    }
+  }
+}
+
+for (const platform of ['macos', 'windows']) {
+  for (const position of ['top', 'bottom'] as const) {
+    test(`${platform} ${position} 横向工具区展开和收起全程淡入淡出`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await setupSidebar(page, position, platform);
+      const tools = page.getByRole('button', { name: 'Tools', exact: true });
+      const menu = page.locator('[class*="horizontalButtonArea"]').first();
+      await armMenuSweep(menu, 'max-width');
       await tools.hover();
-      const buttonBounds = await menu.locator('button').first().boundingBox();
-      const opening = await sampleMenuSweep(menu);
-      expect(opening[0].top).toBeGreaterThan(opening[1].top);
-      expect(opening[1].top).toBeGreaterThan(opening[2].top);
-      expect(await menu.locator('button').first().boundingBox()).toEqual(buttonBounds);
+      const opening = await sampleMenuSweep(menu, 'max-width');
       await expect(menu).toHaveCSS('opacity', '1');
-      await armMenuSweep(menu);
+      await armMenuSweep(menu, 'max-width');
       await page.mouse.move(640, 400);
       await expect(menu).toHaveJSProperty('inert', true);
-      const closing = await sampleMenuSweep(menu);
-      expect(closing[0].top).toBeLessThan(closing[1].top);
-      expect(closing[1].top).toBeLessThan(closing[2].top);
+      const closing = await sampleMenuSweep(menu, 'max-width');
       for (const sample of [...opening, ...closing]) {
-        expect(sample.bottom).toBe(opening[0].bottom);
-        expect(Math.abs(sample.zoneBottom - sample.revealed)).toBeLessThan(1);
+        expect(sample.fadeDuration).toBe(sample.duration);
+        expect(sample.opacity).toBeGreaterThan(0);
+        expect(sample.opacity).toBeLessThan(1);
       }
-      await expect(menu).toBeHidden();
-      expect(await tools.boundingBox()).toEqual(toggleBounds);
-      // 快速反向悬停后仍能完成展开，卡片保持最终锚点位置。
+      expect(opening[0].opacity).toBeLessThan(opening[1].opacity);
+      expect(opening[1].opacity).toBeLessThan(opening[2].opacity);
+      expect(closing[0].opacity).toBeGreaterThan(closing[1].opacity);
+      expect(closing[1].opacity).toBeGreaterThan(closing[2].opacity);
+      await expect(menu).toHaveCSS('opacity', '0');
+      await expect(menu).toHaveCSS('max-width', '0px');
       await tools.hover();
       await page.mouse.move(640, 400);
       await tools.hover();
@@ -590,26 +671,36 @@ for (const platform of ['macos', 'windows']) {
   }
 }
 
-test('系统和应用减少动态效果时，工具菜单立即展开/收起', async ({ page }) => {
-  await setupSidebar(page, 'left');
-  const tools = page.getByRole('button', { name: 'Tools', exact: true });
-  const menu = page.locator('[data-sidebar-tools]');
-  for (const source of ['media', 'native', 'app']) {
-    await page.emulateMedia({ reducedMotion: source === 'media' ? 'reduce' : 'no-preference' });
-    await page.locator('html').evaluate((root, source) => {
-      root.setAttribute('data-reduce-motion', String(source === 'native'));
-      root.setAttribute('data-user-reduce-motion', String(source === 'app'));
-    }, source);
-    await tools.hover();
-    await expect(menu).toBeVisible();
-    expect(
-      await menu.evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration)),
-    ).toBeLessThan(0.001);
-    await expect(menu).toHaveCSS('clip-path', /^inset\(0px -24px(?: 0px)?\)$/);
-    await page.mouse.move(640, 400);
-    await expect(menu).toBeHidden();
-  }
-});
+for (const position of ['left', 'top', 'bottom'] as const) {
+  test(`${position} 系统和应用减少动态效果时，工具菜单立即展开/收起`, async ({ page }) => {
+    await setupSidebar(page, position);
+    const tools = page.getByRole('button', { name: 'Tools', exact: true });
+    const menu = page
+      .locator(position === 'left' ? '[data-sidebar-tools]' : '[class*="horizontalButtonArea"]')
+      .first();
+    for (const source of ['media', 'native', 'app']) {
+      await page.emulateMedia({ reducedMotion: source === 'media' ? 'reduce' : 'no-preference' });
+      await page.locator('html').evaluate((root, source) => {
+        root.setAttribute('data-reduce-motion', String(source === 'native'));
+        root.setAttribute('data-user-reduce-motion', String(source === 'app'));
+      }, source);
+      await tools.hover();
+      await expect(menu).toBeVisible();
+      expect(
+        await menu.evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration)),
+      ).toBeLessThan(0.001);
+      if (position === 'left')
+        await expect(menu).toHaveCSS('clip-path', /^inset\(0px -24px(?: 0px)?\)$/);
+      else await expect(menu).toHaveCSS('opacity', '1');
+      await page.mouse.move(640, 400);
+      if (position === 'left') await expect(menu).toBeHidden();
+      else {
+        await expect(menu).toHaveCSS('opacity', '0');
+        await expect(menu).toHaveCSS('max-width', '0px');
+      }
+    }
+  });
+}
 
 for (const position of ['top', 'bottom'] as const) {
   test(`RF1088 ${position} 工具栏离开窗口安全收起`, async ({ page }) => {
