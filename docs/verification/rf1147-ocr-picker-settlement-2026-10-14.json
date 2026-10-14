@@ -1,0 +1,661 @@
+{
+  "task": "RF-1147",
+  "accepted": true,
+  "scope": "non-default Windows native-perf picker initialization",
+  "sourceHeadBeforeFix": "1ba71e8506f6ea25ad7e18e9dad6bf18d943a15d",
+  "runtimeSha256": "cb187a733caae0789eda23ae125c29f382c5985fc42fe881dbbe9577d43f96b1",
+  "sourceCount": 1983,
+  "initialWholeControlTreeStableMilliseconds": 200,
+  "openAndReadinessSharedBudgetSeconds": 25,
+  "originalStrictFunctions": [
+    {
+      "name": "identity",
+      "normalizedBytesEqual": true,
+      "sha256": "14117ebcf7b51c711378564ee77011118c315cb6b737b7a8b6bc9f94ff9e3d3a"
+    },
+    {
+      "name": "controls",
+      "normalizedBytesEqual": true,
+      "sha256": "b5e89053d72f1e1b07c5b7b8896e755d51aca84972324d5f7f99047c957dc85a"
+    },
+    {
+      "name": "control_snapshot",
+      "normalizedBytesEqual": true,
+      "sha256": "9bdda00188e7508b79c02628ac134fa322a834c376fca9c1441f7eda913f94cf"
+    },
+    {
+      "name": "action_control",
+      "normalizedBytesEqual": true,
+      "sha256": "c47cb66d450a198bbd79f718ab9d34aa45908bf8d8fc6ad46e796abe668c475c"
+    },
+    {
+      "name": "select",
+      "normalizedBytesEqual": true,
+      "sha256": "8ad5184c53a7604d1861095baf56c9ce3d9a0aaaf15e93063be1493f458d5ef9"
+    }
+  ],
+  "originalPostFreezeCode": {
+    "task": "RF-1147",
+    "normalizedOriginalPostFreezeCodeBytesEqual": true,
+    "bytes": 2870,
+    "sha256": "961c4dd6108ba69e05300ced94cd01de4f95baaf432e3a6721ce02dacd1df523",
+    "scope": "Fixed public path verification, full-tree equality, selected filename edit/Open ancestor checks, WM_SETTEXT/readback/BM_CLICK, identity/closure and returned clock proof",
+    "onlyInitialPreFreezeReadinessChanged": true
+  },
+  "inputRetriesAdded": false,
+  "controlTreeElementsOrFieldsIgnored": false,
+  "defaultClientOrDependencyChanges": false,
+  "formatExitCode": 0,
+  "strictNativeClippyExitCode": 0,
+  "nativeRustTests": {
+    "passed": 142,
+    "failed": 0,
+    "ignored": 0
+  },
+  "releaseBuildExitCode": 0,
+  "diagnosticCleanup": [
+    {
+      "stage": "rf312-ocr-readonly-controls-20261014",
+      "identitiesChecked": 27,
+      "cachePathsRemoved": 24,
+      "preservedFiles": 72,
+      "bytesVerified": true
+    },
+    {
+      "stage": "rf312-ocr-readonly-controls-retry1-20261014",
+      "identitiesChecked": 27,
+      "cachePathsRemoved": 24,
+      "preservedFiles": 77,
+      "bytesVerified": true
+    }
+  ],
+  "acceptance": {
+    "task": "RF-1147",
+    "accepted": true,
+    "originalGroups": 2,
+    "samplesPerGroup": 3,
+    "distinctRuns": 6,
+    "runtimeSha256": "cb187a733caae0789eda23ae125c29f382c5985fc42fe881dbbe9577d43f96b1",
+    "sourceCount": 1983,
+    "sourcesAndRuntimeAndResourcesUnchanged": true,
+    "originalOcrContractsReplayed": true,
+    "authNodeRouteRefusalRequiresSeparateFix": true,
+    "originalDriverFullPreparedMediaGuardBeforeLaunchPreserved": true,
+    "postJourneyMutableAccountsAndPreferencesHashesRecorded": true,
+    "observersAdded": false,
+    "groups": [
+      {
+        "objects": 100,
+        "samples": [
+          {
+            "index": 1,
+            "runId": "55bf8ac853754dd3a5458e8e1136eb03",
+            "pid": 38256,
+            "controls": 50,
+            "selectedAfterOpenedMs": 494.60799999999927,
+            "completeFixedPublicText": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "firstScanInvokeCount": 1,
+            "authFlows": 1,
+            "maintenanceFailures": 0,
+            "mediaHashes": [
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+                "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "preparedSha256": "6009df2bab492c3c914693b44ca9258f1b8080167d4ff77e0c4e5e2342fdc237",
+                "postJourneySha256": "6009df2bab492c3c914693b44ca9258f1b8080167d4ff77e0c4e5e2342fdc237",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "accounts.json",
+                "preparedSha256": "cd00f6e2e85534ca3cc977e39f123dce2a44cecc00866d5615d5a9f86703d4c9",
+                "postJourneySha256": "6911eb71f8071a4a6652b0e942aa506e7e8db18545d60ecd4772fdcf1a809aa1",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+                "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+                "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+                "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+                "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+                "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+                "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+                "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+                "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "preparedSha256": "c8aa064cddd3fc68d832c53f3e6330e183efc9722ae9e23be8dd68719a790ca3",
+                "postJourneySha256": "c8aa064cddd3fc68d832c53f3e6330e183efc9722ae9e23be8dd68719a790ca3",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+                "postJourneySha256": "fbe9e2aacd30720ca9c27fc8b1577bffd1e7867107a138c89a900becc979e072",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              }
+            ],
+            "authNodeContractReplayed": false,
+            "authRouteRefusalSeparatelyRecorded": true,
+            "requiredOriginalOcrJourneyAndPickerContractsAccepted": true
+          },
+          {
+            "index": 2,
+            "runId": "b56efd9b608643d9abae9c26ec61997a",
+            "pid": 28936,
+            "controls": 50,
+            "selectedAfterOpenedMs": 555.934299999999,
+            "completeFixedPublicText": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "firstScanInvokeCount": 1,
+            "authFlows": 1,
+            "maintenanceFailures": 0,
+            "mediaHashes": [
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+                "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "preparedSha256": "553baf028dbb21986dd61a6a2a64415e0bb1ce5a1d4996f2f119149a07714f62",
+                "postJourneySha256": "553baf028dbb21986dd61a6a2a64415e0bb1ce5a1d4996f2f119149a07714f62",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "accounts.json",
+                "preparedSha256": "b9c262024150423c66519485e60a94171c1b90465a0ade2b2962bdb44bbe0466",
+                "postJourneySha256": "ee26f2dccb85fbd86a8a5cd25f941294b9c3c86c34e23fb2d175a8bf4e88102b",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+                "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+                "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+                "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+                "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+                "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+                "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+                "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+                "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "preparedSha256": "69f8a62bbe534670990b0443b48f850e938e9fe3e5130c9347b020917d271277",
+                "postJourneySha256": "69f8a62bbe534670990b0443b48f850e938e9fe3e5130c9347b020917d271277",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+                "postJourneySha256": "5556df12eb772081101f69687c335984313d9727301b6e3f03a09c967e08f4f0",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              }
+            ],
+            "authNodeContractReplayed": false,
+            "authRouteRefusalSeparatelyRecorded": true,
+            "requiredOriginalOcrJourneyAndPickerContractsAccepted": true
+          },
+          {
+            "index": 3,
+            "runId": "e6203efbfcd849eab3ce6f21af1de3ef",
+            "pid": 1980,
+            "controls": 50,
+            "selectedAfterOpenedMs": 416.7440000000006,
+            "completeFixedPublicText": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "firstScanInvokeCount": 1,
+            "authFlows": 1,
+            "maintenanceFailures": 0,
+            "mediaHashes": [
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+                "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "preparedSha256": "1508e2b0697e2e7ab918e450435ef8f167894eeb76693a890ea318cce7a53987",
+                "postJourneySha256": "1508e2b0697e2e7ab918e450435ef8f167894eeb76693a890ea318cce7a53987",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "accounts.json",
+                "preparedSha256": "bbf74ad5a7d66e7cb62906a0d64233e9726662b52b49b62dbcd39ae3ab31b707",
+                "postJourneySha256": "4642fe52159f1c3fbb617e4c580b379a56c0455e32731cd1f1bccb74c31870e4",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+                "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+                "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+                "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+                "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+                "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+                "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+                "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+                "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "preparedSha256": "2ff7cb5d3c630351b1eb7c12367386dd19cb9a2c938b1c7a3e4d7a29175a7b60",
+                "postJourneySha256": "2ff7cb5d3c630351b1eb7c12367386dd19cb9a2c938b1c7a3e4d7a29175a7b60",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+                "postJourneySha256": "b94e6650758a15b10cbba395dc73ca3a0eb4c6c7e4528f3ac8577a0aa3a7124b",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              }
+            ],
+            "authNodeContractReplayed": false,
+            "authRouteRefusalSeparatelyRecorded": true,
+            "requiredOriginalOcrJourneyAndPickerContractsAccepted": true
+          }
+        ],
+        "summary": [
+          {
+            "name": "pickerOpenedObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 732.8482000000004,
+            "p95Ms": 778.2408999999998
+          },
+          {
+            "name": "pickerSelectionClosedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 697.2012999999997,
+            "p95Ms": 734.8603000000003
+          },
+          {
+            "name": "firstOcrResultObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 1009.0267000000022,
+            "p95Ms": 1272.496500000001
+          },
+          {
+            "name": "totalOcrObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 2281.875600000001,
+            "p95Ms": 2467.6383000000005
+          }
+        ]
+      },
+      {
+        "objects": 5000,
+        "samples": [
+          {
+            "index": 1,
+            "runId": "971663d88ebe4d1397a05b8dce1c079d",
+            "pid": 40856,
+            "controls": 50,
+            "selectedAfterOpenedMs": 533.1905999999999,
+            "completeFixedPublicText": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "firstScanInvokeCount": 1,
+            "authFlows": 1,
+            "maintenanceFailures": 0,
+            "mediaHashes": [
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+                "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "preparedSha256": "be638255d14279c2f54f003b32fcf6d58bc0f36c9da6aca38069eef73fa5d051",
+                "postJourneySha256": "be638255d14279c2f54f003b32fcf6d58bc0f36c9da6aca38069eef73fa5d051",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "accounts.json",
+                "preparedSha256": "9b7684262b72a9af7b48b49df28ff22595a3079bab1122bc3f0b1bccfe96f1df",
+                "postJourneySha256": "9a463a56c01e7ec504e2d8f855159077bd24a397bec2b551f857cf5709186b89",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+                "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+                "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+                "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+                "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+                "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+                "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+                "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+                "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "preparedSha256": "53ebcf9e56602e0399b3b610f55131199b1ab537e527a7a6534e1a91bf5c21de",
+                "postJourneySha256": "53ebcf9e56602e0399b3b610f55131199b1ab537e527a7a6534e1a91bf5c21de",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+                "postJourneySha256": "7a753a643e52c6e98fa6341fdf0d7c01099c0cf2ab3acbfdf53de73e4232bbde",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              }
+            ],
+            "authNodeContractReplayed": false,
+            "authRouteRefusalSeparatelyRecorded": true,
+            "requiredOriginalOcrJourneyAndPickerContractsAccepted": true
+          },
+          {
+            "index": 2,
+            "runId": "0ab06831ab60432391882cca1c8b2290",
+            "pid": 34824,
+            "controls": 50,
+            "selectedAfterOpenedMs": 523.7263999999996,
+            "completeFixedPublicText": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "firstScanInvokeCount": 1,
+            "authFlows": 1,
+            "maintenanceFailures": 0,
+            "mediaHashes": [
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+                "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "preparedSha256": "cc1e3aa3a565583e84e41fd6095bc63a101ce5bb135652f48f16807c0573f5b0",
+                "postJourneySha256": "cc1e3aa3a565583e84e41fd6095bc63a101ce5bb135652f48f16807c0573f5b0",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "accounts.json",
+                "preparedSha256": "e3a7bb321a8aa7c58c30ca95213f9142c8401dcea8be9855f6161a6e1a165cc6",
+                "postJourneySha256": "1a7b592ba62463a331e25e04f9d80c1e38ac32301d4c6f25b7c7c81c6880a25c",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+                "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+                "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+                "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+                "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+                "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+                "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+                "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+                "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "preparedSha256": "b3a2f5104016c66024e2b41882b11191ad87703b69294e5c565e28f99c81bfd7",
+                "postJourneySha256": "b3a2f5104016c66024e2b41882b11191ad87703b69294e5c565e28f99c81bfd7",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+                "postJourneySha256": "be8dad4dc11430f31fc275b84ffffad335dde39864a9042b68e258bc3f09b527",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              }
+            ],
+            "authNodeContractReplayed": false,
+            "authRouteRefusalSeparatelyRecorded": true,
+            "requiredOriginalOcrJourneyAndPickerContractsAccepted": true
+          },
+          {
+            "index": 3,
+            "runId": "04ed7a3fef7040fa814f59197686803f",
+            "pid": 35596,
+            "controls": 50,
+            "selectedAfterOpenedMs": 614.6646000000019,
+            "completeFixedPublicText": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "firstScanInvokeCount": 1,
+            "authFlows": 1,
+            "maintenanceFailures": 0,
+            "mediaHashes": [
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+                "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "preparedSha256": "0b479784f0aa537ec348d470c95c6d951f1178e12d262c104bdede6042898133",
+                "postJourneySha256": "0b479784f0aa537ec348d470c95c6d951f1178e12d262c104bdede6042898133",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "accounts.json",
+                "preparedSha256": "fd6ee93303df199c3ba6dccf3664688a34455c0722a87c1c7cacf405603132e0",
+                "postJourneySha256": "f15bf5d9e6e9489f6b89266dc27e893fab78461803fed1c9ca636668bc7110ba",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+                "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+                "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+                "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+                "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+                "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+                "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+                "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+                "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "preparedSha256": "1742e6601713302829b5dd00ccdc33cc78b57775cebab4c07f347555839ebc55",
+                "postJourneySha256": "1742e6601713302829b5dd00ccdc33cc78b57775cebab4c07f347555839ebc55",
+                "mutableApplicationMetadata": false,
+                "unchanged": true
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+                "postJourneySha256": "cb2298c45511c412ff65b5ed78e6e38bab8867f39f3f6c6326d5750d2594fffe",
+                "mutableApplicationMetadata": true,
+                "unchanged": false
+              }
+            ],
+            "authNodeContractReplayed": false,
+            "authRouteRefusalSeparatelyRecorded": true,
+            "requiredOriginalOcrJourneyAndPickerContractsAccepted": true
+          }
+        ],
+        "summary": [
+          {
+            "name": "pickerOpenedObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 628.3679000000002,
+            "p95Ms": 632.7700000000004
+          },
+          {
+            "name": "pickerSelectionClosedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 735.6994999999988,
+            "p95Ms": 818.0426000000007
+          },
+          {
+            "name": "firstOcrResultObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 929.2393000000011,
+            "p95Ms": 1070.1122999999989
+          },
+          {
+            "name": "totalOcrObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 2095.1999000000014,
+            "p95Ms": 2310.1028000000006
+          }
+        ]
+      }
+    ],
+    "fullRF312Accepted": false
+  },
+  "acceptedCleanup": {
+    "identitiesChecked": 54,
+    "cachePathsRemoved": 48,
+    "linksUnlinked": 0,
+    "preservedFiles": 174,
+    "bytesVerified": true,
+    "otherProcessesTerminated": 0
+  },
+  "originalFailuresAndReadonlyObserversPreserved": true,
+  "firstRf1147GroupRejectedHomeTimeoutPreserved": true,
+  "firstRf1147GroupCleanup": {
+    "identitiesChecked": 27,
+    "cachePathsRemoved": 24,
+    "preservedFiles": 79,
+    "bytesVerified": true
+  },
+  "knownHomeTimeoutNotClaimedFixed": true,
+  "authNodeOcrRouteRefusalRequiresSeparateFix": true,
+  "fullRF312Accepted": false,
+  "goal": "active",
+  "archive": {
+    "path": "rf1147-ocr-picker-settlement-2026-10-14/raw.zip",
+    "members": 448,
+    "bytes": 1369882,
+    "sha256": "c4dc3144c0c490e5f745def59631080af933bde340016a425b5b3bbe621d0996",
+    "allLengthsSha256AndCrcVerified": true
+  }
+}
