@@ -1,0 +1,115 @@
+{
+  "task": "RF-312",
+  "sourceHead": "217ef302835dfcebd7d15d9ab45cd9b4a4c944cb",
+  "acceptedScope": "current frozen Windows Release paired read-only startup only",
+  "accepted": true,
+  "fullRF312Accepted": false,
+  "fullRF121Accepted": false,
+  "releaseSha256": "446e6221baa45285607fa594ba4dd7ea151edf8de83ce281c6fcd80aad3734a1",
+  "releaseBuildNotRerun": true,
+  "sourcesValidated": 1983,
+  "releaseBuildSourcesDifferAt": [],
+  "startupEngineAndProductionSourcesUnchanged": true,
+  "pairs": 10,
+  "nativeLaunches": 20,
+  "samplesPerDataset": 5,
+  "datasets": [
+    {
+      "dataset": "vault100",
+      "metrics": {
+        "freshProfile": {
+          "medianMs": 2654.1176,
+          "p95Ms": 3159.8196000000003,
+          "successfulSamples": 5,
+          "requestedSamples": 5
+        },
+        "reusedProfile": {
+          "medianMs": 1260.0465000000002,
+          "p95Ms": 1345.7661,
+          "successfulSamples": 5,
+          "requestedSamples": 5
+        }
+      }
+    },
+    {
+      "dataset": "vault5000",
+      "metrics": {
+        "freshProfile": {
+          "medianMs": 2485.9474999999998,
+          "p95Ms": 2805.7933,
+          "successfulSamples": 5,
+          "requestedSamples": 5
+        },
+        "reusedProfile": {
+          "medianMs": 1280.7254,
+          "p95Ms": 1293.0047,
+          "successfulSamples": 5,
+          "requestedSamples": 5
+        }
+      }
+    }
+  ],
+  "memorySnapshotsCollected": 40,
+  "memorySnapshotsValid": 40,
+  "memorySnapshotsMissing": 0,
+  "originalNullMemoryReadingRetained": false,
+  "completeMemoryBaselineAccepted": false,
+  "inputEventsSent": 0,
+  "pixelsCaptured": 0,
+  "definitions": "Native runtime configuration to visible usable password form/two frames/SDK binding; excludes OS spawn and prepare, includes SDK overhead; fresh private profile then same profile after owned exit; no OS cache eviction.",
+  "unmeasured": [
+    "password-unlock",
+    "workspace",
+    "search-needle",
+    "application-lock",
+    "password-reunlock",
+    "OCR",
+    "attachment-preview",
+    "system-sleep",
+    "other-platforms"
+  ],
+  "toolOutcomes": {
+    "sourceHead": "217ef302835dfcebd7d15d9ab45cd9b4a4c944cb",
+    "nativeDatasetDriverExitCodes": [
+      0,
+      0
+    ],
+    "independentVerifierExitCodes": [
+      0
+    ],
+    "historicalClockValidation": "original gate replayed at recorded warm.beforeSnapshot.observedAt; no live authority or budget change",
+    "memoryScope": "40 actual accepted snapshots; startup contract unchanged, not a full journey or continuous peak memory baseline",
+    "nativeTestReruns": 0,
+    "oldFailuresModified": false,
+    "cleanupObservedExitCode": 0
+  },
+  "cleanup": {
+    "identitiesChecked": 180,
+    "recordedIdentitiesLive": 0,
+    "exactCachePathsRemoved": 80,
+    "linksUnlinked": 10,
+    "vaultAndProofFilesPreserved": 260,
+    "processesTerminatedByCleanupTool": 0
+  },
+  "archive": {
+    "path": "rf312-integrated-windows-paired-startup-2026-10-14/raw.tar.gz",
+    "members": 246,
+    "bytes": 405428,
+    "sha256": "ac78f8b2e37c4ec8fab521ee54f61f58ca003c80f62ef7ef89a758c6263ea8a5",
+    "allMembersReadbackVerified": true
+  },
+  "device": {
+    "operatingSystem": "Microsoft Windows 11 Enterprise LTSC",
+    "build": "26100",
+    "cpu": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+    "physicalCores": 8,
+    "logicalProcessors": 8,
+    "totalVisibleMemoryKiB": 16553924,
+    "node": "v24.16.0",
+    "userNamesRead": false,
+    "machineNamesRead": false
+  },
+  "releaseSourceHead": "a7fbda801f50013b8364c756452f33f7efa96bfd",
+  "goal": "active",
+  "currentSourceManifestMatchesBuild": true
+}
