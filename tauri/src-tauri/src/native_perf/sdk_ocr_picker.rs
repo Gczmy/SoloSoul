@@ -9,6 +9,24 @@ use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, LPARAM, WPARAM};
 use windows::Win32::UI::WindowsAndMessaging::*;
 const MAX_CONTROLS: usize = 128;
+const PICKER_OPEN_BUDGET: Duration = Duration::from_secs(25);
+const CONTROLS_SETTLE: Duration = Duration::from_millis(200);
+
+struct StableControls {
+    tree: Vec<Value>,
+    changed_at: Duration,
+}
+
+impl StableControls {
+    fn observe(&mut self, tree: Vec<Value>, at: Duration) -> bool {
+        if self.tree != tree {
+            self.tree = tree;
+            self.changed_at = at;
+            return false;
+        }
+        at.saturating_sub(self.changed_at) >= CONTROLS_SETTLE
+    }
+}
 fn hwnd(value: usize) -> HWND {
     HWND(value as *mut std::ffi::c_void)
 }
@@ -196,7 +214,7 @@ fn select(tree: &[Value], dialog: usize) -> Outcome<(usize, usize)> {
 pub(super) fn choose(main: usize, root: &Path, started: Instant, opening: f64) -> Outcome<Value> {
     let began = Instant::now();
     let dialog = loop {
-        if began.elapsed() > Duration::from_secs(25) {
+        if began.elapsed() > PICKER_OPEN_BUDGET {
             return Err("ocr-picker-open-timeout");
         }
         if pid(hwnd(main)) != std::process::id() {
@@ -219,7 +237,33 @@ pub(super) fn choose(main: usize, root: &Path, started: Instant, opening: f64) -
     };
     identity(main, dialog)?;
     let opened = started.elapsed().as_secs_f64() * 1000.0;
-    let tree = controls(dialog)?;
+    let initial = controls(dialog)?;
+    select(&initial, dialog)?;
+    let mut stable = StableControls {
+        tree: initial,
+        changed_at: began.elapsed(),
+    };
+    // Shell 初始化仍会增加隐藏控件或替换滚动条。先稳定完整树再冻结；
+    // 与打开窗口共用原预算，不重试失败输入，也不忽略任何控件或身份变化。
+    loop {
+        if began.elapsed() >= PICKER_OPEN_BUDGET {
+            return Err("ocr-picker-controls-unsettled");
+        }
+        std::thread::sleep(
+            Duration::from_millis(50).min(PICKER_OPEN_BUDGET.saturating_sub(began.elapsed())),
+        );
+        identity(main, dialog)?;
+        let observed = controls(dialog)?;
+        select(&observed, dialog)?;
+        let observed_at = began.elapsed();
+        if observed_at >= PICKER_OPEN_BUDGET {
+            return Err("ocr-picker-controls-unsettled");
+        }
+        if stable.observe(observed, observed_at) {
+            break;
+        }
+    }
+    let tree = stable.tree;
     publish(
         root,
         "native-perf-ocr-picker-structure.json",
@@ -316,6 +360,41 @@ mod tests {
     #[test]
     fn exact_native_filename_chain_and_button_are_unique() {
         assert_eq!(select(&tree(), 1).unwrap(), (4, 5));
+    }
+    #[test]
+    fn whole_picker_tree_must_settle_before_freezing() {
+        let mut stable = StableControls {
+            tree: tree(),
+            changed_at: Duration::ZERO,
+        };
+        assert!(!stable.observe(tree(), Duration::from_millis(199)));
+        assert!(stable.observe(tree(), CONTROLS_SETTLE));
+    }
+    #[test]
+    fn hidden_shell_controls_reset_settlement_without_changing_selected_targets() {
+        let mut stable = StableControls {
+            tree: tree(),
+            changed_at: Duration::ZERO,
+        };
+        let mut populated = tree();
+        let mut hidden = control(6, 1, "ComboBoxEx32", 41477);
+        hidden["visible"] = json!(false);
+        populated.push(hidden);
+        assert_eq!(select(&populated, 1).unwrap(), (4, 5));
+        assert!(!stable.observe(populated.clone(), Duration::from_millis(150)));
+        assert!(!stable.observe(populated.clone(), Duration::from_millis(349)));
+        assert!(stable.observe(populated, Duration::from_millis(350)));
+    }
+    #[test]
+    fn target_state_changes_are_never_ignored_by_settlement_or_selection() {
+        let mut stable = StableControls {
+            tree: tree(),
+            changed_at: Duration::ZERO,
+        };
+        let mut disabled = tree();
+        disabled[3]["enabled"] = json!(false);
+        assert!(!stable.observe(disabled.clone(), CONTROLS_SETTLE));
+        assert!(select(&disabled, 1).is_err());
     }
     #[test]
     fn unrelated_or_hidden_password_edits_and_ambiguous_buttons_are_rejected() {

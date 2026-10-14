@@ -157,6 +157,20 @@
   display: block;
 }
 
+/* Windows 导航使用系统 UI 字体，避免原生 button 默认 Arial 覆盖正文字体。 */
+:global(html[data-desktop-platform='windows']) .navButton {
+  font-family: var(--font-sans);
+}
+:global(html[data-desktop-platform='windows']) .label {
+  font-weight: 400;
+}
+:global(html[data-desktop-platform='windows']) .expanded .label {
+  font-size: 14px;
+}
+:global(html[data-desktop-platform='windows']) .activeButton .label {
+  font-weight: 500;
+}
+
 /* 渐隐只作用于名称；固定图标与按钮命中区不进入动画层。 */
 .expanded .scrollingLabel {
   flex: 1;
@@ -166,6 +180,10 @@
   display: inline-block;
   width: max-content;
   white-space: nowrap;
+}
+.compactLabels .labelTrack {
+  display: inline;
+  width: auto;
 }
 .scrollingLabel[data-overflow='true'] {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);

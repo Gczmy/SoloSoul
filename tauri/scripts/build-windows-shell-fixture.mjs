@@ -18,8 +18,18 @@ const aliases = [
   { find: '@/lib/ipcClient', replacement: resolve(fixture, 'bridge.ts') },
   { find: '@/lib/platform', replacement: resolve(fixture, 'platform.ts') },
   { find: '@/lib/i18n', replacement: resolve(fixture, 'i18n.ts') },
-  ...['PrimaryNavZone', 'SecondaryActionBar', 'TopFunctionBar', 'MobileBottomNav'].map((name) => ({
+  ...['TopFunctionBar', 'MobileBottomNav'].map((name) => ({
     find: `./${name}`,
+    replacement: resolve(fixture, 'slots.tsx'),
+  })),
+  // Keep the real sidebar/button renderer; business card bodies are outside this layout fixture.
+  ...[
+    './SearchPopover',
+    './OcrQuickScanPopover',
+    './AiQuickChatPopover',
+    '@/components/plugin/PluginQuickPanel',
+  ].map((find) => ({
+    find,
     replacement: resolve(fixture, 'slots.tsx'),
   })),
   { find: '@/components/android/AndroidNavigation', replacement: resolve(fixture, 'slots.tsx') },
@@ -57,18 +67,22 @@ if (
 const modules = Object.keys(chunks[0].modules)
   .map((id) => normalizePath(id.split('?')[0]))
   .filter((id) => id.startsWith(normalizedRoot + '/') && !id.includes('/node_modules/'));
-if (
-  modules.some((id) =>
-    /\/src\/(App\/|pages\/auth\/|stores\/(authStore|settingsStore|syncStore)\.ts)/.test(id),
-  )
-)
-  throw new Error('Production authentication/setup entered the isolated fixture');
+const forbidden = modules.filter((id) =>
+  /\/src\/(App\/|pages\/auth\/|stores\/(authStore|settingsStore|syncStore)\.ts)/.test(id),
+);
+if (forbidden.length)
+  throw new Error(
+    `Production authentication/setup entered the isolated fixture: ${forbidden.map((id) => id.slice(normalizedRoot.length + 1)).join(', ')}`,
+  );
 for (const file of [
   'lib/nativeWindow.ts',
   'lib/nativeTitlebarControls.ts',
   'components/layout/AppBar.tsx',
   'components/layout/AppShell.tsx',
   'components/layout/SideNavigation.tsx',
+  'components/layout/PrimaryNavZone.tsx',
+  'components/layout/SecondaryActionBar.tsx',
+  'components/layout/AddPageButton.tsx',
   'components/layout/AuthLayout.tsx',
   'components/attachment/PreviewTitlebar.tsx',
 ])

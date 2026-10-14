@@ -16,7 +16,6 @@ import { isAndroidSync } from '@/lib/platform';
 import { AndroidAppBar } from '@/components/android/AndroidAppBar';
 import { useUiStore } from '@/stores/uiStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
-import { WindowBrand } from './WindowsTitlebar';
 
 interface AppBarProps {
   title: string;
@@ -43,7 +42,7 @@ export function AppBar({
   const macShell = isMacOS && !isNarrowViewport && !isAndroidSync();
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const windowsHeaderHeight = useNativeWindowStore((s) => s.windowsFrame?.headerHeight);
-  const hasSidebarToggle = (macShell || (windowsShell && !isNarrowViewport)) && !isHorizontal;
+  const hasSidebarToggle = macShell && !isHorizontal;
   const ToggleIcon =
     sidebarPosition === 'right'
       ? sidebarExpanded
@@ -84,7 +83,7 @@ export function AppBar({
           '--appbar-leading-inset': `max(12px, calc(${trafficLightsRight > 0 ? trafficLightsRight + 12 : 0}px - ${contentLeft}))`,
           '--mac-sidebar-control-left': `${trafficLightsRight + 12}px`,
           '--mac-page-title-left': `max(${contentLeft}, ${trafficLightsRight + (hasSidebarToggle ? 56 : 12)}px)`,
-          '--windows-page-title-left': `max(calc(${contentLeft} + 12px), ${hasSidebarToggle ? 92 : 44}px)`,
+          '--windows-page-title-left': `calc(${contentLeft} + 12px)`,
           '--windows-page-trailing-inset':
             sidebarPosition === 'right' ? 'calc(var(--sidebar-width) + 12px)' : '12px',
         } as CSSProperties
@@ -98,13 +97,6 @@ export function AppBar({
         .filter(Boolean)
         .join(' ')}
     >
-      {windowsShell && (
-        <div className={styles.windowBrand} onDragStart={(event) => event.preventDefault()}>
-          <WindowBrand
-            showName={hasSidebarToggle && sidebarExpanded && sidebarPosition === 'left'}
-          />
-        </div>
-      )}
       {hasSidebarToggle && (
         <button
           type="button"

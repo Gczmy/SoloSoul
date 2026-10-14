@@ -122,6 +122,72 @@ test('auth attribution binds owned document and separates header arrival, actual
   assert.equal(report.backend.attempts[0].stages[1].durationMs, 4);
   assert.deepEqual(report.serialCommandPairing[0].pairs, [{ invokeSeq: 1, attemptId: 1 }]);
 });
+test('auth attribution accepts current fixed native SDK routes and retains historical objects records', () => {
+  for (const source of [
+    'http://tauri.localhost/',
+    'http://tauri.localhost/login',
+    'http://tauri.localhost/workspace',
+    'http://tauri.localhost/workspace?section=identity',
+    'http://tauri.localhost/search',
+    'http://tauri.localhost/settings/attachments',
+    'http://tauri.localhost/ocr',
+    'http://tauri.localhost/objects',
+  ]) {
+    const value = fixture();
+    value.binding.source = source;
+    assert.equal(checkAuthAttribution(value, owned, bound), value, source);
+    assert.equal(describeAuthAttribution(value, owned, bound).diagnosticOnly, true);
+  }
+});
+test('auth attribution rejects other origins, ports, paths and altered fixed route queries or fragments', () => {
+  for (const source of [
+    'https://tauri.localhost/ocr',
+    'http://foreign.localhost/ocr',
+    'http://tauri.localhost:1234/ocr',
+    'http://tauri.localhost/ocr-other',
+    'http://tauri.localhost/ocr?other=1',
+    'http://tauri.localhost/ocr#fragment',
+    'http://tauri.localhost/settings',
+    'http://tauri.localhost/settings/attachments?other=1',
+    'http://tauri.localhost/settings/attachments/extra',
+    'http://tauri.localhost/workspace?section=Identity',
+    'http://tauri.localhost/workspace?section=identity&other=1',
+    'http://tauri.localhost/workspace?other=1',
+  ]) {
+    const value = fixture();
+    value.binding.source = source;
+    assert.throws(() => checkAuthAttribution(value, owned, bound), undefined, source);
+  }
+});
+test('newly accepted native SDK routes still require the same document, identity and clocks', () => {
+  for (const source of [
+    'http://tauri.localhost/workspace',
+    'http://tauri.localhost/workspace?section=identity',
+    'http://tauri.localhost/settings/attachments',
+    'http://tauri.localhost/ocr',
+  ]) {
+    const value = fixture();
+    value.binding.source = source;
+    assert.equal(checkAuthAttribution(value, owned, bound), value);
+    for (const mutate of [
+      (v) => (v.runId = 'b'.repeat(32)),
+      (v) => v.pid++,
+      (v) => v.timeOriginMs++,
+      (v) => (v.binding.mainFrameId = 'foreign'),
+      (v) => (v.binding.loaderId = 'foreign'),
+      (v) => (v.binding.timeOriginMs = 1000),
+      (v) => v.binding.navigationEvents++,
+      (v) => v.binding.frameCreatedEvents++,
+      (v) => (v.frontend.timeOriginMs = 1001),
+      (v) => (v.frontend.replies[0].headersAtMs = 101),
+      (v) => (v.frontend.replies[0].payload = 'private'),
+    ]) {
+      const changed = structuredClone(value);
+      mutate(changed);
+      assert.throws(() => checkAuthAttribution(changed, owned, bound));
+    }
+  }
+});
 test('auth attribution rejects foreign identity, private fields, invalid chronology and impossible flow transitions', () => {
   for (const mutate of [
     (v) => (v.runId = 'b'.repeat(32)),

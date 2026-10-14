@@ -63,6 +63,28 @@ function marker() {
       .map((relativePath) => ({ relativePath, sha256: 'a'.repeat(64) })),
   };
 }
+
+test('media descriptors match the actual public assets embedded by the Rust fixture', async () => {
+  const fixtures = [
+    '../crates/solosoul-core/tests/fixtures/ocr_test.png',
+    '../crates/solosoul-core/tests/fixtures/text_only.pdf',
+    '../crates/solosoul-core/examples/perf_baseline/fixtures/scanned.pdf',
+  ];
+  for (const [index, fixture] of fixtures.entries()) {
+    const bytes = await readFile(new URL(fixture, import.meta.url));
+    const asset = PUBLIC_MEDIA_ASSETS[index];
+    assert.equal(asset.bytes, bytes.length);
+    assert.equal(asset.sha256, createHash('sha256').update(bytes).digest('hex'));
+  }
+});
+
+test('media contract rejects the legacy blank scanned PDF descriptor', () => {
+  const value = marker();
+  value.publicAssets[2].bytes = 1921;
+  value.publicAssets[2].sha256 = '8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1';
+  assert.throws(() => validateMediaManifest(value), /differs from exact public contract/);
+});
+
 test('media contract accepts only fixed assets, production base and closed canonical paths', () => {
   assert.equal(validateMediaManifest(marker()).closedFiles.length, 8);
   for (const mutate of [

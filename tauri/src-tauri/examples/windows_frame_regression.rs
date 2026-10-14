@@ -99,7 +99,7 @@ mod regression {
             return Err("Unknown action".into());
         }
         if action == "configure" {
-            window::set_titlebar_controls(window.clone(), regions, Some(enabled)).await?;
+            window::set_titlebar_controls(window.clone(), regions, Some(enabled), None).await?;
         }
         let color = if dark {
             TitlebarColor {
@@ -132,7 +132,22 @@ mod regression {
                     let hit=unsafe{SendMessageW(hwnd,WM_NCHITTEST,Some(WPARAM(0)),Some(LPARAM(packed as isize)))}.0;
                     hits.push(json!({"name":name,"hit":hit}));
                 }
-                Ok(json!({"style":unsafe{GetWindowLongPtrW(hwnd,GWL_STYLE)},"window":[outer.left,outer.top,outer.right,outer.bottom],"client":[origin.x,origin.y,client.right,client.bottom],"hits":hits}))
+                let backdrop = unsafe {
+                    use windows::core::w;
+                    use windows::Win32::UI::WindowsAndMessaging::*;
+                    let handle = GetPropW(hwnd, w!("SoloSoul.CaptionBackdrop.v1"));
+                    if handle.is_invalid() { Value::Null } else {
+                        let layer = windows::Win32::Foundation::HWND(handle.0);
+                        let mut rect = RECT::default();
+                        GetWindowRect(layer, &mut rect).map_err(|e|e.to_string())?;
+                        let rgba = GetPropW(layer, w!("SoloSoul.CaptionBackdrop.Rgba")).0 as usize;
+                        let mut class = [0u16;64]; let length=GetClassNameW(layer,&mut class);
+                        json!({"class":String::from_utf16_lossy(&class[..length.max(0) as usize]), "ownerVerified":GetParent(layer).ok()==Some(hwnd),
+                            "rect":[rect.left,rect.top,rect.right,rect.bottom],"visible":IsWindowVisible(layer).as_bool(), "alpha":(rgba>>24)&255,
+                            "rgb":rgba&0xffffff,"rendering":"singlePerPixelSurface","exStyle":GetWindowLongPtrW(layer,GWL_EXSTYLE)})
+                    }
+                };
+                Ok(json!({"style":unsafe{GetWindowLongPtrW(hwnd,GWL_STYLE)},"window":[outer.left,outer.top,outer.right,outer.bottom],"client":[origin.x,origin.y,client.right,client.bottom],"hits":hits,"captionBackdrop":backdrop}))
             })();let _=tx.send(result);
         }).map_err(|e|e.to_string())?;
         let native = rx.await.map_err(|e| e.to_string())??;

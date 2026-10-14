@@ -1,0 +1,811 @@
+{
+  "task": "RF-312",
+  "members": [
+    {
+      "member": "desktop-preflight-refused/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-20261014\\input-proof.json",
+      "bytes": 290967,
+      "sha256": "1f2ae60fd86f76edad169d8beac7d63fee79ccbd2114b3e8547783165b0f54db"
+    },
+    {
+      "member": "desktop-preflight-refused/session-before-100.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-20261014\\session-before-100.json",
+      "bytes": 352,
+      "sha256": "527065743da15b0f183fa9f38df1ec84d626afff5fcdd09441900041158e595e"
+    },
+    {
+      "member": "diagnostic/100.live.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\100.live.json",
+      "bytes": 521,
+      "sha256": "9102ae8df15a6cb1d446ba8e042d126f6d801a895de5b496b82fb11732d99c81"
+    },
+    {
+      "member": "diagnostic/100.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\100.receipt.json",
+      "bytes": 603,
+      "sha256": "16b87f87ece1bf08a18fcd43de70d62bfd8b1527ace5f3c6fda2c89165af4f78"
+    },
+    {
+      "member": "diagnostic/100.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "diagnostic/100.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\100.stdout.log",
+      "bytes": 217,
+      "sha256": "aeae100f3e5b094175225a5b384a1ef66b1a5165520026a0adc2ebb7bfe3cb43"
+    },
+    {
+      "member": "diagnostic/5000.live.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\5000.live.json",
+      "bytes": 523,
+      "sha256": "34a69a94511426d8eec318efc434cdd81a8b6d8918dea01acd5895e205e263b7"
+    },
+    {
+      "member": "diagnostic/5000.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\5000.receipt.json",
+      "bytes": 606,
+      "sha256": "9135ff0a11337c81b8db4250deacecbb58189e3ff58cefeb1e3ba981754e0b03"
+    },
+    {
+      "member": "diagnostic/5000.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "diagnostic/5000.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\5000.stdout.log",
+      "bytes": 218,
+      "sha256": "2f47daef3daa1b764d7755cad6b1c8aaf360fda648c72ea9a0497ba975b2c783"
+    },
+    {
+      "member": "diagnostic/accepted-cache-cleanup-preflight.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\accepted-cache-cleanup-preflight.json",
+      "bytes": 50076,
+      "sha256": "d10eb770afcb33abe8139d0c3820a01fc783aa872de1e85b428e2b7eaf746216"
+    },
+    {
+      "member": "diagnostic/accepted-cache-cleanup.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\accepted-cache-cleanup.json",
+      "bytes": 50217,
+      "sha256": "56583fd8225641ed38c9993469c190fa36a635603af8ef38b81a721130d2fed4"
+    },
+    {
+      "member": "diagnostic/accepted-cleanup-plan.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\accepted-cleanup-plan.json",
+      "bytes": 7167,
+      "sha256": "971ab72ec902ee0997df3406a7382caaa6d9766e6c03607357d3b73e42b89223"
+    },
+    {
+      "member": "diagnostic/application-logs/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\application-logs\\100\\sample-001\\app.log",
+      "bytes": 1860,
+      "sha256": "fb9fd569aefc69f3f77dabb04f6b5ac741e35379b564e386be217d43b137a7d5"
+    },
+    {
+      "member": "diagnostic/application-logs/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\application-logs\\100\\sample-002\\app.log",
+      "bytes": 1860,
+      "sha256": "01c39f2aefff89775f829de0dd39a04de7e18abcc450374202165fb29e001a8f"
+    },
+    {
+      "member": "diagnostic/application-logs/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\application-logs\\100\\sample-003\\app.log",
+      "bytes": 1860,
+      "sha256": "0cfb16802f3933fe8e8371555502b27888cb12effb9a72051a913c9a48ab77ce"
+    },
+    {
+      "member": "diagnostic/application-logs/5000/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\application-logs\\5000\\sample-001\\app.log",
+      "bytes": 1861,
+      "sha256": "5186df7d04d3d6a762b5c0db1d43ef4d2b200177f5ccc9152bdbbf2e0379b388"
+    },
+    {
+      "member": "diagnostic/application-logs/5000/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\application-logs\\5000\\sample-002\\app.log",
+      "bytes": 1861,
+      "sha256": "ed73c7aa7f7838eb1623dc24acc263f3c48503ac70d51c25a4f700a8cb0d6490"
+    },
+    {
+      "member": "diagnostic/application-logs/5000/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\application-logs\\5000\\sample-003\\app.log",
+      "bytes": 1726,
+      "sha256": "7b99a49be05f6190bc6afb05053bb9d742c5d3bf8854e9eb9fc186987910bdb8"
+    },
+    {
+      "member": "diagnostic/archive-diagnostic.py",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\archive-diagnostic.py",
+      "bytes": 10089,
+      "sha256": "0ccd1e2b7f9eca5d69b039a5d3be5492b01709c9e221ccf0b54bdc88191e6d61"
+    },
+    {
+      "member": "diagnostic/cleanup-accepted-owned.ps1",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\cleanup-accepted-owned.ps1",
+      "bytes": 8496,
+      "sha256": "744a77c803438e773188815f3938f3cea80da03576433f32a52acbb522fa6db1"
+    },
+    {
+      "member": "diagnostic/independent-verification.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\independent-verification.json",
+      "bytes": 25918,
+      "sha256": "d148e5c83c1925cb0480be3183b92eb217fc692f2c027e6315fe1620b00e26a6"
+    },
+    {
+      "member": "diagnostic/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\input-proof.json",
+      "bytes": 291313,
+      "sha256": "21d12186329a7d0ae0d591ec4ded2d09008e91c4b03b622fd7a8c84af5f1b74b"
+    },
+    {
+      "member": "diagnostic/offline-fixed-mask-geometry-candidate.mjs",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\offline-fixed-mask-geometry-candidate.mjs",
+      "bytes": 4085,
+      "sha256": "53c426087ec661254a0f9c2bc4862d5795fc378bebcda0b42c2a2dd853ecd2d7"
+    },
+    {
+      "member": "diagnostic/offline-fixed-mask-geometry-probe.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\offline-fixed-mask-geometry-probe.json",
+      "bytes": 3537,
+      "sha256": "2d17e114d12984439df222e36f2010ccb79008c3051e2927c6c184ae74e83a78"
+    },
+    {
+      "member": "diagnostic/prepare-cleanup-adapted.py",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\prepare-cleanup-adapted.py",
+      "bytes": 2458,
+      "sha256": "9e5241e6a05b07e5451533d2755e10ca923db6cbfc40b615244ea05f158eb238"
+    },
+    {
+      "member": "diagnostic/prepare-cleanup.py",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\prepare-cleanup.py",
+      "bytes": 690,
+      "sha256": "dc75c6c5cd235219272039ee84710761fede7feef4b50df4b03dc9f64414fbab"
+    },
+    {
+      "member": "diagnostic/probe-fixed-mask-geometry.mjs",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\probe-fixed-mask-geometry.mjs",
+      "bytes": 1903,
+      "sha256": "57702d708805d7d7d0352b8aab1acd8531fcf40551e55c775207f175d5af8686"
+    },
+    {
+      "member": "diagnostic/samples100/native-perf-sdk-journey-results.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\native-perf-sdk-journey-results.json",
+      "bytes": 278601,
+      "sha256": "0b9b631d7be12aad65f4cd048b5908207af10f07ffe2b5b4359b56c2eedd4cd8"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001.json",
+      "bytes": 79292,
+      "sha256": "9b982c98074cf19a43f77d3585f76329a5d8c22333f72bab630624277add48f1"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-auth-attribution.json",
+      "bytes": 10117,
+      "sha256": "06459105b96bd34a2417edb5c48d77106ffb55804acc4fe66347aa5da5ff1b32"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-consumed.json",
+      "bytes": 266,
+      "sha256": "dde34501b77ca5f2aefc0a1728726cad71e26b8785e8d5ce4443148777001d86"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "afbb1932266185653ff1d5a91bdb160aa4af4fd96a4734fe88026d1d48e08a99"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-owned.json",
+      "bytes": 7783,
+      "sha256": "6cd39056407c1bd31a62af7b53f30dbcd9cf5483716b317d6e4bb0d3a23232f7"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "66ad02ff128b5a54d6cf522a5b9d881d22cf7562e4caa4452279fd2b958af736"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "c28853f1165e0c08bb37dbe10b626bcf99899a7dc7a66fc02c1a17af6dd0bff9"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "bytes": 577,
+      "sha256": "7d4a2d7c87edcdd6c9c3c2d867efaf80c87672756011a2982a6d7f49ac673677"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "319374e44a30220d449e1f64478498a5c2e1fd08b4f884cedb16df0f0018bb7b"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-journey.json",
+      "bytes": 53296,
+      "sha256": "7f533acc8755c6b8736fa2c0cf802c852c014d92e13ff1b2073cc94019a5fd77"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-pdf-screenshot.png",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+      "bytes": 39602,
+      "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-phase-01.json",
+      "bytes": 884,
+      "sha256": "1cc88be219db44a16c98fa07c639fe826efd5334d89c60e2272fcfaab5be8ef7"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-phase-02.json",
+      "bytes": 792,
+      "sha256": "6f0e209345c721fc3426d1def2a03af3148a8a83dc6a2baea2e7a23465c60aa5"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-phase-03.json",
+      "bytes": 1004,
+      "sha256": "ebe9050c35df5a762b16bfb05bcad3b41300f88260101abc121d136ed278fb36"
+    },
+    {
+      "member": "diagnostic/samples100/sample-001/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-001\\native-perf-sdk-phase-04.json",
+      "bytes": 469,
+      "sha256": "1339a2bd6eddb8c465d0e1693383b6512acc9b0a2cc15280fad689ac5b2935e0"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002.json",
+      "bytes": 79169,
+      "sha256": "a17c4473e1b04f8c0e2db88ae89925abac11feddf55fc7020e6ad5827b1e32d2"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-auth-attribution.json",
+      "bytes": 10106,
+      "sha256": "943f40810da1ef815511b9e336604d7f8668a0df54c11a825bb51ab91b3990cc"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-consumed.json",
+      "bytes": 266,
+      "sha256": "20809d036e97734cfbd67f19aea2a2cba2dc275343cc8605ffe65a4ecbd34b09"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "7ae8da70c4b10af7a8d92abadf4529dc5e6ab9adea0c71e8eb148d3df302bdc0"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-owned.json",
+      "bytes": 7783,
+      "sha256": "17549c8a69cb39ea0d7fb2eb3cb750cfb4c85d8065292847057b505dd09a06e9"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-permission-commands.json",
+      "bytes": 636,
+      "sha256": "934d2960272af957b9c5336eef7d5b0172667df05641e13322cf14650c5a666e"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "f35acdf13a0cdb575f2eafad122f394c646213674c007947e279b546cb683867"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "bytes": 577,
+      "sha256": "3a571571099f7697bb3f9e8f59e9f78b084847aed275d88a9b9edfc2a0bb479d"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "ba6520bcb2ad4d42bd77f7d6b9f8912b41102d057e4ff0fbb85f6f3fbca824f0"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-journey.json",
+      "bytes": 53175,
+      "sha256": "1e90fd1dc7f128e221c24f62f88efe5c8dc96d32b1430fc4cd6db63307c2b29c"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-pdf-screenshot.png",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-pdf-screenshot.png",
+      "bytes": 41411,
+      "sha256": "f85d1cb4076535fbaec6825675e0f2e26aad2167b15729230919530700283609"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-phase-01.json",
+      "bytes": 870,
+      "sha256": "8761c7f583b67fbb51c9adcf3f05dffc16544905bf3aacd9e36c73a34044ace7"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-phase-02.json",
+      "bytes": 560,
+      "sha256": "556bb4480787e5e987c0daf75218ae75f751c3485e1c56dc24fd195f9390ea5d"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-phase-03.json",
+      "bytes": 1171,
+      "sha256": "4a6200dc286a68b76f83f3c2c2a4391fd1c05ac6cb55b7b80edd1f390b0c7040"
+    },
+    {
+      "member": "diagnostic/samples100/sample-002/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-002\\native-perf-sdk-phase-04.json",
+      "bytes": 456,
+      "sha256": "265bf33fd9a628175fc8abc56f14a7bba1517fae7750b8c28d8ece3f43d23507"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003.json",
+      "bytes": 80113,
+      "sha256": "2a736533504c08743cb25a1cdb4276269a8303107c3e56f4304efb87fa99dbc5"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-auth-attribution.json",
+      "bytes": 10097,
+      "sha256": "43dda7f520eb6942fbf1da58c725833216d50609fb0edd3affb76ac4563f9bda"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-consumed.json",
+      "bytes": 266,
+      "sha256": "cc6f0c951c93f0c6c23978e4dce67761189cd780e013247c9539b5f49196580c"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "ab3bfc69da5a8643bf8c1332b53e853f46efbbf1e0dbf30fd461cb12a6d5d743"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-owned.json",
+      "bytes": 7783,
+      "sha256": "dd25a3fdebb0ba99015a7bc3ffbfdb8869bc53961def6d59dc1a0df897eb359b"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-permission-commands.json",
+      "bytes": 637,
+      "sha256": "006e746934017c2b85498a294931b6fd1c76934b5d17d2466d78c07f518d3fa9"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "821a7e449384c74e4ed979bd4e353622955fe27637a070b514405fe17faf8f32"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "bytes": 577,
+      "sha256": "4276fa60906a1ed728cb1fe5912b414616d3b1c89bc235f2be0f4752d11146d7"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "bytes": 362,
+      "sha256": "c4807c54c4df11d4b63a359169ff6b3ab6ac222b1bc795249ace29817b2b50b9"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-journey.json",
+      "bytes": 54074,
+      "sha256": "623cd4a6a32b370b4865c090a453cab46c6d6dd99a6d0ea63c774defe6684b81"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-pdf-screenshot.png",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-pdf-screenshot.png",
+      "bytes": 41411,
+      "sha256": "f85d1cb4076535fbaec6825675e0f2e26aad2167b15729230919530700283609"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-phase-01.json",
+      "bytes": 892,
+      "sha256": "d3093859245549c631e1fb66be3c57d7c4faeae43c047674e599121af914a30a"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-phase-02.json",
+      "bytes": 739,
+      "sha256": "4874093f5f86a2015161c66f317b383279d52a00a938e9f3334e06759f3e1ccb"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-phase-03.json",
+      "bytes": 1083,
+      "sha256": "1afd5e9ed5d22d54f5f6085c940b8450ae66489cfcf7e6d1a24427cba3face6f"
+    },
+    {
+      "member": "diagnostic/samples100/sample-003/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples100\\sample-003\\native-perf-sdk-phase-04.json",
+      "bytes": 459,
+      "sha256": "b120d97b254306335e9ee97eab4261a13ad3f22c7b2855e2a96795251cb3d8d9"
+    },
+    {
+      "member": "diagnostic/samples5000/native-perf-sdk-journey-results.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\native-perf-sdk-journey-results.json",
+      "bytes": 278088,
+      "sha256": "3ecc0c3321d82fd47320b09baf2dea862c3252258bed16ff14f9d2e60c48e767"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001.json",
+      "bytes": 79352,
+      "sha256": "36df4f9d4e9f62054c82779138b3da40a0669f6d3522ed7d7991fcc6272fe8d6"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-auth-attribution.json",
+      "bytes": 10052,
+      "sha256": "48a330dec5b2779402a4a9ea9962cbf07a36cb864c1041f60632ed8d40197656"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "b0b50c52f4d45df797e9c64b84996310a1dae94056475105a2914271781b93c6"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-maintenance-admission.json",
+      "bytes": 413,
+      "sha256": "8c7a52bb78ff75f3feea1650380dff902a91bd1d3995fa6f407679d782fb780a"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-owned.json",
+      "bytes": 7801,
+      "sha256": "5b7a4398a94882369ba586bec756cf1a181798dee45f14f8ae0ba521e4845cf1"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-permission-commands.json",
+      "bytes": 637,
+      "sha256": "e602fea3619e3a199f1b0b65b21def6e253d1a48c354bebc7a411306acb4cd1b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "9fe42682fbf9caea7ccff6c70533b6f7bafe26fac39f5d1b42cb23af1e82ca7e"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-journey-bound.json",
+      "bytes": 577,
+      "sha256": "cf885d83f3baaed440db72caab7ad4bd2643446d32191cd71fe9e7bac912917b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "ded747ea958df94a1dd93967804e35bbce3691cfd00c04ef894487bf6119068d"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-journey.json",
+      "bytes": 53347,
+      "sha256": "eed69c73d784b2695959dcfa43af79697345222752c5b2b418ba88f9c3f44384"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-pdf-screenshot.png",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+      "bytes": 39602,
+      "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "137e5726784428d2785f6724dc4a013adda0eb800fd793fff8430a5678c95f14"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-02.json",
+      "bytes": 772,
+      "sha256": "1a3a4eb8cc6c25f6d9afff73e89a5d6db97424c4cced8dcabc08f80ae5aab071"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-03.json",
+      "bytes": 1048,
+      "sha256": "40877fbb413a3b154e07f639fa77d3cc3928f782335a3bbd06529602678bfe0d"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-001/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-04.json",
+      "bytes": 448,
+      "sha256": "05516d507a1cc5ba9ed7a5a09b9877869a7da491f14824e2baab66429d1c908e"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002.json",
+      "bytes": 79264,
+      "sha256": "7957eade81875e58bc77580f3c0fdc297cd38f0fde03035bcdfaaa6fe8af66da"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-auth-attribution.json",
+      "bytes": 10023,
+      "sha256": "4903694e156e7e5c7310ab3f24f66ec762cc85763e656a2f2ae8aaa02e534aff"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "f67fd67acf425c9a18e3622dcbf18204f6440a7e533b7f25998c6393d387086a"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "f60b1b2251343933f3a1ee61612c9fbfa29061d58078f1e4bceb07a2b8affb2b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-owned.json",
+      "bytes": 7801,
+      "sha256": "ee16cb5a9ca648fb1a54bf5ad3e04f1e76846461d720161138f919656692abe1"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "7ba7657c5bdcca4d0f4d7861911853300a4988ff17f3eb7e252193eb5f05aeec"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "0b4e5468ae4377c28d08741c3c8d72eba450aa570ef2665a3a75614bcd89434c"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-journey-bound.json",
+      "bytes": 578,
+      "sha256": "f47d71ae987a810b8860d857ee6a3be2d435105b101939ffa54c9f6028cb1050"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-journey-requested.json",
+      "bytes": 364,
+      "sha256": "e090f81573000be41806b59233c6612a50b7e8ca35c4f4606f8c369abe8eee50"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-journey.json",
+      "bytes": 53247,
+      "sha256": "ba32501871deb9441c98edab24e42643569245a2c99d31f8851e8816dbecbc84"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-pdf-screenshot.png",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-pdf-screenshot.png",
+      "bytes": 39602,
+      "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-01.json",
+      "bytes": 892,
+      "sha256": "0f43e2339e7e2f3d71226e0764044e6fb6eefb5afc24733cde13bfc98caf28e6"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-02.json",
+      "bytes": 562,
+      "sha256": "52b2b44e1336d2b8b9f4cd10c70e5aa7071aac0e54462717e00be822a5fe3c86"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-03.json",
+      "bytes": 1158,
+      "sha256": "207f461fe444f8c7d1e3e93b0a526f162efea1923d38e72c41e237df923127fa"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-002/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-04.json",
+      "bytes": 445,
+      "sha256": "b4d0acd146875a7f5979389586074edf32f59c81542fc11520acd21a8664a203"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003.json",
+      "bytes": 79509,
+      "sha256": "6b15bf5aeb53ce0c2421f1f603a2a89a7735be6a39249fc72389d0a7b052cd6d"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-auth-attribution.json",
+      "bytes": 10112,
+      "sha256": "567bea34f7200de72225bc733677f6e0b6cadd01f2812502b87c420dc73529b5"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-consumed.json",
+      "bytes": 266,
+      "sha256": "1a05c3fec16f6c9e0b40321b4f32f85a8c42cef6a6819cbd85f78257afd96f0f"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "df56d2ff95049904775945d08816d1a2446ec91b10b3fa1a2545cb0191465ed7"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-owned.json",
+      "bytes": 7801,
+      "sha256": "1092947c5148e32bceec6e662d8caaf8581b6538e8d13f6f67b40f58b495d677"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-permission-commands.json",
+      "bytes": 643,
+      "sha256": "1921d42eee40651486f73070678f8caf42410f63d986f40cd33def83c2ef3184"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "44079262d4ac3d80946a158d41d28cc0ab3636ea4143a354741ec7d36d4d9451"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-journey-bound.json",
+      "bytes": 577,
+      "sha256": "a22080648eb6abc7db4a031e196d62aaa28025561ad07f3b4364a7bf33dbfc24"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-journey-requested.json",
+      "bytes": 363,
+      "sha256": "21eaafe0db1047e709f592c197a8ba2d0083027281fc13251a1b1502ece86eb2"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-journey.json",
+      "bytes": 53492,
+      "sha256": "652d5ad8efc615ce89a89652e6524a992da2d0a6fe3ab745ceb6088d2f7bfef9"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-pdf-screenshot.png",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-pdf-screenshot.png",
+      "bytes": 39602,
+      "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "45456829db39b8ffd7aeca8e27e45320ca01db661a2f1ac1181200c061979c0b"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-02.json",
+      "bytes": 773,
+      "sha256": "21f187ebe2f7382f47db2ec45f6b9d82d8e6adda0fd1105e7ff8a6110b6efa55"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-03.json",
+      "bytes": 1048,
+      "sha256": "279b5671a17ca2ac8411367c437a4069fa02ec51a0090305d12a72ed677491d1"
+    },
+    {
+      "member": "diagnostic/samples5000/sample-003/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-04.json",
+      "bytes": 446,
+      "sha256": "d702300c8ab15504c1fd44517df195aa3b192a0d06d63428aab73e71253a28f0"
+    },
+    {
+      "member": "diagnostic/session-before-100.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\session-before-100.json",
+      "bytes": 319,
+      "sha256": "954ab6deeba5f43f8923eea84ad1341a970d71750dc163295a3fb5fc2a0eb105"
+    },
+    {
+      "member": "diagnostic/session-before-5000.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\session-before-5000.json",
+      "bytes": 319,
+      "sha256": "c27efbf45659d22613ee85660c45a0a6188f1b594e7f8dbd1f7bcbf63a3333ef"
+    },
+    {
+      "member": "diagnostic/terminal.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\terminal.json",
+      "bytes": 1452,
+      "sha256": "6288a74053acad86cde38718bd1307388e3a857852435ce99164563b7a9322b5"
+    },
+    {
+      "member": "diagnostic/verify-diagnostic.mjs",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-pdf-diagnostic-retry1-20261014\\verify-diagnostic.mjs",
+      "bytes": 5744,
+      "sha256": "382a7415a5276ca07ceb660aef04d582f848b4c774f23ffd6fbc706473f8280f"
+    },
+    {
+      "member": "helpers/prepare-rf312-current-windows-pdf-diagnostic-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-pdf-diagnostic-20261014.py",
+      "bytes": 2751,
+      "sha256": "fdecc799eca27e5b48809fa82b6a35383f2bc750d4d88315148588a1d4047f11"
+    },
+    {
+      "member": "helpers/prepare-rf312-current-windows-pdf-diagnostic-original-cli-name-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-pdf-diagnostic-original-cli-name-20261014.py",
+      "bytes": 2729,
+      "sha256": "0ac4c7928f156f81094185b236dc170ce41e1d876fed9295a6bb0edacab9bb6a"
+    },
+    {
+      "member": "helpers/prepare-rf312-current-windows-pdf-diagnostic-retry1-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-pdf-diagnostic-retry1-20261014.py",
+      "bytes": 1866,
+      "sha256": "24364151c8848b9bcfc094601c0f4ade1748d837d1430824d8b432fdc39a0bd8"
+    },
+    {
+      "member": "helpers/run-rf312-current-windows-pdf-diagnostic-20261014.py",
+      "source": "D:\\SoloSoul\\build\\run-rf312-current-windows-pdf-diagnostic-20261014.py",
+      "bytes": 3496,
+      "sha256": "43e14cdba2a58d4632785016a6fdc0990ac54e348097c2088911beae7557b3f4"
+    },
+    {
+      "member": "helpers/run-rf312-current-windows-pdf-diagnostic-retry1-20261014.py",
+      "source": "D:\\SoloSoul\\build\\run-rf312-current-windows-pdf-diagnostic-retry1-20261014.py",
+      "bytes": 3517,
+      "sha256": "e9d5eb9c3b3eb5cae2cedb7033a73d8cd0a65a15d690d08ec85e2d30798ac2f8"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-pdf-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-pdf-contract.mjs",
+      "bytes": 18037,
+      "sha256": "52dddb95936af1cb4c5c26363bd6dea7c54e3bf095892f1097423dce28db3e6b"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-pdf-pixels.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-pdf-pixels.mjs",
+      "bytes": 4085,
+      "sha256": "4df8f442cb719900cfc4ac9229442f451e3dfc2f3741eaf316e4d8e8ff51b488"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-pdf-preview-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-pdf-preview-contract.mjs",
+      "bytes": 15243,
+      "sha256": "f608fb7020baaed99e29e32427fc0c439f8588a5e8c8afd27c0118356dfe5763"
+    },
+    {
+      "member": "sources/tauri/src-tauri/src/native_perf/sdk_pdf.rs",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_pdf.rs",
+      "bytes": 26422,
+      "sha256": "4ea8c8d603fafd36975e9439716fa6f189af0bcfb0b825d293cd4aa8e6f0a8d1"
+    },
+    {
+      "member": "sources/tauri/src-tauri/src/native_perf/sdk_pdf_pixels.rs",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_pdf_pixels.rs",
+      "bytes": 15971,
+      "sha256": "ae430ddbe033742d1583c95c1af2142adfb2d99fe328b8d8e54e18392c9483c9"
+    }
+  ],
+  "allLengthsSha256AndCrcVerified": true,
+  "programsVaultsResourcesAndCachesExcluded": true
+}

@@ -1,16 +1,10 @@
-import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
 import { useLayoutEffect, useRef } from 'react';
 import styles from './WindowsTitlebar.module.css';
 
 export function WindowBrand({ showName = true }: { showName?: boolean }) {
-  return (
-    <>
-      <ShieldLogo size={20} />
-      {showName && <span>SoloSoul</span>}
-    </>
-  );
+  return showName ? <span>SoloSoul</span> : null;
 }
 
 /** 认证页沿用同一原生窗框，品牌行不接管系统窗口按钮。 */

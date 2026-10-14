@@ -1,6 +1,6 @@
 /** RF-312：仅固定公开 PDF 首屏的严格原生结果，耗时包含观测开销。 */
 import { normalizeWindowsPath, validateObserver } from './native-perf-run.mjs';
-import { PDF_ASSET_SHA, PDF_MASK_SHA, PDF_VIEWPORT, PDF_ROI } from './native-perf-pdf-pixels.mjs';
+import { PDF_ASSET_SHA, PDF_MASK_SHA, PDF_GEOMETRIES } from './native-perf-pdf-pixels.mjs';
 export const PDF_PREVIEW_UNMEASURED = Object.freeze([
   'PDF-other-pages',
   'PDF-general-documents',
@@ -22,7 +22,7 @@ const trust = (v) =>
   Object.values(v).every((n) => Number.isSafeInteger(n) && n >= 0 && n <= 128) &&
   v.untrusted === 0 &&
   v.text === 1;
-function dom(v, phase) {
+function dom(v, phase, viewport) {
   if (
     !exact(v, [
       'schemaVersion',
@@ -56,8 +56,8 @@ function dom(v, phase) {
         v.target.actionable !== true ||
         !clock(v.target.x) ||
         !clock(v.target.y) ||
-        v.target.x >= 1028 ||
-        v.target.y >= 749
+        v.target.x >= viewport.width ||
+        v.target.y >= viewport.height
   )
     throw new Error('PDF visible close control or closed state rejected');
 }
@@ -228,6 +228,7 @@ export function checkPdfFirstPage(v, owned, bound, fixture) {
   )
     throw new Error('PDF prerequisite document rejected');
   const d = v.pdfPreview;
+  const geometry = PDF_GEOMETRIES[d?.schemaVersion];
   if (
     !exact(d, [
       'schemaVersion',
@@ -249,12 +250,12 @@ export function checkPdfFirstPage(v, owned, bound, fixture) {
       'mainVerifiedAfterClose',
       'frameCreatedEvents',
     ]) ||
-    d.schemaVersion !== 2 ||
+    ![2, 3].includes(d.schemaVersion) ||
     d.scope !== 'windows-native-sdk-public-pdf-first-page' ||
     d.assetSha256 !== PDF_ASSET_SHA ||
     d.renderVerified !== true ||
-    !same(d.viewport, PDF_VIEWPORT) ||
-    !same(d.roi, PDF_ROI) ||
+    !same(d.viewport, geometry.viewport) ||
+    !same(d.roi, geometry.roi) ||
     d.referenceMaskSha256 !== PDF_MASK_SHA ||
     !same(d.threshold, { alphaMin: 240, rgbMax: 64 }) ||
     d.maxCaptures !== 16 ||
@@ -348,8 +349,8 @@ export function checkPdfFirstPage(v, owned, bound, fixture) {
       s.bytes < 33 ||
       s.bytes > 256 * 1024 ||
       !/^[a-f0-9]{64}$/.test(s.sha256) ||
-      s.width !== 1028 ||
-      s.height !== 749 ||
+      s.width !== geometry.viewport.width ||
+      s.height !== geometry.viewport.height ||
       !Number.isInteger(s.darkPixels) ||
       s.darkPixels < 0 ||
       s.darkPixels > 430 * 36 ||
@@ -369,8 +370,8 @@ export function checkPdfFirstPage(v, owned, bound, fixture) {
       throw new Error('PDF pixel observation rejected');
     tree(s.frameBefore, bound.binding.mainFrameId);
     tree(s.frameAfter, bound.binding.mainFrameId);
-    dom(s.domBefore, 'opened');
-    dom(s.domAfter, 'opened');
+    dom(s.domBefore, 'opened', geometry.viewport);
+    dom(s.domAfter, 'opened', geometry.viewport);
     if (
       i > 0 &&
       s.matches &&
@@ -388,7 +389,7 @@ export function checkPdfFirstPage(v, owned, bound, fixture) {
     previous - d.openingStartedAtMs > 25000
   )
     throw new Error('PDF repeated visible observation rejected');
-  dom(d.closedDom, 'closed');
+  dom(d.closedDom, 'closed', geometry.viewport);
   const m = d.performanceMetrics,
     first = d.samples.find((s) => s.matches && s.frameStable),
     sum = (end, start) => d.samples.reduce((n, s) => n + s[end] - s[start], 0),

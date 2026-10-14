@@ -1,5 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(target_os = "windows")]
+#[path = "window/backdrop_raster.rs"]
+mod backdrop_raster;
+#[cfg(target_os = "windows")]
+#[path = "window/caption_backdrop.rs"]
+mod caption_backdrop;
 #[cfg(target_os = "ios")]
 #[path = "window/ios.rs"]
 mod ios;
@@ -18,6 +24,38 @@ pub struct TitlebarColor {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct TitlebarBackdropColor {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+    pub alpha: u8,
+    #[serde(default)]
+    pub layers: Option<Vec<WindowBackdropLayer>>,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowBackdropLayer {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+    pub alpha: u8,
+    #[serde(default)]
+    pub full_window: bool,
+    #[serde(default)]
+    pub exclusions: Vec<WindowBackdropCutout>,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct WindowBackdropCutout {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+    pub radius: f64,
 }
 
 /// 根据 sRGB 分量计算感知亮度（Rec. 601 luma）。
@@ -56,6 +94,7 @@ pub struct WindowsFrameLayout {
     pub header_height: f64,
     pub dpi: u32,
     pub maximized: bool,
+    pub full_window_backdrop: bool,
     /// Logical client coordinates: x, y, width, height.
     pub caption_bounds: [f64; 4],
 }
@@ -127,7 +166,28 @@ pub async fn set_titlebar_controls(
     window: tauri::WebviewWindow,
     regions: Vec<TitlebarControlRect>,
     windows_frame: Option<bool>,
+    backdrop: Option<TitlebarBackdropColor>,
 ) -> Result<(), String> {
+    if backdrop
+        .as_ref()
+        .and_then(|b| b.layers.as_ref())
+        .is_some_and(|layers| {
+            layers.len() > 16
+                || layers.iter().any(|layer| {
+                    layer.exclusions.len() > 64
+                        || layer.exclusions.iter().any(|r| {
+                            [r.x, r.y, r.width, r.height, r.radius]
+                                .iter()
+                                .any(|v| !v.is_finite() || v.abs() > 100_000.0)
+                                || r.width < 0.0
+                                || r.height < 0.0
+                                || r.radius < 0.0
+                        })
+                })
+        })
+    {
+        return Err("Invalid window backdrop geometry".into());
+    }
     if regions.len() > 128
         || regions.iter().any(|r| {
             ![r.x, r.y, r.width, r.height].iter().all(|v| v.is_finite())
@@ -139,7 +199,7 @@ pub async fn set_titlebar_controls(
     }
     #[cfg(target_os = "macos")]
     {
-        let _ = windows_frame;
+        let _ = (windows_frame, backdrop);
         let (tx, rx) = tokio::sync::oneshot::channel();
         window
             .with_webview(move |native| {
@@ -156,10 +216,15 @@ pub async fn set_titlebar_controls(
         let target = window.clone();
         window
             .run_on_main_thread(move || {
-                let result = target
-                    .hwnd()
-                    .map_err(|e| e.to_string())
-                    .and_then(|hwnd| windows_frame::configure(hwnd, windows_frame, regions));
+                let result = target.hwnd().map_err(|e| e.to_string()).and_then(|hwnd| {
+                    windows_frame::configure(hwnd, windows_frame, regions)?;
+                    if windows_frame::enabled(hwnd) {
+                        if let Some(color) = backdrop {
+                            caption_backdrop::set(hwnd, color)?;
+                        }
+                    }
+                    Ok(())
+                });
                 let _ = tx.send(result);
             })
             .map_err(|e| e.to_string())?;
@@ -167,7 +232,7 @@ pub async fn set_titlebar_controls(
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        let _ = (window, regions, windows_frame);
+        let _ = (window, regions, windows_frame, backdrop);
         Ok(())
     }
 }

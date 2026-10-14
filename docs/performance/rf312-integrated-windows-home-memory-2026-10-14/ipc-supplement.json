@@ -1,0 +1,122 @@
+{
+  "task": "RF-312",
+  "rows": [
+    {
+      "objects": 100,
+      "samples": [
+        {
+          "index": 1,
+          "attempts": 153,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 2,
+          "attempts": 151,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 3,
+          "attempts": 150,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 4,
+          "attempts": 152,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 5,
+          "attempts": 144,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        }
+      ],
+      "medianAttempts": 151,
+      "maximumAttempts": 153
+    },
+    {
+      "objects": 5000,
+      "samples": [
+        {
+          "index": 1,
+          "attempts": 156,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 2,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        },
+        {
+          "index": 3,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        },
+        {
+          "index": 4,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        },
+        {
+          "index": 5,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        }
+      ],
+      "medianAttempts": 148,
+      "maximumAttempts": 156
+    }
+  ],
+  "actualEventNamesTimestampsAndTotalsRecomputed": true,
+  "originalNativeSamplesNotRerunOrChanged": true,
+  "scope": "Windows JavaScript HTTP invoke transport attempts, excludes arguments/responses and later teardown; not all backend or OS IPC",
+  "initialOfflineVerifierError": "KeyError: attempts; observer commands are individual timestamped events, not aggregate rows; original source retained and actual tool output reported, no separate original stderr file",
+  "archive": {
+    "path": "ipc-raw.zip",
+    "sha256": "062186c96bfc202b8168b279406f81f2207224781e49518c454eeb2195ce2b6e",
+    "members": [
+      {
+        "member": "verify-ipc.py",
+        "bytes": 1630,
+        "sha256": "82bde3995a80c7d0ad31702e38c92a3347802ddf09f76b7ea558a70b632174ef"
+      },
+      {
+        "member": "verify-ipc-observer-fields-original.py",
+        "bytes": 1424,
+        "sha256": "2cd3fb523415bd862865138a21a9c308fa8fe27bb147563971fbfcdcac07c4df"
+      },
+      {
+        "member": "ipc-independent.json",
+        "bytes": 2019,
+        "sha256": "15f4a61a79cd23d2f9d17b2c61c017e40875c0caab6f459682853d7320deb1ce"
+      },
+      {
+        "member": "package-ipc.py",
+        "bytes": 2151,
+        "sha256": "20e79501268f65ddda036947b4f754f3dfbf2aea6dea0666df0c88f81039a604"
+      }
+    ],
+    "allLengthsSha256AndCrcVerified": true
+  },
+  "originalArchiveUnchanged": true,
+  "originalArchiveSha256": "eac0ea3449749afe7f242e1b0df45848e9a1ab85efcd812efa2e4593b874506c"
+}

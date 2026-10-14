@@ -1,0 +1,1082 @@
+{
+  "task": "RF-1149",
+  "members": [
+    {
+      "member": "build-checks/archive-accepted.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\archive-accepted.py",
+      "bytes": 10451,
+      "sha256": "595459cd4aef7dcbb1b83c6bf0f65ce0cee385ff2eaf59179da68174c01e0193"
+    },
+    {
+      "member": "build-checks/audit-boundary.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\audit-boundary.py",
+      "bytes": 3310,
+      "sha256": "58b50f06d021a6e8d9a720a13509842bdc94d1ca35655cc5dca96ff46272992c"
+    },
+    {
+      "member": "build-checks/audit-cleanup-boundary.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\audit-cleanup-boundary.py",
+      "bytes": 1087,
+      "sha256": "83c1ae4ce44495e0fd0eeff162da200d4e3b14f42cca7e42fad0447bfe9f7a26"
+    },
+    {
+      "member": "build-checks/boundary-audit.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\boundary-audit.json",
+      "bytes": 681,
+      "sha256": "b3ac5b8e6deb1e8d723011ca6e1fea2e2e427288139b932064ed3eb7cb5ba248"
+    },
+    {
+      "member": "build-checks/build-native.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\build-native.py",
+      "bytes": 5198,
+      "sha256": "1ff52a212cd006a90bcc89d07284acd586bac41533a5bad2e105f87f81cdec6d"
+    },
+    {
+      "member": "build-checks/check-node.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\check-node.py",
+      "bytes": 1658,
+      "sha256": "0746c99f4b52c199d960eafcd805ee345b815f02b4f9ff76f962122e1ad6531d"
+    },
+    {
+      "member": "build-checks/checkpoint.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\checkpoint.json",
+      "bytes": 4921,
+      "sha256": "f7a09e590b5a1bf1c6463964075f2e05093d6aae9fb628156e3e25caf042fbd3"
+    },
+    {
+      "member": "build-checks/checkpoint.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\checkpoint.py",
+      "bytes": 3272,
+      "sha256": "c775ffa76306a510fb9c14f25c4e7b95ecded6085c034524966b2918b9754228"
+    },
+    {
+      "member": "build-checks/compiled-source-differences.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\compiled-source-differences.json",
+      "bytes": 1576,
+      "sha256": "96c75fce0b272a2a8cd498b2eb5c3b67d69276e801a1e9757f83028f991288e1"
+    },
+    {
+      "member": "build-checks/fmt.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\fmt.live.json",
+      "bytes": 177,
+      "sha256": "688d73be48bfe34fdf3176dc9da5d180adb24c7e6a6ab2969fed9624824d8048"
+    },
+    {
+      "member": "build-checks/fmt.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\fmt.receipt.json",
+      "bytes": 224,
+      "sha256": "5c12b801b6aa2c8fb1daacb8bfaa949b0542ec5612d0a35d75db414e52e82753"
+    },
+    {
+      "member": "build-checks/fmt.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\fmt.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/fmt.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\fmt.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/frontend.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\frontend.json",
+      "bytes": 5977,
+      "sha256": "ab8c48ac65d70e717492790f34dcd74fc9132ef93ff5d1f805792784b455b3e8"
+    },
+    {
+      "member": "build-checks/native-build-config.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-build-config.json",
+      "bytes": 84,
+      "sha256": "ba35d2e33965dda135eb36975909f092817552bb8fd6400d8cfd30d1bae35f04"
+    },
+    {
+      "member": "build-checks/native-clippy.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-clippy.live.json",
+      "bytes": 279,
+      "sha256": "38c94c591997101130bbab1e915527a0376a4d6fd1d7012b51968642137ce26c"
+    },
+    {
+      "member": "build-checks/native-clippy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-clippy.receipt.json",
+      "bytes": 327,
+      "sha256": "321ab279d3250138119fd016641acd358ef5405a00f64a216df29e436b6a6c04"
+    },
+    {
+      "member": "build-checks/native-clippy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-clippy.stderr.log",
+      "bytes": 132,
+      "sha256": "04f4f94bd2c1cc1576bf825f68feea9a0e2c08032ee27e2dcd7565bbf095ac28"
+    },
+    {
+      "member": "build-checks/native-clippy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/native-release.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-release.live.json",
+      "bytes": 268,
+      "sha256": "40fbe79ccd655933bb951854f2d5a2ad23284e59a71c52203c4f5b804ef81893"
+    },
+    {
+      "member": "build-checks/native-release.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-release.receipt.json",
+      "bytes": 316,
+      "sha256": "1eaaa511d4cb6539d9f606f002f85e3d3363fea4151213cbe782d0e4bd8633b1"
+    },
+    {
+      "member": "build-checks/native-release.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-release.stderr.log",
+      "bytes": 659,
+      "sha256": "a5d4d885fc6fed3b65be4797bfa4367186fabe51c8244cc9147cc3ed244fc621"
+    },
+    {
+      "member": "build-checks/native-release.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-release.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/native-tests.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-tests.live.json",
+      "bytes": 283,
+      "sha256": "116d088294d513e5ac8ab7467c470b39ee4bae1991a710de0f2a1cd03da4709f"
+    },
+    {
+      "member": "build-checks/native-tests.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-tests.receipt.json",
+      "bytes": 330,
+      "sha256": "2db870f885cbab51abbeef3eec9747ed31a60c8c2164187e191d6d8bd2b699c3"
+    },
+    {
+      "member": "build-checks/native-tests.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-tests.stderr.log",
+      "bytes": 1422,
+      "sha256": "e2e90ef0a4399016b5fd66ab75a344ab8d9f3ce8603ab026f4d4ff21516f86e8"
+    },
+    {
+      "member": "build-checks/native-tests.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\native-tests.stdout.log",
+      "bytes": 59366,
+      "sha256": "6571c53412dabe1bb525fd9a8e6e2913a279cfe63e9d8a83faac6d31d3aa2fdb"
+    },
+    {
+      "member": "build-checks/node-format.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-format.live.json",
+      "bytes": 340,
+      "sha256": "0f549cd9f943fa7eccdfc0b0bf6750f3059cc65e71f639296cbcb9e24ba9188f"
+    },
+    {
+      "member": "build-checks/node-format.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-format.receipt.json",
+      "bytes": 388,
+      "sha256": "5fb6cab4ed383185996181105d6236d601a986e1bd6426160947d8d12f92686f"
+    },
+    {
+      "member": "build-checks/node-format.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-format.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/node-format.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-format.stdout.log",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "member": "build-checks/node-full.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-full.live.json",
+      "bytes": 128,
+      "sha256": "6785bd2b8109da1c9090cbc1141abced4bac8306d46ebcf36d62094010b6bcee"
+    },
+    {
+      "member": "build-checks/node-full.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-full.receipt.json",
+      "bytes": 176,
+      "sha256": "0563c9128fd0e7c61d30de1d309c352796c03b8554b7aa3168cc332cdc769f72"
+    },
+    {
+      "member": "build-checks/node-full.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-full.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/node-full.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-full.stdout.log",
+      "bytes": 26800,
+      "sha256": "dc90da4c02c1b3fc4a74e46c1ab8ca835f01f005cbf4119b4d5e4ee216cce4b1"
+    },
+    {
+      "member": "build-checks/node-red.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-red.receipt.json",
+      "bytes": 160,
+      "sha256": "e1773ade4ab5054dc2b5ce5af300fec6feadb0c7b7cf7dd2e1c8171cdc7ceaeb"
+    },
+    {
+      "member": "build-checks/node-red.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-red.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/node-red.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-red.stdout.log",
+      "bytes": 3628,
+      "sha256": "0877034cfc1110d381ea8f91d4e8af33bb793b12fa6b8eafb462e1be1458df8b"
+    },
+    {
+      "member": "build-checks/node-targeted.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-targeted.receipt.json",
+      "bytes": 200,
+      "sha256": "a1edcfacbdc96cc9fe1572b81489a117eb92f10ce75776de82c8f69b7fa8755a"
+    },
+    {
+      "member": "build-checks/node-targeted.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-targeted.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build-checks/node-targeted.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\node-targeted.stdout.log",
+      "bytes": 2728,
+      "sha256": "a35473f339cc653a7e95997678f3851dead01946602a56473d22d4015bdf64f2"
+    },
+    {
+      "member": "build-checks/prepare-accepted-cleanup.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\prepare-accepted-cleanup.py",
+      "bytes": 2352,
+      "sha256": "c9f08e2a871e7751bab18897daf39be2f0b789dbc47b1f6b326124ee0571bca0"
+    },
+    {
+      "member": "build-checks/prepare-native-preview.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\prepare-native-preview.py",
+      "bytes": 2585,
+      "sha256": "16fbc9f9deacbbfc7ab107f073d448d071c89cc2df741ec5348d0ecc7a778788"
+    },
+    {
+      "member": "build-checks/runtime-package.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\runtime-package.json",
+      "bytes": 33989,
+      "sha256": "023f6a41bd2ba63140a803f99659acd1fd3d83097a2d2323d6525e2052c4c3cd"
+    },
+    {
+      "member": "build-checks/sources.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\sources.json",
+      "bytes": 246709,
+      "sha256": "716e3483f3a1a6c7a9d67d971c73f0b5fba6b9d29ed32c050a13018cbde5cab2"
+    },
+    {
+      "member": "build-checks/verify-native-preview.mjs",
+      "source": "D:\\SoloSoul\\build\\rf1149-pdf-geometry-20261014\\verify-native-preview.mjs",
+      "bytes": 6467,
+      "sha256": "329cef916afec1359260908764de7e555b45ce89f21c6e9c8b88c99c1f9bf871"
+    },
+    {
+      "member": "helpers/run-rf1149-current-windows-pdf-preview-20261014.py",
+      "source": "D:\\SoloSoul\\build\\run-rf1149-current-windows-pdf-preview-20261014.py",
+      "bytes": 3487,
+      "sha256": "3c87e18ab544da1bb34f0aa36d9bba88aa46aa0619c104340a7c06921e48f365"
+    },
+    {
+      "member": "helpers/session-100.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-session-100-20261014.py",
+      "bytes": 2200,
+      "sha256": "eddc6c5aeae7b668e69a5af6dbbef5093f2dee43d37220432f6887f4cdb3e20d"
+    },
+    {
+      "member": "helpers/session-5000.py",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-session-5000-20261014.py",
+      "bytes": 2201,
+      "sha256": "84db54cc9ff133ab481b470e04a96dfcb84c6099d32e671171e5e4ff257cdff9"
+    },
+    {
+      "member": "native-preview/100.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\100.live.json",
+      "bytes": 500,
+      "sha256": "027a0e4186eccf9a2ec17c7dba11428357b9f2384d66f1c7fb522ccff2792460"
+    },
+    {
+      "member": "native-preview/100.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\100.receipt.json",
+      "bytes": 582,
+      "sha256": "ecb15a49f516477322d0ad96fdfa9dfe19406d2adc2e4797e935057c0864315c"
+    },
+    {
+      "member": "native-preview/100.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "native-preview/100.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\100.stdout.log",
+      "bytes": 208,
+      "sha256": "188239edb1940676cb62a80b01e6547e6d1eff91d18a2f6c6814598e544b9310"
+    },
+    {
+      "member": "native-preview/5000.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\5000.live.json",
+      "bytes": 502,
+      "sha256": "b8b45bb0c85ca7435f00d31eb0fff2b3cbcea92adb7fad43a1e489c6c060635f"
+    },
+    {
+      "member": "native-preview/5000.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\5000.receipt.json",
+      "bytes": 584,
+      "sha256": "12d8f5ccf8a8a1558f6bf8e7e0ed38f136dfb8fb63557dd0109338c4560557f3"
+    },
+    {
+      "member": "native-preview/5000.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "native-preview/5000.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\5000.stdout.log",
+      "bytes": 209,
+      "sha256": "cd6ab2251689f8b670d816263bd5f76a4f100d154a88842f446873620d40fe9c"
+    },
+    {
+      "member": "native-preview/accepted-cache-cleanup-preflight.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\accepted-cache-cleanup-preflight.json",
+      "bytes": 51150,
+      "sha256": "5b2d6cb9887dbacd91b54f292a076a176570503d15736063a5d29edcf25cf7ad"
+    },
+    {
+      "member": "native-preview/accepted-cache-cleanup.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\accepted-cache-cleanup.json",
+      "bytes": 51292,
+      "sha256": "f457e221e4ece4938c3362f1e4cb7817e4fab3651f433eaa00169b1c8a6ecd5a"
+    },
+    {
+      "member": "native-preview/accepted-cleanup-boundary.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\accepted-cleanup-boundary.json",
+      "bytes": 256,
+      "sha256": "359b612d8218723570e8f8219390da84a315d7d1ae7c36632e0627f98aa354a6"
+    },
+    {
+      "member": "native-preview/accepted-cleanup-plan.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\accepted-cleanup-plan.json",
+      "bytes": 7164,
+      "sha256": "0e2030079d2cfb95d099ed7d05dec07da6f99ed4d910f18ab12bac809cf0a44b"
+    },
+    {
+      "member": "native-preview/application-logs/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\application-logs\\100\\sample-001\\app.log",
+      "bytes": 1842,
+      "sha256": "83a8c0d0513c99da112e9f2d2e7729989984dcee09f48f2b2bfb4528501f5c2a"
+    },
+    {
+      "member": "native-preview/application-logs/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\application-logs\\100\\sample-002\\app.log",
+      "bytes": 1842,
+      "sha256": "cfd6e79fde7774d94fd9a58d4178ebe5f69be7de86967e96b4b9c07d95d29fdf"
+    },
+    {
+      "member": "native-preview/application-logs/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\application-logs\\100\\sample-003\\app.log",
+      "bytes": 1842,
+      "sha256": "2f6f1c2756c939ed9b61348532a0f5ad525b0ae2952a72dfe84f9befbe605bf7"
+    },
+    {
+      "member": "native-preview/application-logs/5000/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\application-logs\\5000\\sample-001\\app.log",
+      "bytes": 1843,
+      "sha256": "b2d0de2941730b47f433d7569c3d1a944a5fa7b448858d153f88b863243cb4df"
+    },
+    {
+      "member": "native-preview/application-logs/5000/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\application-logs\\5000\\sample-002\\app.log",
+      "bytes": 1498,
+      "sha256": "1f2cc13415ba4c6c520bcf0da27cdd1de5041a7f18dedfd44a0ab3fcf3c918bf"
+    },
+    {
+      "member": "native-preview/application-logs/5000/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\application-logs\\5000\\sample-003\\app.log",
+      "bytes": 1843,
+      "sha256": "cfb20d831354ce9037a158fc53aebe3187ff841969bfdfbf66d85c69e2013f82"
+    },
+    {
+      "member": "native-preview/cleanup-accepted-owned.ps1",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\cleanup-accepted-owned.ps1",
+      "bytes": 8479,
+      "sha256": "c77200ddac4ba49fbce626f961e9019501d520e92a7085ee904dc05e6aa0d811"
+    },
+    {
+      "member": "native-preview/independent-verification.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\independent-verification.json",
+      "bytes": 36695,
+      "sha256": "d46ebecb9ea1950757c25eba7be032d7c2d3ab86650fc78644eaf097f484fd44"
+    },
+    {
+      "member": "native-preview/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\input-proof.json",
+      "bytes": 289813,
+      "sha256": "9461f493d7cb166084e06900d4e54df253d48b23a7aff912d18a9d9d886afc44"
+    },
+    {
+      "member": "native-preview/samples100/native-perf-sdk-journey-results.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\native-perf-sdk-journey-results.json",
+      "bytes": 182745,
+      "sha256": "881fb6b08fd7004d073ab0291db1fdd43eeb0b111d0b3eb12a9841aa5c5860cd"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-auth-attribution.json",
+      "bytes": 9993,
+      "sha256": "9ce6f6b6d303d2635cab56a8fdc10d4be243aa139c979e1f6a99a215331cb9cd"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-consumed.json",
+      "bytes": 257,
+      "sha256": "81aecf79f3b20423c024bb6004ed30c1b1c782121f0d47d89b306825b5d70d34"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "a9789fd199ec9b509e556ab743ef5d2bd625dc5454d0af74a0a4fbc631dc0436"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-owned.json",
+      "bytes": 7738,
+      "sha256": "6f7e9ac39210d0aae9462b3bf7cbab71c982f136087f252c6c65b4929948f6e3"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-permission-commands.json",
+      "bytes": 645,
+      "sha256": "46fb78ddf18cc65cdc1ae8e37dd31177ad532d4a1b683975201d744b45e9d1f7"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "6181a6778bc7876117374384335484dd3c2d4b53c54f985188870d6310f627d3"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "bytes": 568,
+      "sha256": "aea0dc8f9837134c5a8c8769029571c3185dc68287097d9e2c833cbf9f40ef0b"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "bytes": 353,
+      "sha256": "81cf44411761d975dfa18396973e8dd883367c220ada1dfc18c6f3d8f8d3bf02"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-journey.json",
+      "bytes": 26224,
+      "sha256": "4facfd5b653cfcc4b23db1d882f864b1b743f3823f52915da4657861b0a3e6b4"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-pdf-first-page-01.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 28273,
+      "sha256": "222280cdafa5ffe8ae3e7a1a33a77ce223604dc22cf09dc2bc9b46730181bab0"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-pdf-first-page-02.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 37365,
+      "sha256": "b75f40e9940ae7456e3b38ae172f60f8e6fdb4a5a2d66ecc4ab4883c9d86151f"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-pdf-first-page-03.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 39602,
+      "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-phase-01.json",
+      "bytes": 872,
+      "sha256": "0138086551fbf66ac359ed1466860b727907e9a312fdcabc9eafacf86c67e21e"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-phase-02.json",
+      "bytes": 728,
+      "sha256": "24dfdc32fa6e70497e3ebd4ad33e5a923c1aca823bf361ff78169f36b89b8e4f"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-phase-03.json",
+      "bytes": 1141,
+      "sha256": "ec736817c27989c1365952ef99173f3b52a88092c2c7c441ba2720593eaec838"
+    },
+    {
+      "member": "native-preview/samples100/sample-001/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-001\\native-perf-sdk-phase-04.json",
+      "bytes": 459,
+      "sha256": "d7098dbf8401963e183059ce62816ddf0de5f350a08a7b0f305d018ace22a737"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-auth-attribution.json",
+      "bytes": 9992,
+      "sha256": "40b0aaf6d0dafa3f72e13de241aa686dc0d8934145913905aa83f6466d7cfc0a"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-consumed.json",
+      "bytes": 257,
+      "sha256": "6ce34531eaac404ad02ac3e9bce7bc4580c92f3a418fb43ed51c3eef962693f2"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "2bd221b7ba486c15028a06d697ab1c873e7166b555663e04873cb2c5aa368b52"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-owned.json",
+      "bytes": 7738,
+      "sha256": "07b68881e074167d9afb02b3eaa243b0ee0c1916bc1e2d256175a1e4427730c0"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "49ef2559ef6d5c0f848bd488b3c33deb77949abe34da5b9b1f020d15f7350c29"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "f595344b8dd85d5ce4b5d73196e2a6af9171410035039a5c80faf0ff3a6d40fb"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "bytes": 568,
+      "sha256": "f2fa82cd5fbfc6be759463c3b066442208181e3388da2c92756eaadb13ff5033"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "bytes": 353,
+      "sha256": "8b034b60531cf44b44b7613cb5b28bd9e72a8f0acac627c723336c6fbf4d9cb1"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-journey.json",
+      "bytes": 26155,
+      "sha256": "a3f61caf76697a8d5fcbfacd3ead28ff17f94056811765d7838ee1d95c623c72"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-pdf-first-page-01.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 28324,
+      "sha256": "9ab79ce0c03c21e555dc59a2c7d308282b54a9399002105735ede0e15b77e4fd"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-pdf-first-page-02.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 36279,
+      "sha256": "2fd4184b32169ba2a32768b771365431bf8b1d3fa7dc3234b8db3b847ddb2494"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-pdf-first-page-03.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 39602,
+      "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-phase-01.json",
+      "bytes": 869,
+      "sha256": "aa2087c5bd27120ca4cf7e1c0cbf9863dfdb0cd6796062cba8fea8946c15bc7d"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-phase-02.json",
+      "bytes": 560,
+      "sha256": "b25d1bb2894250fcecf4952cfa94fe277ad9fc85c4ae9331bf8de8b789ec477a"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-phase-03.json",
+      "bytes": 1239,
+      "sha256": "de56b34d7e401c84aac93953cc4f2f5e421903ae506e4febf47d691faf60e036"
+    },
+    {
+      "member": "native-preview/samples100/sample-002/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-002\\native-perf-sdk-phase-04.json",
+      "bytes": 446,
+      "sha256": "9473cd138e434e52118dda77db4ce0147694282f50a24025a563dc2e02bcc98b"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-auth-attribution.json",
+      "bytes": 9974,
+      "sha256": "e8f0d535dee98c2b6b6760aca83e3bcbd5c09c4647520043625e383147d1c9fd"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-consumed.json",
+      "bytes": 257,
+      "sha256": "a79a31264e38aab65087f79ae88beea537624c121fbe598868d0fc4f54e3df56"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "bc5ec0201c3663e8cf94ca86f0457a4ebe680d11ee16f90181e29ea1c19ac5e9"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-owned.json",
+      "bytes": 7738,
+      "sha256": "43a1c2e79d63a223df569ef70ffca04f28f13c73c901d6eaf129f723018e24dc"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-permission-commands.json",
+      "bytes": 644,
+      "sha256": "215d3f9a3c39d97cbaf9b5c5161de91c072c204f4fcba20b89546d2593f46b40"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "9f950ad1de7b6a950afa67034e9587d75cdf108687b4523f0e0cdcb27db86de1"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "bytes": 568,
+      "sha256": "a662f3b7ebdcf4583e1cd8f279ed8463df3a064ecd52fae6533e0a6a00390940"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "bytes": 353,
+      "sha256": "8d16330608c4c5eabcb58bee0e1b24a525c6aca539cba129958c4e8e88083d8e"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-journey.json",
+      "bytes": 26251,
+      "sha256": "261effee0d495d558d1be62df882d82e4e309bfea55274a7b1e9ee98e7a94ecd"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-pdf-first-page-01.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 30035,
+      "sha256": "0edae362bfcf1839924540d3f4b83ed2d68f1bf4a155231a1a002de4b7c1647d"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-pdf-first-page-02.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 37981,
+      "sha256": "abb9f96be95d5fbe54e43bda81ab26677d8b7d974ac7377828807fbd7b997480"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-pdf-first-page-03.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 41416,
+      "sha256": "4b2b94fd66acca13de59342cd2e7feb8570ca83fd761900816e023c45c408ad7"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-phase-01.json",
+      "bytes": 872,
+      "sha256": "fb7af46198933a431510d3826a35612a9700b1f2084bbb0dd105d191aac71c27"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-phase-02.json",
+      "bytes": 571,
+      "sha256": "6b445f27cc8745123a64686cdc95454ad13f8b89d6a4d0bd565f7acdd60cbf08"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-phase-03.json",
+      "bytes": 1239,
+      "sha256": "8c900acc9f3c071edb683575e74b421af1f28cb391a42873392e052705aea076"
+    },
+    {
+      "member": "native-preview/samples100/sample-003/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples100\\sample-003\\native-perf-sdk-phase-04.json",
+      "bytes": 459,
+      "sha256": "207e6e5afdb1ec1b8b3b8c642b977781b18b76414ac4a697f9a71632af2206eb"
+    },
+    {
+      "member": "native-preview/samples5000/native-perf-sdk-journey-results.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\native-perf-sdk-journey-results.json",
+      "bytes": 183468,
+      "sha256": "4165fffcffa9bee7d2145f13f566c2a829ede70209341aed1647d38c35827267"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-auth-attribution.json",
+      "bytes": 10095,
+      "sha256": "f643bb91871ec1ab04422a4baf31ec77011904ca0be1e1ff2a9ec1a07ac1f01d"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-consumed.json",
+      "bytes": 258,
+      "sha256": "e985a187b8a0eef6d8927d44ea112dec4f0493dbe25e328f70798f789c9817a2"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "f8946f11fbb7f037661dc1e665926d2557e3fa8c2ea77d97045a43ba3d3e84fe"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-owned.json",
+      "bytes": 7756,
+      "sha256": "0084914e73a341401fd7aad9430127457b7e294a8ec613bcfd7f4a88c9b10b54"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-permission-commands.json",
+      "bytes": 643,
+      "sha256": "1a669253d86dcae6bbd0d8bb4d9f5002153cfff549637d81f85847e54d771aea"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "57402c9f2011dfd05f30e5ca393505059de96bd4f8df8fb28916de400d310a7f"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-journey-bound.json",
+      "bytes": 569,
+      "sha256": "2f8655f739a0d5c800bdd27e66170c4b709c0b1a30f60c0d4c5ec1f70e7b517b"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-journey-requested.json",
+      "bytes": 355,
+      "sha256": "d0288aef780a3385ee23fd5be0ebdcdcc8d4cd2b05536c7979f1edcfd8361509"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-journey.json",
+      "bytes": 26354,
+      "sha256": "5400ff8707b2d5f881eb6c0d57ecf4a4aafd86399f559c07007d83d64939b327"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-pdf-first-page-01.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 32200,
+      "sha256": "fb341e6c2ea4c539536cbd0ba3747acc40a70e7e473a0971512b03f9f4b49813"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-pdf-first-page-02.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 40340,
+      "sha256": "73e85119e1e417d64a56dd87fec64c1ee42b0b53049aa45c38ccb5ab12fedf4e"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-pdf-first-page-03.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 41406,
+      "sha256": "5e9cda072e33ebf9c53fe8183bd2cd7c23244f658d15bfdb2ba5750ed9385a00"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "59bf0ddb84d396e59ea93da1b2aafcaae7640d8185fd712bc1c3fc378adecefb"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-02.json",
+      "bytes": 739,
+      "sha256": "680a749b5de9eb229392cea4ccdfce55d3ae62cf0ff309666be1557fee076419"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-03.json",
+      "bytes": 1082,
+      "sha256": "76c6c4e822ebb351f9dd6aa2182794244bbb323d747541cef8093ee54d98ce6e"
+    },
+    {
+      "member": "native-preview/samples5000/sample-001/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-001\\native-perf-sdk-phase-04.json",
+      "bytes": 458,
+      "sha256": "dcc1686cd26d87ceaf936c7a424c5f128371788329504d6f17f7d3fa22d9aad5"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-auth-attribution.json",
+      "bytes": 10088,
+      "sha256": "94c9b6559349e55c70c09e09d8fd99726cbc15f9216b4c8780520a248b39bcb2"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-consumed.json",
+      "bytes": 257,
+      "sha256": "02c9e4e3987f07098696dbf922d9179e73caca0d6463e07d6d9ae970e21fac5a"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-maintenance-admission.json",
+      "bytes": 419,
+      "sha256": "45122dffbb942529222de4a5e3db04db482f69ffbe92914b1d50cd4b20cbf736"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-owned.json",
+      "bytes": 7756,
+      "sha256": "78e4f78eb19d58c0b1df14d3d6331f360322c5299f34020c17bad2d01b0e1cc3"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-permission-commands.json",
+      "bytes": 643,
+      "sha256": "1fb52b0b841f48420fec7f344b369486ca1dba685b6272e7e423f247df65c236"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "edc357bce26977412ad487621833551a48516e3256864d261893010cdbca91d9"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-journey-bound.json",
+      "bytes": 568,
+      "sha256": "be3b41033f23fd6c4407026c3f7860e73513925ffcf2b9b916639231a9b6787f"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-journey-requested.json",
+      "bytes": 354,
+      "sha256": "e6e4a40ec836a1229dc9b174a8db28aa74644d74112100ef659b5ee314e2b204"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-journey.json",
+      "bytes": 26103,
+      "sha256": "3c090a8f1c3ea467e877e0c1ce2179d280e90aa66e0542ba14c3e7482bcc6726"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-pdf-first-page-01.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 32200,
+      "sha256": "fb341e6c2ea4c539536cbd0ba3747acc40a70e7e473a0971512b03f9f4b49813"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-pdf-first-page-02.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 38927,
+      "sha256": "0383e88188787d34690ecf0b41d537a664f51c5248d213056250c7c9e7ecb0b4"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-pdf-first-page-03.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 41406,
+      "sha256": "5e9cda072e33ebf9c53fe8183bd2cd7c23244f658d15bfdb2ba5750ed9385a00"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-01.json",
+      "bytes": 870,
+      "sha256": "1f02c4c69349174286c75fe47d6e6f3fda8123f1a61c42ddc2e90396b3e90c27"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-02.json",
+      "bytes": 656,
+      "sha256": "8257598074fe3a82d7e75186eb19834c73aecce81b49288362d652efde7376f6"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-03.json",
+      "bytes": 1117,
+      "sha256": "598fa799fd29657d3e3a5b159b24886f2497f9fcbeb1e80d95996ab4aae63cc8"
+    },
+    {
+      "member": "native-preview/samples5000/sample-002/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-002\\native-perf-sdk-phase-04.json",
+      "bytes": 448,
+      "sha256": "204e6ac0035eb7c3313796d4ff4fe2aefd1a44be4598b10b4c380d63d13d4d2f"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-auth-attribution.json",
+      "bytes": 10070,
+      "sha256": "2ec5306204e44112fa185f40d75293bad36eb1173ae4398ab9a0ef562a4bac67"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-consumed.json",
+      "bytes": 258,
+      "sha256": "77954ab7e781236e3c50122494bcc1d86aeb9aa2dde97d442781a601261422c3"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-maintenance-admission.json",
+      "bytes": 412,
+      "sha256": "2e69392c892fd55d5e92b633935727cb87b297d8fc93f83934f35d2ccc7c3964"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-owned.json",
+      "bytes": 7756,
+      "sha256": "f4de5c9f338a753befa9323f43e9b04005c9d1f97b03b413b112bc30a2b7d51f"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-permission-commands.json",
+      "bytes": 636,
+      "sha256": "6a4e2fa20228be2f9e5a3507dfdc3a6030f9753e9252721f93727f23fb90a2e7"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-journey-authorized.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "bytes": 163,
+      "sha256": "5457a4fe6e5220ca95eb10ab4031a54d48d514cd2ec0f48cdfefdac7a0ff53a0"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-journey-bound.json",
+      "bytes": 568,
+      "sha256": "73dceede387491dffb388e42fe2c9048cedfeb1dc021f69e2b9acef13d111c96"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-journey-requested.json",
+      "bytes": 355,
+      "sha256": "c3ce36a76810f3c6aacf4cbfa5cfd7c51962e68d468385f9633854876c4153e2"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-journey.json",
+      "bytes": 26746,
+      "sha256": "9e0d60ff64ab4453effbf4c0f897a3c6b64a3db816bf9717755a7b8248510905"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-pdf-first-page-01.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-pdf-first-page-01.png",
+      "bytes": 32200,
+      "sha256": "fb341e6c2ea4c539536cbd0ba3747acc40a70e7e473a0971512b03f9f4b49813"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-pdf-first-page-02.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-pdf-first-page-02.png",
+      "bytes": 40315,
+      "sha256": "79b01f2c96ba813a5a8e8ac2b4cba2c5e37ad235e197e6326906b7d16996aa91"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-pdf-first-page-03.png",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-pdf-first-page-03.png",
+      "bytes": 41406,
+      "sha256": "5e9cda072e33ebf9c53fe8183bd2cd7c23244f658d15bfdb2ba5750ed9385a00"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "12fb2bb48c0f6bf7ec31d59322dcdacf5ac814ccdce2d6b12be2ea31ab3eb9ab"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-phase-02.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-02.json",
+      "bytes": 573,
+      "sha256": "c9b33241a6562831412a0832199f8edd21df419b39f5c921d25a288f395cd5c8"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-phase-03.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-03.json",
+      "bytes": 1181,
+      "sha256": "b9e929902676f136bcac8a0c3e58bd2694285b447ed7166d08127a2b99857bbc"
+    },
+    {
+      "member": "native-preview/samples5000/sample-003/native-perf-sdk-phase-04.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\samples5000\\sample-003\\native-perf-sdk-phase-04.json",
+      "bytes": 581,
+      "sha256": "b2b4e9c1ecaa661daecc2ed07edec101a1f1a85096ff38919df6499b62ee670a"
+    },
+    {
+      "member": "native-preview/session-before-100.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\session-before-100.json",
+      "bytes": 318,
+      "sha256": "0f179ef69fdcf79187ddd66f9dc8e300dd71f3a46dbe19fd74dc92a86d767c0c"
+    },
+    {
+      "member": "native-preview/session-before-5000.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\session-before-5000.json",
+      "bytes": 319,
+      "sha256": "4079d0b718336a54eab1c0d643fbed8d1278ec5b6b0415a04150e828ae728d9e"
+    },
+    {
+      "member": "native-preview/terminal.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\terminal.json",
+      "bytes": 1409,
+      "sha256": "70ddc6fe056ce7026cdbc97cbc059520574a3ad83b906e064a3321a656ba5c97"
+    },
+    {
+      "member": "native-preview/visual-review.json",
+      "source": "D:\\SoloSoul\\build\\rf1149-current-windows-pdf-preview-20261014\\visual-review.json",
+      "bytes": 499,
+      "sha256": "8955d719c484247e6036b67d82e329e9347ec5999e2f0d2a53dd9b98296416c0"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-pdf-pixels.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-pdf-pixels.mjs",
+      "bytes": 4521,
+      "sha256": "7b08a63976d41f6cc3600ca90171545a4e07d0187c20f414bdf3027181ca13fa"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-pdf-preview-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-pdf-preview-contract.mjs",
+      "bytes": 14990,
+      "sha256": "415b40b66d3f60872be1b1dd6e9102d805c9c2e6c25951e5d996aebe90e5c179"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-pdf-preview.test.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-pdf-preview.test.mjs",
+      "bytes": 17210,
+      "sha256": "26a99182b65202bbbf9b1b2c80f6fd64cc49e19ba4285056720afe77d1fb5d07"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-sdk-journey.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-sdk-journey.mjs",
+      "bytes": 30294,
+      "sha256": "69e83842f390fd1a6f14ba1c44b71cb276c8de6b0dc5b37549e9ed2841dfa6bd"
+    },
+    {
+      "member": "sources/tauri/src-tauri/src/native_perf/fixtures/pdf-first-page-integrated.png",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\fixtures\\pdf-first-page-integrated.png",
+      "bytes": 41411,
+      "sha256": "f85d1cb4076535fbaec6825675e0f2e26aad2167b15729230919530700283609"
+    },
+    {
+      "member": "sources/tauri/src-tauri/src/native_perf/fixtures/pdf-first-page.png",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\fixtures\\pdf-first-page.png",
+      "bytes": 34024,
+      "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9"
+    },
+    {
+      "member": "sources/tauri/src-tauri/src/native_perf/sdk_pdf_pixels.rs",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_pdf_pixels.rs",
+      "bytes": 16906,
+      "sha256": "ecc4866b6f58f89b052ecee2445cc04c0d4b01798b509760865055c52cfc67d1"
+    }
+  ],
+  "allLengthsSha256AndCrcVerified": true,
+  "programsVaultsResourcesAndCachesExcluded": true,
+  "publicReferenceAndActualFirstPagePngsIncluded": true
+}

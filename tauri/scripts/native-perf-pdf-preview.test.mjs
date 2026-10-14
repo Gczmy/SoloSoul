@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -22,6 +23,12 @@ const reference = await readFile(
   new URL('../src-tauri/src/native_perf/fixtures/pdf-first-page.png', import.meta.url),
 );
 const observed = inspectPdfPixels(reference);
+// 原件复制自 RF-312 公开夹具诊断 sample-002；历史参考不替换。
+const integratedReference = await readFile(
+  new URL('../src-tauri/src/native_perf/fixtures/pdf-first-page-integrated.png', import.meta.url),
+);
+const integratedViewport = { width: 1200, height: 831 };
+const integratedRoi = { x: 266, y: 221, width: 430, height: 36 };
 const resourceId = 'att_00000000-0000-0000-0000-000000000001';
 const resourcePath = `attachments/obj_perf_00000000/${resourceId}/text_only.pdf`;
 const owned = {
@@ -65,13 +72,15 @@ const dom = (phase) => ({
   target: phase === 'closed' ? null : { x: 500, y: 60, actionable: true },
   inputTrust: { ...trust },
 });
-function proof() {
+function proof(schemaVersion = 2) {
+  const image = schemaVersion === 3 ? integratedReference : reference;
+  const pixels = inspectPdfPixels(image, schemaVersion);
   const samples = [0, 1].map((i) => ({
-    ...observed,
+    ...pixels,
     frameStable: true,
     index: i,
     fileName: `native-perf-sdk-pdf-first-page-${String(i + 1).padStart(2, '0')}.png`,
-    bytes: reference.length,
+    bytes: image.length,
     sha256: 'b'.repeat(64),
     captureStartedAtMs: 21000 + i * 500,
     captureFinishedAtMs: 21010 + i * 500,
@@ -160,13 +169,13 @@ function proof() {
     elapsedMs: 23000,
     unmeasured: [...PDF_PREVIEW_UNMEASURED],
     pdfPreview: {
-      schemaVersion: 2,
+      schemaVersion,
       scope: 'windows-native-sdk-public-pdf-first-page',
       assetSha256: PDF_ASSET_SHA,
       resourceBinding: { kind: 'prepared-vault-ciphertext', bytes: 3076, sha256: 'c'.repeat(64) },
       renderVerified: true,
-      viewport: { ...PDF_VIEWPORT },
-      roi: { ...PDF_ROI },
+      viewport: { ...(schemaVersion === 3 ? integratedViewport : PDF_VIEWPORT) },
+      roi: { ...(schemaVersion === 3 ? integratedRoi : PDF_ROI) },
       referenceMaskSha256: PDF_MASK_SHA,
       threshold: { alphaMin: 240, rgbMax: 64 },
       maxCaptures: 16,
@@ -205,16 +214,17 @@ function chunk(kind, data) {
   crc.writeUInt32BE(pngCrc(Buffer.concat([type, data])));
   return Buffer.concat([size, type, data, crc]);
 }
-function blank(partial = false) {
+function blank(partial = false, viewport = PDF_VIEWPORT, roi = PDF_ROI) {
+  const { width, height } = viewport;
   const h = Buffer.alloc(13);
-  h.writeUInt32BE(1028);
-  h.writeUInt32BE(749, 4);
+  h.writeUInt32BE(width);
+  h.writeUInt32BE(height, 4);
   h[8] = 8;
   h[9] = 6;
-  const raw = Buffer.alloc((1028 * 4 + 1) * 749, 255);
-  for (let y = 0; y < 749; y++) raw[y * (1028 * 4 + 1)] = 0;
+  const raw = Buffer.alloc((width * 4 + 1) * height, 255);
+  for (let y = 0; y < height; y++) raw[y * (width * 4 + 1)] = 0;
   if (partial) {
-    const at = 240 * (1028 * 4 + 1) + 1 + 195 * 4;
+    const at = (roi.y + 15) * (width * 4 + 1) + 1 + (roi.x + 15) * 4;
     raw[at] = raw[at + 1] = raw[at + 2] = 0;
   }
   return Buffer.concat([
@@ -245,6 +255,83 @@ test('independent decoder rejects blank, partial text, corrupt CRC and allocatio
 });
 test('strict complete first-page native proof accepts repeated observations', () =>
   assert.equal(check(proof()).pdfPreview.renderVerified, true));
+
+test('actual integrated PNG keeps the original text mask with an explicit geometry version', () => {
+  assert.equal(
+    createHash('sha256').update(reference).digest('hex'),
+    '5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9',
+  );
+  assert.equal(
+    createHash('sha256').update(integratedReference).digest('hex'),
+    'f85d1cb4076535fbaec6825675e0f2e26aad2167b15729230919530700283609',
+  );
+  assert.deepEqual(inspectPdfPixels(integratedReference, 3), {
+    ...integratedViewport,
+    darkPixels: 530,
+    maskSha256: PDF_MASK_SHA,
+    matches: true,
+  });
+  assert.throws(() => inspectPdfPixels(integratedReference, 2));
+  assert.throws(() => inspectPdfPixels(reference, 3));
+  for (const version of [1, 4, '3', null, {}, '__proto__'])
+    assert.throws(() => inspectPdfPixels(reference, version));
+});
+
+test('current geometry rejects blank, partial text, corruption, format and unknown viewport', () => {
+  assert.equal(inspectPdfPixels(blank(false, integratedViewport, integratedRoi), 3).matches, false);
+  const partial = inspectPdfPixels(blank(true, integratedViewport, integratedRoi), 3);
+  assert.equal(partial.matches, false);
+  assert.equal(partial.darkPixels, 1);
+  const crc = Buffer.from(integratedReference);
+  crc[100] ^= 1;
+  assert.throws(() => inspectPdfPixels(crc, 3));
+  for (const [at, value] of [
+    [16, 1201],
+    [20, 832],
+    [24, 16],
+    [25, 2],
+    [28, 1],
+  ]) {
+    const wrong = Buffer.from(integratedReference);
+    if (at < 24) wrong.writeUInt32BE(value, at);
+    else wrong[at] = value;
+    wrong.writeUInt32BE(pngCrc(wrong.subarray(12, 29)), 29);
+    assert.throws(() => inspectPdfPixels(wrong, 3));
+  }
+});
+
+test('native proof binds both geometry versions and visible close control bounds', () => {
+  for (const version of [2, 3]) {
+    const v = proof(version);
+    assert.equal(check(v), v);
+    const other = proof(version === 2 ? 3 : 2).pdfPreview;
+    const edits = [
+      (d) => (d.schemaVersion = version === 2 ? 3 : 2),
+      (d) => (d.schemaVersion = 4),
+      (d) => (d.schemaVersion = String(version)),
+      (d) => (d.viewport = other.viewport),
+      (d) => (d.roi = other.roi),
+      (d) => (d.samples[0].width = other.samples[0].width),
+      (d) => (d.samples[0].height = other.samples[0].height),
+      (d) => (d.samples[0].domAfter.target.x = d.viewport.width),
+      (d) => (d.samples[0].domAfter.target.y = d.viewport.height),
+      (d) => (d.samples[1].captureStartedAtMs = d.samples[0].verifiedAtMs + 249),
+      (d) => (d.samples[1].domAfter.inputTrust.untrusted = 1),
+      (d) => (d.requiredConsecutiveMatches = 1),
+      (d) => (d.maxCaptures = 17),
+      (d) => (d.intervalMs = 249),
+    ];
+    for (const edit of edits) {
+      const bad = structuredClone(v);
+      edit(bad.pdfPreview);
+      assert.throws(() => check(bad));
+    }
+  }
+  const current = proof(3);
+  current.pdfPreview.samples[0].domAfter.target.x = 1100;
+  current.pdfPreview.samples[0].domAfter.target.y = 800;
+  assert.equal(check(current), current);
+});
 test('PDF protocol rejects missing, reordered or extra final authentication guards', () => {
   const edits = [
     (v) => v.calls.splice(-2),

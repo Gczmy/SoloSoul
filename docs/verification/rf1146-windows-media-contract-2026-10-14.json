@@ -1,0 +1,95 @@
+{
+  "task": "RF-1146",
+  "accepted": true,
+  "taskClosed": true,
+  "goal": "active",
+  "sourceHeadBeforeFix": "114b3dcc4",
+  "changedSources": {
+    "tauri/scripts/native-perf-media-contract.mjs": {
+      "before": "481d61b09fbf8739b8986fb8d2f2e23bb802dc918220875b862121f28eaf463b",
+      "after": "8bb3e996d5062a7dc6103bfd789b37238abb7f784be0533f61ea88eb68468659"
+    },
+    "tauri/scripts/native-perf-media.test.mjs": {
+      "before": "50c79b5757c7e80569381ee94533aab54af3f68cdd09baafd67e5b010cbb4ab7",
+      "after": "3b44957e9846cc1a7f9a72fff55a42f277b265efaf620f413ba3bd45c6afd07c"
+    }
+  },
+  "defaultClientRustFrontendAndDependenciesUnchanged": true,
+  "oldDescriptor": {
+    "bytes": 1921,
+    "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+  },
+  "currentDescriptor": {
+    "bytes": 5082,
+    "sha256": "0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525"
+  },
+  "checks": {
+    "red": {
+      "tests": 11,
+      "pass": 9,
+      "fail": 2,
+      "skipped": 0
+    },
+    "targeted": {
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "skipped": 0
+    },
+    "initialSandbox": {
+      "tests": 260,
+      "pass": 254,
+      "fail": 5,
+      "skipped": 1
+    },
+    "fullNativePermissions": {
+      "tests": 260,
+      "pass": 259,
+      "fail": 0,
+      "skipped": 1
+    },
+    "formatExitCode": 0
+  },
+  "runtimeSha256": "446e6221baa45285607fa594ba4dd7ea151edf8de83ce281c6fcd80aad3734a1",
+  "runtimeNotRebuilt": true,
+  "resourceCount": 94,
+  "frontendOutputsByteUnchanged": 38,
+  "successfulCompleteMatrix": {
+    "groups": 2,
+    "samplesPerGroup": 5,
+    "nativePhases": 90,
+    "memoryPoints": 91,
+    "independentVerifierExitCode": 0
+  },
+  "priorWholeMediaMatrixRejected": true,
+  "prior5000HomeTimeoutBeforeLoginPreserved": true,
+  "timeoutRootCauseUnestablished": true,
+  "cleanups": [
+    {
+      "stage": "D:\\SoloSoul\\build\\rf1146-native-media-20261014",
+      "identitiesChecked": 90,
+      "cachePathsRemoved": 80,
+      "preservedFiles": 300,
+      "linksUnlinked": 0,
+      "bytesVerified": true
+    },
+    {
+      "stage": "D:\\SoloSoul\\build\\rf1146-native-media-retry1-20261014",
+      "identitiesChecked": 90,
+      "cachePathsRemoved": 80,
+      "preservedFiles": 310,
+      "linksUnlinked": 0,
+      "bytesVerified": true
+    }
+  ],
+  "fullRF312Accepted": false,
+  "fullRF121Accepted": false,
+  "pushPendingExplicitApproval": true,
+  "archive": {
+    "path": "rf1146-windows-media-contract-2026-10-14/raw.zip",
+    "members": 509,
+    "bytes": 1571984,
+    "sha256": "fee2c0425bea917ed969a5c8ddc7da203ae3261b0471fe73b90c3ba247516291",
+    "allLengthsSha256AndCrcVerified": true
+  }
+}

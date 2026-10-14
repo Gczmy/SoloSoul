@@ -1,4 +1,5 @@
 .overlay {
+  outline-color: var(--bg-overlay);
   position: fixed;
 
   inset: 0;
@@ -14,6 +15,11 @@
   background: var(--bg-overlay);
 
   backdrop-filter: blur(4px);
+}
+
+.overlay[data-native-window-backdrop='true'] {
+  background: transparent;
+  backdrop-filter: none;
 }
 
 :global([data-platform='android']) .overlay {

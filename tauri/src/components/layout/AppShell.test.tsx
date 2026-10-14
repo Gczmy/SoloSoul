@@ -96,7 +96,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
 
   it('侧栏展开状态变化不重建正文或丢失草稿、焦点和滚动位置', () => {
     useUiStore.setState({ sidebarExpanded: true });
-    render(
+    const { unmount } = render(
       <MemoryRouter>
         <AppShell title="首页">
           <input aria-label="侧栏切换中的编辑" />
@@ -108,6 +108,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     fireEvent.change(input, { target: { value: '未保存草稿' } });
     input.focus();
     content.scrollTop = 500;
+    const release = vi.spyOn(document.documentElement.style, 'removeProperty');
     act(() => useUiStore.setState({ sidebarExpanded: false }));
     expect(document.querySelector('[data-shell-content]')).toBe(content);
     expect(input).toHaveValue('未保存草稿');
@@ -116,6 +117,17 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     act(() => useUiStore.setState({ sidebarExpanded: true }));
     expect(document.querySelector('[data-shell-content]')).toBe(content);
     expect(content.scrollTop).toBe(500);
+    for (let i = 0; i < 12; i++) {
+      act(() => useUiStore.setState({ sidebarExpanded: i % 2 === 0 }));
+      expect(document.querySelector('[data-shell-content]')).toBe(content);
+      expect(input).toHaveValue('未保存草稿');
+      expect(input).toHaveFocus();
+      expect(content.scrollTop).toBe(500);
+    }
+    expect(release).not.toHaveBeenCalledWith('--sidebar-width');
+    expect(release).not.toHaveBeenCalledWith('--shell-content-left');
+    unmount();
+    expect(document.documentElement.style.getPropertyValue('--sidebar-width')).toBe('');
   });
 
   it('入站配对信任失败时保留对话框并提示错误', async () => {

@@ -15,6 +15,7 @@ import { useOverlayBackGuard } from '@/hooks/useOverlayBackGuard';
 import { isAndroidSync } from '@/lib/platform';
 import styles from './ObjectDetailModal.module.css';
 import { ToastOutlet } from '@/components/ui/ToastOutlet';
+import { useNativeBackdropClose } from '@/hooks/useNativeBackdropClose';
 
 import { useObjectDetailModal, type ObjectDetailModalProps } from './useObjectDetailModal';
 
@@ -28,7 +29,7 @@ export type { ObjectDetailModalProps } from './useObjectDetailModal';
 export function ObjectDetailModal(props: ObjectDetailModalProps) {
   const {
     needsSync,
-    onClose,
+    onClose: originalClose,
     onHistory,
     onAttachments,
     onEdit,
@@ -37,6 +38,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     onDismissSync,
     onViewDeprecatedFields,
   } = props;
+  const { native, backdropRef, close: onClose } = useNativeBackdropClose(originalClose);
   const {
     t,
     accountId,
@@ -87,7 +89,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     // 拖拽上传
     detailDragRef,
     detailDragState,
-  } = useObjectDetailModal(props);
+  } = useObjectDetailModal({ ...props, onClose });
 
   // 对象详情以本地状态覆盖工作区；Android 返回应先关闭最上层卡片，保留列表路由。
   useOverlayBackGuard({
@@ -104,7 +106,13 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
 
   return (
     <>
-      <div className={styles.overlay} data-macos-glass-backdrop onClick={onClose}>
+      <div
+        ref={backdropRef}
+        className={styles.overlay}
+        data-macos-glass-backdrop
+        data-native-window-backdrop={native || undefined}
+        onClick={onClose}
+      >
         {!loading && obj && (
           <div
             ref={detailDragRef}
@@ -112,6 +120,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
             className={styles.modal}
             data-testid="object-detail-modal"
             data-macos-glass="panel"
+            data-native-backdrop-panel
             role="dialog"
             aria-modal="true"
             aria-label={obj.name}

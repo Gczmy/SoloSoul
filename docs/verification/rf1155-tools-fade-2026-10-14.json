@@ -1,0 +1,956 @@
+{
+  "schema": 1,
+  "task": "RF-1155",
+  "date": "2026-10-14",
+  "scope": "Tools hover fade across the complete reveal/conceal timeline; respect reduced motion",
+  "frontend": {
+    "artifact": "Vite production distribution, local preview, Edge chromium project; public mocked account data",
+    "baseline": {
+      "total": 15,
+      "failed": 14,
+      "passed": 1,
+      "reason": "Early opacity completion; horizontal app reduced motion missing"
+    },
+    "after": {
+      "passed": 35,
+      "failed": 0,
+      "retries": 0
+    },
+    "platforms": ["Windows simulated", "macOS simulated"],
+    "positions": ["left", "right", "top", "bottom"],
+    "progressSamples": [0.15, 0.5, 0.85],
+    "methods": [
+      "Pause actual CSS transitions and seek reveal/opacity at the same real time",
+      "Playwright browser pointer input for hover reversal, then Search input focus",
+      "Closed menu inert and keyboard/Escape checks",
+      "System media/native/app reduced motion sources"
+    ],
+    "limitation": "Browser macOS simulation is not a native macOS material acceptance"
+  },
+  "native": {
+    "host": "Existing isolated Windows Tauri WebView2 regression example; no account or Vault commands registered",
+    "conditions": "OS media and native reduced motion true. Normal source transition declarations restored only on fixture Tools/menu-cover elements; OS and production preferences unchanged. Source open visibility delay also restored.",
+    "input": "Synthetic DOM enter/leave; public production sidebar and complete bootstrap global CSS",
+    "sourceModules": 110,
+    "fixtureSHA256": {
+      "before": "d6d4fd472903a57e085c94fa06ba749416f1274361326df11e4ada97a4dfa64f",
+      "after": "42d9852c22ac63f4d95efd1563c2872418fd93f5e4d57dd94fe4306148887f22"
+    },
+    "probeSource": "docs/verification/rf1155-tools-fade-native-probe.mjs",
+    "executedProbeSHA256": "fc11168ea42b44002d246ee07adf246a8b03c6c406b6cf20fff148eb2a8c774a",
+    "publishedProbeSHA256": "6b568e0bc0165c9ecd2e8c7850d22b44028abc830754cc8ab4021cdf54f7fa38",
+    "probeNote": "Published helper differs only by Prettier formatting; the executed source hash is retained separately.",
+    "invalidInitialProbe": {
+      "reason": "Inline transition shorthand overrode open visibility delay; opening hidden during sampling. Excluded from product red/green acceptance.",
+      "evidence": {
+        "completed": true,
+        "environment": {
+          "mediaReduced": true,
+          "reduceMotion": "true",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+        },
+        "pass": false,
+        "results": [
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": false,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "hidden"
+                }
+              ]
+            },
+            "position": "left"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": true,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "hidden"
+                }
+              ]
+            },
+            "position": "left"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": false,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "hidden"
+                }
+              ]
+            },
+            "position": "right"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": true,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "hidden"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "hidden"
+                }
+              ]
+            },
+            "position": "right"
+          }
+        ],
+        "scope": "rf1155-public-native-tools-fade",
+        "sourceNormalTransitionsRestoredInFixtureOnly": true
+      }
+    },
+    "before": [
+      {
+        "position": "left",
+        "reducedClose": {
+          "inert": true,
+          "opacity": "0",
+          "visibility": "hidden"
+        },
+        "reducedOpen": {
+          "duration": "0s",
+          "inert": false,
+          "opacity": "1"
+        },
+        "scope": "rf1155-public-native-reduced-motion"
+      },
+      {
+        "position": "right",
+        "reducedClose": {
+          "inert": true,
+          "opacity": "0",
+          "visibility": "hidden"
+        },
+        "reducedOpen": {
+          "duration": "0s",
+          "inert": false,
+          "opacity": "1"
+        },
+        "scope": "rf1155-public-native-reduced-motion"
+      },
+      {
+        "completed": true,
+        "environment": {
+          "mediaReduced": true,
+          "reduceMotion": "true",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+        },
+        "pass": false,
+        "results": [
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": false,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "left"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": true,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "left"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": false,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "right"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": true,
+              "opening": false,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.681895,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0592354,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": true,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 300,
+              "inert": false,
+              "opening": true,
+              "pass": false,
+              "samples": [
+                {
+                  "opacity": 0.318105,
+                  "p": 0.15,
+                  "synchronized": false,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.940765,
+                  "p": 0.5,
+                  "synchronized": false,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 1,
+                  "p": 0.85,
+                  "synchronized": false,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "right"
+          }
+        ],
+        "scope": "rf1155-public-native-tools-fade",
+        "sourceNormalTransitionsRestoredInFixtureOnly": true
+      }
+    ],
+    "after": [
+      {
+        "position": "left",
+        "reducedClose": {
+          "inert": true,
+          "opacity": "0",
+          "visibility": "hidden"
+        },
+        "reducedOpen": {
+          "duration": "0s",
+          "inert": false,
+          "opacity": "1"
+        },
+        "scope": "rf1155-public-native-reduced-motion"
+      },
+      {
+        "position": "right",
+        "reducedClose": {
+          "inert": true,
+          "opacity": "0",
+          "visibility": "hidden"
+        },
+        "reducedOpen": {
+          "duration": "0s",
+          "inert": false,
+          "opacity": "1"
+        },
+        "scope": "rf1155-public-native-reduced-motion"
+      },
+      {
+        "completed": true,
+        "environment": {
+          "mediaReduced": true,
+          "reduceMotion": "true",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+        },
+        "pass": true,
+        "results": [
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": true,
+              "opening": false,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.814543,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.197597,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0132303,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": false,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": false,
+              "opening": true,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.185457,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.802403,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.98677,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "left"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": true,
+              "opening": false,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.814543,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.197597,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0132303,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": true,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": false,
+              "opening": true,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.185457,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.802403,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.98677,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "left"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": true,
+              "opening": false,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.814543,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.197597,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0132303,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": false,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": false,
+              "opening": true,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.185457,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.802403,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.98677,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "right"
+          },
+          {
+            "close": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": true,
+              "opening": false,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.814543,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 18.5457,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.197597,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 80.2403,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.0132303,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 98.677,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "collapsed": true,
+            "open": {
+              "duration": 420,
+              "fadeDuration": 420,
+              "inert": false,
+              "opening": true,
+              "pass": true,
+              "samples": [
+                {
+                  "opacity": 0.185457,
+                  "p": 0.15,
+                  "synchronized": true,
+                  "top": 81.4543,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.802403,
+                  "p": 0.5,
+                  "synchronized": true,
+                  "top": 19.7597,
+                  "visibility": "visible"
+                },
+                {
+                  "opacity": 0.98677,
+                  "p": 0.85,
+                  "synchronized": true,
+                  "top": 1.32303,
+                  "visibility": "visible"
+                }
+              ]
+            },
+            "position": "right"
+          }
+        ],
+        "scope": "rf1155-public-native-tools-fade",
+        "sourceNormalTransitionsRestoredInFixtureOnly": true
+      }
+    ],
+    "cleanup": "Only three owned fixture processes terminated after PID/birth/path checks; their workspace-local non-reparse WebView profiles removed after child process release. Reports preserved."
+  },
+  "checks": {
+    "nativeApplication": {
+      "SHA256": "E328C8A4259AAEEEFC3AA28517D223B3CC1E8C18D3B3501775D8F64F4B10F4DD",
+      "Bytes": 105433600,
+      "ManifestVerified": true,
+      "DefaultCustomProtocol": true,
+      "NativePerformanceFeature": false,
+      "result": "Default custom-protocol application entry built successfully in 17m37s; copied EXE SHA matches and Windows 10/Common Controls v6 manifest extracted and verified",
+      "additionalGuiEntryBuild": "Cancelled optional recompilation to hide debug console; original successful default debug subsystem EXE retained",
+      "limitation": "New real-account EXE not automatically operated or manually accepted; native acceptance refers to isolated public fixture only"
+    },
+    "typeScript": "npm run build includes tsc --noEmit; exit 0",
+    "lint": "exit 0; existing syncStore.ts:838 unused event warning preserved",
+    "prettier": "Both changed CSS modules and sidebar-tools.spec.ts passed",
+    "fullTest": {
+      "command": "npm run test -- --maxWorkers 1 --testTimeout 15000",
+      "originalSandboxAttempt": {
+        "exit": 1,
+        "node": {
+          "passed": 258,
+          "failed": 7,
+          "skipped": 1
+        },
+        "reason": "Sandbox EPERM denied rename/junction/process probes; Vitest not started"
+      },
+      "rerun": {
+        "exit": 0,
+        "node": {
+          "passed": 265,
+          "failed": 0,
+          "skipped": 1
+        },
+        "vitest": {
+          "files": 265,
+          "passed": 2374,
+          "failed": 0
+        },
+        "note": "Same test arguments; outside tool sandbox, task temporary files on D drive. One existing Windows file symlink permission skip, no new skip or automatic retry."
+      }
+    }
+  }
+}

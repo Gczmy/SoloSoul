@@ -1,0 +1,241 @@
+{
+  "task": "RF-1148",
+  "members": [
+    {
+      "member": "checks/archive-and-close.py",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\archive-and-close.py",
+      "bytes": 8150,
+      "sha256": "1601d88e8540ddf0c8860a27067ac5138d311ae26915db5a6ff2f829fdfe3daf"
+    },
+    {
+      "member": "checks/before-native-perf-auth-attribution.test.mjs",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\before-native-perf-auth-attribution.test.mjs",
+      "bytes": 9162,
+      "sha256": "1ac89b2b0c48c3b8f717e0a8a9084e3dbd2b745cc348df7c0e8e863992d6f84e"
+    },
+    {
+      "member": "checks/before-native-perf-auth-contract.mjs",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\before-native-perf-auth-contract.mjs",
+      "bytes": 12056,
+      "sha256": "6c558156d1acf1e7ea7d62fe59249519507c92172909a8c35b4dbe8b802b282b"
+    },
+    {
+      "member": "checks/full-node.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\full-node.live.json",
+      "bytes": 128,
+      "sha256": "94b91c986b91c1a7cfc5f98ea18c27d490fd0ea55f07464b26feff1f24d5cfa4"
+    },
+    {
+      "member": "checks/full-node.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\full-node.receipt.json",
+      "bytes": 124,
+      "sha256": "5ffafb748dd35e58efbbf1f867c5b68e0bac9e1319bbd4118d60d317c489ea28"
+    },
+    {
+      "member": "checks/full-node.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\full-node.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "checks/full-node.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\full-node.stdout.log",
+      "bytes": 26488,
+      "sha256": "d966f2ae199133d89f95e78bddb62ec1d64695694ddf0e27abfa3d24d199b730"
+    },
+    {
+      "member": "checks/independent-auth-replay.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\independent-auth-replay.json",
+      "bytes": 138637,
+      "sha256": "0a3b88a54423c793c54d0fb3a888a35eff5fb0fc68cf14386b4cbc2f1b9220be"
+    },
+    {
+      "member": "checks/native-perf-run.mjs",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\native-perf-run.mjs",
+      "bytes": 155,
+      "sha256": "5961acf6d4ffedfe9c919355cf9cb155e24004a18a393d7731a236a4660c1b44"
+    },
+    {
+      "member": "checks/prettier-final.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-final.live.json",
+      "bytes": 252,
+      "sha256": "a210e2487070903831fc50f5ab3239aaebc4adb7d82eec07b930c10cdeb15e22"
+    },
+    {
+      "member": "checks/prettier-final.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-final.receipt.json",
+      "bytes": 250,
+      "sha256": "82c6b07058deb0e2d56f956861cd7a5f55a555d96976fa15fd5ebb94d9f1127a"
+    },
+    {
+      "member": "checks/prettier-final.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-final.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "checks/prettier-final.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-final.stdout.log",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "member": "checks/prettier-write.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-write.live.json",
+      "bytes": 253,
+      "sha256": "e3a3eb2a1e5305ea973807fa96a168b28289c930f1309c64066b7dedff96bf8a"
+    },
+    {
+      "member": "checks/prettier-write.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-write.receipt.json",
+      "bytes": 251,
+      "sha256": "7d8f0d078b6227d13081bebb49690f983fb3fefad889df1170aea09e02ccf61b"
+    },
+    {
+      "member": "checks/prettier-write.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-write.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "checks/prettier-write.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier-write.stdout.log",
+      "bytes": 94,
+      "sha256": "d227d51f3202b8f8bb13b0c80044e416628b3404a52a93edec502cd5fc349f3a"
+    },
+    {
+      "member": "checks/prettier.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier.live.json",
+      "bytes": 253,
+      "sha256": "bebd13f3444f8187048eb6ec809c64d2039ca31e8b9e6930020a0cfcffc5f954"
+    },
+    {
+      "member": "checks/prettier.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier.receipt.json",
+      "bytes": 250,
+      "sha256": "99abf3996e35cacddf107294b5a427a24f724459c245c3726250f6f05aa74172"
+    },
+    {
+      "member": "checks/prettier.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier.stderr.log",
+      "bytes": 175,
+      "sha256": "6ee80cb847d5f302a48a7e52662b4abcbba77e55f968f0c5a7c2502c8975068c"
+    },
+    {
+      "member": "checks/prettier.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\prettier.stdout.log",
+      "bytes": 23,
+      "sha256": "ebe82dad128d5e5d8936334ceac09492f3c60bd9e0b4a16cc7fd7075513b33de"
+    },
+    {
+      "member": "checks/red-native-perf-auth-attribution.test.mjs",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\red-native-perf-auth-attribution.test.mjs",
+      "bytes": 11919,
+      "sha256": "d723b4f52e1e34ef04cafc1f2a5b9bef4c92d1f13fee2f9b9b71516cb3f1fab4"
+    },
+    {
+      "member": "checks/replay-auth-records.mjs",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\replay-auth-records.mjs",
+      "bytes": 6479,
+      "sha256": "29085bb11fb7d5d1b93a78f4d65d72bf60e96cf3a48b2c344c6ee48599e537f4"
+    },
+    {
+      "member": "checks/routes-green.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-green.live.json",
+      "bytes": 249,
+      "sha256": "85eeb5223ebace4293a7ac3b19187ffd53268276542c167a8f25707475079db2"
+    },
+    {
+      "member": "checks/routes-green.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-green.receipt.json",
+      "bytes": 246,
+      "sha256": "7f102ba9e0d8eb8af40728d8a943910410bbb3969fde3d7a357c2acbc2f8ed78"
+    },
+    {
+      "member": "checks/routes-green.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-green.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "checks/routes-green.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-green.stdout.log",
+      "bytes": 2428,
+      "sha256": "0679915cbe370b3405d3c7465ae2b0841415ff16a00953437ba218d0dfb182dd"
+    },
+    {
+      "member": "checks/routes-red.live.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-red.live.json",
+      "bytes": 161,
+      "sha256": "52a4345e3eace2f8c97306981f981ab4a3dd9ddb0d848a56580d5746e3ab45a4"
+    },
+    {
+      "member": "checks/routes-red.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-red.receipt.json",
+      "bytes": 159,
+      "sha256": "19b899fe2238e851862d0a700a95b30aeb4da92a1234773b228efa31a96de40f"
+    },
+    {
+      "member": "checks/routes-red.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-red.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "checks/routes-red.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\routes-red.stdout.log",
+      "bytes": 3246,
+      "sha256": "686ab3bd3d6b30da89cdab66f1c457d304869a3cc312d358698975954e6f49e3"
+    },
+    {
+      "member": "checks/run-check.py",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\run-check.py",
+      "bytes": 1922,
+      "sha256": "b983f0a0d77e43361c12f7f9fc0716296ea13a03fe840df29ffc92523d74bae0"
+    },
+    {
+      "member": "checks/runtime.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\runtime.json",
+      "bytes": 34875,
+      "sha256": "e8c7e0056860c307c3a3517f9e0ab16eb21688cb8e96a79fc5dbfbe4eb9cef2e"
+    },
+    {
+      "member": "checks/sources-after.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\sources-after.json",
+      "bytes": 246565,
+      "sha256": "19cfa1d9d428afebca197b3b45d3df95d1ab63fce8a727e0a20820feab6e6b40"
+    },
+    {
+      "member": "checks/sources-before.json",
+      "source": "D:\\SoloSoul\\build\\rf1148-auth-native-routes-20261014\\sources-before.json",
+      "bytes": 246565,
+      "sha256": "110dfff816adee1d97dc1d0171fd7c1e3d45a7f436864a24d77730004db0da3f"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-auth-attribution.test.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-auth-attribution.test.mjs",
+      "bytes": 11600,
+      "sha256": "fdd9f122dc93d1ce3ba9dc4934217c2b965cd2e9e36d9ce037428c777cb0516c"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-auth-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-auth-contract.mjs",
+      "bytes": 11886,
+      "sha256": "bb0fdf0e8118fa657c3c6c0cedbf7db63b33177e47da59710d68cbf6834a0305"
+    },
+    {
+      "member": "sources/tauri/scripts/native-perf-maintenance-contract.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-maintenance-contract.mjs",
+      "bytes": 3673,
+      "sha256": "dbf983e620e13a00269188ac641797a740ab833b7647a42055da7e7bd6e8af0f"
+    },
+    {
+      "member": "sources/tauri/src-tauri/src/native_perf/sdk_journey.rs",
+      "source": "D:\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_journey.rs",
+      "bytes": 69032,
+      "sha256": "32f5f0f5b527a6d7b5581429c6378581c2fe603d8cc2c49ac3c4ae27c612a250"
+    }
+  ],
+  "allLengthsSha256AndCrcVerified": true,
+  "programsVaultsCachesAndPrivateDataExcluded": true
+}

@@ -41,10 +41,13 @@ strip="debuginfo"
 (output/'Cargo.lock').write_bytes((root/'tauri/Cargo.lock').read_bytes())
 (output/'build.rs').write_text('''fn main() {
  println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
+ println!("cargo:rerun-if-changed=windows-compat.manifest");
+ println!("cargo:rustc-link-arg=/MANIFESTINPUT:{}/windows-compat.manifest",env!("CARGO_MANIFEST_DIR"));
  println!("cargo:rustc-link-arg=/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'");
 }
 ''',encoding='utf-8')
-inputs=[source,module,*module.parent.joinpath('window').glob('*.rs'),root/'tauri/src-tauri/Cargo.toml',root/'tauri/Cargo.lock']
+(output/'windows-compat.manifest').write_bytes((root/'tauri/src-tauri/windows-compat.manifest').read_bytes())
+inputs=[source,module,*module.parent.joinpath('window').glob('*.rs'),root/'tauri/src-tauri/build.rs',root/'tauri/src-tauri/windows-compat.manifest',root/'tauri/src-tauri/Cargo.toml',root/'tauri/Cargo.lock',Path(__file__).resolve()]
 freeze={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs}
 (output/'source-manifest.json').write_text(json.dumps(freeze,indent=2),encoding='utf-8')
 command=['cargo','build','--offline','--manifest-path',str(output/'Cargo.toml')]

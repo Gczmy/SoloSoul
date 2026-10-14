@@ -56,3 +56,13 @@ node scripts/native-perf-auth-attribution.mjs --exe C:\rf312\bin\solo_soul.exe -
 ## 2026-10-06 · 账户清单写入内部归因补证
 
 五个固定子阶段的两档完整样本、独立时钟复算及失败/检查/保全原件已归档，见[当前归因记录](RF-312-native-account-write-attribution.md)。该记录补充本阶段，不覆盖旧失败或替代无观测器基线；首页超时根因、受控优化效果、睡眠、多端与材质前置仍未关闭。
+
+## 2026-10-14 · 当前固定 SDK 路由消费合同（RF-1148）
+
+外部认证消费者现接受当前原生 SDK 的七个完整文档 URL：首页、登录、workspace、`workspace?section=identity`、search、`settings/attachments` 和 ocr；保留既有 objects 记录兼容。只补齐四个明确 URL，其他 origin、端口、路径、额外 query/fragment 仍拒绝，同 runId/PID、frame/loader、导航事件、timeOrigin、私密字段及阶段时间守卫不变。
+
+RF-1147 已保留的 18 次原生行程中有 11 份认证及维护诊断，新消费者全部复核通过。旧消费者真实拒绝其中 10 份 `/ocr` 记录，仍接受一份 `/login` 首页超时；原 7 次选择器拒绝没有发布认证诊断，继续标记不可用。只复核既有原件，不增加 GUI 运行或将原失败认作成功，首页超时仍未解释。
+
+回归旧实现为 8 passed / 2 failed；修复后认证、维护及 OCR 定向 21 passed，完整 Node 262 passed / 0 failed / 1 既有文件 symlink 权限 skip，两个修改文件格式检查通过。当前 GUI SHA `cb187a733caae0789eda23ae125c29f382c5985fc42fe881dbbe9577d43f96b1`、94 资源和 38 前端产物保持；1983 项构建清单仅两个外部 Node 文件变化，不重建或重跑无关客户端检查。
+
+[结构化关闭](../verification/rf1148-auth-native-routes-2026-10-14.json)与[39 成员原件索引](../verification/rf1148-auth-native-routes-2026-10-14/index.json)保存红绿检查、字节边界和独立复核，并引用 RF-1147 的 448 成员原生包。RF-312 全范围继续未完成；此消费者修复不证明旧输入、认证或多端缺陷已修复。

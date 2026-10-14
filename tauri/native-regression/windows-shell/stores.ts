@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 export const syncPlaintextPref = async () => {};
 export const useSettingsStore = create(() => ({
-  settings: { sidebarPosition: 'left', reduceMotion: false, theme: 'dark' },
+  settings: {
+    sidebarPosition: 'left',
+    reduceMotion: false,
+    theme: 'dark',
+    customPages: [],
+    sidebarButtonModes: {},
+  },
 }));
 export const useAuthStore = create(() => ({
   isAuthenticated: true,

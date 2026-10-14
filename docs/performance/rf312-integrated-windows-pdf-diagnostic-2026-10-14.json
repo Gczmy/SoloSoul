@@ -1,0 +1,629 @@
+{
+  "task": "RF-312",
+  "pdfCapabilityDiagnosticAccepted": true,
+  "pdfFirstPagePerformanceAccepted": false,
+  "performanceMetrics": null,
+  "fullRF312Accepted": false,
+  "goal": "active",
+  "sourceHead": "6875946682a7f49ef360c4491934251f0082ae35",
+  "runtimeSha256": "cb187a733caae0789eda23ae125c29f382c5985fc42fe881dbbe9577d43f96b1",
+  "sourceCount": 1983,
+  "compiledSourcesDifferOnlyTwoExternalNodeFiles": true,
+  "samplesPerGroup": 3,
+  "groups": [
+    100,
+    5000
+  ],
+  "nativeJourneys": 6,
+  "diagnosticSchemaVersion": 4,
+  "originalPdfAuthMaintenanceContractsReplayed": true,
+  "originalFirstPagePixelGateRefusedAllSix": true,
+  "currentMainViewport": [
+    1200,
+    831
+  ],
+  "originalFirstPageViewport": [
+    1028,
+    749
+  ],
+  "originalReferenceImageAndMaskUnchanged": true,
+  "sameMainCaptureAndParametersUsedByDiagnosticAndFirstPage": true,
+  "offlineGeometryOnly": {
+    "viewport": [
+      1200,
+      831
+    ],
+    "roi": [
+      266,
+      221,
+      430,
+      36
+    ],
+    "sixActualScreenshotsMatchOriginal530PixelMask": true,
+    "productionFilesModified": false,
+    "nativePerformanceAccepted": false
+  },
+  "desktopRefusalPreserved": {
+    "callerSession": 1,
+    "state": "Disconnected",
+    "inputDesktopError": 5,
+    "guiRunsStarted": 0
+  },
+  "desktopExplicitlyReconnectedAndRetriedNewNamespace": true,
+  "cleanup": {
+    "identitiesChecked": 60,
+    "cachePathsRemoved": 48,
+    "linksUnlinked": 0,
+    "preservedFiles": 162,
+    "bytesVerified": true,
+    "otherProcessesTerminated": 0
+  },
+  "independentVerification": {
+    "task": "RF-312",
+    "pdfCapabilityDiagnosticAccepted": true,
+    "accepted": true,
+    "groups": [
+      100,
+      5000
+    ],
+    "samplesPerGroup": 3,
+    "distinctRuns": 6,
+    "allOriginalPdfAndAuthMaintenanceContractsReplayed": true,
+    "sourceAndRuntimeAndResourcesUnchanged": true,
+    "mainScreenshotViewport": [
+      1200,
+      831
+    ],
+    "historicalFirstPageViewport": [
+      1028,
+      749
+    ],
+    "originalFirstPagePixelGateActuallyRefusedAllSix": true,
+    "originalPixelReferenceUnchanged": true,
+    "pdfFirstPagePerformanceAccepted": false,
+    "fullRF312Accepted": false,
+    "records": [
+      {
+        "objects": 100,
+        "index": 1,
+        "runId": "0794af9a54154646a1f46cc14920af44",
+        "pid": 16940,
+        "originalPdfSchema4ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_100/config.json",
+            "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_100/vault.db",
+            "preparedSha256": "34f372b55756a228fc1d948ea4264d1f08b2eaf018fa03df1b2e1e108b80bf41",
+            "postJourneySha256": "34f372b55756a228fc1d948ea4264d1f08b2eaf018fa03df1b2e1e108b80bf41",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "05f64907c4d6edc91e28cca51f967790cba089f8fd221532f4653a2765316ac8",
+            "postJourneySha256": "70eab325c632d731a7aff52e2c49ca01ad6f1af40a50955a6ff804273de5503c",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+            "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+            "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+            "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+            "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "59b89acfac0e56eed63cb081e886769e9ad70d6ba05b9344f044bfd8bcb7c318",
+            "postJourneySha256": "59b89acfac0e56eed63cb081e886769e9ad70d6ba05b9344f044bfd8bcb7c318",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "6c136d55741a1d0fc05dd8f8e7f25a29a7c0d8f7e832647cdb9dd58830b0d1e5",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshot": {
+          "bytes": 39602,
+          "fileName": "native-perf-sdk-pdf-screenshot.png",
+          "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+          "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b",
+          "width": 1200,
+          "height": 831,
+          "chunks": 13,
+          "allChunkCrcVerified": true
+        },
+        "originalFirstPage1028x749PixelGateAccepted": false,
+        "originalPixelGateError": "PDF fixed viewport or RGBA format changed",
+        "diagnosticOnly": true,
+        "performanceMetrics": null
+      },
+      {
+        "objects": 100,
+        "index": 2,
+        "runId": "c24d529a6c3f460ca05e87c9bbb0ccd0",
+        "pid": 38256,
+        "originalPdfSchema4ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_100/config.json",
+            "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_100/vault.db",
+            "preparedSha256": "d8ee2a578e0ed8a584e04e0453b2f8b95fdb03b2022142b6e9eeb2623707d2fb",
+            "postJourneySha256": "d8ee2a578e0ed8a584e04e0453b2f8b95fdb03b2022142b6e9eeb2623707d2fb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "34e0cb227128b6f86524cd8e19d923d9f3324c1f0bc7abd6c2327be0b2984ec3",
+            "postJourneySha256": "c35e477cf7b68ce41ebf774659fb49bf5b130319ccb5b3d426829f352e4af442",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+            "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+            "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+            "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+            "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "3fe5ae8a6b4ffe5e71b3cb1072a8ca1343dc92fc3244c2ddbe766006f20e6ceb",
+            "postJourneySha256": "3fe5ae8a6b4ffe5e71b3cb1072a8ca1343dc92fc3244c2ddbe766006f20e6ceb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "54dd9b24a3d4aac314bf1ab05d0bf297e2b87da7e450ae5f81f122bef8c17de8",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshot": {
+          "bytes": 41411,
+          "fileName": "native-perf-sdk-pdf-screenshot.png",
+          "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+          "sha256": "f85d1cb4076535fbaec6825675e0f2e26aad2167b15729230919530700283609",
+          "width": 1200,
+          "height": 831,
+          "chunks": 14,
+          "allChunkCrcVerified": true
+        },
+        "originalFirstPage1028x749PixelGateAccepted": false,
+        "originalPixelGateError": "PDF fixed viewport or RGBA format changed",
+        "diagnosticOnly": true,
+        "performanceMetrics": null
+      },
+      {
+        "objects": 100,
+        "index": 3,
+        "runId": "08c95a1a2b36441bbff251d824f35b2e",
+        "pid": 38056,
+        "originalPdfSchema4ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_100/config.json",
+            "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_100/vault.db",
+            "preparedSha256": "31a8f237beaeac2ad850e1fc1ba4b51bfb69c47baf99b0c77ba21d47855b7e92",
+            "postJourneySha256": "31a8f237beaeac2ad850e1fc1ba4b51bfb69c47baf99b0c77ba21d47855b7e92",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "9b5f76a27c9cbc21f564141e516ab672e6cb279d687a6f1a83aae478dec73ba5",
+            "postJourneySha256": "ba7254d79c480614d762fa786c651d8ddbb8d7da1552323997645639dd9b1bf6",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+            "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+            "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+            "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+            "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "7c939cf3a65cbf2d5df333bb049ba84286647e98f9b3082ec1dd8f90e102c2ff",
+            "postJourneySha256": "7c939cf3a65cbf2d5df333bb049ba84286647e98f9b3082ec1dd8f90e102c2ff",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "3a25e7e19a9671f6975b7daf972866b25e6daa428616e50c9a74458693f7c713",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshot": {
+          "bytes": 41411,
+          "fileName": "native-perf-sdk-pdf-screenshot.png",
+          "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+          "sha256": "f85d1cb4076535fbaec6825675e0f2e26aad2167b15729230919530700283609",
+          "width": 1200,
+          "height": 831,
+          "chunks": 14,
+          "allChunkCrcVerified": true
+        },
+        "originalFirstPage1028x749PixelGateAccepted": false,
+        "originalPixelGateError": "PDF fixed viewport or RGBA format changed",
+        "diagnosticOnly": true,
+        "performanceMetrics": null
+      },
+      {
+        "objects": 5000,
+        "index": 1,
+        "runId": "e2e22735e7a6411a9e8eef535baa99a5",
+        "pid": 17164,
+        "originalPdfSchema4ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_5000/config.json",
+            "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_5000/vault.db",
+            "preparedSha256": "7ae626c57e0798d92c0faf1c0b784782b0587a4514992c3c6d9bda22dab12c95",
+            "postJourneySha256": "7ae626c57e0798d92c0faf1c0b784782b0587a4514992c3c6d9bda22dab12c95",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "aab7709fb07339d97535594403043f2cc025f9181fea9ebf1c84a84d05d30a5a",
+            "postJourneySha256": "f66cef540f871c6554711c48b488e66d11e2c6f5b76381f4337029d12d874a33",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+            "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+            "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+            "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+            "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "f75e3eceef4bc10bb214ed8f496b0458023cbabd7d7ed1d37007a7e0e9dc7b97",
+            "postJourneySha256": "f75e3eceef4bc10bb214ed8f496b0458023cbabd7d7ed1d37007a7e0e9dc7b97",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "bb2a887a40110053cfb5a3ca01ef38b5455d1aa02cb2919df9ad22fe9e669f1c",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshot": {
+          "bytes": 39602,
+          "fileName": "native-perf-sdk-pdf-screenshot.png",
+          "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+          "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b",
+          "width": 1200,
+          "height": 831,
+          "chunks": 13,
+          "allChunkCrcVerified": true
+        },
+        "originalFirstPage1028x749PixelGateAccepted": false,
+        "originalPixelGateError": "PDF fixed viewport or RGBA format changed",
+        "diagnosticOnly": true,
+        "performanceMetrics": null
+      },
+      {
+        "objects": 5000,
+        "index": 2,
+        "runId": "e724a62c37ba46c48d2de018d30f1664",
+        "pid": 34680,
+        "originalPdfSchema4ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_5000/config.json",
+            "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_5000/vault.db",
+            "preparedSha256": "677a285001c8cf1260dee143fe2c02c65293f6ea6d9f8638f39d9185ec6c3279",
+            "postJourneySha256": "677a285001c8cf1260dee143fe2c02c65293f6ea6d9f8638f39d9185ec6c3279",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "8a91998222df9b5c875f3507057ce707eaa771bc97671cbe6704cc1bdab3c4ce",
+            "postJourneySha256": "db9a14baa1fd64a2c8fa6d8d5e6496341c1633e256a95c2b35844245ea2dfcfe",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+            "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+            "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+            "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+            "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "7bfcb83cb31ebe7d64a39ac43f2fc71402fdeee31ff61fc6a0d2f6db8224a21b",
+            "postJourneySha256": "7bfcb83cb31ebe7d64a39ac43f2fc71402fdeee31ff61fc6a0d2f6db8224a21b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "56dca89835d4aa4415fa9cd0cb202d75fe4f21d0adc5d85824536c2d9ccb6e5e",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshot": {
+          "bytes": 39602,
+          "fileName": "native-perf-sdk-pdf-screenshot.png",
+          "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+          "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b",
+          "width": 1200,
+          "height": 831,
+          "chunks": 13,
+          "allChunkCrcVerified": true
+        },
+        "originalFirstPage1028x749PixelGateAccepted": false,
+        "originalPixelGateError": "PDF fixed viewport or RGBA format changed",
+        "diagnosticOnly": true,
+        "performanceMetrics": null
+      },
+      {
+        "objects": 5000,
+        "index": 3,
+        "runId": "2ef4aaf8a7684dcbbdda7578cd3ef96d",
+        "pid": 7512,
+        "originalPdfSchema4ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_5000/config.json",
+            "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_5000/vault.db",
+            "preparedSha256": "1e7c00fb526a216a89fa75f83b9536120c14379e0389acd8f14f80ee299dc05b",
+            "postJourneySha256": "1e7c00fb526a216a89fa75f83b9536120c14379e0389acd8f14f80ee299dc05b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "013ed2c0e51e936a093062a61648481c1bbfd638572a3691cd42be8bffa54438",
+            "postJourneySha256": "b8485559f756b1f29c15c240fce916815dd28386193ed9ff38cc88e4fac22d10",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+            "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+            "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+            "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+            "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "3e752af02ca5240d6b0ac51d75806b0867bc0c80e22e5fc7cf44baa28a216059",
+            "postJourneySha256": "3e752af02ca5240d6b0ac51d75806b0867bc0c80e22e5fc7cf44baa28a216059",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "31efcf234fa55b5aa4eec4a079dae363bb74eee4cee87a27a99b79a4f92d0ff8",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshot": {
+          "bytes": 39602,
+          "fileName": "native-perf-sdk-pdf-screenshot.png",
+          "scope": "owned-public-fixture-WebView-pixels; excludes-DWM",
+          "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b",
+          "width": 1200,
+          "height": 831,
+          "chunks": 13,
+          "allChunkCrcVerified": true
+        },
+        "originalFirstPage1028x749PixelGateAccepted": false,
+        "originalPixelGateError": "PDF fixed viewport or RGBA format changed",
+        "diagnosticOnly": true,
+        "performanceMetrics": null
+      }
+    ]
+  },
+  "archive": {
+    "path": "rf312-integrated-windows-pdf-diagnostic-2026-10-14/raw.zip",
+    "members": 134,
+    "bytes": 692989,
+    "sha256": "c2008a5fd59ed98efe888c54d45de2084c53e3b924c4d8fa8c901ba8c968dc19",
+    "allLengthsSha256AndCrcVerified": true
+  }
+}

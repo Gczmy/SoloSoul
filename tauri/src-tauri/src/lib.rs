@@ -503,8 +503,8 @@ pub fn run() {
     {
         // 使用框架既有初始化脚本时序，在生产页面脚本前安装观察器。
         // 默认构建、Tauri readonly invoke、窗口与插件创建流程保持原样。
-        builder =
-            builder.append_invoke_initialization_script(android_native_perf::INITIALIZATION_SCRIPT);
+        builder = builder
+            .append_invoke_initialization_script(android_native_perf::initialization_script());
     }
 
     // 桌面端：solosoul-pdf:// 自定义协议——PDF 附件内嵌预览（WebView2 无法渲染

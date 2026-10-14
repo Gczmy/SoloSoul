@@ -1,0 +1,1483 @@
+{
+  "task": "RF-312",
+  "members": [
+    {
+      "member": "native/vault100/report.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\report.json",
+      "bytes": 349281,
+      "sha256": "f7b6d9a269fdf04ae4416ebbd49bb5003ea0b5b4a0d29cd901d7641cc16d1382"
+    },
+    {
+      "member": "native/vault100/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001.json",
+      "bytes": 61151,
+      "sha256": "6ffe8b9b3ceebf1e2cbc2fc473e9ec45fd3cfd708c0db1a7187cee5ec1bb881b"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\native-perf-consumed.json",
+      "bytes": 252,
+      "sha256": "5102ab06602ff2c0f01a2e6d07d56860e881ccd9e9a7f20ed07e248502aab16d"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\native-perf-owned.json",
+      "bytes": 3252,
+      "sha256": "658c1eb080622bdd563391a4392fe958ffa85764888e86221174ffefed1ee28d"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\native-perf-startup-restart-consumed.json",
+      "bytes": 661,
+      "sha256": "97efe6fe34b092bc9626506bdcfed38f95ac86023235d6d10a5908f729ab5124"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\native-perf-startup-restart-ticket.json",
+      "bytes": 2660,
+      "sha256": "df1ca7f4f06ba69b4c2eca5eb94e835ab6efc0f76230c3e7660dfe4b08c030cf"
+    },
+    {
+      "member": "native/vault100/sample-001/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\native-perf-startup-stopped.json",
+      "bytes": 1734,
+      "sha256": "fe1a29b5ceac0dc8288d807d8c1b37796a7dd597eb71644220d387be48fc1d61"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2969,
+      "sha256": "5b27169e08eeeba0e540a76cce1097ee36dc1fdb24eec2b6bb1d75dbda3f21cf"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "1a2f1e2e30b7c67ea395714ded7de7c4162d39ce6c4e123accb89b1d4668f889"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "9c88a6b9127af0ce31fe0e15bcbefe47450566b7cfe4e3ce128f2bf57ea69d06"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 562,
+      "sha256": "0a2854221ed13013621e560fbe7791c053d23227e8462bd31f8cad9d07ba9bb6"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "74810fbf0af7ee365264e56f375ea9ec14cac566c7fbc3b16f127e31ee33f2b3"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7871,
+      "sha256": "7aec47e969e15ff427dd683fb6aa0072c24f3c95a68562cf4d4138f0c4141dde"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 892,
+      "sha256": "58e9b02f7bc331200966a04d08d97943fdbf4126266642e71924149f91bc6e8a"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2968,
+      "sha256": "1e9ad602c0ae7e361a77266f008c184000632bdff5b4da484217cec4c2981f10"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "558c53e94614b0e84808b68bb4911208afc8590d8d648dff253aed2f06568fa5"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "18bcab3b238bd371e98971123821ea211dd3a6fa302d837ca16895d278007c36"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "49307e835d1ecc99b10aeae6c22af9be6f10a09e09482263499e4c2e75a714ed"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "7b69811a9d87d1bef5dae155123f8a45296d032be3a6a796286b4b7fa8542b51"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6970,
+      "sha256": "1cfa8924690ba4594f94423f9846b00c7af6afe460f17ffd675d56fccdc80f41"
+    },
+    {
+      "member": "native/vault100/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-001\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 776,
+      "sha256": "c82c5ff865c41751ef6adc4ffcb373fd2ad5a74543d8ca8f4ddee0ba89b1e85f"
+    },
+    {
+      "member": "native/vault100/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002.json",
+      "bytes": 61017,
+      "sha256": "00c28c1fba8661bfa1a211168351b1fdeccddd1c60b42253257bc5198d073a45"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\native-perf-consumed.json",
+      "bytes": 252,
+      "sha256": "05bf04c1a29b79b550a054367455273d59d930e1e2cb44db784de1dba7477251"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\native-perf-owned.json",
+      "bytes": 3252,
+      "sha256": "89955c3f1c45a9f515406e081c40bedf675432b5d399bd8ee961bfe9f73220a6"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\native-perf-startup-restart-consumed.json",
+      "bytes": 661,
+      "sha256": "f1f644879449579a6238400f9e95cecf09e723dca7f71fda0475ab3463850ca1"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\native-perf-startup-restart-ticket.json",
+      "bytes": 2660,
+      "sha256": "9a416c832499e54033c0935c6df244af6cd3aa6f116093a5d50e06332ebedc05"
+    },
+    {
+      "member": "native/vault100/sample-002/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\native-perf-startup-stopped.json",
+      "bytes": 1735,
+      "sha256": "60442e28c484dca1ee0712b8756694c596d2131f760f18a9bc5f9cb963871e55"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2997,
+      "sha256": "f70997cff5f58dafdcdec4aabccbf39efd4ee5ff930338a1c9b525eb6cf0ecb7"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "503fb779993080c1ead889e51fa524ad4fcd7a31c6339d27c5064fce139d4e50"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "65875729e97e8c903778947d4270a051b85d069c4c19cee1af0e65ed282acb2d"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 562,
+      "sha256": "23eb0644ff9371b4376965a865e7c51d73b3f16ee957613b0804e7a982751797"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "af5dbe09cb16ff56c368b686a8ae97bf9dc6140f9df24d2b1ed84f4d529bb9a0"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7659,
+      "sha256": "853dde9f7f7537137a29cd11b6b97d77124495531a18523bab4eaf3b7daf395e"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 870,
+      "sha256": "e1fcb439b622b0d0c9dec92396ad1ff094fd85c5dd2a086e25dc7da73c753a03"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2961,
+      "sha256": "dc8e79394a3c6f92304c9887334c3c457e3512bd94126041b647177a3a3ae234"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "8880d91279ad45263ff35adb45dfbfb72b1f474875506d588eb0d24701c0d518"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "7f22ec405b7b9f52cc9ebd434ac0cef4e5476a88337893de45ff7a21c740d862"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "c3ca31a002d96782408d9711d7ea220dcaa2cf00296e28dbc9f38e58d9ca3a27"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "10b1d07a1ed767f4a3700cbfcb7047fd4494220a331f14b60ee437d8f07bd62f"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7100,
+      "sha256": "09229f35d05afcf3fa3d13ffc342906392ee70f5a1d0bf801a0b8e55d3c97b2d"
+    },
+    {
+      "member": "native/vault100/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-002\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "647c98f47b1e93bd15a8845a16ad8be275ef983c2a2914eda74a5514aab7933e"
+    },
+    {
+      "member": "native/vault100/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003.json",
+      "bytes": 61023,
+      "sha256": "314c69e9c14d68ef4697cc2497961af25164d9f0a203cd22d250620ee56614bf"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\native-perf-consumed.json",
+      "bytes": 251,
+      "sha256": "c57a0d2199fd62b35375dfff54f340eaa66095d701092cd23e9bf0fc3f37180f"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\native-perf-owned.json",
+      "bytes": 3252,
+      "sha256": "05775cc8819cabee1b42c082886d52774a33358af39ac81c1b49b9e2e70d2a78"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\native-perf-startup-restart-consumed.json",
+      "bytes": 661,
+      "sha256": "144ebc8f363d16d55b54f3f4c2a11f355be16d55adf0c306b8646c799941af95"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\native-perf-startup-restart-ticket.json",
+      "bytes": 2660,
+      "sha256": "3db933ddbddfe851632ce4ad31949734a9f1b3324c7dd57529d6f2891b167213"
+    },
+    {
+      "member": "native/vault100/sample-003/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\native-perf-startup-stopped.json",
+      "bytes": 1735,
+      "sha256": "b129e0b3826518b8bb8b792ddacc33b3f59f81850d0603e579a894ce22df3c42"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2997,
+      "sha256": "d7b12996627fa15165e5e10ca78019f86de00a5c2479d75c058d23b785bca0a2"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "43dba7a0e131bbdccc90e7d541b3a2aaaec198b7bc4b234d901532e2903744d3"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "b9cbde7b6160dd770ccaac27543eab9e46dca42f213908387eaf04122dc64804"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 562,
+      "sha256": "fb367407ec32644a8618d4fe58ea1971e5832c5241f863d980361309d58423bc"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 344,
+      "sha256": "e7ba2f0fb05b122b96f9c287bbcabf25628a5a3d866117475432ed1bcc93c902"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7637,
+      "sha256": "755281c43074aa4c00926cb0b939d93c8e355b829b84e67fc4c793647748323d"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "edacf2b103433ee67ce50110f4050ec5000d57edc395dfe0046ff51d59b91695"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2968,
+      "sha256": "7e9e9dfd8372a0b3be43a71ff296e474b6365799130f8561c89fa055f6c035b0"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 410,
+      "sha256": "0f0aef9bb814104e1739527e44ddf101a874c6b5fbf59f679235a55d85fe42cc"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 273,
+      "sha256": "c92ef5f1e5f0c7aeab93221c7a8648c35eeb57b511ea9c353d16b4c06b76bcf2"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "109cdfc12ae0d0c24c5f29fa53a08859a8ce2bf23599a51bb7c858f9be58bc1a"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "0b45f48617321eeff7115e20869c8a1372163a9363a1e3f2c245e722c36e37de"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7113,
+      "sha256": "4a692c513c0aecd710d9f92837a4940803532ef83753a637229d3ffa125c7ede"
+    },
+    {
+      "member": "native/vault100/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-003\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "f537c9e2d8ce748647bf370e0adb9b5dce96420531973f06c9f5c56bcb7b3afe"
+    },
+    {
+      "member": "native/vault100/sample-004.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004.json",
+      "bytes": 61240,
+      "sha256": "658d04d75bb6eaf39b764065a50b6662dc81600dd8d6abed49c9c813f9ff4da3"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\native-perf-consumed.json",
+      "bytes": 252,
+      "sha256": "2c0b6d9f34b2c4103c3afff99a48a42d743a02bccd06b0796bec89285fbfd05e"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\native-perf-owned.json",
+      "bytes": 3252,
+      "sha256": "19a633bc4a6ff37e497ae57d6b4f73e7b62b98fc31972ec2bbe5dcc296d87c5c"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\native-perf-startup-restart-consumed.json",
+      "bytes": 661,
+      "sha256": "e712164d33c2e9f5645f07839e6c2fd699ffe776c82995c941d5c4e106732e31"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\native-perf-startup-restart-ticket.json",
+      "bytes": 2660,
+      "sha256": "07bd6f47fcc6ef32e5ae09af6d41ee2746662bf1e4e977afc23d02a6653cc2df"
+    },
+    {
+      "member": "native/vault100/sample-004/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\native-perf-startup-stopped.json",
+      "bytes": 1736,
+      "sha256": "9d25c84a74bbd5cd1c910007545f08e9f4269b2c5e36f2e81353fc2accf42926"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2936,
+      "sha256": "59872d19806d9f34931f157903550dd886e0f68fcb62268aa80750a7caf9f1a6"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "b4c04282d16bea2b8c7b2fcb3bb899c4f69c5681174b6206ea1ec3607889cc57"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "af0cedcb909db6a6ebb682809241ebb9c9e2137c96ac3c469b2b8d146c105bd0"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "6f38ad141fe2a6b10113c4a1edc71736c6cd96f6d6d78990e7e1b0256f5f2428"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "a72a7e10f8f332763af025d22c32d7e00f1c26d295598a53c2a5526db652c80e"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7869,
+      "sha256": "f8ce0ca52a7ffbe727905d2100995efb06af4eae9e5deef7795e2878cc79051b"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 872,
+      "sha256": "bf76a9f3224329da92b22df6e83f17349026bbe3d409e2f5431bfafe2704bafe"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2968,
+      "sha256": "c2751aa7ed9b5ba8f61a516070b3db4de143d613c17a61ee9ed19937f54d2876"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "2f7de045fb3bac18a186451a38617397f10ce9e0910003b10e142353b88a1034"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "375faae55debd017bd53b482b228aad2e8a61145a9d33879e0a02c530ba52765"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "4a30a576c0151c20b24344bddb16c4c9e51c06adbbd17a83b3b254b1f5a2af3e"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "f687c163f0a29aea64d17da66438777e4299ca149c0d722d973a5c1d0259b7fc"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7059,
+      "sha256": "2b76fa95045cb4d693de709c93b0271f53a67d6ecad2b068e9c7336041900c1f"
+    },
+    {
+      "member": "native/vault100/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-004\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 753,
+      "sha256": "bcbb2bfde35f2c9c46a776973e35532f57537efc660bf47d71f3e696224e5cba"
+    },
+    {
+      "member": "native/vault100/sample-005.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005.json",
+      "bytes": 61300,
+      "sha256": "0346a295fe69d98fddc5fff8dda557970ad4e04df8a3b831a1fe795f1d2e3a63"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\native-perf-consumed.json",
+      "bytes": 252,
+      "sha256": "0ec05aaf2cc4a910fcf041ce3d767fa26a8012cf1cb964976864e4a524f963b7"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\native-perf-owned.json",
+      "bytes": 3252,
+      "sha256": "6096aaf52ac0ee43a278e03d0de089f0a5fd2a4909760e7b7942c9c57ca2a953"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\native-perf-startup-restart-consumed.json",
+      "bytes": 661,
+      "sha256": "c6e7c3fca336d719c5f11c831389e42d22eb5dea97accc6ff852ee67dfd4c9ac"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\native-perf-startup-restart-ticket.json",
+      "bytes": 2661,
+      "sha256": "7d5575f7ee696a77050aa52dc92e9fddf1050920bcce86f263014fb51e16148a"
+    },
+    {
+      "member": "native/vault100/sample-005/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\native-perf-startup-stopped.json",
+      "bytes": 1734,
+      "sha256": "c34c11ad81c6cc639f070497f748144e05c836ce8eca3129fc8180f894936ef4"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2968,
+      "sha256": "9adf0a939c399a8f27a79b7872021a42f6e97a5606715e7cbf5326049ef3ed45"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "1475ee1a11a44338fe128aeffed432f952b1403e339e0992b1bd704228f9fbe1"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "f6eb7e338d8b914e1741ada0f9ff44572ee700a888dc1d847dd78ae91d34bb8f"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "dec4787166b056d9a7918c7620094daa569635fa5381ec3884b02e0252391535"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "77045d3f46df1bc32b8a498af62538476f97a878c4c597e44c2d79ff3444d687"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7889,
+      "sha256": "827d0022feee084086fd87f719519887f940ec91a0199da6219abe657a0fb0b8"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "afd1f7e3618bef51ae5efd8dce368f5d9884856f2c65614690268e154088f86a"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2953,
+      "sha256": "941cd7eac08d4864a67ff28beb24901cd340b04ee119b026da455cffb02cc8ea"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "51fcdb4b50576c34e12702e7fca6f7ce3f8a11091a9dfddb11367d9d53dc9785"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 284,
+      "sha256": "148502114a88d2a8b74553081bfab1391c1ded91ca1eedd57e049edf29f9ca4b"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 563,
+      "sha256": "aeedcedd5fab7f4ac3f467521dd03f2206c6eee19ab33f54fb591badd51c88bf"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 345,
+      "sha256": "7ee6708992096d1321dedb54462450e84510009c6ee3bbf693c91809bf807297"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7099,
+      "sha256": "a74668f9839cb8999f7879305a1da6572e69db7b04a516db154bea36ab48bbf3"
+    },
+    {
+      "member": "native/vault100/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault100-20261014\\sample-005\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "80811b762d85b446f25cd1ba272423e4bf53c4c1032ddc50cb688ca5fccb71c3"
+    },
+    {
+      "member": "native/vault5000/report.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\report.json",
+      "bytes": 349875,
+      "sha256": "e70d6bcbf3b1b2c2311887ee10908deead7f8b9e618bbeb7e8b2865f41df06d4"
+    },
+    {
+      "member": "native/vault5000/sample-001.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001.json",
+      "bytes": 61328,
+      "sha256": "778bb07398b5251a1d18c15a5c4e33c3061bf5662f530183a88f4a8364fdeccd"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\native-perf-consumed.json",
+      "bytes": 253,
+      "sha256": "a1a41d1e69dcf923e07b33dc7a0c679a610cad142762bf5bf4896d499ac7bab0"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\native-perf-owned.json",
+      "bytes": 3268,
+      "sha256": "3ea33ed9a16a533b2a3c2e7c133920568d56b99cc7785edb84b1b8d5109db0e5"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\native-perf-startup-restart-consumed.json",
+      "bytes": 662,
+      "sha256": "bb8817c5df108e3baf03fba4350724b91f7703b4f9281406395ee2060e4a6a22"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\native-perf-startup-restart-ticket.json",
+      "bytes": 2663,
+      "sha256": "2ac4c3c2078fa981a3e12faa7e472d62536c3039c1d6ff366880c63db95a253e"
+    },
+    {
+      "member": "native/vault5000/sample-001/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\native-perf-startup-stopped.json",
+      "bytes": 1738,
+      "sha256": "76db327cd4ef62500af5ee913ca2978a721389f9ae16708f07a199b33af01910"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2967,
+      "sha256": "abd68f7a343465900842c4c30f9ef4864d76ae781d5ec12bad937ea53b421877"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 420,
+      "sha256": "e604bb9f7de39e1f7619bc1cad45baacde9a760f0c157b47e3fb872d8b67ca64"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 283,
+      "sha256": "c661b2f7b5b8eb05c0ad31643ab248f3c6b72950fd78be4e5f56d56a3c05c53c"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "da5c2d7b12f4c134d39655e00e7a2fab1d6788f5a8079bb9aab64f3a462bab79"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "aa0ab3fe18830185ac0b8382daa9d782becbef9da849c6afbe2279ff40792f66"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7879,
+      "sha256": "7e4c718fdc616cbd7ab597d4d6f113d45085e33867b2b4e9d4ef642f9061039a"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 872,
+      "sha256": "d204c5f8dd1bc35dd478f7baca691666bdcd45a7a5352823ba599529643eee02"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2931,
+      "sha256": "001bd9a09d92fc64d3c2756023e74b9eba567e51fc6f31f6e291b7f56cd6f901"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 409,
+      "sha256": "1ffde2a473efb7f43f5e528fa64430335cc2ddd114ae3530cf7b56d35955f37c"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 272,
+      "sha256": "8e1d2311edfb7e516891c8e06475da7fdfc232d8214a1ea58068c128a444f971"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 562,
+      "sha256": "ffb578d6d8c9d5c73fcdb48d4630d32df42f10e84cb5c2943d97e78298a0bda1"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 346,
+      "sha256": "1f1bdd39c1f2a6e320ef62c816bed6717e31f939e067feba4083f9227ec0f849"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7112,
+      "sha256": "36fe390c4a8c1bf2b0b65f274b30de8c269c0ab0ab3a6b92d353d137721baec7"
+    },
+    {
+      "member": "native/vault5000/sample-001/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-001\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "1b6aed477c696855b4a32be2ddf295478f38a6995d7bc43557c4eb4e1baf4341"
+    },
+    {
+      "member": "native/vault5000/sample-002.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002.json",
+      "bytes": 61391,
+      "sha256": "f948635aede668ec91f106b8976fe85a6aa74f9e50e9b0de8d38241493c495fb"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\native-perf-consumed.json",
+      "bytes": 253,
+      "sha256": "1be63220e72239be195cadedfd7debae41f1844a029a4798c5fce946ec0609b2"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\native-perf-owned.json",
+      "bytes": 3268,
+      "sha256": "315b1dde2b4a25b07303c686418805bff1832063fffe5ed5f88c95c753429bb8"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\native-perf-startup-restart-consumed.json",
+      "bytes": 663,
+      "sha256": "707f1577e723082f9da8fc37a295a5be57616fbf804d7f50e04d7fb2deddb910"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\native-perf-startup-restart-ticket.json",
+      "bytes": 2663,
+      "sha256": "3bca77e8be6a5fe9dcd6c2406fda15784c0fbd636722e7a1a9111f2e1f81c465"
+    },
+    {
+      "member": "native/vault5000/sample-002/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\native-perf-startup-stopped.json",
+      "bytes": 1738,
+      "sha256": "e1eef67dde1e4531df6c9f596757cf4d49f6ded7739022b5bb133cfdd5431562"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2962,
+      "sha256": "cc37dc72fa4b6e6c8248af46bb387e6970ecb7f6e67e32524172e38731e40099"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "b5f542ea90af0bcd65e3588981ad621363a103259dc9b19ae2525f5078d18015"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "3e3df63eb4650f5389d5a491cd4cd767da248dd78e4d4c04df684e36ec10692b"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "8c336e46b34c484af8619cb52627ba83f9a0f5084f7c58718a3b0d7c1cd6a1ef"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "7827622815ff3990719765a6120e5d79ef15b7ebc62f0abf082bdc9a51464ffb"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7940,
+      "sha256": "9f4ea8f69a20d860b1af091c674994b01cc887817eb5c28b2702496c7e09d733"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 892,
+      "sha256": "48cebf8507e60953a6ae2b43988df68fa3c52160d96a8461bb301b5a95502a65"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2956,
+      "sha256": "cef107b73575b7269a2c80ca243eb9ddb1e8c8a83062dea27f05896971da8327"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "3c96a967b6c652926d95067ccc01c2f02fc9fd0ca93230c3531f1fbc4914634e"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "0892bae39cff97167bc53f9ebd67dfb1140576e10eb249e7cba1ec3014b733b4"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "0d29876ed21265f479fba8597d988f57df9cf9dc7868249786a9f471e396ce8e"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "c6f5207e7a83bc644b7d7d8bd7ca6a16add4d39a57cdeeafb3ddbe2ba876c833"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7065,
+      "sha256": "973908f4d848ffc49bcf7fc08fefbdcac245431bd8845b914e2209b83de6158a"
+    },
+    {
+      "member": "native/vault5000/sample-002/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-002\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "93c304e6627fc67d1b8ec24ce6d24e8b9a4daa5c1b6aba9c752229d955ea2310"
+    },
+    {
+      "member": "native/vault5000/sample-003.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003.json",
+      "bytes": 61353,
+      "sha256": "acc43a41cf1457e329ebbbb7e04ca333a587399f889816e490599bd149e0208c"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\native-perf-consumed.json",
+      "bytes": 253,
+      "sha256": "ffc8759510eef18bacfe7d289b06567a79a18f8953609110b540dd8d399f4784"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\native-perf-owned.json",
+      "bytes": 3268,
+      "sha256": "05d1ec69445fddc1addb174b19d87389b15a146b8ecac54f3fd14ec1fa0449ee"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\native-perf-startup-restart-consumed.json",
+      "bytes": 662,
+      "sha256": "44c4a6458a9925e792c143ddc749d1a2c2e1c7ceedf352e1c7fd51153c984ae8"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\native-perf-startup-restart-ticket.json",
+      "bytes": 2663,
+      "sha256": "bdb44a39e52af9e6f34db1cc8cd2350d4b0feed409eb478e20ff41ca0765ef01"
+    },
+    {
+      "member": "native/vault5000/sample-003/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\native-perf-startup-stopped.json",
+      "bytes": 1737,
+      "sha256": "0ae77409588f365c3d13736c53e585533c121f9b079562236f244d2954482c06"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2972,
+      "sha256": "b23e56122c940ad3995be3d0b04e54e8f1dda780afa8321ae7d5840fa919a1c0"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "7e540f5694d21d840468934646a96d469b8d138aa5aaae21061c086aa4669259"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "7067ec38ce865ba52faf819294d4558b74e047cdeaf83f9c2eb5e3f98fdd4263"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "31b05a7353dff770679860a16fd21235ec95a2a4d872e49e0cdb77a05e60c6df"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "1e11c9f12a031a5c043a15808278ebc223c113103cff4550b9642bec78a22465"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7953,
+      "sha256": "eb1df5ba02ec649548c4173c7d15e1d1470b89662c5767106157719ae393ab6d"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "08318acc5f4f1408505af55c25549e1d71a81ee21a7a0be1ff9703ebcb9d4595"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2950,
+      "sha256": "cd2ddb02853e678aff3262e0132e89eb3b02addbb2b84c15b4a7c30d4e581d4f"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "c9694f222b0e781854c2a8bf6e51906daf489df94f67d949ea019e94aa4f04da"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "b595408b4bb03415d4720ccd11c4753a9f5fcd71712ae11b960029a32e00f1e1"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "7ce6b6f1312c2010e46a68ef86433276cd4e7d6021db8ee8e0e660aa872ce762"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "1a90dad65f1c51f3a0c125c065327257aead236b987b31c106a0a91fb3f9cb34"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 7033,
+      "sha256": "8d25c1fd37b38b6dbe85a3f26b5babadee3d921ff596538df7f29309a9425b96"
+    },
+    {
+      "member": "native/vault5000/sample-003/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-003\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 776,
+      "sha256": "d3dfa196988d126df9f8abb9eaede5247f91d172b4e1eaa4aa37fd5f2c925aa9"
+    },
+    {
+      "member": "native/vault5000/sample-004.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004.json",
+      "bytes": 60902,
+      "sha256": "04bf6b4897b045694af578e12d1bf9ed8038ff02e48a4134f332543b7faaf6be"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\native-perf-consumed.json",
+      "bytes": 253,
+      "sha256": "1ab162f6ace68f30fe04ece3cf6789b272751468c009f86dc30562b7b30555b5"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\native-perf-owned.json",
+      "bytes": 3268,
+      "sha256": "dca62c4733616c4cb171d6fb44414eda5f02fa9836eac276b31f6344cf60ab97"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\native-perf-startup-restart-consumed.json",
+      "bytes": 663,
+      "sha256": "9b9636a8d38286d573b571a3a7b080f282573bf177e057e930abf49433cc1f3d"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\native-perf-startup-restart-ticket.json",
+      "bytes": 2663,
+      "sha256": "527cefae86fda20113a7fc8d5a80013fc76346eecda05b384bfc7935ca957fa7"
+    },
+    {
+      "member": "native/vault5000/sample-004/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\native-perf-startup-stopped.json",
+      "bytes": 1737,
+      "sha256": "3866b758d26dfb27649e66decdd4da8b25e731e267db9ed0b0b259a7f64b44c3"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2952,
+      "sha256": "b8cc6bb06634090ea229105f1619baf912701e6cbb1a52e92c8d17d2a173dcbc"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "6c40c45173e3b3fde1dbcd74fe67420ac7567bd0a710693b4088e5072e05e4fc"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "e29516a2c0d625c3eca3587c82f2a53830b0702c0d8a61af6d4eb5a9bf41e8e4"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "2d73782c8d3e7d56270d52b7c1ac374a8c6f671065e82f1d37d5cfa0b96e1cd4"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "4f5a7e54d84d5ca3baac4fef796300e855eebc579e3c6c860a611fb6198e3eee"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7624,
+      "sha256": "0f75f8ac6d6b86a4deac89687ca6ba689031d5e3b215159e06474b547a52cbf1"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "a4a41c07c383769fd463d4750df72f16136226fcd31e5ba784ed9fc37b0aa285"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2991,
+      "sha256": "1e5fad54a2725355583db3e44866901c1343d3e92dcd1e7844a1720110503859"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 421,
+      "sha256": "f060a9945c998407a2edf7d7c9f256e4bb16c63a9ceeaddd50ab93f0435fb944"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 284,
+      "sha256": "320351da9702c648bf89ce922ea5bddaaf07fea8f92f1c8125d01d619b92588b"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "04ace180cec2451f0f3bdd933a30906e35c65326336725400aa2913f2ec42246"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "f9bc903d310587d1ead702034dace2d238ef1fd5f0551fc2ea268dbe7dbcfb00"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6945,
+      "sha256": "9cb257641a6395794202d9b4d6cfb4f2e0093b4d5572c823dfd130405de000a2"
+    },
+    {
+      "member": "native/vault5000/sample-004/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-004\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "d3898b4f2bfd81afa7cc162d3fba4fc24863cab881d8ee721cb7e26c19b77934"
+    },
+    {
+      "member": "native/vault5000/sample-005.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005.json",
+      "bytes": 61318,
+      "sha256": "fcc010a8ac9e8ab40158360e0bf9eafeda1e536ed1ef3864279bef449c5af02e"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\native-perf-consumed.json",
+      "bytes": 253,
+      "sha256": "e9b68aa99864435e0f0fa5c865994dce5ab1c6a39db072e5476d63ef2407bede"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-owned.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\native-perf-owned.json",
+      "bytes": 3268,
+      "sha256": "9e5e389956e4c31f12911ec754b65fa067b860476bd7715f9493a6dde062a899"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-startup-restart-consumed.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\native-perf-startup-restart-consumed.json",
+      "bytes": 663,
+      "sha256": "5370b7516776f65d9d13d07d1d5f4ed9c9a36bdae8a557b471805c211291d9fd"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-startup-restart-ticket.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\native-perf-startup-restart-ticket.json",
+      "bytes": 2663,
+      "sha256": "7b165de09639ad7701bcdc71adefd33f313cdebe9b4236397336bcafce9e84f8"
+    },
+    {
+      "member": "native/vault5000/sample-005/native-perf-startup-stopped.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\native-perf-startup-stopped.json",
+      "bytes": 1738,
+      "sha256": "f1d2395883aa45a84ffc2bdb71770691b8988353ac995ef61ffadd1dad226a35"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-auth-attribution.json",
+      "bytes": 2960,
+      "sha256": "5e1e7383b6459160c03d14e65d138c55084cdabd17a4fd5b2b18bf658945b4d3"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "87c240d9f53b98284391c807c73a36403403452dbcb507ff844e5327f1756e23"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "02176d7964d501f11b6d4c5b7e16c79e4256b9ad4da996d095e1f2d609ca3b88"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "03e083593ebb1e2668f142b25f787d00e739ef7ce139315e48db6e00bd3cee68"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "7ab003a7aa0557973a60fd23298d77e9a5c5c63ec0ef105d7366d39a979c842c"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-sdk-journey.json",
+      "bytes": 7978,
+      "sha256": "6f579e1b646905c975aefbb841feb8fe18a97ffe7af6934fc09f60c10bce6988"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-01/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-01\\native-perf-sdk-phase-01.json",
+      "bytes": 883,
+      "sha256": "762113c4f3405221e2d64d72a52606244f5f2307c224a8027c967dd8347a3ac0"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-auth-attribution.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-auth-attribution.json",
+      "bytes": 2996,
+      "sha256": "91b0c6209758c9a0b5979e74c640812287530b240a73e35c5626e7b916c0ebbb"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-maintenance-admission.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-maintenance-admission.json",
+      "bytes": 411,
+      "sha256": "0f9d71e3b7ab7b52e00a0d783be702756002fbb18edb984dd98ca6a9f69ea206"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-permission-commands.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-permission-commands.json",
+      "bytes": 274,
+      "sha256": "a6606624aeb2181631217682ecbff2db3902d46a38d5e3c6e9193dcee8d45966"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-journey-bound.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-sdk-journey-bound.json",
+      "bytes": 564,
+      "sha256": "f8026d88d5f63b088f079cd1786838db5cd6df42da6763741764ec4d13202528"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-journey-requested.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-sdk-journey-requested.json",
+      "bytes": 347,
+      "sha256": "fe64021e380ce1b426720e7c73690e81aa4163d47090b330634251b5a8424e55"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-journey.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-sdk-journey.json",
+      "bytes": 6993,
+      "sha256": "5129c23cfe935c50251af37ae18c028db407c1824495fc2d8eedd672dbfd14fe"
+    },
+    {
+      "member": "native/vault5000/sample-005/startup-02/native-perf-sdk-phase-01.json",
+      "source": "D:\\SoloSoul\\build\\ss-rf312-current-windows-startup-vault5000-20261014\\sample-005\\startup-02\\native-perf-sdk-phase-01.json",
+      "bytes": 767,
+      "sha256": "838aaba3f615a239291718289a85174e63a996a5bac67038063e5db753071b64"
+    },
+    {
+      "member": "sources/native-perf-startup.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-startup.mjs",
+      "bytes": 29615,
+      "sha256": "fc1c8faa7db49d03edefe202da9db0bfc6364c75c403ff54d28c792b48116e4a"
+    },
+    {
+      "member": "sources/native-perf-startup.test.mjs",
+      "source": "D:\\SoloSoul\\tauri\\scripts\\native-perf-startup.test.mjs",
+      "bytes": 13477,
+      "sha256": "1b99edf9a0c75986a752a5e65fa5a1fc2b18eff8c26cb07437a94f84afde690e"
+    },
+    {
+      "member": "tools/archive-rf312-current-windows-startup-20261014.py",
+      "source": "D:\\SoloSoul\\build\\archive-rf312-current-windows-startup-20261014.py",
+      "bytes": 3712,
+      "sha256": "5df7657f08b7a0b07a903d41678a617d2f1459b19e199fb7cdc23f347be668d8"
+    },
+    {
+      "member": "tools/prepare-rf312-current-windows-startup-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-startup-20261014.py",
+      "bytes": 2696,
+      "sha256": "2154150cab1b0e8a36c716d0c62af211ab20b5565e9f85237274fcf9363c3efe"
+    },
+    {
+      "member": "tools/prepare-rf312-current-windows-startup-cleanup-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-startup-cleanup-20261014.py",
+      "bytes": 2671,
+      "sha256": "a168643cc1ff6833615e9f6e87c19f5036791ebcb9905eae4ab22595a898b5ad"
+    },
+    {
+      "member": "tools/prepare-rf312-current-windows-startup-generated-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-startup-generated-20261014.py",
+      "bytes": 2659,
+      "sha256": "4c1f98aa034f58b852b44e31bd34f287b109b103b9ceb4a8e35f9498a7434ace"
+    },
+    {
+      "member": "tools/prepare-rf312-current-windows-startup-verification-20261014.py",
+      "source": "D:\\SoloSoul\\build\\prepare-rf312-current-windows-startup-verification-20261014.py",
+      "bytes": 1830,
+      "sha256": "fa2f8289f9b5de1d005129e535333723f206a1359b00a45846dcbe0dec05af1b"
+    },
+    {
+      "member": "tools/rf312-current-windows-startup-session-vault100-20261014.py",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-session-vault100-20261014.py",
+      "bytes": 2200,
+      "sha256": "51cf75e1e40fbfdb9e437696322e8cee35584e2954f276c8f410d2609a089829"
+    },
+    {
+      "member": "tools/rf312-current-windows-startup-session-vault5000-20261014.py",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-session-vault5000-20261014.py",
+      "bytes": 2201,
+      "sha256": "64b535817207258e6713b26f2f5374a4b190a62a4001b38cf5cbf0565db95360"
+    },
+    {
+      "member": "tools/run-rf312-current-windows-startup-20261014.py",
+      "source": "D:\\SoloSoul\\build\\run-rf312-current-windows-startup-20261014.py",
+      "bytes": 3798,
+      "sha256": "34ff86918aab3a2a3ada7557ba435453bdc76ffcf5640cb6b1fe66973aacea59"
+    },
+    {
+      "member": "tools/run-rf312-current-windows-startup-independent-20261014.py",
+      "source": "D:\\SoloSoul\\build\\run-rf312-current-windows-startup-independent-20261014.py",
+      "bytes": 883,
+      "sha256": "67b6d84f4b3450e80437d19f188759fd13e93edefd7f02f3369917837c352cb2"
+    },
+    {
+      "member": "tools/verify-rf312-current-windows-startup-20261014.mjs",
+      "source": "D:\\SoloSoul\\build\\verify-rf312-current-windows-startup-20261014.mjs",
+      "bytes": 7336,
+      "sha256": "2434e26c8d4b4efe6c1c7bf2a8dd2b7661237e53cf77d86a53e23a0082385b3e"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault100\\100\\sample-001\\app.log",
+      "bytes": 2810,
+      "sha256": "f7e6287b21cd441b5b51b0cd8fc4932cb5505f497a6b1f8f72faf3e27fe462cc"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault100\\100\\sample-002\\app.log",
+      "bytes": 2810,
+      "sha256": "f1e1c8d2572c0fadcfcaae7ed7d34a1ac7ea982d453302e0989ae6c1a1afaf4e"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault100\\100\\sample-003\\app.log",
+      "bytes": 2810,
+      "sha256": "6c3870abade2d6b4d8c633073382ba0f1132292039be794af070dafda113bb8c"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-004/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault100\\100\\sample-004\\app.log",
+      "bytes": 2810,
+      "sha256": "98ac5ff831a15d43642e85324211ec231a5774fa2bb880170dd39eccbd55271b"
+    },
+    {
+      "member": "validation/application-logs/vault100/100/sample-005/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault100\\100\\sample-005\\app.log",
+      "bytes": 2810,
+      "sha256": "1d671f3a17813d847fbbf9516cfc5b1accdd97bfdc793d06e81d4a90dcca155f"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-001/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault5000\\100\\sample-001\\app.log",
+      "bytes": 2812,
+      "sha256": "2518c6d822e3470690c3a1f4200d252191dbbf4f5d30d407ea28aaef633c4630"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-002/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault5000\\100\\sample-002\\app.log",
+      "bytes": 2812,
+      "sha256": "92523e5753c6bae5248ff924783b6334841609b079e6b02680985e0a2ef88c61"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-003/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault5000\\100\\sample-003\\app.log",
+      "bytes": 2812,
+      "sha256": "df2499cde91f4050c3b9ea403983b10074256057d0b7c639422aa241dd6ec20b"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-004/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault5000\\100\\sample-004\\app.log",
+      "bytes": 2812,
+      "sha256": "7ebc12fbbad70ded076f48f203b499ffde1f0e588f709082c54bb6d9f2996ddb"
+    },
+    {
+      "member": "validation/application-logs/vault5000/100/sample-005/app.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\application-logs\\vault5000\\100\\sample-005\\app.log",
+      "bytes": 2812,
+      "sha256": "b60a0b2c9d5ea5442bcf10044f8e8566056cb8064c0c19e8523b0be5a997de34"
+    },
+    {
+      "member": "validation/cache-cleanup-plan.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\cache-cleanup-plan.json",
+      "bytes": 30519,
+      "sha256": "ff1525531cf03a5a4e64033a1e5e5e30e77b568e3f6d885acd716b926e06d729"
+    },
+    {
+      "member": "validation/cache-cleanup-preflight.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\cache-cleanup-preflight.json",
+      "bytes": 80268,
+      "sha256": "059865668a836f5a9958178a80ff86e18c9c34403dc2a5ee4fe9daf10ef434c1"
+    },
+    {
+      "member": "validation/cache-cleanup.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\cache-cleanup.json",
+      "bytes": 80409,
+      "sha256": "e6b35ef60c9e350791c96f01a334444d22af716c52d1fa07a91b6e742765e009"
+    },
+    {
+      "member": "validation/cleanup-owned.ps1",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\cleanup-owned.ps1",
+      "bytes": 9765,
+      "sha256": "27620e026517ff6b32dc0017b4159183911ab66ec2df8cbcef48ac557dea7cb3"
+    },
+    {
+      "member": "validation/device.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\device.json",
+      "bytes": 309,
+      "sha256": "79638b057d7d036fa34af0407431710e64b82390fac097160aeb770f9489d605"
+    },
+    {
+      "member": "validation/independent-validation.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\independent-validation.json",
+      "bytes": 13815,
+      "sha256": "2a684b77cc013944b60a0d63bfe130a9c85994dae2b77d9c9f548d0bb5e10df1"
+    },
+    {
+      "member": "validation/independent-verifier.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\independent-verifier.receipt.json",
+      "bytes": 190,
+      "sha256": "d25c52496b4c2d75696e098b2ba498422913fab80b38df285f3a940966076313"
+    },
+    {
+      "member": "validation/independent-verifier.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\independent-verifier.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "validation/independent-verifier.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\independent-verifier.stdout.log",
+      "bytes": 130,
+      "sha256": "a0d11c8d5a0aec09e8ee8e64308798d12f27431f05fe6e7c06bcef6b19c32f08"
+    },
+    {
+      "member": "validation/input-proof.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\input-proof.json",
+      "bytes": 543769,
+      "sha256": "f078da436b94684a33c852b000f6e048c4d4f97203c2f4d56f889334684bdac9"
+    },
+    {
+      "member": "validation/observed-tool-outcomes.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\observed-tool-outcomes.json",
+      "bytes": 521,
+      "sha256": "2e26b232e556e7a4604bc0dcd62cbb7cbcb638cf64ca3a7028ed0857591820d0"
+    },
+    {
+      "member": "validation/session-before-vault100.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\session-before-vault100.json",
+      "bytes": 318,
+      "sha256": "abd76e7617a24c89bc43f20df1bb43497956bce8c0e8d951ce361e81856573da"
+    },
+    {
+      "member": "validation/session-before-vault5000.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\session-before-vault5000.json",
+      "bytes": 319,
+      "sha256": "8e75a39519bfdc3dd951066ebab68d797ae4aa4a70936add0822b9cb8247d3bb"
+    },
+    {
+      "member": "validation/vault100.live.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault100.live.json",
+      "bytes": 527,
+      "sha256": "b67b44a25be0579fd764a124d8032948ef6e08faf2592c2b66acc0871b378b7f"
+    },
+    {
+      "member": "validation/vault100.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault100.receipt.json",
+      "bytes": 1126,
+      "sha256": "ddfc82fcf01974d030b771522da887ba40f3ba4149ccc043ac9777f49f622f2e"
+    },
+    {
+      "member": "validation/vault100.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "validation/vault100.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault100.stdout.log",
+      "bytes": 438,
+      "sha256": "e9e0f18f6b9dba820192a167cfff2db09f72ac023abca5aa2670182bc104a626"
+    },
+    {
+      "member": "validation/vault5000.live.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault5000.live.json",
+      "bytes": 530,
+      "sha256": "4450db50bebdbccdca554f8a95f8fe158bdf4381dba70440b101f329e3022647"
+    },
+    {
+      "member": "validation/vault5000.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault5000.receipt.json",
+      "bytes": 1120,
+      "sha256": "ad9e2b8bec2ded9f058c6ffa6a1c668c9cbfa118f8541f511370cccc3cb55dde"
+    },
+    {
+      "member": "validation/vault5000.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault5000.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "validation/vault5000.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\vault5000.stdout.log",
+      "bytes": 429,
+      "sha256": "66060f0436953bc78fc0b23b6e03f944143244ca88388944aa775abda84e9954"
+    },
+    {
+      "member": "validation/verification.json",
+      "source": "D:\\SoloSoul\\build\\rf312-current-windows-startup-20261014\\verification.json",
+      "bytes": 2702,
+      "sha256": "1d72887e6146cfd083402e6498a61ca7fe6cba47d0e3bf305573561d47ca660f"
+    }
+  ],
+  "allMembersReadbackVerified": true,
+  "privateVaultsAndProfilesAndExecutableResourcesExcluded": true
+}

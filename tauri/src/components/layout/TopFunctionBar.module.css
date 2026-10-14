@@ -103,12 +103,13 @@
 }
 
 .horizontalButtonArea {
+  --tools-reveal-duration: 180ms;
   display: flex;
   align-items: center;
   overflow: hidden;
   transition:
-    max-width 0.18s ease,
-    opacity 0.12s ease;
+    max-width var(--tools-reveal-duration) ease,
+    opacity var(--tools-reveal-duration) ease;
   max-width: 0;
   opacity: 0;
 }
@@ -170,4 +171,16 @@
 
 .scrollablePages::-webkit-scrollbar {
   display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .functionBar :is(.horizontalButtonArea, .horizontalArrowIcon) {
+    transition: none;
+  }
+}
+
+:global(html:is([data-reduce-motion='true'], [data-user-reduce-motion='true']))
+  .functionBar
+  :is(.horizontalButtonArea, .horizontalArrowIcon) {
+  transition: none;
 }

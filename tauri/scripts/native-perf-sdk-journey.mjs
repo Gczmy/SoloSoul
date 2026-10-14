@@ -614,7 +614,7 @@ async function sample(options, index, shouldStop) {
           (await sha256(file)) !== screenshot.sha256
         )
           throw new Error('PDF first-page screenshot bytes differ from native proof');
-        const pixels = inspectPdfPixels(await readFile(file));
+        const pixels = inspectPdfPixels(await readFile(file), proof.pdfPreview.schemaVersion);
         if (Object.keys(pixels).some((k) => pixels[k] !== screenshot[k]))
           throw new Error('Independent PDF pixel decoder differs from native proof');
       }

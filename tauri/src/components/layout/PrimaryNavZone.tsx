@@ -1,5 +1,4 @@
-import { useRef, useState, useCallback, useContext } from 'react';
-import { DesktopSidebarContext } from './DesktopSidebarContext';
+import { useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RenameableNavButton } from './RenameableNavButton';
@@ -22,7 +21,6 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
   const location = useLocation();
   const { t } = useTranslation('navigation');
   const activeCustomPages = useActiveCustomPages();
-  const expanded = useContext(DesktopSidebarContext);
   const horizontalNavRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -137,7 +135,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
           className={styles.navPrimary}
           style={{
             ...zoneStyle,
-            flex: expanded ? '0 1 auto' : 1,
+            flex: '0 1 auto',
             minHeight: 0,
             overflowX: 'hidden',
             overflowY: 'auto',

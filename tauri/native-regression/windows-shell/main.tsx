@@ -12,6 +12,7 @@ import { ShellNotificationsProvider } from '@/components/layout/ShellNotificatio
 import { PreviewWindow } from '@/components/attachment/PreviewWindow';
 import { PreviewTitlebar } from '@/components/attachment/PreviewTitlebar';
 import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
 import {
   prepareStartupWindow,
   observeNativeWindowLayout,
@@ -26,6 +27,12 @@ import '@/styles/global.css';
 import '@/styles/themes.css';
 import '@/styles/action-buttons.css';
 import '@/styles/icon-buttons.css';
+import '@/styles/choice-controls.css';
+import '@/styles/switch-controls.css';
+import '@/styles/checkbox-controls.css';
+import '@/styles/animations.css';
+import '@/styles/android.css';
+import '@/styles/macos-glass.css';
 import '@/styles/desktop-controls.css';
 import '@/styles/windows-material.css';
 import '@/styles/startup.css';
@@ -65,6 +72,9 @@ async function capture() {
     ),
     content: bounds('[data-shell-surface], [data-shell-content], [data-auth-content]'),
     navigation: bounds('#desktop-navigation'),
+    primary: bounds('#desktop-navigation [class*="navPrimary"]'),
+    addPage: bounds('[data-add-page-zone]'),
+    tools: bounds('[data-sidebar-tools]'),
     draft: (document.querySelector('[data-public-draft]') as HTMLInputElement)?.value ?? null,
   };
   const native = await invokeCommand('frame_action', {
@@ -79,6 +89,7 @@ async function capture() {
 function Fixture() {
   const [clicks, setClicks] = useState(0);
   const [preview, setPreview] = useState(false);
+  const [detail, setDetail] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(observeNativeWindowLayout, []);
@@ -92,7 +103,7 @@ function Fixture() {
       clearTimeout(timer);
       window.removeEventListener('keydown', probe);
     };
-  }, [location.key, clicks, preview]);
+  }, [location.key, clicks, preview, detail]);
   const theme = async () => {
     document.documentElement.dataset.theme =
       document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -100,9 +111,14 @@ function Fixture() {
     await capture();
   };
   const primary = (
-    <Button data-interact={clicks} onClick={() => setClicks((value) => value + 1)}>
-      Interact {clicks}
-    </Button>
+    <>
+      <Button data-interact={clicks} onClick={() => setClicks((value) => value + 1)}>
+        Interact {clicks}
+      </Button>
+      <Button variant="secondary" onClick={() => setDetail(true)}>
+        Object detail
+      </Button>
+    </>
   );
   const actions = (
     <>
@@ -157,7 +173,7 @@ function Fixture() {
               onBack={location.pathname === '/' ? undefined : () => navigate('/')}
             >
               <h2>Windows shell regression</h2>
-              <p>Production window chrome and layout components, synthetic business slots.</p>
+              <p>Production window chrome and full sidebar, synthetic business content.</p>
               <label>
                 Public fixture draft <input data-public-draft defaultValue="public fixture edit" />
               </label>
@@ -168,6 +184,14 @@ function Fixture() {
           }
         />
       </Routes>
+      <Dialog isOpen={detail} onClose={() => setDetail(false)} title="Public object detail">
+        {(close) => (
+          <>
+            <p>Public field: caption backdrop regression</p>
+            <Button onClick={close}>Close detail</Button>
+          </>
+        )}
+      </Dialog>
       {preview && (
         <PreviewWindow
           style={{

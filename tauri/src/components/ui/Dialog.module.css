@@ -17,11 +17,19 @@
 }
 
 .backdrop {
+  outline-color: var(--bg-overlay);
   position: absolute;
   inset: 0;
   background: var(--bg-overlay);
   backdrop-filter: blur(4px);
   cursor: pointer;
+}
+.backdrop[data-native-window-backdrop='true'] {
+  background: transparent;
+  backdrop-filter: none;
+}
+.dialog[data-native-window-backdrop-content='true'] {
+  animation: none;
 }
 
 .dialog {

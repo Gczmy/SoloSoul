@@ -1,0 +1,264 @@
+{
+  "task": "RF-312",
+  "sourceHead": "b88ae2158fac4a979c0bc4c68d332ee8ecb211dc",
+  "apkSha256": "4bbd8b8eccf6e10a170bffe0ffe0a3e60c1d40e10611e318bbfa67785ad73e90",
+  "clockTicksPerSecond": 100,
+  "birthQuantizationMs": 10.0,
+  "kernelVersion": "5.10.136-android12-9-00005-gf9a66cbe7091-ab9177899",
+  "samples": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "pid": 4280,
+      "uid": 10105,
+      "startTicks": 58310,
+      "processBirthLowerMs": 583100.0,
+      "processBirthUpperMsExclusive": 583110.0,
+      "activityActionMs": 583279.498992,
+      "loginAcceptedAtMs": 587258.471774,
+      "instrumentedProcessBirthToReadyUpperMs": 4158.471773999976,
+      "instrumentedProcessBirthToReadyLowerMs": 4148.471773999976,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "pid": 5389,
+      "uid": 10105,
+      "startTicks": 70909,
+      "processBirthLowerMs": 709090.0,
+      "processBirthUpperMsExclusive": 709100.0,
+      "activityActionMs": 709311.218574,
+      "loginAcceptedAtMs": 713547.032748,
+      "instrumentedProcessBirthToReadyUpperMs": 4457.032747999998,
+      "instrumentedProcessBirthToReadyLowerMs": 4447.032747999998,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "pid": 6409,
+      "uid": 10105,
+      "startTicks": 80960,
+      "processBirthLowerMs": 809600.0,
+      "processBirthUpperMsExclusive": 809610.0,
+      "activityActionMs": 809793.903123,
+      "loginAcceptedAtMs": 814056.62925,
+      "instrumentedProcessBirthToReadyUpperMs": 4456.629249999998,
+      "instrumentedProcessBirthToReadyLowerMs": 4446.629249999998,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "pid": 7436,
+      "uid": 10105,
+      "startTicks": 90668,
+      "processBirthLowerMs": 906680.0,
+      "processBirthUpperMsExclusive": 906690.0,
+      "activityActionMs": 906874.188287,
+      "loginAcceptedAtMs": 911270.880541,
+      "instrumentedProcessBirthToReadyUpperMs": 4590.88054100005,
+      "instrumentedProcessBirthToReadyLowerMs": 4580.88054100005,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "pid": 8487,
+      "uid": 10105,
+      "startTicks": 100078,
+      "processBirthLowerMs": 1000780.0,
+      "processBirthUpperMsExclusive": 1000790.0,
+      "activityActionMs": 1000963.934529,
+      "loginAcceptedAtMs": 1004789.108165,
+      "instrumentedProcessBirthToReadyUpperMs": 4009.1081649999833,
+      "instrumentedProcessBirthToReadyLowerMs": 3999.1081649999833,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "pid": 9496,
+      "uid": 10105,
+      "startTicks": 109758,
+      "processBirthLowerMs": 1097580.0,
+      "processBirthUpperMsExclusive": 1097590.0,
+      "activityActionMs": 1097790.185625,
+      "loginAcceptedAtMs": 1101828.44683,
+      "instrumentedProcessBirthToReadyUpperMs": 4248.44683000003,
+      "instrumentedProcessBirthToReadyLowerMs": 4238.44683000003,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "pid": 10542,
+      "uid": 10105,
+      "startTicks": 119441,
+      "processBirthLowerMs": 1194410.0,
+      "processBirthUpperMsExclusive": 1194420.0,
+      "activityActionMs": 1194598.46011,
+      "loginAcceptedAtMs": 1198496.209275,
+      "instrumentedProcessBirthToReadyUpperMs": 4086.20927500003,
+      "instrumentedProcessBirthToReadyLowerMs": 4076.20927500003,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "pid": 11604,
+      "uid": 10105,
+      "startTicks": 129497,
+      "processBirthLowerMs": 1294970.0,
+      "processBirthUpperMsExclusive": 1294980.0,
+      "activityActionMs": 1295175.319176,
+      "loginAcceptedAtMs": 1299455.300247,
+      "instrumentedProcessBirthToReadyUpperMs": 4485.300247000065,
+      "instrumentedProcessBirthToReadyLowerMs": 4475.300247000065,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "pid": 12637,
+      "uid": 10105,
+      "startTicks": 139400,
+      "processBirthLowerMs": 1394000.0,
+      "processBirthUpperMsExclusive": 1394010.0,
+      "activityActionMs": 1394188.073483,
+      "loginAcceptedAtMs": 1398138.000905,
+      "instrumentedProcessBirthToReadyUpperMs": 4138.000904999906,
+      "instrumentedProcessBirthToReadyLowerMs": 4128.000904999906,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "pid": 13664,
+      "uid": 10105,
+      "startTicks": 149236,
+      "processBirthLowerMs": 1492360.0,
+      "processBirthUpperMsExclusive": 1492370.0,
+      "activityActionMs": 1492580.266004,
+      "loginAcceptedAtMs": 1496524.531227,
+      "instrumentedProcessBirthToReadyUpperMs": 4164.531227000058,
+      "instrumentedProcessBirthToReadyLowerMs": 4154.531227000058,
+      "beforeBirthAbsentSnapshotOrdinals": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "oneBirthIdentityForWholeRun": true
+    }
+  ],
+  "groups": [
+    {
+      "objectCount": 100,
+      "n": 5,
+      "samples": [
+        4158.471773999976,
+        4456.629249999998,
+        4009.1081649999833,
+        4086.20927500003,
+        4138.000904999906
+      ],
+      "medianUpperMs": 4138.000904999906,
+      "p95NearestRankUpperMs": 4456.629249999998
+    },
+    {
+      "objectCount": 5000,
+      "n": 5,
+      "samples": [
+        4457.032747999998,
+        4590.88054100005,
+        4248.44683000003,
+        4485.300247000065,
+        4164.531227000058
+      ],
+      "medianUpperMs": 4457.032747999998,
+      "p95NearestRankUpperMs": 4590.88054100005
+    }
+  ],
+  "scope": "instrumented app process kernel birth to original usable password UI acceptance, including runner initialization, SDK, observer and query work",
+  "capturedRawBeforeBirthAppAbsentForEverySample": true,
+  "kernelClockAndNativeClockBothBoottime": true,
+  "systemColdOrStorageColdClaimed": false,
+  "defaultUninstrumentedProcessStartupClaimed": false,
+  "originalActivityMetricNotRenamed": true,
+  "newDeviceOrApkRunClaimed": false,
+  "wholeRF312Accepted": false,
+  "references": [
+    {
+      "url": "https://github.com/aosp-mirror/kernel_common/blob/f9a66cbe7091/fs/proc/array.c",
+      "blobSha": "18a4588c35be632449258c2fc5d0e6f4ccd5effd",
+      "formula": "start_time = nsec_to_clock_t(task->start_boottime);"
+    },
+    {
+      "url": "https://github.com/aosp-mirror/platform_system_core/blob/main/libutils/SystemClock.cpp",
+      "blobSha": "df3a8986520e3b9094fe2ba7189d0c1ff7049793",
+      "formula": "clock_gettime(CLOCK_BOOTTIME, &ts)"
+    },
+    {
+      "url": "https://developer.android.com/reference/android/os/SystemClock",
+      "definition": "elapsedRealtimeNanos counts time since boot including sleep"
+    }
+  ],
+  "sourceEvidenceArchiveSha256": "6b0b2a53ac9fdc07236c8cab52affc354194ce8d4fcba1a847231eaf914de2fe"
+}

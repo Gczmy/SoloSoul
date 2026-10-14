@@ -21,6 +21,13 @@ import { ShellNotificationSlot } from './ShellNotifications';
 import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
+const SHELL_LAYOUT_KEYS = [
+  '--sidebar-width',
+  '--shell-chrome-bottom',
+  '--shell-navigation-bottom',
+  '--shell-page-padding',
+  ...['top', 'bottom', 'left', 'right', 'height'].map((edge) => `--shell-content-${edge}`),
+];
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -86,6 +93,11 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
   useLayoutEffect(() => {
     const root = document.documentElement;
+    // 切换宽度只更新已有几何；卸载外壳时才释放，避免中途落回默认值。
+    return () => SHELL_LAYOUT_KEYS.forEach((key) => root.style.removeProperty(key));
+  }, []);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
     const values: Record<string, string> = {
       '--sidebar-width': `${sidebarWidth}px`,
       '--shell-chrome-bottom':
@@ -130,7 +142,6 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
     return () => {
       observer?.disconnect();
       window.removeEventListener('resize', measure);
-      [...Object.keys(values), ...geometryKeys].forEach((key) => root.style.removeProperty(key));
     };
   }, [
     sidebarWidth,
@@ -204,6 +215,8 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       style={
         {
           '--appbar-height': `${appbarHeight}px`,
+          // 与图文布局同次提交；子组件测量时不能继承上一状态的全局宽度。
+          '--sidebar-width': `${sidebarWidth}px`,
           flexDirection: isHorizontal
             ? effectivePosition === 'top'
               ? 'column'
