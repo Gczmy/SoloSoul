@@ -84,7 +84,7 @@ export function AppBar({
           '--appbar-leading-inset': `max(12px, calc(${trafficLightsRight > 0 ? trafficLightsRight + 12 : 0}px - ${contentLeft}))`,
           '--mac-sidebar-control-left': `${trafficLightsRight + 12}px`,
           '--mac-page-title-left': `max(${contentLeft}, ${trafficLightsRight + (hasSidebarToggle ? 56 : 12)}px)`,
-          '--windows-page-title-left': `max(calc(${contentLeft} + 12px), ${hasSidebarToggle ? 92 : 44}px)`,
+          '--windows-page-title-left': `max(calc(${contentLeft} + 12px), ${hasSidebarToggle ? 60 : 12}px)`,
           '--windows-page-trailing-inset':
             sidebarPosition === 'right' ? 'calc(var(--sidebar-width) + 12px)' : '12px',
         } as CSSProperties

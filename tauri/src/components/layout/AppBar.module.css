@@ -224,12 +224,12 @@
   border-radius: 0;
   padding: 0
     max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
-    var(--windows-page-title-left, 44px);
+    var(--windows-page-title-left, 12px);
   background: var(--bg-base);
 }
 .windowBrand {
   position: absolute;
-  left: 12px;
+  left: 56px;
   top: 0;
   height: 52px;
   display: flex;
@@ -238,12 +238,9 @@
   font-size: 14px;
   font-weight: 600;
 }
-.windowBrand span {
-  margin-left: 44px;
-}
 .appBar[data-windows-shell] .sidebarToggle {
   position: absolute;
-  left: 44px;
+  left: 12px;
   top: 10px;
   width: 32px;
   height: 32px;
@@ -265,7 +262,7 @@
   border-bottom: 0;
   padding: 0
     max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
-    var(--windows-page-title-left, 44px);
+    var(--windows-page-title-left, 12px);
 }
 :global(html[data-native-material='mica']) .appBar[data-windows-shell] {
   background: transparent;
