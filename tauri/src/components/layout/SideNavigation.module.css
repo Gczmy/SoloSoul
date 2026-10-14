@@ -16,6 +16,20 @@
   z-index: 101;
 }
 
+:global(html[data-desktop-platform='windows']) .sideNav {
+  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+  font-family: var(--font-sans);
+}
+:global(html[data-desktop-platform='windows']) .sideNav .arrowToggle {
+  font-family: var(--font-sans);
+}
+:global(html[data-desktop-platform='windows']) .sideNav .compactActionLabel {
+  font-weight: 400;
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-expanded='true'] .compactActionLabel {
+  font-size: 14px;
+}
+
 /* ── Logo ──────────────────────────────────────────── */
 .logo {
   width: 32px;
