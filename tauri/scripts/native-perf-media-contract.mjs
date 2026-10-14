@@ -32,8 +32,8 @@ export const PUBLIC_MEDIA_ASSETS = Object.freeze(
     [
       'scanned.pdf',
       'application/pdf',
-      1921,
-      '8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1',
+      5082,
+      '0a3cab3b67ca5390d4ca0b468b50b1c3c2a8b9c8220335356675f62df3a9d525',
     ],
     [
       'preview.txt',
