@@ -11,9 +11,9 @@ use windows::Win32::{
             DWMWA_CAPTION_BUTTON_BOUNDS,
         },
         Gdi::{
-            ClientToScreen, CombineRgn, CreateRectRgn, DeleteObject, GetWindowRgn, RedrawWindow,
-            ScreenToClient, SetWindowRgn, HGDIOBJ, RDW_FRAME, RDW_INVALIDATE, RDW_UPDATENOW,
-            RGN_DIFF,
+            ClientToScreen, CombineRgn, CreateRectRgn, DeleteObject, GetRegionData, GetRgnBox,
+            GetWindowRgn, OffsetRgn, RedrawWindow, ScreenToClient, SetWindowRgn, HGDIOBJ, HRGN,
+            RDW_FRAME, RDW_INVALIDATE, RDW_UPDATENOW, RGN_DIFF,
         },
     },
     UI::{
@@ -159,6 +159,139 @@ pub fn enabled(hwnd: HWND) -> bool {
     state(hwnd).is_some()
 }
 
+pub(crate) struct CaptionMask {
+    pub bounds: RECT,
+    pub region: Option<HRGN>,
+}
+
+impl Drop for CaptionMask {
+    fn drop(&mut self) {
+        if let Some(region) = self.region.take() {
+            // SAFETY: Only a probe not transferred to SetWindowRgn is retained.
+            unsafe {
+                let _ = DeleteObject(HGDIOBJ(region.0));
+            }
+        }
+    }
+}
+
+/// Complete native exclusion, including the resize strip. Parent client pixels.
+pub(crate) fn caption_mask(hwnd: HWND) -> Result<Option<CaptionMask>, String> {
+    let Some(pointer) = state(hwnd) else {
+        return Ok(None);
+    };
+    let child = unsafe { &*pointer }
+        .try_borrow()
+        .map_err(|_| "Frame is busy")?
+        .webview;
+    // SAFETY: Retained owned Wry host, same UI thread; no RefCell borrow during OS calls.
+    unsafe {
+        let mut host = RECT::default();
+        GetWindowRect(child, &mut host).map_err(|e| e.to_string())?;
+        let dpi = GetDpiForWindow(hwnd);
+        let visible = CreateRectRgn(0, 0, 0, 0);
+        if visible.0.is_null() {
+            return Err("Cannot allocate caption region probe".into());
+        }
+        let result = if GetWindowRgn(child, visible).0 == 0 {
+            Err("Cannot read caption exclusion region".into())
+        } else {
+            region_caption_mask(
+                visible,
+                host.right - host.left,
+                host.bottom - host.top,
+                (HEADER_HEIGHT * f64::from(dpi) / 96.0).round() as i32,
+            )
+        };
+        let _ = DeleteObject(HGDIOBJ(visible.0));
+        let Some(mut mask) = result? else {
+            return Ok(None);
+        };
+        let mut origin = POINT::default();
+        if !ClientToScreen(hwnd, &mut origin).as_bool() {
+            return Err("Cannot locate caption mask parent".into());
+        }
+        let x = host.left - origin.x;
+        let y = host.top - origin.y;
+        if OffsetRgn(mask.region.unwrap(), x, y).0 == 0 {
+            return Err("Cannot position caption mask region".into());
+        }
+        mask.bounds.left += x;
+        mask.bounds.right += x;
+        mask.bounds.top += y;
+        mask.bounds.bottom += y;
+        Ok(Some(mask))
+    }
+}
+
+fn region_caption_mask(
+    visible: HRGN,
+    width: i32,
+    height: i32,
+    header: i32,
+) -> Result<Option<CaptionMask>, String> {
+    // SAFETY: Caller supplies a live owned probe region; temporary hole is always released.
+    unsafe {
+        let hole = CreateRectRgn(0, 0, width, height);
+        if hole.0.is_null() {
+            return Err("Cannot allocate caption exclusion probe".into());
+        }
+        let mut mask = CaptionMask {
+            bounds: RECT::default(),
+            region: Some(hole),
+        };
+        if CombineRgn(Some(hole), Some(hole), Some(visible), RGN_DIFF).0 == 0 {
+            return Err("Cannot derive caption exclusion region".into());
+        }
+        let mut rect = RECT::default();
+        match GetRgnBox(hole, &mut rect).0 {
+            0 => return Err("Cannot measure caption exclusion region".into()),
+            1 => return Ok(None),
+            _ => {}
+        }
+        if rect.left < 0 || rect.top < 0 || rect.right > width || rect.bottom > header {
+            return Err("Caption exclusion region is outside the header".into());
+        }
+        mask.bounds = rect;
+        Ok(Some(mask))
+    }
+}
+
+pub(crate) fn caption_rectangles(hwnd: HWND) -> Result<Vec<RECT>, String> {
+    if unsafe { GetWindowLongPtrW(hwnd, GWL_STYLE) as u32 & WS_CAPTION.0 == 0 } {
+        return Ok(Vec::new());
+    }
+    let Some(mask) = caption_mask(hwnd)? else {
+        return Ok(Vec::new());
+    };
+    // SAFETY: Owned GDI region; checked byte count and alignment before reading its data.
+    unsafe {
+        let region = mask.region.unwrap();
+        let size = GetRegionData(region, 0, None);
+        if !(32..=65_536).contains(&size) {
+            return Err("Invalid caption region data size".into());
+        }
+        let mut storage = vec![0u32; (size as usize).div_ceil(4)];
+        if GetRegionData(region, size, Some(storage.as_mut_ptr().cast())) != size {
+            return Err("Cannot read caption region rectangles".into());
+        }
+        let header = storage
+            .as_ptr()
+            .cast::<windows::Win32::Graphics::Gdi::RGNDATAHEADER>()
+            .read();
+        let offset = std::mem::size_of_val(&header);
+        let count = header.nCount as usize;
+        if count > 128 || offset + count * std::mem::size_of::<RECT>() > size as usize {
+            return Err("Invalid caption region rectangle count".into());
+        }
+        Ok(std::slice::from_raw_parts(
+            storage.as_ptr().cast::<u8>().add(offset).cast::<RECT>(),
+            count,
+        )
+        .to_vec())
+    }
+}
+
 fn state(hwnd: HWND) -> Option<*mut RefCell<State>> {
     let mut data = 0usize;
     // SAFETY: Only retrieves the cookie belonging to this module's subclass/id.
@@ -181,6 +314,7 @@ pub fn layout(hwnd: HWND) -> Result<WindowsFrameLayout, String> {
                 header_height: 0.0,
                 dpi,
                 maximized: IsZoomed(hwnd).as_bool(),
+                full_window_backdrop: true,
                 caption_bounds: [0.0; 4],
             });
         }
@@ -204,6 +338,7 @@ pub fn layout(hwnd: HWND) -> Result<WindowsFrameLayout, String> {
             header_height: HEADER_HEIGHT,
             dpi,
             maximized: IsZoomed(hwnd).as_bool(),
+            full_window_backdrop: true,
             caption_bounds: [
                 f64::from(bounds.left + window.left - origin.x) / scale,
                 f64::from(bounds.top + window.top - origin.y) / scale,
@@ -238,6 +373,7 @@ pub fn configure(
     }
     let old = state(hwnd);
     if enabled == Some(false) {
+        super::caption_backdrop::clear(hwnd)?;
         if let Some(pointer) = old {
             let child = unsafe { &*pointer }
                 .try_borrow()
@@ -295,6 +431,7 @@ pub fn configure(
         if let Err(error) = extend(hwnd)
             .and_then(|()| refresh(hwnd))
             .and_then(|()| clip_caption(hwnd))
+            .and_then(|()| super::caption_backdrop::prepare(hwnd))
         {
             let _ = configure(hwnd, Some(false), Vec::new());
             return Err(error);
@@ -308,6 +445,7 @@ pub(super) fn refresh_appearance(hwnd: HWND) -> Result<(), String> {
     // SAFETY: Called on the retained window's UI thread after its theme has changed.
     unsafe { refresh(hwnd)? };
     clip_caption(hwnd)?;
+    super::caption_backdrop::sync(hwnd)?;
     // Repaint the native frame without moving/resizing or reinstalling its subclass.
     unsafe {
         if !RedrawWindow(
@@ -375,10 +513,13 @@ unsafe extern "system" fn procedure(
         if message == FRAME_SYNC {
             if clip_caption(hwnd).is_err() {
                 let _ = configure(hwnd, Some(false), Vec::new());
+            } else if super::caption_backdrop::sync(hwnd).is_err() {
+                let _ = super::caption_backdrop::clear(hwnd);
             }
             return LRESULT(0);
         }
         if message == WM_NCDESTROY {
+            let _ = super::caption_backdrop::clear(hwnd);
             let child = (&*(data as *const RefCell<State>))
                 .try_borrow()
                 .ok()
@@ -492,6 +633,13 @@ unsafe extern "system" fn procedure(
             return native;
         }
         let result = DefSubclassProc(hwnd, message, wparam, lparam);
+        if matches!(
+            message,
+            WM_WINDOWPOSCHANGED | WM_SHOWWINDOW | WM_DPICHANGED | WM_SIZE | WM_STYLECHANGED
+        ) && super::caption_backdrop::sync(hwnd).is_err()
+        {
+            let _ = super::caption_backdrop::clear(hwnd);
+        }
         if message == WM_ACTIVATE || message == WM_DPICHANGED || message == WM_DWMCOMPOSITIONCHANGED
         {
             let _ = extend(hwnd);
@@ -546,6 +694,48 @@ fn caption_hit(bounds: [f64; 4], inset: f64, x: f64, y: f64) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn actual_gdi_mask_includes_resize_strip_without_overlapping_webview() {
+        unsafe {
+            let visible = CreateRectRgn(0, 8, 900, 600);
+            let cut = CreateRectRgn(747, 0, 901, 30);
+            assert_ne!(
+                CombineRgn(Some(visible), Some(visible), Some(cut), RGN_DIFF).0,
+                0
+            );
+            let mask = region_caption_mask(visible, 900, 600, 52).unwrap().unwrap();
+            let rect = mask.bounds;
+            assert_eq!(
+                (rect.left, rect.top, rect.right, rect.bottom),
+                (0, 0, 900, 30)
+            );
+            let region = mask.region.unwrap();
+            assert!(windows::Win32::Graphics::Gdi::PtInRegion(region, 0, 0).as_bool());
+            assert!(windows::Win32::Graphics::Gdi::PtInRegion(region, 899, 7).as_bool());
+            assert!(windows::Win32::Graphics::Gdi::PtInRegion(region, 747, 8).as_bool());
+            assert!(!windows::Win32::Graphics::Gdi::PtInRegion(region, 746, 8).as_bool());
+            assert!(!windows::Win32::Graphics::Gdi::PtInRegion(region, 899, 30).as_bool());
+            let _ = DeleteObject(HGDIOBJ(cut.0));
+            let _ = DeleteObject(HGDIOBJ(visible.0));
+        }
+    }
+    #[test]
+    fn actual_gdi_empty_or_unrelated_exclusions_do_not_shade_content() {
+        unsafe {
+            let visible = CreateRectRgn(0, 0, 900, 600);
+            assert!(region_caption_mask(visible, 900, 600, 52)
+                .unwrap()
+                .is_none());
+            let cut = CreateRectRgn(700, 80, 900, 100);
+            assert_ne!(
+                CombineRgn(Some(visible), Some(visible), Some(cut), RGN_DIFF).0,
+                0
+            );
+            assert!(region_caption_mask(visible, 900, 600, 52).is_err());
+            let _ = DeleteObject(HGDIOBJ(cut.0));
+            let _ = DeleteObject(HGDIOBJ(visible.0));
+        }
+    }
     #[test]
     fn caption_buttons_use_native_bounds_and_resize_inset() {
         for (bounds, inset) in [

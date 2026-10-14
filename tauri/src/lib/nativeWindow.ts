@@ -3,6 +3,7 @@ import { withTimeout } from './withTimeout';
 import { useNativeWindowStore, type WindowsFrameLayout } from '@/stores/nativeWindowStore';
 import { listen } from '@tauri-apps/api/event';
 import { trackAsyncListener } from './asyncListener';
+import { observeNativeCaptionBackdrops } from './nativeTitlebarControls';
 
 interface WindowLayout {
   platform: 'macos' | 'windows' | 'other';
@@ -104,6 +105,7 @@ export function syncNativeAppearance(color: { red: number; green: number; blue: 
 
 /** 恢复/全屏/缩放只读几何；不重设外观、背景或材质视图。 */
 export function observeNativeWindowLayout() {
+  const stopBackdrops = observeNativeCaptionBackdrops();
   let frame = 0;
   let stopped = false;
   let running = false;
@@ -148,6 +150,7 @@ export function observeNativeWindowLayout() {
     window.removeEventListener('resize', update);
     window.removeEventListener('focus', update);
     unlisten();
+    stopBackdrops();
   };
 }
 

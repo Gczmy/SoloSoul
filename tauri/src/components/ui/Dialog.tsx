@@ -2,11 +2,12 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Dialog.module.css';
 import { ToastOutlet } from './ToastOutlet';
+import { useNativeBackdropClose } from '@/hooks/useNativeBackdropClose';
 
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children: React.ReactNode | ((close: () => void) => React.ReactNode);
   title?: string;
   /** 可选的内联样式，用于覆盖 .dialog 的默认样式（如 width、maxWidth） */
   dialogStyle?: React.CSSProperties;
@@ -25,6 +26,7 @@ export function Dialog({
   priority = 'default',
   zIndex,
 }: DialogProps) {
+  const { native, backdropRef, close } = useNativeBackdropClose(onClose, isOpen);
   useEffect(() => {
     if (!isOpen) return;
     // 锁定背景滚动
@@ -32,14 +34,14 @@ export function Dialog({
     document.body.style.overflow = 'hidden';
     // Escape 键关闭
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.body.style.overflow = prevOverflow;
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, close]);
 
   if (!isOpen) return null;
 
@@ -54,17 +56,25 @@ export function Dialog({
       onClick={(e) => e.stopPropagation()}
     >
       {/* Backdrop overlay */}
-      <div className={styles.backdrop} data-macos-glass-backdrop onClick={onClose} />
+      <div
+        ref={backdropRef}
+        className={styles.backdrop}
+        data-macos-glass-backdrop
+        data-native-window-backdrop={native || undefined}
+        onClick={close}
+      />
       {/* Dialog content */}
       <div
         className={styles.dialog}
         data-macos-glass="panel"
+        data-native-backdrop-panel
+        data-native-window-backdrop-content={native || undefined}
         role="dialog"
         aria-modal="true"
         style={dialogStyle}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
-            onClose();
+            close();
           }
         }}
       >
@@ -72,7 +82,7 @@ export function Dialog({
         <ToastOutlet
           priority={zIndex ?? (priority === 'auth' ? 8000 : priority === 'important' ? 5000 : 4000)}
         />
-        {children}
+        {typeof children === 'function' ? children(close) : children}
       </div>
     </div>,
     document.body,

@@ -5,6 +5,7 @@ export interface WindowsFrameLayout {
   headerHeight: number;
   dpi: number;
   maximized: boolean;
+  fullWindowBackdrop?: boolean;
   captionBounds: [number, number, number, number];
 }
 

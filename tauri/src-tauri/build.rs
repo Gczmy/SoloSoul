@@ -15,6 +15,13 @@ fn main() {
         // 清单会在加载 TaskDialogIndirect 时退出。由链接器为所有可执行目标嵌入，
         // 同时关闭资源中的重复清单；应用图标和版本仍由 Tauri 生成。
         println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
+        let compatibility = std::path::PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap())
+            .join("windows-compat.manifest");
+        println!("cargo:rerun-if-changed={}", compatibility.display());
+        println!(
+            "cargo:rustc-link-arg=/MANIFESTINPUT:{}",
+            compatibility.display()
+        );
         println!(
             "cargo:rustc-link-arg=/MANIFESTDEPENDENCY:type='win32' \
              name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \

@@ -12,6 +12,7 @@ import { ShellNotificationsProvider } from '@/components/layout/ShellNotificatio
 import { PreviewWindow } from '@/components/attachment/PreviewWindow';
 import { PreviewTitlebar } from '@/components/attachment/PreviewTitlebar';
 import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
 import {
   prepareStartupWindow,
   observeNativeWindowLayout,
@@ -79,6 +80,7 @@ async function capture() {
 function Fixture() {
   const [clicks, setClicks] = useState(0);
   const [preview, setPreview] = useState(false);
+  const [detail, setDetail] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(observeNativeWindowLayout, []);
@@ -92,7 +94,7 @@ function Fixture() {
       clearTimeout(timer);
       window.removeEventListener('keydown', probe);
     };
-  }, [location.key, clicks, preview]);
+  }, [location.key, clicks, preview, detail]);
   const theme = async () => {
     document.documentElement.dataset.theme =
       document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -100,9 +102,14 @@ function Fixture() {
     await capture();
   };
   const primary = (
-    <Button data-interact={clicks} onClick={() => setClicks((value) => value + 1)}>
-      Interact {clicks}
-    </Button>
+    <>
+      <Button data-interact={clicks} onClick={() => setClicks((value) => value + 1)}>
+        Interact {clicks}
+      </Button>
+      <Button variant="secondary" onClick={() => setDetail(true)}>
+        Object detail
+      </Button>
+    </>
   );
   const actions = (
     <>
@@ -168,6 +175,14 @@ function Fixture() {
           }
         />
       </Routes>
+      <Dialog isOpen={detail} onClose={() => setDetail(false)} title="Public object detail">
+        {(close) => (
+          <>
+            <p>Public field: caption backdrop regression</p>
+            <Button onClick={close}>Close detail</Button>
+          </>
+        )}
+      </Dialog>
       {preview && (
         <PreviewWindow
           style={{
