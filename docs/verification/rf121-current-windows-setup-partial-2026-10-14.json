@@ -1,0 +1,138 @@
+{
+  "task": "RF-121",
+  "fullTaskAccepted": false,
+  "goal": "active",
+  "sourceHead": "a7fbda801f50013b8364c756452f33f7efa96bfd",
+  "sourceCount": 1983,
+  "runtimeSha256": "446e6221baa45285607fa594ba4dd7ea151edf8de83ce281c6fcd80aad3734a1",
+  "resourceCount": 94,
+  "frontendOutputCount": 38,
+  "sharedFormalSetupAppUsed": true,
+  "checks": {
+    "nodePassed": 115,
+    "nodeFailed": 0,
+    "nativeRustPassed": 139,
+    "nativeRustFailed": 0,
+    "nativeRustIgnored": 0,
+    "nativeClippyExitCode": 0,
+    "nativeReleaseExitCode": 0
+  },
+  "groups": [
+    {
+      "label": "namespace",
+      "matrixAccepted": false,
+      "driverExitCode": 0,
+      "nativeJourneysAccepted": 3,
+      "surfaceCapturesAccepted": 0,
+      "samples": [
+        {
+          "index": 1,
+          "nativeJourneyAccepted": true,
+          "nativeError": null,
+          "captureAccepted": false,
+          "captureError": "Owned native foreground activation refused"
+        },
+        {
+          "index": 2,
+          "nativeJourneyAccepted": true,
+          "nativeError": null,
+          "captureAccepted": false,
+          "captureError": "Owned native foreground activation refused"
+        },
+        {
+          "index": 3,
+          "nativeJourneyAccepted": true,
+          "nativeError": null,
+          "captureAccepted": false,
+          "captureError": "Owned native foreground activation refused"
+        }
+      ]
+    },
+    {
+      "label": "foreground",
+      "matrixAccepted": false,
+      "driverExitCode": 1,
+      "nativeJourneysAccepted": 2,
+      "surfaceCapturesAccepted": 2,
+      "samples": [
+        {
+          "index": 1,
+          "nativeJourneyAccepted": false,
+          "nativeError": "SDK UI journey proof rejected",
+          "captureAccepted": false,
+          "captureError": "Error: \"owned-window-restoration-incomplete\"\n"
+        },
+        {
+          "index": 2,
+          "nativeJourneyAccepted": true,
+          "nativeError": null,
+          "captureAccepted": true,
+          "captureError": null
+        },
+        {
+          "index": 3,
+          "nativeJourneyAccepted": true,
+          "nativeError": null,
+          "captureAccepted": true,
+          "captureError": null
+        }
+      ]
+    }
+  ],
+  "fullFourCohortMatrixAccepted": false,
+  "unexecutedScenes": [
+    "light-collapsed",
+    "dark-expanded",
+    "dark-collapsed"
+  ],
+  "actualOwnedScreenshotsVisuallyInspected": [
+    {
+      "index": 2,
+      "sha256": "de0590e1e8032eefbcb3bb6d291641a46a76f8242429fb58088e6aaa5fec2a97",
+      "integratedHeaderAndThreeCaptionIconsVisible": true,
+      "lightExpandedNavigationAndContentCardPartitionVisible": true,
+      "otherWindowPixelsObserved": false,
+      "fullMatrixAccepted": false
+    },
+    {
+      "index": 3,
+      "sha256": "de0590e1e8032eefbcb3bb6d291641a46a76f8242429fb58088e6aaa5fec2a97",
+      "integratedHeaderAndThreeCaptionIconsVisible": true,
+      "lightExpandedNavigationAndContentCardPartitionVisible": true,
+      "otherWindowPixelsObserved": false,
+      "fullMatrixAccepted": false
+    }
+  ],
+  "originalStrictGuardsBudgetsAndFailuresPreserved": true,
+  "productSourceModified": false,
+  "refusedRestoration": {
+    "geometryDpiStylesBackdropPreserved": true,
+    "foregroundNotRestored": true,
+    "inputEventsSent": 0,
+    "observedHitBelongsToBoundBrowser": true,
+    "observedRootAndRootOwnerMatchHeldMainWindow": true,
+    "atomicChildOwnershipNotAccepted": true
+  },
+  "cleanup": {
+    "identitiesChecked": 54,
+    "cachePathsRemoved": 48,
+    "linksUnlinked": 0,
+    "preservedFiles": 223,
+    "bytesVerified": true,
+    "processesTerminatedByCleanupTool": 0
+  },
+  "pending": "Wait for user foreground preparation, then rerun the original complete four-cohort matrix. Do not accept subsets or broaden child-HWND guards from transient diagnostics alone.",
+  "unacceptedScope": [
+    "cross-process persistent window-state restore",
+    "complete native material/accessibility matrix",
+    "other platforms",
+    "performance"
+  ],
+  "archive": {
+    "path": "rf121-current-windows-setup-partial-2026-10-14/raw.zip",
+    "members": 298,
+    "bytes": 1080551,
+    "sha256": "dccd8a8c0bdd00d832f364b0d899045c67c974bd0c5c7681bb41da26d4d44349",
+    "allLengthsSha256AndCrcVerified": true
+  }
+}
