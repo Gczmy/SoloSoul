@@ -1,0 +1,1401 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "current Windows home journey and sampled memory",
+  "accepted": true,
+  "diagnosticOnly": true,
+  "unobservedPerformanceMetrics": null,
+  "continuousPeakMemoryMeasured": false,
+  "originalHomeTimeoutRootCauseEstablished": false,
+  "rf312TaskClosed": false,
+  "baseCommit": "a7fbda801f50013b8364c756452f33f7efa96bfd",
+  "exeSha256": "446e6221baa45285607fa594ba4dd7ea151edf8de83ce281c6fcd80aad3734a1",
+  "sourceManifestSha256": "cf78c5d29fc7f5a2439629ae279835627266f7551d336af9356523218d9d8a4b",
+  "groups": [
+    {
+      "objects": 100,
+      "complete": true,
+      "requested": 5,
+      "accepted": 5,
+      "diagnosticOnly": true,
+      "acceptedUnobservedPerformanceMetrics": null,
+      "observedStageDistribution": {
+        "startup": {
+          "n": 5,
+          "median": 2990.1942999999997,
+          "p95": 3515.7806,
+          "min": 2701.2713000000003,
+          "max": 3515.7806
+        },
+        "password-unlock": {
+          "n": 5,
+          "median": 624.1221,
+          "p95": 646.9359999999999,
+          "min": 557.1127,
+          "max": 646.9359999999999
+        },
+        "workspace": {
+          "n": 5,
+          "median": 357.64639999999997,
+          "p95": 508.5176,
+          "min": 343.8148,
+          "max": 508.5176
+        },
+        "search-needle": {
+          "n": 5,
+          "median": 468.9218,
+          "p95": 469.32869999999997,
+          "min": 467.1241,
+          "max": 469.32869999999997
+        },
+        "application-lock": {
+          "n": 5,
+          "median": 112.1533,
+          "p95": 120.1878,
+          "min": 101.52250000000001,
+          "max": 120.1878
+        },
+        "password-reunlock": {
+          "n": 5,
+          "median": 566.6241,
+          "p95": 626.6682,
+          "min": 499.7418,
+          "max": 626.6682
+        }
+      },
+      "observedMemoryDistribution": {
+        "n": 5,
+        "median": 676827136,
+        "p95": 725676032,
+        "min": 675209216,
+        "max": 725676032
+      },
+      "collectionDurationDistribution": {
+        "n": 44,
+        "median": 972.418450000001,
+        "p95": 1281.6951000000117,
+        "min": 812.7419000000009,
+        "max": 2388.1034
+      },
+      "actualIntervalDistribution": {
+        "n": 39,
+        "median": 1727,
+        "p95": 2013,
+        "min": 854,
+        "max": 2394
+      },
+      "samplePoints": 44,
+      "validSamplePoints": 44,
+      "samples": [
+        {
+          "index": 1,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 2701.2713000000003
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 646.9359999999999
+            },
+            {
+              "name": "workspace",
+              "durationMs": 343.8148
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 468.3915
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 101.52250000000001
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 499.7418
+            }
+          ],
+          "calls": 61,
+          "runId": "227fd6ad38a344e8b7829f31e282a002",
+          "pid": 35692,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 676827136,
+            "collectionMaximumMs": 1208.3648999999996,
+            "actualMaximumStartIntervalMs": 2013
+          },
+          "recordedIdentities": [
+            {
+              "pid": 35692,
+              "creationMs": 1791958398992,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 36872,
+              "creationMs": 1791958399167,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 33384,
+              "creationMs": 1791958403081,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 30000,
+              "creationMs": 1791958400208,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 21380,
+              "creationMs": 1791958399521,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 19236,
+              "creationMs": 1791958399518,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 12876,
+              "creationMs": 1791958403080,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 39480,
+              "creationMs": 1791958399221,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 5984,
+              "creationMs": 1791958399564,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "0ac3182742b7c58dfcef0f0ec9a4775b83ce67382476e264d236edbbde711cda",
+            "native-perf-auth-attribution.json": "4ea660e1d2efdf5b42a7349a93ee9c9d27c56f2ec879c9e94a4563efa675145f",
+            "native-perf-maintenance-admission.json": "b0f5661d078a11ab63f29e841dac1fd3722172a74b7e6803932a44d1e0ac5c24"
+          }
+        },
+        {
+          "index": 2,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 3515.7806
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 557.1127
+            },
+            {
+              "name": "workspace",
+              "durationMs": 351.9225
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 469.0394
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 120.1878
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 554.0801
+            }
+          ],
+          "calls": 61,
+          "runId": "288d9407372f4906b0d79baf1e5291f8",
+          "pid": 5468,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 675209216,
+            "collectionMaximumMs": 2388.1034,
+            "actualMaximumStartIntervalMs": 2394
+          },
+          "recordedIdentities": [
+            {
+              "pid": 5468,
+              "creationMs": 1791958419209,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 3672,
+              "creationMs": 1791958419563,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 40276,
+              "creationMs": 1791958423683,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 36236,
+              "creationMs": 1791958419610,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 24828,
+              "creationMs": 1791958423683,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 40736,
+              "creationMs": 1791958419984,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 17344,
+              "creationMs": 1791958419933,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 34104,
+              "creationMs": 1791958420451,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 30364,
+              "creationMs": 1791958419936,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "fb7d02db8d50fd12d46b8fd92966510401840f0571ef17aef02ef4b3ad86d7bb",
+            "native-perf-auth-attribution.json": "12943224e667a22da69a171b93a1195b43795aa177c47aeb1683cd2bd588c547",
+            "native-perf-maintenance-admission.json": "c943112878b0b2bf10af1adb3223eb5c1093f99b34a8a3336ce05b2788623420"
+          }
+        },
+        {
+          "index": 3,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 3061.1356
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 624.1221
+            },
+            {
+              "name": "workspace",
+              "durationMs": 357.64639999999997
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 469.32869999999997
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 112.7329
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 576.0617
+            }
+          ],
+          "calls": 61,
+          "runId": "0965f30c7a994f7785480aebf4818989",
+          "pid": 38828,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 684126208,
+            "collectionMaximumMs": 1248.386599999998,
+            "actualMaximumStartIntervalMs": 2013
+          },
+          "recordedIdentities": [
+            {
+              "pid": 38828,
+              "creationMs": 1791958439162,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 37752,
+              "creationMs": 1791958439330,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 34640,
+              "creationMs": 1791958439675,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 3304,
+              "creationMs": 1791958439678,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 38356,
+              "creationMs": 1791958439381,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 7576,
+              "creationMs": 1791958443503,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 23000,
+              "creationMs": 1791958439716,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 19680,
+              "creationMs": 1791958443503,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32736,
+              "creationMs": 1791958440323,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "6733d556a25bfa2c9ad8061c3ee1877ae9124fbc340f1a23dd8c0f247bc4d62b",
+            "native-perf-auth-attribution.json": "992aed6194f4c990bd83c3d48a8a4cd443dea6db41391ebfd93ed76558998de4",
+            "native-perf-maintenance-admission.json": "1c1995362a36af90a9e707b9dd6335c82c5b914f6ce1ad14b63625fed9add074"
+          }
+        },
+        {
+          "index": 4,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 2990.1942999999997
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 618.854
+            },
+            {
+              "name": "workspace",
+              "durationMs": 379.0815
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 468.9218
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 105.4369
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 566.6241
+            }
+          ],
+          "calls": 61,
+          "runId": "de3bda3f058346a88fed8a419c66d7bb",
+          "pid": 35984,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 8,
+            "validSampleCount": 8,
+            "observedMaximumWorkingSetBytes": 725676032,
+            "collectionMaximumMs": 1281.6951000000117,
+            "actualMaximumStartIntervalMs": 2006
+          },
+          "recordedIdentities": [
+            {
+              "pid": 35984,
+              "creationMs": 1791958458952,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 20788,
+              "creationMs": 1791958459117,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 4688,
+              "creationMs": 1791958459452,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 19532,
+              "creationMs": 1791958459593,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 19224,
+              "creationMs": 1791958462951,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 2904,
+              "creationMs": 1791958459451,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32168,
+              "creationMs": 1791958462951,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 12392,
+              "creationMs": 1791958459155,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 35392,
+              "creationMs": 1791958459490,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "f3ee5809f84c03a0d0c14e8c6a7a712f397c48ce30c5039765d1b0471cb3eb89",
+            "native-perf-auth-attribution.json": "977353d248786f2f23bd8a0ccde675e2d673e4144fc2589d14cc69c88db77274",
+            "native-perf-maintenance-admission.json": "82af3581ae00fa2e7f31ab00ac1bbb48984371124cf7a0b82b9ebde120eb20b1"
+          }
+        },
+        {
+          "index": 5,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 2821.4451
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 625.8999
+            },
+            {
+              "name": "workspace",
+              "durationMs": 508.5176
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 467.1241
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 112.1533
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 626.6682
+            }
+          ],
+          "calls": 61,
+          "runId": "99f1b49982344aa4bab05ab87702d77d",
+          "pid": 18292,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 675889152,
+            "collectionMaximumMs": 1547.733400000012,
+            "actualMaximumStartIntervalMs": 2012
+          },
+          "recordedIdentities": [
+            {
+              "pid": 18292,
+              "creationMs": 1791958476797,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 21828,
+              "creationMs": 1791958476980,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32984,
+              "creationMs": 1791958477518,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 17088,
+              "creationMs": 1791958477304,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 35648,
+              "creationMs": 1791958477307,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32484,
+              "creationMs": 1791958477018,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 25392,
+              "creationMs": 1791958480735,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 4444,
+              "creationMs": 1791958477346,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32560,
+              "creationMs": 1791958480734,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "383959ed087241535833bcfcf6312d20eddc90021baed948a210ae2049e3a01f",
+            "native-perf-auth-attribution.json": "cf5f5c9ff393ef67b8880e4520675675f81ad2de0fe2d886a9071de3cf0b0149",
+            "native-perf-maintenance-admission.json": "1955b35b92ec03f44d26a817efcc69e84f184fc4089a87505678a534195806e6"
+          }
+        }
+      ]
+    },
+    {
+      "objects": 5000,
+      "complete": true,
+      "requested": 5,
+      "accepted": 5,
+      "diagnosticOnly": true,
+      "acceptedUnobservedPerformanceMetrics": null,
+      "observedStageDistribution": {
+        "startup": {
+          "n": 5,
+          "median": 2750.1613,
+          "p95": 3256.6468,
+          "min": 2526.6684999999998,
+          "max": 3256.6468
+        },
+        "password-unlock": {
+          "n": 5,
+          "median": 637.429,
+          "p95": 682.2388000000001,
+          "min": 575.6043,
+          "max": 682.2388000000001
+        },
+        "workspace": {
+          "n": 5,
+          "median": 1004.1237000000001,
+          "p95": 1107.0727,
+          "min": 895.8891,
+          "max": 1107.0727
+        },
+        "search-needle": {
+          "n": 5,
+          "median": 500.5629,
+          "p95": 531.9348,
+          "min": 497.25059999999996,
+          "max": 531.9348
+        },
+        "application-lock": {
+          "n": 5,
+          "median": 158.2884,
+          "p95": 185.6269,
+          "min": 105.44720000000001,
+          "max": 185.6269
+        },
+        "password-reunlock": {
+          "n": 5,
+          "median": 662.3016,
+          "p95": 681.2309,
+          "min": 557.3002,
+          "max": 681.2309
+        }
+      },
+      "observedMemoryDistribution": {
+        "n": 5,
+        "median": 806776832,
+        "p95": 816791552,
+        "min": 793575424,
+        "max": 816791552
+      },
+      "collectionDurationDistribution": {
+        "n": 44,
+        "median": 968.728149999999,
+        "p95": 1164.8218000000052,
+        "min": 808.178700000004,
+        "max": 1553.9937999999966
+      },
+      "actualIntervalDistribution": {
+        "n": 39,
+        "median": 1529,
+        "p95": 2015,
+        "min": 870,
+        "max": 2018
+      },
+      "samplePoints": 44,
+      "validSamplePoints": 44,
+      "samples": [
+        {
+          "index": 1,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 2750.1613
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 682.2388000000001
+            },
+            {
+              "name": "workspace",
+              "durationMs": 978.0534
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 500.5629
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 158.2884
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 681.2309
+            }
+          ],
+          "calls": 61,
+          "runId": "9b24884933b74409897b4c5a1c0e4e39",
+          "pid": 23980,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 808820736,
+            "collectionMaximumMs": 1172.0099999999993,
+            "actualMaximumStartIntervalMs": 2013
+          },
+          "recordedIdentities": [
+            {
+              "pid": 23980,
+              "creationMs": 1791958498943,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 26148,
+              "creationMs": 1791958499150,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 3044,
+              "creationMs": 1791958499187,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 31892,
+              "creationMs": 1791958502925,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 35936,
+              "creationMs": 1791958499470,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 35612,
+              "creationMs": 1791958500190,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 39584,
+              "creationMs": 1791958499472,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 24448,
+              "creationMs": 1791958502924,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 27696,
+              "creationMs": 1791958499510,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "d4b3c671be731bce626e57586ea6d79fb905b8ffb4caf1ed954df664cfe62e26",
+            "native-perf-auth-attribution.json": "c3568aa28a57f37671530af0039ed4285a5681669ca34b110ff5b03dc2235d09",
+            "native-perf-maintenance-admission.json": "3ae6441a30d0e89da5eabde4f49744f8055ae898a0c1a1281a6574ab5c99ae26"
+          }
+        },
+        {
+          "index": 2,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 2526.6684999999998
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 575.6043
+            },
+            {
+              "name": "workspace",
+              "durationMs": 895.8891
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 531.9348
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 174.66029999999998
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 557.3002
+            }
+          ],
+          "calls": 61,
+          "runId": "0d839be7c6f34e22aa8985999676ab5a",
+          "pid": 29292,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 8,
+            "validSampleCount": 8,
+            "observedMaximumWorkingSetBytes": 816791552,
+            "collectionMaximumMs": 1075.4458999999988,
+            "actualMaximumStartIntervalMs": 2018
+          },
+          "recordedIdentities": [
+            {
+              "pid": 29292,
+              "creationMs": 1791958518917,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 33904,
+              "creationMs": 1791958519116,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 9152,
+              "creationMs": 1791958519495,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 4916,
+              "creationMs": 1791958519152,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 37536,
+              "creationMs": 1791958519521,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 21296,
+              "creationMs": 1791958521945,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 27332,
+              "creationMs": 1791958519454,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 34216,
+              "creationMs": 1791958519648,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 35480,
+              "creationMs": 1791958521945,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "62d96f88342e705581c98968b4d994a54b6f1e776978187a64052ea6dcec8027",
+            "native-perf-auth-attribution.json": "d09e139ca1df542a5f04f89785f80e1e42bc6d7407e9b3de502076b24f9c1e2c",
+            "native-perf-maintenance-admission.json": "1bff6d69d9cba642ad9da36461d4447a398c77eb131b2aa9ef6b6ecb6f43c691"
+          }
+        },
+        {
+          "index": 3,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 2642.0799
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 675.3169
+            },
+            {
+              "name": "workspace",
+              "durationMs": 1107.0727
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 498.0995
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 105.44720000000001
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 662.3016
+            }
+          ],
+          "calls": 61,
+          "runId": "6b2d0f8286b54710a8fade5942c26279",
+          "pid": 28084,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 793575424,
+            "collectionMaximumMs": 1553.9937999999966,
+            "actualMaximumStartIntervalMs": 2012
+          },
+          "recordedIdentities": [
+            {
+              "pid": 28084,
+              "creationMs": 1791958536846,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 21072,
+              "creationMs": 1791958537051,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32300,
+              "creationMs": 1791958540489,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 32368,
+              "creationMs": 1791958537604,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 37668,
+              "creationMs": 1791958537414,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 6356,
+              "creationMs": 1791958537376,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 40732,
+              "creationMs": 1791958537371,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 27076,
+              "creationMs": 1791958540490,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 40148,
+              "creationMs": 1791958537090,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "e2907c81779b28942fad2d34fd38c169034f29dc51b01f3b05b2c8ed3b5a0902",
+            "native-perf-auth-attribution.json": "3a63acd801289f2d9c0734a27503e8449ae13e09930d70fcc391bf29ac59aa06",
+            "native-perf-maintenance-admission.json": "a4a30b65fb614ec13de513f5dce11f6c7366986d52a658c6d7a5295ca7fdafb5"
+          }
+        },
+        {
+          "index": 4,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 3256.6468
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 637.429
+            },
+            {
+              "name": "workspace",
+              "durationMs": 1004.1237000000001
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 527.8281999999999
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 185.6269
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 636.2552000000001
+            }
+          ],
+          "calls": 61,
+          "runId": "778c2804569c4eb499d1c6add6afec41",
+          "pid": 10428,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 806211584,
+            "collectionMaximumMs": 1164.8218000000052,
+            "actualMaximumStartIntervalMs": 2015
+          },
+          "recordedIdentities": [
+            {
+              "pid": 10428,
+              "creationMs": 1791958555850,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 2192,
+              "creationMs": 1791958556087,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 8216,
+              "creationMs": 1791958556448,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 39280,
+              "creationMs": 1791958556479,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 38072,
+              "creationMs": 1791958556617,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 35892,
+              "creationMs": 1791958556447,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 13960,
+              "creationMs": 1791958559534,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 6376,
+              "creationMs": 1791958556121,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 40816,
+              "creationMs": 1791958559535,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "fae4773b39e01d1550974e086276f37bb1fd4c54680985cd7215de1f6b947c39",
+            "native-perf-auth-attribution.json": "a531e16d7f850864ffe53c4ff913cc765cd336ef830ab253432f43ea44bd9ad1",
+            "native-perf-maintenance-admission.json": "09317dfdcb11648aefabc648a860aa9ce99a6f3435da1fe3882e17ce7d44f52a"
+          }
+        },
+        {
+          "index": 5,
+          "accepted": true,
+          "reportedSuccess": true,
+          "uiSuccess": true,
+          "journeyContractValid": true,
+          "journeyRejection": null,
+          "failedStep": null,
+          "reason": null,
+          "timeoutState": null,
+          "phases": [
+            {
+              "name": "startup",
+              "durationMs": 3233.7809
+            },
+            {
+              "name": "password-unlock",
+              "durationMs": 634.7471999999999
+            },
+            {
+              "name": "workspace",
+              "durationMs": 1021.3540999999999
+            },
+            {
+              "name": "search-needle",
+              "durationMs": 497.25059999999996
+            },
+            {
+              "name": "application-lock",
+              "durationMs": 136.9877
+            },
+            {
+              "name": "password-reunlock",
+              "durationMs": 670.5615
+            }
+          ],
+          "calls": 61,
+          "runId": "2bc5d170e5914d60a1e218f0e426919f",
+          "pid": 10040,
+          "authenticationFlowOutcomes": [
+            "finished",
+            "finished"
+          ],
+          "maintenanceFailures": [],
+          "memory": {
+            "complete": true,
+            "sampleCount": 9,
+            "validSampleCount": 9,
+            "observedMaximumWorkingSetBytes": 806776832,
+            "collectionMaximumMs": 1050.4848999999958,
+            "actualMaximumStartIntervalMs": 2014
+          },
+          "recordedIdentities": [
+            {
+              "pid": 10040,
+              "creationMs": 1791958575523,
+              "executableName": "solo_soul.exe"
+            },
+            {
+              "pid": 24316,
+              "creationMs": 1791958575836,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 1812,
+              "creationMs": 1791958576915,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 16828,
+              "creationMs": 1791958576165,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 34452,
+              "creationMs": 1791958579436,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 39248,
+              "creationMs": 1791958576165,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 24440,
+              "creationMs": 1791958575869,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 37340,
+              "creationMs": 1791958576195,
+              "executableName": "msedgewebview2.exe"
+            },
+            {
+              "pid": 27368,
+              "creationMs": 1791958579436,
+              "executableName": "msedgewebview2.exe"
+            }
+          ],
+          "artifactSha256": {
+            "native-perf-sdk-journey.json": "fbb3ff2cd02bfbcf5ee7a91f40d5d011451bfcda2698c413f4a10d7195bf00d3",
+            "native-perf-auth-attribution.json": "7bd6afd5d568655a79523ea9b07f0235b3370a9e87918d5b6afa50de1f404276",
+            "native-perf-maintenance-admission.json": "d0177445e38a8b03beb2d945df2646f77f8e78bcf23ca7cd2290502328938ef0"
+          }
+        }
+      ]
+    }
+  ],
+  "date": "2026-10-14",
+  "archiveIndex": "rf312-integrated-windows-home-memory-2026-10-14/index.json",
+  "rawOriginalsByteVerified": true,
+  "rawRecordCount": 197,
+  "device": {
+    "operatingSystem": "Microsoft Windows 11 Enterprise LTSC",
+    "build": "26100",
+    "cpu": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+    "physicalCores": 8,
+    "logicalProcessors": 8,
+    "totalVisibleMemoryKiB": 16553924,
+    "node": "v24.16.0",
+    "userNamesRead": false,
+    "machineNamesRead": false
+  },
+  "commands": [
+    {
+      "command": [
+        "node",
+        "scripts/native-perf-sdk-journey.mjs",
+        "--exe",
+        "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\current-windows-native-retry1-20261014\\runtime\\bin\\solo_soul.exe",
+        "--fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault100",
+        "--output",
+        "D:\\SoloSoul\\build\\rf312-integrated-windows-home-memory-20261014\\samples100",
+        "--samples",
+        "5",
+        "--memory-interval-ms",
+        "2000"
+      ],
+      "pid": 28228,
+      "exitCode": 0,
+      "elapsedSeconds": 99.61570839997148,
+      "sourceUnchanged": true,
+      "resourcesUnchanged": true,
+      "originalFixtureUnchanged": true,
+      "pdfiumOverrideInherited": false,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "at": "2026-10-14T06:14:54.555960+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/native-perf-sdk-journey.mjs",
+        "--exe",
+        "D:\\SoloSoul\\build\\rf121-theme-binding-20261010\\current-windows-native-retry1-20261014\\runtime\\bin\\solo_soul.exe",
+        "--fixture",
+        "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\fixtures\\vault5000",
+        "--output",
+        "D:\\SoloSoul\\build\\rf312-integrated-windows-home-memory-20261014\\samples5000",
+        "--samples",
+        "5",
+        "--memory-interval-ms",
+        "2000"
+      ],
+      "pid": 22860,
+      "exitCode": 0,
+      "elapsedSeconds": 98.2221643999801,
+      "sourceUnchanged": true,
+      "resourcesUnchanged": true,
+      "originalFixtureUnchanged": true,
+      "pdfiumOverrideInherited": false,
+      "temporaryDirectory": "D:\\SoloSoul\\build\\rf312-maintenance-20261009\\tmp",
+      "at": "2026-10-14T06:16:33.716396+00:00"
+    }
+  ],
+  "cleanup": {
+    "identitiesChecked": 90,
+    "matchingOwnedIdentitiesLive": 0,
+    "cachePathsRemoved": 80,
+    "linksUnlinked": 0,
+    "vaultAndRootFilesBytePreserved": 240,
+    "applicationLogsPreserved": 10,
+    "processesTerminatedByCacheTool": 0
+  },
+  "limitations": [
+    "Optional auth/maintenance instrumentation and SDK/query overhead remain enabled",
+    "Observed working-set maximum is not a continuous peak or exclusive physical memory",
+    "Only ten current runs; original intermittent home timeout not reproduced and root cause remains unknown",
+    "No sleep, warm restart, new OCR/preview or other-platform measurements in this group",
+    "Not an alternating controlled performance comparison with older builds"
+  ],
+  "nextLocal": [
+    "RF-121 actual DOM/theme/palette-bound composed-window matrix",
+    "Continue bounded home timeout attribution if reproduced",
+    "Current-build OCR/preview measurement; paired startup already measured separately"
+  ],
+  "pushPerformed": false,
+  "goal": "active",
+  "runtimeSourceCount": 1983,
+  "pairedStartupMeasuredInSeparateGroup": true,
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "ipcSupplement": "rf312-integrated-windows-home-memory-2026-10-14/ipc-supplement.json",
+  "observedTransportCounts": [
+    {
+      "objects": 100,
+      "samples": [
+        {
+          "index": 1,
+          "attempts": 153,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 2,
+          "attempts": 151,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 3,
+          "attempts": 150,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 4,
+          "attempts": 152,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 5,
+          "attempts": 144,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        }
+      ],
+      "medianAttempts": 151,
+      "maximumAttempts": 153
+    },
+    {
+      "objects": 5000,
+      "samples": [
+        {
+          "index": 1,
+          "attempts": 156,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 10
+        },
+        {
+          "index": 2,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        },
+        {
+          "index": 3,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        },
+        {
+          "index": 4,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        },
+        {
+          "index": 5,
+          "attempts": 148,
+          "listen": 28,
+          "unlisten": 17,
+          "titlebarControls": 9
+        }
+      ],
+      "medianAttempts": 148,
+      "maximumAttempts": 156
+    }
+  ]
+}
