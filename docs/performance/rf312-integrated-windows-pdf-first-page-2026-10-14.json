@@ -1,0 +1,952 @@
+{
+  "task": "RF-1149",
+  "relatedTask": "RF-312",
+  "accepted": true,
+  "fullRF312Accepted": false,
+  "goal": "active",
+  "sourceHead": "58f585a68",
+  "nativeRuntimeSha256": "a31fae1cbc60502a4730b4df9e1945d813ce347f90d983d86cc8a6cf406a3174",
+  "sourceCount": 1984,
+  "resourceCount": 94,
+  "frontendFileCount": 38,
+  "currentFixedSchemaVersion": 3,
+  "currentViewport": [
+    1200,
+    831
+  ],
+  "currentRoi": [
+    266,
+    221,
+    430,
+    36
+  ],
+  "historicalFixedSchemaVersion": 2,
+  "historicalViewport": [
+    1028,
+    749
+  ],
+  "historicalRoi": [
+    180,
+    225,
+    430,
+    36
+  ],
+  "originalReferenceAndMaskUnchanged": true,
+  "unknownVersionsAndVersionGeometryMixingRejected": true,
+  "originalResourceTreeDocumentInputCryptoClockProtocolBudgetsPreserved": true,
+  "nativeTests": 142,
+  "nodeTests": {
+    "total": 266,
+    "passed": 265,
+    "failed": 0,
+    "existingFileSymlinkPrivilegeSkipped": 1
+  },
+  "independentVerification": {
+    "task": "RF-1149",
+    "accepted": true,
+    "groups": [
+      100,
+      5000
+    ],
+    "samplesPerGroup": 3,
+    "distinctRuns": 6,
+    "allPdfAuthMaintenanceContractsReplayed": true,
+    "sourceAndRuntimeAndResourcesUnchanged": true,
+    "sourceCount": 1984,
+    "currentFixedSchemaVersion": 3,
+    "historicalFixedSchemaVersion": 2,
+    "originalPixelReferenceAndMaskUnchanged": true,
+    "allPngLengthsSha256CrcAndIndependentPixelsVerified": true,
+    "negativeControlsPerRun": 12,
+    "pdfFirstPagePerformanceAccepted": true,
+    "fullRF312Accepted": false,
+    "groupSummaries": [
+      {
+        "objects": 100,
+        "summary": [
+          {
+            "name": "firstMatchObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 872.7505999999994,
+            "p95Ms": 873.5801000000001
+          },
+          {
+            "name": "stableReadyObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 1341.315199999999,
+            "p95Ms": 1436.4026000000003
+          },
+          {
+            "name": "captureOverheadMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 514.5003000000006,
+            "p95Ms": 515.7335000000021
+          },
+          {
+            "name": "decodeOverheadMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 13.133300000000418,
+            "p95Ms": 16.09849999999824
+          },
+          {
+            "name": "pollWaitMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 510.10479999999995,
+            "p95Ms": 514.4355
+          }
+        ]
+      },
+      {
+        "objects": 5000,
+        "summary": [
+          {
+            "name": "firstMatchObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 873.664499999999,
+            "p95Ms": 905.1637999999984
+          },
+          {
+            "name": "stableReadyObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 1373.7270999999992,
+            "p95Ms": 1373.7839000000004
+          },
+          {
+            "name": "captureOverheadMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 461.5151999999998,
+            "p95Ms": 507.3264999999974
+          },
+          {
+            "name": "decodeOverheadMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 12.745300000000498,
+            "p95Ms": 13.483799999999064
+          },
+          {
+            "name": "pollWaitMs",
+            "requestedSamples": 3,
+            "successfulSamples": 3,
+            "medianMs": 522.9902,
+            "p95Ms": 524.6613
+          }
+        ]
+      }
+    ],
+    "records": [
+      {
+        "objects": 100,
+        "index": 1,
+        "runId": "3c57f39b7d504665a8168f5b1ccd26f0",
+        "pid": 38144,
+        "currentFixedSchema3ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_100/config.json",
+            "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_100/vault.db",
+            "preparedSha256": "08e11bdfdbe6bb9fb605247eb4cda71c1b802006b26fec39dfba1d95602a86b1",
+            "postJourneySha256": "08e11bdfdbe6bb9fb605247eb4cda71c1b802006b26fec39dfba1d95602a86b1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "9192b2c389bc4493a165d821e38db42d130dea18120a6c30d66e9db3028cbc9e",
+            "postJourneySha256": "798332a4f96204995505ee0202dd820fd6063cd61cd7e4dec11601f070a1925d",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+            "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+            "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+            "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+            "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "1d0578ddebd8bd64803dd6c7ba85d6dfccbd6e242a6ecfd432180a0f6955cc87",
+            "postJourneySha256": "1d0578ddebd8bd64803dd6c7ba85d6dfccbd6e242a6ecfd432180a0f6955cc87",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "abc4543bc3eb94f5ca64976e94a3a77318149cb7e05045fc99ffebf7cb01c3cd",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshots": [
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-01.png",
+            "bytes": 28273,
+            "sha256": "222280cdafa5ffe8ae3e7a1a33a77ce223604dc22cf09dc2bc9b46730181bab0",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 0,
+              "maskSha256": "963143243a8307de48fd6b64f5bf81689b58895b49141f80dbbccafd13b7ba1f",
+              "matches": false
+            },
+            "frameStable": false,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-02.png",
+            "bytes": 37365,
+            "sha256": "b75f40e9940ae7456e3b38ae172f60f8e6fdb4a5a2d66ecc4ab4883c9d86151f",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-03.png",
+            "bytes": 39602,
+            "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          }
+        ],
+        "negativeControlsRejected": 12,
+        "performanceMetrics": {
+          "captureOverheadMs": 515.7335000000021,
+          "captures": 3,
+          "decodeOverheadMs": 16.09849999999824,
+          "firstMatchObservedMs": 872.7505999999994,
+          "pollWaitMs": 505.8439,
+          "stableReadyObservedMs": 1341.315199999999
+        }
+      },
+      {
+        "objects": 100,
+        "index": 2,
+        "runId": "44a58ec1e1f34fb7908e0761b8d4712c",
+        "pid": 30264,
+        "currentFixedSchema3ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_100/config.json",
+            "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_100/vault.db",
+            "preparedSha256": "64f425289bf5265526b4a5ca273d0cc74ca94a2208408e9414698a59936923a1",
+            "postJourneySha256": "64f425289bf5265526b4a5ca273d0cc74ca94a2208408e9414698a59936923a1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "d1e17909eabf0ded78f1cea4823d1792354b872b988b22f31de2c761b11bc4e2",
+            "postJourneySha256": "f02dedd8447c9f1ba0bc81084184ae2c5a27bdecbfcfcdcb28ada83909613336",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+            "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+            "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+            "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+            "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "1577f5bd2634937c7e9a974b22974481c95c09cecf84f5687d327740b0d0ebd9",
+            "postJourneySha256": "1577f5bd2634937c7e9a974b22974481c95c09cecf84f5687d327740b0d0ebd9",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "f63d1884ddcd418c9010775f8eb1e8779e050bb42e5970b2e7b6820b68df9912",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshots": [
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-01.png",
+            "bytes": 28324,
+            "sha256": "9ab79ce0c03c21e555dc59a2c7d308282b54a9399002105735ede0e15b77e4fd",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 0,
+              "maskSha256": "963143243a8307de48fd6b64f5bf81689b58895b49141f80dbbccafd13b7ba1f",
+              "matches": false
+            },
+            "frameStable": false,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-02.png",
+            "bytes": 36279,
+            "sha256": "2fd4184b32169ba2a32768b771365431bf8b1d3fa7dc3234b8db3b847ddb2494",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-03.png",
+            "bytes": 39602,
+            "sha256": "8459cfa434e62a81cc078b8ab4760ae1a4a7badaef6c5552150ef790dcce313b",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          }
+        ],
+        "negativeControlsRejected": 12,
+        "performanceMetrics": {
+          "captureOverheadMs": 501.8816000000015,
+          "captures": 3,
+          "decodeOverheadMs": 13.053399999999783,
+          "firstMatchObservedMs": 873.5801000000001,
+          "pollWaitMs": 514.4355,
+          "stableReadyObservedMs": 1436.4026000000003
+        }
+      },
+      {
+        "objects": 100,
+        "index": 3,
+        "runId": "db6db14380314e43a1c5e92a732b0e67",
+        "pid": 28808,
+        "currentFixedSchema3ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_100/config.json",
+            "preparedSha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "postJourneySha256": "154d54223bbf8c3d79fc287779df147519b667f48b990c31e621d7f0e4d947c2",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_100/vault.db",
+            "preparedSha256": "7e7c7ffa38cd38fe679e69230af6f87c4136538b319b95f5ce4056614de6a802",
+            "postJourneySha256": "7e7c7ffa38cd38fe679e69230af6f87c4136538b319b95f5ce4056614de6a802",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "ad3d13937980174740385432c18742a3eaa5814ac47cbef2a122efa797053a68",
+            "postJourneySha256": "5c9dcb31d58ff86afc497a3d69514bb9589d01b48e36901fda8c553cc6046718",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_2d1252a4-135d-42e5-91bd-9aa671df8a4c/text_only.pdf",
+            "preparedSha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "postJourneySha256": "1252f008a98c227e710cb9d087ff1d4e5730252a06d985815da95e413b43b0f1",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a9ddc9f7-1ce3-4c5c-b43e-4b9320ccb686/preview.txt",
+            "preparedSha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "postJourneySha256": "bd2701c8550200bd6314c12d841b85f34ef1c9024a3ffdadd8cb9cf37489fd86",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_b3f5461f-eca1-486c-bae6-7c242654ab49/scanned.pdf",
+            "preparedSha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "postJourneySha256": "2188583d5576e9c4b684e39a5c0cc390e052be9148e70057d8c65f1a8d273e47",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_cb12bb3f-0e33-43b2-bbe1-a700d03c707a/ocr_test.png",
+            "preparedSha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "postJourneySha256": "32b2ba9e3ca0d71887b43de5514582b757327472c26a7a737a24d08d324d21eb",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "f3cda2a26ac527cadc57616e8219a1b19cd1065630ffa150125d044715c7918d",
+            "postJourneySha256": "f3cda2a26ac527cadc57616e8219a1b19cd1065630ffa150125d044715c7918d",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "cd9cb1f7dbbb100873e2a6e9a054abff4b5337f83491d16167e6c04539a19f09",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshots": [
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-01.png",
+            "bytes": 30035,
+            "sha256": "0edae362bfcf1839924540d3f4b83ed2d68f1bf4a155231a1a002de4b7c1647d",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 0,
+              "maskSha256": "963143243a8307de48fd6b64f5bf81689b58895b49141f80dbbccafd13b7ba1f",
+              "matches": false
+            },
+            "frameStable": false,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-02.png",
+            "bytes": 37981,
+            "sha256": "abb9f96be95d5fbe54e43bda81ab26677d8b7d974ac7377828807fbd7b997480",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-03.png",
+            "bytes": 41416,
+            "sha256": "4b2b94fd66acca13de59342cd2e7feb8570ca83fd761900816e023c45c408ad7",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          }
+        ],
+        "negativeControlsRejected": 12,
+        "performanceMetrics": {
+          "captureOverheadMs": 514.5003000000006,
+          "captures": 3,
+          "decodeOverheadMs": 13.133300000000418,
+          "firstMatchObservedMs": 871.8701999999994,
+          "pollWaitMs": 510.10479999999995,
+          "stableReadyObservedMs": 1340.6270999999997
+        }
+      },
+      {
+        "objects": 5000,
+        "index": 1,
+        "runId": "a136c8519da545cead0acf91e3a90475",
+        "pid": 31048,
+        "currentFixedSchema3ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_5000/config.json",
+            "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_5000/vault.db",
+            "preparedSha256": "a5ccf64f37a5d12977afb50d64b66bf1ff66e50da1ec3ebc4f43a8708143da4b",
+            "postJourneySha256": "a5ccf64f37a5d12977afb50d64b66bf1ff66e50da1ec3ebc4f43a8708143da4b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "503213d5b2cd1a0d81734f291fc9048fdee5331c897456eac0ccd9d16aae6421",
+            "postJourneySha256": "6ba7f2cdcd189215e95dc5b4b75742e3f5755d3e0d741257ce9d8546173c1a39",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+            "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+            "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+            "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+            "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "c8da4b02c2e2d765e90d6c291e3917fd927ae1021cdc2ebc36fdfdcf6dddaffc",
+            "postJourneySha256": "c8da4b02c2e2d765e90d6c291e3917fd927ae1021cdc2ebc36fdfdcf6dddaffc",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "40621e644b33219249fa811d43adfa8139443f5d019d4d590b31ebba0f6f164d",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshots": [
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-01.png",
+            "bytes": 32200,
+            "sha256": "fb341e6c2ea4c539536cbd0ba3747acc40a70e7e473a0971512b03f9f4b49813",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 0,
+              "maskSha256": "963143243a8307de48fd6b64f5bf81689b58895b49141f80dbbccafd13b7ba1f",
+              "matches": false
+            },
+            "frameStable": false,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-02.png",
+            "bytes": 40340,
+            "sha256": "73e85119e1e417d64a56dd87fec64c1ee42b0b53049aa45c38ccb5ab12fedf4e",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-03.png",
+            "bytes": 41406,
+            "sha256": "5e9cda072e33ebf9c53fe8183bd2cd7c23244f658d15bfdb2ba5750ed9385a00",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          }
+        ],
+        "negativeControlsRejected": 12,
+        "performanceMetrics": {
+          "captureOverheadMs": 507.3264999999974,
+          "captures": 3,
+          "decodeOverheadMs": 12.620600000002923,
+          "firstMatchObservedMs": 873.664499999999,
+          "pollWaitMs": 512.5689,
+          "stableReadyObservedMs": 1373.7270999999992
+        }
+      },
+      {
+        "objects": 5000,
+        "index": 2,
+        "runId": "eff3efb082064b42bd9eed90d2c0e10b",
+        "pid": 3296,
+        "currentFixedSchema3ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_5000/config.json",
+            "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_5000/vault.db",
+            "preparedSha256": "df8ef32b19a33e889b167ee264bb0db54446ac61baf2a5cd7930aac97eef512a",
+            "postJourneySha256": "df8ef32b19a33e889b167ee264bb0db54446ac61baf2a5cd7930aac97eef512a",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "1c58f384373a27c6e93468d99c2d75270b045828f755c96e213b9f861c47eabc",
+            "postJourneySha256": "9e388032e08fd03d8190287c8dcc36765707fc7ee1af1970f72ddde8eef14691",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+            "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+            "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+            "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+            "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "c80cff7aed8c70a73d0f0302070d114d21f7fb0b6a569716b8ab0ff27b4912ff",
+            "postJourneySha256": "c80cff7aed8c70a73d0f0302070d114d21f7fb0b6a569716b8ab0ff27b4912ff",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "e5592baaf3c1bfe6f22625f801fdae75c447ce074168de27fe2d49931cc1d013",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshots": [
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-01.png",
+            "bytes": 32200,
+            "sha256": "fb341e6c2ea4c539536cbd0ba3747acc40a70e7e473a0971512b03f9f4b49813",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 0,
+              "maskSha256": "963143243a8307de48fd6b64f5bf81689b58895b49141f80dbbccafd13b7ba1f",
+              "matches": false
+            },
+            "frameStable": false,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-02.png",
+            "bytes": 38927,
+            "sha256": "0383e88188787d34690ecf0b41d537a664f51c5248d213056250c7c9e7ecb0b4",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-03.png",
+            "bytes": 41406,
+            "sha256": "5e9cda072e33ebf9c53fe8183bd2cd7c23244f658d15bfdb2ba5750ed9385a00",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          }
+        ],
+        "negativeControlsRejected": 12,
+        "performanceMetrics": {
+          "captureOverheadMs": 461.5151999999998,
+          "captures": 3,
+          "decodeOverheadMs": 12.745300000000498,
+          "firstMatchObservedMs": 810.0115000000005,
+          "pollWaitMs": 524.6613,
+          "stableReadyObservedMs": 1372.0726000000004
+        }
+      },
+      {
+        "objects": 5000,
+        "index": 3,
+        "runId": "ea3e52de5dcb4d57b1beeb041c58fc50",
+        "pid": 36400,
+        "currentFixedSchema3ContractAccepted": true,
+        "authFlows": 1,
+        "authSource": "http://tauri.localhost/settings/attachments",
+        "maintenanceFailures": 0,
+        "mediaHashes": [
+          {
+            "relativePath": "acc_rf312_5000/config.json",
+            "preparedSha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "postJourneySha256": "76df732623d31e7ae8e3ecb5219d7757ecc6a32a04eebe709342866ebab693c8",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "acc_rf312_5000/vault.db",
+            "preparedSha256": "3f7d7097ae989c248eef2ebb57d99c78b26ae3449c83957d5cd85f44dfa94a9a",
+            "postJourneySha256": "3f7d7097ae989c248eef2ebb57d99c78b26ae3449c83957d5cd85f44dfa94a9a",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "accounts.json",
+            "preparedSha256": "588317d95bef4bb5cee8eda11ffd69cd41a1c92e84a4cf2bc9aac338c25aa7be",
+            "postJourneySha256": "7508ab14654f4335e58104184e2dad2236c5e260ef8705624b4057e8d2462c49",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_067d821c-5dbe-4863-b221-455fe5a99c4e/preview.txt",
+            "preparedSha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "postJourneySha256": "7d1fc77e238b8584fd5210cedfd753f7bd8c5faee30c6441e256e84a9f98434b",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_38ede89d-5dc4-441b-9610-8668e1c9d812/scanned.pdf",
+            "preparedSha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "postJourneySha256": "ab1318755d8668951ed4bfa778d527d39de2305178eed45dae9090cf941638db",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_3b5d4548-c3b8-46be-9266-f259e2734b94/text_only.pdf",
+            "preparedSha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "postJourneySha256": "8de782f81936a0b8fcf474b82aef3aaa87ad62005913dcc53a4393aa976f8249",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_a801ea0c-d3a3-4498-8d9d-89e10232a6e8/ocr_test.png",
+            "preparedSha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "postJourneySha256": "b68a61687e7d046a5c22570e00be4bfb8a94a44382032c2473b479a5ab18c02e",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "rf312-media-fixture.json",
+            "preparedSha256": "98b30bafda1e77ec213dd4309fdafb91e7cf9295abbff5d73baa9d569b48de6d",
+            "postJourneySha256": "98b30bafda1e77ec213dd4309fdafb91e7cf9295abbff5d73baa9d569b48de6d",
+            "mutableApplicationMetadata": false,
+            "unchanged": true
+          },
+          {
+            "relativePath": "ui_preferences.json",
+            "preparedSha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+            "postJourneySha256": "3794b190dc0ee3753f2bc03b2a24af17050b69f6a2d5b96a80b0a802a1d8ecf3",
+            "mutableApplicationMetadata": true,
+            "unchanged": false
+          }
+        ],
+        "screenshots": [
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-01.png",
+            "bytes": 32200,
+            "sha256": "fb341e6c2ea4c539536cbd0ba3747acc40a70e7e473a0971512b03f9f4b49813",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 0,
+              "maskSha256": "963143243a8307de48fd6b64f5bf81689b58895b49141f80dbbccafd13b7ba1f",
+              "matches": false
+            },
+            "frameStable": false,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-02.png",
+            "bytes": 40315,
+            "sha256": "79b01f2c96ba813a5a8e8ac2b4cba2c5e37ad235e197e6326906b7d16996aa91",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          },
+          {
+            "fileName": "native-perf-sdk-pdf-first-page-03.png",
+            "bytes": 41406,
+            "sha256": "5e9cda072e33ebf9c53fe8183bd2cd7c23244f658d15bfdb2ba5750ed9385a00",
+            "pixels": {
+              "width": 1200,
+              "height": 831,
+              "darkPixels": 530,
+              "maskSha256": "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044",
+              "matches": true
+            },
+            "frameStable": true,
+            "allChunkCrcVerified": true,
+            "legacyVersionRefused": true
+          }
+        ],
+        "negativeControlsRejected": 12,
+        "performanceMetrics": {
+          "captureOverheadMs": 442.84979999999905,
+          "captures": 3,
+          "decodeOverheadMs": 13.483799999999064,
+          "firstMatchObservedMs": 905.1637999999984,
+          "pollWaitMs": 522.9902,
+          "stableReadyObservedMs": 1373.7839000000004
+        }
+      }
+    ]
+  },
+  "cleanup": {
+    "identitiesChecked": 60,
+    "removedCaches": 48,
+    "links": 0,
+    "preservedFiles": 174,
+    "bytesVerified": true,
+    "unrelatedProcessesTerminated": 0
+  },
+  "originalDiagnosticAndDesktopRefusalPreservedInPriorCommit": "58f585a68",
+  "diagnosticPngsNotCountedAsPerformanceSamples": true,
+  "scope": "fixed public PDF first-page text ROI; includes SDK/decode/poll overhead; not arbitrary PDF/all pages/DWM/default uninstrumented application/multiplatform",
+  "archive": {
+    "path": "rf312-integrated-windows-pdf-first-page-2026-10-14/raw.zip",
+    "members": 179,
+    "bytes": 1104225,
+    "sha256": "29d033ad0c953530723f20eaffca9d32cf3b68abaadaabe669320b8cbdff2614",
+    "allLengthsSha256AndCrcVerified": true
+  }
+}

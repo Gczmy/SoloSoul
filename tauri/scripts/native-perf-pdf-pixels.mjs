@@ -5,6 +5,14 @@ export const PDF_ASSET_SHA = 'ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e
 export const PDF_MASK_SHA = '6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044';
 export const PDF_VIEWPORT = Object.freeze({ width: 1028, height: 749 });
 export const PDF_ROI = Object.freeze({ x: 180, y: 225, width: 430, height: 36 });
+// 每个证明版本只使用一种固定窗口和坐标；禁止按图片尺寸自动选参考。
+export const PDF_GEOMETRIES = Object.freeze({
+  2: Object.freeze({ viewport: PDF_VIEWPORT, roi: PDF_ROI }),
+  3: Object.freeze({
+    viewport: Object.freeze({ width: 1200, height: 831 }),
+    roi: Object.freeze({ x: 266, y: 221, width: 430, height: 36 }),
+  }),
+});
 export function pngCrc(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -13,7 +21,10 @@ export function pngCrc(bytes) {
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
-export function inspectPdfPixels(bytes) {
+export function inspectPdfPixels(bytes, schemaVersion = 2) {
+  if (![2, 3].includes(schemaVersion)) throw new Error('PDF fixed geometry version rejected');
+  const { viewport, roi } = PDF_GEOMETRIES[schemaVersion];
+  const { width, height } = viewport;
   if (
     !Buffer.isBuffer(bytes) ||
     bytes.length < 33 ||
@@ -42,8 +53,8 @@ export function inspectPdfPixels(bytes) {
         header ||
         at !== 8 ||
         length !== 13 ||
-        data.readUInt32BE(0) !== 1028 ||
-        data.readUInt32BE(4) !== 749 ||
+        data.readUInt32BE(0) !== width ||
+        data.readUInt32BE(4) !== height ||
         !data.subarray(8).equals(Buffer.from([8, 6, 0, 0, 0]))
       )
         throw new Error('PDF fixed viewport or RGBA format changed');
@@ -58,12 +69,12 @@ export function inspectPdfPixels(bytes) {
     at = next;
   }
   if (!end) throw new Error('PDF PNG incomplete');
-  const stride = 1028 * 4,
-    expected = (stride + 1) * 749,
+  const stride = width * 4,
+    expected = (stride + 1) * height,
     raw = inflateSync(Buffer.concat(parts), { maxOutputLength: expected });
   if (raw.length !== expected) throw new Error('PDF PNG decoded size rejected');
   let previous = Buffer.alloc(stride),
-    mask = Buffer.alloc(PDF_ROI.width * PDF_ROI.height),
+    mask = Buffer.alloc(roi.width * roi.height),
     dark = 0;
   const paeth = (a, b, c) => {
     const p = a + b - c,
@@ -72,7 +83,7 @@ export function inspectPdfPixels(bytes) {
       pc = Math.abs(p - c);
     return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
   };
-  for (let y = 0; y < 749; y++) {
+  for (let y = 0; y < height; y++) {
     const filter = raw[y * (stride + 1)];
     if (filter > 4) throw new Error('PDF PNG filter rejected');
     const row = Buffer.allocUnsafe(stride);
@@ -85,18 +96,18 @@ export function inspectPdfPixels(bytes) {
           [0, a, b, Math.floor((a + b) / 2), paeth(a, b, c)][filter]) &
         255;
     }
-    if (y >= PDF_ROI.y && y < PDF_ROI.y + PDF_ROI.height)
-      for (let x = PDF_ROI.x; x < PDF_ROI.x + PDF_ROI.width; x++) {
+    if (y >= roi.y && y < roi.y + roi.height)
+      for (let x = roi.x; x < roi.x + roi.width; x++) {
         const i = x * 4,
           m = Number(row[i + 3] >= 240 && row[i] <= 64 && row[i + 1] <= 64 && row[i + 2] <= 64);
-        mask[(y - PDF_ROI.y) * PDF_ROI.width + x - PDF_ROI.x] = m;
+        mask[(y - roi.y) * roi.width + x - roi.x] = m;
         dark += m;
       }
     previous = row;
   }
   const hash = createHash('sha256').update(mask).digest('hex');
   return {
-    ...PDF_VIEWPORT,
+    ...viewport,
     darkPixels: dark,
     maskSha256: hash,
     matches: dark === 530 && hash === PDF_MASK_SHA,

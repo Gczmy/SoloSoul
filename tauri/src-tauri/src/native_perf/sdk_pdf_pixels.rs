@@ -10,38 +10,51 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 const ASSET: &str = "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe";
 const MASK: &str = "6f307e964c1dba0a23593241d6d193823cdf8feebb3946ca80b5af9a4a165044";
-const WIDTH: u32 = 1028;
-const HEIGHT: u32 = 749;
-const ROI: [u32; 4] = [180, 225, 430, 36];
+#[derive(Clone, Copy)]
+enum Geometry {
+    #[cfg(test)]
+    Legacy,
+    Integrated,
+}
+impl Geometry {
+    fn fixed(self) -> (u32, u32, [u32; 4]) {
+        match self {
+            #[cfg(test)]
+            Self::Legacy => (1028, 749, [180, 225, 430, 36]),
+            Self::Integrated => (1200, 831, [266, 221, 430, 36]),
+        }
+    }
+}
 const MAX_CAPTURES: usize = 16;
 const INTERVAL_MS: u64 = 250;
-fn pixels(bytes: &[u8]) -> Outcome<Value> {
+fn pixels(bytes: &[u8], geometry: Geometry) -> Outcome<Value> {
+    let (width, height, roi) = geometry.fixed();
     if bytes.len() < 33
         || bytes.len() > 256 * 1024
         || !bytes.starts_with(b"\x89PNG\r\n\x1a\n")
         || bytes[8..16] != [0, 0, 0, 13, b'I', b'H', b'D', b'R']
-        || u32::from_be_bytes(bytes[16..20].try_into().unwrap()) != WIDTH
-        || u32::from_be_bytes(bytes[20..24].try_into().unwrap()) != HEIGHT
+        || u32::from_be_bytes(bytes[16..20].try_into().unwrap()) != width
+        || u32::from_be_bytes(bytes[20..24].try_into().unwrap()) != height
         || bytes[24..29] != [8, 6, 0, 0, 0]
     {
         return Err("pdf-pixel-viewport-or-format-mismatch");
     }
     let mut reader = ImageReader::with_format(Cursor::new(bytes), ImageFormat::Png);
     let mut limits = Limits::default();
-    limits.max_image_width = Some(WIDTH);
-    limits.max_image_height = Some(HEIGHT);
+    limits.max_image_width = Some(width);
+    limits.max_image_height = Some(height);
     limits.max_alloc = Some(16 * 1024 * 1024);
     reader.limits(limits);
     let image = reader
         .decode()
         .map_err(|_| "pdf-pixel-decode-invalid")?
         .to_rgba8();
-    if image.dimensions() != (WIDTH, HEIGHT) {
+    if image.dimensions() != (width, height) {
         return Err("pdf-pixel-viewport-or-format-mismatch");
     }
-    let mut mask = Vec::with_capacity((ROI[2] * ROI[3]) as usize);
-    for y in ROI[1]..ROI[1] + ROI[3] {
-        for x in ROI[0]..ROI[0] + ROI[2] {
+    let mut mask = Vec::with_capacity((roi[2] * roi[3]) as usize);
+    for y in roi[1]..roi[1] + roi[3] {
+        for x in roi[0]..roi[0] + roi[2] {
             let p = image.get_pixel(x, y).0;
             mask.push(u8::from(p[3] >= 240 && p[..3].iter().all(|n| *n <= 64)));
         }
@@ -49,7 +62,7 @@ fn pixels(bytes: &[u8]) -> Outcome<Value> {
     let count: usize = mask.iter().map(|n| *n as usize).sum();
     let hash = format!("{:x}", Sha256::digest(&mask));
     Ok(
-        json!({"width":WIDTH,"height":HEIGHT,"darkPixels":count,"maskSha256":hash,"matches":count==530 && hash==MASK}),
+        json!({"width":width,"height":height,"darkPixels":count,"maskSha256":hash,"matches":count==530 && hash==MASK}),
     )
 }
 fn resource_identity(p: &std::path::Path, expected: &str) -> Outcome<Value> {
@@ -161,7 +174,7 @@ async fn inspect(c: &mut Capture, pdf: &str) -> Outcome<()> {
         let bytes = STANDARD
             .decode(encoded)
             .map_err(|_| "pdf-screenshot-invalid")?;
-        let state = pixels(&bytes)?;
+        let state = pixels(&bytes, Geometry::Integrated)?;
         let t2 = c.started.elapsed().as_secs_f64() * 1000.0;
         let after_raw = c.protocol("Page.getFrameTree", json!({})).await?;
         let after = topology(&after_raw, &expected, pdf)?;
@@ -244,8 +257,9 @@ pub(super) async fn run(c: &mut Capture) -> Outcome<()> {
         "http://solosoul-pdf.localhost/{}",
         encoded_component(file.to_str().ok_or("pdf-prelaunch-resource-unavailable")?)
     );
+    let (width, height, roi) = Geometry::Integrated.fixed();
     c.pdf_preview = Some(
-        json!({"schemaVersion":2,"scope":"windows-native-sdk-public-pdf-first-page","assetSha256":ASSET,"resourceBinding":null,"renderVerified":false,"viewport":{"width":WIDTH,"height":HEIGHT},"roi":{"x":ROI[0],"y":ROI[1],"width":ROI[2],"height":ROI[3]},"referenceMaskSha256":MASK,"threshold":{"alphaMin":240,"rgbMax":64},"maxCaptures":MAX_CAPTURES,"intervalMs":INTERVAL_MS,"requiredConsecutiveMatches":2,"openingStartedAtMs":null,"samples":[],"performanceMetrics":null,"closedDom":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0}),
+        json!({"schemaVersion":3,"scope":"windows-native-sdk-public-pdf-first-page","assetSha256":ASSET,"resourceBinding":null,"renderVerified":false,"viewport":{"width":width,"height":height},"roi":{"x":roi[0],"y":roi[1],"width":roi[2],"height":roi[3]},"referenceMaskSha256":MASK,"threshold":{"alphaMin":240,"rgbMax":64},"maxCaptures":MAX_CAPTURES,"intervalMs":INTERVAL_MS,"requiredConsecutiveMatches":2,"openingStartedAtMs":null,"samples":[],"performanceMetrics":null,"closedDom":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0}),
     );
     let result = inspect(c, &pdf).await;
     c.pdf_frame_window.store(false, Ordering::SeqCst);
@@ -255,6 +269,7 @@ pub(super) async fn run(c: &mut Capture) -> Outcome<()> {
 mod tests {
     use super::*;
     const REFERENCE: &[u8] = include_bytes!("fixtures/pdf-first-page.png");
+    const INTEGRATED_REFERENCE: &[u8] = include_bytes!("fixtures/pdf-first-page-integrated.png");
     fn encode(image: image::RgbaImage) -> Vec<u8> {
         let mut out = Cursor::new(Vec::new());
         image::DynamicImage::ImageRgba8(image)
@@ -282,44 +297,68 @@ mod tests {
     }
     #[test]
     fn fixed_public_reference_accepts_only_exact_text_mask() {
-        let result = pixels(REFERENCE).unwrap();
+        for (reference, geometry) in [
+            (REFERENCE, Geometry::Legacy),
+            (INTEGRATED_REFERENCE, Geometry::Integrated),
+        ] {
+            reference_mask(reference, geometry);
+        }
+    }
+    fn reference_mask(reference: &[u8], geometry: Geometry) {
+        let (_, _, roi) = geometry.fixed();
+        let result = pixels(reference, geometry).unwrap();
         assert_eq!(result["matches"], true);
         assert_eq!(result["darkPixels"], 530);
-        let original = image::load_from_memory_with_format(REFERENCE, ImageFormat::Png)
+        let original = image::load_from_memory_with_format(reference, ImageFormat::Png)
             .unwrap()
             .to_rgba8();
         let white = image::Rgba([255, 255, 255, 255]);
         let mut blank = original.clone();
-        for y in ROI[1]..ROI[1] + ROI[3] {
-            for x in ROI[0]..ROI[0] + ROI[2] {
+        for y in roi[1]..roi[1] + roi[3] {
+            for x in roi[0]..roi[0] + roi[2] {
                 blank.put_pixel(x, y, white);
             }
         }
-        assert_eq!(pixels(&encode(blank.clone())).unwrap()["matches"], false);
+        assert_eq!(
+            pixels(&encode(blank.clone()), geometry).unwrap()["matches"],
+            false
+        );
         let mut shifted = blank.clone();
-        for y in ROI[1]..ROI[1] + ROI[3] {
-            for x in ROI[0]..ROI[0] + ROI[2] - 1 {
+        for y in roi[1]..roi[1] + roi[3] {
+            for x in roi[0]..roi[0] + roi[2] - 1 {
                 shifted.put_pixel(x + 1, y, *original.get_pixel(x, y));
             }
         }
-        assert_eq!(pixels(&encode(shifted)).unwrap()["matches"], false);
+        assert_eq!(
+            pixels(&encode(shifted), geometry).unwrap()["matches"],
+            false
+        );
         let mut partial = original;
-        for y in ROI[1]..ROI[1] + ROI[3] {
-            for x in 330..ROI[0] + ROI[2] {
+        for y in roi[1]..roi[1] + roi[3] {
+            for x in roi[0] + 150..roi[0] + roi[2] {
                 partial.put_pixel(x, y, white);
             }
         }
-        assert_eq!(pixels(&encode(partial)).unwrap()["matches"], false);
+        assert_eq!(
+            pixels(&encode(partial), geometry).unwrap()["matches"],
+            false
+        );
     }
     #[test]
     fn pixel_decoder_rejects_corruption_wrong_viewport_and_over_budget() {
-        for bytes in [vec![], vec![0; 300_000], REFERENCE[..100].to_vec()] {
-            assert!(pixels(&bytes).is_err());
-        }
-        for (at, value) in [(19, 0), (24, 16), (25, 2), (28, 1), (32, 0)] {
-            let mut bad = REFERENCE.to_vec();
-            bad[at] = value;
-            assert!(pixels(&bad).is_err());
+        for (reference, geometry, other) in [
+            (REFERENCE, Geometry::Legacy, Geometry::Integrated),
+            (INTEGRATED_REFERENCE, Geometry::Integrated, Geometry::Legacy),
+        ] {
+            assert!(pixels(reference, other).is_err());
+            for bytes in [vec![], vec![0; 300_000], reference[..100].to_vec()] {
+                assert!(pixels(&bytes, geometry).is_err());
+            }
+            for (at, value) in [(19, 0), (24, 16), (25, 2), (28, 1), (32, 0)] {
+                let mut bad = reference.to_vec();
+                bad[at] = value;
+                assert!(pixels(&bad, geometry).is_err());
+            }
         }
     }
     #[test]
