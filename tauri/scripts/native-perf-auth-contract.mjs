@@ -103,7 +103,11 @@ export function checkAuthAttribution(v, owned, bound) {
       'http://tauri.localhost/',
       'http://tauri.localhost/login',
       'http://tauri.localhost/objects',
+      'http://tauri.localhost/workspace',
+      'http://tauri.localhost/workspace?section=identity',
       'http://tauri.localhost/search',
+      'http://tauri.localhost/settings/attachments',
+      'http://tauri.localhost/ocr',
     ].includes(b.source) ||
     b.timeOriginMs !== null ||
     b.navigationEvents !== 0 ||
