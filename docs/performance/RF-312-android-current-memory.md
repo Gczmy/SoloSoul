@@ -42,3 +42,16 @@
 ## 复核
 
 [结构化结果](rf312-android-current-memory-2026-10-14.json)、[逐成员索引](rf312-android-current-memory-2026-10-14/index.json)与[原件包](rf312-android-current-memory-2026-10-14/raw.zip)保存冻结输入、全部十次完整native结果/恢复、170次采集、严格回放和分布计算脚本。4790个成员的长度、SHA-256与ZIP CRC全部回读核验；排除APK/库/密钥/Vault/TAR/压缩crashpad。复跑须使用同一哈希的主/测试APK、隔离AVD及公开数据，详见归档的prepare/run脚本；源或输出目录已有数据时保护断言拒绝继续。
+
+## 进程创建时钟补证
+
+从同一十次行程原件另算“插桩应用进程创建→原密码表单验收点”，不重新命名上面的Activity指标。每次真实PID/UID及全部接受点的出生标识唯一一致，出生前存在原始应用未运行点；因此不以旧进程或别的应用时钟代替。实测`getconf CLK_TCK=100`，出生时刻在10ms区间内，使用区间两端给出耗时边界。
+
+[本镜像内核提交的stat实现](https://github.com/aosp-mirror/kernel_common/blob/f9a66cbe7091/fs/proc/array.c)从start_boottime转换ticks；[Android时钟实现](https://github.com/aosp-mirror/platform_system_core/blob/main/libutils/SystemClock.cpp)和[公开API定义](https://developer.android.com/reference/android/os/SystemClock)将elapsedRealtimeNanos定义为包括休眠的开机时钟。计算直接关联真实进程出生和既有native完成点；没有把document时间换为native时间，也不增加业务IPC。
+
+| 对象数 | n | 出生到验收耗时上界中位 / p95（ms） |
+|---|---:|---:|
+| 100 | 5 | 4138.00 / 4456.63 |
+| 5000 | 5 | 4457.03 / 4590.88 |
+
+每个耗时的下界比上界低10ms。该区间包含runner初始化、SDK、观察器与查询开销，不是默认未插桩客户端、系统冷态或存储冷态；原数据及完整RF-312状态不变。[逐样本区间和来源](rf312-instrumented-process-birth-2026-10-14.json)、[计算脚本/时钟读取索引](rf312-instrumented-process-birth-2026-10-14/index.json)引用已逐成员验证的原始内存包，未复制或修改旧原件。

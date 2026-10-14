@@ -8464,3 +8464,10 @@ git commit -m "<任务卡的提交标题>"
 - 两档启动中位3949.93/4235.81ms，密码解锁3923.17/3970.11ms，搜索1569.77/1966.07ms，首次OCR完整用户行程18072.35/17834.70ms。每轮最大采样合计PSS中位274.90/292.62MiB，nearest-rank p95为282.66/311.86MiB；每档n5的p95就是最大值，全部时延仍含SDK/输入/绘制/采集/观察器开销，启动排除runner/进程创建。
 - 十次实际listen/unlisten均35/25；整行程transport中位233/232、最大233/234，没有随总对象数成倍增长。最大采样PSS中位增17.72MiB。保留现有共享订阅与可见卡片呈现；暂不据插桩模拟器时延启动全路由懒加载/分页迁移。外层PSS开销、进程冷启动、多端/实体硬件与IME稳定窗口仍未完成。
 - [全部口径与阶段表](performance/RF-312-android-current-memory.md)、[结构化数据](performance/rf312-android-current-memory-2026-10-14.json)及[4790成员索引](performance/rf312-android-current-memory-2026-10-14/index.json)长度/SHA/ZIP CRC回读通过；不含APK/库/密钥/Vault/TAR/压缩crashpad，原启动失败留在RF-1145归档。仅RF-312本阶段独立提交推送，324/335关闭及原5待验证/6待执行保持，goal active，继续同构建外层采集开关对照和启动口径核验。
+
+
+### RF-312 插桩进程创建时钟补证（2026-10-14，部分验收）
+
+- 对已归档的当前源码十次行程独立推导进程创建到原可用密码表单验收点，不新跑设备或更换APK。每次native PID/UID与所有接受点的kernel出生标识一致且唯一，原件证明出生前应用未运行；实际CLK_TCK为100，内核版本与镜像提交`f9a66cbe7091`的stat实现核验，出生时刻量化区间10ms。与Android elapsedRealtimeNanos的boottime口径关联，不把document或原Activity计时重命名。
+- 100/5000各n5的耗时上界中位4138.00/4457.03ms、nearest-rank p95 4456.63/4590.88ms，每样本下界低10ms。包括runner/SDK/观察器/查询开销，不声称默认未插桩、系统/存储冷态或物理设备性能。上述完整指标及RF-312状态保持。
+- [口径补记](performance/RF-312-android-current-memory.md)、[十次逐样本边界/来源](performance/rf312-instrumented-process-birth-2026-10-14.json)、[计算与实际时钟读取索引](performance/rf312-instrumented-process-birth-2026-10-14/index.json)回读长度/SHA相等，引用原4790成员已验证包；原件不修改、不重跑无关测试。本阶段仅RF-312独立提交推送；324/335关闭及原5待验证/6待执行不变，当前外层采集配对对照仍在执行，goal active。
