@@ -61,11 +61,17 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
     const content = page.locator('[data-shell-content]');
     await expect(content).toHaveCSS('border-radius', '0px');
     if (position === 'left' || position === 'right') {
-      const toggle = header.getByRole('button', { name: 'Collapse sidebar' });
+      const nav = page.locator('#desktop-navigation');
+      const toggle = nav.getByRole('button', { name: 'Collapse sidebar' });
       const before = await toggle.boundingBox();
+      const navBounds = (await nav.boundingBox())!;
+      expect(before!.y).toBeGreaterThanOrEqual(52);
+      expect(before!.x).toBeGreaterThanOrEqual(navBounds.x);
+      expect(before!.x + before!.width).toBeLessThanOrEqual(navBounds.x + navBounds.width);
+      await expect(header.getByRole('button', { name: 'Collapse sidebar' })).toHaveCount(0);
       await toggle.click();
       await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '96px');
-      const after = await header.getByRole('button', { name: 'Expand sidebar' }).boundingBox();
+      const after = await nav.getByRole('button', { name: 'Expand sidebar' }).boundingBox();
       expect(after).toEqual(before);
       await expect(page.locator('#desktop-navigation')).toHaveCSS(
         'background-color',

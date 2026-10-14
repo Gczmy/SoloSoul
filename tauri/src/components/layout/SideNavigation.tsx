@@ -88,10 +88,12 @@ export function SideNavigation() {
         aria-label={t('home')}
         style={navStyle}
         data-expanded={expanded}
+        data-position={sidebarPosition}
+        data-windows-shell={windowsShell || undefined}
       >
-        {!isHorizontal && !windowsShell && (expanded || !isMacOS) && (
+        {!isHorizontal && (expanded || !isMacOS) && (
           <div className={styles.brandHeader}>
-            {expanded && <span className={styles.brandName}>SoloSoul</span>}
+            {expanded && !windowsShell && <span className={styles.brandName}>SoloSoul</span>}
             {!isMacOS && (
               <button
                 type="button"
@@ -106,6 +108,7 @@ export function SideNavigation() {
                 <ToggleIcon size={20} />
               </button>
             )}
+            {expanded && windowsShell && <span className={styles.brandName}>SoloSoul</span>}
           </div>
         )}
 
