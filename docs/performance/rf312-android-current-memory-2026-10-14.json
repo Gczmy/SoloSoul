@@ -1,0 +1,2170 @@
+{
+  "task": "RF-312",
+  "scope": "current-source instrumented API31 optimized native journeys with direct bound renderer PSS",
+  "sourceHead": "b88ae2158fac4a979c0bc4c68d332ee8ecb211dc",
+  "apk": {
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf1145-android-script-newlines-20261014\\fixed-android\\android-release-package\\app-x86_64-release-early-observer-internal-validation.apk",
+    "sha256": "4bbd8b8eccf6e10a170bffe0ffe0a3e60c1d40e10611e318bbfa67785ad73e90",
+    "bytes": 78638431
+  },
+  "independentTestApk": {
+    "acceptedPackagePreparation": true,
+    "path": "D:\\SoloSoul\\build\\android-native-feasibility-20261010\\rf312-first-ocr-probe-round15-20261012\\solosoul-fixed-vault-releaseprobe.apk",
+    "sha256": "ea896d90db399a8cab6160835edbaf45ed2a6b544ec53c0f0e46bbd8f6b114d8",
+    "bytes": 7974409,
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "package": "com.solosoul.app.releaseprobe",
+    "targetPackage": "com.solosoul.app",
+    "testClassDefined": true,
+    "traceRuntimeDefined": true,
+    "targetMainActivityAndTauriClassesNotPackaged": true,
+    "nativeLibrariesNotPackaged": true,
+    "homeTestSourceSha256": "200a1fb02f58a08c2974a3f1e53fad2edb1233d4c72c80bcf5501191fb087d26",
+    "mainReleaseBytesUnchanged": true,
+    "nativeRuntimeAccepted": false,
+    "fullRF312Accepted": false,
+    "at": "2026-10-12T20:28:05.594577+00:00"
+  },
+  "phaseNames": [
+    "activity-startup",
+    "password-unlock",
+    "first-ocr-user-flow",
+    "workspace",
+    "search-needle",
+    "attachments-open",
+    "image-preview",
+    "text-preview",
+    "pdf-text-native-diagnostic",
+    "pdf-scanned-native-diagnostic",
+    "application-lock",
+    "password-reunlock"
+  ],
+  "nativeJourneys": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "nativePid": 4280,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 3978.972782,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 4080.515964,
+          "transportAttempts": 50
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 18328.330181,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2534.238271,
+          "transportAttempts": 14
+        },
+        "search-needle": {
+          "durationMs": 1440.446855,
+          "transportAttempts": 1
+        },
+        "attachments-open": {
+          "durationMs": 1819.11987,
+          "transportAttempts": 9
+        },
+        "image-preview": {
+          "durationMs": 2757.886906,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2902.225033,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 4067.088764,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3359.540438,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 907.527345,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 3112.206404,
+          "transportAttempts": 48
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 12,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 12,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 233,
+      "maxSampledCombinedPssKiB": 289440.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 20,
+      "maxLocalQueryGroupMs": 1965.5918999924324,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "nativePid": 5389,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 4235.814174,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3970.107753,
+          "transportAttempts": 48
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 18346.311563,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2465.610455,
+          "transportAttempts": 13
+        },
+        "search-needle": {
+          "durationMs": 2282.673305,
+          "transportAttempts": 2
+        },
+        "attachments-open": {
+          "durationMs": 2167.787129,
+          "transportAttempts": 15
+        },
+        "image-preview": {
+          "durationMs": 2951.944339,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2554.053944,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 4669.927971,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3204.588887,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 1012.100413,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 2500.18655,
+          "transportAttempts": 46
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 10,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 13,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 232,
+      "maxSampledCombinedPssKiB": 295970.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 17,
+      "maxLocalQueryGroupMs": 2355.4836999974214,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "nativePid": 6409,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 4262.726127,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 4181.702419,
+          "transportAttempts": 54
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 17341.766414,
+          "transportAttempts": 18
+        },
+        "workspace": {
+          "durationMs": 2568.584991,
+          "transportAttempts": 14
+        },
+        "search-needle": {
+          "durationMs": 1754.542245,
+          "transportAttempts": 1
+        },
+        "attachments-open": {
+          "durationMs": 2041.851187,
+          "transportAttempts": 14
+        },
+        "image-preview": {
+          "durationMs": 3215.137378,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2825.268386,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 3886.177375,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3531.626985,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 1047.884813,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 3106.99564,
+          "transportAttempts": 47
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 12,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 11,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 232,
+      "maxSampledCombinedPssKiB": 282498.0,
+      "validMemorySnapshots": 9,
+      "snapshotAttempts": 16,
+      "maxLocalQueryGroupMs": 1791.118599998299,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "nativePid": 7436,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 4396.692254,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3934.161823,
+          "transportAttempts": 48
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 17834.704855,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2747.845419,
+          "transportAttempts": 15
+        },
+        "search-needle": {
+          "durationMs": 1746.085037,
+          "transportAttempts": 2
+        },
+        "attachments-open": {
+          "durationMs": 1971.413994,
+          "transportAttempts": 11
+        },
+        "image-preview": {
+          "durationMs": 2875.916465,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2507.226124,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 4078.755055,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3141.883399,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 930.972613,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 3659.338481,
+          "transportAttempts": 48
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 4,
+        "android_check_update": 4,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 10,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 13,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 234,
+      "maxSampledCombinedPssKiB": 299645.0,
+      "validMemorySnapshots": 9,
+      "snapshotAttempts": 16,
+      "maxLocalQueryGroupMs": 1720.3165999962948,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "nativePid": 8487,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 3825.173636,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3797.609636,
+          "transportAttempts": 49
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 18194.04109,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2505.516414,
+          "transportAttempts": 14
+        },
+        "search-needle": {
+          "durationMs": 1569.768175,
+          "transportAttempts": 1
+        },
+        "attachments-open": {
+          "durationMs": 1996.658694,
+          "transportAttempts": 14
+        },
+        "image-preview": {
+          "durationMs": 2992.598323,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2592.271534,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 3787.854766,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3556.044164,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 949.357709,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 2993.839982,
+          "transportAttempts": 48
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 12,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 12,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 233,
+      "maxSampledCombinedPssKiB": 281501.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 16,
+      "maxLocalQueryGroupMs": 1930.9862000518478,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "nativePid": 9496,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 4038.261205,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3975.58635,
+          "transportAttempts": 48
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 18259.920934,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2669.304417,
+          "transportAttempts": 15
+        },
+        "search-needle": {
+          "durationMs": 1954.396563,
+          "transportAttempts": 2
+        },
+        "attachments-open": {
+          "durationMs": 2010.378607,
+          "transportAttempts": 11
+        },
+        "image-preview": {
+          "durationMs": 2628.018359,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 3048.770169,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 3876.384096,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3760.091754,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 836.238129,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 3001.634958,
+          "transportAttempts": 46
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 10,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 13,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 232,
+      "maxSampledCombinedPssKiB": 319349.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 16,
+      "maxLocalQueryGroupMs": 1535.5597999878228,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "nativePid": 10542,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 3897.749165,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3923.172066,
+          "transportAttempts": 50
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 17822.596843,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2323.357641,
+          "transportAttempts": 14
+        },
+        "search-needle": {
+          "durationMs": 1588.980831,
+          "transportAttempts": 1
+        },
+        "attachments-open": {
+          "durationMs": 2064.672393,
+          "transportAttempts": 10
+        },
+        "image-preview": {
+          "durationMs": 2751.636921,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2899.839218,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 4085.636617,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3663.767776,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 833.54176,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 3211.728128,
+          "transportAttempts": 48
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 12,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 12,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 233,
+      "maxSampledCombinedPssKiB": 277005.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 17,
+      "maxLocalQueryGroupMs": 1547.3057000199333,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "nativePid": 11604,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 4279.981071,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3817.17406,
+          "transportAttempts": 48
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 17516.166947,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2824.942354,
+          "transportAttempts": 15
+        },
+        "search-needle": {
+          "durationMs": 2131.211687,
+          "transportAttempts": 2
+        },
+        "attachments-open": {
+          "durationMs": 1934.10248,
+          "transportAttempts": 15
+        },
+        "image-preview": {
+          "durationMs": 2868.041927,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2792.849729,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 3857.78182,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3453.528572,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 1001.005208,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 2993.171983,
+          "transportAttempts": 46
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 10,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 13,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 232,
+      "maxSampledCombinedPssKiB": 296693.0,
+      "validMemorySnapshots": 9,
+      "snapshotAttempts": 16,
+      "maxLocalQueryGroupMs": 1768.0529999779537,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "nativePid": 12637,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 3949.927422,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 3730.28515,
+          "transportAttempts": 50
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 18072.352146,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2542.178132,
+          "transportAttempts": 13
+        },
+        "search-needle": {
+          "durationMs": 1484.200268,
+          "transportAttempts": 1
+        },
+        "attachments-open": {
+          "durationMs": 1740.498553,
+          "transportAttempts": 9
+        },
+        "image-preview": {
+          "durationMs": 2717.079071,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 2734.772722,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 4213.332665,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3524.415639,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 1108.99734,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 3501.276578,
+          "transportAttempts": 48
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 4,
+        "android_check_update": 4,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 11,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 11,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 233,
+      "maxSampledCombinedPssKiB": 276199.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 16,
+      "maxLocalQueryGroupMs": 2087.392700021155,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "nativePid": 13664,
+      "phases": {
+        "activity-startup": {
+          "durationMs": 3944.265223,
+          "transportAttempts": 29
+        },
+        "password-unlock": {
+          "durationMs": 4079.828545,
+          "transportAttempts": 48
+        },
+        "first-ocr-user-flow": {
+          "durationMs": 17507.716165,
+          "transportAttempts": 22
+        },
+        "workspace": {
+          "durationMs": 2544.485322,
+          "transportAttempts": 13
+        },
+        "search-needle": {
+          "durationMs": 1966.069492,
+          "transportAttempts": 2
+        },
+        "attachments-open": {
+          "durationMs": 2086.14385,
+          "transportAttempts": 11
+        },
+        "image-preview": {
+          "durationMs": 2829.352461,
+          "transportAttempts": 3
+        },
+        "text-preview": {
+          "durationMs": 3491.340444,
+          "transportAttempts": 3
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": 4484.673014,
+          "transportAttempts": 4
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": 3332.6258,
+          "transportAttempts": 4
+        },
+        "application-lock": {
+          "durationMs": 1022.702092,
+          "transportAttempts": 20
+        },
+        "password-reunlock": {
+          "durationMs": 2697.261922,
+          "transportAttempts": 46
+        }
+      },
+      "commandCounts": {
+        "android_cached_update": 3,
+        "android_check_update": 3,
+        "attachment_count_batch": 3,
+        "attachment_count_stats": 4,
+        "attachment_list": 2,
+        "attachment_open": 2,
+        "backup_list": 3,
+        "biometric_check_availability": 6,
+        "check_has_account": 3,
+        "dismiss_lock_mask": 2,
+        "export_get_scope_tree": 2,
+        "fs_read_file_as_data_url": 1,
+        "fs_read_file_as_text": 1,
+        "get_lock_pending": 8,
+        "get_platform_capabilities": 1,
+        "get_system_locale": 1,
+        "get_vault_stats": 2,
+        "llm_get_config": 2,
+        "llm_get_providers": 2,
+        "lock": 1,
+        "login": 2,
+        "object_get": 1,
+        "object_list": 10,
+        "object_trash_list": 2,
+        "ocr_get_active_tier": 1,
+        "ocr_list_available_tiers": 1,
+        "ocr_scan_image": 1,
+        "pin_check_availability": 1,
+        "plugin:__TAURI_CHANNEL__|fetch": 13,
+        "plugin:dialog|open": 1,
+        "plugin:event|listen": 35,
+        "plugin:event|unlisten": 25,
+        "plugin:lock-state|registerListener": 2,
+        "plugin:lock-state|register_listener": 2,
+        "plugin:notification|is_permission_granted": 1,
+        "plugin:notification|notify": 1,
+        "plugin_list_all": 2,
+        "plugin_list_installed": 2,
+        "profile_load": 2,
+        "search_unified": 1,
+        "set_status_bar_style": 13,
+        "set_titlebar_color": 6,
+        "show_main_window": 1,
+        "snapshot_count_batch": 2,
+        "sync_get_auto_status": 4,
+        "sync_get_status": 2,
+        "sync_get_ui_prefs_sync": 4,
+        "sync_list_conflicts": 2,
+        "sync_listen_addr": 2,
+        "sync_trigger_foreground": 1,
+        "template_list": 5,
+        "ui_get_preferences": 2,
+        "ui_update_preference": 14,
+        "user_data_get_preferences": 3,
+        "user_data_update_preference": 1,
+        "vault_check_directory": 2,
+        "vault_list_accounts": 8,
+        "vault_sync_background": 2
+      },
+      "totalTransportAttempts": 232,
+      "maxSampledCombinedPssKiB": 307270.0,
+      "validMemorySnapshots": 8,
+      "snapshotAttempts": 20,
+      "maxLocalQueryGroupMs": 2252.289699972607,
+      "all12PhasesPassed": true,
+      "allOriginalStateRestored": true
+    }
+  ],
+  "groups": [
+    {
+      "objectCount": 100,
+      "phases": {
+        "activity-startup": {
+          "durationMs": {
+            "samples": [
+              3978.972782,
+              4262.726127,
+              3825.173636,
+              3897.749165,
+              3949.927422
+            ],
+            "n": 5,
+            "median": 3949.927422,
+            "p95NearestRank": 4262.726127,
+            "minimum": 3825.173636,
+            "maximum": 4262.726127
+          },
+          "transportAttempts": {
+            "samples": [
+              29,
+              29,
+              29,
+              29,
+              29
+            ],
+            "n": 5,
+            "median": 29,
+            "p95NearestRank": 29,
+            "minimum": 29,
+            "maximum": 29
+          }
+        },
+        "password-unlock": {
+          "durationMs": {
+            "samples": [
+              4080.515964,
+              4181.702419,
+              3797.609636,
+              3923.172066,
+              3730.28515
+            ],
+            "n": 5,
+            "median": 3923.172066,
+            "p95NearestRank": 4181.702419,
+            "minimum": 3730.28515,
+            "maximum": 4181.702419
+          },
+          "transportAttempts": {
+            "samples": [
+              50,
+              54,
+              49,
+              50,
+              50
+            ],
+            "n": 5,
+            "median": 50,
+            "p95NearestRank": 54,
+            "minimum": 49,
+            "maximum": 54
+          }
+        },
+        "first-ocr-user-flow": {
+          "durationMs": {
+            "samples": [
+              18328.330181,
+              17341.766414,
+              18194.04109,
+              17822.596843,
+              18072.352146
+            ],
+            "n": 5,
+            "median": 18072.352146,
+            "p95NearestRank": 18328.330181,
+            "minimum": 17341.766414,
+            "maximum": 18328.330181
+          },
+          "transportAttempts": {
+            "samples": [
+              22,
+              18,
+              22,
+              22,
+              22
+            ],
+            "n": 5,
+            "median": 22,
+            "p95NearestRank": 22,
+            "minimum": 18,
+            "maximum": 22
+          }
+        },
+        "workspace": {
+          "durationMs": {
+            "samples": [
+              2534.238271,
+              2568.584991,
+              2505.516414,
+              2323.357641,
+              2542.178132
+            ],
+            "n": 5,
+            "median": 2534.238271,
+            "p95NearestRank": 2568.584991,
+            "minimum": 2323.357641,
+            "maximum": 2568.584991
+          },
+          "transportAttempts": {
+            "samples": [
+              14,
+              14,
+              14,
+              14,
+              13
+            ],
+            "n": 5,
+            "median": 14,
+            "p95NearestRank": 14,
+            "minimum": 13,
+            "maximum": 14
+          }
+        },
+        "search-needle": {
+          "durationMs": {
+            "samples": [
+              1440.446855,
+              1754.542245,
+              1569.768175,
+              1588.980831,
+              1484.200268
+            ],
+            "n": 5,
+            "median": 1569.768175,
+            "p95NearestRank": 1754.542245,
+            "minimum": 1440.446855,
+            "maximum": 1754.542245
+          },
+          "transportAttempts": {
+            "samples": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "n": 5,
+            "median": 1,
+            "p95NearestRank": 1,
+            "minimum": 1,
+            "maximum": 1
+          }
+        },
+        "attachments-open": {
+          "durationMs": {
+            "samples": [
+              1819.11987,
+              2041.851187,
+              1996.658694,
+              2064.672393,
+              1740.498553
+            ],
+            "n": 5,
+            "median": 1996.658694,
+            "p95NearestRank": 2064.672393,
+            "minimum": 1740.498553,
+            "maximum": 2064.672393
+          },
+          "transportAttempts": {
+            "samples": [
+              9,
+              14,
+              14,
+              10,
+              9
+            ],
+            "n": 5,
+            "median": 10,
+            "p95NearestRank": 14,
+            "minimum": 9,
+            "maximum": 14
+          }
+        },
+        "image-preview": {
+          "durationMs": {
+            "samples": [
+              2757.886906,
+              3215.137378,
+              2992.598323,
+              2751.636921,
+              2717.079071
+            ],
+            "n": 5,
+            "median": 2757.886906,
+            "p95NearestRank": 3215.137378,
+            "minimum": 2717.079071,
+            "maximum": 3215.137378
+          },
+          "transportAttempts": {
+            "samples": [
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "n": 5,
+            "median": 3,
+            "p95NearestRank": 3,
+            "minimum": 3,
+            "maximum": 3
+          }
+        },
+        "text-preview": {
+          "durationMs": {
+            "samples": [
+              2902.225033,
+              2825.268386,
+              2592.271534,
+              2899.839218,
+              2734.772722
+            ],
+            "n": 5,
+            "median": 2825.268386,
+            "p95NearestRank": 2902.225033,
+            "minimum": 2592.271534,
+            "maximum": 2902.225033
+          },
+          "transportAttempts": {
+            "samples": [
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "n": 5,
+            "median": 3,
+            "p95NearestRank": 3,
+            "minimum": 3,
+            "maximum": 3
+          }
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": {
+            "samples": [
+              4067.088764,
+              3886.177375,
+              3787.854766,
+              4085.636617,
+              4213.332665
+            ],
+            "n": 5,
+            "median": 4067.088764,
+            "p95NearestRank": 4213.332665,
+            "minimum": 3787.854766,
+            "maximum": 4213.332665
+          },
+          "transportAttempts": {
+            "samples": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "n": 5,
+            "median": 4,
+            "p95NearestRank": 4,
+            "minimum": 4,
+            "maximum": 4
+          }
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": {
+            "samples": [
+              3359.540438,
+              3531.626985,
+              3556.044164,
+              3663.767776,
+              3524.415639
+            ],
+            "n": 5,
+            "median": 3531.626985,
+            "p95NearestRank": 3663.767776,
+            "minimum": 3359.540438,
+            "maximum": 3663.767776
+          },
+          "transportAttempts": {
+            "samples": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "n": 5,
+            "median": 4,
+            "p95NearestRank": 4,
+            "minimum": 4,
+            "maximum": 4
+          }
+        },
+        "application-lock": {
+          "durationMs": {
+            "samples": [
+              907.527345,
+              1047.884813,
+              949.357709,
+              833.54176,
+              1108.99734
+            ],
+            "n": 5,
+            "median": 949.357709,
+            "p95NearestRank": 1108.99734,
+            "minimum": 833.54176,
+            "maximum": 1108.99734
+          },
+          "transportAttempts": {
+            "samples": [
+              20,
+              20,
+              20,
+              20,
+              20
+            ],
+            "n": 5,
+            "median": 20,
+            "p95NearestRank": 20,
+            "minimum": 20,
+            "maximum": 20
+          }
+        },
+        "password-reunlock": {
+          "durationMs": {
+            "samples": [
+              3112.206404,
+              3106.99564,
+              2993.839982,
+              3211.728128,
+              3501.276578
+            ],
+            "n": 5,
+            "median": 3112.206404,
+            "p95NearestRank": 3501.276578,
+            "minimum": 2993.839982,
+            "maximum": 3501.276578
+          },
+          "transportAttempts": {
+            "samples": [
+              48,
+              47,
+              48,
+              48,
+              48
+            ],
+            "n": 5,
+            "median": 48,
+            "p95NearestRank": 48,
+            "minimum": 47,
+            "maximum": 48
+          }
+        }
+      },
+      "maxSampledCombinedPssKiB": {
+        "samples": [
+          289440.0,
+          282498.0,
+          281501.0,
+          277005.0,
+          276199.0
+        ],
+        "n": 5,
+        "median": 281501.0,
+        "p95NearestRank": 289440.0,
+        "minimum": 276199.0,
+        "maximum": 289440.0
+      },
+      "totalTransportAttempts": {
+        "samples": [
+          233,
+          232,
+          233,
+          233,
+          233
+        ],
+        "n": 5,
+        "median": 233,
+        "p95NearestRank": 233,
+        "minimum": 232,
+        "maximum": 233
+      },
+      "validMemorySnapshots": 41,
+      "snapshotAttempts": 85
+    },
+    {
+      "objectCount": 5000,
+      "phases": {
+        "activity-startup": {
+          "durationMs": {
+            "samples": [
+              4235.814174,
+              4396.692254,
+              4038.261205,
+              4279.981071,
+              3944.265223
+            ],
+            "n": 5,
+            "median": 4235.814174,
+            "p95NearestRank": 4396.692254,
+            "minimum": 3944.265223,
+            "maximum": 4396.692254
+          },
+          "transportAttempts": {
+            "samples": [
+              29,
+              29,
+              29,
+              29,
+              29
+            ],
+            "n": 5,
+            "median": 29,
+            "p95NearestRank": 29,
+            "minimum": 29,
+            "maximum": 29
+          }
+        },
+        "password-unlock": {
+          "durationMs": {
+            "samples": [
+              3970.107753,
+              3934.161823,
+              3975.58635,
+              3817.17406,
+              4079.828545
+            ],
+            "n": 5,
+            "median": 3970.107753,
+            "p95NearestRank": 4079.828545,
+            "minimum": 3817.17406,
+            "maximum": 4079.828545
+          },
+          "transportAttempts": {
+            "samples": [
+              48,
+              48,
+              48,
+              48,
+              48
+            ],
+            "n": 5,
+            "median": 48,
+            "p95NearestRank": 48,
+            "minimum": 48,
+            "maximum": 48
+          }
+        },
+        "first-ocr-user-flow": {
+          "durationMs": {
+            "samples": [
+              18346.311563,
+              17834.704855,
+              18259.920934,
+              17516.166947,
+              17507.716165
+            ],
+            "n": 5,
+            "median": 17834.704855,
+            "p95NearestRank": 18346.311563,
+            "minimum": 17507.716165,
+            "maximum": 18346.311563
+          },
+          "transportAttempts": {
+            "samples": [
+              22,
+              22,
+              22,
+              22,
+              22
+            ],
+            "n": 5,
+            "median": 22,
+            "p95NearestRank": 22,
+            "minimum": 22,
+            "maximum": 22
+          }
+        },
+        "workspace": {
+          "durationMs": {
+            "samples": [
+              2465.610455,
+              2747.845419,
+              2669.304417,
+              2824.942354,
+              2544.485322
+            ],
+            "n": 5,
+            "median": 2669.304417,
+            "p95NearestRank": 2824.942354,
+            "minimum": 2465.610455,
+            "maximum": 2824.942354
+          },
+          "transportAttempts": {
+            "samples": [
+              13,
+              15,
+              15,
+              15,
+              13
+            ],
+            "n": 5,
+            "median": 15,
+            "p95NearestRank": 15,
+            "minimum": 13,
+            "maximum": 15
+          }
+        },
+        "search-needle": {
+          "durationMs": {
+            "samples": [
+              2282.673305,
+              1746.085037,
+              1954.396563,
+              2131.211687,
+              1966.069492
+            ],
+            "n": 5,
+            "median": 1966.069492,
+            "p95NearestRank": 2282.673305,
+            "minimum": 1746.085037,
+            "maximum": 2282.673305
+          },
+          "transportAttempts": {
+            "samples": [
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            "n": 5,
+            "median": 2,
+            "p95NearestRank": 2,
+            "minimum": 2,
+            "maximum": 2
+          }
+        },
+        "attachments-open": {
+          "durationMs": {
+            "samples": [
+              2167.787129,
+              1971.413994,
+              2010.378607,
+              1934.10248,
+              2086.14385
+            ],
+            "n": 5,
+            "median": 2010.378607,
+            "p95NearestRank": 2167.787129,
+            "minimum": 1934.10248,
+            "maximum": 2167.787129
+          },
+          "transportAttempts": {
+            "samples": [
+              15,
+              11,
+              11,
+              15,
+              11
+            ],
+            "n": 5,
+            "median": 11,
+            "p95NearestRank": 15,
+            "minimum": 11,
+            "maximum": 15
+          }
+        },
+        "image-preview": {
+          "durationMs": {
+            "samples": [
+              2951.944339,
+              2875.916465,
+              2628.018359,
+              2868.041927,
+              2829.352461
+            ],
+            "n": 5,
+            "median": 2868.041927,
+            "p95NearestRank": 2951.944339,
+            "minimum": 2628.018359,
+            "maximum": 2951.944339
+          },
+          "transportAttempts": {
+            "samples": [
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "n": 5,
+            "median": 3,
+            "p95NearestRank": 3,
+            "minimum": 3,
+            "maximum": 3
+          }
+        },
+        "text-preview": {
+          "durationMs": {
+            "samples": [
+              2554.053944,
+              2507.226124,
+              3048.770169,
+              2792.849729,
+              3491.340444
+            ],
+            "n": 5,
+            "median": 2792.849729,
+            "p95NearestRank": 3491.340444,
+            "minimum": 2507.226124,
+            "maximum": 3491.340444
+          },
+          "transportAttempts": {
+            "samples": [
+              3,
+              3,
+              3,
+              3,
+              3
+            ],
+            "n": 5,
+            "median": 3,
+            "p95NearestRank": 3,
+            "minimum": 3,
+            "maximum": 3
+          }
+        },
+        "pdf-text-native-diagnostic": {
+          "durationMs": {
+            "samples": [
+              4669.927971,
+              4078.755055,
+              3876.384096,
+              3857.78182,
+              4484.673014
+            ],
+            "n": 5,
+            "median": 4078.755055,
+            "p95NearestRank": 4669.927971,
+            "minimum": 3857.78182,
+            "maximum": 4669.927971
+          },
+          "transportAttempts": {
+            "samples": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "n": 5,
+            "median": 4,
+            "p95NearestRank": 4,
+            "minimum": 4,
+            "maximum": 4
+          }
+        },
+        "pdf-scanned-native-diagnostic": {
+          "durationMs": {
+            "samples": [
+              3204.588887,
+              3141.883399,
+              3760.091754,
+              3453.528572,
+              3332.6258
+            ],
+            "n": 5,
+            "median": 3332.6258,
+            "p95NearestRank": 3760.091754,
+            "minimum": 3141.883399,
+            "maximum": 3760.091754
+          },
+          "transportAttempts": {
+            "samples": [
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "n": 5,
+            "median": 4,
+            "p95NearestRank": 4,
+            "minimum": 4,
+            "maximum": 4
+          }
+        },
+        "application-lock": {
+          "durationMs": {
+            "samples": [
+              1012.100413,
+              930.972613,
+              836.238129,
+              1001.005208,
+              1022.702092
+            ],
+            "n": 5,
+            "median": 1001.005208,
+            "p95NearestRank": 1022.702092,
+            "minimum": 836.238129,
+            "maximum": 1022.702092
+          },
+          "transportAttempts": {
+            "samples": [
+              20,
+              20,
+              20,
+              20,
+              20
+            ],
+            "n": 5,
+            "median": 20,
+            "p95NearestRank": 20,
+            "minimum": 20,
+            "maximum": 20
+          }
+        },
+        "password-reunlock": {
+          "durationMs": {
+            "samples": [
+              2500.18655,
+              3659.338481,
+              3001.634958,
+              2993.171983,
+              2697.261922
+            ],
+            "n": 5,
+            "median": 2993.171983,
+            "p95NearestRank": 3659.338481,
+            "minimum": 2500.18655,
+            "maximum": 3659.338481
+          },
+          "transportAttempts": {
+            "samples": [
+              46,
+              48,
+              46,
+              46,
+              46
+            ],
+            "n": 5,
+            "median": 46,
+            "p95NearestRank": 48,
+            "minimum": 46,
+            "maximum": 48
+          }
+        }
+      },
+      "maxSampledCombinedPssKiB": {
+        "samples": [
+          295970.0,
+          299645.0,
+          319349.0,
+          296693.0,
+          307270.0
+        ],
+        "n": 5,
+        "median": 299645.0,
+        "p95NearestRank": 319349.0,
+        "minimum": 295970.0,
+        "maximum": 319349.0
+      },
+      "totalTransportAttempts": {
+        "samples": [
+          232,
+          234,
+          232,
+          232,
+          232
+        ],
+        "n": 5,
+        "median": 232,
+        "p95NearestRank": 234,
+        "minimum": 232,
+        "maximum": 234
+      },
+      "validMemorySnapshots": 42,
+      "snapshotAttempts": 85
+    }
+  ],
+  "all10CompleteJourneysPassed": true,
+  "allFailedPreFixAttemptsRetainedInRF1145": true,
+  "validationJourneysNotMixedIntoCohort": true,
+  "tailLimit": "n=5 p95 nearest rank is the maximum; not a stable population tail estimate",
+  "memoryLimit": "serial --local PSS of app including runner and directly bound renderer, sampled maximum not continuous peak",
+  "instrumentationLimit": "unchanged native SDK, transport observer, internal sampling, external PSS and polling overhead included",
+  "processColdStartMeasured": false,
+  "physicalHardwareMeasured": false,
+  "wholeRF312Accepted": false,
+  "goal": "active",
+  "rawReplay": {
+    "allRawCommandsConsumed": true,
+    "allIdentitiesAndMemoryValuesReplayedExactly": true,
+    "samples": [
+      {
+        "objectCount": 100,
+        "ordinal": 1,
+        "attempts": 20,
+        "accepted": 8,
+        "refused": 12
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 1,
+        "attempts": 17,
+        "accepted": 8,
+        "refused": 9
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 2,
+        "attempts": 16,
+        "accepted": 9,
+        "refused": 7
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 2,
+        "attempts": 16,
+        "accepted": 9,
+        "refused": 7
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 3,
+        "attempts": 16,
+        "accepted": 8,
+        "refused": 8
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 3,
+        "attempts": 16,
+        "accepted": 8,
+        "refused": 8
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 4,
+        "attempts": 17,
+        "accepted": 9,
+        "refused": 8
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 4,
+        "attempts": 16,
+        "accepted": 9,
+        "refused": 7
+      },
+      {
+        "objectCount": 100,
+        "ordinal": 5,
+        "attempts": 16,
+        "accepted": 8,
+        "refused": 8
+      },
+      {
+        "objectCount": 5000,
+        "ordinal": 5,
+        "attempts": 20,
+        "accepted": 8,
+        "refused": 12
+      }
+    ],
+    "attempts": 170,
+    "accepted": 84,
+    "refused": 86
+  },
+  "allSnapshotStates": {
+    "not-running": 85,
+    "complete": 84,
+    "Owned process set or service binding changed during collection": 1
+  },
+  "sourceInputsCount": 1983,
+  "originalTestApkAnd45SecondStartupBudgetUnchanged": true,
+  "privateBackupsRemoved": 20,
+  "publicFixtureCopiesRemoved": 10,
+  "restoration": {
+    "runs": 10,
+    "entriesPerRun": 216,
+    "contentsLinksModesAllEqual": true,
+    "originalApksUidSettingsPublicInputRestored": true
+  },
+  "evidence": {
+    "index": "rf312-android-current-memory-2026-10-14/index.json",
+    "archive": "rf312-android-current-memory-2026-10-14/raw.zip",
+    "memberCount": 4790,
+    "sha256": "6b0b2a53ac9fdc07236c8cab52affc354194ce8d4fcba1a847231eaf914de2fe"
+  },
+  "acceptedScope": "five full instrumented API31 journeys per count and whole owned process PSS usability/distribution",
+  "outerSamplerOverheadIsolated": false,
+  "unmodifiedDefaultClientPerformanceAccepted": false,
+  "commitCreated": false
+}
