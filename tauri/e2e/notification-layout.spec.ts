@@ -341,7 +341,7 @@ test('登录页通知位于卡片上方，短窗多条通知可滚动且正文�
   expect(cardBox.y).toBeGreaterThanOrEqual(slotBox.y + slotBox.height);
   expect(slotBox.y).toBeGreaterThanOrEqual(52);
   await page.screenshot({ path: 'test-results/notification-login.png' });
-  await page.locator('input[type="text"]').fill('any-password');
+  await page.locator('input[type="password"]').fill('any-password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('/');
   await page.setViewportSize({ width: 800, height: 460 });
@@ -375,7 +375,7 @@ for (const platform of ['macos', 'android'] as const) {
       phase: 'downloading',
     });
     await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
-    await page.locator('input[type="text"]').fill('any-password');
+    await page.locator('input[type="password"]').fill('any-password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL('/');
     await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');

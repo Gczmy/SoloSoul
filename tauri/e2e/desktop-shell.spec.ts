@@ -182,7 +182,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   const submit = page.locator('button[type="submit"]');
   await expect(submit).toBeInViewport();
   await page.screenshot({ path: 'test-results/desktop-login-dark.png' });
-  await page.locator('input[type="text"]').fill('any-password');
+  await page.locator('input[type="password"]').fill('any-password');
   await submit.click();
   await page.waitForURL('/');
   const sidebar = page.locator('#desktop-navigation');
