@@ -20,13 +20,14 @@ spec.loader.exec_module(reader)
 class OwnedJsonTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="ss-rf1128-json-")
-        self.root = Path(self.directory.name)
+        self.addCleanup(self.directory.cleanup)
+        self.requested_root = Path(self.directory.name)
+        # Expand aliases only for the new owned fixture, never inside the reader.
+        self.root = self.requested_root.resolve(strict=True)
+        self.fixture_root_canonicalized = reader._normal(self.requested_root) != reader._normal(self.root)
         self.file = self.root / "published.json"
         self.file.write_bytes(b'{"publicSynthetic":true}\n')
         self.api = reader._api()
-
-    def tearDown(self):
-        self.directory.cleanup()
 
     @contextmanager
     def hold(self, access=0x80000000 | 0x10000, share=7):
@@ -75,6 +76,15 @@ class OwnedJsonTests(unittest.TestCase):
         for maximum in [0, -1, True, 1.5, 4194305]:
             with self.assertRaises(ValueError):
                 reader.read_owned_json(self.file, maximum)
+        if self.fixture_root_canonicalized:
+            alias = self.requested_root / self.file.name
+            self.assertTrue(os.path.samefile(alias, self.file))
+            with patch.object(self.api, "ReadFile", wraps=self.api.ReadFile) as content_read:
+                with patch.object(reader, "_api", return_value=self.api):
+                    with self.assertRaisesRegex(ValueError, "resolved outside its requested path"):
+                        reader.read_owned_json(alias)
+                content_read.assert_not_called()
+            self.noncanonical_fixture_alias_rejected = True
 
     def test_exact_size_limit_bom_utf8_and_invalid_json(self):
         raw = b'\xef\xbb\xbf{"value":"\xe4\xb8\xad"}'
@@ -96,8 +106,21 @@ class OwnedJsonTests(unittest.TestCase):
             if error.winerror == 1314:
                 self.skipTest("Actual file symlink fixture requires missing SeCreateSymbolicLinkPrivilege")
             raise
-        with self.assertRaises((OSError, ValueError)):
-            reader.read_owned_json(alias)
+        try:
+            self.symlink_reparse_tag = alias.lstat().st_reparse_tag
+            self.assertEqual(self.symlink_reparse_tag, 0xA000000C)
+            self.assertTrue(alias.is_symlink())
+            read_file = self.api.ReadFile
+            with patch.object(self.api, "ReadFile", wraps=read_file) as content_read:
+                with patch.object(reader, "_api", return_value=self.api):
+                    with self.assertRaises(ValueError):
+                        reader.read_owned_json(alias)
+                content_read.assert_not_called()
+                self.symlink_content_read_calls = content_read.call_count
+            self.assertEqual(self.file.read_bytes(), b'{"publicSynthetic":true}\n')
+            self.symlink_target_preserved = True
+        finally:
+            alias.unlink()
 
     def test_ancestor_junction_is_rejected_before_content_read(self):
         target = self.root / "actual"
