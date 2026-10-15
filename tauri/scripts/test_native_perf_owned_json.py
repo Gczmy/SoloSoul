@@ -96,8 +96,21 @@ class OwnedJsonTests(unittest.TestCase):
             if error.winerror == 1314:
                 self.skipTest("Actual file symlink fixture requires missing SeCreateSymbolicLinkPrivilege")
             raise
-        with self.assertRaises((OSError, ValueError)):
-            reader.read_owned_json(alias)
+        try:
+            self.symlink_reparse_tag = alias.lstat().st_reparse_tag
+            self.assertEqual(self.symlink_reparse_tag, 0xA000000C)
+            self.assertTrue(alias.is_symlink())
+            read_file = self.api.ReadFile
+            with patch.object(self.api, "ReadFile", wraps=read_file) as content_read:
+                with patch.object(reader, "_api", return_value=self.api):
+                    with self.assertRaises(ValueError):
+                        reader.read_owned_json(alias)
+                content_read.assert_not_called()
+                self.symlink_content_read_calls = content_read.call_count
+            self.assertEqual(self.file.read_bytes(), b'{"publicSynthetic":true}\n')
+            self.symlink_target_preserved = True
+        finally:
+            alias.unlink()
 
     def test_ancestor_junction_is_rejected_before_content_read(self):
         target = self.root / "actual"
