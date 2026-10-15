@@ -89,6 +89,10 @@ fn run() -> Result<serde_json::Value, String> {
     }
     let object_count = arg_usize("--objects", 100)?;
     let sample_count = arg_usize("--samples", 10)?;
+    benchmark(object_count, sample_count)
+}
+
+fn benchmark(object_count: usize, sample_count: usize) -> Result<serde_json::Value, String> {
     let kdf = solosoul_crypto::KdfConfig::from_env();
     let temp = tempfile::tempdir().map_err(|error| error.to_string())?;
     let service = VaultService::with_base_path(temp.path().to_path_buf());
@@ -117,12 +121,6 @@ fn run() -> Result<serde_json::Value, String> {
     let vault = service
         .get_vault_store()
         .ok_or_else(|| "vault is not unlocked after unlock".to_string())?;
-
-    let account_catalog = measure(sample_count, || {
-        let cold_service = VaultService::with_base_path(temp.path().to_path_buf());
-        cold_service.load_accounts();
-        Ok(cold_service.list_accounts().len())
-    })?;
 
     vault.list_object_metadata(&account_id, None, None, false, false)?;
     let list = measure(sample_count, || {
@@ -154,6 +152,15 @@ fn run() -> Result<serde_json::Value, String> {
                     ))
                 }
             })
+    })?;
+
+    // 独立服务必须重新取得根锁；先释放旧服务及其解锁 Vault 持有的所有者。
+    drop(vault);
+    drop(service);
+    let account_catalog = measure(sample_count, || {
+        let cold_service = VaultService::try_with_base_path(temp.path().to_path_buf())?;
+        cold_service.load_accounts();
+        Ok(cold_service.list_accounts().len())
     })?;
 
     Ok(serde_json::json!({
@@ -197,6 +204,30 @@ fn main() {
         Err(error) => {
             eprintln!("perf baseline failed: {error}");
             std::process::exit(1);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::benchmark;
+
+    #[test]
+    fn independent_catalog_load_succeeds_after_other_vault_measurements() {
+        let result = benchmark(1, 1).expect("isolated backend benchmark must complete");
+        assert_eq!(result["scope"], "native-vault-backend-only");
+        for operation in [
+            "accountCatalogLoad",
+            "unlock",
+            "listMetadata",
+            "searchDecrypted",
+        ] {
+            assert_eq!(result[operation]["failureCount"], 0, "{operation}");
+            let samples = result[operation]["samples"]
+                .as_array()
+                .expect("operation must retain actual samples");
+            assert_eq!(samples.len(), 1, "{operation}");
+            assert_eq!(samples[0]["resultCount"], 1, "{operation}");
         }
     }
 }
