@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1160",
+  "scope": "Android native verification driver only",
+  "sourceParentCommit": "42a6694821c5f325480a6a5d4559307ed8672cc4",
+  "original": {
+    "defaultExternalControlExitCode": 1,
+    "allOriginalStateRestored": true,
+    "activityManagerReportedSuccessfulStartup": true,
+    "readOnlyLiveSystemProcessFalseAbsenceReproduced": true,
+    "nestedShellArgumentLost": true,
+    "exitZeroMaskedStderr": true
+  },
+  "fixed": {
+    "directPidofInvocation": true,
+    "capturedExitOneEmptyMeansNoMatches": true,
+    "transportErrorsAndMalformedOrMissingPidAreRejected": true,
+    "realLivePidMatchesDirect": true,
+    "actualEmptyExitOneVerified": true,
+    "actualModifiedRepositoryFunctionUsed": true
+  },
+  "boundary": {
+    "callerSites": 3,
+    "addedHelperFunctions": 1,
+    "addedTestMethods": 3,
+    "allOtherDriverAstUnchanged": true,
+    "priorTestsUnchanged": true,
+    "applicationRustAndFrontendUnchanged": true
+  },
+  "validation": {
+    "androidPythonTests": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "nativeQueriesReadOnly": true,
+    "firstSandboxTemporaryPermissionFailureRetained": true,
+    "firstSandboxFullLogAvailable": false,
+    "firstSandboxSummaryAndAvailableTraceRetained": true
+  },
+  "rawHostPathsOrPidsPublished": false,
+  "fullRf312Accepted": false
+}

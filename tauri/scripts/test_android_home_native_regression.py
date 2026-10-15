@@ -3,6 +3,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -372,6 +373,42 @@ class HomeRunnerTests(unittest.TestCase):
         for value in ('9999', '8044 9999', 'unknown'):
             with self.subTest(value=value), self.assertRaises(RuntimeError):
                 runner.validate_previous_process(value, 8044)
+
+    def test_process_lookup_preserves_live_pid_and_rejects_false_absence(self):
+        calls = []
+
+        def read(*command):
+            calls.append(command)
+            return '8044\n'
+
+        actual = runner.read_process_ids(read, runner.APP)
+        self.assertFalse(runner.validate_previous_process(actual, 8044))
+        self.assertEqual(calls, [('shell', 'pidof', runner.APP)])
+        for value in ('', '0', '-1', 'unknown', '8044\nerror'):
+            with self.subTest(value=value), self.assertRaises(RuntimeError):
+                runner.read_process_ids(lambda *args: value, runner.APP)
+
+    def test_process_lookup_only_accepts_captured_empty_exit_one_as_absence(self):
+        def read(*command):
+            raise subprocess.CalledProcessError(1, command, output=b'', stderr=b'')
+
+        self.assertTrue(runner.validate_previous_process(runner.read_process_ids(read, runner.APP), 8044))
+        for code, out, err in [(1, None, None), (1, b'', b'pidof: Needs 1 argument'),
+                               (1, b'', b'adb: device offline'), (1, b'8044', b''),
+                               (2, b'', b''), (127, b'', b'pidof: not found')]:
+            with self.subTest(code=code, out=out, err=err):
+                def broken(*command):
+                    raise subprocess.CalledProcessError(code, command, output=out, stderr=err)
+                with self.assertRaises(subprocess.CalledProcessError):
+                    runner.read_process_ids(broken, runner.APP)
+
+    def test_process_lookup_rejects_package_syntax_before_calling_device(self):
+        def unexpected(*args):
+            self.fail('Invalid package must not reach the device')
+
+        for package in ('', '-a', 'app', 'com.app;echo bad', 'com.app || true', '$(command)', 'com.app/other'):
+            with self.subTest(package=package), self.assertRaises(ValueError):
+                runner.read_process_ids(unexpected, package)
 
     def test_cold_requires_second_phase_and_cannot_accept_activity_recreation(self):
         old = json.loads((Path(__file__).parents[2] / 'docs/verification/fe2-lifecycle-2026-10-08/native-supported/device-files/report.json').read_text())
