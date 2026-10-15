@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '../src/lib/constants';
 import { login } from './fixtures/auth';
 
 async function expectMobileNavigation(page: Page) {
@@ -51,7 +52,7 @@ for (const position of ['left', 'right'] as const) {
       return;
     }
     await expect(sidebar).toHaveAttribute('data-expanded', 'true');
-    await expect(sidebar).toHaveCSS('width', '232px');
+    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
     await expect(
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
     ).toBeVisible();
@@ -72,7 +73,7 @@ for (const position of ['left', 'right'] as const) {
     await expect(page).toHaveURL(/\/settings$/);
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
     await page.getByRole('button', { name: 'Expand sidebar' }).click();
-    await expect(sidebar).toHaveCSS('width', '232px');
+    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
     expect(await page.evaluate(() => localStorage.getItem('solosoul_sidebar_expanded'))).toBe(
       'true',
     );

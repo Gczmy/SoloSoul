@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1163",
+  "recordedOn": "2026-10-15",
+  "accepted": true,
+  "scope": "existing desktop sidebar expanded width expectations only",
+  "runtimeApplicationChanged": false,
+  "canonicalExpandedWidthPx": 186,
+  "widthContract": "DESKTOP_SIDEBAR_EXPANDED_WIDTH",
+  "collapsedWidthPx": 96,
+  "red": {
+    "source": "preserved RF-1162 full production matrix",
+    "cases": 2,
+    "project": "chromium",
+    "expectedOldWidthPx": 232,
+    "actualWidthPx": 186
+  },
+  "green": {
+    "passed": 31,
+    "failed": 0,
+    "skipped": 19,
+    "flaky": 0,
+    "exitCode": 0,
+    "desktopAndMobileLeftRightCasesPassed": 4,
+    "existingSkips": "notification spec owns all viewport sizes and avoids duplicate mobile hover matrix"
+  },
+  "frozenProductionBundleFiles": 38,
+  "applicationSourcesAndProductionBundleUnchanged": true,
+  "workers": 2,
+  "retries": 0,
+  "testBudgetsChanged": false,
+  "newSkips": 0,
+  "preservedChecks": [
+    "actual expanded and collapsed width",
+    "compact icon and label geometry",
+    "navigation keeps collapsed preference",
+    "expanded preference persistence",
+    "header avoids sidebar",
+    "plugin panel avoids sidebar",
+    "mobile and horizontal navigation behavior"
+  ],
+  "frontendChecksUnchangedFromRf1162": true,
+  "originalRedReportSha256": "e017ff256b2f5155be557dd517050abca684db6048e7631d17f97475c6287c4d",
+  "greenReportSha256": "7a945f51ac23ad598475db7f4d6e31ccc6d014ff959a5fe1fcddd14df529451c",
+  "nativePlatformAcceptanceProven": false,
+  "coldDevelopmentStartupIssueClaimedFixed": false,
+  "rawHostPathsAndRunIdentitiesIncluded": false
+}
