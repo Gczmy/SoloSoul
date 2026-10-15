@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "recordedOn": "2026-10-15",
+  "windowsCurrentTransparencyRoundtripAccepted": true,
+  "rf121Closed": false,
+  "sourceCommit": "5c07995e5e42ae694f49acbc03f9fd59ff46c335",
+  "runtime": {
+    "independentPublicCardFixture": true,
+    "accountOrVaultSetup": false,
+    "defaultClientPerformanceAccepted": false,
+    "programSha256": "86b6f2ca4b38fb17449dcd3175b856e37695e49d0638e29d5dde12463d61bb23",
+    "fixtureSha256": "884f4a9282de35e7d23a78831f7e139315d96ee81cb0a9e565739b0740451ea8",
+    "unitPassed": 33,
+    "strictClippyExitCode": 0,
+    "workspaceRustFormatExitCode": 0,
+    "sourceInputCount": 40,
+    "sourceInputsUnchanged": true,
+    "wholeGroupBudgetSeconds": 50
+  },
+  "lanes": [
+    {
+      "mode": "transparency-off",
+      "nativeExitCode": 0,
+      "samples": 8,
+      "expectedMaterial": "solid",
+      "webviewAlpha": 255,
+      "originalSettingsRestoredAfterLane": true,
+      "pngsIndependentlyDecoded": 8,
+      "cardPixelPointsIndependentlyMatched": 16
+    },
+    {
+      "mode": "mica",
+      "nativeExitCode": 0,
+      "samples": 8,
+      "expectedMaterial": "mica",
+      "webviewAlpha": 0,
+      "originalSettingsRestoredAfterLane": true,
+      "pngsIndependentlyDecoded": 8,
+      "cardPixelPointsIndependentlyMatched": 16
+    }
+  ],
+  "recovery": {
+    "originalTransparencyDwordRestored": true,
+    "originalRegistryKindRestored": true,
+    "originalContrastFlagsAndSchemeRestored": true,
+    "all31OriginalSystemColorsRestored": true,
+    "finalSnapshotEqualsOriginal": true,
+    "highContrastTogglePerformed": false
+  },
+  "review": {
+    "all16PngCrcsAndDimensionsVerified": true,
+    "representativeTransparencyOffImagesInspected": 4,
+    "nativeCaptionPixelsIncluded": false,
+    "knownTeardownError1412Retained": true
+  },
+  "cleanup": {
+    "ownedProcessesConfirmedExited": true,
+    "profilesRemoved": 2,
+    "evidenceFilesVerifiedUnchanged": 141,
+    "processTerminations": 0
+  },
+  "callerInventory": {
+    "method": "TypeScript AST: Card/CardGrid imports and aliases; production TSX, excluding test/spec",
+    "cardCalls": 119,
+    "files": 74,
+    "floatingCalls": 2,
+    "interactiveCalls": 9,
+    "inlineSurfaceOverrides": 3,
+    "extraClassNameCalls": 6,
+    "spreadProps": 0,
+    "inventoryOnlyNotNativeCallFamilyAcceptance": true,
+    "inventorySha256": "3b0f81613ece9bcdf8d0c3f2b2e8306b6193c11fe90e605d9ea18b62d494b4ea"
+  },
+  "proofSha256": {
+    "roundtrip": "d420aae8e9f76d9d619fc7f64b093b4579a4ffd3c7e2f02978b5aa631feeef90",
+    "independent": "0012a85d37d095e5986ccb10d31877eeb61842e58f9d34981fd5388412ab74e8",
+    "solidPixels": "ad7cdd282fff63236d86979d884e157b0e6460cc397d551ff061574a9e67e9da",
+    "micaPixels": "ce8df42716ce0617b88bdaf5a4c29df6eae869fa1fe549f157e3459668e5948e",
+    "cleanup": "32f864c01fa210988df66f1ca614b020e009cde61b13e03b50ee7e9028112914"
+  },
+  "limits": {
+    "allCardFamiliesAccepted": false,
+    "highContrastAccepted": false,
+    "fullNativeAppearancePropertiesAccepted": false,
+    "macOSAccepted": false,
+    "androidCompleteMatrixAccepted": false,
+    "rf122Through127PrerequisiteReleased": false
+  },
+  "publication": {
+    "hostPathsIncluded": false,
+    "processIdentitiesIncluded": false,
+    "rawLogsScreenshotsProgramsOrVaultsIncluded": false
+  }
+}
