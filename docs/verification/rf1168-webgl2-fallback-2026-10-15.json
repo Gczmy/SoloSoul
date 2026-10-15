@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1168",
+  "recordedOn": "2026-10-15",
+  "status": "closed",
+  "sourceBaseCommit": "f9864bea197b5284703571a74b8f352f26f0d716",
+  "issue": "WebGL 1 unavailable while WebGL 2 can draw in the same Android WebView",
+  "before": {
+    "api": 35,
+    "abi": "x86_64",
+    "webviewVersion": "124.0.6367.219",
+    "hardwareAccelerated": true,
+    "webgl1AndExperimentalContextsFailed": 6,
+    "webgl2ContextsWithCorrectClearPixel": 3,
+    "clearPixel": [
+      32,
+      64,
+      128,
+      255
+    ],
+    "productionRendererReady": false,
+    "lowPowerHintNotTheDiscriminatingFactor": true,
+    "failedLocalDiagnosticLaunchOrReaderAttemptsRetained": 3
+  },
+  "change": {
+    "webgl1RemainsPreferred": true,
+    "webgl2TriedOnlyIfWebgl1ContextIsNull": true,
+    "sameContextAttributes": true,
+    "matchingGlslEs300Shaders": true,
+    "commonColorMathAndDrawBudget": true,
+    "originalFallbackAndLifecycleRetained": true,
+    "gpuProtectionBypassFlagsUsed": false
+  },
+  "checks": {
+    "red": {
+      "passed": 13,
+      "failed": 2
+    },
+    "targeted": {
+      "passed": 15,
+      "failed": 0
+    },
+    "typesExitCode": 0,
+    "lintExitCode": 0,
+    "existingLintWarnings": 1,
+    "node": {
+      "passed": 270,
+      "failed": 0,
+      "existingPlatformSkipped": 1
+    },
+    "vitest": {
+      "filesPassed": 267,
+      "passed": 2390,
+      "failed": 0
+    },
+    "nativeApkBuildStepsPassed": 7,
+    "sourceInputsVerified": 40
+  },
+  "native": {
+    "api": 35,
+    "abi": "x86_64",
+    "webviewVersion": "124.0.6367.219",
+    "independentPackage": true,
+    "mainActivityOrVaultLoaded": false,
+    "webgl1ControlCreated": false,
+    "actualContextVersion": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "themes": [
+      {
+        "theme": "light",
+        "initialReady": true,
+        "reducedPointerDrawDelta": 0,
+        "actualContextLossFallback": true,
+        "actualContextRestoreReady": true,
+        "initialPixel": [
+          245,
+          246,
+          245,
+          255
+        ],
+        "restoredPixel": [
+          245,
+          246,
+          245,
+          255
+        ],
+        "glError": 0
+      },
+      {
+        "theme": "dark",
+        "initialReady": true,
+        "reducedPointerDrawDelta": 0,
+        "actualContextLossFallback": true,
+        "actualContextRestoreReady": true,
+        "initialPixel": [
+          44,
+          41,
+          37,
+          255
+        ],
+        "restoredPixel": [
+          44,
+          41,
+          37,
+          255
+        ],
+        "glError": 0
+      }
+    ],
+    "actualGpuUniformsVerified": true,
+    "finalNativePngCrcAndDimensionsVerified": true,
+    "finalDarkScreenshotInspected": true
+  },
+  "legacyShaderAudit": {
+    "scope": "rf1168-original-webgl1-shader-audit",
+    "originalVertexByteIdentical": true,
+    "originalFragmentIdenticalExceptOneBlankLine": true,
+    "originalSourceCommit": "f9864bea197b5284703571a74b8f352f26f0d716",
+    "productionModuleImported": false
+  },
+  "cleanup": {
+    "probeUninstalled": true,
+    "ownedEmulatorAndAdbExited": true,
+    "oldPrivateAdbIdentityUnchanged": true,
+    "noUnknownProcessTerminated": true,
+    "disposableAvdRetainedForNextFullHomeMatrix": true
+  },
+  "boundaries": {
+    "fullMainActivityHomeAccepted": false,
+    "RF1109Closed": false,
+    "RF121Closed": false,
+    "RF312Closed": false,
+    "realDevicePerformanceAccepted": false
+  },
+  "evidenceHashes": {
+    "minimalContextReport": "b597bfe420f8303fdebd4479a6e75b06683aca045c47301fb23a847854258c50",
+    "nativeReport": "f97751227604f629f73167c236f4b350972f46a1f44a50796fe5ae32a2ae1244",
+    "nativeRun": "155f4c19bb1ce02ff79c53e2d5b8bdddc31b546b8dfa28669d35cf48b5de38ad",
+    "nativeScreenshot": "5ce99cf18fea5c3086aa27c56bd6cab3b7ada2df6d2c8b3402b9abea02c57869",
+    "diagnosticApk": "2c16e3fa2883de40be89a960bf7345628346ff66c1f0bcfa38568c9803ed8f78",
+    "fullFrontendLog": "61e3d96238862cc33063054563cf0f2468b47eaf6d50598526489639812eca68",
+    "sourceManifest": "deea3410fb515e122e141c5247864e62781a0b33e7528630911e0fc22d2a7e40"
+  }
+}

@@ -37,6 +37,8 @@ default/floating Card 的长文本、背景像素及正文对比度至少 4.5。
 私有目录前后快照，逐项恢复后才接受整组。Android 高文字对比不等同于 Windows forced-colors；
 本入口只证明真实组件在当前系统交付下的表现，不证明 MainActivity 的辅助功能订阅/传递或完整多端矩阵。
 
+`liquidProbe.ts` 复用生产装饰渲染器；读取 GPU 输入、像素及真实上下文丢失扩展时，使用画布实际创建的 WebGL 1 或 WebGL 2 上下文。两种版本都必须校验绘制、颜色、错误码和恢复，不能把 WebGL 1 不可用直接等同于全部 WebGL 不可用；独立夹具通过仍不替代完整首页、账户合成或实体设备性能验收。
+
 ## Windows 独立验收
 
 `src-tauri/examples/windows_card_surfaces.rs` 复用生产 Windows 窗口配置与材质命令，仅注册合成页的测量报告。独立应用标识、窗口标签和新建输出目录中的 WebView2 profile 与正式客户端分离，不运行正式 setup，不访问账户、日志或插件。使用已有、默认关闭的 `native-perf` SDK 依赖，不新增依赖。

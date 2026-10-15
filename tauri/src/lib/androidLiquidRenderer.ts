@@ -13,8 +13,12 @@ export interface LiquidRenderer {
   dispose: () => void;
 }
 
-const vertexSource = 'attribute vec2 position; void main(){gl_Position=vec4(position,0.,1.);}';
-const fragmentSource = `precision highp float;
+const vertexSource = (webgl2: boolean) =>
+  `${webgl2 ? '#version 300 es\nin' : 'attribute'} vec2 position; void main(){gl_Position=vec4(position,0.,1.);}`;
+const fragmentSource = (
+  webgl2: boolean,
+) => `${webgl2 ? '#version 300 es\n' : ''}precision highp float;
+${webgl2 ? 'out vec4 fragmentColor;' : ''}
 uniform vec2 resolution; uniform vec2 pointer; uniform float dark;
 uniform vec3 container; uniform vec3 accent; uniform vec3 secondary; uniform vec3 tertiary;
 float box(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return min(max(q.x,q.y),0.)+length(max(q,0.))-r;}
@@ -58,7 +62,7 @@ void main(){
   refract-=vec3(.055,.065,.08)*edge*(1.-highlight)*.55;
   vec3 bg=scene(uv);
   float shadow=exp(-max(0.,box(p+vec2(0.,.035),size,radius))*32.)*(1.-mask);
-  bg*=1.-shadow*.12;gl_FragColor=vec4(mix(bg,refract,mask),1.);
+  bg*=1.-shadow*.12;${webgl2 ? 'fragmentColor' : 'gl_FragColor'}=vec4(mix(bg,refract,mask),1.);
 }`;
 
 function rgb(hex: string): [number, number, number] {
@@ -74,12 +78,16 @@ export function createAndroidLiquidRenderer(
   initial: LiquidAppearance,
   onAvailability: (available: boolean) => void,
 ): LiquidRenderer | null {
-  const gl = canvas.getContext('webgl', {
+  const attributes: WebGLContextAttributes = {
     alpha: false,
     antialias: false,
     preserveDrawingBuffer: false,
     powerPreference: 'low-power',
-  });
+  };
+  // 有些 WebView/GPU 组合仅开放 WebGL 2；保留已有 WebGL 1 路径和两者皆不可用时的降级。
+  const webgl1 = canvas.getContext('webgl', attributes);
+  const gl = webgl1 ?? canvas.getContext('webgl2', attributes);
+  const webgl2 = webgl1 === null;
   if (!gl) {
     onAvailability(false);
     return null;
@@ -107,8 +115,8 @@ export function createAndroidLiquidRenderer(
     clearResources();
     try {
       for (const [type, source] of [
-        [gl!.VERTEX_SHADER, vertexSource],
-        [gl!.FRAGMENT_SHADER, fragmentSource],
+        [gl!.VERTEX_SHADER, vertexSource(webgl2)],
+        [gl!.FRAGMENT_SHADER, fragmentSource(webgl2)],
       ] as const) {
         const shader = gl!.createShader(type);
         if (!shader) throw new Error('No shader');
