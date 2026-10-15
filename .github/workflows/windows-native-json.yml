@@ -1,0 +1,42 @@
+name: Windows Native Diagnostic Reader
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-native-json.yml'
+      - 'tauri/scripts/native-perf-owned-json.py'
+      - 'tauri/scripts/test_native_perf_owned_json.py'
+      - 'tauri/scripts/check-native-perf-owned-json.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-reader:
+    name: Windows shared JSON reader (no skipped cases)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check actual Windows handles and native file symlink
+        shell: pwsh
+        run: >-
+          python -X utf8 tauri/scripts/check-native-perf-owned-json.py
+          --output "$env:RUNNER_TEMP/native-json-reader.json"
+
+      - name: Keep native verification receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-json-reader
+          path: ${{ runner.temp }}/native-json-reader.json
+          if-no-files-found: warn
