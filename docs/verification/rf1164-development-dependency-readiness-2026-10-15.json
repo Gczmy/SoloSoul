@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1164",
+  "recordedOn": "2026-10-15",
+  "accepted": true,
+  "baselineSourceCommit": "eab1e7b1c",
+  "scope": "development dependency preparation before HTTP listen",
+  "runtimeApplicationChanged": false,
+  "startupWatchdogBudgetMs": 8000,
+  "staticRoutePolicyChanged": false,
+  "baseline": {
+    "failed": 2,
+    "passed": 0,
+    "exitCode": 1,
+    "independentEmptyOptimizerCache": true,
+    "traceObservations": [
+      {
+        "traceSha256": "ac4e4608e0040dd2e7f783140c41b6dc4cb523c3ac3d3063092c37b9adca7dc4",
+        "phase": "application",
+        "reason": "timeout",
+        "observedWatchdogMs": 8008,
+        "bootstrapRequestStartAfterNavigationMs": 25013.0
+      },
+      {
+        "traceSha256": "0df624208adf7a0a7687166a820a5315dbc45df3a5999e0a0a25d7412a320eee",
+        "phase": "application",
+        "reason": "timeout",
+        "observedWatchdogMs": 8008,
+        "bootstrapRequestStartAfterNavigationMs": 24750.0
+      }
+    ]
+  },
+  "final": {
+    "passed": 33,
+    "failed": 0,
+    "skipped": 19,
+    "flaky": 0,
+    "exitCode": 0,
+    "testCount": 52,
+    "independentEmptyOptimizerCache": true,
+    "developmentInputsUnchanged": true,
+    "workers": 2,
+    "retries": 0,
+    "existingMobileNotificationSkipsUnchanged": true
+  },
+  "implementation": {
+    "viteVersion": "8.0.16",
+    "explicitOptimizationBeforeListen": true,
+    "importsCollectedFromRuntimeSource": true,
+    "typescriptPreprocessor": true,
+    "staticReexportDynamicAndDeepImportsCovered": true,
+    "onlyDeclaredRuntimePackages": true,
+    "testDeclarationAndMockImportsExcluded": true,
+    "reactGeneratedEntriesIncluded": true,
+    "ordinaryEditsKeepHmr": true,
+    "newImportsRestartOptimization": true,
+    "inFlightRestartsDeduplicated": true,
+    "failedRestartRemainsActionable": true,
+    "packageJsonConfigurationDependencyReloads": true,
+    "deprecatedOptimizeDepsCallUsed": false,
+    "currentHotUpdateHook": true
+  },
+  "actualHmr": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "ordinaryEditCausedReload": false,
+    "newCjsSubpathCausedOneReload": true,
+    "packageJsonChangeCausedOneReload": true,
+    "pageErrors": 0
+  },
+  "checks": {
+    "typescriptExitCode": 0,
+    "nodePassed": 270,
+    "nodeFailed": 0,
+    "existingNodeSymlinkPrivilegeSkips": 1,
+    "fiveNewNodeTestsRegisteredAndExecuted": true,
+    "formatExitCode": 0,
+    "nodeSyntaxExitCode": 0,
+    "productionBuildExitCode": 0,
+    "productionFiles": 38,
+    "allProductionBytesIdentical": true,
+    "priorUnchangedApplicationVitestPassed": 2378,
+    "priorUnchangedApplicationVitestSkipped": 0,
+    "priorUnchangedApplicationEslintExitCode": 0
+  },
+  "retainedDiagnostics": {
+    "originalTwoFailures": true,
+    "firstSameFileHmrProbeFailed": true,
+    "firstHmrProbeDidNotObserveSecondUpdate": true,
+    "distinctSourceFilesKeptOriginalAssertionBudget": true,
+    "intermediateUnitAssertionEditingErrorObserved": true,
+    "intermediateMatrixWithConcurrentHelperEditNotUsedAsFinalSourceProof": true
+  },
+  "finalDevelopmentInputsSha256": {
+    "vite.config.ts": "ef99eca183a714066731f0afd48a90ebff0a974a1a6b7d8ffe40d0a0ae08b80a",
+    "scripts/dev-dependencies.mjs": "3d443224b78a21ca30f77bf028840fe727bf50b29eed09a16696aa888ac5f286",
+    "scripts/dev-dependencies.node.test.mjs": "da4c3724c0bea242aff30a0e88f348e99eab891eaf1aaf18eab92f9f837edf5e",
+    "scripts/run-node-tests.mjs": "840e448d855fb0cae8fdbcef2e8291f03f520affd130ce34c8b7c0ecec822194",
+    "package.json": "4a46bb582b7eac2c16acb08523b77c787892aba983525a353c7f0c0d275fd548",
+    "package-lock.json": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90",
+    "e2e/desktop-shell.spec.ts": "08c765b9f49f5992f5e51db32f362a1435b446ab3fd36d4c4962249b36750f3f",
+    "e2e/notification-layout.spec.ts": "cf655bc7269927678c61f7049f1d575074e93c533e573439df7dd75b956326c6",
+    "e2e/password-input.spec.ts": "9e32eab54ba0ffb058f933f805482d55373f06070a4710e1aefc5ceb30b4f559",
+    "e2e/fixtures/auth.ts": "7925c216eb92300650bc13133a816a6813d76e0c989f060189afafe733e40439",
+    "public/startup.js": "3af88760fa0d8c9d4daec2be27bf618bf0ecf61afc922860965a3e119b70157c"
+  },
+  "originalRedReportSha256": "89f43292b2dbee3c199ef99397f79b555dc25ac4ab480c9ada7fa931548dc710",
+  "finalGreenReportSha256": "c056763c28b4726193e78eefaf23ad34715703fb5145a08ef5807f1558d61660",
+  "finalHmrReportSha256": "112806c4b3f378727d412d92222370fe8cb058bdbdbec8710e14bc48bac00517",
+  "nativePlatformAcceptanceOrPerformanceDistributionProven": false,
+  "rawHostPathsAndRunIdentitiesIncluded": false
+}

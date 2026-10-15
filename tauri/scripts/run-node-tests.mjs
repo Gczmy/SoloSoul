@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const files = [
+  'scripts/dev-dependencies.node.test.mjs',
   'scripts/android-native-regression.test.mjs',
   'scripts/native-perf-run.test.mjs',
   'scripts/native-perf-diagnose.test.mjs',
