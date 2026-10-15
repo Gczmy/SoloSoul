@@ -16,6 +16,7 @@ export default defineConfig({
       'e2e',
       'dist',
       // 这些文件使用 node:test，由独立 Node 入口实际执行；Vitest 不转换它们。
+      'scripts/dev-dependencies.node.test.mjs',
       'scripts/native-perf-*.test.mjs',
       'scripts/android-native-regression.test.mjs',
       'scripts/update-distribution.test.js',

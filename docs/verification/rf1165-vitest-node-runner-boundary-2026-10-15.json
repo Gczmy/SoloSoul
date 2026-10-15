@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1165",
+  "recordedOn": "2026-10-15",
+  "accepted": true,
+  "scope": "test-runner discovery boundary only",
+  "productionApplicationChanged": false,
+  "before": {
+    "vitestDiscoveredFiles": 267,
+    "nodeOnlySuiteCollectedByVitest": true,
+    "normalHostExitCode": 0,
+    "nodeTestsExecutedAgain": 5,
+    "vitestTestsReportedForNodeOnlyFile": 0,
+    "ciFailureClaimed": false
+  },
+  "after": {
+    "vitestDiscoveredFiles": 266,
+    "onlyRemovedFile": "scripts/dev-dependencies.node.test.mjs",
+    "allOtherVitestFilesRetained": true,
+    "nodeOnlySuiteStillRegisteredInNodeRunner": true,
+    "independentNodePassed": 5,
+    "independentNodeFailed": 0,
+    "independentNodeSkipped": 0,
+    "passwordComponentPassed": 16,
+    "passwordComponentFailed": 0,
+    "androidPythonPassed": 59,
+    "androidPythonFailed": 0,
+    "androidPythonSkipped": 0
+  },
+  "retainedDiagnostics": {
+    "initialMissingDependencyFailurePreserved": true,
+    "firstVitestSandboxTemporaryPermissionFailurePreserved": true,
+    "sandboxFailureNotUsedAsProductFailure": true,
+    "normalHostMixedRunnerExitedZero": true
+  },
+  "sourceLfSha256": {
+    "vitestConfigBefore": "b316371e0a605a362df4f0ebc54e1342f3a5d4088c2352d44d5284ded4b88e23",
+    "vitestConfigAfter": "c641bf237edb85ecff7da097221feb417df4593fa029f788258c3d24283993df"
+  },
+  "nodeSuiteSha256": "da4c3724c0bea242aff30a0e88f348e99eab891eaf1aaf18eab92f9f837edf5e",
+  "rawHostPathsOrProcessIdentitiesIncluded": false,
+  "nativeValidationOrPerformanceSamplesAdded": false
+}
