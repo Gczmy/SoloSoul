@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "recordedOn": "2026-10-16",
+  "status": "partial-acceptance",
+  "sourceCommit": "27e512a9fc2d20ada16cc6e05a4d1b5023bdcb69",
+  "executionHead": "a6fdf8ca1659e5c221cdccf1f193441f237a1916",
+  "sourceAndOriginalTestCodeChanged": false,
+  "environment": {
+    "api": 35,
+    "abi": "x86_64",
+    "webViewVersion": "124.0.6367.219",
+    "graphics": "SwiftShader software",
+    "defaultDebug": true,
+    "normalAnimationsPreserved": true,
+    "physicalDevice": false
+  },
+  "apkSha256": {
+    "main": "6af65c2aa0dde4f0f74a5b92f955b640f8f9e572a4845a2f751833b5e20f01c9",
+    "test": "a1cab009da6d8a5ff5b2c8b8915dbb6815a0321420a0969313dc66efb6ff4441"
+  },
+  "sourceInputsUnchanged": 1777,
+  "matrix": {
+    "positiveNativeCases": 4,
+    "negativeWrongSystemCaseRejected": true,
+    "cases": [
+      {
+        "name": "normal-supported",
+        "mode": "supported",
+        "highTextContrast": false,
+        "negativeControl": false,
+        "accepted": true
+      },
+      {
+        "name": "normal-fallback",
+        "mode": "fallback",
+        "highTextContrast": false,
+        "negativeControl": false,
+        "accepted": true
+      },
+      {
+        "name": "hc-wrong-system-rejected",
+        "mode": "supported",
+        "highTextContrast": false,
+        "negativeControl": true,
+        "accepted": true
+      },
+      {
+        "name": "hc-supported",
+        "mode": "supported",
+        "highTextContrast": true,
+        "negativeControl": false,
+        "accepted": true
+      },
+      {
+        "name": "hc-fallback",
+        "mode": "fallback",
+        "highTextContrast": true,
+        "negativeControl": false,
+        "accepted": true
+      }
+    ],
+    "highTextContrastFromActualSecureSetting": true,
+    "settingKey": "high_text_contrast_enabled",
+    "normalAndHighContrastBothBlurEnvironmentsPassed": true,
+    "defaultAndFloatingCardsBothThemesPassed": true,
+    "skipCrashOrZeroTestAccepted": false
+  },
+  "pixels": {
+    "framesIndependentlyDecoded": 16,
+    "pixelsIndependentlyMatched": 16,
+    "perChannelToleranceUnchanged": 6,
+    "crcTamperRejected": true,
+    "independentlyRecalculatedTextContrastRatios": [
+      18.405230873339367, 16.559655711981343, 15.03705221746749,
+      15.03705221746749, 18.405230873339367, 16.559655711981343,
+      15.03705221746749, 15.03705221746749
+    ],
+    "thresholdUnchanged": 4.5
+  },
+  "restoration": {
+    "privateContentsLinksModesExact": true,
+    "privateRootModeIndependentlyVerified": true,
+    "privateEntries": 2,
+    "currentCanonicalVerifiedStageBeforePrivateClear": true,
+    "secureContrastRawKeyPresenceAndValueExact": true,
+    "globalBlurRawPresenceAndValueExact": true,
+    "fontAnimationNightAndEffectiveFontExact": true,
+    "repeatedFinalStateReadback": true
+  },
+  "cleanup": {
+    "testPackagesUninstalled": true,
+    "ownedEmulatorServerAndExitHelperNaturallyExited": true,
+    "oldPrivateAdbIdentityAndPortUnchanged": true,
+    "forcedProcessTerminationUsed": false
+  },
+  "visualReview": {
+    "representativeFramesReviewed": 2,
+    "allFramesVisuallyReviewed": false,
+    "sha256": [
+      "907c03c95ffcba5f84833f57055f04ba5165938257d5e3cbe3e0b1907b60c570",
+      "b4e3b24dac076779e7934642ee7d56b0cd19cf8cccc38f049f4b9cf26564c513"
+    ]
+  },
+  "boundaries": {
+    "standaloneProductionCardOnly": true,
+    "MainActivityAccessibilityDeliveryAccepted": false,
+    "allCardCallersAccepted": false,
+    "WindowsForcedColorsAccepted": false,
+    "macOSAccepted": false,
+    "performanceAccepted": false,
+    "RF121Closed": false,
+    "RF122Through127Released": false
+  },
+  "evidenceSha256": {
+    "card-accessibility-preparation.json": "86eae1fb13a03c47b11b85f735966ab57adfb53c4ccc3b4b50ac6fef0a5e4992",
+    "card-accessibility-driver.py": "abcdf61160099549bf59ac1de02df537f5ab090301d8d889ea1f7c08f6962ef7",
+    "run-current-card-accessibility.py": "c519818840e80800064d92b40333d006808bbd602c0e5d3d3edcb4328e9a5a57",
+    "audit-card-accessibility.py": "8de412705e39f9ac1e48e8e69f92ab3a680433307acaaff930174f9da1e72222",
+    "audit-card-accessibility-pixels.mjs": "5d8bbadc653a597da304a239124d4b2a7f9655576c3e26eaa24e9e6df235a702",
+    "card-accessibility-independent-audit.json": "c9a628eeec5908174a2955c52f9388d280f2f12d8c326704524d49b7c7a50fcd",
+    "card-accessibility-pixel-audit.json": "41ba2d2075423f888828584f29ab6cfb13fd90ac8590ae332a965bb6e0316cb0",
+    "native-card-accessibility/result.json": "17cf2261b30110648d3b28367bf1494c1c0d24090768419e0231083c29d9c3ae",
+    "native-card-accessibility/matrix/result.json": "aa659d5e78ba5e072927672fa926563b0da01afb2fb523102c47aefbbec2a66b",
+    "native-card-accessibility/review-ready.json": "90b059abd4617390bf4471685076a4d3f4fe1ef1d8cbca0206d1a8a74c097554",
+    "native-card-accessibility/terminal-processes.json": "090f4c907a22144241f43a0f7c1f396612758a694e0536343a5fa0267657eb4a",
+    "native-card-accessibility/terminal-processes-recheck.json": "9291b4105785d53ad4add1ea441a93ff705b5848b68ddcaee076827bb4305215"
+  },
+  "publication": {
+    "machinePathsPidsRunIdentifiersAndAccountDataIncluded": false,
+    "rawLogsScreenshotsApksAndPrivateBackupsKeptLocal": true
+  }
+}
