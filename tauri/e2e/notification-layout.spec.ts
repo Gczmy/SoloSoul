@@ -162,7 +162,12 @@ for (const platform of ['macos', 'windows'] as const) {
       const slot = page.locator('[data-shell-notifications]');
       const slotBefore = (await slot.boundingBox())!;
       const contentBefore = (await page.locator('[data-shell-content]').boundingBox())!;
-      expect(slotBefore.y).toBe(barBefore.height + (navigation === 'top' ? 48 : 0));
+      const surfaceTopInset = await page
+        .locator('[data-shell-surface]')
+        .evaluate((surface) => parseFloat(getComputedStyle(surface).marginTop));
+      expect(slotBefore.y).toBe(
+        barBefore.y + barBefore.height + surfaceTopInset + (navigation === 'top' ? 48 : 0),
+      );
       const nav = page.locator('#desktop-navigation, header:not([data-appbar])');
       const navBefore = await nav.boundingBox();
       await slot.getByRole('button', { name: 'Close', exact: true }).click();
@@ -297,7 +302,8 @@ test('对象尺标和悬停卡片跟随通知后的正文边界', async ({ page 
     .click();
   await expectUnobscuredContent(page);
   await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBe(scrollBefore);
-  await expect.poll(async () => (await ruler.boundingBox())!.y).toBe(68);
+  const contentAfter = (await scroller.boundingBox())!;
+  await expect.poll(async () => (await ruler.boundingBox())!.y).toBe(contentAfter.y + 16);
 });
 
 test('外观设置与固定聊天面板使用通知后的可用高度', async ({ page }) => {

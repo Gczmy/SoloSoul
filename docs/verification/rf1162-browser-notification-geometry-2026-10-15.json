@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1162",
+  "recordedOn": "2026-10-15",
+  "accepted": true,
+  "scope": "existing browser notification and ruler geometry assertions only",
+  "productionApplicationChanged": false,
+  "budgetsRetriesAndProjectSkipsChanged": false,
+  "frozenProductionBundleFiles": 38,
+  "applicationSourcesAndBundleUnchangedAcrossAllRuns": true,
+  "controlledOldAssertions": {
+    "passed": 0,
+    "failed": 5,
+    "skipped": 0,
+    "exitCode": 1
+  },
+  "firstIncompleteCorrection": {
+    "passed": 25,
+    "failed": 6,
+    "skipped": 19,
+    "exitCode": 1,
+    "notificationExpectedOffsetStillMissing": true,
+    "rulerPassed": true,
+    "additionallyExposedStaleSidebarWidthAssertions": 2
+  },
+  "finalNotificationMatrix": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 19,
+    "flaky": 0,
+    "exitCode": 0,
+    "fourMacNotificationAndRulerCasesPassed": true,
+    "existingMobileProjectSkips": "notification spec owns desktop/mobile/tablet viewports and avoids duplicate hover matrix"
+  },
+  "configuration": {
+    "bundle": "same prebuilt production bundle for all runs",
+    "browser": "Microsoft Edge",
+    "workers": 2,
+    "retries": 0,
+    "testBudgetsChanged": false
+  },
+  "correction": {
+    "notification": "viewport appbar bottom + computed content surface top margin + existing top navigation height",
+    "ruler": "content viewport top after notification closes + existing 16px inset"
+  },
+  "preservedAssertions": [
+    "appbar and navigation remain fixed",
+    "body reclaims notification height",
+    "content is unobscured",
+    "scroll position stays unchanged",
+    "preview and target card stay within content"
+  ],
+  "checks": {
+    "typescriptExitCode": 0,
+    "changedFilePrettierExitCode": 0,
+    "frontendChecksReusedFromUnchangedRf1161": {
+      "vitestPassed": 2378,
+      "vitestFailed": 0,
+      "vitestSkipped": 0,
+      "nodePassed": 265,
+      "existingNodeSymlinkPrivilegeSkips": 1,
+      "eslintExitCode": 0
+    },
+    "applicationRuntimePathsChanged": 0
+  },
+  "unresolved": {
+    "twoSidebarWidthAssertions": true,
+    "firstColdDevelopmentStartupFailureNotClaimedFixed": true,
+    "nativeMacosAndRf121AcceptanceNotProven": true
+  },
+  "originalFailuresPreserved": true,
+  "rawHostPathsAndRunIdentitiesIncluded": false,
+  "resultDigests": {
+    "red": "fad847db3e6d33b694e9b03b34c96e9de8c1962b001124d3d9b4b0822bf8895e",
+    "green": "e017ff256b2f5155be557dd517050abca684db6048e7631d17f97475c6287c4d",
+    "surface-inset": "b05f1b7407724a0bcd005181fa00dac6285c2169b714e667a2d64651e3b51cf9"
+  }
+}
