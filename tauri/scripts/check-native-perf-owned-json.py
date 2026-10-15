@@ -1,10 +1,13 @@
 """Require real Windows reader tests, including a native file symlink, with no skips."""
 import argparse
+import ctypes
+from ctypes import wintypes as w
 import hashlib
 import json
 import os
 from pathlib import Path
 import platform
+import tempfile
 import unittest
 
 
@@ -17,6 +20,38 @@ def cases(suite):
             yield from cases(item)
         else:
             yield item
+
+
+def fixture_path_facts(tests):
+    """Report alias classes without publishing temporary paths or user names."""
+    facts = {
+        "reportedFixtureRoots": sum(hasattr(test, "fixture_root_canonicalized") for test in tests),
+        "canonicalizedFixtureRoots": sum(getattr(test, "fixture_root_canonicalized", False) for test in tests),
+        "noncanonicalAliasesRejectedBeforeRead": sum(getattr(test, "noncanonical_fixture_alias_rejected", False) for test in tests),
+    }
+    if os.name != "nt":
+        return facts
+    requested = Path(tempfile.gettempdir())
+    canonical = requested.resolve(strict=True)
+    api = ctypes.WinDLL("kernel32", use_last_error=True)
+    api.GetLongPathNameW.argtypes = [w.LPCWSTR, w.LPWSTR, w.DWORD]
+    api.GetLongPathNameW.restype = w.DWORD
+    expanded = ctypes.create_unicode_buffer(32768)
+    count = api.GetLongPathNameW(str(requested), expanded, len(expanded))
+    if not count:
+        raise ctypes.WinError(ctypes.get_last_error())
+    if count >= len(expanded):
+        raise ValueError("Temporary root expansion exceeds its path limit")
+    def normalize(path):
+        return os.path.normcase(os.fspath(path))
+
+    facts.update({
+        "temporaryRootSpellingChanged": normalize(requested) != normalize(canonical),
+        "temporaryRootSameDirectory": os.path.samefile(requested, canonical),
+        "shortNameExpansionChanged": normalize(requested) != normalize(expanded.value),
+        "expandedRootMatchesCanonical": normalize(expanded.value) == normalize(canonical),
+    })
+    return facts
 
 
 def main():
@@ -67,6 +102,7 @@ def main():
         "failures": [test.id() for test, _ in result.failures],
         "errors": [test.id() for test, _ in result.errors],
         "skipped": [{"test": test.id(), "reason": reason} for test, reason in result.skipped],
+        "fixturePaths": fixture_path_facts(tests),
         "fileSymlink": {
             "accepted": native_symlink_accepted,
             "reparseTag": f"0x{tag:08x}" if isinstance(tag, int) else None,

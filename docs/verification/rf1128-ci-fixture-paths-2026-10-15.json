@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1128",
+  "recordedOn": "2026-10-15",
+  "fix": "Canonicalize only newly owned fixture roots; retain native reader path guards",
+  "baselineCommit": "e5c78659f8d7d36f35a4d6373e837d5561fe0b41",
+  "originalHostedCi": {
+    "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38750985072",
+    "testsRun": 11,
+    "passed": 4,
+    "failures": 2,
+    "errors": 5,
+    "skipped": 0,
+    "fileSymlinkAccepted": true
+  },
+  "readerByteIdentical": true,
+  "readerSha256": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+  "pythonVersion": "3.14.6",
+  "localActualShortAliasComparison": {
+    "schemaVersion": 1,
+    "task": "RF-1128",
+    "baselineCommit": "e5c78659f8d7d36f35a4d6373e837d5561fe0b41",
+    "actualShortAliasUsed": true,
+    "readerByteIdentical": true,
+    "systemSettingsChanged": false,
+    "sourceManifest": {
+      "before": {
+        "native-perf-owned-json.py": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+        "test_native_perf_owned_json.py": "c8be3debb42a4b5e80c49b23816e44ad7e3b1cb85a62877139abe45be3b5e507",
+        "check-native-perf-owned-json.py": "849956e4b186a6c6c7dd5b2a9e4c4a06d1949c3afcaab3f3386bd83619578ffe"
+      },
+      "after": {
+        "native-perf-owned-json.py": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+        "test_native_perf_owned_json.py": "72659a6ba721c4e702dd34dee342be5af2877f1ec6aa5275b9e6145cb52ea115",
+        "check-native-perf-owned-json.py": "00abd465d28c1102f7df845bfc4acd36987bd722e8b8cc2bac1bd3b6ac061ea1"
+      }
+    },
+    "groups": [
+      {
+        "label": "before-short-alias",
+        "exitCode": 1,
+        "testsRun": 11,
+        "failures": 2,
+        "errors": 5,
+        "skipped": [
+          {
+            "test": "test_native_perf_owned_json.OwnedJsonTests.test_final_file_symlink_is_rejected_before_content_read",
+            "reason": "Actual file symlink fixture requires missing SeCreateSymbolicLinkPrivilege"
+          }
+        ],
+        "accepted": false,
+        "readerSha256": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+        "fixturePaths": null
+      },
+      {
+        "label": "after-short-alias",
+        "exitCode": 1,
+        "testsRun": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": [
+          {
+            "test": "test_native_perf_owned_json.OwnedJsonTests.test_final_file_symlink_is_rejected_before_content_read",
+            "reason": "Actual file symlink fixture requires missing SeCreateSymbolicLinkPrivilege"
+          }
+        ],
+        "accepted": false,
+        "readerSha256": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+        "fixturePaths": {
+          "reportedFixtureRoots": 11,
+          "canonicalizedFixtureRoots": 11,
+          "noncanonicalAliasesRejectedBeforeRead": 1,
+          "temporaryRootSpellingChanged": true,
+          "temporaryRootSameDirectory": true,
+          "shortNameExpansionChanged": true,
+          "expandedRootMatchesCanonical": true
+        }
+      },
+      {
+        "label": "after-canonical",
+        "exitCode": 1,
+        "testsRun": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": [
+          {
+            "test": "test_native_perf_owned_json.OwnedJsonTests.test_final_file_symlink_is_rejected_before_content_read",
+            "reason": "Actual file symlink fixture requires missing SeCreateSymbolicLinkPrivilege"
+          }
+        ],
+        "accepted": false,
+        "readerSha256": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+        "fixturePaths": {
+          "reportedFixtureRoots": 11,
+          "canonicalizedFixtureRoots": 0,
+          "noncanonicalAliasesRejectedBeforeRead": 0,
+          "temporaryRootSpellingChanged": false,
+          "temporaryRootSameDirectory": true,
+          "shortNameExpansionChanged": false,
+          "expandedRootMatchesCanonical": true
+        }
+      }
+    ],
+    "ownedSystemTempRootRemoved": true,
+    "ownedCanonicalTempRootRemoved": true
+  },
+  "hostedTemporaryAliasDiagnosisPending": true,
+  "newHostedStrictSuiteAccepted": false,
+  "rf1128Closed": false,
+  "preservedPreflight": {
+    "nativeTestsStarted": false,
+    "reason": "Git blob LF and Windows core.autocrlf checkout bytes differ",
+    "baselineExportCorrectedToVerifiedCheckoutEol": true,
+    "originalAttemptRetainedLocally": true
+  },
+  "proofs": [
+    {
+      "name": "summary.json",
+      "bytes": 3342,
+      "sha256": "692a4520e9f0f6fa00cb9ab98b1b4a153c0be68d822e478b1877daaa2ecabd55"
+    },
+    {
+      "name": "before-short-alias.json",
+      "bytes": 1495,
+      "sha256": "3e5367b4c471e9bafb33d26e3b41a1fa579482deebf88526be9d9d9ea34d3b26"
+    },
+    {
+      "name": "before-short-alias.stderr.log",
+      "bytes": 9838,
+      "sha256": "c672223ed9a6d2ab5e5fa093982e03565cd44989cfa888fe017a0879f4f9d5bc"
+    },
+    {
+      "name": "after-short-alias.json",
+      "bytes": 1043,
+      "sha256": "b87da9433af01d821ea4d5979cc7a428dffede20f8a0b37a57f0b7c47df30174"
+    },
+    {
+      "name": "after-short-alias.stderr.log",
+      "bytes": 1979,
+      "sha256": "254ab9f9b9e14c01de43851ad755901084b106111c533e9a78da195245201076"
+    },
+    {
+      "name": "after-canonical.json",
+      "bytes": 1044,
+      "sha256": "95364915979f7d3dbdda83924ee9b37de3c90f4d633183fd80063f163c5a4e94"
+    },
+    {
+      "name": "after-canonical.stderr.log",
+      "bytes": 1979,
+      "sha256": "119facdcddcb96e45cb8bfa34b83ecbd8288070b254a33be0ea51b2b882b48d9"
+    }
+  ],
+  "publication": {
+    "machinePaths": false,
+    "processIds": false,
+    "machineOrUserNames": false,
+    "localRunIdentifiers": false,
+    "rawLogsOrPrivateData": false
+  }
+}
