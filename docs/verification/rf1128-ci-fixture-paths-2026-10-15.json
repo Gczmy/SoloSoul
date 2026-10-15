@@ -104,9 +104,9 @@
     "ownedSystemTempRootRemoved": true,
     "ownedCanonicalTempRootRemoved": true
   },
-  "hostedTemporaryAliasDiagnosisPending": true,
-  "newHostedStrictSuiteAccepted": false,
-  "rf1128Closed": false,
+  "hostedTemporaryAliasDiagnosisPending": false,
+  "newHostedStrictSuiteAccepted": true,
+  "rf1128Closed": true,
   "preservedPreflight": {
     "nativeTestsStarted": false,
     "reason": "Git blob LF and Windows core.autocrlf checkout bytes differ",
@@ -156,5 +156,87 @@
     "machineOrUserNames": false,
     "localRunIdentifiers": false,
     "rawLogsOrPrivateData": false
-  }
+  },
+  "hostedVerification": {
+    "sourceCommit": "eaa7de7080ded7df579fcb3850009dcfe81087cb",
+    "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38765556886",
+    "conclusion": "success",
+    "exitCode": 0,
+    "receipt": {
+      "schemaVersion": 1,
+      "task": "RF-1128",
+      "accepted": true,
+      "nativeWindows": true,
+      "pythonVersion": "3.12.10",
+      "readerSha256": "9d2a132b56b4ab3734148665d5bf42e0cb384e9c5fce7107268e52b1b16b3ebf",
+      "testSha256": "72659a6ba721c4e702dd34dee342be5af2877f1ec6aa5275b9e6145cb52ea115",
+      "discoveredTests": 11,
+      "testsRun": 11,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "fixturePaths": {
+        "reportedFixtureRoots": 11,
+        "canonicalizedFixtureRoots": 11,
+        "noncanonicalAliasesRejectedBeforeRead": 1,
+        "temporaryRootSpellingChanged": true,
+        "temporaryRootSameDirectory": true,
+        "shortNameExpansionChanged": true,
+        "expandedRootMatchesCanonical": true
+      },
+      "fileSymlink": {
+        "accepted": true,
+        "reparseTag": "0xa000000c",
+        "contentReadCalls": 0,
+        "targetPreserved": true
+      }
+    },
+    "receiptSource": "decoded completed job log; source hashes verified against current files",
+    "artifact": {
+      "url": "https://github.com/Gczmy/SoloSoul/actions/runs/38765556886/artifacts/11990200150",
+      "githubReportedZipDigest": "sha256:5a1aede0ae51bf826623a8eaeb97dd9f19efb941eca9888e6414c5e8b1383ceb",
+      "downloadedOrIndependentlyZipVerified": false
+    }
+  },
+  "historicalNativeReaderGate": {
+    "record": "rf1133-surface-readiness-2026-10-12.json",
+    "recordSha256": "262bc5dfe3d2ac6e5eef2552036395765150f4243ed143a304080c3dcbbd1377",
+    "reusedNotRerun": true,
+    "normalizedReaderSha256": "9274f04c86b447ddfbbbb9ea3eca8a69ee0a5f1ce69b0b4df759c2eb53d9f1b1",
+    "readerContentUnchangedIgnoringCheckoutEol": true,
+    "groups": [
+      {
+        "scene": "baseline",
+        "samples": 3,
+        "captureExitCode": 0,
+        "readerExitCode": 0,
+        "rendererExitCode": 0
+      },
+      {
+        "scene": "light-collapsed",
+        "samples": 3,
+        "captureExitCode": 0,
+        "readerExitCode": 0,
+        "rendererExitCode": 0
+      },
+      {
+        "scene": "dark-expanded",
+        "samples": 3,
+        "captureExitCode": 0,
+        "readerExitCode": 0,
+        "rendererExitCode": 0
+      },
+      {
+        "scene": "dark-collapsed",
+        "samples": 3,
+        "captureExitCode": 0,
+        "readerExitCode": 0,
+        "rendererExitCode": 0
+      }
+    ]
+  },
+  "closureScope": "RF-1128 shared diagnostic reader only; no application, RF-121, performance or other platform closure",
+  "prRemainsDraft": true,
+  "prMerged": false,
+  "otherTasksPaused": true
 }
