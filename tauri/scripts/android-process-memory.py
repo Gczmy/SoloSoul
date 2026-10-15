@@ -142,10 +142,14 @@ def collect_snapshot(run, package, uid, provider):
 
 
 class AdbRunner:
-    def __init__(self, executable, serial, avd, output):
+    """Bind the private ADB endpoint before checking dedicated AVD ownership."""
+
+    def __init__(self, executable, serial, avd, output, *, host='localhost', port=5049):
         if not re.fullmatch(r'emulator-\d+', serial) or not re.fullmatch(r'SoloSoul_[A-Za-z0-9_-]+', avd):
             raise MemoryEvidenceError('An explicit dedicated SoloSoul emulator is required')
-        self.prefix = [str(Path(executable).resolve(strict=True)), '-H', 'localhost', '-P', '5049', '-s', serial]
+        if host not in ('localhost', '127.0.0.1') or type(port) is not int or not 1 <= port <= 65535:
+            raise MemoryEvidenceError('An explicit loopback ADB endpoint and valid TCP port are required')
+        self.prefix = [str(Path(executable).resolve(strict=True)), '-H', host, '-P', str(port), '-s', serial]
         self.output = Path(output)
         self.output.mkdir(parents=False, exist_ok=False)
         self.commands = []
@@ -172,8 +176,12 @@ def main():
     for name in ['adb', 'serial', 'avd', 'package', 'provider', 'output']:
         parser.add_argument('--' + name, required=True)
     parser.add_argument('--uid', required=True, type=int)
+    parser.add_argument('--adb-host', choices=['localhost', '127.0.0.1'], default='localhost',
+                        help='Loopback host of the dedicated ADB server (default: localhost)')
+    parser.add_argument('--adb-port', type=int, default=5049,
+                        help='TCP port of the dedicated ADB server (default: 5049)')
     args = parser.parse_args()
-    run = AdbRunner(args.adb, args.serial, args.avd, args.output)
+    run = AdbRunner(args.adb, args.serial, args.avd, args.output, host=args.adb_host, port=args.adb_port)
     try:
         result = collect_snapshot(run, args.package, args.uid, args.provider)
     except Exception as error:

@@ -2,6 +2,11 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest import mock
+import subprocess
+import tempfile
+import io
+import sys
 
 spec = importlib.util.spec_from_file_location('memory', Path(__file__).with_name('android-process-memory.py'))
 memory = importlib.util.module_from_spec(spec)
@@ -158,6 +163,88 @@ class MemoryTests(unittest.TestCase):
             return run(*command)
         with self.assertRaises(memory.MemoryEvidenceError):
             self.collect(changed)
+
+
+
+class AdbEndpointTests(unittest.TestCase):
+    avd = 'SoloSoul_Endpoint_Test'
+    serial = 'emulator-5578'
+
+    def response(self, text=None, code=0):
+        return subprocess.CompletedProcess([], code, (text or self.avd + '\nOK\n').encode(), b'')
+
+    def test_custom_endpoint_applies_to_first_identity_and_following_commands(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / 'diagnostic'
+            with mock.patch.object(memory.subprocess, 'run', return_value=self.response()) as execute:
+                run = memory.AdbRunner(sys.executable, self.serial, self.avd, output,
+                                       host='127.0.0.1', port=5057)
+                run('shell', 'id')
+            self.assertEqual(len(execute.call_args_list), 2)
+            for call in execute.call_args_list:
+                self.assertEqual(call.args[0][:7], [str(Path(sys.executable).resolve()), '-H', '127.0.0.1', '-P', '5057', '-s', self.serial])
+                self.assertEqual(call.kwargs['timeout'], 10)
+            self.assertEqual(execute.call_args_list[0].args[0][7:], ['emu', 'avd', 'name'])
+            self.assertEqual(execute.call_args_list[1].args[0][7:], ['shell', 'id'])
+            self.assertTrue((output / 'commands.json').is_file())
+
+    def test_legacy_default_endpoint_is_preserved(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            with mock.patch.object(memory.subprocess, 'run', return_value=self.response()) as execute:
+                memory.AdbRunner(sys.executable, self.serial, self.avd, Path(temporary) / 'diagnostic')
+            self.assertEqual(execute.call_args.args[0][1:5], ['-H', 'localhost', '-P', '5049'])
+
+    def test_invalid_endpoint_precedes_filesystem_and_remote_commands(self):
+        invalid = [('remote.example', 5057), ('0.0.0.0', 5057), ('127.0.0.1;id', 5057),
+                   (None, 5057), ('localhost', 0), ('localhost', 65536), ('localhost', True),
+                   ('localhost', '5057'), ('localhost', 5057.0)]
+        with tempfile.TemporaryDirectory() as temporary:
+            for host, port in invalid:
+                with self.subTest(host=host, port=port):
+                    output = Path(temporary) / 'diagnostic'
+                    with mock.patch.object(memory.subprocess, 'run') as execute:
+                        with self.assertRaises(memory.MemoryEvidenceError):
+                            memory.AdbRunner(sys.executable, self.serial, self.avd, output, host=host, port=port)
+                    execute.assert_not_called()
+                    self.assertFalse(output.exists())
+
+    def test_invalid_emulator_identity_still_precedes_remote_commands(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            for serial, avd in [('physical-device', self.avd), (self.serial, 'Unowned_AVD')]:
+                with self.subTest(serial=serial, avd=avd):
+                    output = Path(temporary) / 'diagnostic'
+                    with mock.patch.object(memory.subprocess, 'run') as execute:
+                        with self.assertRaises(memory.MemoryEvidenceError):
+                            memory.AdbRunner(sys.executable, serial, avd, output, host='127.0.0.1', port=5057)
+                    execute.assert_not_called()
+                    self.assertFalse(output.exists())
+
+    def test_custom_endpoint_does_not_bypass_wrong_avd_rejection(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            with mock.patch.object(memory.subprocess, 'run', return_value=self.response('SoloSoul_Other\nOK\n')):
+                with self.assertRaisesRegex(memory.MemoryEvidenceError, 'identity differs'):
+                    memory.AdbRunner(sys.executable, self.serial, self.avd, Path(temporary) / 'diagnostic',
+                                     host='127.0.0.1', port=5057)
+
+    def test_failed_identity_command_is_logged_and_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / 'diagnostic'
+            with mock.patch.object(memory.subprocess, 'run', return_value=self.response(code=1)):
+                with self.assertRaisesRegex(memory.MemoryEvidenceError, 'command failed'):
+                    memory.AdbRunner(sys.executable, self.serial, self.avd, output, host='127.0.0.1', port=5057)
+            self.assertTrue((output / '001.stderr.txt').is_file())
+            self.assertIn('"exitCode": 1', (output / 'commands.json').read_text(encoding='utf-8'))
+
+    def test_cli_forwards_requested_endpoint_before_collection(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            arguments = ['android-process-memory.py', '--adb', sys.executable, '--serial', self.serial,
+                         '--avd', self.avd, '--package', APP, '--provider', PROVIDER, '--uid', '10105',
+                         '--output', temporary, '--adb-host', '127.0.0.1', '--adb-port', '5057']
+            run = mock.Mock(output=Path(temporary))
+            with mock.patch.object(sys, 'argv', arguments), mock.patch.object(memory, 'AdbRunner', return_value=run) as create, mock.patch.object(memory, 'collect_snapshot', return_value={'fullProcessScopeAccepted': True}) as collect, mock.patch('sys.stdout', new_callable=io.StringIO):
+                self.assertEqual(memory.main(), 0)
+            create.assert_called_once_with(sys.executable, self.serial, self.avd, temporary, host='127.0.0.1', port=5057)
+            collect.assert_called_once_with(run, APP, 10105, PROVIDER)
 
 
 if __name__ == '__main__':
