@@ -1,17 +1,27 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { collectDevDependencies, devDependencyUpdates } from './scripts/dev-dependencies.mjs';
+import packageInfo from './package.json';
 
 const host = process.env.TAURI_DEV_HOST;
+const sourceRoot = path.resolve(__dirname, 'src');
+const devDependencies = collectDevDependencies(sourceRoot, packageInfo.dependencies);
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), devDependencyUpdates(sourceRoot, packageInfo.dependencies, devDependencies)],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
   clearScreen: false,
+  // Vite 8 在监听前完成显式依赖预编译，避免空缓存首次窗口被扫描/预编译阻塞，
+  // 消耗应用自身的 8 秒启动预算。直接从运行源码收集，新增依赖无需维护第二份清单。
+  optimizeDeps: {
+    noDiscovery: true,
+    include: devDependencies,
+  },
   build: {
     // Android 12 镜像自带 WebView 91；默认 Baseline 会把移动端媒体查询
     // 压成它不认识的 range 语法。API 缺项另由入口兼容层处理。

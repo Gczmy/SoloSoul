@@ -232,7 +232,7 @@ export function SecurePasswordInput({
         <input
           id={inputId}
           ref={inputRef}
-          type="text"
+          type={visible ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
@@ -251,7 +251,6 @@ export function SecurePasswordInput({
           autoCorrect="off"
           data-1p-ignore
           data-lpignore="true"
-          aria-live="polite"
           style={{
             flex: 1,
             minWidth: 0,
@@ -263,8 +262,6 @@ export function SecurePasswordInput({
             background: 'transparent',
             color: 'var(--text-primary)',
             fontFamily: 'inherit',
-            // Replace type="password" masking with CSS text-security
-            ...(visible ? {} : { WebkitTextSecurity: 'disc' as unknown as string }),
           }}
         />
 
@@ -282,7 +279,11 @@ export function SecurePasswordInput({
           {value.length > 0 && (
             <button
               type="button"
-              onClick={() => setVisible((prev) => !prev)}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setVisible((prev) => !prev);
+                inputRef.current?.focus();
+              }}
               aria-label={visible ? t('common:hide_password') : t('common:show_password')}
               aria-pressed={visible}
               tabIndex={-1}

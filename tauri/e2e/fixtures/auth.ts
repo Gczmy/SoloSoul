@@ -6,8 +6,8 @@ export async function setupTauriMock(page: Page) {
 
 export async function login(page: Page) {
   await page.goto('/login');
-  await page.waitForSelector('input[type="text"]', { timeout: 10000 });
-  await page.locator('input[type="text"]').fill('any-password');
+  await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+  await page.locator('input[type="password"]').fill('any-password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('/', { timeout: 10000 });
 }

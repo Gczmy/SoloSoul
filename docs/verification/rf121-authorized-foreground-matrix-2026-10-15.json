@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "recordedOn": "2026-10-15",
+  "accepted": false,
+  "status": "four-scene-cohort-rejected-one-late-foreground-preparation",
+  "sourceCommit": "4069e46997bda3e5395a9bc2f124c072ee0ff7d5",
+  "programSha256": "32613c9155d98b96b5756d559f6c6eb513ae70371743f5114879c1f96fa85ad8",
+  "priorCheckpoint": "rf121-current-windows-foreground-2026-10-15.json",
+  "foregroundPreparation": {
+    "explicitHumanAuthorizationReceived": true,
+    "maximumFreshWindows": 22,
+    "usedFreshWindows": 12,
+    "remainingForIndependentRF312": 10,
+    "oncePerWindow": true,
+    "exactFrozenProgramOnly": true,
+    "businessInputSent": false,
+    "nativeGuardsChanged": false,
+    "originalBudgetsChanged": false,
+    "nativeGuardInputOnRejectedAttempt": 0,
+    "nativeGuardPixelsOnRejectedAttempt": 0
+  },
+  "cohorts": [
+    {
+      "scene": "baseline",
+      "requested": 3,
+      "businessContractsAccepted": 3,
+      "captureBindingsProduced": 3,
+      "independentFullSceneAccepted": true
+    },
+    {
+      "scene": "light-collapsed",
+      "requested": 3,
+      "businessContractsAccepted": 3,
+      "captureBindingsProduced": 3,
+      "independentFullSceneAccepted": true
+    },
+    {
+      "scene": "dark-expanded",
+      "requested": 3,
+      "businessContractsAccepted": 3,
+      "captureBindingsProduced": 3,
+      "independentFullSceneAccepted": true
+    },
+    {
+      "scene": "dark-collapsed",
+      "requested": 3,
+      "businessContractsAccepted": 3,
+      "captureBindingsProduced": 2,
+      "independentFullSceneAccepted": false
+    }
+  ],
+  "failure": {
+    "scene": "dark-collapsed",
+    "sampleOrdinal": 2,
+    "category": "owned-native-foreground-activation-refused",
+    "captionGuardReason": "caption-point-hits-other-window",
+    "hitWasProjectExplorer": true,
+    "activationCompletedAfterGuardReceiptMs": 2357,
+    "rootCauseOfToolDelayEstablished": false,
+    "applicationDefectEstablished": false,
+    "outcomeReclassified": false,
+    "successfulSubsetsCombined": false,
+    "retryRunPerformed": false
+  },
+  "visualReview": {
+    "actualOwnedPngsInspected": 9,
+    "scenes": ["baseline", "light-collapsed", "dark-expanded"],
+    "blankOrObviouslyMisalignedContentObserved": false,
+    "failedSceneRenderedAsAccepted": false
+  },
+  "environment": {
+    "activeDefaultInputDesktopVerified": true,
+    "remoteSession": true,
+    "transparencyEnabled": true,
+    "highContrastEnabled": false,
+    "systemAppearanceSettingsChanged": false
+  },
+  "cleanup": {
+    "recordedProcessIdentitiesVerifiedExited": 108,
+    "cachePathsRemoved": 96,
+    "linksUnlinked": 0,
+    "preservedVaultAndRootProofFiles": 581,
+    "preservedBytesVerified": true,
+    "processesTerminated": 0
+  },
+  "evidenceDigests": {
+    "independentAuditSha256": "2c70c32f4ae89905de56ef668569917a215dee48d64bb1b9f5d5d3e99fa5636d",
+    "matrixTerminalReceiptSha256": "06adfedd453778e77417afdfe1c8ae43daf6e6bd564c26d36538b2f6b6ff728c",
+    "foregroundActionLogSha256": "22cc83117e765352a622bf413624823737364c2638b572c93231e371f4d9e2ff",
+    "actualSupervisorSha256": "d11b031c5ee687cf3bfe0e667bf9c99f71c43933f92123702ead546bd12566b7",
+    "cleanupReceiptSha256": "7fa20d27eab234ff4665f31f528508f0215acb4ca3584d6820eab83a7eba17a0"
+  },
+  "limits": {
+    "completeWindowsFourSceneAccepted": false,
+    "allWindowsNativeAppearancePropertiesVerified": false,
+    "nativeReducedTransparencyOrHighContrastAccepted": false,
+    "nativeMacOSAccepted": false,
+    "performanceBaselineAccepted": false,
+    "rf121Closed": false,
+    "rf122Through127PrerequisiteReleased": false,
+    "reportClosed": 343,
+    "reportTotal": 354,
+    "waiting": 5,
+    "queued": 6
+  },
+  "publication": {
+    "hostPathsIncluded": false,
+    "processIdentifiersIncluded": false,
+    "rawRunIdentifiersIncluded": false,
+    "rawLogsScreenshotsOrProgramsIncluded": false
+  }
+}

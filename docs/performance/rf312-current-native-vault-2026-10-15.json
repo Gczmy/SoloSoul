@@ -1,0 +1,551 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "measuredOn": "2026-10-15",
+  "scope": "native-vault-backend-only",
+  "sourceCommit": "e5375877532707b325d2e00ff81d19a5698157f4",
+  "platform": "windows",
+  "arch": "x86_64",
+  "buildProfile": "release",
+  "defaultFeatures": false,
+  "command": "cargo run --release -p solosoul-core --no-default-features --example perf_baseline -- --objects <100|5000> --samples 10",
+  "dataset": "deterministic-20th-object-property-match",
+  "kdf": {
+    "memoryKiB": 65536,
+    "iterations": 3,
+    "parallelism": 4
+  },
+  "method": {
+    "storageCache": "warm; files were just created, no OS cache eviction",
+    "unlock": "real lock/unlock including KDF after one warm-up",
+    "accountCatalogLoad": "new independent service after original vault and service are dropped",
+    "listMetadata": "all metadata after one warm-up",
+    "searchDecrypted": "needle; each twentieth object matches, after one warm-up",
+    "percentile": "nearest rank; at n=10 p95 equals the largest observed sample",
+    "concurrentBuilds": false,
+    "hostIsolation": "ordinary background OS/application activity was not eliminated",
+    "oldVersionCausalComparison": false
+  },
+  "hardware": {
+    "osCaption": "Microsoft Windows 11 Enterprise LTSC",
+    "osVersion": "10.0.26100",
+    "osBuild": "26100",
+    "memoryBytes": 16951218176,
+    "cpu": [
+      {
+        "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+        "NumberOfCores": 8,
+        "NumberOfLogicalProcessors": 8
+      }
+    ]
+  },
+  "observations": [
+    {
+      "accountCatalogLoad": {
+        "failureCount": 0,
+        "maxMs": 0.5235,
+        "medianMs": 0.43335,
+        "minMs": 0.4174,
+        "p95Ms": 0.5235,
+        "samples": [
+          {
+            "ms": 0.5235,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4324,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4543,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4915,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.43600000000000005,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.43429999999999996,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4178,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4184,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4174,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.42250000000000004,
+            "resultCount": 1
+          }
+        ]
+      },
+      "arch": "x86_64",
+      "buildProfile": "release",
+      "fixture": "deterministic-20th-object-property-match",
+      "kdf": {
+        "iterations": 3,
+        "memoryKiB": 65536,
+        "parallelism": 4
+      },
+      "listMetadata": {
+        "failureCount": 0,
+        "maxMs": 0.46,
+        "medianMs": 0.2475,
+        "minMs": 0.17909999999999998,
+        "p95Ms": 0.46,
+        "samples": [
+          {
+            "ms": 0.1835,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.1793,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.17909999999999998,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.2062,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.1931,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.33540000000000003,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.2888,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.4314,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.4475,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.46,
+            "resultCount": 100
+          }
+        ]
+      },
+      "objectCount": 100,
+      "platform": "windows",
+      "sampleCount": 10,
+      "schemaVersion": 1,
+      "scope": "native-vault-backend-only",
+      "searchDecrypted": {
+        "failureCount": 0,
+        "maxMs": 0.7146,
+        "medianMs": 0.67705,
+        "minMs": 0.6497999999999999,
+        "p95Ms": 0.7146,
+        "samples": [
+          {
+            "ms": 0.6952,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6979,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6727000000000001,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6497999999999999,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6589,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6814,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6901,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6541,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.7146,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.6704,
+            "resultCount": 5
+          }
+        ]
+      },
+      "unlock": {
+        "failureCount": 0,
+        "maxMs": 277.9701,
+        "medianMs": 235.78445,
+        "minMs": 223.4003,
+        "p95Ms": 277.9701,
+        "samples": [
+          {
+            "ms": 232.3844,
+            "resultCount": 1
+          },
+          {
+            "ms": 236.48569999999998,
+            "resultCount": 1
+          },
+          {
+            "ms": 229.65099999999998,
+            "resultCount": 1
+          },
+          {
+            "ms": 276.5538,
+            "resultCount": 1
+          },
+          {
+            "ms": 223.4003,
+            "resultCount": 1
+          },
+          {
+            "ms": 277.9701,
+            "resultCount": 1
+          },
+          {
+            "ms": 230.9274,
+            "resultCount": 1
+          },
+          {
+            "ms": 242.69660000000002,
+            "resultCount": 1
+          },
+          {
+            "ms": 235.0832,
+            "resultCount": 1
+          },
+          {
+            "ms": 238.3269,
+            "resultCount": 1
+          }
+        ]
+      }
+    },
+    {
+      "accountCatalogLoad": {
+        "failureCount": 0,
+        "maxMs": 0.5958,
+        "medianMs": 0.4162,
+        "minMs": 0.404,
+        "p95Ms": 0.5958,
+        "samples": [
+          {
+            "ms": 0.5958,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4569,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4194,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4171,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.41459999999999997,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4145,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.404,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4229,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.4153,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.40690000000000004,
+            "resultCount": 1
+          }
+        ]
+      },
+      "arch": "x86_64",
+      "buildProfile": "release",
+      "fixture": "deterministic-20th-object-property-match",
+      "kdf": {
+        "iterations": 3,
+        "memoryKiB": 65536,
+        "parallelism": 4
+      },
+      "listMetadata": {
+        "failureCount": 0,
+        "maxMs": 11.650300000000001,
+        "medianMs": 11.161000000000001,
+        "minMs": 10.540799999999999,
+        "p95Ms": 11.650300000000001,
+        "samples": [
+          {
+            "ms": 11.431099999999999,
+            "resultCount": 5000
+          },
+          {
+            "ms": 10.9187,
+            "resultCount": 5000
+          },
+          {
+            "ms": 11.4982,
+            "resultCount": 5000
+          },
+          {
+            "ms": 11.650300000000001,
+            "resultCount": 5000
+          },
+          {
+            "ms": 10.540799999999999,
+            "resultCount": 5000
+          },
+          {
+            "ms": 11.457099999999999,
+            "resultCount": 5000
+          },
+          {
+            "ms": 11.1117,
+            "resultCount": 5000
+          },
+          {
+            "ms": 10.8758,
+            "resultCount": 5000
+          },
+          {
+            "ms": 10.8518,
+            "resultCount": 5000
+          },
+          {
+            "ms": 11.2103,
+            "resultCount": 5000
+          }
+        ]
+      },
+      "objectCount": 5000,
+      "platform": "windows",
+      "sampleCount": 10,
+      "schemaVersion": 1,
+      "scope": "native-vault-backend-only",
+      "searchDecrypted": {
+        "failureCount": 0,
+        "maxMs": 40.0738,
+        "medianMs": 38.3327,
+        "minMs": 37.466100000000004,
+        "p95Ms": 40.0738,
+        "samples": [
+          {
+            "ms": 38.8964,
+            "resultCount": 250
+          },
+          {
+            "ms": 38.2526,
+            "resultCount": 250
+          },
+          {
+            "ms": 40.0738,
+            "resultCount": 250
+          },
+          {
+            "ms": 37.466100000000004,
+            "resultCount": 250
+          },
+          {
+            "ms": 37.874199999999995,
+            "resultCount": 250
+          },
+          {
+            "ms": 38.4128,
+            "resultCount": 250
+          },
+          {
+            "ms": 38.674800000000005,
+            "resultCount": 250
+          },
+          {
+            "ms": 37.67100000000001,
+            "resultCount": 250
+          },
+          {
+            "ms": 38.4631,
+            "resultCount": 250
+          },
+          {
+            "ms": 37.8237,
+            "resultCount": 250
+          }
+        ]
+      },
+      "unlock": {
+        "failureCount": 0,
+        "maxMs": 350.3777,
+        "medianMs": 239.39370000000002,
+        "minMs": 224.1344,
+        "p95Ms": 350.3777,
+        "samples": [
+          {
+            "ms": 296.77779999999996,
+            "resultCount": 1
+          },
+          {
+            "ms": 226.5605,
+            "resultCount": 1
+          },
+          {
+            "ms": 224.1344,
+            "resultCount": 1
+          },
+          {
+            "ms": 350.3777,
+            "resultCount": 1
+          },
+          {
+            "ms": 232.12050000000002,
+            "resultCount": 1
+          },
+          {
+            "ms": 237.119,
+            "resultCount": 1
+          },
+          {
+            "ms": 301.3577,
+            "resultCount": 1
+          },
+          {
+            "ms": 241.66840000000002,
+            "resultCount": 1
+          },
+          {
+            "ms": 303.7315,
+            "resultCount": 1
+          },
+          {
+            "ms": 234.55970000000002,
+            "resultCount": 1
+          }
+        ]
+      }
+    }
+  ],
+  "summary": [
+    {
+      "objectCount": 100,
+      "operation": "accountCatalogLoad",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 0.43335,
+      "p95Ms": 0.5235,
+      "minMs": 0.4174,
+      "maxMs": 0.5235
+    },
+    {
+      "objectCount": 100,
+      "operation": "unlock",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 235.78445,
+      "p95Ms": 277.9701,
+      "minMs": 223.4003,
+      "maxMs": 277.9701
+    },
+    {
+      "objectCount": 100,
+      "operation": "listMetadata",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 0.2475,
+      "p95Ms": 0.46,
+      "minMs": 0.17909999999999998,
+      "maxMs": 0.46
+    },
+    {
+      "objectCount": 100,
+      "operation": "searchDecrypted",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 0.67705,
+      "p95Ms": 0.7146,
+      "minMs": 0.6497999999999999,
+      "maxMs": 0.7146
+    },
+    {
+      "objectCount": 5000,
+      "operation": "accountCatalogLoad",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 0.4162,
+      "p95Ms": 0.5958,
+      "minMs": 0.404,
+      "maxMs": 0.5958
+    },
+    {
+      "objectCount": 5000,
+      "operation": "unlock",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 239.39370000000002,
+      "p95Ms": 350.3777,
+      "minMs": 224.1344,
+      "maxMs": 350.3777
+    },
+    {
+      "objectCount": 5000,
+      "operation": "listMetadata",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 11.161000000000001,
+      "p95Ms": 11.650300000000001,
+      "minMs": 10.540799999999999,
+      "maxMs": 11.650300000000001
+    },
+    {
+      "objectCount": 5000,
+      "operation": "searchDecrypted",
+      "sampleCount": 10,
+      "failureCount": 0,
+      "medianMs": 38.3327,
+      "p95Ms": 40.0738,
+      "minMs": 37.466100000000004,
+      "maxMs": 40.0738
+    }
+  ],
+  "temporaryCleanupVerified": true,
+  "fullRf312Accepted": false,
+  "guiOrSystemColdPerformanceAccepted": false
+}

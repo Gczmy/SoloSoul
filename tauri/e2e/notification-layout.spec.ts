@@ -162,7 +162,12 @@ for (const platform of ['macos', 'windows'] as const) {
       const slot = page.locator('[data-shell-notifications]');
       const slotBefore = (await slot.boundingBox())!;
       const contentBefore = (await page.locator('[data-shell-content]').boundingBox())!;
-      expect(slotBefore.y).toBe(barBefore.height + (navigation === 'top' ? 48 : 0));
+      const surfaceTopInset = await page
+        .locator('[data-shell-surface]')
+        .evaluate((surface) => parseFloat(getComputedStyle(surface).marginTop));
+      expect(slotBefore.y).toBe(
+        barBefore.y + barBefore.height + surfaceTopInset + (navigation === 'top' ? 48 : 0),
+      );
       const nav = page.locator('#desktop-navigation, header:not([data-appbar])');
       const navBefore = await nav.boundingBox();
       await slot.getByRole('button', { name: 'Close', exact: true }).click();
@@ -297,7 +302,8 @@ test('对象尺标和悬停卡片跟随通知后的正文边界', async ({ page 
     .click();
   await expectUnobscuredContent(page);
   await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBe(scrollBefore);
-  await expect.poll(async () => (await ruler.boundingBox())!.y).toBe(68);
+  const contentAfter = (await scroller.boundingBox())!;
+  await expect.poll(async () => (await ruler.boundingBox())!.y).toBe(contentAfter.y + 16);
 });
 
 test('外观设置与固定聊天面板使用通知后的可用高度', async ({ page }) => {
@@ -341,7 +347,7 @@ test('登录页通知位于卡片上方，短窗多条通知可滚动且正文�
   expect(cardBox.y).toBeGreaterThanOrEqual(slotBox.y + slotBox.height);
   expect(slotBox.y).toBeGreaterThanOrEqual(52);
   await page.screenshot({ path: 'test-results/notification-login.png' });
-  await page.locator('input[type="text"]').fill('any-password');
+  await page.locator('input[type="password"]').fill('any-password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('/');
   await page.setViewportSize({ width: 800, height: 460 });
@@ -375,7 +381,7 @@ for (const platform of ['macos', 'android'] as const) {
       phase: 'downloading',
     });
     await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
-    await page.locator('input[type="text"]').fill('any-password');
+    await page.locator('input[type="password"]').fill('any-password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL('/');
     await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');

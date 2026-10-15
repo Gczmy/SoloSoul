@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "recordedOn": "2026-10-15",
+  "windowsFourSceneRestoreBindingsAccepted": true,
+  "rf121Closed": false,
+  "runtime": {
+    "sourceCommit": "4069e46997bda3e5395a9bc2f124c072ee0ff7d5",
+    "programSha256": "32613c9155d98b96b5756d559f6c6eb513ae70371743f5114879c1f96fa85ad8",
+    "trackedSourceFiles": 1883,
+    "productionFrontendFiles": 38,
+    "resources": 94,
+    "allInputsUnchanged": true,
+    "strictClippyAnd142NativeTestsReusedFromSameBuild": true,
+    "recompiledInThisCohort": false
+  },
+  "authorization": {
+    "explicitAdditional34WindowGrantReceived": true,
+    "previous22WindowGrantWasExhausted": true,
+    "newGrantUsed": 12,
+    "newGrantRemainingForRF312": 22,
+    "oncePerFreshExactProgramWindow": true,
+    "nativeGuardsAndBudgetsChanged": false
+  },
+  "orchestration": {
+    "nextBoundedPulseScheduledBeforeYield": true,
+    "fixedEightPulseStopRemoved": true,
+    "pulseAndActivationBeginEndRecorded": true,
+    "computerUseBusinessInputSent": false,
+    "operatingSystemSettingsChanged": false
+  },
+  "groups": [
+    {
+      "scene": "baseline",
+      "requested": 3,
+      "businessAuthenticationAndMaintenanceAccepted": 3,
+      "surfaceBindingsAccepted": 3,
+      "independentFullSceneAccepted": true,
+      "actualOwnedScreenshotsInspected": 3,
+      "blankOrObviouslyMisalignedContentObserved": false,
+      "nativeSystemBackdropVerified": true,
+      "nativeAppearancePropertiesVerified": false,
+      "validationSha256": "c5c96749107329d6323b8718b38f982cbfe0f55d83e8fde0b7f2d9a34f6ec550",
+      "renderManifestSha256": "c7d6b926a87da12a263450dc122faec208cbb94b9cc5681b65537b244c091570"
+    },
+    {
+      "scene": "light-collapsed",
+      "requested": 3,
+      "businessAuthenticationAndMaintenanceAccepted": 3,
+      "surfaceBindingsAccepted": 3,
+      "independentFullSceneAccepted": true,
+      "actualOwnedScreenshotsInspected": 3,
+      "blankOrObviouslyMisalignedContentObserved": false,
+      "nativeSystemBackdropVerified": true,
+      "nativeAppearancePropertiesVerified": false,
+      "validationSha256": "cbc827d911d66e00110c2aad548127485da3d03b2acec645520349a304b0e1bd",
+      "renderManifestSha256": "15bd977f6959910cc34b9065d82aa0785f3b019e1e3dfee592768d4efe9b19d7"
+    },
+    {
+      "scene": "dark-expanded",
+      "requested": 3,
+      "businessAuthenticationAndMaintenanceAccepted": 3,
+      "surfaceBindingsAccepted": 3,
+      "independentFullSceneAccepted": true,
+      "actualOwnedScreenshotsInspected": 3,
+      "blankOrObviouslyMisalignedContentObserved": false,
+      "nativeSystemBackdropVerified": true,
+      "nativeAppearancePropertiesVerified": false,
+      "validationSha256": "7d2282a01913ccb8653ff08507d4f832c32090932d7d55592ae1fb9cd8c031e0",
+      "renderManifestSha256": "1a7c4db28eb9d339b2d3945ecdf9da918df8c0f6232f0fc6df1189dca7090818"
+    },
+    {
+      "scene": "dark-collapsed",
+      "requested": 3,
+      "businessAuthenticationAndMaintenanceAccepted": 3,
+      "surfaceBindingsAccepted": 3,
+      "independentFullSceneAccepted": true,
+      "actualOwnedScreenshotsInspected": 3,
+      "blankOrObviouslyMisalignedContentObserved": false,
+      "nativeSystemBackdropVerified": true,
+      "nativeAppearancePropertiesVerified": false,
+      "validationSha256": "a7c4ccbc064313ec78992e3da9334e9f8652e78209fe6aa6c93ddabe8d744c48",
+      "renderManifestSha256": "a30379799605c47d8d83a161fb18a624b8cfc0a26c5ea582d591eff9e86ba5b4"
+    }
+  ],
+  "environment": {
+    "remoteSession": true,
+    "transparencyEnabled": true,
+    "highContrastEnabled": false,
+    "activeDefaultDesktopCheckedPerCohort": true
+  },
+  "previousFailure": {
+    "record": "rf121-authorized-foreground-matrix-2026-10-15.json",
+    "originalRejectedMatrixSha256": "06adfedd453778e77417afdfe1c8ae43daf6e6bd564c26d36538b2f6b6ff728c",
+    "stillRejected": true,
+    "reclassifiedOrMergedWithNewSuccesses": false,
+    "toolDelayRootCauseProven": false
+  },
+  "cleanup": {
+    "recordedIdentitiesVerifiedExited": 108,
+    "cachePathsRemoved": 96,
+    "ownedLinksUnlinked": 0,
+    "preservedVaultAndRootFiles": 600,
+    "preservedBytesVerified": true,
+    "processesTerminated": 0
+  },
+  "evidenceDigests": {
+    "independentAuditSha256": "8ade69b20a79117a9c45869f7006e47d8644ed81ce4d06b5fc395201a7558a77",
+    "matrixTerminalReceiptSha256": "4f6e7c9a6bdfe168cc132fa0c0440496be87ab84b372a0188f782cee26ae8eb9",
+    "foregroundActionLogSha256": "b4222ab57ad70c166d7cdbf16d3a0b0c709f7932bfb07e98ac02966237eb53e3",
+    "supervisorSha256": "dda72917ab37586ae12fb2999bf41e1dcead5f1ed9d359fd6119328e5b774591",
+    "cleanupReceiptSha256": "8b2aed1e4ed78842a3f3df88c07ba271917511a837c2178559bd060b0620570f"
+  },
+  "limits": {
+    "diagnosticBuildOnly": true,
+    "everyNativeAppearancePropertyVerified": false,
+    "allCardFamiliesAccepted": false,
+    "nativeReducedTransparencyOrHighContrastAccepted": false,
+    "nativeMacOSAccepted": false,
+    "fullRF121Accepted": false,
+    "rf122Through127PrerequisiteReleased": false,
+    "performanceBaselineAccepted": false,
+    "reportClosed": 343,
+    "reportTotal": 354,
+    "waiting": 5,
+    "queued": 6
+  },
+  "publication": {
+    "hostPathsIncluded": false,
+    "processIdentifiersIncluded": false,
+    "rawRunIdentifiersIncluded": false,
+    "rawLogsScreenshotsProgramsOrFormalVaultsIncluded": false
+  }
+}

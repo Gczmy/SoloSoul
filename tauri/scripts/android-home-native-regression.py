@@ -116,6 +116,22 @@ def restore_font_scale(original, effective, write, read_raw, read_effective, *,
     trace['verified'] = True
 
 
+def read_process_ids(read, package):
+    if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+', package):
+        raise ValueError('Invalid Android package for PID lookup')
+    try:
+        actual = read('shell', 'pidof', package)
+    except subprocess.CalledProcessError as error:
+        # Toybox uses exit 1 with empty captured output only for no matches.
+        # Device/shell errors must not become evidence that a process exited.
+        if error.returncode == 1 and error.stdout in (b'', '') and error.stderr in (b'', ''):
+            return ''
+        raise
+    if not isinstance(actual, str) or not re.fullmatch(r'[1-9]\d*(?:\s+[1-9]\d*)*', actual.strip()):
+        raise RuntimeError('Unrecognized Android PID output')
+    return actual.strip()
+
+
 def validate_previous_process(actual, expected):
     # instrumentation 完成后 Android 可能已结束目标进程。空结果是已退出，
     # 不能把 pidof 的退出 1 当成故障，也不能停止不属于第一阶段的其他进程。
@@ -731,14 +747,14 @@ def main():
             previous_pid = evidence['processId']
             if not isinstance(previous_pid, int) or previous_pid <= 0:
                 raise RuntimeError('Missing first-phase native process identity')
-            actual = read('shell', 'sh', '-c', f'pidof {APP} || true')
+            actual = read_process_ids(read, APP)
             report['oldProcessAlreadyExited'] = validate_previous_process(actual, previous_pid)
             ids = sorted({row['accountId'] for row in evidence['records'] if row['stage'].startswith(('account-a-', 'account-b-'))})
             if len(ids) != 2 or any(not re.fullmatch(r'acc_[a-f0-9]{16}', value) for value in ids):
                 raise RuntimeError('Missing exactly two prepared synthetic accounts')
             adb('shell', 'cmd', 'uimode', 'night', 'no', stdout=subprocess.PIPE)
             adb('shell', 'am', 'force-stop', APP, stdout=subprocess.PIPE)
-            if read('shell', 'sh', '-c', f'pidof {APP} || true'):
+            if read_process_ids(read, APP):
                 raise RuntimeError('Old app process still alive; no cold-start acceptance')
             report['oldProcessStopped'] = True
             cold_tag = tag + '-cold'
@@ -760,7 +776,7 @@ def main():
                     or {row['accountId'] for row in cold['records'] if row['stage'].startswith(('account-a-', 'account-b-'))} != set(ids)):
                 raise RuntimeError('Cold phase process or account identity differs from actual prepared phase')
             report['coldProcessAlreadyExited'] = validate_previous_process(
-                read('shell', 'sh', '-c', f'pidof {APP} || true'), cold['processId'])
+                read_process_ids(read, APP), cold['processId'])
             report['previousProcessId'] = previous_pid
             report['coldProcessId'] = cold['processId']
             report['coldPassed'] = True

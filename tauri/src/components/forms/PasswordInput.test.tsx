@@ -2,19 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SecurePasswordInput } from './PasswordInput';
 
-function getTextSecurity(input: HTMLElement): string {
-  return (
-    ((input as HTMLElement).style as CSSStyleDeclaration & { WebkitTextSecurity?: string })
-      .WebkitTextSecurity ?? ''
-  );
-}
-
 describe('SecurePasswordInput', () => {
-  it('masks input by default using WebkitTextSecurity', () => {
-    render(<SecurePasswordInput value="" onChange={vi.fn()} />);
+  it('keeps populated input protected by native password semantics', () => {
+    render(<SecurePasswordInput value="secret" onChange={vi.fn()} />);
     const input = screen.getByPlaceholderText('common:password_placeholder');
-    expect(input).toHaveAttribute('type', 'text');
-    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
+    expect(input).toHaveAttribute('type', 'password');
+    expect(input).toHaveValue('secret');
+    expect(input).not.toHaveAttribute('aria-live');
   });
 
   it('calls onChange when typing', () => {
@@ -28,15 +22,16 @@ describe('SecurePasswordInput', () => {
   it('toggles visibility when toggle button is clicked', () => {
     render(<SecurePasswordInput value="secret" onChange={vi.fn()} />);
     const input = screen.getByPlaceholderText('common:password_placeholder');
-    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
+    expect(input).toHaveAttribute('type', 'password');
 
     const toggleBtn = screen.getByRole('button', { name: /common:show_password/i });
     fireEvent.click(toggleBtn);
-    expect(getTextSecurity(input as HTMLElement)).toBe('');
+    expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveValue('secret');
 
     const hideBtn = screen.getByRole('button', { name: /common:hide_password/i });
     fireEvent.click(hideBtn);
-    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
+    expect(input).toHaveAttribute('type', 'password');
   });
 
   it('does not show visibility toggle when value is empty', () => {
@@ -50,10 +45,11 @@ describe('SecurePasswordInput', () => {
     const toggleBtn = screen.getByRole('button', { name: /common:show_password/i });
 
     fireEvent.click(toggleBtn);
-    expect(getTextSecurity(input as HTMLElement)).toBe('');
+    expect(input).toHaveAttribute('type', 'text');
 
     fireEvent.blur(input);
-    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
+    expect(input).toHaveAttribute('type', 'password');
+    expect(input).toHaveValue('secret');
   });
 
   it('renders label when provided', () => {
@@ -129,9 +125,9 @@ describe('SecurePasswordInput', () => {
     expect(onEnter).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole('button', { name: 'common:show_password' }));
-    expect(getTextSecurity(input)).toBe('');
+    expect(input).toHaveAttribute('type', 'text');
     fireEvent.blur(input);
-    expect(getTextSecurity(input)).toBe('disc');
+    expect(input).toHaveAttribute('type', 'password');
   });
 
   it('鼠标离开或在提示按钮外按下时关闭提示卡片', async () => {

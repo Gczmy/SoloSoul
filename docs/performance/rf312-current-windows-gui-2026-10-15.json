@@ -1,0 +1,1325 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "recordedOn": "2026-10-15",
+  "partialWindowsDiagnosticBaselineAccepted": true,
+  "rf312Closed": false,
+  "runtime": {
+    "sourceCommit": "4069e46997bda3e5395a9bc2f124c072ee0ff7d5",
+    "programSha256": "32613c9155d98b96b5756d559f6c6eb513ae70371743f5114879c1f96fa85ad8",
+    "trackedSourceFiles": 1883,
+    "productionFrontendFiles": 38,
+    "resources": 94,
+    "build": "Release with nondefault native-perf; shared formal setup",
+    "allInputsUnchanged": true
+  },
+  "device": {
+    "operatingSystem": "Microsoft Windows 11 Enterprise LTSC",
+    "build": "26100",
+    "cpu": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+    "physicalCores": 8,
+    "logicalProcessors": 8,
+    "totalVisibleMemoryKiB": 16553924,
+    "userNamesRead": false,
+    "machineNamesRead": false,
+    "node": "v24.16.0"
+  },
+  "datasets": {
+    "objects": [100, 5000],
+    "kdfMemoryKiB": 65536,
+    "kdfIterations": 3,
+    "kdfParallelism": 4,
+    "publicSyntheticVaultsOnly": true
+  },
+  "homeJourney": {
+    "accepted": true,
+    "totalSamples": 10,
+    "totalPhases": 60,
+    "originalBudgetsAssertionsAndContractsUnchanged": true,
+    "targetMemoryIntervalMs": 2000,
+    "samples": [
+      {
+        "objects": 100,
+        "accepted": 5,
+        "requested": 5,
+        "phaseDurationMs": {
+          "startup": {
+            "n": 5,
+            "median": 2900.0211,
+            "p95": 3805.4678,
+            "min": 2353.6494000000002,
+            "max": 3805.4678
+          },
+          "password-unlock": {
+            "n": 5,
+            "median": 768.4476999999999,
+            "p95": 820.3308000000001,
+            "min": 596.5772999999999,
+            "max": 820.3308000000001
+          },
+          "workspace": {
+            "n": 5,
+            "median": 387.01770000000005,
+            "p95": 735.1793,
+            "min": 332.6035,
+            "max": 735.1793
+          },
+          "search-needle": {
+            "n": 5,
+            "median": 468.451,
+            "p95": 470.30830000000003,
+            "min": 437.70779999999996,
+            "max": 470.30830000000003
+          },
+          "application-lock": {
+            "n": 5,
+            "median": 116.9703,
+            "p95": 137.4714,
+            "min": 113.8987,
+            "max": 137.4714
+          },
+          "password-reunlock": {
+            "n": 5,
+            "median": 572.5002999999999,
+            "p95": 631.4216,
+            "min": 509.41669999999993,
+            "max": 631.4216
+          }
+        },
+        "perJourneyMaximumObservedWorkingSetBytes": {
+          "n": 5,
+          "median": 639868928,
+          "p95": 696549376,
+          "min": 635424768,
+          "max": 696549376
+        },
+        "memoryCollectionDurationMs": {
+          "n": 50,
+          "median": 1143.224100000003,
+          "p95": 1698.0889000000025,
+          "min": 975.6872000000003,
+          "max": 2517.1384000000016
+        },
+        "actualMemoryStartIntervalMs": {
+          "n": 45,
+          "median": 1829,
+          "p95": 2013,
+          "min": 998,
+          "max": 2522
+        },
+        "samplePoints": 50,
+        "validSamplePoints": 50,
+        "samples": [
+          {
+            "ordinal": 1,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 2900.0211
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 820.3308000000001
+              },
+              {
+                "name": "workspace",
+                "durationMs": 735.1793
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 437.70779999999996
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 113.8987
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 540.0812999999999
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 10,
+              "validSampleCount": 10,
+              "observedMaximumWorkingSetBytes": 640565248,
+              "collectionMaximumMs": 2517.1384000000016,
+              "actualMaximumStartIntervalMs": 2522
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "0f13e74d862c22f2a085fe3e25f352b03fe1a82f75850ad5e2bab94474ea2ffb",
+              "native-perf-auth-attribution.json": "cfd135e3d951f3b214a845d260251b77a4eedc59cdec61bb574e5af8404fd31a",
+              "native-perf-maintenance-admission.json": "fa325967dc9bbefb6e21a6d80bad48f1d4e99f086159d8c67ff2678bf9baf9f1"
+            }
+          },
+          {
+            "ordinal": 2,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 2353.6494000000002
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 596.5772999999999
+              },
+              {
+                "name": "workspace",
+                "durationMs": 467.6898
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 465.26640000000003
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 114.89630000000001
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 509.41669999999993
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 9,
+              "validSampleCount": 9,
+              "observedMaximumWorkingSetBytes": 635424768,
+              "collectionMaximumMs": 1398.9262999999992,
+              "actualMaximumStartIntervalMs": 2007
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "5b1743e70271a1865de4ed5f03f2a8f7a3b5ef3d102bfec0a5ece934989902ee",
+              "native-perf-auth-attribution.json": "c2d9646e3f20943a97642e7218361a9d609d340db3ec4a3dfd8a2c2661ffcc71",
+              "native-perf-maintenance-admission.json": "d3c6e59d83c441df85b59967eb61c4ea5009df521676cfcf09a794a41447ae19"
+            }
+          },
+          {
+            "ordinal": 3,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 2872.8897
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 665.8889999999999
+              },
+              {
+                "name": "workspace",
+                "durationMs": 332.6035
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 470.30830000000003
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 137.0068
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 572.5002999999999
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 10,
+              "validSampleCount": 10,
+              "observedMaximumWorkingSetBytes": 636002304,
+              "collectionMaximumMs": 1391.0083000000013,
+              "actualMaximumStartIntervalMs": 2008
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "7c490e765280273c7912d0e2ac78a291c13d9f2ca145e74c00db50bae60341b2",
+              "native-perf-auth-attribution.json": "367b87cb013fc80ee63c65aaddf10fe46c58e069b44b783d6129382eef1d98ec",
+              "native-perf-maintenance-admission.json": "e218a4e01e16cf63b8f7aafb11c6221da1b46e53a101328da5daf9bd2a956ee4"
+            }
+          },
+          {
+            "ordinal": 4,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 3805.4678
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 772.7886000000001
+              },
+              {
+                "name": "workspace",
+                "durationMs": 387.01770000000005
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 468.451
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 116.9703
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 631.4216
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 10,
+              "validSampleCount": 10,
+              "observedMaximumWorkingSetBytes": 696549376,
+              "collectionMaximumMs": 1698.0889000000025,
+              "actualMaximumStartIntervalMs": 2013
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "9d81057ee8ee72fcb4301445f604d8e8b268310e825f2ceb97b49f5a259454c2",
+              "native-perf-auth-attribution.json": "3fc6caa00932661cb0963398b650678ed49205ef1a87b972760e8f3a5d9da533",
+              "native-perf-maintenance-admission.json": "c703adc5a26e11d5715860c956d367f9ace028ab3a146f5ea399a61a133ff3e0"
+            }
+          },
+          {
+            "ordinal": 5,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 3257.4381
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 768.4476999999999
+              },
+              {
+                "name": "workspace",
+                "durationMs": 364.6934
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 469.7506
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 137.4714
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 595.6447999999999
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 11,
+              "validSampleCount": 11,
+              "observedMaximumWorkingSetBytes": 639868928,
+              "collectionMaximumMs": 1997.3504000000103,
+              "actualMaximumStartIntervalMs": 2010
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "4abd3cf1f086bef72a33af0c7e2f040ca0843f7c980f7119dfccab8c47f5e0b7",
+              "native-perf-auth-attribution.json": "3834bc98a233ad3a0faacb5cc5c119dcacf749bd193edbb761f823fbb80a6266",
+              "native-perf-maintenance-admission.json": "a5ef5b843ad060847cd617931e2ee4ca6c787c14c3dbaa03dfdf770a5e171a0d"
+            }
+          }
+        ]
+      },
+      {
+        "objects": 5000,
+        "accepted": 5,
+        "requested": 5,
+        "phaseDurationMs": {
+          "startup": {
+            "n": 5,
+            "median": 3121.0771,
+            "p95": 3379.2457000000004,
+            "min": 2990.1636,
+            "max": 3379.2457000000004
+          },
+          "password-unlock": {
+            "n": 5,
+            "median": 880.2698,
+            "p95": 1184.9662999999998,
+            "min": 637.2061,
+            "max": 1184.9662999999998
+          },
+          "workspace": {
+            "n": 5,
+            "median": 1031.6483,
+            "p95": 1199.7598,
+            "min": 964.6996,
+            "max": 1199.7598
+          },
+          "search-needle": {
+            "n": 5,
+            "median": 531.3129,
+            "p95": 535.1904,
+            "min": 499.5463,
+            "max": 535.1904
+          },
+          "application-lock": {
+            "n": 5,
+            "median": 131.3664,
+            "p95": 171.2382,
+            "min": 106.5419,
+            "max": 171.2382
+          },
+          "password-reunlock": {
+            "n": 5,
+            "median": 764.6865,
+            "p95": 1375.32,
+            "min": 672.5911,
+            "max": 1375.32
+          }
+        },
+        "perJourneyMaximumObservedWorkingSetBytes": {
+          "n": 5,
+          "median": 755515392,
+          "p95": 762064896,
+          "min": 752660480,
+          "max": 762064896
+        },
+        "memoryCollectionDurationMs": {
+          "n": 56,
+          "median": 1168.163700000001,
+          "p95": 2220.0723,
+          "min": 975.4968000000081,
+          "max": 2751.650999999998
+        },
+        "actualMemoryStartIntervalMs": {
+          "n": 51,
+          "median": 2000,
+          "p95": 2220,
+          "min": 1001,
+          "max": 2752
+        },
+        "samplePoints": 56,
+        "validSamplePoints": 56,
+        "samples": [
+          {
+            "ordinal": 1,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 3121.0771
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 1184.9662999999998
+              },
+              {
+                "name": "workspace",
+                "durationMs": 1057.6657
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 532.3836
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 159.5401
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 746.4419
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 11,
+              "validSampleCount": 11,
+              "observedMaximumWorkingSetBytes": 755122176,
+              "collectionMaximumMs": 2111.2061000000012,
+              "actualMaximumStartIntervalMs": 2125
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "0646e750616394ddd7a3413503ea329e2c8980da8021777abbcac293d65d2638",
+              "native-perf-auth-attribution.json": "7cda45b7491fb7efffd223d53f8b6d40ee2366b0502d50114fe53d3ccd4b7473",
+              "native-perf-maintenance-admission.json": "35a568197f5eb990a977607d48cba6f10820618d1c6685d285cf9a1a4c473aff"
+            }
+          },
+          {
+            "ordinal": 2,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 3379.2457000000004
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 637.2061
+              },
+              {
+                "name": "workspace",
+                "durationMs": 1199.7598
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 535.1904
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 171.2382
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 807.8925
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 11,
+              "validSampleCount": 11,
+              "observedMaximumWorkingSetBytes": 761499648,
+              "collectionMaximumMs": 2304.066500000001,
+              "actualMaximumStartIntervalMs": 2311
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "1b3b8612eb1f2b2ac240e16ac5fc597946026fa958740a41652fecb630b20cc3",
+              "native-perf-auth-attribution.json": "3e0edfc28f7313cd7e8f96150cbb9fbb705d092d3a6d76d82bbfb60b3b78a874",
+              "native-perf-maintenance-admission.json": "c01d7bf411280b4f455889db9a8302ed2c5a22bc31c0a1a2ad90f8edcac28e1a"
+            }
+          },
+          {
+            "ordinal": 3,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 2990.1636
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 880.2698
+              },
+              {
+                "name": "workspace",
+                "durationMs": 1022.1602
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 499.90790000000004
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 131.3664
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 1375.32
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 12,
+              "validSampleCount": 12,
+              "observedMaximumWorkingSetBytes": 752660480,
+              "collectionMaximumMs": 2751.650999999998,
+              "actualMaximumStartIntervalMs": 2752
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "8e7288b7040fc582d5d54f109fbf3f1dec8e1aad249a0896deb4d58e1127008f",
+              "native-perf-auth-attribution.json": "208e87dd085cb5a5ff7fb350e38f4d3010f9dbc17764859af2df8c620be829b7",
+              "native-perf-maintenance-admission.json": "795508fa736cd8b2582efcd2b29ba03195e612c90fc8e2c78062923c4e8c5ed5"
+            }
+          },
+          {
+            "ordinal": 4,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 3326.5767
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 907.7568
+              },
+              {
+                "name": "workspace",
+                "durationMs": 964.6996
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 499.5463
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 113.5653
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 764.6865
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 11,
+              "validSampleCount": 11,
+              "observedMaximumWorkingSetBytes": 755515392,
+              "collectionMaximumMs": 1348.4086000000098,
+              "actualMaximumStartIntervalMs": 2009
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "fcd90c55864b5113cdaca783392a470b5e8e230a7474ca813182a0ec592c6394",
+              "native-perf-auth-attribution.json": "7049cd4394a6e9cf43fc04c74be291732f966a7a2543ac5b1336ad313f99e74c",
+              "native-perf-maintenance-admission.json": "f104dfc7eddac4593d6143ab63d2e3264e8f21d90dc5e73bee313197a752a76a"
+            }
+          },
+          {
+            "ordinal": 5,
+            "accepted": true,
+            "phases": [
+              {
+                "name": "startup",
+                "durationMs": 3108.3223000000003
+              },
+              {
+                "name": "password-unlock",
+                "durationMs": 817.1681
+              },
+              {
+                "name": "workspace",
+                "durationMs": 1031.6483
+              },
+              {
+                "name": "search-needle",
+                "durationMs": 531.3129
+              },
+              {
+                "name": "application-lock",
+                "durationMs": 106.5419
+              },
+              {
+                "name": "password-reunlock",
+                "durationMs": 672.5911
+              }
+            ],
+            "observedMemory": {
+              "complete": true,
+              "sampleCount": 11,
+              "validSampleCount": 11,
+              "observedMaximumWorkingSetBytes": 762064896,
+              "collectionMaximumMs": 2220.0723,
+              "actualMaximumStartIntervalMs": 2220
+            },
+            "authenticationFlowOutcomes": ["finished", "finished"],
+            "maintenanceFailures": [],
+            "artifactSha256": {
+              "native-perf-sdk-journey.json": "cb83357e1ec06c72b2832edcc089365aa02ebb92ffb0d86e109cfb5bdb1c5011",
+              "native-perf-auth-attribution.json": "5fa21ee7eafec74915b46fc65b226fb9d40171f9438ca320c9678c8873a8e015",
+              "native-perf-maintenance-admission.json": "a3f8ee6768bd8185bbea49e1f97b4af034d05c8b9cda468e4685f90083aef0ea"
+            }
+          }
+        ]
+      }
+    ],
+    "ipcTransport": {
+      "task": "RF-312",
+      "rows": [
+        {
+          "objects": 100,
+          "samples": [
+            {
+              "index": 1,
+              "attempts": 178,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 2,
+              "attempts": 152,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 3,
+              "attempts": 174,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 4,
+              "attempts": 153,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 5,
+              "attempts": 175,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            }
+          ],
+          "medianAttempts": 174,
+          "maximumAttempts": 178
+        },
+        {
+          "objects": 5000,
+          "samples": [
+            {
+              "index": 1,
+              "attempts": 177,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 2,
+              "attempts": 178,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 3,
+              "attempts": 176,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 4,
+              "attempts": 177,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            },
+            {
+              "index": 5,
+              "attempts": 178,
+              "listen": 28,
+              "unlisten": 17,
+              "titlebarControls": 9
+            }
+          ],
+          "medianAttempts": 177,
+          "maximumAttempts": 178
+        }
+      ],
+      "observedScope": "Windows JavaScript HTTP invoke transport attempts; no arguments or responses",
+      "backendAllIpc": false
+    }
+  },
+  "pairedStartup": {
+    "accepted": true,
+    "pairs": 10,
+    "nativeLaunches": 20,
+    "inputEventsSent": 0,
+    "pixelsCaptured": 0,
+    "computerUseActivations": 0,
+    "samples": [
+      {
+        "objects": 100,
+        "acceptedPairs": 5,
+        "nativeLaunches": 10,
+        "metrics": {
+          "freshProfile": {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 3084.9227,
+            "p95Ms": 3364.9833
+          },
+          "reusedProfile": {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 1238.2727,
+            "p95Ms": 1350.5429
+          }
+        },
+        "samples": [
+          {
+            "ordinal": 1,
+            "freshProfileMs": 2825.8136,
+            "reusedProfileMs": 1350.5429,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 2,
+            "freshProfileMs": 3084.9227,
+            "reusedProfileMs": 1238.2727,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 3,
+            "freshProfileMs": 3364.9833,
+            "reusedProfileMs": 1225.8154000000002,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 4,
+            "freshProfileMs": 2990.2775,
+            "reusedProfileMs": 1273.8418,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 5,
+            "freshProfileMs": 3305.1178999999997,
+            "reusedProfileMs": 1206.2649000000001,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          }
+        ]
+      },
+      {
+        "objects": 5000,
+        "acceptedPairs": 5,
+        "nativeLaunches": 10,
+        "metrics": {
+          "freshProfile": {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 3110.4289,
+            "p95Ms": 3375.9112
+          },
+          "reusedProfile": {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 1282.7929,
+            "p95Ms": 1418.4950999999999
+          }
+        },
+        "samples": [
+          {
+            "ordinal": 1,
+            "freshProfileMs": 3110.4289,
+            "reusedProfileMs": 1242.8574,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 2,
+            "freshProfileMs": 2764.9300000000003,
+            "reusedProfileMs": 1282.7929,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 3,
+            "freshProfileMs": 2437.1748000000002,
+            "reusedProfileMs": 1366.4355,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 4,
+            "freshProfileMs": 3375.9112,
+            "reusedProfileMs": 1418.4950999999999,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          },
+          {
+            "ordinal": 5,
+            "freshProfileMs": 3153.3017999999997,
+            "reusedProfileMs": 1211.9192,
+            "exactProfileReused": true,
+            "immutableFixtureVerified": true,
+            "allInputsReadOnly": true,
+            "bothLaunchesCleanupComplete": true
+          }
+        ]
+      }
+    ],
+    "validMemorySnapshots": 37,
+    "requestedMemorySnapshots": 40,
+    "ticketArchiveValidationReplaysRecordedClockOnly": true,
+    "liveTicketAuthorityGranted": false,
+    "memorySnapshots": [
+      {
+        "dataset": "vault100",
+        "index": 1,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 585019392,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 1,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 545230848,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 1,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 582156288,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 1,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 553500672,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 2,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 590839808,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 2,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 547151872,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 2,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 576921600,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 2,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 533516288,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 3,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 582975488,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 3,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": false,
+        "workingSetBytes": null,
+        "reason": "At least one verified process memory reading is unavailable"
+      },
+      {
+        "dataset": "vault100",
+        "index": 3,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 584339456,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 3,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 555540480,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 4,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 596987904,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 4,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": false,
+        "workingSetBytes": null,
+        "reason": "At least one verified process memory reading is unavailable"
+      },
+      {
+        "dataset": "vault100",
+        "index": 4,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 574386176,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 4,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 545325056,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 5,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 590729216,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 5,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 544886784,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 5,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 587280384,
+        "reason": null
+      },
+      {
+        "dataset": "vault100",
+        "index": 5,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 557391872,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 1,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 591618048,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 1,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 545886208,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 1,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 583938048,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 1,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 553717760,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 2,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 584458240,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 2,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 537718784,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 2,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 578506752,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 2,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 549613568,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 3,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 587628544,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 3,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 547901440,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 3,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 581615616,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 3,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 553775104,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 4,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 587124736,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 4,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 538976256,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 4,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 588627968,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 4,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 559894528,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 5,
+        "generation": 1,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 596959232,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 5,
+        "generation": 1,
+        "point": "afterSnapshot",
+        "valid": false,
+        "workingSetBytes": null,
+        "reason": "At least one verified process memory reading is unavailable"
+      },
+      {
+        "dataset": "vault5000",
+        "index": 5,
+        "generation": 2,
+        "point": "beforeSnapshot",
+        "valid": true,
+        "workingSetBytes": 584413184,
+        "reason": null
+      },
+      {
+        "dataset": "vault5000",
+        "index": 5,
+        "generation": 2,
+        "point": "afterSnapshot",
+        "valid": true,
+        "workingSetBytes": 555728896,
+        "reason": null
+      }
+    ],
+    "completeMemoryDistributionAccepted": false
+  },
+  "foregroundPreparation": {
+    "explicitHumanAuthorizationReceived": true,
+    "homeFreshWindowActivations": 10,
+    "rf121PriorActivations": 12,
+    "totalGrant": 22,
+    "totalUsed": 22,
+    "oncePerWindow": true,
+    "extraActivationsPerformed": false,
+    "supervisorStopped": true
+  },
+  "cleanup": [
+    {
+      "cohort": "home-journey",
+      "recordedIdentitiesVerifiedExited": 90,
+      "cachePathsRemoved": 80,
+      "ownedLinksUnlinked": 0,
+      "preservedVaultAndRootFiles": 240,
+      "preservedBytesVerified": true,
+      "processesTerminated": 0
+    },
+    {
+      "cohort": "paired-startup",
+      "recordedIdentitiesVerifiedExited": 180,
+      "cachePathsRemoved": 80,
+      "ownedLinksUnlinked": 10,
+      "preservedVaultAndRootFiles": 260,
+      "preservedBytesVerified": true,
+      "processesTerminated": 0
+    }
+  ],
+  "initialAuxiliaryCleanupRefusal": {
+    "exitCode": 1,
+    "reason": "Drive root trailing separator normalization rejected by ancestor guard",
+    "stoppedBeforeCacheEnumerationAndDeletion": true,
+    "correctedByPreservingDriveRoot": true,
+    "nativeMeasurementsRerunOrChanged": false
+  },
+  "evidenceDigests": {
+    "sourceManifestSha256": "cc4797bb61c0afe84124dfdb418318bcd60af46cd0a626c2e5bc4f15ff7059a9",
+    "homeValidationSha256": "634d23a38afc850c501fe42f82e01415b4eb8d410616489b184714c106daec72",
+    "ipcIndependentSha256": "05cd80f8a52580b33156521a13f6b2838171a751dd0ccc900344ea8dcf47a634",
+    "homeInputProofSha256": "af5bb5ca6cea2db4240f92158136865a3749e301fd5c58286f3367c9fcba0a44",
+    "startupValidationSha256": "5e55c5e5fbafc03187a3c4d0e31c3b600dba5d1d6ee777823434aa07c86e05cc",
+    "startupInputProofSha256": "ef4029f6746df6af67de28139749971659c8475e1fb157ce0f70cb6ecfcffd3a",
+    "homeCleanupReceiptSha256": "e3f56e038870f8cf08d7267ab7eef86815fccc7d26ae2ebac4052fe34833516b",
+    "startupCleanupReceiptSha256": "a8ce946e86f7c3757a413c5259a31bf439f71b5bdaa6dd7118d9d4887d8d9a6d",
+    "cleanupCorrectionSha256": "f969a3d08daf96644e5ffda182564f95565ecca4c3bac9f01c3ba987616a8623"
+  },
+  "interpretation": {
+    "nPerDataset": 5,
+    "p95Method": "nearest-rank; with n=5 equals sample maximum",
+    "systemOrStorageCacheColdStateClaimed": false,
+    "defaultUnobservedPerformanceClaimed": false,
+    "continuousPeakMemoryMeasured": false,
+    "workingSetMayDoubleCountSharedPages": true,
+    "serialMemoryQueryOverheadIncluded": true,
+    "ipcCountsAllBackendOrOperatingSystemIpc": false,
+    "oldHomeTimeoutRootCauseEstablished": false,
+    "crossVersionCausalImprovementClaimed": false,
+    "firstOcrMediaAndPdfMeasuredInThisCohort": false,
+    "rf121FullMatrixAccepted": false,
+    "otherPlatformOrPhysicalHardwareAcceptanceClaimed": false
+  },
+  "decision": {
+    "keepExistingFirstBatchAndSubscriptions": true,
+    "evidenceForGlobalRouteLazyLoadingOrFullPagination": false,
+    "furtherTracingNeededBeforeProductOptimization": true
+  },
+  "report": {
+    "closed": 343,
+    "total": 354,
+    "waiting": 5,
+    "queued": 6
+  },
+  "publication": {
+    "hostPathsIncluded": false,
+    "processIdentifiersIncluded": false,
+    "rawRunIdentifiersIncluded": false,
+    "rawLogsScreenshotsProgramsOrPrivateVaultsIncluded": false
+  }
+}

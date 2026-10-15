@@ -1,0 +1,2586 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "measuredOn": "2026-10-15",
+  "runtimeSourceCommit": "ad93ff0d4d115229aabffae1faaf2de2be520ea7",
+  "runtimeSourceFiles": 1988,
+  "sourceCommitMatchVerified": true,
+  "platform": "Android",
+  "api": 31,
+  "abi": "x86_64",
+  "device": "dedicated Android Emulator, SwiftShader software GPU, configured 2048 MiB and 2 virtual cores",
+  "buildProfile": "release",
+  "applicationDebuggable": false,
+  "extraFeatures": ["android-native-perf"],
+  "instrumentationRetained": true,
+  "startupDefinition": "Activity launch to usable password form and two committed frames; excludes runner/process launch",
+  "flowDefinition": "native public UI flow including instrumentation, target readiness waits and diagnostics",
+  "memoryDefinition": "application-owned main/renderer PSS; 5 seconds between serial query groups, samples wholly within native journey",
+  "largestObservedPssIsNotExactPeak": true,
+  "pdfPhasesDiagnosticOnly": true,
+  "pdfRenderingProven": false,
+  "defaultUninstrumentedPerformanceAccepted": false,
+  "systemColdOrPhysicalDevicePerformanceAccepted": false,
+  "fullRf312Accepted": false,
+  "order": "alternating 100/5000 for five rounds",
+  "sampleCountPerScale": 5,
+  "rawHostPathsAndRunIdentitiesIncluded": false,
+  "journeys": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 6150.85681,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 4878.880926,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 20317.559237,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 4382.789411,
+          "transportAttempts": 12
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1460.644488,
+          "transportAttempts": 1
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1957.349977,
+          "transportAttempts": 10
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2832.065637,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2781.758818,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 5114.769728,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3246.636598,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 854.634785,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 3276.161659,
+          "transportAttempts": 48
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 7037.405761000002,
+          "relativeEndMs": 8517.405761000002,
+          "pssBytes": 197008384,
+          "appPssBytes": 122016768,
+          "rendererPssBytes": 74991616,
+          "pssByRole": {
+            "app": 122016768,
+            "renderer": 74991616
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1665.4762000543997
+        },
+        {
+          "relativeStartMs": 29407.405761,
+          "relativeEndMs": 30617.405761,
+          "pssBytes": 235608064,
+          "appPssBytes": 159721472,
+          "rendererPssBytes": 75886592,
+          "pssByRole": {
+            "app": 159721472,
+            "renderer": 75886592
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1451.3097999151796
+        },
+        {
+          "relativeStartMs": 35787.405761,
+          "relativeEndMs": 36817.405761,
+          "pssBytes": 267643904,
+          "appPssBytes": 165776384,
+          "rendererPssBytes": 101867520,
+          "pssByRole": {
+            "app": 165776384,
+            "renderer": 101867520
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1196.449099923484
+        },
+        {
+          "relativeStartMs": 41987.405761,
+          "relativeEndMs": 43217.405761,
+          "pssBytes": 283336704,
+          "appPssBytes": 167139328,
+          "rendererPssBytes": 116197376,
+          "pssByRole": {
+            "app": 167139328,
+            "renderer": 116197376
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1383.8753999443725
+        },
+        {
+          "relativeStartMs": 48447.405761,
+          "relativeEndMs": 49467.405761,
+          "pssBytes": 282568704,
+          "appPssBytes": 166240256,
+          "rendererPssBytes": 116328448,
+          "pssByRole": {
+            "app": 166240256,
+            "renderer": 116328448
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1244.1595999989659
+        },
+        {
+          "relativeStartMs": 54757.405761,
+          "relativeEndMs": 55887.405761,
+          "pssBytes": 277170176,
+          "appPssBytes": 169633792,
+          "rendererPssBytes": 107536384,
+          "pssByRole": {
+            "app": 169633792,
+            "renderer": 107536384
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1401.2883000541478
+        }
+      ],
+      "snapshotAttempts": 17,
+      "fullyBoundSnapshots": 7,
+      "refusedOrAbsentSnapshots": 10,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 17,
+        "median": 1196.449099923484,
+        "p95": 10569.130799965933,
+        "min": 474.93720008060336,
+        "max": 10569.130799965933
+      },
+      "largestObservedPssBytes": 283336704,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 7203.727866,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 5514.283287,
+          "transportAttempts": 50
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 21213.538489,
+          "transportAttempts": 18
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2731.648232,
+          "transportAttempts": 14
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1952.954693,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1974.837971,
+          "transportAttempts": 15
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2845.391606,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2883.250377,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 4176.250132,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3297.59692,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 1023.701862,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 4254.053849,
+          "transportAttempts": 48
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 8230.316500999994,
+          "relativeEndMs": 9850.316500999994,
+          "pssBytes": 198879232,
+          "appPssBytes": 123531264,
+          "rendererPssBytes": 75347968,
+          "pssByRole": {
+            "app": 123531264,
+            "renderer": 75347968
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1992.7289000479504
+        },
+        {
+          "relativeStartMs": 15260.316500999994,
+          "relativeEndMs": 16570.316500999994,
+          "pssBytes": 233550848,
+          "appPssBytes": 147021824,
+          "rendererPssBytes": 86529024,
+          "pssByRole": {
+            "app": 147021824,
+            "renderer": 86529024
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1710.7400000095367
+        },
+        {
+          "relativeStartMs": 21820.316500999994,
+          "relativeEndMs": 23280.316500999994,
+          "pssBytes": 231851008,
+          "appPssBytes": 153328640,
+          "rendererPssBytes": 78522368,
+          "pssByRole": {
+            "app": 153328640,
+            "renderer": 78522368
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1693.194599938579
+        },
+        {
+          "relativeStartMs": 28540.316500999994,
+          "relativeEndMs": 29900.316500999994,
+          "pssBytes": 245050368,
+          "appPssBytes": 165805056,
+          "rendererPssBytes": 79245312,
+          "pssByRole": {
+            "app": 165805056,
+            "renderer": 79245312
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1610.3472000686452
+        },
+        {
+          "relativeStartMs": 35080.316500999965,
+          "relativeEndMs": 36190.316500999994,
+          "pssBytes": 273695744,
+          "appPssBytes": 177055744,
+          "rendererPssBytes": 96640000,
+          "pssByRole": {
+            "app": 177055744,
+            "renderer": 96640000
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1287.248200038448
+        },
+        {
+          "relativeStartMs": 41350.316500999994,
+          "relativeEndMs": 42560.316500999994,
+          "pssBytes": 308354048,
+          "appPssBytes": 191987712,
+          "rendererPssBytes": 116366336,
+          "pssByRole": {
+            "app": 191987712,
+            "renderer": 116366336
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1354.0881000226364
+        },
+        {
+          "relativeStartMs": 47710.316500999994,
+          "relativeEndMs": 48880.316500999994,
+          "pssBytes": 297371648,
+          "appPssBytes": 176676864,
+          "rendererPssBytes": 120694784,
+          "pssByRole": {
+            "app": 176676864,
+            "renderer": 120694784
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1322.2981999861076
+        },
+        {
+          "relativeStartMs": 54070.316500999994,
+          "relativeEndMs": 55270.316500999994,
+          "pssBytes": 285335552,
+          "appPssBytes": 181544960,
+          "rendererPssBytes": 103790592,
+          "pssByRole": {
+            "app": 181544960,
+            "renderer": 103790592
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1374.8531000455841
+        },
+        {
+          "relativeStartMs": 60650.316500999994,
+          "relativeEndMs": 62730.316500999994,
+          "pssBytes": 284585984,
+          "appPssBytes": 176099328,
+          "rendererPssBytes": 108486656,
+          "pssByRole": {
+            "app": 176099328,
+            "renderer": 108486656
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 2454.5404999516904
+        }
+      ],
+      "snapshotAttempts": 18,
+      "fullyBoundSnapshots": 9,
+      "refusedOrAbsentSnapshots": 9,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 18,
+        "median": 1304.7732000122778,
+        "p95": 2914.7478999802843,
+        "min": 455.9956999728456,
+        "max": 2914.7478999802843
+      },
+      "largestObservedPssBytes": 308354048,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 4174.381147,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3887.696735,
+          "transportAttempts": 50
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 17791.159835,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2606.804984,
+          "transportAttempts": 13
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1478.681809,
+          "transportAttempts": 1
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1991.529222,
+          "transportAttempts": 9
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2871.233654,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2930.84856,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 3937.00003,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3113.441568,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 937.842663,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 2352.455882,
+          "transportAttempts": 48
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 1203.6684840000235,
+          "relativeEndMs": 2433.6684840000235,
+          "pssBytes": 200583168,
+          "appPssBytes": 129652736,
+          "rendererPssBytes": 70930432,
+          "pssByRole": {
+            "app": 129652736,
+            "renderer": 70930432
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1547.4898000247777
+        },
+        {
+          "relativeStartMs": 7623.668484000023,
+          "relativeEndMs": 9673.668484000023,
+          "pssBytes": 209672192,
+          "appPssBytes": 124340224,
+          "rendererPssBytes": 85331968,
+          "pssByRole": {
+            "app": 124340224,
+            "renderer": 85331968
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 2239.7436999017373
+        },
+        {
+          "relativeStartMs": 14833.668484000023,
+          "relativeEndMs": 15783.668484000023,
+          "pssBytes": 202618880,
+          "appPssBytes": 128452608,
+          "rendererPssBytes": 74166272,
+          "pssByRole": {
+            "app": 128452608,
+            "renderer": 74166272
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1091.0146000096574
+        },
+        {
+          "relativeStartMs": 20973.668484000023,
+          "relativeEndMs": 22173.668484000023,
+          "pssBytes": 217971712,
+          "appPssBytes": 140410880,
+          "rendererPssBytes": 77560832,
+          "pssByRole": {
+            "app": 140410880,
+            "renderer": 77560832
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1374.8248000629246
+        },
+        {
+          "relativeStartMs": 27353.668484000023,
+          "relativeEndMs": 28433.668484000023,
+          "pssBytes": 263279616,
+          "appPssBytes": 160590848,
+          "rendererPssBytes": 102688768,
+          "pssByRole": {
+            "app": 160590848,
+            "renderer": 102688768
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1251.7573999939486
+        },
+        {
+          "relativeStartMs": 33573.66848400002,
+          "relativeEndMs": 34673.66848400002,
+          "pssBytes": 280168448,
+          "appPssBytes": 164875264,
+          "rendererPssBytes": 115293184,
+          "pssByRole": {
+            "app": 164875264,
+            "renderer": 115293184
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1227.0367000019178
+        },
+        {
+          "relativeStartMs": 39893.66848400002,
+          "relativeEndMs": 41033.66848400002,
+          "pssBytes": 280494080,
+          "appPssBytes": 164056064,
+          "rendererPssBytes": 116438016,
+          "pssByRole": {
+            "app": 164056064,
+            "renderer": 116438016
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1355.1865000044927
+        },
+        {
+          "relativeStartMs": 46193.66848400002,
+          "relativeEndMs": 47273.66848400002,
+          "pssBytes": 296944640,
+          "appPssBytes": 181538816,
+          "rendererPssBytes": 115405824,
+          "pssByRole": {
+            "app": 181538816,
+            "renderer": 115405824
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1233.2863999763504
+        }
+      ],
+      "snapshotAttempts": 16,
+      "fullyBoundSnapshots": 9,
+      "refusedOrAbsentSnapshots": 7,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 16,
+        "median": 1159.0256500057876,
+        "p95": 2239.7436999017373,
+        "min": 429.69550006091595,
+        "max": 2239.7436999017373
+      },
+      "largestObservedPssBytes": 296944640,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 4802.086402,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3716.12667,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 17958.813932,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2689.859,
+          "transportAttempts": 14
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 2190.214063,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1837.819495,
+          "transportAttempts": 11
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2702.224321,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2652.758908,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 3834.882858,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3063.943285,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 931.126267,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 2806.105585,
+          "transportAttempts": 46
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 2308.538905000023,
+          "relativeEndMs": 3868.538905000023,
+          "pssBytes": 195836928,
+          "appPssBytes": 122055680,
+          "rendererPssBytes": 73781248,
+          "pssByRole": {
+            "app": 122055680,
+            "renderer": 73781248
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 2566.803300054744
+        },
+        {
+          "relativeStartMs": 9068.538905000023,
+          "relativeEndMs": 10118.538905000023,
+          "pssBytes": 232632320,
+          "appPssBytes": 142647296,
+          "rendererPssBytes": 89985024,
+          "pssByRole": {
+            "app": 142647296,
+            "renderer": 89985024
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1241.1890000803396
+        },
+        {
+          "relativeStartMs": 15268.538905000023,
+          "relativeEndMs": 16248.538905000023,
+          "pssBytes": 216926208,
+          "appPssBytes": 143351808,
+          "rendererPssBytes": 73574400,
+          "pssByRole": {
+            "app": 143351808,
+            "renderer": 73574400
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1120.6498999381438
+        },
+        {
+          "relativeStartMs": 21398.538905000023,
+          "relativeEndMs": 22668.538905000023,
+          "pssBytes": 211008512,
+          "appPssBytes": 131733504,
+          "rendererPssBytes": 79275008,
+          "pssByRole": {
+            "app": 131733504,
+            "renderer": 79275008
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1410.8408000320196
+        },
+        {
+          "relativeStartMs": 27818.538905000023,
+          "relativeEndMs": 28948.538905000023,
+          "pssBytes": 297735168,
+          "appPssBytes": 185312256,
+          "rendererPssBytes": 112422912,
+          "pssByRole": {
+            "app": 185312256,
+            "renderer": 112422912
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1263.4184000780806
+        },
+        {
+          "relativeStartMs": 34128.53890500002,
+          "relativeEndMs": 35188.53890500002,
+          "pssBytes": 299761664,
+          "appPssBytes": 184536064,
+          "rendererPssBytes": 115225600,
+          "pssByRole": {
+            "app": 184536064,
+            "renderer": 115225600
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1243.9504000358284
+        },
+        {
+          "relativeStartMs": 40368.53890500002,
+          "relativeEndMs": 41428.53890500002,
+          "pssBytes": 299320320,
+          "appPssBytes": 178650112,
+          "rendererPssBytes": 120670208,
+          "pssByRole": {
+            "app": 178650112,
+            "renderer": 120670208
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1229.7925000311807
+        },
+        {
+          "relativeStartMs": 46608.53890500002,
+          "relativeEndMs": 47698.53890500002,
+          "pssBytes": 299510784,
+          "appPssBytes": 179655680,
+          "rendererPssBytes": 119855104,
+          "pssByRole": {
+            "app": 179655680,
+            "renderer": 119855104
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1267.3185000894591
+        },
+        {
+          "relativeStartMs": 52878.53890500002,
+          "relativeEndMs": 54118.53890500002,
+          "pssBytes": 271721472,
+          "appPssBytes": 175064064,
+          "rendererPssBytes": 96657408,
+          "pssByRole": {
+            "app": 175064064,
+            "renderer": 96657408
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1408.942800015211
+        }
+      ],
+      "snapshotAttempts": 21,
+      "fullyBoundSnapshots": 9,
+      "refusedOrAbsentSnapshots": 12,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 21,
+        "median": 939.7582000819966,
+        "p95": 1410.8408000320196,
+        "min": 471.3950000004843,
+        "max": 2566.803300054744
+      },
+      "largestObservedPssBytes": 299761664,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 4590.91522,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3731.39431,
+          "transportAttempts": 50
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 18032.558258,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2378.661284,
+          "transportAttempts": 14
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 2598.700966,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1922.912289,
+          "transportAttempts": 10
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2853.205588,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2835.926416,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 3705.777295,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3702.841588,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 952.822855,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 3107.53637,
+          "transportAttempts": 30
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 3962.1957460000413,
+          "relativeEndMs": 5102.195746000041,
+          "pssBytes": 190981120,
+          "appPssBytes": 116398080,
+          "rendererPssBytes": 74583040,
+          "pssByRole": {
+            "app": 116398080,
+            "renderer": 74583040
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1289.119999972172
+        },
+        {
+          "relativeStartMs": 10262.195746000041,
+          "relativeEndMs": 11262.195746000041,
+          "pssBytes": 213828608,
+          "appPssBytes": 128260096,
+          "rendererPssBytes": 85568512,
+          "pssByRole": {
+            "app": 128260096,
+            "renderer": 85568512
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1160.2367999730632
+        },
+        {
+          "relativeStartMs": 16422.19574600004,
+          "relativeEndMs": 17412.19574600004,
+          "pssBytes": 216118272,
+          "appPssBytes": 129800192,
+          "rendererPssBytes": 86318080,
+          "pssByRole": {
+            "app": 129800192,
+            "renderer": 86318080
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1124.7927999356762
+        },
+        {
+          "relativeStartMs": 22572.19574600004,
+          "relativeEndMs": 23822.19574600004,
+          "pssBytes": 244310016,
+          "appPssBytes": 155790336,
+          "rendererPssBytes": 88519680,
+          "pssByRole": {
+            "app": 155790336,
+            "renderer": 88519680
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1401.7329000635073
+        },
+        {
+          "relativeStartMs": 28972.19574600004,
+          "relativeEndMs": 29992.19574600004,
+          "pssBytes": 262454272,
+          "appPssBytes": 162656256,
+          "rendererPssBytes": 99798016,
+          "pssByRole": {
+            "app": 162656256,
+            "renderer": 99798016
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1163.8792000012472
+        },
+        {
+          "relativeStartMs": 35202.19574600004,
+          "relativeEndMs": 36262.19574600004,
+          "pssBytes": 279169024,
+          "appPssBytes": 164794368,
+          "rendererPssBytes": 114374656,
+          "pssByRole": {
+            "app": 164794368,
+            "renderer": 114374656
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1255.8148000389338
+        },
+        {
+          "relativeStartMs": 41522.19574600004,
+          "relativeEndMs": 42642.19574600004,
+          "pssBytes": 280616960,
+          "appPssBytes": 163816448,
+          "rendererPssBytes": 116800512,
+          "pssByRole": {
+            "app": 163816448,
+            "renderer": 116800512
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1374.7523000929505
+        },
+        {
+          "relativeStartMs": 47822.19574600004,
+          "relativeEndMs": 49062.19574600004,
+          "pssBytes": 285510656,
+          "appPssBytes": 168885248,
+          "rendererPssBytes": 116625408,
+          "pssByRole": {
+            "app": 168885248,
+            "renderer": 116625408
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1401.3327000429854
+        }
+      ],
+      "snapshotAttempts": 16,
+      "fullyBoundSnapshots": 9,
+      "refusedOrAbsentSnapshots": 7,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 16,
+        "median": 1162.0579999871552,
+        "p95": 1628.8634999655187,
+        "min": 448.5513000981882,
+        "max": 1628.8634999655187
+      },
+      "largestObservedPssBytes": 285510656,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 3737.297758,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3897.043166,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 18645.391541,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2559.463021,
+          "transportAttempts": 13
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 2267.265089,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 2032.441049,
+          "transportAttempts": 11
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2830.034663,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2713.185762,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 4803.875792,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3301.317222,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 1000.140787,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 2899.870852,
+          "transportAttempts": 46
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 4403.559948000009,
+          "relativeEndMs": 5613.559948000009,
+          "pssBytes": 197565440,
+          "appPssBytes": 117938176,
+          "rendererPssBytes": 79627264,
+          "pssByRole": {
+            "app": 117938176,
+            "renderer": 79627264
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1458.2452001050115
+        },
+        {
+          "relativeStartMs": 10783.55994800001,
+          "relativeEndMs": 11793.55994800001,
+          "pssBytes": 233715712,
+          "appPssBytes": 143280128,
+          "rendererPssBytes": 90435584,
+          "pssByRole": {
+            "app": 143280128,
+            "renderer": 90435584
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1163.528100005351
+        },
+        {
+          "relativeStartMs": 17103.55994800001,
+          "relativeEndMs": 18673.55994800001,
+          "pssBytes": 227771392,
+          "appPssBytes": 149404672,
+          "rendererPssBytes": 78366720,
+          "pssByRole": {
+            "app": 149404672,
+            "renderer": 78366720
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1870.998999918811
+        },
+        {
+          "relativeStartMs": 23883.55994800001,
+          "relativeEndMs": 25233.55994800001,
+          "pssBytes": 246213632,
+          "appPssBytes": 167002112,
+          "rendererPssBytes": 79211520,
+          "pssByRole": {
+            "app": 167002112,
+            "renderer": 79211520
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1556.534899980761
+        },
+        {
+          "relativeStartMs": 30433.55994800001,
+          "relativeEndMs": 31653.55994800001,
+          "pssBytes": 292673536,
+          "appPssBytes": 185285632,
+          "rendererPssBytes": 107387904,
+          "pssByRole": {
+            "app": 185285632,
+            "renderer": 107387904
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1423.0936999665573
+        },
+        {
+          "relativeStartMs": 36843.55994800001,
+          "relativeEndMs": 38003.55994800001,
+          "pssBytes": 304975872,
+          "appPssBytes": 184289280,
+          "rendererPssBytes": 120686592,
+          "pssByRole": {
+            "app": 184289280,
+            "renderer": 120686592
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1331.1538000125438
+        },
+        {
+          "relativeStartMs": 43283.55994800001,
+          "relativeEndMs": 44363.55994800001,
+          "pssBytes": 295779328,
+          "appPssBytes": 174480384,
+          "rendererPssBytes": 121298944,
+          "pssByRole": {
+            "app": 174480384,
+            "renderer": 121298944
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1345.6870999652892
+        },
+        {
+          "relativeStartMs": 49543.55994800001,
+          "relativeEndMs": 50873.55994800001,
+          "pssBytes": 312757248,
+          "appPssBytes": 192355328,
+          "rendererPssBytes": 120401920,
+          "pssByRole": {
+            "app": 192355328,
+            "renderer": 120401920
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1501.701100030914
+        }
+      ],
+      "snapshotAttempts": 19,
+      "fullyBoundSnapshots": 8,
+      "refusedOrAbsentSnapshots": 11,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 19,
+        "median": 931.8290000082925,
+        "p95": 1870.998999918811,
+        "min": 447.8254000423476,
+        "max": 1870.998999918811
+      },
+      "largestObservedPssBytes": 312757248,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 3769.098594,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3811.875085,
+          "transportAttempts": 49
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 17789.74535,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2790.727245,
+          "transportAttempts": 14
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1515.688081,
+          "transportAttempts": 1
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1781.321595,
+          "transportAttempts": 14
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2807.112291,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2455.052291,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 4093.284839,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3366.576583,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 1129.352985,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 2486.458528,
+          "transportAttempts": 47
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 4762.924931999994,
+          "relativeEndMs": 5932.924931999994,
+          "pssBytes": 196076544,
+          "appPssBytes": 118722560,
+          "rendererPssBytes": 77353984,
+          "pssByRole": {
+            "app": 118722560,
+            "renderer": 77353984
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1625.811000005342
+        },
+        {
+          "relativeStartMs": 11242.924931999994,
+          "relativeEndMs": 12182.924931999994,
+          "pssBytes": 203956224,
+          "appPssBytes": 128733184,
+          "rendererPssBytes": 75223040,
+          "pssByRole": {
+            "app": 128733184,
+            "renderer": 75223040
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1245.0183000182733
+        },
+        {
+          "relativeStartMs": 17742.924931999994,
+          "relativeEndMs": 18962.924931999994,
+          "pssBytes": 222471168,
+          "appPssBytes": 145669120,
+          "rendererPssBytes": 76802048,
+          "pssByRole": {
+            "app": 145669120,
+            "renderer": 76802048
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1770.2573999995366
+        },
+        {
+          "relativeStartMs": 24322.924931999994,
+          "relativeEndMs": 25362.924931999994,
+          "pssBytes": 239429632,
+          "appPssBytes": 161564672,
+          "rendererPssBytes": 77864960,
+          "pssByRole": {
+            "app": 161564672,
+            "renderer": 77864960
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1397.9566000634804
+        },
+        {
+          "relativeStartMs": 30612.924931999994,
+          "relativeEndMs": 31752.924931999994,
+          "pssBytes": 270313472,
+          "appPssBytes": 166117376,
+          "rendererPssBytes": 104196096,
+          "pssByRole": {
+            "app": 166117376,
+            "renderer": 104196096
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1371.8042999971658
+        },
+        {
+          "relativeStartMs": 36922.924931999994,
+          "relativeEndMs": 38112.924931999994,
+          "pssBytes": 275401728,
+          "appPssBytes": 164418560,
+          "rendererPssBytes": 110983168,
+          "pssByRole": {
+            "app": 164418560,
+            "renderer": 110983168
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1351.1734999483451
+        },
+        {
+          "relativeStartMs": 43352.924931999994,
+          "relativeEndMs": 44432.924931999994,
+          "pssBytes": 289567744,
+          "appPssBytes": 179262464,
+          "rendererPssBytes": 110305280,
+          "pssByRole": {
+            "app": 179262464,
+            "renderer": 110305280
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1310.2670999942347
+        },
+        {
+          "relativeStartMs": 49582.924931999994,
+          "relativeEndMs": 50682.924931999994,
+          "pssBytes": 275963904,
+          "appPssBytes": 170323968,
+          "rendererPssBytes": 105639936,
+          "pssByRole": {
+            "app": 170323968,
+            "renderer": 105639936
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1246.5844000689685
+        }
+      ],
+      "snapshotAttempts": 17,
+      "fullyBoundSnapshots": 8,
+      "refusedOrAbsentSnapshots": 9,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 17,
+        "median": 1245.0183000182733,
+        "p95": 1901.8887999700382,
+        "min": 446.5426999377087,
+        "max": 1901.8887999700382
+      },
+      "largestObservedPssBytes": 289567744,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 3913.235562,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3689.18067,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 17976.200424,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2500.79659,
+          "transportAttempts": 14
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1658.479022,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 2142.22867,
+          "transportAttempts": 11
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2697.743228,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2878.334674,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 4262.05922,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3440.427029,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 1079.150889,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 3382.346379,
+          "transportAttempts": 46
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 3257.6833750000224,
+          "relativeEndMs": 4407.683375000022,
+          "pssBytes": 190836736,
+          "appPssBytes": 116213760,
+          "rendererPssBytes": 74622976,
+          "pssByRole": {
+            "app": 116213760,
+            "renderer": 74622976
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1314.0700000803918
+        },
+        {
+          "relativeStartMs": 9577.683375000022,
+          "relativeEndMs": 10507.683375000022,
+          "pssBytes": 233690112,
+          "appPssBytes": 142708736,
+          "rendererPssBytes": 90981376,
+          "pssByRole": {
+            "app": 142708736,
+            "renderer": 90981376
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1075.8305999916047
+        },
+        {
+          "relativeStartMs": 15847.683375000022,
+          "relativeEndMs": 16917.683375000022,
+          "pssBytes": 221332480,
+          "appPssBytes": 143159296,
+          "rendererPssBytes": 78173184,
+          "pssByRole": {
+            "app": 143159296,
+            "renderer": 78173184
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1408.5147000150755
+        },
+        {
+          "relativeStartMs": 22087.683375000022,
+          "relativeEndMs": 23247.683375000022,
+          "pssBytes": 239413248,
+          "appPssBytes": 159828992,
+          "rendererPssBytes": 79584256,
+          "pssByRole": {
+            "app": 159828992,
+            "renderer": 79584256
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1326.1315000709146
+        },
+        {
+          "relativeStartMs": 28387.683375000022,
+          "relativeEndMs": 29477.683375000022,
+          "pssBytes": 289855488,
+          "appPssBytes": 181729280,
+          "rendererPssBytes": 108126208,
+          "pssByRole": {
+            "app": 181729280,
+            "renderer": 108126208
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1232.5550999958068
+        },
+        {
+          "relativeStartMs": 34657.68337500002,
+          "relativeEndMs": 35697.68337500002,
+          "pssBytes": 326521856,
+          "appPssBytes": 207444992,
+          "rendererPssBytes": 119076864,
+          "pssByRole": {
+            "app": 207444992,
+            "renderer": 119076864
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1210.6952000176534
+        },
+        {
+          "relativeStartMs": 41117.68337500002,
+          "relativeEndMs": 42707.68337500002,
+          "pssBytes": 295492608,
+          "appPssBytes": 175209472,
+          "rendererPssBytes": 120283136,
+          "pssByRole": {
+            "app": 175209472,
+            "renderer": 120283136
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 2014.1925999196246
+        },
+        {
+          "relativeStartMs": 48057.68337500002,
+          "relativeEndMs": 49267.68337500002,
+          "pssBytes": 285820928,
+          "appPssBytes": 181798912,
+          "rendererPssBytes": 104022016,
+          "pssByRole": {
+            "app": 181798912,
+            "renderer": 104022016
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1540.7609000103548
+        }
+      ],
+      "snapshotAttempts": 17,
+      "fullyBoundSnapshots": 8,
+      "refusedOrAbsentSnapshots": 9,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 17,
+        "median": 1075.8305999916047,
+        "p95": 2014.1925999196246,
+        "min": 449.2924999212846,
+        "max": 2014.1925999196246
+      },
+      "largestObservedPssBytes": 326521856,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 4905.761612,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3747.977876,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 18156.106318,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2431.080696,
+          "transportAttempts": 13
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1585.734318,
+          "transportAttempts": 1
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1871.393298,
+          "transportAttempts": 14
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2803.472426,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 2771.78711,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 3893.006657,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3628.618006,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 1037.15626,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 2885.35186,
+          "transportAttempts": 46
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 3303.495185000007,
+          "relativeEndMs": 5403.495185000007,
+          "pssBytes": 192204800,
+          "appPssBytes": 116257792,
+          "rendererPssBytes": 75947008,
+          "pssByRole": {
+            "app": 116257792,
+            "renderer": 75947008
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 2492.08939995151
+        },
+        {
+          "relativeStartMs": 10793.495185000007,
+          "relativeEndMs": 11693.495185000007,
+          "pssBytes": 203718656,
+          "appPssBytes": 128077824,
+          "rendererPssBytes": 75640832,
+          "pssByRole": {
+            "app": 128077824,
+            "renderer": 75640832
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1191.4602000033483
+        },
+        {
+          "relativeStartMs": 16843.495185000007,
+          "relativeEndMs": 17823.495185000007,
+          "pssBytes": 206060544,
+          "appPssBytes": 129546240,
+          "rendererPssBytes": 76514304,
+          "pssByRole": {
+            "app": 129546240,
+            "renderer": 76514304
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1127.1227999823168
+        },
+        {
+          "relativeStartMs": 22993.495185000007,
+          "relativeEndMs": 24353.495185000007,
+          "pssBytes": 232971264,
+          "appPssBytes": 155571200,
+          "rendererPssBytes": 77400064,
+          "pssByRole": {
+            "app": 155571200,
+            "renderer": 77400064
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1509.978900081478
+        },
+        {
+          "relativeStartMs": 29713.495185000007,
+          "relativeEndMs": 30833.495185000007,
+          "pssBytes": 270478336,
+          "appPssBytes": 165025792,
+          "rendererPssBytes": 105452544,
+          "pssByRole": {
+            "app": 165025792,
+            "renderer": 105452544
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1481.1503000091761
+        },
+        {
+          "relativeStartMs": 36183.49518500001,
+          "relativeEndMs": 37253.49518500001,
+          "pssBytes": 282759168,
+          "appPssBytes": 164542464,
+          "rendererPssBytes": 118216704,
+          "pssByRole": {
+            "app": 164542464,
+            "renderer": 118216704
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1411.60160000436
+        },
+        {
+          "relativeStartMs": 42403.49518500001,
+          "relativeEndMs": 43523.49518500001,
+          "pssBytes": 281403392,
+          "appPssBytes": 163926016,
+          "rendererPssBytes": 117477376,
+          "pssByRole": {
+            "app": 163926016,
+            "renderer": 117477376
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1267.110800021328
+        },
+        {
+          "relativeStartMs": 48743.49518500001,
+          "relativeEndMs": 50053.49518500001,
+          "pssBytes": 288791552,
+          "appPssBytes": 182612992,
+          "rendererPssBytes": 106178560,
+          "pssByRole": {
+            "app": 182612992,
+            "renderer": 106178560
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1509.1897000093013
+        }
+      ],
+      "snapshotAttempts": 17,
+      "fullyBoundSnapshots": 8,
+      "refusedOrAbsentSnapshots": 9,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 17,
+        "median": 1127.1227999823168,
+        "p95": 2492.08939995151,
+        "min": 486.9193999329582,
+        "max": 2492.08939995151
+      },
+      "largestObservedPssBytes": 288791552,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "success": true,
+      "phases": [
+        {
+          "name": "activity-startup",
+          "durationMs": 3778.305783,
+          "transportAttempts": 29
+        },
+        {
+          "name": "password-unlock",
+          "durationMs": 3812.431819,
+          "transportAttempts": 48
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "durationMs": 17517.160625,
+          "transportAttempts": 22
+        },
+        {
+          "name": "workspace",
+          "durationMs": 2480.295249,
+          "transportAttempts": 15
+        },
+        {
+          "name": "search-needle",
+          "durationMs": 1748.764039,
+          "transportAttempts": 2
+        },
+        {
+          "name": "attachments-open",
+          "durationMs": 1927.561659,
+          "transportAttempts": 11
+        },
+        {
+          "name": "image-preview",
+          "durationMs": 2842.11155,
+          "transportAttempts": 3
+        },
+        {
+          "name": "text-preview",
+          "durationMs": 3070.000642,
+          "transportAttempts": 3
+        },
+        {
+          "name": "pdf-text-native-diagnostic",
+          "durationMs": 4442.482219,
+          "transportAttempts": 4
+        },
+        {
+          "name": "pdf-scanned-native-diagnostic",
+          "durationMs": 3252.172061,
+          "transportAttempts": 4
+        },
+        {
+          "name": "application-lock",
+          "durationMs": 1101.179948,
+          "transportAttempts": 20
+        },
+        {
+          "name": "password-reunlock",
+          "durationMs": 2991.42197,
+          "transportAttempts": 46
+        }
+      ],
+      "nativeJourneyMemory": [
+        {
+          "relativeStartMs": 2269.8847409999,
+          "relativeEndMs": 3359.8847409999,
+          "pssBytes": 189672448,
+          "appPssBytes": 115457024,
+          "rendererPssBytes": 74215424,
+          "pssByRole": {
+            "app": 115457024,
+            "renderer": 74215424
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1273.386900080368
+        },
+        {
+          "relativeStartMs": 8529.8847409999,
+          "relativeEndMs": 9549.8847409999,
+          "pssBytes": 245200896,
+          "appPssBytes": 154124288,
+          "rendererPssBytes": 91076608,
+          "pssByRole": {
+            "app": 154124288,
+            "renderer": 91076608
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1176.1250999988988
+        },
+        {
+          "relativeStartMs": 14749.8847409999,
+          "relativeEndMs": 15939.8847409999,
+          "pssBytes": 220915712,
+          "appPssBytes": 147267584,
+          "rendererPssBytes": 73648128,
+          "pssByRole": {
+            "app": 147267584,
+            "renderer": 73648128
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1372.0496000023559
+        },
+        {
+          "relativeStartMs": 21089.8847409999,
+          "relativeEndMs": 22269.8847409999,
+          "pssBytes": 246139904,
+          "appPssBytes": 166679552,
+          "rendererPssBytes": 79460352,
+          "pssByRole": {
+            "app": 166679552,
+            "renderer": 79460352
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1333.5194999817759
+        },
+        {
+          "relativeStartMs": 27439.8847409999,
+          "relativeEndMs": 28519.8847409999,
+          "pssBytes": 295926784,
+          "appPssBytes": 188461056,
+          "rendererPssBytes": 107465728,
+          "pssByRole": {
+            "app": 188461056,
+            "renderer": 107465728
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1246.1942000081763
+        },
+        {
+          "relativeStartMs": 33709.8847409999,
+          "relativeEndMs": 34799.8847409999,
+          "pssBytes": 328044544,
+          "appPssBytes": 210068480,
+          "rendererPssBytes": 117976064,
+          "pssByRole": {
+            "app": 210068480,
+            "renderer": 117976064
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1261.333099915646
+        },
+        {
+          "relativeStartMs": 39979.8847409999,
+          "relativeEndMs": 41289.8847409999,
+          "pssBytes": 297229312,
+          "appPssBytes": 177415168,
+          "rendererPssBytes": 119814144,
+          "pssByRole": {
+            "app": 177415168,
+            "renderer": 119814144
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1481.8997000111267
+        },
+        {
+          "relativeStartMs": 46699.8847409999,
+          "relativeEndMs": 47859.8847409999,
+          "pssBytes": 301389824,
+          "appPssBytes": 181655552,
+          "rendererPssBytes": 119734272,
+          "pssByRole": {
+            "app": 181655552,
+            "renderer": 119734272
+          },
+          "processRoleCounts": {
+            "app": 1,
+            "renderer": 1
+          },
+          "samplerElapsedMs": 1549.8824000824243
+        }
+      ],
+      "snapshotAttempts": 17,
+      "fullyBoundSnapshots": 9,
+      "refusedOrAbsentSnapshots": 8,
+      "allSnapshotQueryCostMs": {
+        "sampleCount": 17,
+        "median": 1176.1250999988988,
+        "p95": 1549.8824000824243,
+        "min": 471.091500017792,
+        "max": 1549.8824000824243
+      },
+      "largestObservedPssBytes": 328044544,
+      "privateEntriesRestored": 216,
+      "originalApksAndSettingsRestored": true
+    }
+  ],
+  "summary": [
+    {
+      "objectCount": 100,
+      "phase": "activity-startup",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 4590.91522,
+        "p95": 6150.85681,
+        "min": 3769.098594,
+        "max": 6150.85681
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 29,
+        "p95": 29,
+        "min": 29,
+        "max": 29
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "password-unlock",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 3811.875085,
+        "p95": 4878.880926,
+        "min": 3731.39431,
+        "max": 4878.880926
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 49,
+        "p95": 50,
+        "min": 48,
+        "max": 50
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "first-ocr-user-flow",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 18032.558258,
+        "p95": 20317.559237,
+        "min": 17789.74535,
+        "max": 20317.559237
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 22,
+        "p95": 22,
+        "min": 22,
+        "max": 22
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "workspace",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2606.804984,
+        "p95": 4382.789411,
+        "min": 2378.661284,
+        "max": 4382.789411
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 13,
+        "p95": 14,
+        "min": 12,
+        "max": 14
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "search-needle",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 1515.688081,
+        "p95": 2598.700966,
+        "min": 1460.644488,
+        "max": 2598.700966
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 1,
+        "p95": 2,
+        "min": 1,
+        "max": 2
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "attachments-open",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 1922.912289,
+        "p95": 1991.529222,
+        "min": 1781.321595,
+        "max": 1991.529222
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 10,
+        "p95": 14,
+        "min": 9,
+        "max": 14
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "image-preview",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2832.065637,
+        "p95": 2871.233654,
+        "min": 2803.472426,
+        "max": 2871.233654
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 3,
+        "p95": 3,
+        "min": 3,
+        "max": 3
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "text-preview",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2781.758818,
+        "p95": 2930.84856,
+        "min": 2455.052291,
+        "max": 2930.84856
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 3,
+        "p95": 3,
+        "min": 3,
+        "max": 3
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "pdf-text-native-diagnostic",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 3937.00003,
+        "p95": 5114.769728,
+        "min": 3705.777295,
+        "max": 5114.769728
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 4,
+        "p95": 4,
+        "min": 4,
+        "max": 4
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "pdf-scanned-native-diagnostic",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 3366.576583,
+        "p95": 3702.841588,
+        "min": 3113.441568,
+        "max": 3702.841588
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 4,
+        "p95": 4,
+        "min": 4,
+        "max": 4
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "application-lock",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 952.822855,
+        "p95": 1129.352985,
+        "min": 854.634785,
+        "max": 1129.352985
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 20,
+        "p95": 20,
+        "min": 20,
+        "max": 20
+      }
+    },
+    {
+      "objectCount": 100,
+      "phase": "password-reunlock",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2885.35186,
+        "p95": 3276.161659,
+        "min": 2352.455882,
+        "max": 3276.161659
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 47,
+        "p95": 48,
+        "min": 30,
+        "max": 48
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "activity-startup",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 3913.235562,
+        "p95": 7203.727866,
+        "min": 3737.297758,
+        "max": 7203.727866
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 29,
+        "p95": 29,
+        "min": 29,
+        "max": 29
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "password-unlock",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 3812.431819,
+        "p95": 5514.283287,
+        "min": 3689.18067,
+        "max": 5514.283287
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 48,
+        "p95": 50,
+        "min": 48,
+        "max": 50
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "first-ocr-user-flow",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 17976.200424,
+        "p95": 21213.538489,
+        "min": 17517.160625,
+        "max": 21213.538489
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 22,
+        "p95": 22,
+        "min": 18,
+        "max": 22
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "workspace",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2559.463021,
+        "p95": 2731.648232,
+        "min": 2480.295249,
+        "max": 2731.648232
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 14,
+        "p95": 15,
+        "min": 13,
+        "max": 15
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "search-needle",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 1952.954693,
+        "p95": 2267.265089,
+        "min": 1658.479022,
+        "max": 2267.265089
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 2,
+        "p95": 2,
+        "min": 2,
+        "max": 2
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "attachments-open",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 1974.837971,
+        "p95": 2142.22867,
+        "min": 1837.819495,
+        "max": 2142.22867
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 11,
+        "p95": 15,
+        "min": 11,
+        "max": 15
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "image-preview",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2830.034663,
+        "p95": 2845.391606,
+        "min": 2697.743228,
+        "max": 2845.391606
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 3,
+        "p95": 3,
+        "min": 3,
+        "max": 3
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "text-preview",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2878.334674,
+        "p95": 3070.000642,
+        "min": 2652.758908,
+        "max": 3070.000642
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 3,
+        "p95": 3,
+        "min": 3,
+        "max": 3
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "pdf-text-native-diagnostic",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 4262.05922,
+        "p95": 4803.875792,
+        "min": 3834.882858,
+        "max": 4803.875792
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 4,
+        "p95": 4,
+        "min": 4,
+        "max": 4
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "pdf-scanned-native-diagnostic",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 3297.59692,
+        "p95": 3440.427029,
+        "min": 3063.943285,
+        "max": 3440.427029
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 4,
+        "p95": 4,
+        "min": 4,
+        "max": 4
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "application-lock",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 1023.701862,
+        "p95": 1101.179948,
+        "min": 931.126267,
+        "max": 1101.179948
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 20,
+        "p95": 20,
+        "min": 20,
+        "max": 20
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phase": "password-reunlock",
+      "durationMs": {
+        "sampleCount": 5,
+        "median": 2991.42197,
+        "p95": 4254.053849,
+        "min": 2806.105585,
+        "max": 4254.053849
+      },
+      "transportAttempts": {
+        "sampleCount": 5,
+        "median": 46,
+        "p95": 48,
+        "min": 46,
+        "max": 48
+      }
+    }
+  ],
+  "webView": {
+    "package": "com.android.webview",
+    "version": "91.0.4472.114"
+  },
+  "supplementalVisualReview": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "image": "text-page-two.png",
+      "sha256": "cf7a332e8ffece048809d877cbe5c4a7f757e616eb3e88dcec6e303c99fe824c",
+      "observed": "public text-only PDF page two text visible",
+      "scope": "image review of one actual native journey; not ten automated rendering proofs"
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "image": "scanned-page.png",
+      "sha256": "73d8de4c3bf77dbd7ffa8378f32a4bace858a48b171828c66c24d15059ea2786",
+      "observed": "public scanned OCR fixture visible",
+      "scope": "image review of one actual native journey; not ten automated rendering proofs"
+    }
+  ]
+}

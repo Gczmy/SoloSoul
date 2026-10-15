@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '../src/lib/constants';
 import { login } from './fixtures/auth';
 
 async function expectMobileNavigation(page: Page) {
@@ -51,7 +52,7 @@ for (const position of ['left', 'right'] as const) {
       return;
     }
     await expect(sidebar).toHaveAttribute('data-expanded', 'true');
-    await expect(sidebar).toHaveCSS('width', '232px');
+    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
     await expect(
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
     ).toBeVisible();
@@ -72,7 +73,7 @@ for (const position of ['left', 'right'] as const) {
     await expect(page).toHaveURL(/\/settings$/);
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
     await page.getByRole('button', { name: 'Expand sidebar' }).click();
-    await expect(sidebar).toHaveCSS('width', '232px');
+    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
     expect(await page.evaluate(() => localStorage.getItem('solosoul_sidebar_expanded'))).toBe(
       'true',
     );
@@ -182,7 +183,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   const submit = page.locator('button[type="submit"]');
   await expect(submit).toBeInViewport();
   await page.screenshot({ path: 'test-results/desktop-login-dark.png' });
-  await page.locator('input[type="text"]').fill('any-password');
+  await page.locator('input[type="password"]').fill('any-password');
   await submit.click();
   await page.waitForURL('/');
   const sidebar = page.locator('#desktop-navigation');

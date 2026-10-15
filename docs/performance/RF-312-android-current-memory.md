@@ -1,5 +1,7 @@
 # RF-312：当前源码 Android 完整行程与全进程内存
 
+后续当前源码重新构建的结果见[2026-10-15 原生重复行程](RF-312-current-android-native.md)。下文保留 2026-10-14 的来源和结果，不能用新源码重新解释旧 APK。
+
 2026-10-14，源提交 `b88ae2158fac4a979c0bc4c68d332ee8ecb211dc`。100/5000对象各五次完整12阶段行程全部通过，全部原状态恢复核验通过；83份行程内应用与直接绑定renderer的PSS通过严格身份核验。**只接受当前插桩API31环境的这组诊断分布，RF-312仍未关闭。**
 
 主APK SHA-256 `4bbd8b8eccf6e10a170bffe0ffe0a3e60c1d40e10611e318bbfa67785ad73e90`，独立测试APK `ea896d90db399a8cab6160835edbaf45ed2a6b544ec53c0f0e46bbd8f6b114d8`。复用RF-1145实际构建并验收的非默认`android-native-perf`、非debuggable Release包；1983份运行源逐字与该提交一致，38份前端产物相同。本阶段没有重新编译或更换APK、JNI、测试动作与45秒启动门禁。原当前源码启动失败由[RF-1145](../verification/rf1145-script-newlines-2026-10-14.json)独立修复并保留，前面两次修复验证不混入本队列。
