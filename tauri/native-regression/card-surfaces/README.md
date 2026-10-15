@@ -52,6 +52,8 @@ cargo build --locked -p solo_soul --features native-perf --example windows_card_
 
 系统当前确实关闭透明效果或启用高对比度时，将 `--expect` 分别改为 `transparency-off` 或 `high-contrast`，使用新的输出目录。例程只读取系统设置，不切换全局辅助功能；预期与真实设置不符即失败。未实测这些设置时不能记为通过。
 
+首次测量必须先收到本地夹具页面的真实加载完成事件；窗口显示和固定延迟不代表模块脚本已就绪。仅接受 `http://tauri.localhost/` 或其 `index.html` 的 Finished 事件，加载未完成或通道关闭即失败；加载等待上限5秒，整组原50秒及每份报告原5秒预算保持。
+
 每次在浅/深主题下检查首次显示、隐藏恢复、调整尺寸、最小化恢复，共8份报告；断言实际绘制帧、Card token、长文本和页面横向布局、客户区几何。读回 DWM 背景类型、Tauri 窗口主题、系统 caption 和 WebView2 背景 alpha；Mica 必须是实际类型2和透明 WebView，实色回退必须是不透明 WebView。
 
 `CAPTION_COLOR` 和 `USE_IMMERSIVE_DARK_MODE` 在[官方 DWM 属性契约](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)中只支持 Set，不声称读回或验过标题栏颜色；第一次属性查询失败记录保留。SDK 截图采样两个生产 Card 的背景像素。PNG 仅含 WebView 内容，不含 DWM/非客户区合成；合成导航区不是正式 Sidebar/AppBar，也不证明全部文字像素、恢复中的瞬间黑帧或完整辅助功能矩阵。接受结果需应用 exit0、`result.json` 的 success=true、8份实际 DOM/原生报告与对应 PNG；超时、缺帧、旧报告、断言失败或提前关闭均以 exit1 结束。
