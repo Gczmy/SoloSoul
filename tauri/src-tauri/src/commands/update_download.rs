@@ -711,13 +711,24 @@ mod tests {
 
     impl Server {
         async fn start(behavior: Behavior) -> Self {
+            Self::start_after(behavior, Duration::ZERO).await
+        }
+
+        async fn start_after(behavior: Behavior, startup_delay: Duration) -> Self {
             let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
             let url = format!("http://{}/package", listener.local_addr().unwrap());
             let requests = Arc::new(Mutex::new(Vec::new()));
             let recorded = requests.clone();
+            let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
             let task = tokio::spawn(async move {
+                if !startup_delay.is_zero() {
+                    tokio::time::sleep(startup_delay).await;
+                }
                 // 子连接也由 JoinSet 管理，fixture 释放后不遗留后台任务。
                 let mut connections = tokio::task::JoinSet::new();
+                if ready_tx.send(()).is_err() {
+                    return;
+                }
                 loop {
                     tokio::select! {
                         accepted = listener.accept() => {
@@ -740,11 +751,13 @@ mod tests {
                     }
                 }
             });
-            Self {
+            let server = Self {
                 url,
                 requests,
                 task,
-            }
+            };
+            ready_rx.await.expect("HTTP fixture worker must be ready");
+            server
         }
 
         fn transfer_requests(&self) -> Vec<Request> {
@@ -1049,8 +1062,8 @@ mod tests {
 
     #[tokio::test]
     async fn all_slow_sources_finish_in_the_final_fallback_pass() {
-        let direct = Server::start(Behavior::SlowBody).await;
-        let alternate = Server::start(Behavior::SlowBody).await;
+        let direct = Server::start_after(Behavior::SlowBody, Duration::from_millis(250)).await;
+        let alternate = Server::start_after(Behavior::SlowBody, Duration::from_millis(250)).await;
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("update.part");
         let mut configuration = policy();
