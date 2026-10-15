@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "recordedOn": "2026-10-15",
+  "accepted": false,
+  "status": "waiting-for-explicit-foreground-preparation-authorization",
+  "sourceCommit": "4069e46997bda3e5395a9bc2f124c072ee0ff7d5",
+  "runtime": {
+    "buildKind": "release-with-nondefault-native-perf",
+    "programSha256": "32613c9155d98b96b5756d559f6c6eb513ae70371743f5114879c1f96fa85ad8",
+    "trackedSourceFiles": 1883,
+    "productionFrontendFiles": 38,
+    "runtimeResources": 94,
+    "sourceAndFrontendUnchanged": true,
+    "copiedProgramAndResourcesByteIdentical": true,
+    "sharedFormalSetup": true
+  },
+  "checks": {
+    "strictNativeAllTargetsClippyExitCode": 0,
+    "nativeRustTests": {
+      "passed": 142,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 803
+    },
+    "releaseBuildExitCode": 0,
+    "releaseCargoReportedSeconds": 2309,
+    "releaseExistingPdbOutputNameWarningRetained": true,
+    "nodeTestsReused": {
+      "passed": 270,
+      "failed": 0,
+      "existingSymlinkPrivilegeSkip": 1,
+      "nativeMeasurementSuitesIncluded": true,
+      "freshlyRerun": false,
+      "reference": "rf1164-development-dependency-readiness-2026-10-15.json"
+    }
+  },
+  "environment": {
+    "activeDefaultInputDesktopVerifiedBeforeLaunch": true,
+    "remoteSession": true,
+    "transparencyPreferenceEnabled": true,
+    "highContrastEnabled": false,
+    "systemAppearanceSettingsChanged": false
+  },
+  "cohorts": [
+    {
+      "condition": "explorer-occluded",
+      "samplesRequested": 3,
+      "businessContractsAccepted": 3,
+      "surfaceBindingsAccepted": 0,
+      "fullSceneAccepted": false,
+      "foregroundAfter": false,
+      "nativeGuardInputEventsSent": 0,
+      "nativeGuardPixelsRead": 0,
+      "refusal": "caption-point-hits-other-window",
+      "hitRelation": "foreign-project-window"
+    },
+    {
+      "condition": "desktop-foreground-request",
+      "samplesRequested": 3,
+      "businessContractsAccepted": 3,
+      "surfaceBindingsAccepted": 0,
+      "fullSceneAccepted": false,
+      "foregroundAfter": false,
+      "nativeGuardInputEventsSent": 0,
+      "nativeGuardPixelsRead": 0,
+      "refusal": "caption-point-hits-other-window",
+      "hitRelation": "bound-browser-child-with-owned-root"
+    }
+  ],
+  "nextForegroundPreparation": {
+    "method": "computer-use activate_window",
+    "oncePerFreshExactProgramWindow": true,
+    "maximumWindows": 22,
+    "nativeGuardsUnchanged": true,
+    "originalBudgetsUnchanged": true,
+    "orchestrationLaunchDeniedBeforeProcessCreation": true,
+    "supervisorStopped": true,
+    "authorization": "pending"
+  },
+  "cleanup": {
+    "recordedProcessIdentitiesVerifiedExited": 54,
+    "cachePathsRemoved": 48,
+    "linksUnlinked": 0,
+    "preservedVaultAndRootProofFiles": 192,
+    "preservedBytesVerified": true,
+    "processesTerminatedByCleanup": 0
+  },
+  "evidenceDigests": {
+    "sourceManifestSha256": "cc4797bb61c0afe84124dfdb418318bcd60af46cd0a626c2e5bc4f15ff7059a9",
+    "frontendManifestSha256": "abe5160bb0b7d7b7c08f1cbe989bf06abc2b8875261c8a396d11068bb0092b34",
+    "clippyReceiptSha256": "60c97f895c3cecdc82e1017d47830e86d82bcfb3a9c5543333493e760871908e",
+    "nativeTestReceiptSha256": "cbab08ee076828e1689cbea98fdafc811431a188fd9ee776f3f818011e19f436",
+    "releaseReceiptSha256": "545c49e1006c5b10778457f284d2b567b3917ffcf305e596a54aba2c02167d1a",
+    "businessIndependentAuditSha256": "98874d5f1030397955dc1925ce167add08b5fbae5cc01cab6b55dc73c3b1ba83",
+    "cleanupReceiptSha256": "38c43b207369d4c1e0fc4747302b4bee4aebab517f76e1ea481cdce9e91068a4",
+    "proposedSupervisorSha256": "b82036bed93f73e27918ac1ee7dd280b9c084557d70ffd7dddf3e35940fa5aeb"
+  },
+  "limits": {
+    "actualSurfaceCaptureAccepted": false,
+    "windowsFourSceneMatrixComplete": false,
+    "reducedTransparencyOrHighContrastNativeMatrixAccepted": false,
+    "macOSNativeGlassAccepted": false,
+    "performanceBaselineAccepted": false,
+    "rf121Closed": false,
+    "rf122Through127PrerequisitesReleased": false,
+    "reportClosed": 343,
+    "reportTotal": 354,
+    "originalWaiting": 5,
+    "queued": 6
+  },
+  "publication": {
+    "rawHostPathsIncluded": false,
+    "processIdentifiersIncluded": false,
+    "rawRunIdentifiersIncluded": false,
+    "rawLogsOrScreenshotsIncluded": false,
+    "programBinariesIncluded": false
+  }
+}
