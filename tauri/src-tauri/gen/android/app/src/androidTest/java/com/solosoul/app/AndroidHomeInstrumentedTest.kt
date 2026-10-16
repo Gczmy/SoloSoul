@@ -543,6 +543,8 @@ class AndroidHomeInstrumentedTest {
         waitFor(scenario, "新建前局部玻璃首页", home) {
             it.optBoolean("home") && it.optString("glass") == "local"
         }
+        // 编辑采样使用新一轮真实限时提醒，避免前面的外观/首页截图耗尽同一8秒窗口。
+        renewPublicBackupReminder(scenario)
         // 首页路由 DOM 就绪不等于 AndroidNavigation 的入口已完成视觉提交。
         // 实际 WebView 绘制后再操作；这不替换菜单 handler 或重试失败操作。
         screenshot(scenario).recycle()
@@ -634,6 +636,20 @@ class AndroidHomeInstrumentedTest {
     }
 
     private fun captureObjectActionsAndBack(scenario: ActivityScenario<MainActivity>) {
+        if (!overlayChecks && !keyboardChecks && !previewChecks) {
+            // 菜单的通知布局独立验收；保留生产时长和截图后存在断言。
+            clickSelector(scenario, ".android-navigation a[href='/']")
+            waitFor(scenario, "菜单提醒复验返回有数据首页", home) {
+                it.optBoolean("home") && it.optString("count") == "1"
+            }
+            renewPublicBackupReminder(scenario)
+            val category = js(scenario, """(() => {const b=[...document.querySelectorAll('.android-category button')].find(b=>b.querySelector('strong')?.textContent==='Travel');b?.click();return JSON.stringify({clicked:!!b})})()""")
+            assertTrue("菜单提醒复验点击真实分类入口", category.getBoolean("clicked"))
+            waitFor(scenario, "菜单提醒复验返回公开对象列表", """JSON.stringify({path:location.pathname,search:location.search,card:document.querySelector('[data-testid="workspace-object-card"]')?.textContent})""") {
+                it.optString("path") == "/workspace" && it.optString("search").contains("section=travel") &&
+                    it.optString("card").contains("FE2 public object")
+            }
+        }
         clickSelector(scenario, "[data-testid='workspace-object-card'] button[aria-haspopup='dialog']")
         captureContent(scenario, "object-actions-dark", ".android-sheet[role='dialog']", "Attachments")
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
@@ -829,6 +845,11 @@ class AndroidHomeInstrumentedTest {
 
     /** 为每个限时提醒场景重置仅公开账户的夹具，再执行真实锁定/主密码解锁。 */
     private fun renewPublicBackupReminder(scenario: ActivityScenario<MainActivity>) {
+        // 先让上一轮真实提醒自然结束，再独立准备下一轮；不能把两条提醒叠入同一通知容器。
+        // 这不是等待过期来通过布局断言：后面的采样仍须在新提醒存在期间完成。
+        waitFor(scenario, "准备新场景前上一轮真实提醒已自然结束", """JSON.stringify({count:[...document.querySelectorAll('[data-toast-container] button')].filter(b=>b.textContent.trim()==='Back Up Now').length})""") {
+            it.getInt("count") == 0
+        }
         js(scenario, """(() => {window.fe2InsetsReminder={pending:true};
           const invoke=window.__TAURI_INTERNALS__.invoke;
           invoke('vault_list_accounts',{}).then(async accounts=>{
@@ -845,9 +866,10 @@ class AndroidHomeInstrumentedTest {
         assertFalse("公开提醒夹具失败: $fixture",fixture.has("error"))
         lockToPassword(scenario)
         unlockPublicVisualAccount(scenario)
-        waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({present:[...document.querySelectorAll('[data-shell-notifications] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
-            it.optBoolean("present")
+        val reminder = waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({count:[...document.querySelectorAll('[data-shell-notifications] button')].filter(b=>b.textContent.trim()==='Back Up Now').length})") {
+            it.getInt("count") > 0
         }
+        assertEquals("每个新场景只能有一条真实备份提醒", 1, reminder.getInt("count"))
     }
 
     /** 每次在未过期的生产提醒下重新进入对象附件，避免多次截图耗尽同一8秒提醒。 */
