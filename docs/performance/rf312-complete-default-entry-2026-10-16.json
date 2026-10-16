@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "scope": "complete-default-ui-journey-entry-and-independent-observer-source",
+  "compiledProductSource": "525da2ea01aa9966726a951d0282735caa315d04",
+  "originalProductFiles": 1795,
+  "defaultReleaseApkSha256": "e16dd7cdb2e7c1084a9215f5cc1e5fda2a3d4d65687b42363727528629e7acfd",
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "webView": "91.0.4472.114",
+    "vCpu": 2,
+    "memoryMiB": 2048,
+    "gpu": "SwiftShader"
+  },
+  "entry": {
+    "implementedPhases": [
+      "startup",
+      "password-unlock",
+      "first-ocr-user-flow",
+      "workspace",
+      "search-needle",
+      "attachments-open",
+      "image-preview",
+      "text-preview",
+      "pdf-text-native",
+      "pdf-scanned-native",
+      "application-lock",
+      "password-reunlock"
+    ],
+    "fullNativeUiJourneyAccepted": false,
+    "performanceDistributionAccepted": false,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "phaseLimitSeconds": 45,
+    "observerLimitSeconds": 240,
+    "requestLimit": 512,
+    "readyLimitSeconds": 15,
+    "nativeOcrReadLimitSeconds": 10
+  },
+  "originalDelegatedPickerFailure": {
+    "reason": "public-picker-delegated-tile-was-not-selected-before-original-deadline",
+    "cases": [
+      {
+        "objectCount": 100,
+        "accepted": false,
+        "completedPhaseNames": [
+          "startup",
+          "password-unlock"
+        ],
+        "physicallyVerifiedPublicTextStages": 0,
+        "privateEntries": 138,
+        "allStateExactlyRestored": true,
+        "observerRequests": 154,
+        "failureEvidencePreserved": true
+      }
+    ],
+    "completeTerminalDropBoxEntries": 94,
+    "noAnrEntries": true,
+    "allStateExactlyRestored": true,
+    "hostCleanupPassed": true,
+    "fullUiQueueAccepted": false,
+    "independentAuditSha256": "5f90d982dad78c0ddbfc133144cd015aaed15ee3b6f9b9b7d7de489d0c79fe38"
+  },
+  "pickerCapability": {
+    "implemented": true,
+    "nativeSelectionAccepted": false,
+    "elementClass": "android.widget.LinearLayout",
+    "clickable": false,
+    "focusable": true,
+    "labelFields": [
+      "public-file-name",
+      "size",
+      "modified-date"
+    ],
+    "exactTargetRevalidationKept": true,
+    "genericTapAndTypeGuardsKept": true,
+    "previewControlMustBeExcluded": true
+  },
+  "preProductBootRejection": {
+    "productInstalls": 0,
+    "unknownAdbGuardRejected": true,
+    "ownedResourcesCleaned": true,
+    "resultSha256": "7e0b08bbbcc9b57e7c87a723a4c2b2b1bf7b5b08ce818d0a80d4a047ff74cf2d"
+  },
+  "hostProvenance": {
+    "hostOnlyDiagnosticPassed": true,
+    "snapshots": 34,
+    "productInstalls": 0,
+    "nativeUiInputs": 0,
+    "observedSdkBootstrapClients": 3,
+    "ancestry": [
+      "emulator",
+      "qemu",
+      "cmd",
+      "adb-client"
+    ],
+    "completeCapturedIdentitiesAcceptedByUnitTests": 2,
+    "incompleteCapturedIdentityRefusedByUnitTests": 1,
+    "extraDaemonsArbitraryCommandsAndUnverifiedAncestryRefused": true,
+    "runtimeRecognizedSdkClients": 0,
+    "oldHistoricalServiceAbsentBeforeNewBaseline": true,
+    "historicalServiceRestarted": false,
+    "resultSha256": "095c63ad8e0b83170b08d336a7a955ac92ce6a7d7c3442dcab9157a1c61eacc3"
+  },
+  "latestReadyRejection": {
+    "reason": "observer-ready-adb-call-expired-with-zero-ui-requests",
+    "cases": [
+      {
+        "objectCount": 100,
+        "accepted": false,
+        "completedPhaseNames": [],
+        "physicallyVerifiedPublicTextStages": 0,
+        "privateEntries": 148,
+        "allStateExactlyRestored": true,
+        "observerRequests": 0,
+        "failureEvidencePreserved": true
+      }
+    ],
+    "completeTerminalDropBoxEntries": 58,
+    "noAnrEntries": true,
+    "allStateExactlyRestored": true,
+    "hostCleanupPassed": true,
+    "fullUiQueueAccepted": false,
+    "independentAuditSha256": "58fa8196d6e0a01f837ce07e0528e9087ccd34632153bc7fa9cdd4a8c65aa814"
+  },
+  "tests": {
+    "uniqueCases": 118,
+    "passed": true,
+    "resultSha256": "5c480e0a47af096c5c0e215a3b0a1165f7c7d3a042b89feaea1dfb1736b0325d"
+  },
+  "publicObserverSource": {
+    "directory": "rf312-default-observer",
+    "sourceSha256": {
+      "Observer.java": "e92c4312d2f148d9271ec3938306c2e1e7b6e481a0160ad3b29bb65509bba1e2",
+      "AndroidManifest.xml": "e234f90f46d761a5a8e81b072e480e5bcca05ac827fb037ec604804e8e76c9e3"
+    },
+    "builderSha256": "56c009a77cafccbb92b5253bf091ece10d7cd3e7726aeb38ac7c89fb65c1bcf2",
+    "dexSha256": "c841d6dcb3a7931ab7055ccc7b308b5eee36327e6470fad2fca812997ac172b4",
+    "actualCompileAndSignAndManifestVerified": true,
+    "outputWithSpacesVerified": true,
+    "existingOutputRefusedAndUnchanged": true,
+    "missingSdkRefusedBeforeOutputCreation": true,
+    "executableDexExactlyMatchesFrozenObserver": true,
+    "privateTestKeyAndApkLocalOnly": true,
+    "nativeRuntimeAccepted": false
+  },
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "parentTaskClosed": false,
+  "closedTasks": 363,
+  "totalTasks": 372,
+  "remaining": [
+    "adb-control-link-diagnostic",
+    "full-twelve-step-default-ui-acceptance",
+    "repeated-distributions",
+    "strict-all-process-memory",
+    "same-source-observation-overhead",
+    "ipc-attribution",
+    "portable-full-journey-orchestration",
+    "other-platform-evidence"
+  ],
+  "rawEvidenceAndPrivateRecipesLocalOnly": true
+}
