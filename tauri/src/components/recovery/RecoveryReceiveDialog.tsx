@@ -61,6 +61,9 @@ export function RecoveryReceiveDialog({
           width: '100%',
           padding: 24,
           position: 'relative',
+          // 手动字段、账户表单和错误信息可能高于窗口，关闭与末尾操作须能滚动到达。
+          maxHeight: 'min(85vh, calc(100vh - 32px))',
+          overflowY: 'auto',
         }}
       >
         <button

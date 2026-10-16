@@ -1,0 +1,661 @@
+{
+  "task": "RF-1174",
+  "date": "2026-10-16",
+  "status": "resolved",
+  "scope": "Bound real recovery and QR floating Card callers to the viewport with internal scrolling",
+  "source": {
+    "passed": true,
+    "baseCommit": "c2f54cd68da4aaa2cf71962450efac87384b0bdf",
+    "onlyViewportConstraintsAndObsoleteOptInChanged": true,
+    "stateHooksAndCallbacksAndSurfaceMarkersUnchanged": true,
+    "existingDisplayQrBoundsUnchanged": true,
+    "files": [
+      {
+        "file": "tauri/src/components/recovery/RecoveryReceiveDialog.tsx",
+        "originalLfSha256": "3905d5b2366ac36853e2ce392d9b366cf90eeb71cc71e6bfc9cdca725fadb32a",
+        "fixedLfSha256": "35bbfdbaa06b1c8b48775ad0519d886e1498e991978a709c87f134e08d0ab300",
+        "fixedRawSha256": "35bbfdbaa06b1c8b48775ad0519d886e1498e991978a709c87f134e08d0ab300"
+      },
+      {
+        "file": "tauri/src/components/sync/QrModalShell.tsx",
+        "originalLfSha256": "f631d7997c4e986fa04702d9d23469223fd8320b52fcb6fed6633aba37c8d76a",
+        "fixedLfSha256": "fc1b51498acc22af0698e093f5dc06d0f42be1e5d91b318133662b584156588f",
+        "fixedRawSha256": "fc1b51498acc22af0698e093f5dc06d0f42be1e5d91b318133662b584156588f"
+      },
+      {
+        "file": "tauri/src/components/sync/SyncShowQrDialog.tsx",
+        "originalLfSha256": "ea7bddd37d190b86d2269393ecac557ba174c5007417a26f0d371002b0019695",
+        "fixedLfSha256": "c4f618f0344caf278e14984cdd3951d3ccdd5f5355850d06d697190eb4da9f99",
+        "fixedRawSha256": "c4f618f0344caf278e14984cdd3951d3ccdd5f5355850d06d697190eb4da9f99"
+      }
+    ]
+  },
+  "regression": {
+    "originalProductionSourceAnd38FilesMatchedBeforeChange": true,
+    "originalRecoveryGeometry": [
+      {
+        "platform": "android",
+        "card": {
+          "top": -96.5,
+          "bottom": 576.5,
+          "height": 673,
+          "visible": false,
+          "hittable": true
+        },
+        "close": {
+          "top": -84.5,
+          "bottom": -36.5,
+          "height": 48,
+          "visible": false,
+          "hittable": false
+        },
+        "next": {
+          "top": 504.5,
+          "bottom": 552.5,
+          "height": 48,
+          "visible": false,
+          "hittable": false
+        },
+        "scrollHeight": 673,
+        "clientHeight": 673,
+        "overflowY": "visible",
+        "viewport": 480
+      },
+      {
+        "platform": "windows",
+        "card": {
+          "top": -67.5,
+          "bottom": 547.5,
+          "height": 615,
+          "visible": false,
+          "hittable": true
+        },
+        "close": {
+          "top": -54.5,
+          "bottom": -10.5,
+          "height": 44,
+          "visible": false,
+          "hittable": false
+        },
+        "next": {
+          "top": 478.5,
+          "bottom": 522.5,
+          "height": 44,
+          "visible": false,
+          "hittable": false
+        },
+        "scrollHeight": 613,
+        "clientHeight": 613,
+        "overflowY": "visible",
+        "viewport": 480
+      },
+      {
+        "platform": "macos",
+        "card": {
+          "top": -67.5,
+          "bottom": 547.5,
+          "height": 615,
+          "visible": false,
+          "hittable": true
+        },
+        "close": {
+          "top": -54.5,
+          "bottom": -10.5,
+          "height": 44,
+          "visible": false,
+          "hittable": false
+        },
+        "next": {
+          "top": 478.5,
+          "bottom": 522.5,
+          "height": 44,
+          "visible": false,
+          "hittable": false
+        },
+        "scrollHeight": 613,
+        "clientHeight": 613,
+        "overflowY": "visible",
+        "viewport": 480
+      }
+    ],
+    "originalScanGeometry": [
+      {
+        "platform": "android",
+        "card": {
+          "top": -67.5,
+          "bottom": 307.5,
+          "height": 375,
+          "visible": false,
+          "hittable": true
+        },
+        "close": {
+          "top": -55.5,
+          "bottom": -7.5,
+          "height": 48,
+          "visible": false,
+          "hittable": false
+        },
+        "scrollHeight": 375,
+        "clientHeight": 375,
+        "overflowY": "visible",
+        "viewport": 240
+      },
+      {
+        "platform": "windows",
+        "card": {
+          "top": -34.75,
+          "bottom": 274.75,
+          "height": 309.5,
+          "visible": false,
+          "hittable": true
+        },
+        "close": {
+          "top": -21.75,
+          "bottom": 1.25,
+          "height": 23,
+          "visible": false,
+          "hittable": false
+        },
+        "scrollHeight": 308,
+        "clientHeight": 308,
+        "overflowY": "visible",
+        "viewport": 240
+      },
+      {
+        "platform": "macos",
+        "card": {
+          "top": -34.75,
+          "bottom": 274.75,
+          "height": 309.5,
+          "visible": false,
+          "hittable": true
+        },
+        "close": {
+          "top": -21.75,
+          "bottom": 1.25,
+          "height": 23,
+          "visible": false,
+          "hittable": false
+        },
+        "scrollHeight": 308,
+        "clientHeight": 308,
+        "overflowY": "visible",
+        "viewport": 240
+      }
+    ],
+    "oldProductionGeometryRegressionsRejected": 2,
+    "correctedFinalNegativeGuardsPreserved": true,
+    "initialLabelLocatorTimeoutAndDiagnosticSetupFailuresPreserved": true,
+    "independentInputLabelDefectNotFixedHere": true
+  },
+  "checks": {
+    "typesPassed": true,
+    "lintPassed": true,
+    "nodePassed": 270,
+    "nodeSkipped": 1,
+    "nodeSkipReason": "Unchanged resource symlink test: Windows account lacks symlink privilege",
+    "vitestPassed": 2390,
+    "vitestSkipped": 0,
+    "productionBuildPassed": true,
+    "productionFiles": 38,
+    "realCallerWorkflowCases": 36,
+    "otherProductionCases": 32,
+    "allBrowserCases": 68,
+    "browserRetries": 0,
+    "browserSkipped": 0,
+    "platformStyles": ["android", "windows", "macos"],
+    "themes": ["light", "dark"],
+    "platformAndThemeAttributesAsserted": true,
+    "verifiedWorkflowPngs": 54
+  },
+  "behavior": {
+    "closeAndEndActionsReachableThroughInternalScroll": true,
+    "formValueRetained": true,
+    "scanAndExistingDisplayQrBothCovered": true,
+    "noHorizontalOverflow": true,
+    "recoveryAndSyncStateMachinesUnchanged": true,
+    "surfaceMarkersAndMaterialMappingUnchanged": true
+  },
+  "candidateFrontendSha256": {
+    "index.html": "559bfd8fff8b60f22ae111d995db10a63c7e6a3d03d920035f21e91fc74a2bb4",
+    "startup.js": "3af88760fa0d8c9d4daec2be27bf618bf0ecf61afc922860965a3e119b70157c",
+    "assets/128x128@2x-lsnePcND.png": "0f12a1e1a66ffc4cd851d88081763a13033e4bc6804f93a5296e3d39b576918f",
+    "assets/AiQuickChatPopover-9NRt0Ubq.js": "73858343ef21badeca7a320ead6363459723204150c1ee976f77a12706033b0c",
+    "assets/authStore-mqaVjKCK.js": "71b9347ccfd07149d90c4c777b3e0d55b6998dd897a3deb904b7751f16248cbc",
+    "assets/backendError-AUMifpDN.js": "38b56cf648c6ad18e418bfa7ce7ccaca4112fadad8f7e4f05e50feffead2d426",
+    "assets/bootstrapApp-CG3gfRbs.css": "dcf13bcf2bc389507d157b257ac66e3ac18ca04bea12741053399a702b30a65f",
+    "assets/bootstrapApp-JmnQfhZz.js": "9007c46c21ded2d1fc6c3b2405b6f5560259c5632682b3021b11cd9d7375ac5a",
+    "assets/constants-OmM7_JPu.js": "a410bb09c901874ed82e1eb6c49d5ce24699e1aab519e89b23f6850d409e860d",
+    "assets/core-BAM5JyGC.js": "5e59ae288769dfaf806dc48a065e7f4e3592976f6e0882b6c3c7ddd54534b4d9",
+    "assets/dialog-2pLf0lFA.js": "1ca0dccd121cdcc91627aa307a9cff3c690c93d648d25e985b79d170064d5fe3",
+    "assets/Dialog-Fnck0gKh.css": "5479f02abb963b6708a5b2ef83e6c3c5dbceba092008659c4ade31f501842ab1",
+    "assets/Dialog-mZtkW_N_.js": "9ba9c8a82d80832972bdd985b180d625d87080be08c7a2f7bd8dee5b63f6c0ea",
+    "assets/event-SFM-3aSQ.js": "11d9bd77ff820355bc3b73103a993728b31223a4cccc0e3f2c117a1231657dfa",
+    "assets/index-BNzNAeP1.css": "f527ef8a20f47dd5cd88bfeae4771d8db5ebf76ed9d43a3813d5b12499d66b8b",
+    "assets/index-BSK1hkDG.js": "4b0f518482fd4d5d867f7609c9fd773231c1383a9d0337765b29391499c09a1d",
+    "assets/ipcClient-otCKU4bN.js": "692b78474c992765d54ea9ce5d8e01240012f4d061376e6d3fc4853cfc0822c4",
+    "assets/is-prop-valid_framer-motion-0Fmh8zwg.css": "9b42950d72756f0e99c0bd19d783357dd994a460f5ec2e9791d2c080e655f2c6",
+    "assets/is-prop-valid_framer-motion-B1fmbvdX.js": "f93aa987f66b7054d89d02781eb8b918c693777ea42c6406d1fa598112180174",
+    "assets/jsx-runtime-TFkrR5hG.js": "522a4ffc7e97b5f2196fab4d392f53af20c24937862011a8bb64115968aeec4b",
+    "assets/loginAvailabilityPreflight-BBoKHVY8.js": "da83c2384db909f4161ab14b73e14274532ed53165fe3cd96411c30bbbf4da56",
+    "assets/markdown-vendor-cFbCZEjk.js": "ea31db20a59d977d8322f77fc6b3469eb6ed890118a3343633b7cc88415c74ff",
+    "assets/motion-vendor-DUtjY-Ae.js": "7d7b65ed5ab3622efa987932637312d3083a6001d03476262639d647e71c8662",
+    "assets/notification-D2pwtXaZ.js": "f8fc20df1a6b758ed88d5e8385550819680106bf1c2d4c42c8236352b379c604",
+    "assets/photoAlbumPreview-BhjYIuUg.css": "9e3d5ff81b75f55e53a4b9a71148cb66c9b4d325ee38ab972f57ca8ae995172b",
+    "assets/photoAlbumPreview-mT23w-yo.js": "00a378010602b0459fcad964ad025893d2e9c278bf910f9721ff6eecc1a15698",
+    "assets/PhotoViewerOverlay-BhHw14nS.js": "778c41de1212d284604df5edd8d28ef6e8fca8cac8efdf606945e4679f742a72",
+    "assets/preload-helper-zJ_50EbN.js": "0c88c6aaef07b19239a2eac9faef82584f9e733114f85dc190e98dcea60b1753",
+    "assets/react-SqCrPCpP.js": "625af8051c35a565d8bc35e1393bb89a91a801f494b3a542b1897f1ee0492ed5",
+    "assets/RecoveryQrScanner-Bh5zdB0l.js": "4ff1ec45427fa02a1496bf34c4e29f3c74f4376be69406dd3be14575b7d791af",
+    "assets/RecoveryQrScanner-DcMf1r0X.css": "f1355697ac9800cf420153e81652905c47dcdded96f6bbf6f163b4a3a34db85f",
+    "assets/RecoveryReceiveDialog-DiNesRWG.js": "19babd8215ffd31bfdc848548a01a49127f953fbea9a4e5521f7d04bfbbe935c",
+    "assets/rolldown-runtime-Cyuzqnbw.js": "6f5330f281c713c1b765ec52977b36599538b8d52c5dd3ce94d211f5b0e7debf",
+    "assets/useLlmChatCore-C77BIXIX.css": "a4cbb70101aaafe86a9c0ebed13a0636123129a6707326eea3bd3d18f7d080b7",
+    "assets/useLlmChatCore-OhwwkhhU.js": "01e4a19a15f7b6e37b0ab00993783a1acc96a9e91f2599131266a111f5f01ec0",
+    "assets/vaultDirectory-D8rFlCRk.js": "eda619428a85488b2c18ddb51507b53b1944b04d1a1005c9e4761a5007958aae",
+    "assets/webviewWindow-MqE53BjL.js": "5e5948c47a9181469e3fb20e1051ef6e4f732e76311674e00b7c301cab966ba0",
+    "assets/window-Dq_nAI7g.js": "d29a2dd4abb0514fed1b88176c69e654aca125eea7ca2f7637982ec61fe4fad6"
+  },
+  "workflowFrames": [
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "fd861835218ed3d9f8aa40bde54bb6651c2cc533033007a0bcb34a0cdb283874",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "926bfea45d0365918cc620fa9b4f021f857c8415a6b41c489befb5fa401a7fe0",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "5defb8806b05f0cb9dc036921311cc01d16e8a5bb501315670da600b09204f63",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "6c128515a258b7e43ce2780ba232e48471fcc5f088141f45be0fb860e9d85f00",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "1986e50562f661e2665da917916f9ebe3be478d3fd48741bca087361dd1b9824",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "334582c25bac17e6c27df89e8006a0a15998dfe659063aac7860830f5129d3d7",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "35abc90a3de0656cba68cc90752d58a719feb7e10293b85bf795974e36cf87e8",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "7559959bb5970eb1a4ea05372e603c21f221e56dad079207074dbec6e7b32c5c",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "e00ac498120f27eb3e1bb46f802a75f63a57dcaf3081d357ac5c3ac92142da85",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "ec7b4e09e247522f392660cacb3ebc242ffd5ca7932d1e661629285abdba1b53",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "6541a9f820c05e34c3e2e439f50d6eb665c658f89b2fc04b2c3197cd24630b91",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "acd01a1b034bcc110958b3dffeb1bf525a491e30711b44a975c217e2f2184141",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "87719f4034e13bc15f87f2b4375b581ec08d119cc1721495b8dd965f08b3cb62",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "e51f483442922574d3e33086e14a359ac47d2ef782ca3e51dc62bba443cc5a27",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "f881713094d0ec40df81cf541208fdcd3a31f617e44e6af53279c751b1c836b1",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "37de5023284ae047da656c252163ab4c124307c76697723ae353d5f973097f95",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "1a2328bf6d48ac84da79bb08af6616f27300bebaec77d37a9458773c2876aa93",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 640,
+      "height": 240,
+      "sha256": "bc15db68745ebc589ff9371fd706177dc7385484b7d437fe190939fa1f781526",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 640,
+      "height": 240,
+      "sha256": "b42141ee10eed74ac985eda145522a5aea68dd37c73a7756c4a0be2862e1d502",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "3ce4744afd4ec9e886a61cf158b1b064819bbd5e42011f371ed59db0616bd7fc",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 640,
+      "height": 240,
+      "sha256": "319e2c79c4ce4b9679c4d6eccb7df3c95c0e861d7e562536c8b7b3c3adc96657",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "0417dc0012978b4f8e7da1572ebd76c156064e3f0f1a6e836368726d3ff18d35",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "6fb71389ff3e42d3438218fc0d45d613a5a1136d64998ba867171c3b5fa84e91",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 320,
+      "height": 480,
+      "sha256": "c3e71ab4e8246a0928bc964daa75602181036dd07c4a22c976097301bc0a0926",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 320,
+      "height": 480,
+      "sha256": "55195815a75a8f6ad255e0280e3596ac67eee103ae336febdf08612890f399b1",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 320,
+      "height": 480,
+      "sha256": "2f2665764a0360a91336f083457d50c15eab767aaa6d827b1cb4bffa05aa67c4",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 640,
+      "height": 240,
+      "sha256": "2a37428dc0701cd73aac628163b9d11f066ba0c6cb326bb86379d2bbee6f5102",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 640,
+      "height": 240,
+      "sha256": "8b802368bc5cc918641be61e1cba1ca3cc126680076e3218e19572845d8afba2",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "29f25db42966d153c0b2d68366a202aaa5a0dd12dd19877f3615f51a61cbbd59",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "7527e92d74734c9015afcd65d8ab9116baa71dc84a1a0d87a1b6b2eafaaa7369",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "1620b4ea7124f30f2c0580cd0726ffd1e7eb70f601464020a49bd5d99f6a9ee4",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "c7cc58458ac88076a5947149815b0b2c75ed33f0cd9d2c3d5de6ef7635a510a2",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "8fd3215e8ece62ffd47ae3a3b1ae5def08f4a4418fddec58781c0fc2a4417ae3",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 320,
+      "height": 480,
+      "sha256": "56b15751bb8f75337796857b47603fbf6e1cf882d94f83b167cd828e0bab9d61",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 320,
+      "height": 480,
+      "sha256": "cc2b85b660b5319360eec3764843d6c11c5fc7f579d520e6ec052e387111ae12",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "0b6bd1d7aff0becb85188b3e102dbb9ee9baf07f704a8f1c64d3261c399ad8be",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "2a4fcac48f06441f5d04dbcde06b8f4b30f8d2047e0683f85b49aa246b5fa611",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 640,
+      "height": 240,
+      "sha256": "b46abf094d6fdf79d45b644fb122c2856d79f366e8d958fa029f6b04144b3ff5",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 900,
+      "height": 480,
+      "sha256": "a101a3409f576e09c5fefe40d286baa68e1a808cd712c86016828c14257c878e",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "99931e2e6988d1a07bfb417952154b10d2ebc1494308673b33b87d623f23981a",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "0ab10ca0d960f3299a945da045c762d31c866ad83e5ae0312bc2e436b487058d",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 320,
+      "height": 480,
+      "sha256": "43a365781003b353a81e2780a17a3803940e9d01277929d7f71d021033e6c209",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "77a61fac71a94d55913fd3a200a4daa94fd3938b18c5c1b18f69fc1f0c1b7342",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "acc07bf81642cdc89a7bf68cef409173a20ccb6621bf6a902a3391928eeaca07",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "f8a9dcbddf79d14820532c8b736f748ffb33936fa91fac3f02f794f553bc0763",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "29606df97d6df5a56382d8fe130647c96eb6aa8093b08113f8b0cd2fd1758761",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "bb95483adc5427a272c47663c0d87a3df28bf71ef910b0aa28e4eaeaebf32d9c",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "bb3ccefe58c45ad1e88133ceb4b65b623c9944f53e03589133de8ab7fd8815c9",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "1bb15f849acef7e8dac5d1d4083a06edd61fe868ad2cec68b2228779e4cf9fd1",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "ac451a0ffa5966d3ff592dcd95a6a6467587894b2e318e20ce22425509af3db3",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 240,
+      "sha256": "eb6609cde7b4926eab783332e71ca36d02dd657fb6193bc15147798662ba8d73",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-display-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "48c56332fd819ab63460b8fdb2e8cca3e6ef1f3c77cbfc63a7ecf5a5442d0a80",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "qr-scan-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "d5f6a2b1e0e4f9efefebdea362ba4525bd6232861b14e5a16a272c0d2d640054",
+      "crcAndPixelsDecoded": true
+    },
+    {
+      "name": "recovery-scrollable.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "7ff2b1714739888b123a93217572d22383a0cb2600209df6b06a01901a4fb418",
+      "crcAndPixelsDecoded": true
+    }
+  ],
+  "evidenceSha256": {
+    "source-guard.json": "398131b6f615044c6c5621825ada243a54c21e77386898ef11c466f85c42725e",
+    "front-check-result.json": "aa0f1c551b45b8cc8916cb0f14fbeb0e4e60eb1fbb181a2f2eac51ef142dd0ce",
+    "vitest.json": "04ec24b1432dad0924094f6d3617d8ed5835df3bec3b6fea57c4105eaca62a52",
+    "node.stdout": "8fa9ee3b32664b4db4086d2e18b2282435ba40366b13e62c5f2803265ead8a0a",
+    "red-baseline-final/results.json": "f9631774e377df662d214e1123b3e36bb37b851d14a030e069f499489c078fe0",
+    "green/results.json": "74965e1d32cf9991ad73d40375c622eb072fef1edd53380f72709ef89ca2cc63",
+    "original-recovery-geometry.json": "d81b57e9227951e42dcc830ea9589b740a7c4bed969518000074a51860072cd1",
+    "original-qr-v4-geometry.json": "5b40aa90d6eeca984415f13a45186dea9b47c910a90c6a487f006498c0a1368b",
+    "dependency-junction-cleanup.json": "7ef9ca2377b2623762ce6b6e51249d16f09017ccba1442f7604a6833679a424a"
+  },
+  "nativeMaterialOrAndroidFontImeOrPhysicalDevicesAccepted": false,
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "machinePathsPidsRawLogsScreenshotsOrPrivateDataPublished": false,
+  "cleanup": {
+    "ownedBrowserAndServerAbsent": true,
+    "passed": true,
+    "dependencyTargetPreserved": true,
+    "ownedDependencyJunctionRemoved": true,
+    "recursiveDeleteUsed": false
+  }
+}

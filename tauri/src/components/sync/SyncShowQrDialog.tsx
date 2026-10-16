@@ -179,7 +179,7 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   const isRecovery = mode === 'recovery';
 
   return (
-    <QrModalShell onClose={handleClose} scrollable>
+    <QrModalShell onClose={handleClose}>
       {/* 二维码类型切换 */}
       <SyncQrTabSwitcher t={t} isRecovery={isRecovery} onSelect={switchMode} />
 
