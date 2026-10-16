@@ -305,3 +305,26 @@ python scripts/android-home-native-regression.py \
 追加 `--high-text-contrast-live` 会在第一张真实二维码卡片上，由测试端 shell 使系统开关往返四次，等待主文档实际交付并记录 `main-high-text-live.json`；finally 恢复本轮原始值。30 项静态观测另存 `main-high-text-contrast.json`。两种记录均包含文档时间戳、实际系统值及截图，不能用未刷新静态截图或成功子集代替完整队列。没有显式期望或完整二维码 baseline 时 CLI 在设备命令前拒绝。
 
 当前同一新默认 Debug 包在 API35/WebView124 完成开/关 × supported/fallback 四整组，共 120 静态及 16 同页动态观测；正文实际像素、全部数据/权限/设置恢复和主机清理独立核验。此颜色/偏好任务仅运行正常系统字号，不替代前文布局变更的六档字号队列要求。API36 公共监听分支编译通过，未运行 API36 或旧 provider 回退，不关闭全部 RF-121。详见 [RF-1181 验证摘要](../verification/rf1181-android-high-text-contrast-2026-10-16.json)。
+
+
+## RF-1183：真实 Provider 连接反馈正文
+
+默认Debug生产包与完整canonical测试源集可在完整`baseline`后追加连接成功/失败Card观测。仅使用专用SoloSoul模拟器和自有ADB端点，先保存真实`high_text_contrast_enabled`原值，分别设置0/1，最后精确恢复；`--feedback-high-text-contrast`只声明预期，不代替系统设置。
+
+在`tauri/`下运行仓库内公开响应夹具，将记录写入隔离目录（端口须确认空闲，输出文件须不存在）：
+
+```text
+python scripts/android-provider-feedback-fixture.py --port 27683 --output <isolated-output>/provider-requests.json
+```
+
+夹具只绑定`127.0.0.1`，只接受公开`fixture-model`、`Hello`、10 token上限和`public-unused`测试key；成功路径`/success/v1/chat/completions`返回固定公开响应，错误路径`/error/v1/chat/completions`返回HTTP500。不是外部Provider，不发送Vault资料。通过本轮自有ADB端点给专用模拟器配置同一端口的`reverse`；保存原`reverse --list`，结束仅移除本轮映射并核对恢复，不能调用`--remove-all`或操作受保护的其他ADB。
+
+在既有完整驱动命令上追加（端口与上文保持一致）：
+
+```text
+--scenario baseline --font-scale 1.0 --provider-feedback --feedback-high-text-contrast false --feedback-url http://127.0.0.1:27683
+```
+
+该入口必须声明实际对比状态及回环URL，不能混用QR/恢复/安全警告追加场景。真实UI填写未保存的公开Provider并调用既有Rust连接测试，保留URL/SSRF与登记保护；不修改页面外观或注入IPC结果。浅深色各成功/失败四个状态，原3秒JS与45秒UI预算内连续两次颜色/几何稳定，正文至少4.5:1且高对比为主前景。普通/高文字对比×blur支持/降级须各跑完整基线；每个成功组应有4次公开HTTP响应，旧包低对比反例单列且原成功读取器必须拒绝整份失败记录，不删末尾failure或拼接成功子集。
+
+完整核对数据、权限、字号、blur和对比设置恢复，以及自有服务、映射、APK、模拟器与ADB退出；原生像素、全局ANR清单和完整证据读取通过前不关闭任务。工具本身可运行`python -m unittest test_android_provider_feedback_fixture`（工作目录`tauri/scripts/`），覆盖真实回环200/500/拒绝响应及不覆盖已有输出。浏览器三平台/20色板回归独立保留，不称为其他OS原生材质、API31/36、实体设备或Release性能验收。详见[RF-1183验证摘要](../verification/rf1183-status-feedback-contrast-2026-10-16.json)。

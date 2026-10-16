@@ -541,6 +541,7 @@ class AndroidHomeInstrumentedTest {
             .put("nativeDocumentReadiness",nativeDocumentReadiness).put("readyDocumentEvaluations",readyDocumentEvaluations)
             .put("qrCardsRequested",qrChecks).put("qrRecords",qrRecords).put("qrNearbyPrompts",qrNearbyPrompts).put("qrEnableReadiness",qrEnableReadiness)
             .put("securityWarningsRequested",securityWarningChecks).put("securityWarningRecords",securityWarningRecords)
+            .put("providerFeedbackRequested",providerFeedbackChecks).put("providerFeedbackRecords",providerFeedbackRecords)
             .put("recoveryCardsRequested",recoveryChecks).put("recoveryRecords",recoveryRecords)
             .put("recoveryCameraPrompts",recoveryCameraPrompts).put("recoveryPermissionDiagnostics",recoveryPermissionDiagnostics)
             .put("recoveryTapPlans",recoveryTapPlans).put("recoveryPointerEvents",recoveryPointerEvents)
@@ -845,6 +846,118 @@ class AndroidHomeInstrumentedTest {
         }
         clickSelector(scenario, ".android-navigation a[href='/']")
         waitFor(scenario, "security warnings returned home", home) { it.optBoolean("home") }
+    }
+
+
+    private fun fillFeedbackInput(scenario: ActivityScenario<MainActivity>, label: String, value: String) {
+        val result = js(scenario, """(() => {
+          const label=[...document.querySelectorAll('main label')].find(e=>e.textContent.trim()===${JSONObject.quote(label)});
+          const input=label?.htmlFor?document.getElementById(label.htmlFor):null;
+          if(!input||input.tagName!=='INPUT'||input.disabled)return JSON.stringify({filled:false});
+          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSONObject.quote(value)});
+          input.dispatchEvent(new Event('input',{bubbles:true}));return JSON.stringify({filled:input.value===${JSONObject.quote(value)}});
+        })()""")
+        assertTrue("Actual labeled provider input: $label",result.getBoolean("filled"))
+    }
+
+    private val providerFeedbackChecks get() = InstrumentationRegistry.getArguments().getString("providerFeedback") == "true"
+    private val providerFeedbackRecords = JSONArray()
+
+    /** Exercise real settings controls and observe real system contrast; no appearance/style injection. */
+    private fun verifyProviderFeedback(scenario: ActivityScenario<MainActivity>) {
+        val requested = InstrumentationRegistry.getArguments().getString("feedbackHighTextContrast")
+        require(requested == "true" || requested == "false")
+        val expected = requested == "true"
+        for (dark in listOf(false, true)) {
+            val theme = if (dark) "dark" else "light"
+            openAppearance(scenario)
+            clickText(scenario, if (dark) "Dark" else "Light")
+            clickSelector(scenario, ".android-navigation a[href='/tools']")
+            waitFor(scenario, "actual Tools route $theme", page) { it.optString("path") == "/tools" }
+            clickText(scenario, "AI Chat")
+            waitFor(scenario, "actual AI Chat route $theme", page) { it.optString("path") == "/llm-chat" }
+            clickText(scenario, "Configure LLM")
+            waitFor(scenario, "actual provider settings route $theme", page) { it.optString("path") == "/settings/llm" }
+            clickText(scenario, "Add Custom Provider")
+            fillFeedbackInput(scenario, "Provider Name", "Public fixture")
+            fillFeedbackInput(scenario, "Model", "fixture-model")
+            fillFeedbackInput(scenario, "API Key", "public-unused")
+            for (kind in listOf("success", "error")) {
+                val endpoint = InstrumentationRegistry.getArguments().getString("feedbackUrl")!! + "/$kind/v1"
+                fillFeedbackInput(scenario, "Base URL", endpoint)
+                clickText(scenario, "Test Connection")
+                val prefix = if (kind == "success") "✓ Connected" else "✗ Connection failed"
+                val locate = """[...document.querySelectorAll('main div')]
+                  .find(e=>e.childElementCount===0&&e.textContent.trim().startsWith(${JSONObject.quote(prefix)})&&e.closest('[data-ui-card="default"]'))"""
+                waitFor(scenario, "provider feedback rendered $theme $kind", """(() => {
+                  const e=$locate;e?.scrollIntoView({block:'center'});return JSON.stringify({present:!!e});
+                })()""") { it.optBoolean("present") }
+                val resolver = instrumentation.targetContext.contentResolver
+                val raw = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+                val nativeEnabled = android.provider.Settings.Secure.getInt(resolver, "high_text_contrast_enabled", 0) == 1
+                var stableReads = 0
+                var previousState: String? = null
+                val state = waitFor(scenario, "visible provider feedback $theme $kind", """(() => {
+                  const kind=${JSONObject.quote(kind)},e=$locate,root=document.documentElement,rs=getComputedStyle(root);
+                  if(!e)return JSON.stringify({present:false});
+                  const rect=n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+                  const r=rect(e),es=getComputedStyle(e),card=e.closest('[data-ui-card="default"]');
+                  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+                  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+                  const layers=['#ffffff'];
+                  const ancestors=[];for(let n=e;n;n=n.parentElement)ancestors.unshift(getComputedStyle(n));
+                  layers.push(...ancestors.map(s=>s.backgroundColor));
+                  const sample=colors=>{ctx.clearRect(0,0,1,1);for(const c of colors){ctx.fillStyle=c;ctx.fillRect(0,0,1,1)}return [...ctx.getImageData(0,0,1,1).data].slice(0,3)};
+                  const background=sample(layers),foreground=sample([...layers,es.color]);
+                  const luminance=rgb=>rgb.map(v=>{v/=255;return v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+                  const a=luminance(background),b=luminance(foreground);
+                  const textRects=[];const walker=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let node;
+                  while(node=walker.nextNode()){if(!node.textContent.trim())continue;const range=document.createRange();range.selectNodeContents(node);
+                    for(const t of range.getClientRects())if(t.width>0&&t.height>0)textRects.push({x:t.x,y:t.y,width:t.width,height:t.height})}
+                  const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                  return JSON.stringify({present:true,path:location.pathname,platform:root.dataset.platform,theme:root.dataset.theme,
+                    feedback:kind,foreground,background,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),
+                    feedbackToken:rs.getPropertyValue(kind==='success'?'--text-success':'--text-error').trim(),primary:rs.getPropertyValue('--text-primary').trim(),
+                    rootHighContrast:root.dataset.highContrast??null,androidHighTextContrast:root.dataset.androidHighTextContrast??null,
+                    prefersMore:matchMedia('(prefers-contrast: more)').matches,
+                    effectiveHighContrast:root.dataset.highContrast==='true'||root.dataset.androidHighTextContrast==='true'||matchMedia('(prefers-contrast: more)').matches,
+                    cardSurface:card?.dataset.uiCard,rect:r,textRects,cssViewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},
+                    backgroundImagesAbsent:ancestors.every(s=>s.backgroundImage==='none'),
+                    visible:r.x>=0&&r.y>=0&&r.x+r.width<=innerWidth+.5&&r.y+r.height<=innerHeight+.5&&!!hit&&e.contains(hit)});
+                })()""".replace("feedback:kind", "feedback:" + JSONObject.quote(kind))) {
+                    val ready = it.optBoolean("present") && it.optBoolean("visible") && it.optString("theme") == theme
+                    val signature = it.toString()
+                    stableReads = if (ready && signature == previousState) stableReads + 1 else if (ready) 1 else 0
+                    previousState = if (ready) signature else null
+                    stableReads >= 2
+                }
+                val stage = "feedback-$theme-$kind"
+                val filename = "$stage.png"
+                val bitmap = screenshot(scenario)
+                try {
+                    File(evidence, filename).outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+                    state.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height)
+                } finally { bitmap.recycle() }
+                val after = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+                state.put("stage",stage).put("stableObservations",stableReads).put("expected",expected).put("nativeEnabled",nativeEnabled)
+                    .put("rawBefore",raw?:JSONObject.NULL).put("rawAfter",after?:JSONObject.NULL)
+                    .put("screenshot",filename).put("nativeViewport",nativeViewport(scenario))
+                    .put("noAppearanceOrStyleInjected",true).put("endpoint",endpoint).put("message",js(scenario,"JSON.stringify({text:($locate)?.textContent.trim()})").getString("text"))
+                providerFeedbackRecords.put(state)
+                writeReport()
+                assertEquals(expected,nativeEnabled)
+                assertEquals(raw,after)
+                assertEquals("android",state.getString("platform"))
+                assertEquals("default",state.getString("cardSurface"))
+                assertTrue("Actual provider feedback must meet 4.5:1: $state",state.getDouble("contrast") >= 4.5)
+                assertTrue(state.getBoolean("backgroundImagesAbsent"))
+                assertEquals(expected,state.getBoolean("effectiveHighContrast"))
+                assertEquals(expected.toString(),state.getString("androidHighTextContrast"))
+                if(expected)assertEquals(state.getString("primary"),state.getString("feedbackToken"))
+            }
+        }
+        clickSelector(scenario, ".android-navigation a[href='/']")
+        waitFor(scenario, "provider feedback returned home", home) { it.optBoolean("home") }
     }
 
 
@@ -2597,6 +2710,7 @@ class AndroidHomeInstrumentedTest {
             if (recoveryChecks) verifyRecoveryCards(scenario)
             if (qrChecks) verifyQrCards(scenario)
             if (securityWarningChecks) verifySecurityWarnings(scenario)
+            if (providerFeedbackChecks) verifyProviderFeedback(scenario)
         } catch (error: Throwable) {
             // 仅公开临时账户；记录可见文案，不读取任何输入值或私有 Vault 文件。
             liveScenario?.let { scenario ->

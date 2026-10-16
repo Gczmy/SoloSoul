@@ -291,7 +291,9 @@ export function ProviderManagerPanel({
                     padding: '6px 10px',
                     borderRadius: 6,
                     background: 'rgba(128,128,128,0.08)',
-                    color: testResult.startsWith(t('settings:llm_test_ok')) ? '#27ae60' : '#e74c3c',
+                    color: testResult.startsWith(t('settings:llm_test_ok'))
+                      ? 'var(--text-success)'
+                      : 'var(--text-error)',
                   }}
                 >
                   {testResult}

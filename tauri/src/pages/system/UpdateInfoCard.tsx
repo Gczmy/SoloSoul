@@ -92,7 +92,7 @@ export function UpdateInfoCard({
                       padding: '2px 8px',
                       borderRadius: 10,
                       background: 'rgba(230,126,34,0.15)',
-                      color: '#e67e22',
+                      color: 'var(--text-warning)',
                       fontWeight: 500,
                     }}
                   >
@@ -107,7 +107,7 @@ export function UpdateInfoCard({
                       padding: '2px 8px',
                       borderRadius: 10,
                       background: 'rgba(231,76,60,0.12)',
-                      color: '#e74c3c',
+                      color: 'var(--text-error)',
                       fontWeight: 500,
                     }}
                     title={versionInfo.error}
@@ -121,7 +121,7 @@ export function UpdateInfoCard({
                       padding: '2px 8px',
                       borderRadius: 10,
                       background: 'rgba(39,174,96,0.12)',
-                      color: '#27ae60',
+                      color: 'var(--text-success)',
                       fontWeight: 500,
                     }}
                   >
@@ -165,7 +165,7 @@ export function UpdateInfoCard({
                   <div
                     style={{
                       fontSize: 'var(--text-caption)',
-                      color: 'var(--error)',
+                      color: 'var(--text-error)',
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: 6,
@@ -239,7 +239,7 @@ export function UpdateInfoCard({
                         alignItems: 'flex-start',
                         gap: 6,
                         fontSize: 'var(--text-badge)',
-                        color: '#e67e22',
+                        color: 'var(--text-warning)',
                         lineHeight: 1.5,
                       }}
                       role="alert"
@@ -328,7 +328,7 @@ export function UpdateInfoCard({
                     </button>
                   )}
                   {downloadError && (
-                    <div style={{ fontSize: 'var(--text-caption)', color: 'var(--error)' }}>
+                    <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-error)' }}>
                       {downloadError.includes('NEED_INSTALL_UNKNOWN_APPS_PERMISSION')
                         ? t('settings:need_install_unknown_apps', {
                             defaultValue:

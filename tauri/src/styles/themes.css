@@ -25,7 +25,7 @@
   --text-warm: var(--accent-warm);
   /* 错误正文也用于半透明登录卡片，不能只按纯白表面选色。 */
   --text-error: #a32f23;
-  --text-success: #27ae60;
+  --text-success: #166534;
   /* 提示正文须在浅色卡片及琥珀色提示底上保持可读；强调/边框色独立。 */
   --text-warning: #805500;
 
@@ -100,7 +100,7 @@
   --text-inverse: #111111;
   --text-accent: var(--accent-primary); /* softened slate accent */
   --text-warm: var(--accent-warm); /* warm clay */
-  --text-error: #e07a6e;
+  --text-error: #e88b7f;
   --text-success: #7ec49a;
   --text-warning: #e6c780;
 
@@ -170,7 +170,7 @@
     --text-inverse: #111111;
     --text-accent: var(--accent-primary);
     --text-warm: var(--accent-warm);
-    --text-error: #e07a6e;
+    --text-error: #e88b7f;
     --text-success: #7ec49a;
     --text-warning: #e6c780;
 

@@ -86,6 +86,73 @@ class HomeRunnerTests(unittest.TestCase):
         report['restoreError']='failed'
         self.assertFalse(runner.verification_passed(report,False))
 
+    @classmethod
+    def feedback_evidence(cls, expected=False):
+        original=cls.security_evidence(expected)
+        rows=original.pop('securityWarningRecords')
+        for row in rows:
+            kind='success' if row.pop('warning')=='never' else 'error'
+            row.update(feedback=kind,path='/settings/llm',endpoint='http://127.0.0.1:27683/'+kind+'/v1',
+                       message='✓ Connected "fixture response"' if kind=='success' else '✗ Connection failed BackendCommandError: LLM_PROVIDER_UNAVAILABLE')
+            row['stage']='feedback-'+row['theme']+'-'+kind;row['screenshot']=row['stage']+'.png'
+            row['feedbackToken']=row.pop('warningToken')
+        return dict(providerFeedbackRequested=True,scenario='baseline',providerFeedbackRecords=rows)
+
+    def test_provider_feedback_accepts_both_explicit_system_lanes(self):
+        for enabled in (False,True):
+            self.assertEqual(len(runner.verify_provider_feedback_evidence(self.feedback_evidence(enabled),enabled,'http://127.0.0.1:27683')),4)
+
+    def test_provider_feedback_rejects_endpoint_or_response_substitution(self):
+        for key,value in [('endpoint','https://fixture.invalid/success/v1'),('message','✓ Connected'),('feedback','master'),
+                          ('stage','old'),('screenshot','old.png'),('cardSurface','floating'),('path','/settings/security'),
+                          ('platform','windows'),('stableObservations',1),('stableObservations',True)]:
+            evidence=self.feedback_evidence();evidence['providerFeedbackRecords'][0][key]=value
+            with self.subTest(key=key),self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,False,'http://127.0.0.1:27683')
+        for endpoint in (None,True,'http://127.0.0.1:80','http://127.0.0.1:65536','http://127.0.0.1:27683/','https://127.0.0.1:27683','http://localhost:27683','http://127.0.0.1:27683@fixture.invalid'):
+            with self.subTest(endpoint=endpoint),self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(self.feedback_evidence(),False,endpoint)
+        evidence=self.feedback_evidence();evidence['providerFeedbackRecords'][1]['message']='✗ Connection failed wrong response'
+        with self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,False,'http://127.0.0.1:27683')
+
+    def test_provider_feedback_rejects_color_and_system_substitution(self):
+        for key,value in [('foreground',[39,174,96]),('foreground',[True,85,0]),('contrast',1.0),('contrast',float('nan')),
+                          ('rawAfter','1'),('nativeEnabled',True),('effectiveHighContrast',True),('noAppearanceOrStyleInjected',False)]:
+            evidence=self.feedback_evidence();evidence['providerFeedbackRecords'][0][key]=value
+            with self.subTest(key=key),self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,False,'http://127.0.0.1:27683')
+        evidence=self.feedback_evidence(True);evidence['providerFeedbackRecords'][0]['feedbackToken']='#166534'
+        with self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,True,'http://127.0.0.1:27683')
+
+    def test_provider_feedback_rejects_clipped_and_incomplete_geometry(self):
+        for key,value in [('rect',dict(x=-1,y=20,width=200,height=100)),('textRects',[]),
+                          ('textRects',[dict(x=20,y=30,width=400,height=20)]),
+                          ('textRects',[dict(x=float('nan'),y=30,width=20,height=20)])]:
+            evidence=self.feedback_evidence();evidence['providerFeedbackRecords'][0][key]=value
+            with self.subTest(key=key),self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,False,'http://127.0.0.1:27683')
+
+    def test_provider_feedback_requires_full_ordered_opt_in_baseline(self):
+        for key,value in [('providerFeedbackRequested',False),('scenario','cold'),('providerFeedbackRecords',[])]:
+            evidence=self.feedback_evidence();evidence[key]=value
+            with self.subTest(key=key),self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,False,'http://127.0.0.1:27683')
+        evidence=self.feedback_evidence();evidence['providerFeedbackRecords'].reverse()
+        with self.assertRaises(RuntimeError):runner.verify_provider_feedback_evidence(evidence,False,'http://127.0.0.1:27683')
+
+    def test_provider_feedback_flags_reject_incomplete_scopes_before_device_commands(self):
+        common=['runner','--adb','unused-adb','--serial','emulator-5578','--avd','SoloSoul_Test',
+                '--apk','unused.apk','--test-apk','unused-test.apk','--output','must-not-be-created','--mode','supported']
+        lane=['--provider-feedback','--feedback-high-text-contrast','true','--feedback-url','http://127.0.0.1:27683']
+        variants=[['--provider-feedback'],['--feedback-high-text-contrast','true'],['--feedback-url','http://127.0.0.1:27683'],
+                  lane+['--qr-cards'],lane+['--recovery-cards'],lane+['--security-warnings'],lane+['--scenario','cold']]
+        variants += [['--provider-feedback','--feedback-high-text-contrast','true','--feedback-url',endpoint] for endpoint in ('http://127.0.0.1:80','http://127.0.0.1:65536','https://fixture.invalid','http://127.0.0.1:27683/')]
+        for flags in variants:
+            with self.subTest(flags=flags),mock.patch('sys.argv',common+flags),mock.patch('sys.stderr',new_callable=io.StringIO),mock.patch.object(runner.subprocess,'run') as device:
+                with self.assertRaises(SystemExit) as failure:runner.main()
+                self.assertEqual(failure.exception.code,2);device.assert_not_called()
+
+    def test_provider_feedback_success_requires_both_new_reader_and_original_restore(self):
+        report=dict(nativePassed=True,restored=True,blurRestored=True,scenario='baseline',providerFeedbackRequested=True)
+        self.assertFalse(runner.verification_passed(report,False));report['providerFeedbackPassed']=True
+        self.assertTrue(runner.verification_passed(report,False));report['restoreError']='failed'
+        self.assertFalse(runner.verification_passed(report,False))
+
     def test_contrast_flags_reject_incomplete_lanes_before_any_device_command(self):
         common = ['runner', '--adb', 'unused-adb', '--serial', 'emulator-5578',
                   '--avd', 'SoloSoul_Test', '--apk', 'unused.apk', '--test-apk', 'unused-test.apk',
