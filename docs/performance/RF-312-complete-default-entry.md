@@ -1,6 +1,6 @@
 # RF-312：完整默认行程入口与原生控制链路
 
-后续：同一默认包已通过前五步，公开选图与首次OCR完成，见[超时记录修正及下一项定位问题](RF-312-timeout-control-receipts.md)；[控制诊断与候选拒绝](RF-312-observer-control-transport.md)保持。完整默认行程仍未接受。
+后续：同一默认包已通过前七步，见[导航容器修正与预览关闭歧义](RF-312-navigation-container-scope.md)；[超时记录](RF-312-timeout-control-receipts.md)和[控制诊断](RF-312-observer-control-transport.md)的原失败保留。完整默认行程仍未接受。
 
 2026-10-16，十二步默认Release外部原生入口已实现，118项定向测试通过。首次完整尝试在系统文件选择器停止；补充专用公开文件卡片操作后，后续运行又在安装前宿主检查及观察器就绪ADB调用处拒绝。**目前没有完整默认UI行程或性能分布验收，所有原拒绝保留，RF-312未关闭。**
 

@@ -45,3 +45,13 @@ python build_observer.py --sdk "<SDK目录>" --jdk "<JDK目录>" --output "<新�
 ```sh
 python -B -m unittest discover -s . -p test_adb_control.py -v
 ```
+
+## 正文与底部导航边界
+
+`body_navigation.py`仅识别当前英文公开夹具的原生`Main navigation`容器，核对归属、可见／启用状态、容器类型、四个唯一可点击导航项及其边界。页面标题中的Home／Objects／Tools／Settings不参与判断；缺失、重复或不匹配时返回未就绪，调用方继续受原阶段期限约束，没有坐标或标题回退。
+
+八项回归覆盖实际标题碰撞、容器／按钮歧义、缺失、错误归属／状态和越界几何。留存层级的只读复现已从0个恢复为1个正文候选，不派发输入；原生命中、焦点、手指事件及原预算由原入口继续验证。
+
+```sh
+python -B -m unittest discover -s . -p test_body_navigation.py -v
+```

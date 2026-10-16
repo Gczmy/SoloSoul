@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "scope": "native-main-navigation-body-boundary-fix",
+  "compiledProductSource": "525da2ea01aa9966726a951d0282735caa315d04",
+  "originalProductFilesUnchanged": 1795,
+  "fix": {
+    "acceptedByNativeRecordTap": true,
+    "source": "rf312-default-observer/body_navigation.py",
+    "sourceSha256": "7d263d17c9b66eb13e117eb5bf0aed0a7fc835163b56b334614f9b7362f42ba2",
+    "testSourceSha256": "20892184f22ed3d1448accf13082698e31785caa7d8f1dece60fd0de7c76d7eb",
+    "regressionCasesAdded": 8,
+    "allUniqueUnitCases": 131,
+    "passed": true,
+    "requiresUniqueNamedNavigationAndFourOwnedVisibleEnabledButtons": true,
+    "rejectsMissingAmbiguousForeignOrOutsideGeometry": true,
+    "noTitleOrCoordinateFallback": true,
+    "nativeExactTargetReadinessFingerAndOriginalBudgetFunctionsUnchanged": true
+  },
+  "originalReplay": {
+    "unfilteredMatches": 1,
+    "oldBodyMatches": 0,
+    "newBodyMatches": 1,
+    "navigationTop": 1569,
+    "inputDispatched": false,
+    "resultSha256": "e8d6b89967bce4f4f3bfde338d56a24e4635d36e8e38d86b6209f3bab6575a96"
+  },
+  "defaultNativeAttempt": {
+    "objectCount": 100,
+    "accepted": false,
+    "completedPhaseNames": [
+      "startup",
+      "password-unlock",
+      "first-ocr-user-flow",
+      "workspace",
+      "search-needle",
+      "attachments-open",
+      "image-preview"
+    ],
+    "bodyRecordTapReceiptHashes": [
+      {
+        "requestSha256": "27a0284f01f3bdf1fa284a525a036b5b24c6ccfce8e2c6891af6827e4fd0422c",
+        "responseSha256": "fb80fac98a8da9c29db368ddfe4d0f082960b01068ed759f62357da0eb7469f8"
+      }
+    ],
+    "attachmentsAndImagePreviewAccepted": true,
+    "physicallyVerifiedPublicTextStages": 2,
+    "observerRequests": 322,
+    "privateEntriesExactlyRestored": 150,
+    "case5000Started": false,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false
+  },
+  "nextPreviewCloseDefect": {
+    "readOnlyReplayVerified": true,
+    "genericCloseCandidates": 3,
+    "candidatePhysicalBounds": [
+      [
+        858,
+        181,
+        987,
+        309
+      ],
+      [
+        863,
+        391,
+        992,
+        519
+      ],
+      [
+        918,
+        86,
+        1047,
+        217
+      ]
+    ],
+    "originalUniqueHitGuardRefused": true,
+    "fixIncludedInThisCommit": false,
+    "diagnosticSha256": "b501799c41e232d9b20b08e7609d0ade67acadc9367776ac78d1819f54b30b4f"
+  },
+  "cleanup": {
+    "originalApksUidDebugAndNineSettingsRestored": true,
+    "allPrivateEntriesAndRootModeRestored": true,
+    "normalObserverStopAndRemoval": true,
+    "completeTerminalDropBoxEntries": 106,
+    "noAnrEntries": true,
+    "ownedProcessesAndListenersAbsent": true
+  },
+  "evidence": {
+    "unitResultSha256": "f2d3de6152759698ab8461b4d56875308b880bc82cb7e72b7a37150a36d9cc55",
+    "independentTerminalAuditSha256": "5c49fd14a4415c66b70e91a0ca74559230c3634d434ab6b22a93f538d084cd2d",
+    "hostAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  },
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "parentTaskClosed": false,
+  "closedTasks": 363,
+  "totalTasks": 372,
+  "rawEvidenceLocalOnly": true,
+  "nextAction": "scope-preview-close-to-current-file-header-and-retain-native-unique-hit-guard"
+}
