@@ -980,7 +980,13 @@ def main():
     parser.add_argument("--recovery-cards", action="store_true", help="Append real Login recovery card native touch/IME/rotation checks to baseline")
     parser.add_argument("--motion-preferences", action="store_true", help="Verify true/false reduced motion across account/process changes (cold only)")
     parser.add_argument('--font-scale', type=float, choices=(1.0, 1.3, 2.0), help='Actual Android system font scale; baseline only, restored afterward')
+    parser.add_argument('--expected-high-text-contrast', choices=('true','false'), help='Optional native read-only MainActivity delivery probe')
+    parser.add_argument("--high-text-contrast-live", action="store_true", help="Verify real system toggles without document reload")
     args = parser.parse_args()
+    if args.expected_high_text_contrast is not None and (args.scenario != 'baseline' or not args.qr_cards):
+        parser.error('High text contrast observation requires the complete baseline with --qr-cards')
+    if args.high_text_contrast_live and args.expected_high_text_contrast is None:
+        parser.error('Live contrast checks require an explicit --expected-high-text-contrast lane')
     if args.qr_cards and (args.scenario != "baseline" or args.recovery_cards):
         parser.error("QR callers append to baseline only and cannot mix recovery tap records")
     if args.recovery_cards and args.scenario != "baseline":
@@ -998,6 +1004,8 @@ def main():
     report['requestedFontScale'] = args.font_scale
     report['recoveryCardsRequested'] = args.recovery_cards
     report['qrCardsRequested'] = args.qr_cards
+    report['expectedHighTextContrast'] = args.expected_high_text_contrast
+    report['highTextContrastLiveRequested'] = args.high_text_contrast_live
     selected = False
     backup_valid = False
     mutation_started = False
@@ -1092,6 +1100,8 @@ def main():
                      "-e", "prepareColdRestart", "true" if args.scenario == "cold" else "false",
                      "-e", "motionPreferenceChecks", str(args.motion_preferences).lower(),
                      *(("-e", "fontScale", str(args.font_scale)) if args.font_scale is not None else ()),
+                     *(("-e", "expectedHighTextContrast", args.expected_high_text_contrast) if args.expected_high_text_contrast is not None else ()),
+                     *(("-e", "mainHighTextContrastLiveChecks", "true") if args.high_text_contrast_live else ()),
                      "-e", "class", f"com.solosoul.app.AndroidHomeInstrumentedTest#{METHOD}",
                      "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner",
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

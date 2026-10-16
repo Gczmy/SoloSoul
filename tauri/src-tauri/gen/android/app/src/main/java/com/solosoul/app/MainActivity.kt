@@ -24,6 +24,7 @@ class MainActivity : TauriActivity() {
   private var removeResourceObserver: (() -> Unit)? = null
   private var resourceErrorNotice: Snackbar? = null
   private var safeArea: AndroidSafeArea? = null
+  private var highTextContrast: AndroidHighTextContrast? = null
   // 冷启动时 WebView 可能尚未挂树，先把快捷方式 action 暂存到这里，
   // 等 WebView 就绪后通过 tryFlushPendingShortcut 注入前端 sessionStorage。
   private var pendingShortcutAction: String? = null
@@ -51,6 +52,8 @@ class MainActivity : TauriActivity() {
   override fun onWebViewCreate(webView: WebView) {
     super.onWebViewCreate(webView)
     syncLegacyWebViewSystemTheme(webView, resources.configuration)
+    highTextContrast?.dispose()
+    highTextContrast = AndroidHighTextContrast(this, webView)
     safeArea?.dispose()
     val area = AndroidSafeArea(this, webView)
     safeArea = area
@@ -207,6 +210,7 @@ class MainActivity : TauriActivity() {
 
   override fun onResume() {
     super.onResume()
+    highTextContrast?.refresh()
     // 每次回到前台时尝试清空可能因 WebView 未就绪而遗留的 pending shortcut
     tryFlushPendingShortcut { /* no-op */ }
   }
@@ -236,6 +240,8 @@ class MainActivity : TauriActivity() {
   }
 
   override fun onDestroy() {
+    highTextContrast?.dispose()
+    highTextContrast = null
     safeArea?.dispose()
     safeArea = null
     removeResourceObserver?.invoke()

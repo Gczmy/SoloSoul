@@ -7,6 +7,7 @@ import subprocess
 import tarfile
 import tempfile
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location("home_runner", Path(__file__).with_name("android-home-native-regression.py"))
 runner = importlib.util.module_from_spec(spec)
@@ -14,6 +15,21 @@ spec.loader.exec_module(runner)
 
 
 class HomeRunnerTests(unittest.TestCase):
+    def test_contrast_flags_reject_incomplete_lanes_before_any_device_command(self):
+        common = ['runner', '--adb', 'unused-adb', '--serial', 'emulator-5578',
+                  '--avd', 'SoloSoul_Test', '--apk', 'unused.apk', '--test-apk', 'unused-test.apk',
+                  '--output', 'must-not-be-created', '--mode', 'supported']
+        for flags in (['--expected-high-text-contrast', 'true'],
+                      ['--high-text-contrast-live', '--qr-cards'],
+                      ['--expected-high-text-contrast', 'false', '--qr-cards', '--scenario', 'cold']):
+            with self.subTest(flags=flags), mock.patch('sys.argv', common + flags), \
+                 mock.patch('sys.stderr', new_callable=io.StringIO), \
+                 mock.patch.object(runner.subprocess, 'run') as device:
+                with self.assertRaises(SystemExit) as failure:
+                    runner.main()
+                self.assertEqual(failure.exception.code, 2)
+                device.assert_not_called()
+
     def test_font_restore_survives_framework_default_and_decimal_writeback(self):
         for original, effective in [('null', 1.0), ('1.30', 1.3)]:
             with self.subTest(original=original):

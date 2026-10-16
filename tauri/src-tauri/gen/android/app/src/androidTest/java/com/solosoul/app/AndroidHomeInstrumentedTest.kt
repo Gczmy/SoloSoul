@@ -438,6 +438,7 @@ class AndroidHomeInstrumentedTest {
         row.put("stage",stage).put("kind",kind).put("nativeViewport",native).put("action",target?:JSONObject.NULL)
             .put("exportFileCount",qrRecoveryFileCount()).put("screenshotStateConfirmed",true)
         qrRecords.put(row);writeReport()
+        observeMainHighTextContrast(scenario,stage)
     }
 
     private fun qrClosed(scenario: ActivityScenario<MainActivity>, stage: String, theme: String) {
@@ -749,6 +750,90 @@ class AndroidHomeInstrumentedTest {
         navigationBackdrop:navigation?getComputedStyle(navigation).backdropFilter:null,
         navCount:document.querySelectorAll('.android-navigation a').length});
     })()"""
+
+    private val mainContrastRecords = JSONArray()
+    private val mainLiveContrastRecords = JSONArray()
+
+    /** Observe the production document; never inject an appearance value or override styles. */
+    private fun observeMainHighTextContrast(scenario: ActivityScenario<MainActivity>, stage: String,
+                                            expectedOverride: Boolean? = null, live: Boolean = false) {
+        val requested = InstrumentationRegistry.getArguments().getString("expectedHighTextContrast") ?: return
+        require(requested == "true" || requested == "false")
+        val expected = expectedOverride ?: (requested == "true")
+        val resolver = instrumentation.targetContext.contentResolver
+        val raw = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+        assertTrue("Only real absent/0/1 settings are accepted", raw == null || raw == "0" || raw == "1")
+        val nativeEnabled = android.provider.Settings.Secure.getInt(resolver, "high_text_contrast_enabled", 0) == 1
+        val state = js(scenario, """JSON.stringify((() => {
+          const root=document.documentElement,style=getComputedStyle(root);
+          const card=document.querySelector('[data-ui-card="floating"]');
+          const color=card?getComputedStyle(card):null,rect=card?.getBoundingClientRect();
+          return {path:location.pathname,platform:root.dataset.platform,documentTimeOrigin:performance.timeOrigin,
+            rootHighContrast:root.dataset.highContrast??null,
+            androidHighTextContrast:root.dataset.androidHighTextContrast??null,
+            prefersMore:matchMedia('(prefers-contrast: more)').matches,
+            effectiveHighContrast:root.dataset.highContrast==='true'||root.dataset.androidHighTextContrast==='true'||matchMedia('(prefers-contrast: more)').matches,
+            primary:style.getPropertyValue('--text-primary').trim(),border:style.getPropertyValue('--border-subtle').trim(),
+            error:style.getPropertyValue('--text-error').trim(),
+            card:card?{surface:card.dataset.uiCard,color:color.color,background:color.backgroundColor,
+              border:color.borderTopColor,rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}}:null};
+        })())""")
+        val bitmap = screenshot(scenario)
+        val filename = "main-contrast-$stage.png"
+        try {
+            File(evidence,filename).outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+        } finally { bitmap.recycle() }
+        val after = android.provider.Settings.Secure.getString(resolver,"high_text_contrast_enabled")
+        state.put("stage",stage).put("expected",expected).put("nativeEnabled",nativeEnabled)
+            .put("rawBefore",raw?:JSONObject.NULL).put("rawAfter",after?:JSONObject.NULL)
+            .put("screenshot",filename).put("noAppearanceOrStyleInjected",true)
+        val records = if (live) mainLiveContrastRecords else mainContrastRecords
+        records.put(state)
+        File(evidence,if (live) "main-high-text-live.json" else "main-high-text-contrast.json").writeText(records.toString(2))
+        assertEquals("Actual Android system contrast must match the explicit main-window lane",expected,nativeEnabled)
+        assertEquals("Native setting must remain unchanged while observing MainActivity",raw,after)
+        assertEquals("android",state.getString("platform"))
+        assertFalse("MainActivity must expose an actual production Card",state.isNull("card"))
+        assertEquals("MainActivity must receive the actual Android high text contrast preference",expected,state.getBoolean("effectiveHighContrast"))
+        if(expected) {
+            assertEquals("High-contrast semantic border must use the existing primary foreground",state.getString("primary"),state.getString("border"))
+            assertEquals("High-contrast error body must use the existing primary foreground",state.getString("primary"),state.getString("error"))
+        }
+        if (!live && stage == "qr-light-disabled" &&
+            InstrumentationRegistry.getArguments().getString("mainHighTextContrastLiveChecks") == "true")
+            verifyLiveHighTextContrast(scenario, expected)
+    }
+
+    /** 仅测试端使用 shell 更改真实系统偏好；从不写入页面标记或样式。 */
+    private fun verifyLiveHighTextContrast(scenario: ActivityScenario<MainActivity>, initial: Boolean) {
+        val resolver = instrumentation.targetContext.contentResolver
+        val original = android.provider.Settings.Secure.getString(resolver,"high_text_contrast_enabled")
+        fun write(value: String?) {
+            val command = if (value == null) "settings delete secure high_text_contrast_enabled"
+                else "settings put secure high_text_contrast_enabled $value"
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(
+                instrumentation.uiAutomation.executeShellCommand(command)).use { it.readBytes() }
+            assertEquals("Live setting write must affect the real system",value,
+                android.provider.Settings.Secure.getString(resolver,"high_text_contrast_enabled"))
+        }
+        fun delivered(expected: Boolean) {
+            waitFor(scenario,"实际系统高文字对比变化交付主文档",
+                """JSON.stringify({enabled:document.documentElement.dataset.androidHighTextContrast==='true'})""") {
+                it.getBoolean("enabled") == expected
+            }
+        }
+        try {
+            listOf(!initial,initial,!initial,initial).forEachIndexed { index, enabled ->
+                write(if (enabled) "1" else "0")
+                delivered(enabled)
+                observeMainHighTextContrast(scenario,"live-contrast-$index",enabled,true)
+            }
+        } finally {
+            write(original)
+            delivered(initial)
+        }
+    }
+
 
     private fun capture(scenario: ActivityScenario<MainActivity>, stage: String,
                         dark: Boolean, enhanced: Boolean, count: String = "0") {

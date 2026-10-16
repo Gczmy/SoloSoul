@@ -295,8 +295,9 @@ html[data-platform='ios'] #root {
   height: 100%;
 }
 
-/* AppKit 的提高对比度设置不一定映射成 WebView 的 forced-colors。 */
-:root[data-high-contrast='true'] {
+/* 原生对比度偏好未必映射到媒体查询；Android 独立于桌面窗框同步。 */
+:root[data-high-contrast='true'],
+:root[data-platform='android'][data-android-high-text-contrast='true'] {
   --border-subtle: var(--text-primary) !important;
   --text-secondary: var(--text-primary) !important;
   --text-tertiary: var(--text-primary) !important;

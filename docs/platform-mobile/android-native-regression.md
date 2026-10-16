@@ -262,7 +262,7 @@ Android `RecoveryQrScanner` 使用现有 JavaScript 解码器，避免 WebView �
 python -m unittest test_android_home_native_regression test_android_recovery_native_evidence test_android_recovery_native_taps test_android_qr_native_evidence test_android_qr_nearby_permission test_android_qr_enable_readiness
 ```
 
-81 项含原读取器回归，以及缺失/重复/错序二维码状态、伪造触摸、未知权限、CAMERA 被误授权、附近设备标记未恢复和 UI-only 开启证据的拒绝；单测不作为原生运行证明。
+82 项含原读取器回归，以及缺失/重复/错序二维码状态、伪造触摸、未知权限、CAMERA 被误授权、附近设备标记未恢复和 UI-only 开启证据的拒绝；单测不作为原生运行证明。
 
 `android-home-native-regression.py` 的 `--scenario baseline --qr-cards` 保留全部原首页检查，再走真实同步页的未开启提示、恢复二维码与手动说明、同步二维码，以及拒绝 CAMERA 后的扫码回退。该额外入口要求 API33+，不能与 `--recovery-cards` 合并；旧 baseline 的 API31 准入不变。沿用上节专用 AVD、APK 来源与数据备份要求，在 `tauri/` 使用新的输出目录：
 
@@ -296,3 +296,12 @@ python scripts/android-home-native-regression.py \
 `AndroidHomeInstrumentedTest.waitFor` 在原有 45 秒 UI 截止时间内等待实际主 WebView 附着、URL 非空且不是 about 文档、加载进度为 100%，然后调用原 3 秒 JS 响应检查。等待页面加载不能额外延长 45 秒，已就绪文档回调超时仍直接失败。此就绪条件不代表 UI 已完成绘制；原语义、几何、视觉状态提交、截图/像素及真实触摸断言仍全部执行。
 
 报告新增 `nativeDocumentReadiness` 与 `readyDocumentEvaluations`，用于区分文档加载和后续脚本/UI 等待；它们不是性能指标，也不能代替完整原生结果。三组当前 canonical 测试已使用同一原生产主包完成 supported/fallback 的二维码 baseline 及原 cold 场景，包含实际新进程、系统主题/账户恢复和完整清理。128 张 PNG、12 个未就绪状态及全部恢复记录独立核验；主窗口高文字对比另行验证。详见 [RF-1180 验证摘要](../verification/rf1180-native-document-readiness-2026-10-16.json)。
+
+
+## RF-1181 主窗口实际系统高文字对比（2026-10-16）
+
+`--expected-high-text-contrast true|false` 只在完整 `--scenario baseline --qr-cards` 生效，不替代原首页、权限或触摸检查。静态观测只读取系统键、真实页面标记/媒体查询、语义色及浮动 Card；调用方须先快照并准备真实系统值，最终恢复键的原始存在状态与字面值，不得用 JS 注入主题标记代替系统设置。
+
+追加 `--high-text-contrast-live` 会在第一张真实二维码卡片上，由测试端 shell 使系统开关往返四次，等待主文档实际交付并记录 `main-high-text-live.json`；finally 恢复本轮原始值。30 项静态观测另存 `main-high-text-contrast.json`。两种记录均包含文档时间戳、实际系统值及截图，不能用未刷新静态截图或成功子集代替完整队列。没有显式期望或完整二维码 baseline 时 CLI 在设备命令前拒绝。
+
+当前同一新默认 Debug 包在 API35/WebView124 完成开/关 × supported/fallback 四整组，共 120 静态及 16 同页动态观测；正文实际像素、全部数据/权限/设置恢复和主机清理独立核验。此颜色/偏好任务仅运行正常系统字号，不替代前文布局变更的六档字号队列要求。API36 公共监听分支编译通过，未运行 API36 或旧 provider 回退，不关闭全部 RF-121。详见 [RF-1181 验证摘要](../verification/rf1181-android-high-text-contrast-2026-10-16.json)。
