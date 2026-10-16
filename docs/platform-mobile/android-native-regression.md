@@ -370,3 +370,14 @@ python scripts/android-provider-feedback-fixture.py --port 27683 --output <isola
 保留原15秒加载、5秒JS、6秒报告、10秒原生绘制和2500ms夹具看门狗，系统动画启用。每组执行前确认7个固定输出名称缺席；结束后先独立恢复完整私有目录及原始系统对比／模糊字面设置，确认仅有原空目录，再通过系统卸载本次自有主测试包，核对7个证据名称全部缺席，并重装同一APK、复验主／测试包SHA。本地证据及哈希保留；不再调用被Android拒绝的run-as外部读取路径，前两轮本地权限／超时参数透传失败队列完整保留，后者已修正，未放宽原等待或读取保护。不得通过过滤私有目录、复用旧输出或延长等待接受队列。独立审计后仅删除8份已验证空目录备份，保留日志、图片、哈希清单与清理收据。
 
 详见[当前API35 Card表面部分验收](../verification/rf121-current-api35-card-surfaces-2026-10-16.json)。此处是禁网独立Android WebView中的生产组件/CSS验收；实际背景像素与CSS正文对比度分别检查，不启动MainActivity、账户或Vault。主窗口主题交付、其他Card调用方和平台材质、实体设备及性能仍保留各自范围，不关闭RF-121或释放依赖。
+
+
+## RF-1184 原生 PDF 首屏页码（2026-10-17）
+
+`PdfPreviewActivity` 在首次布局前设置已知总页数和前后页按钮，图片仍等待 `doOnLayout` 后按实际宽度渲染。不要改固定宽度或把零宽、不可见的页码节点当作成功条件。
+
+`PdfPreviewLayoutInstrumentedTest#firstPageCounterIsVisibleBeforeNavigation` 使用测试 APK 内的公开 `text_only.pdf`，直接运行真实 Activity；原生窗口 PixelCopy 记录首屏和切页后的视图尺寸、页码、按钮与图像。该用例在专用新装、空账户环境运行，输出位于测试缓存的固定命名空间。宿主归档公开证据后，调用既有全私有目录恢复函数并核对原 APK／UID／根权限、9 项系统设置及自有进程；不在正式 Vault 上执行环境清理。fixture SHA、断言和首次可见宽度均须保持。
+
+API31 的旧主包真实失败：首屏页码 0×51 px 且底栏空白；修复主包用同一测试 APK 通过，首屏与第二页均 75×51 px、实际底栏为 1/2 和 2/2，正文与按钮状态正确。Kotlin/Debug 构建和 10 项 JVM 测试通过。新测试包的字节码缺用例输出被拒绝，复验使用源码与资源 ID 完全相同的已编译测试 APK，不接受缺类产物或零项测试。该增量构建问题继续待查。
+
+详见[去标识原生红／绿验收](../verification/rf1184-pdf-first-counter-2026-10-17.json)。本项含目标 instrumentation，不代表默认 Release、实体设备、API35/36、其他平台或性能通过；RF-312 默认十二步仍须新默认包从头验证，既有失败不重标成功。
