@@ -328,3 +328,13 @@ python scripts/android-provider-feedback-fixture.py --port 27683 --output <isola
 该入口必须声明实际对比状态及回环URL，不能混用QR/恢复/安全警告追加场景。真实UI填写未保存的公开Provider并调用既有Rust连接测试，保留URL/SSRF与登记保护；不修改页面外观或注入IPC结果。浅深色各成功/失败四个状态，原3秒JS与45秒UI预算内连续两次颜色/几何稳定，正文至少4.5:1且高对比为主前景。普通/高文字对比×blur支持/降级须各跑完整基线；每个成功组应有4次公开HTTP响应，旧包低对比反例单列且原成功读取器必须拒绝整份失败记录，不删末尾failure或拼接成功子集。
 
 完整核对数据、权限、字号、blur和对比设置恢复，以及自有服务、映射、APK、模拟器与ADB退出；原生像素、全局ANR清单和完整证据读取通过前不关闭任务。工具本身可运行`python -m unittest test_android_provider_feedback_fixture`（工作目录`tauri/scripts/`），覆盖真实回环200/500/拒绝响应及不覆盖已有输出。浏览器三平台/20色板回归独立保留，不称为其他OS原生材质、API31/36、实体设备或Release性能验收。详见[RF-1183验证摘要](../verification/rf1183-status-feedback-contrast-2026-10-16.json)。
+
+## RF-121 当前 API31 主窗口补验（2026-10-16）
+
+当前默认Debug主包和全套canonical测试包还在API31/WebView91上完成普通/高文字对比 × blur支持/降级四组完整 `--scenario baseline --font-scale 1.0 --provider-feedback`。每组仍包含首页原12阶段，实际生产Provider连接调用公开回环成功/失败响应；浅深四态、系统对比交付、真实文字像素和逐项恢复须全部通过，不能拼接单组或仅据DOM样式验收。
+
+沿用前节Provider工具、独立ADB、反向映射、APK来源及空账户备份要求，为每组声明 `--feedback-high-text-contrast true|false` 和已拥有的回环 `--feedback-url`，使用全新输出目录。API31由原生驱动与读取器按真实API选择权限范围：`POST_NOTIFICATIONS`运行时权限从API33起适用；API31不得伪造该恢复字段，也不能要求它来接受成功队列。字号、blur、完整私有目录与所有适用权限保护保持。
+
+若拒绝队列因安全恢复而保留精确自有APK，后续在新启动先核对包内SHA和无账户，再处理恢复清理。重启可产生框架私有文件；原始读取与拒绝记录应保留，不能删去它们或改判原队列。正式每组仍对本组的完整前后目录逐项比较内容、链接和权限。全部原始日志/截图/私有备份只留本地，发布摘要只含版本、计数、像素数值及证据哈希。
+
+详见[当前API31部分验收摘要](../verification/rf121-current-api31-main-2026-10-16.json)。本轮没有重新构建或修改APK、产品代码及原生测试；不代表全部Card调用族、API36、实体设备、其他OS原生材质、Release性能或RF-121整体通过。

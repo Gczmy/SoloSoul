@@ -1,0 +1,537 @@
+{
+  "task": "RF-121",
+  "date": "2026-10-16",
+  "status": "partial-native-coverage",
+  "validatedCurrentSourceHead": "1e57582a32f8d7ccee973d6fc244a510b8d4e35a",
+  "reusedBuild": {
+    "sourceBaseline": "a03b578aa7ac6928de7bf1313105c8559bd633d7",
+    "sourceIncludesRF1183Patch": true,
+    "actualCurrentDefaultDebugBuild": true,
+    "original1793BuildSourceFilesIdenticalAtValidatedHead": true,
+    "twoPostBuildPortableValidationToolsNotProductInputs": true,
+    "currentSourceFiles": 1795,
+    "rebuiltOrRepackedThisVerification": false,
+    "productionSigningUsed": false,
+    "apkSha256": {
+      "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+      "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+    }
+  },
+  "runtime": {
+    "api": 31,
+    "android": "12",
+    "abi": "x86_64",
+    "webView": "91.0.4472.114",
+    "emulator": true,
+    "acceleration": "WHPX",
+    "gpu": "SwiftShader",
+    "virtualCpuCores": 2,
+    "memoryMiB": 2048
+  },
+  "acceptance": {
+    "wholeIndependentQueuePassed": true,
+    "completeLanes": 4,
+    "acceptedBaselineStages": 48,
+    "acceptedProviderFeedbackStates": 16,
+    "publicLoopbackResponses": 16,
+    "decodedPngs": 60,
+    "minimumActualBodyPixelContrast": 5.491417634945591,
+    "normalAndNativeHighTextContrast": true,
+    "supportedAndFallbackBlurSettingLanes": true,
+    "notificationsBeforeAPI33NotApplicable": true,
+    "originalCanonicalReadersAndThreeSecondJsAndFortyFiveSecondUiBudgetsUnchanged": true,
+    "currentBootAnrAbsent": true,
+    "completeTerminalDropBoxInventoryEntries": 234
+  },
+  "cases": [
+    {
+      "label": "normal-supported",
+      "mode": "supported",
+      "expectedHighTextContrast": false,
+      "baselineStages": [
+        "local-light",
+        "enhanced-light",
+        "enhanced-dark",
+        "enhanced-dark-after-unlock",
+        "encrypted-preferences",
+        "object-editor-dark",
+        "object-list-dark",
+        "object-actions-dark",
+        "object-detail-dark",
+        "object-list-after-system-back",
+        "populated-enhanced-dark",
+        "populated-enhanced-light"
+      ],
+      "feedbackStages": [
+        "feedback-light-success",
+        "feedback-light-error",
+        "feedback-dark-success",
+        "feedback-dark-error"
+      ],
+      "passed": true,
+      "privateRestoreInventoryEntries": 2,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "driverReportSha256": "b44daca075cac7ff0a855c5253441479ad0c33fad1d989afd403a957056a6093",
+      "originalBlurAndFontRestored": true,
+      "notificationPermissionNotApplicableBeforeAPI33": true
+    },
+    {
+      "label": "hc-supported",
+      "mode": "supported",
+      "expectedHighTextContrast": true,
+      "baselineStages": [
+        "local-light",
+        "enhanced-light",
+        "enhanced-dark",
+        "enhanced-dark-after-unlock",
+        "encrypted-preferences",
+        "object-editor-dark",
+        "object-list-dark",
+        "object-actions-dark",
+        "object-detail-dark",
+        "object-list-after-system-back",
+        "populated-enhanced-dark",
+        "populated-enhanced-light"
+      ],
+      "feedbackStages": [
+        "feedback-light-success",
+        "feedback-light-error",
+        "feedback-dark-success",
+        "feedback-dark-error"
+      ],
+      "passed": true,
+      "privateRestoreInventoryEntries": 2,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "driverReportSha256": "02a08b79c5d37b8a168c6cd8531b13fb5036309487fc1dfb39dae2bd3834962b",
+      "originalBlurAndFontRestored": true,
+      "notificationPermissionNotApplicableBeforeAPI33": true
+    },
+    {
+      "label": "normal-fallback",
+      "mode": "fallback",
+      "expectedHighTextContrast": false,
+      "baselineStages": [
+        "local-light",
+        "enhanced-light",
+        "enhanced-dark",
+        "enhanced-dark-after-unlock",
+        "encrypted-preferences",
+        "object-editor-dark",
+        "object-list-dark",
+        "object-actions-dark",
+        "object-detail-dark",
+        "object-list-after-system-back",
+        "populated-enhanced-dark",
+        "populated-enhanced-light"
+      ],
+      "feedbackStages": [
+        "feedback-light-success",
+        "feedback-light-error",
+        "feedback-dark-success",
+        "feedback-dark-error"
+      ],
+      "passed": true,
+      "privateRestoreInventoryEntries": 2,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "driverReportSha256": "6674271996b5298d0f860fcc2ec882b48409405183d40fb35d5757f18680519c",
+      "originalBlurAndFontRestored": true,
+      "notificationPermissionNotApplicableBeforeAPI33": true
+    },
+    {
+      "label": "hc-fallback",
+      "mode": "fallback",
+      "expectedHighTextContrast": true,
+      "baselineStages": [
+        "local-light",
+        "enhanced-light",
+        "enhanced-dark",
+        "enhanced-dark-after-unlock",
+        "encrypted-preferences",
+        "object-editor-dark",
+        "object-list-dark",
+        "object-actions-dark",
+        "object-detail-dark",
+        "object-list-after-system-back",
+        "populated-enhanced-dark",
+        "populated-enhanced-light"
+      ],
+      "feedbackStages": [
+        "feedback-light-success",
+        "feedback-light-error",
+        "feedback-dark-success",
+        "feedback-dark-error"
+      ],
+      "passed": true,
+      "privateRestoreInventoryEntries": 2,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "driverReportSha256": "1d663c6712257d917c248f7bffc1fa2523d4cf4c85b2bb408fb51eaeea56ed6d",
+      "originalBlurAndFontRestored": true,
+      "notificationPermissionNotApplicableBeforeAPI33": true
+    }
+  ],
+  "actualFeedbackBodyPixelSamples": [
+    {
+      "case": "normal-supported",
+      "stage": "feedback-light-success",
+      "actualPixelContrast": 6.369128622999079,
+      "foreground": [
+        22,
+        101,
+        52
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "148f9618752c8463666370e05ae4c8ffe51470c51598d044e4a79f5a00e10496"
+    },
+    {
+      "case": "normal-supported",
+      "stage": "feedback-light-error",
+      "actualPixelContrast": 6.277458622084857,
+      "foreground": [
+        163,
+        47,
+        35
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "f22346648322f861a7514b1f27dcfc817e408a5bd63626aaced0c2555bf9b778"
+    },
+    {
+      "case": "normal-supported",
+      "stage": "feedback-dark-success",
+      "actualPixelContrast": 6.676273787436864,
+      "foreground": [
+        126,
+        196,
+        154
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "902fa558b4b6b7c1a60b4d91b8f69776972937c44466272ec4a261d18ad2f394"
+    },
+    {
+      "case": "normal-supported",
+      "stage": "feedback-dark-error",
+      "actualPixelContrast": 5.491417634945591,
+      "foreground": [
+        232,
+        139,
+        127
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "c920fd9c4eb9a90f86b088cb6791a27d23a20bbcb99c52709e10f70f537d9089"
+    },
+    {
+      "case": "hc-supported",
+      "stage": "feedback-light-success",
+      "actualPixelContrast": 16.867238982626,
+      "foreground": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "a8dc92a34b5c0839ac0021bab057614c4205b594855ef071397c9597ff98d4c7"
+    },
+    {
+      "case": "hc-supported",
+      "stage": "feedback-light-error",
+      "actualPixelContrast": 16.867238982626,
+      "foreground": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "d52e77a1507a8a62eb8164bc6f8ded037ed8e80899529cbe5c054ba74805537a"
+    },
+    {
+      "case": "hc-supported",
+      "stage": "feedback-dark-success",
+      "actualPixelContrast": 13.67860132939529,
+      "foreground": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "c8febef19a54d09749a9724dba8118c6eaf546007fc7dd675dd4450ab9238435"
+    },
+    {
+      "case": "hc-supported",
+      "stage": "feedback-dark-error",
+      "actualPixelContrast": 13.67860132939529,
+      "foreground": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "bc9e14fdd003a93bf8580560ef71431de09b93bd4482824c064d56c2ed39b789"
+    },
+    {
+      "case": "normal-fallback",
+      "stage": "feedback-light-success",
+      "actualPixelContrast": 6.369128622999079,
+      "foreground": [
+        22,
+        101,
+        52
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "5f4068ee9b9dc02b0ff605f7bca89e6251da6cd8e0451d03b80fe2759e0c64e5"
+    },
+    {
+      "case": "normal-fallback",
+      "stage": "feedback-light-error",
+      "actualPixelContrast": 6.277458622084857,
+      "foreground": [
+        163,
+        47,
+        35
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "974eedd2f6228951554208400ddfb0fe368676fb295cdf8307b37c9c532eeb53"
+    },
+    {
+      "case": "normal-fallback",
+      "stage": "feedback-dark-success",
+      "actualPixelContrast": 6.676273787436864,
+      "foreground": [
+        126,
+        196,
+        154
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "4a849849a2b3838abd88a8b9c5e61e5eed1be8b221669d2697860f43da7f56db"
+    },
+    {
+      "case": "normal-fallback",
+      "stage": "feedback-dark-error",
+      "actualPixelContrast": 5.491417634945591,
+      "foreground": [
+        232,
+        139,
+        127
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "8165e2d03090febdbb821d088febb6bc523fef37f019bd1ae2c5e80bce5df247"
+    },
+    {
+      "case": "hc-fallback",
+      "stage": "feedback-light-success",
+      "actualPixelContrast": 16.867238982626,
+      "foreground": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "ce760c7beef6c958799174812c7247ebf8ffb6b2b6e5b6c2c753416275523084"
+    },
+    {
+      "case": "hc-fallback",
+      "stage": "feedback-light-error",
+      "actualPixelContrast": 16.867238982626,
+      "foreground": [
+        17,
+        17,
+        17
+      ],
+      "background": [
+        243,
+        242,
+        239
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "35bd7bc075bdc8088730d3529737ca7b1c0d11e8547e260b1187370d232cd9e9"
+    },
+    {
+      "case": "hc-fallback",
+      "stage": "feedback-dark-success",
+      "actualPixelContrast": 13.67860132939529,
+      "foreground": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 1603,
+      "backgroundPixels": 37044,
+      "screenshotSha256": "4439ee32457bf8ec2d2fb7c69b99abf70b1811e1f200b1d4ae8952ea39e971d2"
+    },
+    {
+      "case": "hc-fallback",
+      "stage": "feedback-dark-error",
+      "actualPixelContrast": 13.67860132939529,
+      "foreground": [
+        255,
+        255,
+        255
+      ],
+      "background": [
+        49,
+        45,
+        39
+      ],
+      "pureBodyTextPixelCount": 4499,
+      "backgroundPixels": 62583,
+      "screenshotSha256": "046f1ff525178957095242fe12ac6afcd88dab9a68e86d798d5a512ebdec5257"
+    }
+  ],
+  "restoration": {
+    "eachCaseFullPrivateInventoryContentsLinksAndModesEqual": true,
+    "originalLiteralSettingsRestored": true,
+    "originalBlurAndFontRestored": true,
+    "ownedHttpServerReverseRoutePackagesEmulatorAndAdbCleaned": true,
+    "protectedOldAdbIdentityUnchanged": true,
+    "priorOwnedApksVerifiedBeforeRecovery": true,
+    "rebootFrameworkDataArchivedAndNoVaultVerified": true,
+    "priorQueuesNotReclassifiedOrCombined": true
+  },
+  "preservedFailures": [
+    {
+      "stage": "initial-preflight",
+      "reason": "Local collector parsed CRLF without newline normalization; full original output retained"
+    },
+    {
+      "stage": "first-whole-queue",
+      "nativeTests": 1,
+      "acceptedWholeQueue": false,
+      "reason": "Local outer helper incorrectly required API33 notification restoration fields on API31; canonical report and restore passed"
+    },
+    {
+      "stage": "first-host-audit-input",
+      "reason": "Seven-digit process timestamps rejected; only trailing zero normalized without precision loss for independent follow-up"
+    },
+    {
+      "stage": "second-whole-queue",
+      "nativeTests": 0,
+      "acceptedWholeQueue": false,
+      "reason": "Fresh-boot WorkManager/profile files differed from prior restored two-directory inventory; rejected before uninstall or new tests"
+    }
+  ],
+  "limitations": [
+    "Current Debug emulator subset, not Release performance or physical-device acceptance",
+    "Only original baseline callers and actual provider success/error body; not all Card callers",
+    "No API36, macOS glass, Windows forced-colors or full accessibility matrix acceptance",
+    "RF-112, RF-121, RF-312 remain incomplete; RF-122 through RF-127 dependencies unchanged"
+  ],
+  "evidenceSha256": {
+    "currentSourceBinding": "fc97e943ad659c61b2d9aefd671d5c297090e253ff8ddca53bff79a839147460",
+    "currentSourceMap": "9a1de4ce4fe921c2da373bcb62c3e91de4384d0304c4e48f9c403bfd5b7ab597",
+    "localToolMap": "d5ab567f2f1fcf074550dd714cd2cdc284602e897fabc92ce5fec7f0feb714de",
+    "originalBuildPackageVerification": "6e01d68ef24bd20de71955c020c62d95fb51c6de89ad1c7f102c669d81d3379e",
+    "canonicalTestSourceBinding": "d7effc6d891f750bd3cbe7034a1abba4b91c2510645a1dd83ace4c9c9b147d08",
+    "canonicalTestDexBinding": "e69e5d113d2b44ace764135f72a611683ad6f85784fdf8b16d5844d6f3c3975b",
+    "completeNativeQueue": "8c5bd0d49c769fe8588a2c911634c21b42716fc72198a089055aed1b3eb632b2",
+    "completeNativeMatrix": "3bceba3145a5569c2402679965434fa1b590d272b033bd53f5d2b470f3720cc8",
+    "independentNativeAudit": "0ec3d2fda2b386ff633927f706ecd60ae3039fb2719e84dd0f223011042c2744",
+    "hostBefore": "8ec67c068bd1ef8d354ef7f38a9439b3e0066fe019b62232cf0ed1369f3875e4",
+    "hostAfter": "076132c014abdc8e1a67c5b2445bd078f834b86fafc43e7e2313dbb8441998d5",
+    "freshBootPreflight": "fd0d5b5191c4979096c29dc516f6f1356605d593061478917d9b3ea1b8efa046",
+    "privateRecovery": "84c00f72abf3585053495a0e8f328948ceaff901c18070b69cc13ab654d9011b",
+    "freshBootPrivateInventory": "e8e430223aa2667ab46297b04157b6ab3240df40752e04b2b54ae6ac4287049c",
+    "publicHttpResponses": "1c00dd8a10e534f88e23a49214e9512af105151709e2968d2660dcf031e6f77f",
+    "visualReview": "fc9b24c96d616ff3ebdf77ff11bbfc42dfdb859201360e9960b6a7fed81ee2d6",
+    "exactPrivateBackupCleanup": "f6be92341e0d97cb4c51ffc7306d74fa1dc34cd4e689a93bb44348ae79543786",
+    "firstRejectedWholeQueue": "7854016664a732ec6b847123033adb53e54a7ccb27e2c3f675a4c14a98220c62",
+    "firstCanonicalReport": "4d17110a30929259e3288c8c6095f206104fbf66ec36f054022a5df846a20f92",
+    "firstRestorationReview": "cb40ddd58f7c46852d3f3cd318fe2261fa7c7ed25613a6a7a1c5f551ef33cb7c",
+    "firstHostAfter": "f5dacb62de73a558e6b8715badd4b51c254f1324b637a73f4306f3598a735a2a",
+    "secondRejectedWholeQueue": "5169074af0324e352709c2932b17e3c523408611bf7e7ad3998a787c153e82c1",
+    "secondHostAfter": "58cbd7c85f91205324659b7a40c0249b79ac354aaa22ae648555591bf75b6e01"
+  }
+}
