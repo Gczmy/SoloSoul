@@ -338,3 +338,11 @@ python scripts/android-provider-feedback-fixture.py --port 27683 --output <isola
 若拒绝队列因安全恢复而保留精确自有APK，后续在新启动先核对包内SHA和无账户，再处理恢复清理。重启可产生框架私有文件；原始读取与拒绝记录应保留，不能删去它们或改判原队列。正式每组仍对本组的完整前后目录逐项比较内容、链接和权限。全部原始日志/截图/私有备份只留本地，发布摘要只含版本、计数、像素数值及证据哈希。
 
 详见[当前API31部分验收摘要](../verification/rf121-current-api31-main-2026-10-16.json)。本轮没有重新构建或修改APK、产品代码及原生测试；不代表全部Card调用族、API36、实体设备、其他OS原生材质、Release性能或RF-121整体通过。
+
+## RF-112 当前 API31 冷启动与减少动态效果（2026-10-16）
+
+与当前主窗口覆盖相同默认Debug APK/完整canonical测试包，在API31/WebView91上补跑 `--scenario cold --motion-preferences` 的supported/fallback两组。每组仍须原账户准备18阶段与新进程冷启动5阶段、两个精确JUnit成功；不能仅运行账户页面或Activity重建就称为进程恢复。该参数不能与baseline专用字号／QR追加参数混用。
+
+沿用完整目录备份、专用AVD、独立ADB和全新输出目录。A/B通过真实UI保存六个外观键与true/false动效偏好，等待登录前镜像持久化；停止原进程后核对新进程、原两账户身份、锁定密码登录、系统浅深模式、DOM/色板/原生栏和实际导航CSS。全部恢复和原时间预算保持，API31按实际权限适用范围验收。
+
+本轮两完整模式共4项原生测试、46阶段、40张PNG独立核验通过。详细来源、16次账户观测、恢复与证据哈希见[当前API31冷启动／动效部分验收](../verification/rf112-current-api31-cold-motion-2026-10-16.json)。仅证明当前稳定帧和偏好交付，不是首帧连续无闪烁、动效性能、实体设备、Release性能或其他OS原生验收；RF-112及其余父任务仍未完成。
