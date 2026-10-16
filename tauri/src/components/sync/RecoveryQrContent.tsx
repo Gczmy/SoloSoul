@@ -100,12 +100,14 @@ export function RecoveryQrContent({
           </p>
 
           {/* 网络信息 */}
-          <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', minWidth: 0 }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '6px 12px',
                 padding: '10px 12px',
                 borderRadius: 8,
                 background: 'var(--bg-toolbar)',
@@ -118,6 +120,11 @@ export function RecoveryQrContent({
               <span
                 style={{
                   fontFamily: 'monospace',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  overflowWrap: 'anywhere',
+                  marginLeft: 'auto',
+                  textAlign: 'right',
                   fontSize: 'var(--text-body)',
                   fontWeight: 700,
                   letterSpacing: 4,
@@ -132,6 +139,8 @@ export function RecoveryQrContent({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '6px 12px',
                 padding: '10px 12px',
                 borderRadius: 8,
                 background: 'var(--bg-toolbar)',
@@ -143,6 +152,11 @@ export function RecoveryQrContent({
               <span
                 style={{
                   fontFamily: 'monospace',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  overflowWrap: 'anywhere',
+                  marginLeft: 'auto',
+                  textAlign: 'right',
                   fontSize: 'var(--text-body-sm)',
                   color: 'var(--text-primary)',
                 }}
