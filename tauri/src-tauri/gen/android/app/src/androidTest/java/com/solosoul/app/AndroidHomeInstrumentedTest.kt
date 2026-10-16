@@ -206,6 +206,13 @@ class AndroidHomeInstrumentedTest {
       home:!!document.querySelector('[data-testid="android-home"]'),
       alerts:[...document.querySelectorAll('[role="alert"]')].map(e=>e.textContent.trim())})"""
 
+    private val backupReminderLayout = """(() => {
+      const scope=document.querySelector('[data-shell-notifications]'),toast=scope?.querySelector('[data-toast-container]');
+      const main=document.querySelector('[data-shell-content]'),r=main?.getBoundingClientRect();
+      return JSON.stringify({count:[...(scope?.querySelectorAll('button')||[])].filter(e=>e.textContent.trim()==='Back Up Now').length,
+        inFlow:!!toast&&getComputedStyle(toast).position==='static',readingTop:r?.top,readingBottom:r?.bottom});
+    })()"""
+
     private val home = """(() => {
       const root=document.documentElement, style=getComputedStyle(root);
       const copy=document.querySelector('.android-overview-copy'), art=document.querySelector('.android-liquid-artwork');
@@ -269,7 +276,22 @@ class AndroidHomeInstrumentedTest {
             assertTrue("装饰不得盖住资料库文案", copy.getDouble("right") <= art.getDouble("x") + 1)
         }
         if (requestedFontScale != null) captureTypography(scenario, result)
+        val reminderBefore = if (requestedFontScale != null && stage == "enhanced-dark-after-unlock") {
+            js(scenario, backupReminderLayout).also {
+                assertEquals("大字号解锁首页截图前必须有一条真实提醒", 1, it.getInt("count"))
+                assertTrue("首页提醒必须正常流占位", it.getBoolean("inFlow"))
+            }
+        } else null
         val bitmap = screenshot(scenario)
+        if (reminderBefore != null) {
+            val reminderAfter = js(scenario, backupReminderLayout)
+            assertEquals("大字号解锁首页截图后真实提醒必须仍存在", 1, reminderAfter.getInt("count"))
+            assertTrue("截图后提醒必须保留正常流占位", reminderAfter.getBoolean("inFlow"))
+            assertTrue("最终合成帧前后阅读区不能发生位移",
+                kotlin.math.abs(reminderAfter.getDouble("readingTop")-reminderBefore.getDouble("readingTop")) <= 1 &&
+                    kotlin.math.abs(reminderAfter.getDouble("readingBottom")-reminderBefore.getDouble("readingBottom")) <= 1)
+            result.put("backupReminderBeforeScreenshot", reminderBefore).put("backupReminderAfterScreenshot", reminderAfter)
+        }
         // 检查最终合成帧里的真实文字像素，不能仅以 DOM 存在作为“没有被材质遮住”。
         var viewWidth = 0
         val location = IntArray(2)
@@ -1853,6 +1875,13 @@ class AndroidHomeInstrumentedTest {
                     it.optBoolean("enabled") && !it.optBoolean("pending") && !it.optBoolean("home")
             }
             unlockPublicVisualAccount(scenario)
+            if (requestedFontScale != null) {
+                // 生产解锁在2秒后异步检查提醒；先等真实提醒占位，再测量阅读区和注入原生手势。
+                val reminder = waitFor(scenario, "大字号首页等待真实解锁提醒占位", backupReminderLayout) {
+                    it.optInt("count") > 0 && it.optBoolean("inFlow")
+                }
+                assertEquals("大字号首页只允许一条真实备份提醒", 1, reminder.getInt("count"))
+            }
             capture(scenario, "enhanced-dark-after-unlock", dark = true, enhanced = true)
             // 真实持久化 IPC 核对，等待 debounce 完成，不假定 DOM 即代表保存。
             js(scenario, """(() => {window.fe2HomePrefs={pending:true};
