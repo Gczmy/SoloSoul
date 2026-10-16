@@ -227,3 +227,26 @@ python3 tauri/scripts/android-home-native-regression.py \
 稳定提醒正向诊断通过，取得旧坐标后等待真实提醒插入的负向对照精确复现原裁切，原严格读者继续拒绝。最终候选首个完整队列在更早的既有3秒WebView响应检查失败，尚未到新增检查，原判和恢复证据保持，不宣称已证明该启动失败的唯一根因。
 
 同一主包与候选测试包的新完整8组（1.0/1.3/2.0字号×两种材质模式，以及冷账户动态效果×两种模式）全部通过，10个原生方法、0跳过；48个匹配文字尺寸比较、六组真实提醒和截图前后阅读区以及全部PNG独立核验。完整数据/系统恢复及旧ADB保持核验后清理本次22份私有TAR；不与旧成功子集拼接。菜单标题/关闭入口滚动后的可见性仍需独立判断，全部Card族、其他平台、实体设备及RF-121/312不因此关闭。[来源和验证摘要](../verification/rf1172-home-reminder-sampling-2026-10-16.json)。
+
+## RF-1176 登录恢复卡片的原生入口（2026-10-16）
+
+`android-home-native-regression.py` 可在 `--scenario baseline` 上增加 `--recovery-cards`，保留全部首页检查，再走生产 MainActivity 的登录页→从其他设备恢复→Manual→可选指纹。只允许已备份、无账户的专用 SoloSoul AVD；系统权限界面使用英语。它不替换认证、IPC、卡片或摄像头能力检测。
+
+每组检查浅深主题各 9 个恢复阶段：竖屏卡片与末尾操作、三个标签的原生手指触摸/真实输入法、横屏卡片及 Next/Close 内部滚动命中、单次触摸关闭后真实主密码解锁。每组额外 8 次触摸均要求 WebView 已提交绘制、DOM/原生尺寸稳定、键盘关闭后高度恢复；记录 Android FINGER 工具、触屏来源及浏览器可信 touch 事件，逐一绑定显示标签、输入 ID、焦点和截图。不能通过重复注入或 JS focus 绕过命中。
+
+摄像头仅在系统应用包、SoloSoul 名称、完整请求文案和启用的拒绝按钮均确认后拒绝；兼容系统按钮的大小写和弯引号，不接受 Allow 或其他权限请求。保留原未知弹窗拒绝、读取器、备份恢复和超时。finally 在 force-stop 后恢复私有目录与根权限，以及 CAMERA/通知授权和用户标记、blur、原始字号并复读确认；任一失败都不能通过。
+
+在 `tauri/` 中，先按上文构建与来源核对主包/测试包，设置明确的专用设备、路径和新的输出目录后运行：
+
+```bash
+python scripts/android-home-native-regression.py \
+  --adb "$ADB" --serial "$SERIAL" --avd "$AVD" \
+  --apk "$APK" --test-apk "$TEST_APK" --output "$NEW_OUTPUT" \
+  --scenario baseline --recovery-cards --font-scale 1.0 --mode supported
+```
+
+分别使用 1.0 / 1.3 / 2.0 与 supported / fallback、新输出目录执行六组，不能拼接失败队列的成功子集。局部驱动测试在 `tauri/scripts/` 运行 `python -m unittest test_android_home_native_regression test_android_recovery_native_evidence test_android_recovery_native_taps`。
+
+当前 API35 / x86_64 / WebView124、同一默认 Debug 主包的六组完整队列通过，原 72 个首页阶段加 108 个恢复阶段；36 次标签及 12 次关闭均为单次真实手指触摸。96 张恢复截图和 48 张触摸前截图独立解码、12 次原生摄像头拒绝、48 项匹配文字高度比较及完整数据/设置/权限恢复均核对。此前权限识别、启动响应、第三字段焦点和未知指针类型失败仍保留，启动响应失败不因此改记解决。
+
+[去标识验收摘要](../verification/rf1176-android-recovery-native-2026-10-16.json)绑定构建与各轮证据。此入口不证明摄像头扫码、配对传输、QrModalShell 调用方、TalkBack、实体设备、macOS 或完整原生材质矩阵；RF-112／121／312 与 RF-122～127 前置保持。

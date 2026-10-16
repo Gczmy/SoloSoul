@@ -243,6 +243,8 @@ def verification_passed(report, needs_notification):
                 and (report.get("scenario") != "cold" or (report.get("coldPassed") and report.get("oldProcessStopped")))
                 and (not report.get("motionPreferenceChecks") or report.get("motionPreferencePassed"))
                 and (report.get('requestedFontScale') is None or report.get('fontScaleRestored'))
+                and (not report.get("recoveryCardsRequested") or (report.get("recoveryCardsPassed") and report.get("cameraPermissionRestored") and report.get("nativeTapCount")==8))
+                and not report.get("cameraRestoreError")
                 and not any(report.get(key) for key in
                             ("error", "restoreError", "blurRestoreError", "notificationRestoreError", "nightModeRestoreError", "fontScaleRestoreError")))
 
@@ -624,15 +626,186 @@ def verify_evidence(evidence, scenario, motion=False, *, require_preview_bars=Fa
     return stages
 
 
+def camera_permission(package_dump):
+    matches = list(re.finditer(r'^\s*android\.permission\.CAMERA: granted=(true|false), flags=\[([^\]]*)\]\s*$', package_dump, re.M))
+    if len(matches) != 1:
+        raise RuntimeError('Missing exact unique current camera permission state; refusing mutation')
+    match = matches[0]
+    return {'granted': match[1] == 'true', 'flags': sorted(flag.strip() for flag in match[2].split('|') if flag.strip())}
+
+
+def restore_camera_permission(adb, read, original):
+    permission = 'android.permission.CAMERA'
+    current = camera_permission(read('shell', 'dumpsys', 'package', APP))
+    if current['granted'] != original['granted']:
+        adb('shell', 'pm', 'grant' if original['granted'] else 'revoke', APP, permission, stdout=subprocess.PIPE)
+    adb('shell', 'pm', 'clear-permission-flags', APP, permission, 'user-set', 'user-fixed', stdout=subprocess.PIPE)
+    flags = [flag.lower().replace('_', '-') for flag in original['flags'] if flag in ('USER_SET', 'USER_FIXED')]
+    if flags:
+        adb('shell', 'pm', 'set-permission-flags', APP, permission, *flags, stdout=subprocess.PIPE)
+    if camera_permission(read('shell', 'dumpsys', 'package', APP)) != original:
+        raise RuntimeError('Camera permission/flags differ from original state')
+
+
+def verify_camera_prompts(evidence):
+    prompts = evidence.get('recoveryCameraPrompts')
+    if not isinstance(prompts, list) or len(prompts) > 2:
+        raise RuntimeError('Missing bounded native camera permission evidence')
+    for index, row in enumerate(prompts):
+        deny_label = row.get('denyLabel')
+        if (row.get('controllerPackage') not in ('com.android.permissioncontroller', 'com.google.android.permissioncontroller')
+                or row.get('controllerIsSystemApp') is not True or row.get('appLabel') != 'SoloSoul' or row.get('message') != 'Allow SoloSoul to take pictures and record video?'
+                or not isinstance(deny_label, str) or deny_label.replace('\u2019', "'").casefold() != "don't allow" or row.get('permission') != 'android.permission.CAMERA'
+                or row.get('deniedByNativeUi') is not True or row.get('permissionDeniedAfter') is not True
+                or row.get('screenshot') != f'camera-permission-{index}.png' or not row.get('tree')):
+            raise RuntimeError('Camera request identity or actual native denial missing')
+    return len(prompts)
+
+def verify_recovery_evidence(evidence):
+    """Extra real-caller evidence; never substitutes the baseline verifier."""
+    if evidence.get('recoveryCardsRequested') is not True or evidence.get('scenario') != 'baseline':
+        raise RuntimeError('Recovery caller checks require an explicit complete baseline')
+    rows = evidence.get('recoveryRecords')
+    suffixes = ['portrait', 'next-portrait', 'label-0-ime', 'label-1-ime', 'label-2-ime',
+                'landscape', 'next-landscape', 'close-landscape', 'returned-home']
+    expected = [f'recovery-{theme}-{suffix}' for theme in ('light', 'dark') for suffix in suffixes]
+    if not isinstance(rows, list) or [row.get('stage') for row in rows] != expected:
+        raise RuntimeError('Missing exact complete light/dark recovery caller sequence')
+    runtime = evidence.get('runtime', {})
+    if (type(runtime.get('api')) is not int or runtime['api'] < 31
+            or not runtime.get('webViewPackage') or not runtime.get('webViewVersion')):
+        raise RuntimeError('Recovery caller native runtime identity missing')
+    def number(value):
+        return type(value) in (float, int) and math.isfinite(value)
+    for theme in ('light', 'dark'):
+        selected = [r for r in rows if r['stage'].startswith(f'recovery-{theme}-')]
+        focused_ids = []
+        for row, suffix in zip(selected, suffixes):
+            if suffix == 'returned-home':
+                if row.get('theme') != theme or row.get('nativeCloseSucceeded') is not True or row.get('unlocked') is not True:
+                    raise RuntimeError('Recovery close and real password unlock not both confirmed')
+                continue
+            ime = suffix.startswith('label-')
+            card, native = row.get('card', {}), row.get('nativeViewport', {})
+            if (row.get('theme') != theme or row.get('dark') is not (theme == 'dark')
+                    or row.get('path') != '/login' or row.get('platform') != 'android'
+                    or any(row.get(key) is not True for key in ('bounded', 'realIpc', 'screenshotStateConfirmed'))
+                    or row.get('mocked') is not False or row.get('documentOverflow') is not False
+                    or row.get('overflowY') != 'auto' or row.get('ime') is not ime
+                    or native.get('imeVisible') is not ime):
+                raise RuntimeError('Recovery caller DOM/native state differs from declared case')
+            required = [row.get('width'), row.get('height'), row.get('screenshotWidth'), row.get('screenshotHeight'),
+                        *[card.get(k) for k in ('x', 'y', 'width', 'height', 'right', 'bottom')],
+                        *[native.get(k) for k in ('webViewWidthPx', 'webViewScreenY', 'screenHeightPx', 'imeHeightPx')]]
+            if not all(number(v) for v in required) or min(row['width'], row['height'], card['width'], card['height']) <= 0:
+                raise RuntimeError('Recovery geometry must contain finite positive viewport/card dimensions')
+            if not (card['x'] >= 15 and card['y'] >= 15 and card['right'] <= row['width'] - 15
+                    and card['bottom'] <= row['height'] - 15
+                    and abs(card['right']-card['x']-card['width']) <= 1
+                    and abs(card['bottom']-card['y']-card['height']) <= 1):
+                raise RuntimeError('Recovery card exceeded actual CSS viewport')
+            bottom = native['webViewScreenY']+card['bottom']*native['webViewWidthPx']/row['width']
+            inset = native['imeHeightPx'] if ime else native.get('systemBars', {}).get('bottom')
+            if not number(inset) or inset < 0 or (ime and inset <= 0) or bottom > native['screenHeightPx']-inset+2:
+                raise RuntimeError('Recovery card obscured by native IME/system bars')
+            landscape = 'landscape' in suffix
+            bounds = native.get('windowBounds', {})
+            if not all(number(bounds.get(k)) for k in ('left', 'right', 'top', 'bottom')):
+                raise RuntimeError('Recovery rotation requires native window bounds')
+            if ((bounds['right']-bounds['left']) > (bounds['bottom']-bounds['top'])) is not landscape:
+                raise RuntimeError('Recovery rotation did not reach requested orientation')
+            if landscape and not (row.get('scrollHeight', 0) > row.get('clientHeight', 0) > 0):
+                raise RuntimeError('Shallow landscape must exercise real internal overflow')
+            targets = row.get('targets', [])
+            labels = [t for t in targets if t.get('tag') == 'LABEL']
+            inputs = [t for t in targets if t.get('tag') == 'INPUT']
+            names = ['Host Address', 'PIN', 'Host fingerprint']
+            ids = [t.get('id') for t in inputs]
+            if (len(labels) != 3 or [l.get('text') for l in labels] != names or len(inputs) != 3
+                    or any(type(v) is not str or not v for v in ids) or len(set(ids)) != 3
+                    or [l.get('htmlFor') for l in labels] != ids):
+                raise RuntimeError('Recovery input labels are missing, ambiguous or cross-associated')
+            if ime:
+                index = int(suffix.split('-')[1])
+                if row.get('activeId') != ids[index] or row.get('expectedActiveId') != ids[index]:
+                    raise RuntimeError('Actual native label tap did not focus its own input')
+                focused_ids.append(ids[index])
+            elif row.get('expectedActiveId') is not None:
+                raise RuntimeError('Unexpected keyboard focus assertion in non-IME stage')
+            name = 'Next' if suffix.startswith('next-') else 'Close' if suffix == 'close-landscape' else None
+            if name:
+                buttons = [t for t in targets if t.get('tag') == 'BUTTON' and (t.get('text') == name or t.get('aria') == name)]
+                if len(buttons) != 1 or buttons[0].get('hittable') is not True:
+                    raise RuntimeError('Recovery terminal action not actually hittable after internal scroll')
+        if len(set(focused_ids)) != 3:
+            raise RuntimeError('Native label checks did not exercise all three unique inputs')
+    return expected
+
+def verify_recovery_taps(evidence):
+    plans, events = evidence.get('recoveryTapPlans'), evidence.get('recoveryPointerEvents')
+    if not isinstance(plans, list) or not isinstance(events, list) or len(plans) != 8 or len(events) != 8:
+        raise RuntimeError('Exactly eight single native label/close touches are required')
+    states=evidence.get('recoveryRecords')
+    if not isinstance(states,list):
+        raise RuntimeError('Native touches must bind to actual recovery states')
+    captions = ['Host Address', 'PIN', 'Host fingerprint', 'Close']
+    def number(value):
+        return type(value) in (int, float) and math.isfinite(value)
+    for index, (plan, event) in enumerate(zip(plans, events)):
+        label = index % 4 != 3
+        theme = 'light' if index < 4 else 'dark'
+        geometry, native = plan.get('geometry', {}), plan.get('nativeViewport', {})
+        if (type(plan.get('index')) is not int or plan['index'] != index or plan.get('caption') != captions[index % 4] or plan.get('label') is not label
+                or plan.get('frameCommittedAndGeometryStable') is not True or type(plan.get('injectedTapCount')) is not int or plan['injectedTapCount'] != 1
+                or plan.get('injectedSource') != 4098 or plan.get('injectedToolType') != 1
+                or type(plan.get('preparationFrames')) is not int or not 1 <= plan['preparationFrames'] <= 3
+                or plan.get('beforeScreenshot') != f'native-tap-{index}-before.png'
+                or geometry.get('theme') != theme or geometry.get('hittable') is not True
+                or native.get('imeVisible') is not False or event.get('trusted') is not True
+                or event.get('pointerType') != 'touch' or event.get('inCard') is not True or event.get('theme') != theme):
+            raise RuntimeError('Missing committed stable frame or actual trusted native touch')
+        values = [plan.get('screenX'), plan.get('screenY'), plan.get('expectedRestoredHeight'),
+                  *[geometry.get(k) for k in ('x', 'y', 'width', 'viewportHeight')],
+                  *[native.get(k) for k in ('webViewWidthPx', 'webViewHeightPx', 'webViewScreenX', 'webViewScreenY')],
+                  *[event.get(k) for k in ('clientX', 'clientY', 'width', 'height')]]
+        if not all(number(v) for v in values) or min(geometry['width'], geometry['viewportHeight'], native['webViewWidthPx'],native['webViewHeightPx']) <= 0:
+            raise RuntimeError('Native touch coordinate mapping requires complete finite dimensions')
+        if not (0 <= geometry['x'] <= geometry['width'] and 0 <= geometry['y'] <= geometry['viewportHeight']):
+            raise RuntimeError('Prepared native touch must stay inside its visible CSS viewport')
+        if plan['expectedRestoredHeight'] != native['webViewHeightPx']:
+            raise RuntimeError('IME-dismissed native view height did not restore before touch')
+        scale = native['webViewWidthPx'] / geometry['width']
+        if any(abs(plan[f'screen{axis}'] - (native[f'webViewScreen{axis}']+geometry[axis.lower()]*scale)) > 1 for axis in ('X', 'Y')):
+            raise RuntimeError('Native screen coordinates differ from prepared CSS target')
+        if (abs(event['clientX']-geometry['x']) > 1 or abs(event['clientY']-geometry['y']) > 1
+                or abs(event['width']-geometry['width']) > 1 or abs(event['height']-geometry['viewportHeight']) > 1):
+            raise RuntimeError('Actual pointer hit a different viewport or coordinate')
+        if label:
+            identity = geometry.get('id')
+            if (not isinstance(identity, str) or not identity or geometry.get('associated') is not True
+                    or event.get('labelFor') != identity or plan.get('activeAfter') != identity
+                    or plan.get('cardPresentAfter') is not True):
+                raise RuntimeError('Native touch must hit its own visible label and focus its associated input')
+            matching=[r for r in states if r.get('stage')==f'recovery-{theme}-label-{index%4}-ime']
+            if len(matching)!=1 or matching[0].get('activeId')!=identity or matching[0].get('expectedActiveId')!=identity:
+                raise RuntimeError('Native touch identity differs from its actual IME/focus capture')
+        elif event.get('buttonLabel') != 'Close' or plan.get('cardPresentAfter') is not False:
+            raise RuntimeError('Native close touch did not hit and dismiss the actual card')
+    return len(plans)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("adb", "serial", "avd", "apk", "test-apk", "output"):
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--mode", choices=("supported", "fallback"), required=True)
     parser.add_argument("--scenario", choices=("baseline", "overlays", "keyboard", "accounts", "insets", "lifecycle", "cold", "previews", "rendering"), default="baseline")
+    parser.add_argument("--recovery-cards", action="store_true", help="Append real Login recovery card native touch/IME/rotation checks to baseline")
     parser.add_argument("--motion-preferences", action="store_true", help="Verify true/false reduced motion across account/process changes (cold only)")
     parser.add_argument('--font-scale', type=float, choices=(1.0, 1.3, 2.0), help='Actual Android system font scale; baseline only, restored afterward')
     args = parser.parse_args()
+    if args.recovery_cards and args.scenario != "baseline":
+        parser.error("Recovery cards append to baseline only")
     if args.motion_preferences and args.scenario != "cold":
         parser.error("Reduced-motion process matrix requires --scenario cold")
     if args.font_scale is not None and args.scenario != 'baseline':
@@ -644,11 +817,13 @@ def main():
     report = {"serial": args.serial, "avd": args.avd, "mode": args.mode, "scenario": args.scenario,
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
+    report['recoveryCardsRequested'] = args.recovery_cards
     selected = False
     backup_valid = False
     mutation_started = False
     old_blur = None
     old_notification = None
+    old_camera = None
     old_night = None
     old_font_scale = None
     old_font_effective = None
@@ -702,6 +877,9 @@ def main():
         if report["api"] >= 33:
             old_notification = notification_permission(read("shell", "dumpsys", "package", APP))
             report["notificationPermissionBefore"] = old_notification
+        if args.recovery_cards:
+            old_camera = camera_permission(read("shell", "dumpsys", "package", APP))
+            report["cameraPermissionBefore"] = old_camera
         report["artifacts"] = [{"path": str(Path(path).resolve()), "sha256": digest(path)}
                                for path in (args.apk, args.test_apk)]
         adb("shell", "am", "force-stop", APP, stdout=subprocess.PIPE)
@@ -722,6 +900,7 @@ def main():
         # 输出由 JUnit 最后写入；不关闭最后一个 Activity 以免 Tauri 退出同进程 runner。
         result = adb("shell", "am", "instrument", "-w", "-r", "-e", "waitForActivitiesToComplete", "false",
                      "-e", "privateDataBackedUp", "true", "-e", "evidenceTag", tag,
+                     "-e", "recoveryCards", str(args.recovery_cards).lower(),
                      "-e", "scenario", "accounts" if args.scenario == "cold" else args.scenario,
                      "-e", "prepareColdRestart", "true" if args.scenario == "cold" else "false",
                      "-e", "motionPreferenceChecks", str(args.motion_preferences).lower(),
@@ -741,6 +920,11 @@ def main():
                                  require_typography_header=args.font_scale is not None,
                                  require_keyboard_cancel=args.scenario == 'keyboard')
         report["stages"] = stages
+        if args.recovery_cards:
+            report["recoveryStages"] = verify_recovery_evidence(evidence)
+            report["cameraPrompts"] = verify_camera_prompts(evidence)
+            report["nativeTapCount"] = verify_recovery_taps(evidence)
+            report["recoveryCardsPassed"] = True
         if args.scenario == 'cold':
             if not evidence['records'][-1].get('startupUiPrefsConfirmed'):
                 raise RuntimeError('First phase did not confirm durable startup appearance')
@@ -822,6 +1006,12 @@ def main():
                     report["notificationPermissionRestored"] = True
                 except Exception as error:
                     report["notificationRestoreError"] = str(error)
+            if old_camera is not None:
+                try:
+                    restore_camera_permission(adb, read, old_camera)
+                    report["cameraPermissionRestored"] = True
+                except Exception as error:
+                    report["cameraRestoreError"] = str(error)
             if old_night is not None:
                 try:
                     adb('shell', 'cmd', 'uimode', 'night', old_night, stdout=subprocess.PIPE)

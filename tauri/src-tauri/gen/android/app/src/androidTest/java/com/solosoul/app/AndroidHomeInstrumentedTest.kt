@@ -50,10 +50,299 @@ class AndroidHomeInstrumentedTest {
     private val requestedFontScale get() = InstrumentationRegistry.getArguments().getString("fontScale")?.toDouble()
     private val motionChecks get() = InstrumentationRegistry.getArguments().getString("motionPreferenceChecks") == "true"
 
+    // RF-121: a real Login caller, native label taps and real IME/rotation.
+    // This supplements all original baseline records; it does not replace them.
+    private val recoveryChecks get() = InstrumentationRegistry.getArguments().getString("recoveryCards") == "true"
+    private val recoveryRecords = JSONArray()
+
+    private val recoveryGeometry = """(() => {
+      const card=document.querySelector('[data-ui-card="floating"]');
+      const rect=e=>{if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};
+      const shown=e=>!!e&&e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0;
+      const targets=card?[...card.querySelectorAll('button,label,input')].map(e=>{
+        const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+        return {tag:e.tagName,text:e.tagName==='INPUT'?'':e.textContent.trim(),aria:e.getAttribute('aria-label'),id:e.id,
+          htmlFor:e.htmlFor||null,rect:rect(e),hittable:shown(e)&&(hit===e||e.contains(hit))};
+      }):[];
+      const r=card?.getBoundingClientRect(), style=card?getComputedStyle(card):null;
+      return JSON.stringify({path:location.pathname,platform:document.documentElement.dataset.platform,
+        theme:document.documentElement.dataset.theme,card:rect(card),targets,activeId:document.activeElement?.id,
+        scrollTop:card?.scrollTop,scrollHeight:card?.scrollHeight,clientHeight:card?.clientHeight,
+        overflowY:style?.overflowY,maxHeight:style?.maxHeight,width:innerWidth,height:innerHeight,
+        visualViewport:visualViewport?{height:visualViewport.height,offsetTop:visualViewport.offsetTop}:null,
+        documentOverflow:document.documentElement.scrollWidth>innerWidth,
+        bounded:!!r&&r.x>=15&&r.y>=15&&r.right<=innerWidth-15&&r.bottom<=innerHeight-15,
+        mocked:!!window.__E2E_MOCKS__||!!window.__MOCK_PLATFORM__,
+        realIpc:typeof window.__TAURI_INTERNALS__?.invoke==='function'});
+    })()"""
+
+    private fun recoveryTarget(scenario: ActivityScenario<MainActivity>, text: String,
+                               label: Boolean = false, scroll: Boolean = true): JSONObject {
+        val expression="""(() => {
+          const card=document.querySelector('[data-ui-card="floating"]');
+          const e=[...(card?.querySelectorAll(${if(label) "'label'" else "'button'"})||[])].find(e=>
+            e.textContent.trim()===${JSONObject.quote(text)}||e.getAttribute('aria-label')===${JSONObject.quote(text)});
+          ${if(scroll) "e?.scrollIntoView({block:'center',behavior:'instant'});" else ""}const r=e?.getBoundingClientRect();
+          const hit=r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2):null;
+          return JSON.stringify({x:r?.x+r?.width/2,y:r?.y+r?.height/2,width:innerWidth,viewportHeight:innerHeight,theme:document.documentElement.dataset.theme,
+            hittable:!!e&&(hit===e||e.contains(hit)),id:e?.htmlFor,
+            associated:!!e?.htmlFor&&document.getElementById(e.htmlFor)?.tagName==='INPUT'});
+        })()"""
+        val result=waitFor(scenario,"真实卡片目标可点击: $text",expression) { it.optBoolean("hittable") }
+        if(label) assertTrue("显示标签必须关联自己的输入框",result.getBoolean("associated"))
+        return result.put("caption",text).put("label",label)
+    }
+
+    private fun tapRecoveryTarget(scenario: ActivityScenario<MainActivity>, target: JSONObject) {
+        performReadyRecoveryTap(scenario,target)
+    }
+
+    private fun captureRecovery(scenario: ActivityScenario<MainActivity>, stage: String,
+                                dark: Boolean, ime: Boolean = false, activeId: String? = null) {
+        val row=waitFor(scenario,stage,recoveryGeometry) {
+            it.optBoolean("bounded")&&it.optString("theme")==if(dark) "dark" else "light"
+        }
+        assertEquals("android",row.getString("platform"))
+        assertEquals("/login",row.getString("path"))
+        assertFalse("不能用浏览器 mock 替代原生",row.getBoolean("mocked"))
+        assertTrue("必须为真实 Tauri IPC",row.getBoolean("realIpc"))
+        assertFalse("恢复卡片不能撑宽文档",row.getBoolean("documentOverflow"))
+        assertEquals("auto",row.getString("overflowY"))
+        if(activeId!=null) assertEquals("实际标签触摸必须聚焦其输入框",activeId,row.getString("activeId"))
+        val native=waitForIme(scenario,ime)
+        val card=row.getJSONObject("card")
+        val scale=native.getDouble("webViewWidthPx")/row.getDouble("width")
+        val bottom=native.getDouble("webViewScreenY")+card.getDouble("bottom")*scale
+        val safeBottom=if(ime) native.getInt("screenHeightPx")-native.getInt("imeHeightPx")
+          else native.getInt("screenHeightPx")-native.getJSONObject("systemBars").getInt("bottom")
+        assertTrue("原生输入法/系统栏不能遮住卡片底部: $bottom > $safeBottom",bottom<=safeBottom+2)
+        val bitmap=screenshot(scenario)
+        File(evidence,"$stage.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+        val sampled=bitmap.getPixel(bitmap.width/2,bitmap.height/2)
+        row.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height).put("samplePixel",sampled)
+        bitmap.recycle()
+        val after=js(scenario,recoveryGeometry)
+        assertEquals("截图前后卡片状态必须一致",row.getString("theme"),after.getString("theme"))
+        assertTrue("截图后仍须在视口内",after.getBoolean("bounded"))
+        if(activeId!=null) assertEquals(activeId,after.getString("activeId"))
+        row.put("stage",stage).put("nativeViewport",native).put("dark",dark)
+          .put("ime",ime).put("expectedActiveId",activeId?:JSONObject.NULL).put("screenshotStateConfirmed",true)
+        recoveryRecords.put(row);writeReport()
+    }
+
+    private fun verifyRecoveryCards(scenario: ActivityScenario<MainActivity>) {
+        assertTrue("仅允许保留全部原始基线的附加场景",!overlayChecks&&!keyboardChecks&&!accountChecks&&!insetsChecks&&!previewChecks&&!renderingChecks)
+        for(dark in listOf(false,true)) {
+            val theme=if(dark) "dark" else "light"
+            openAppearance(scenario);clickText(scenario,if(dark) "Dark" else "Light")
+            clickSelector(scenario,".android-navigation a[href='/']")
+            waitFor(scenario,"恢复场景前真实首页",home) { it.optBoolean("home")&&it.optString("theme")==theme }
+            lockToPassword(scenario)
+            clickText(scenario,"Restore from another device")
+            waitFor(scenario,"真实恢复浮层加载",recoveryGeometry) { !it.isNull("card") }
+            clickText(scenario,"Manual");clickText(scenario,"Show optional fingerprint")
+            installRecoveryPointerTrace(scenario)
+            captureRecovery(scenario,"recovery-$theme-portrait",dark)
+            recoveryTarget(scenario,"Next")
+            captureRecovery(scenario,"recovery-$theme-next-portrait",dark)
+            val restoredHeight=waitForIme(scenario,false).getInt("webViewHeightPx")
+            val ids=mutableSetOf<String>()
+            for((index,name) in listOf("Host Address","PIN","Host fingerprint").withIndex()) {
+                val target=recoveryTarget(scenario,name,label=true).put("expectedRestoredHeight",restoredHeight)
+                val id=target.getString("id")
+                assertTrue("每个字段 ID 必须唯一且非空",id.isNotEmpty()&&ids.add(id))
+                tapRecoveryTarget(scenario,target);waitForIme(scenario,true)
+                captureRecovery(scenario,"recovery-$theme-label-$index-ime",dark,ime=true,activeId=id)
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);waitForIme(scenario,false,restoredHeight=restoredHeight)
+                assertFalse("键盘优先返回不能关闭恢复卡片",js(scenario,recoveryGeometry).isNull("card"))
+            }
+            var original=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            scenario.onActivity { original=it.requestedOrientation;it.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+            try {
+                waitFor(scenario,"恢复卡片横屏完成",recoveryGeometry) { it.optDouble("width")>it.optDouble("height") }
+                captureRecovery(scenario,"recovery-$theme-landscape",dark)
+                recoveryTarget(scenario,"Next")
+                captureRecovery(scenario,"recovery-$theme-next-landscape",dark)
+                val target=recoveryTarget(scenario,"Close")
+                captureRecovery(scenario,"recovery-$theme-close-landscape",dark)
+                tapRecoveryTarget(scenario,target)
+                waitFor(scenario,"横屏真实触摸关闭恢复卡片",recoveryGeometry) { it.isNull("card")&&it.optString("path")=="/login" }
+            } finally { scenario.onActivity { it.requestedOrientation=original } }
+            waitFor(scenario,"恢复竖屏登录",recoveryGeometry) { it.optDouble("width")<it.optDouble("height")&&it.isNull("card") }
+            unlockPublicVisualAccount(scenario)
+            waitFor(scenario,"恢复卡片检查后真实解锁",home) { it.optBoolean("home") }
+            recoveryRecords.put(JSONObject().put("stage","recovery-$theme-returned-home").put("theme",theme).put("nativeCloseSucceeded",true).put("unlocked",true));writeReport()
+        }
+    }
+
+    private val recoveryCameraPrompts = JSONArray()
+    private val recoveryPermissionDiagnostics = JSONArray()
+    private var lastRecoveryPermissionTree = ""
+
+    private fun recoveryPermissionTree(root: AccessibilityNodeInfo): JSONArray {
+        val result=JSONArray()
+        fun walk(node: AccessibilityNodeInfo, depth: Int) {
+            if(result.length()>=256||depth>16)return
+            result.put(JSONObject().put("text",node.text?.toString()).put("description",node.contentDescription?.toString())
+                .put("class",node.className?.toString()).put("package",node.packageName?.toString()).put("clickable",node.isClickable))
+            for(index in 0 until node.childCount)node.getChild(index)?.let { walk(it,depth+1) }
+        }
+        walk(root,0);return result
+    }
+
+    private fun handleRecoveryCameraPrompt(root: AccessibilityNodeInfo): Boolean {
+        val context=instrumentation.targetContext
+        val controller=root.packageName?.toString()?:return false
+        if(controller !in listOf("com.android.permissioncontroller","com.google.android.permissioncontroller"))return false
+        val controllerInfo=context.packageManager.getApplicationInfo(controller,0)
+        if((controllerInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM)==0)return false
+        val app=context.applicationInfo.loadLabel(context.packageManager).toString()
+        val pattern=Regex("""Allow ${Regex.escape(app)} to take pictures and record video\?""")
+        fun normalized(text: CharSequence?)=text?.toString().orEmpty().replace(Regex("\\s+")," ").trim()
+        val message=root.findAccessibilityNodeInfosByText(app).firstOrNull { pattern.matches(normalized(it.text)) }
+        val deny=root.findAccessibilityNodeInfosByText("allow").firstOrNull {
+            normalized(it.text).replace('\u2019','\'').equals("Don't allow",ignoreCase=true)&&it.isClickable&&it.isEnabled&&it.className?.toString()=="android.widget.Button"
+        }
+        if(message==null||deny==null) {
+            val tree=recoveryPermissionTree(root)
+            if(tree.toString()!=lastRecoveryPermissionTree) {
+                lastRecoveryPermissionTree=tree.toString()
+                val file="permission-diagnostic-${recoveryPermissionDiagnostics.length()}.png"
+                instrumentation.uiAutomation.takeScreenshot()?.let { bitmap ->
+                    File(evidence,file).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
+                }
+                recoveryPermissionDiagnostics.put(JSONObject().put("tree",tree).put("screenshot",file).put("dismissed",false));writeReport()
+            }
+            return false // All original notification checks still run; unknown dialogs fail.
+        }
+        assertEquals("本场景仅拒绝摄像头请求，不授予权限",android.content.pm.PackageManager.PERMISSION_DENIED,
+            context.checkSelfPermission(android.Manifest.permission.CAMERA))
+        val screenshot="camera-permission-${recoveryCameraPrompts.length()}.png"
+        val bitmap=requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        File(evidence,screenshot).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
+        val record=JSONObject().put("controllerPackage",controller).put("controllerIsSystemApp",true).put("appLabel",app)
+            .put("message",normalized(message.text)).put("denyLabel",normalized(deny.text).replace('\u2019','\''))
+            .put("permission",android.Manifest.permission.CAMERA).put("screenshot",screenshot)
+            .put("tree",recoveryPermissionTree(root))
+        assertTrue("只点击已完整识别的本应用摄像头请求拒绝按钮",deny.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        instrumentation.waitForIdleSync()
+        assertEquals("原生权限拒绝必须生效",android.content.pm.PackageManager.PERMISSION_DENIED,
+            context.checkSelfPermission(android.Manifest.permission.CAMERA))
+        recoveryCameraPrompts.put(record.put("deniedByNativeUi",true).put("permissionDeniedAfter",true));writeReport()
+        return true
+    }
+
+    private val recoveryTapPlans = JSONArray()
+    private var recoveryPointerEvents = JSONArray()
+
+    private fun installRecoveryPointerTrace(scenario: ActivityScenario<MainActivity>) {
+        val result=js(scenario,"""(() => {
+          if(!window.__rf121RecoveryTraceInstalled){
+            window.__rf121RecoveryTraceInstalled=true;window.__rf121RecoveryPointers=[];window.__rf121RecoveryClicks=[];
+            document.addEventListener('pointerdown',event=>{
+              const card=document.querySelector('[data-ui-card="floating"]');
+              if(!card?.contains(event.target))return;
+              const label=event.target.closest?.('label'),button=event.target.closest?.('button');
+              window.__rf121RecoveryPointers.push({trusted:event.isTrusted,pointerType:event.pointerType,
+                clientX:event.clientX,clientY:event.clientY,width:innerWidth,height:innerHeight,
+                tag:event.target.tagName,id:event.target.id||null,labelFor:label?.htmlFor||null,
+                buttonLabel:button?.getAttribute('aria-label')||null,inCard:true,
+                theme:document.documentElement.dataset.theme,atMs:performance.now()});
+            },{capture:true,passive:true});
+            document.addEventListener('click',event=>{
+              const card=document.querySelector('[data-ui-card="floating"]');
+              if(!card?.contains(event.target))return;
+              window.__rf121RecoveryClicks.push({trusted:event.isTrusted,tag:event.target.tagName,
+                id:event.target.id||null,labelFor:event.target.closest?.('label')?.htmlFor||null,
+                buttonLabel:event.target.closest?.('button')?.getAttribute('aria-label')||null,
+                clientX:event.clientX,clientY:event.clientY,atMs:performance.now()});
+            },{capture:true,passive:true});
+          }
+          return JSON.stringify({installed:window.__rf121RecoveryTraceInstalled});
+        })()""")
+        assertTrue("只读触摸事件观察必须安装成功",result.getBoolean("installed"))
+    }
+
+    private fun performReadyRecoveryTap(scenario: ActivityScenario<MainActivity>, requested: JSONObject) {
+        val index=recoveryTapPlans.length()
+        val label=requested.getBoolean("label")
+        val caption=requested.getString("caption")
+        var target=requested
+        var stable=false
+        var native=JSONObject()
+        var attempts=0
+        for(attempt in 1..3) {
+            attempts=attempt
+            val before=nativeViewport(scenario)
+            val bitmap=screenshot(scenario) // Existing bounded visual-commit fence; no input retry.
+            val current=recoveryTarget(scenario,caption,label,scroll=false)
+            val after=nativeViewport(scenario)
+            stable=listOf("x","y","width","viewportHeight").all { kotlin.math.abs(target.getDouble(it)-current.getDouble(it))<=0.5 }&&
+                listOf("webViewWidthPx","webViewHeightPx","webViewScreenX","webViewScreenY").all { before.getInt(it)==after.getInt(it) }&&
+                !before.getBoolean("imeVisible")&&!after.getBoolean("imeVisible")&&current.getBoolean("hittable")&&
+                before.getInt("webViewHeightPx")==requested.optInt("expectedRestoredHeight",before.getInt("webViewHeightPx"))
+            if(stable) {
+                File(evidence,"native-tap-$index-before.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                native=after;target=current
+            } else target=current
+            bitmap.recycle()
+            if(stable)break
+        }
+        val plan=JSONObject().put("index",index).put("caption",caption).put("label",label)
+            .put("geometry",target).put("nativeViewport",native).put("preparationFrames",attempts)
+            .put("frameCommittedAndGeometryStable",stable).put("beforeScreenshot","native-tap-$index-before.png")
+            .put("expectedRestoredHeight",requested.optInt("expectedRestoredHeight",native.optInt("webViewHeightPx")))
+            .put("injectedTapCount",0)
+        recoveryTapPlans.put(plan);writeReport()
+        assertTrue("真实触摸前必须完成绘制并确认 DOM/原生坐标稳定",stable)
+        if(label)assertEquals("渲染同步不能替换预期字段",requested.getString("id"),target.getString("id"))
+        val scale=native.getDouble("webViewWidthPx")/target.getDouble("width")
+        val x=(native.getDouble("webViewScreenX")+target.getDouble("x")*scale).toFloat()
+        val y=(native.getDouble("webViewScreenY")+target.getDouble("y")*scale).toFloat()
+        plan.put("screenX",x.toDouble()).put("screenY",y.toDouble())
+        val down=SystemClock.uptimeMillis()
+        val properties=MotionEvent.PointerProperties().apply { id=0;toolType=MotionEvent.TOOL_TYPE_FINGER }
+        val coordinates=MotionEvent.PointerCoords()
+        coordinates.x=x;coordinates.y=y;coordinates.pressure=1f;coordinates.size=1f
+        for(action in listOf(MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP)) {
+            coordinates.pressure=if(action==MotionEvent.ACTION_DOWN)1f else 0f
+            val event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,1,arrayOf(properties),arrayOf(coordinates),
+                0,0,1f,1f,0,0,android.view.InputDevice.SOURCE_TOUCHSCREEN,0)
+            assertEquals(MotionEvent.TOOL_TYPE_FINGER,event.getToolType(0))
+            assertEquals(android.view.InputDevice.SOURCE_TOUCHSCREEN,event.source)
+            plan.put("injectedSource",event.source).put("injectedToolType",event.getToolType(0))
+            instrumentation.sendPointerSync(event);event.recycle()
+        }
+        plan.put("injectedTapCount",1);writeReport()
+        val observed=waitFor(scenario,"原生触点必须产生真实页面事件","""JSON.stringify({
+          events:window.__rf121RecoveryPointers||[],activations:window.__rf121RecoveryClicks||[],activeId:document.activeElement?.id,
+          card:!!document.querySelector('[data-ui-card="floating"]')})""") {
+            (it.optJSONArray("events")?.length()?:0)>=index+1
+        }
+        recoveryPointerEvents=observed.getJSONArray("events");plan.put("activationEvents",observed.getJSONArray("activations"));writeReport()
+        assertEquals("不能通过重复触摸凑聚焦",index+1,recoveryPointerEvents.length())
+        val event=recoveryPointerEvents.getJSONObject(index)
+        assertTrue("原生触点必须是可信触摸事件",event.getBoolean("trusted")&&event.getString("pointerType")=="touch")
+        assertTrue("真实 CSS 触点必须与准备坐标一致",kotlin.math.abs(event.getDouble("clientX")-target.getDouble("x"))<=1&&
+            kotlin.math.abs(event.getDouble("clientY")-target.getDouble("y"))<=1)
+        if(label)assertEquals("真实事件必须命中显示标签",target.getString("id"),event.getString("labelFor"))
+        else assertEquals("真实事件必须命中关闭按钮","Close",event.getString("buttonLabel"))
+        val after=waitFor(scenario,"单次原生触摸后的状态","""JSON.stringify({activeId:document.activeElement?.id,
+          card:!!document.querySelector('[data-ui-card="floating"]'),activations:window.__rf121RecoveryClicks||[]})""") {
+            if(label)it.optString("activeId")==target.getString("id") else !it.optBoolean("card")
+        }
+        plan.put("activeAfter",after.optString("activeId")).put("cardPresentAfter",after.getBoolean("card"))
+            .put("activationEvents",after.getJSONArray("activations"));writeReport()
+    }
+
+
     private fun writeReport() {
         val provider = WebView.getCurrentWebViewPackage()
         File(evidence, "report.json").writeText(JSONObject().put("records", records)
             .put("processId", android.os.Process.myPid())
+            .put("recoveryCardsRequested",recoveryChecks).put("recoveryRecords",recoveryRecords)
+            .put("recoveryCameraPrompts",recoveryCameraPrompts).put("recoveryPermissionDiagnostics",recoveryPermissionDiagnostics)
+            .put("recoveryTapPlans",recoveryTapPlans).put("recoveryPointerEvents",recoveryPointerEvents)
             .put("runtime", JSONObject().put("api", android.os.Build.VERSION.SDK_INT)
                 .put("webViewPackage", provider?.packageName).put("webViewVersion", provider?.versionName)
                 .put("webViewVersionCode", provider?.longVersionCode))
@@ -89,6 +378,7 @@ class AndroidHomeInstrumentedTest {
         do {
             val root = instrumentation.uiAutomation.rootInActiveWindow ?: return
             if (root.packageName?.toString()?.endsWith(".permissioncontroller") != true) return
+            if(recoveryChecks&&handleRecoveryCameraPrompt(root))return
             val message = root.findAccessibilityNodeInfosByText("notifications")
             val known = message.any { it.text?.toString()?.contains("SoloSoul") == true }
             val deny = root.findAccessibilityNodeInfosByText("allow").firstOrNull {
@@ -1899,6 +2189,7 @@ class AndroidHomeInstrumentedTest {
             if (accountChecks) verifyAccounts(scenario)
             if (insetsChecks) verifyInsets(scenario)
             if (renderingChecks) verifyRenderingWork(scenario)
+            if (recoveryChecks) verifyRecoveryCards(scenario)
         } catch (error: Throwable) {
             // 仅公开临时账户；记录可见文案，不读取任何输入值或私有 Vault 文件。
             liveScenario?.let { scenario ->
