@@ -336,10 +336,208 @@ class AndroidHomeInstrumentedTest {
     }
 
 
+    private var qrNearbyExpected = false
+    private val qrNearbyPrompts = JSONArray()
+
+    private fun handleQrNearbyPrompt(root: AccessibilityNodeInfo): Boolean {
+        if(!qrChecks||!qrNearbyExpected||android.os.Build.VERSION.SDK_INT<33)return false
+        val context=instrumentation.targetContext
+        val controller=root.packageName?.toString()?:return false
+        if(controller !in listOf("com.android.permissioncontroller","com.google.android.permissioncontroller"))return false
+        val controllerInfo=context.packageManager.getApplicationInfo(controller,0)
+        if((controllerInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM)==0)return false
+        val app=context.applicationInfo.loadLabel(context.packageManager).toString()
+        val expected="Allow $app to find, connect to, and determine the relative position of nearby devices?"
+        fun normalized(text: CharSequence?)=text?.toString().orEmpty().replace(Regex("\\s+")," ").trim()
+        val message=root.findAccessibilityNodeInfosByText(app).firstOrNull { normalized(it.text)==expected }?:return false
+        val allow=root.findAccessibilityNodeInfosByText("allow").firstOrNull {
+            normalized(it.text).equals("Allow",ignoreCase=true)&&it.isClickable&&it.isEnabled&&it.className?.toString()=="android.widget.Button"
+        }?:return false
+        val permission=android.Manifest.permission.NEARBY_WIFI_DEVICES
+        assertEquals("只能在明确开启同步时处理尚未授权的附近 Wi-Fi 请求",android.content.pm.PackageManager.PERMISSION_DENIED,context.checkSelfPermission(permission))
+        val cameraBefore=context.checkSelfPermission(android.Manifest.permission.CAMERA)
+        val screenshot="nearby-permission-${qrNearbyPrompts.length()}.png"
+        val bitmap=requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        File(evidence,screenshot).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
+        val row=JSONObject().put("controllerPackage",controller).put("controllerIsSystemApp",true).put("appLabel",app)
+            .put("message",normalized(message.text)).put("allowLabel",normalized(allow.text)).put("allowEnabled",allow.isEnabled)
+            .put("allowClickable",allow.isClickable).put("permission",permission).put("phase","qr-enable-sync")
+            .put("explicitEnablePending",qrNearbyExpected).put("permissionGrantedBefore",false)
+            .put("screenshot",screenshot).put("tree",recoveryPermissionTree(root)).put("nativeActionCount",0)
+        qrNearbyPrompts.put(row);writeReport()
+        assertTrue("只点击完整识别的本应用附近设备请求",allow.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        row.put("nativeActionCount",1);writeReport()
+        val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(3)
+        while(context.checkSelfPermission(permission)!=android.content.pm.PackageManager.PERMISSION_GRANTED&&System.nanoTime()<deadline)Thread.sleep(20)
+        assertEquals("必须回读实际附近 Wi-Fi 权限授权",android.content.pm.PackageManager.PERMISSION_GRANTED,context.checkSelfPermission(permission))
+        assertEquals("附近设备操作不能改变摄像头权限",cameraBefore,context.checkSelfPermission(android.Manifest.permission.CAMERA))
+        row.put("permissionGrantedAfter",true).put("cameraPermissionUnchanged",true).put("grantedByNativeUi",true);writeReport()
+        return true
+    }
+
+    // Real SyncPage callers; explicit opt-in supplements the complete baseline.
+    private val qrChecks get() = InstrumentationRegistry.getArguments().getString("qrCards") == "true"
+    private val qrRecords = JSONArray()
+    private val qrEnableReadiness = JSONArray()
+    private val qrGeometry get() = """(() => {
+      const base=JSON.parse(($recoveryGeometry)),card=document.querySelector('[data-ui-card="floating"]');
+      const headings=card?[...card.querySelectorAll('h2')].map(e=>e.textContent.trim()):[];
+      const buttons=card?[...card.querySelectorAll('button')].map(e=>e.textContent.trim()):[];
+      const qr=card?[...card.querySelectorAll('svg[width="200"][height="200"]')].filter(e=>!!e.querySelector('path')):[];
+      return JSON.stringify({...base,headings,qrCount:qr.length,cardClientWidth:card?.clientWidth,cardScrollWidth:card?.scrollWidth,
+        disabledMessage:!!card?.textContent.includes('Synchronization is disabled. Enable it first.'),
+        manualOpen:buttons.includes('Hide manual entry guide'),
+        manualAction:buttons.includes('Use discovery or manual input'),
+        hostPinPresent:!!card&&[...card.querySelectorAll('span')].some(e=>/^\d{6}$/.test(e.textContent.trim())),
+        syncEnabled:[...document.querySelectorAll('button')].some(e=>!e.disabled&&e.textContent.trim()==='Disable'),
+        showReady:!!document.querySelector('[aria-label="Show QR"]')&&!document.querySelector('[aria-label="Show QR"]').disabled,
+        syncDisabled:document.querySelector('[aria-label="Scan QR"]')?.disabled===true});
+    })()"""
+
+    private fun qrRecoveryFileCount(): Int {
+        val root=instrumentation.targetContext.filesDir.parentFile!!
+        return root.walkTopDown().maxDepth(6).filter { it.isFile&&it.name.startsWith("solosoul-recovery-")&&it.name.endsWith(".solosoul") }.count()
+    }
+
+    private fun qrAction(scenario: ActivityScenario<MainActivity>, caption: String, aria: Boolean = false): JSONObject {
+        val expression="""(() => {
+          const card=document.querySelector('[data-ui-card="floating"]');
+          const e=[...(card?.querySelectorAll('button')||[])].find(e=>${if(aria) "e.getAttribute('aria-label')" else "e.textContent.trim()"}===${JSONObject.quote(caption)});
+          e?.scrollIntoView({block:'center',behavior:'instant'});const r=e?.getBoundingClientRect();
+          const hit=r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2):null;
+          return JSON.stringify({caption:${JSONObject.quote(caption)},aria:$aria,hittable:!!e&&!e.disabled&&(hit===e||e.contains(hit))});
+        })()"""
+        return waitFor(scenario,"真实二维码卡片操作必须可命中: $caption",expression) { it.optBoolean("hittable") }
+    }
+
+    private fun captureQr(scenario: ActivityScenario<MainActivity>, stage: String, theme: String,
+                          kind: String, action: String? = null, actionAria: Boolean = false) {
+        val target=if(action!=null)qrAction(scenario,action,actionAria) else null
+        val row=waitFor(scenario,stage,qrGeometry) { it.optBoolean("bounded")&&it.optString("theme")==theme }
+        assertEquals("/sync",row.getString("path"));assertEquals("android",row.getString("platform"))
+        assertTrue(row.getBoolean("realIpc"));assertFalse(row.getBoolean("mocked"));assertFalse(row.getBoolean("documentOverflow"))
+        assertEquals("auto",row.getString("overflowY"))
+        assertTrue("二维码卡片内不能横向溢出",row.getInt("cardScrollWidth")<=row.getInt("cardClientWidth")+1)
+        when(kind) {
+            "disabled" -> { assertTrue(row.getBoolean("disabledMessage"));assertEquals(0,row.getInt("qrCount"));assertTrue(row.getBoolean("syncDisabled")) }
+            "host" -> { assertEquals("Link New Device",row.getJSONArray("headings").getString(0));assertEquals(1,row.getInt("qrCount"));assertTrue(row.getBoolean("manualOpen"));assertTrue(row.getBoolean("hostPinPresent"));assertEquals(1,qrRecoveryFileCount()) }
+            "sync" -> { assertEquals("Sync QR Code",row.getJSONArray("headings").getString(0));assertEquals(1,row.getInt("qrCount"));assertFalse(row.getBoolean("syncDisabled")) }
+            "scan" -> { assertEquals("Scan QR Code",row.getJSONArray("headings").getString(0));assertTrue(row.getBoolean("manualAction"));assertFalse(row.getBoolean("syncDisabled")) }
+            else -> error("Unknown real QR caller kind")
+        }
+        val native=waitForIme(scenario,false)
+        val card=row.getJSONObject("card")
+        val bottom=native.getDouble("webViewScreenY")+card.getDouble("bottom")*native.getDouble("webViewWidthPx")/row.getDouble("width")
+        assertTrue("原生系统栏不能遮住二维码卡片",bottom<=native.getInt("screenHeightPx")-native.getJSONObject("systemBars").getInt("bottom")+2)
+        val bitmap=screenshot(scenario)
+        File(evidence,"$stage.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+        row.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height).put("samplePixel",bitmap.getPixel(bitmap.width/2,bitmap.height/2));bitmap.recycle()
+        val after=js(scenario,qrGeometry)
+        assertEquals(row.getString("theme"),after.getString("theme"));assertTrue(after.getBoolean("bounded"))
+        assertEquals(row.getJSONArray("headings").toString(),after.getJSONArray("headings").toString())
+        row.put("stage",stage).put("kind",kind).put("nativeViewport",native).put("action",target?:JSONObject.NULL)
+            .put("exportFileCount",qrRecoveryFileCount()).put("screenshotStateConfirmed",true)
+        qrRecords.put(row);writeReport()
+    }
+
+    private fun qrClosed(scenario: ActivityScenario<MainActivity>, stage: String, theme: String) {
+        val row=waitFor(scenario,"单次原生触摸关闭真实二维码卡片",qrGeometry) { it.isNull("card")&&it.optString("path")=="/sync" }
+        val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(10)
+        while(qrRecoveryFileCount()!=0&&System.nanoTime()<deadline)Thread.sleep(50)
+        assertEquals("关闭必须清理实际导出的临时恢复包",0,qrRecoveryFileCount())
+        qrRecords.put(JSONObject().put("stage",stage).put("theme",theme).put("closed",true).put("path",row.getString("path"))
+            .put("exportFileCount",0).put("syncDisabled",row.getBoolean("syncDisabled")));writeReport()
+    }
+
+    private fun qrLandscape(scenario: ActivityScenario<MainActivity>, block: () -> Unit) {
+        var original=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        scenario.onActivity { original=it.requestedOrientation;it.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+        try {
+            waitFor(scenario,"真实二维码横屏完成",qrGeometry) { it.optDouble("width")>it.optDouble("height") }
+            block()
+        } finally { scenario.onActivity { it.requestedOrientation=original } }
+        waitFor(scenario,"二维码关闭后恢复竖屏",qrGeometry) { it.optDouble("width")<it.optDouble("height")&&it.isNull("card") }
+    }
+
+    private fun verifyQrCards(scenario: ActivityScenario<MainActivity>) {
+        assertTrue("二维码调用方只附加在完整基线，不能混用恢复触摸记录",!recoveryChecks&&!overlayChecks&&!keyboardChecks&&!accountChecks&&!insetsChecks&&!previewChecks&&!renderingChecks)
+        assertTrue("二维码附近 Wi-Fi 原生验收要求 API33+，不请求定位权限",android.os.Build.VERSION.SDK_INT>=33)
+        assertEquals("只能使用隔离公开账户的空白恢复临时目录",0,qrRecoveryFileCount())
+        for(dark in listOf(false,true)) {
+            val theme=if(dark)"dark" else "light"
+            openAppearance(scenario);clickText(scenario,if(dark)"Dark" else "Light")
+            clickSelector(scenario,".android-navigation a[href='/settings']")
+            val entry=js(scenario,"""(() => {
+              const candidates=[...document.querySelectorAll('[data-ui-card][role="button"]')].filter(e=>e.textContent.trim().startsWith('Device Sync'));
+              if(candidates.length===1)candidates[0].click();return JSON.stringify({unique:candidates.length===1});
+            })()""")
+            assertTrue("必须从设置中点击真实设备同步入口",entry.getBoolean("unique"))
+            waitFor(scenario,"实际同步页面初始化",qrGeometry) { it.optString("path")=="/sync"&&it.optBoolean("syncDisabled")&&it.optBoolean("showReady") }
+            clickSelector(scenario,"[aria-label='Show QR']");installRecoveryPointerTrace(scenario)
+            waitFor(scenario,"未开启同步的真实错误分支",qrGeometry) { it.optBoolean("disabledMessage") }
+            captureQr(scenario,"qr-$theme-disabled",theme,"disabled",action="Close",actionAria=true)
+            tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"))
+            qrClosed(scenario,"qr-$theme-disabled-closed",theme)
+
+            clickSelector(scenario,"[aria-label='Show QR']")
+            waitFor(scenario,"实际显示二维码外壳已加载",qrGeometry) { !it.isNull("card") }
+            clickText(scenario,"Recovery QR")
+            waitFor(scenario,"实际恢复会话已生成二维码",qrGeometry) { it.optInt("qrCount")==1&&it.optBoolean("hostPinPresent") }
+            clickText(scenario,"No camera? Enter details manually")
+            captureQr(scenario,"qr-$theme-host-portrait",theme,"host")
+            captureQr(scenario,"qr-$theme-host-cancel-portrait",theme,"host",action="Cancel")
+            qrLandscape(scenario) {
+                captureQr(scenario,"qr-$theme-host-landscape",theme,"host")
+                captureQr(scenario,"qr-$theme-host-cancel-landscape",theme,"host",action="Cancel")
+                captureQr(scenario,"qr-$theme-host-close-landscape",theme,"host",action="Close",actionAria=true)
+                tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"));qrClosed(scenario,"qr-$theme-host-closed",theme)
+            }
+            qrNearbyExpected=true
+            try {
+                clickText(scenario,"Enable")
+                val ready=waitFor(scenario,"同步 UI 与原生 NSD 权限均已就绪",qrGeometry) {
+                    it.optString("path")=="/sync"&&it.optBoolean("syncEnabled")&&it.optBoolean("showReady")&&!it.optBoolean("syncDisabled")&&
+                        instrumentation.targetContext.checkSelfPermission(android.Manifest.permission.NEARBY_WIFI_DEVICES)==android.content.pm.PackageManager.PERMISSION_GRANTED
+                }
+                qrEnableReadiness.put(JSONObject().put("theme",theme).put("phase","qr-enable-sync").put("explicitEnablePending",qrNearbyExpected)
+                    .put("path",ready.getString("path")).put("syncEnabled",ready.getBoolean("syncEnabled")).put("showReady",ready.getBoolean("showReady"))
+                    .put("realIpc",ready.getBoolean("realIpc")).put("mocked",ready.getBoolean("mocked"))
+                    .put("nearbyPermissionGranted",instrumentation.targetContext.checkSelfPermission(android.Manifest.permission.NEARBY_WIFI_DEVICES)==android.content.pm.PackageManager.PERMISSION_GRANTED));writeReport()
+            } finally { qrNearbyExpected=false }
+            clickSelector(scenario,"[aria-label='Show QR']")
+            waitFor(scenario,"实际同步二维码加载",qrGeometry) { it.optInt("qrCount")==1&&it.optJSONArray("headings")?.optString(0)=="Sync QR Code" }
+            captureQr(scenario,"qr-$theme-sync-portrait",theme,"sync")
+            captureQr(scenario,"qr-$theme-sync-close-portrait",theme,"sync",action="Close")
+            qrLandscape(scenario) {
+                captureQr(scenario,"qr-$theme-sync-landscape",theme,"sync")
+                captureQr(scenario,"qr-$theme-sync-close-landscape",theme,"sync",action="Close",actionAria=true)
+                tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"));qrClosed(scenario,"qr-$theme-sync-closed",theme)
+            }
+            clickSelector(scenario,"[aria-label='Scan QR']")
+            waitFor(scenario,"真实摄像头能力/拒绝后的手动回退",qrGeometry) { it.optBoolean("manualAction") }
+            captureQr(scenario,"qr-$theme-scan-portrait",theme,"scan")
+            captureQr(scenario,"qr-$theme-scan-manual-portrait",theme,"scan",action="Use discovery or manual input")
+            qrLandscape(scenario) {
+                captureQr(scenario,"qr-$theme-scan-landscape",theme,"scan")
+                captureQr(scenario,"qr-$theme-scan-manual-landscape",theme,"scan",action="Use discovery or manual input")
+                captureQr(scenario,"qr-$theme-scan-close-landscape",theme,"scan",action="Close",actionAria=true)
+                tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"));qrClosed(scenario,"qr-$theme-scan-closed",theme)
+            }
+            clickText(scenario,"Disable")
+            waitFor(scenario,"实际同步停止并恢复初始关闭状态",qrGeometry) { it.optBoolean("syncDisabled") }
+            clickSelector(scenario,".android-navigation a[href='/']")
+            waitFor(scenario,"二维码调用方完成后返回真实首页",home) { it.optBoolean("home")&&it.optString("theme")==theme }
+            qrRecords.put(JSONObject().put("stage","qr-$theme-returned-home").put("theme",theme).put("unlocked",true)
+                .put("syncDisabled",true).put("exportFileCount",qrRecoveryFileCount()));writeReport()
+        }
+    }
+
+
     private fun writeReport() {
         val provider = WebView.getCurrentWebViewPackage()
         File(evidence, "report.json").writeText(JSONObject().put("records", records)
             .put("processId", android.os.Process.myPid())
+            .put("qrCardsRequested",qrChecks).put("qrRecords",qrRecords).put("qrNearbyPrompts",qrNearbyPrompts).put("qrEnableReadiness",qrEnableReadiness)
             .put("recoveryCardsRequested",recoveryChecks).put("recoveryRecords",recoveryRecords)
             .put("recoveryCameraPrompts",recoveryCameraPrompts).put("recoveryPermissionDiagnostics",recoveryPermissionDiagnostics)
             .put("recoveryTapPlans",recoveryTapPlans).put("recoveryPointerEvents",recoveryPointerEvents)
@@ -378,7 +576,8 @@ class AndroidHomeInstrumentedTest {
         do {
             val root = instrumentation.uiAutomation.rootInActiveWindow ?: return
             if (root.packageName?.toString()?.endsWith(".permissioncontroller") != true) return
-            if(recoveryChecks&&handleRecoveryCameraPrompt(root))return
+            if(qrChecks&&handleQrNearbyPrompt(root))return
+            if((recoveryChecks||qrChecks)&&handleRecoveryCameraPrompt(root))return
             val message = root.findAccessibilityNodeInfosByText("notifications")
             val known = message.any { it.text?.toString()?.contains("SoloSoul") == true }
             val deny = root.findAccessibilityNodeInfosByText("allow").firstOrNull {
@@ -2190,6 +2389,7 @@ class AndroidHomeInstrumentedTest {
             if (insetsChecks) verifyInsets(scenario)
             if (renderingChecks) verifyRenderingWork(scenario)
             if (recoveryChecks) verifyRecoveryCards(scenario)
+            if (qrChecks) verifyQrCards(scenario)
         } catch (error: Throwable) {
             // 仅公开临时账户；记录可见文案，不读取任何输入值或私有 Vault 文件。
             liveScenario?.let { scenario ->

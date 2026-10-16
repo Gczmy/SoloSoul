@@ -244,7 +244,9 @@ def verification_passed(report, needs_notification):
                 and (not report.get("motionPreferenceChecks") or report.get("motionPreferencePassed"))
                 and (report.get('requestedFontScale') is None or report.get('fontScaleRestored'))
                 and (not report.get("recoveryCardsRequested") or (report.get("recoveryCardsPassed") and report.get("cameraPermissionRestored") and report.get("nativeTapCount")==8))
+                and (not report.get("qrCardsRequested") or (report.get("qrCardsPassed") and report.get("cameraPermissionRestored") and report.get("qrTapCount")==8 and report.get("nearbyPermissionRestored")))
                 and not report.get("cameraRestoreError")
+                and not report.get("nearbyRestoreError")
                 and not any(report.get(key) for key in
                             ("error", "restoreError", "blurRestoreError", "notificationRestoreError", "nightModeRestoreError", "fontScaleRestoreError")))
 
@@ -794,16 +796,193 @@ def verify_recovery_taps(evidence):
     return len(plans)
 
 
+def verify_qr_evidence(evidence):
+    """Real SyncPage caller proof in addition to the untouched full baseline."""
+    suffixes = ['disabled', 'disabled-closed', 'host-portrait', 'host-cancel-portrait', 'host-landscape',
+                'host-cancel-landscape', 'host-close-landscape', 'host-closed', 'sync-portrait',
+                'sync-close-portrait', 'sync-landscape', 'sync-close-landscape', 'sync-closed',
+                'scan-portrait', 'scan-manual-portrait', 'scan-landscape', 'scan-manual-landscape',
+                'scan-close-landscape', 'scan-closed', 'returned-home']
+    expected = [f'qr-{theme}-{suffix}' for theme in ('light', 'dark') for suffix in suffixes]
+    rows = evidence.get('qrRecords')
+    if (evidence.get('qrCardsRequested') is not True or evidence.get('recoveryCardsRequested') is not False
+            or evidence.get('scenario') != 'baseline' or not isinstance(rows, list)
+            or [r.get('stage') for r in rows] != expected):
+        raise RuntimeError('QR callers require exact complete opt-in baseline sequence without mixed recovery taps')
+    readiness = evidence.get('qrEnableReadiness')
+    if not isinstance(readiness, list) or [r.get('theme') for r in readiness] != ['light', 'dark']:
+        raise RuntimeError('Both QR enable phases require actual native permission readiness')
+    for ready in readiness:
+        if (ready.get('phase') != 'qr-enable-sync' or ready.get('explicitEnablePending') is not True
+                or ready.get('path') != '/sync' or ready.get('syncEnabled') is not True or ready.get('showReady') is not True
+                or ready.get('realIpc') is not True or ready.get('mocked') is not False or ready.get('nearbyPermissionGranted') is not True):
+            raise RuntimeError('Enabled UI alone cannot prove native NSD permission readiness')
+    runtime = evidence.get('runtime', {})
+    if type(runtime.get('api')) is not int or runtime['api'] < 33 or not runtime.get('webViewVersion') or not runtime.get('webViewPackage'):
+        raise RuntimeError('QR native runtime identity missing')
+    def number(v):
+        return type(v) in (int, float) and math.isfinite(v)
+    for index, row in enumerate(rows):
+        theme = 'light' if index < len(suffixes) else 'dark'
+        suffix = suffixes[index % len(suffixes)]
+        if row.get('theme') != theme or type(row.get('exportFileCount')) is not int:
+            raise RuntimeError('QR actual theme or native export counter missing')
+        if suffix == 'returned-home':
+            if row.get('unlocked') is not True or row.get('syncDisabled') is not True or row['exportFileCount'] != 0:
+                raise RuntimeError('QR caller did not return to unlocked home with sync disabled and no live export')
+            continue
+        if suffix.endswith('-closed'):
+            disabled = suffix in ('disabled-closed', 'host-closed')
+            if (row.get('closed') is not True or row.get('path') != '/sync' or row['exportFileCount'] != 0
+                    or row.get('syncDisabled') is not disabled):
+                raise RuntimeError('Native QR close did not preserve page/sync state and remove actual export')
+            continue
+        kind = suffix.split('-')[0]
+        native, card = row.get('nativeViewport', {}), row.get('card', {})
+        if (row.get('kind') != kind or row.get('path') != '/sync' or row.get('platform') != 'android'
+                or row.get('realIpc') is not True or row.get('mocked') is not False or row.get('bounded') is not True
+                or row.get('screenshotStateConfirmed') is not True or row.get('documentOverflow') is not False
+                or row.get('overflowY') != 'auto' or native.get('imeVisible') is not False
+                or row.get('syncDisabled') is not (kind in ('disabled', 'host'))):
+            raise RuntimeError('QR caller DOM or native state differs from exact requested case')
+        dims = [row.get(k) for k in ('width', 'height', 'screenshotWidth', 'screenshotHeight')]
+        dims += [card.get(k) for k in ('x', 'y', 'width', 'height', 'right', 'bottom')]
+        dims += [native.get(k) for k in ('webViewWidthPx', 'webViewScreenY', 'screenHeightPx')]
+        bounds = native.get('windowBounds', {})
+        dims += [bounds.get(k) for k in ('left', 'right', 'top', 'bottom')]
+        inset = native.get('systemBars', {}).get('bottom')
+        if not all(number(v) for v in dims) or not number(inset) or inset < 0:
+            raise RuntimeError('QR actual CSS and native dimensions must be finite')
+        if (min(row['width'], row['height'], row['screenshotWidth'], row['screenshotHeight'], card['width'], card['height']) <= 0
+                or card['x'] < 15 or card['y'] < 15 or card['right'] > row['width'] - 15 or card['bottom'] > row['height'] - 15
+                or abs(card['right'] - card['x'] - card['width']) > 1 or abs(card['bottom'] - card['y'] - card['height']) > 1):
+            raise RuntimeError('QR card exceeded actual visible CSS viewport')
+        bottom = native['webViewScreenY'] + card['bottom'] * native['webViewWidthPx'] / row['width']
+        if bottom > native['screenHeightPx'] - inset + 2:
+            raise RuntimeError('QR card obscured by actual native system bar')
+        landscape = 'landscape' in suffix
+        if ((bounds['right'] - bounds['left']) > (bounds['bottom'] - bounds['top'])) is not landscape:
+            raise RuntimeError('QR caller did not actually rotate to requested orientation')
+        if landscape and not (row.get('scrollHeight', 0) > row.get('clientHeight', 0) > 0):
+            raise RuntimeError('Landscape QR must exercise real internal overflow')
+        if (not number(row.get('cardClientWidth')) or not number(row.get('cardScrollWidth')) or row['cardClientWidth'] <= 0
+                or row['cardScrollWidth'] > row['cardClientWidth'] + 1):
+            raise RuntimeError('QR content overflows horizontally inside its bounded card')
+        action = row.get('action')
+        wanted = ('Close', True) if suffix in ('disabled', 'host-close-landscape', 'sync-close-landscape', 'scan-close-landscape') else (
+            ('Cancel', False) if '-cancel-' in suffix else ('Close', False) if suffix == 'sync-close-portrait' else
+            ('Use discovery or manual input', False) if '-manual-' in suffix else None)
+        if wanted and (not isinstance(action, dict) or action.get('caption') != wanted[0]
+                       or action.get('aria') is not wanted[1] or action.get('hittable') is not True):
+            raise RuntimeError('QR terminal/fallback operation not actually hittable after scroll')
+        if not wanted and action is not None:
+            raise RuntimeError('Unexpected QR target assertion')
+        if type(row.get('qrCount')) is not int or row['qrCount'] != (1 if kind in ('host', 'sync') else 0):
+            raise RuntimeError('Actual expected QR drawing missing or stale')
+        if row['exportFileCount'] != (1 if kind == 'host' else 0):
+            raise RuntimeError('Actual native recovery export lifetime differs from visible caller')
+        if kind == 'disabled':
+            if row.get('disabledMessage') is not True:
+                raise RuntimeError('Disabled sync must use real backend error branch')
+        elif row.get('headings') != [{'host': 'Link New Device', 'sync': 'Sync QR Code', 'scan': 'Scan QR Code'}[kind]]:
+            raise RuntimeError('QR caller title identity missing')
+        if kind == 'host' and (row.get('manualOpen') is not True or row.get('hostPinPresent') is not True):
+            raise RuntimeError('Real recovery host must contain actual QR/PIN and expanded manual instructions')
+        if kind == 'scan' and row.get('manualAction') is not True:
+            raise RuntimeError('Real camera failure/absence must expose usable manual fallback')
+    return expected
+
+
+def verify_qr_taps(evidence):
+    plans, events = evidence.get('recoveryTapPlans'), evidence.get('recoveryPointerEvents')
+    if not isinstance(plans, list) or not isinstance(events, list) or len(plans) != 8 or len(events) != 8:
+        raise RuntimeError('Exactly eight single real QR close touches required')
+    def number(v):
+        return type(v) in (int, float) and math.isfinite(v)
+    for index, (plan, event) in enumerate(zip(plans, events)):
+        geometry, native = plan.get('geometry', {}), plan.get('nativeViewport', {})
+        theme = 'light' if index < 4 else 'dark'
+        if (type(plan.get('index')) is not int or plan['index'] != index or plan.get('caption') != 'Close' or plan.get('label') is not False
+                or plan.get('frameCommittedAndGeometryStable') is not True or type(plan.get('injectedTapCount')) is not int or plan['injectedTapCount'] != 1
+                or plan.get('injectedSource') != 4098 or plan.get('injectedToolType') != 1
+                or type(plan.get('preparationFrames')) is not int or not 1 <= plan['preparationFrames'] <= 3
+                or plan.get('beforeScreenshot') != f'native-tap-{index}-before.png' or plan.get('cardPresentAfter') is not False
+                or geometry.get('hittable') is not True or geometry.get('theme') != theme
+                or native.get('imeVisible') is not False or event.get('trusted') is not True or event.get('pointerType') != 'touch'
+                or event.get('inCard') is not True or event.get('theme') != theme or event.get('buttonLabel') != 'Close'):
+            raise RuntimeError('QR close requires one trusted native finger touch on its own committed frame')
+        values = [plan.get(k) for k in ('screenX', 'screenY', 'expectedRestoredHeight')]
+        values += [geometry.get(k) for k in ('x', 'y', 'width', 'viewportHeight')]
+        values += [native.get(k) for k in ('webViewWidthPx', 'webViewHeightPx', 'webViewScreenX', 'webViewScreenY')]
+        values += [event.get(k) for k in ('clientX', 'clientY', 'width', 'height')]
+        if not all(number(v) for v in values) or min(geometry['width'], geometry['viewportHeight'], native['webViewWidthPx'], native['webViewHeightPx']) <= 0:
+            raise RuntimeError('QR close lacks finite actual touch mapping')
+        if (not 0 <= geometry['x'] <= geometry['width'] or not 0 <= geometry['y'] <= geometry['viewportHeight']
+                or plan['expectedRestoredHeight'] != native['webViewHeightPx']):
+            raise RuntimeError('QR touch outside restored visible viewport')
+        scale = native['webViewWidthPx'] / geometry['width']
+        if any(abs(plan[f'screen{a}'] - native[f'webViewScreen{a}'] - geometry[a.lower()] * scale) > 1 for a in ('X', 'Y')):
+            raise RuntimeError('QR native coordinates differ from committed CSS target')
+        if (abs(event['clientX'] - geometry['x']) > 1 or abs(event['clientY'] - geometry['y']) > 1
+                or abs(event['width'] - geometry['width']) > 1 or abs(event['height'] - geometry['viewportHeight']) > 1):
+            raise RuntimeError('QR native event belongs to stale geometry or another hit')
+    return len(plans)
+
+
+def nearby_permission(package_dump):
+    matches = list(re.finditer(r'^\s*android\.permission\.NEARBY_WIFI_DEVICES: granted=(true|false), flags=\[([^\]]*)\]\s*$', package_dump, re.M))
+    if len(matches) != 1:
+        raise RuntimeError('Missing exact unique current nearby Wi-Fi permission state; refusing mutation')
+    match = matches[0]
+    return {'granted': match[1] == 'true', 'flags': sorted(flag.strip() for flag in match[2].split('|') if flag.strip())}
+
+
+def restore_nearby_permission(adb, read, original):
+    permission = 'android.permission.NEARBY_WIFI_DEVICES'
+    current = nearby_permission(read('shell', 'dumpsys', 'package', APP))
+    if current['granted'] != original['granted']:
+        adb('shell', 'pm', 'grant' if original['granted'] else 'revoke', APP, permission, stdout=subprocess.PIPE)
+    adb('shell', 'pm', 'clear-permission-flags', APP, permission, 'user-set', 'user-fixed', stdout=subprocess.PIPE)
+    flags = [flag.lower().replace('_', '-') for flag in original['flags'] if flag in ('USER_SET', 'USER_FIXED')]
+    if flags:
+        adb('shell', 'pm', 'set-permission-flags', APP, permission, *flags, stdout=subprocess.PIPE)
+    if nearby_permission(read('shell', 'dumpsys', 'package', APP)) != original:
+        raise RuntimeError('Nearby Wi-Fi permission/flags differ from original state')
+
+
+def verify_qr_nearby_prompts(evidence):
+    rows = evidence.get('qrNearbyPrompts')
+    if not isinstance(rows, list) or len(rows) > 2:
+        raise RuntimeError('Missing bounded native Nearby Devices evidence')
+    for index, row in enumerate(rows):
+        if (row.get('controllerPackage') not in ('com.android.permissioncontroller', 'com.google.android.permissioncontroller')
+                or row.get('controllerIsSystemApp') is not True or row.get('appLabel') != 'SoloSoul'
+                or row.get('message') != 'Allow SoloSoul to find, connect to, and determine the relative position of nearby devices?'
+                or not isinstance(row.get('allowLabel'), str) or row['allowLabel'].casefold() != 'allow'
+                or row.get('allowEnabled') is not True or row.get('allowClickable') is not True
+                or row.get('permission') != 'android.permission.NEARBY_WIFI_DEVICES'
+                or row.get('phase') != 'qr-enable-sync' or row.get('explicitEnablePending') is not True
+                or row.get('permissionGrantedBefore') is not False or row.get('permissionGrantedAfter') is not True
+                or row.get('cameraPermissionUnchanged') is not True or row.get('grantedByNativeUi') is not True
+                or type(row.get('nativeActionCount')) is not int or row['nativeActionCount'] != 1
+                or row.get('screenshot') != f'nearby-permission-{index}.png' or not row.get('tree')):
+            raise RuntimeError('Nearby Wi-Fi native grant identity, explicit phase, or unchanged camera proof missing')
+    return len(rows)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("adb", "serial", "avd", "apk", "test-apk", "output"):
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--mode", choices=("supported", "fallback"), required=True)
     parser.add_argument("--scenario", choices=("baseline", "overlays", "keyboard", "accounts", "insets", "lifecycle", "cold", "previews", "rendering"), default="baseline")
+    parser.add_argument("--qr-cards", action="store_true", help="Append real SyncPage QR host/sync/scan callers to complete baseline")
     parser.add_argument("--recovery-cards", action="store_true", help="Append real Login recovery card native touch/IME/rotation checks to baseline")
     parser.add_argument("--motion-preferences", action="store_true", help="Verify true/false reduced motion across account/process changes (cold only)")
     parser.add_argument('--font-scale', type=float, choices=(1.0, 1.3, 2.0), help='Actual Android system font scale; baseline only, restored afterward')
     args = parser.parse_args()
+    if args.qr_cards and (args.scenario != "baseline" or args.recovery_cards):
+        parser.error("QR callers append to baseline only and cannot mix recovery tap records")
     if args.recovery_cards and args.scenario != "baseline":
         parser.error("Recovery cards append to baseline only")
     if args.motion_preferences and args.scenario != "cold":
@@ -818,12 +997,14 @@ def main():
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
     report['recoveryCardsRequested'] = args.recovery_cards
+    report['qrCardsRequested'] = args.qr_cards
     selected = False
     backup_valid = False
     mutation_started = False
     old_blur = None
     old_notification = None
     old_camera = None
+    old_nearby = None
     old_night = None
     old_font_scale = None
     old_font_effective = None
@@ -874,10 +1055,15 @@ def main():
         report["abi"] = read("shell", "getprop", "ro.product.cpu.abi")
         if report["api"] < 31:
             raise RuntimeError("Requires API >=31")
+        if args.qr_cards and report["api"] < 33:
+            raise RuntimeError("QR caller tests require API33+ Nearby Wi-Fi, never location grants")
         if report["api"] >= 33:
             old_notification = notification_permission(read("shell", "dumpsys", "package", APP))
             report["notificationPermissionBefore"] = old_notification
-        if args.recovery_cards:
+        if args.qr_cards:
+            old_nearby = nearby_permission(read("shell", "dumpsys", "package", APP))
+            report["nearbyPermissionBefore"] = old_nearby
+        if args.recovery_cards or args.qr_cards:
             old_camera = camera_permission(read("shell", "dumpsys", "package", APP))
             report["cameraPermissionBefore"] = old_camera
         report["artifacts"] = [{"path": str(Path(path).resolve()), "sha256": digest(path)}
@@ -900,6 +1086,7 @@ def main():
         # 输出由 JUnit 最后写入；不关闭最后一个 Activity 以免 Tauri 退出同进程 runner。
         result = adb("shell", "am", "instrument", "-w", "-r", "-e", "waitForActivitiesToComplete", "false",
                      "-e", "privateDataBackedUp", "true", "-e", "evidenceTag", tag,
+                     "-e", "qrCards", str(args.qr_cards).lower(),
                      "-e", "recoveryCards", str(args.recovery_cards).lower(),
                      "-e", "scenario", "accounts" if args.scenario == "cold" else args.scenario,
                      "-e", "prepareColdRestart", "true" if args.scenario == "cold" else "false",
@@ -920,6 +1107,14 @@ def main():
                                  require_typography_header=args.font_scale is not None,
                                  require_keyboard_cancel=args.scenario == 'keyboard')
         report["stages"] = stages
+        if args.qr_cards:
+            report["qrStages"] = verify_qr_evidence(evidence)
+            report["cameraPrompts"] = verify_camera_prompts(evidence)
+            report["qrTapCount"] = verify_qr_taps(evidence)
+            report["nearbyPrompts"] = verify_qr_nearby_prompts(evidence)
+            if report["nearbyPrompts"] != (0 if old_nearby["granted"] else 1):
+                raise RuntimeError("Nearby native grant count differs from original permission state")
+            report["qrCardsPassed"] = True
         if args.recovery_cards:
             report["recoveryStages"] = verify_recovery_evidence(evidence)
             report["cameraPrompts"] = verify_camera_prompts(evidence)
@@ -1006,6 +1201,12 @@ def main():
                     report["notificationPermissionRestored"] = True
                 except Exception as error:
                     report["notificationRestoreError"] = str(error)
+            if old_nearby is not None:
+                try:
+                    restore_nearby_permission(adb, read, old_nearby)
+                    report["nearbyPermissionRestored"] = True
+                except Exception as error:
+                    report["nearbyRestoreError"] = str(error)
             if old_camera is not None:
                 try:
                     restore_camera_permission(adb, read, old_camera)

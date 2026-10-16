@@ -250,3 +250,33 @@ python scripts/android-home-native-regression.py \
 当前 API35 / x86_64 / WebView124、同一默认 Debug 主包的六组完整队列通过，原 72 个首页阶段加 108 个恢复阶段；36 次标签及 12 次关闭均为单次真实手指触摸。96 张恢复截图和 48 张触摸前截图独立解码、12 次原生摄像头拒绝、48 项匹配文字高度比较及完整数据/设置/权限恢复均核对。此前权限识别、启动响应、第三字段焦点和未知指针类型失败仍保留，启动响应失败不因此改记解决。
 
 [去标识验收摘要](../verification/rf1176-android-recovery-native-2026-10-16.json)绑定构建与各轮证据。此入口不证明摄像头扫码、配对传输、QrModalShell 调用方、TalkBack、实体设备、macOS 或完整原生材质矩阵；RF-112／121／312 与 RF-122～127 前置保持。
+
+
+## RF-1177 当前二维码调用方与软件解码选择（2026-10-16）
+
+Android `RecoveryQrScanner` 使用现有 JavaScript 解码器，避免 WebView 原生 BarcodeDetector 绑定 GMS 元数据时抛出无法由 JavaScript 捕获的异常。其他平台保留库原有选择；权限、设备选择、回调和停止清理不变。默认生产包不增加测试 feature 或权限，也不改 GMS 元数据。
+
+在正常 `tauri/scripts` 目录，六个模块可一并验证：
+
+```bash
+python -m unittest test_android_home_native_regression test_android_recovery_native_evidence test_android_recovery_native_taps test_android_qr_native_evidence test_android_qr_nearby_permission test_android_qr_enable_readiness
+```
+
+81 项含原读取器回归，以及缺失/重复/错序二维码状态、伪造触摸、未知权限、CAMERA 被误授权、附近设备标记未恢复和 UI-only 开启证据的拒绝；单测不作为原生运行证明。
+
+`android-home-native-regression.py` 的 `--scenario baseline --qr-cards` 保留全部原首页检查，再走真实同步页的未开启提示、恢复二维码与手动说明、同步二维码，以及拒绝 CAMERA 后的扫码回退。该额外入口要求 API33+，不能与 `--recovery-cards` 合并；旧 baseline 的 API31 准入不变。沿用上节专用 AVD、APK 来源与数据备份要求，在 `tauri/` 使用新的输出目录：
+
+```bash
+python scripts/android-home-native-regression.py \
+  --adb "$ADB" --serial "$SERIAL" --avd "$AVD" \
+  --apk "$APK" --test-apk "$TEST_APK" --output "$NEW_OUTPUT" \
+  --scenario baseline --qr-cards --font-scale 1.0 --mode supported
+```
+
+三档实际字号 1.0 / 1.3 / 2.0 分别配 supported / fallback，必须在同一完整队列逐组运行。每组明暗主题共 40 个二维码状态、30 张卡片截图、8 次单次真实关闭触摸；关闭前核对已提交绘制、坐标/尺寸、可信触摸及原生/DOM 命中。核对恢复会话取消/关闭后的导出文件清理与真实后端状态，不用 mock 代替配对状态。
+
+仅在用户明确开启同步、且真实授权与界面就绪同时成立的阶段处理完整识别的系统附近设备请求；未知权限仍失败，摄像头只拒绝。快照并严格恢复 NEARBY_WIFI_DEVICES 的授权/用户标记，保留 CAMERA、通知、字号、blur、私有数据和身份/超时保护。不能仅等按钮可点就结束原生权限阶段，也不能拼接失败队列的成功子集。
+
+当前新默认 Debug 主包在 API35 / x86_64 / WebView124.0.6367.219 完整六组通过；原 72 个首页阶段及 240 个二维码状态、48 次关闭、12 次 CAMERA 拒绝、6 次原生附近设备授权、完整恢复与主机清理均独立核对。180 张卡片及 48 张触摸前 PNG、48 项首页文字尺寸比较通过，200% 字号保持横向溢出检查。原权限/就绪/GMS 异常和布局依赖失败均保留。
+
+浏览器另以真实生成二维码像素驱动实际软件解码，确认完整载荷和视频流停止，摄像头/IPC 是夹具。当前原生入口主要验证摄像头拒绝后的回退，不证明实体摄像头视频识别、真实配对传输、TalkBack、实体设备、macOS 或全部原生材质/性能。见[RF-1177 验证摘要](../verification/rf1177-android-qr-software-decoder-2026-10-16.json)。

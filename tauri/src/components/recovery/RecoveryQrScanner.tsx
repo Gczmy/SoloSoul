@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Html5Qrcode, type CameraDevice } from 'html5-qrcode';
 import { Loader2 } from 'lucide-react';
+import { isAndroidSync } from '@/lib/platform';
 
 interface RecoveryQrScannerProps {
   onScan: (text: string) => void;
@@ -32,31 +33,34 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
   onErrorRef.current = onError;
 
   // 将底层错误映射为友好的提示，区分「权限被拒」与「无摄像头设备」两种场景。
-  const friendlyError = useCallback((raw: string): string => {
-    const lower = raw.toLowerCase();
-    if (
-      lower.includes('notallowed') ||
-      lower.includes('permission') ||
-      lower.includes('denied') ||
-      lower.includes('notreadable') ||
-      lower.includes('inuse') ||
-      lower.includes('unable to query')
-    ) {
-      // 权限被阻止/摄像头不可用（NotAllowedError / NotReadableError 等）
-      return t('common:recovery_qr_permission_denied');
-    }
-    if (
-      lower.includes('notfound') ||
-      lower.includes('no camera') ||
-      lower.includes('no device') ||
-      lower.includes('no video') ||
-      lower.includes('no supported devices')
-    ) {
-      // 未检测到摄像头设备（NotFoundError / 枚举为空等）
-      return t('common:recovery_qr_no_camera');
-    }
-    return raw;
-  }, [t]);
+  const friendlyError = useCallback(
+    (raw: string): string => {
+      const lower = raw.toLowerCase();
+      if (
+        lower.includes('notallowed') ||
+        lower.includes('permission') ||
+        lower.includes('denied') ||
+        lower.includes('notreadable') ||
+        lower.includes('inuse') ||
+        lower.includes('unable to query')
+      ) {
+        // 权限被阻止/摄像头不可用（NotAllowedError / NotReadableError 等）
+        return t('common:recovery_qr_permission_denied');
+      }
+      if (
+        lower.includes('notfound') ||
+        lower.includes('no camera') ||
+        lower.includes('no device') ||
+        lower.includes('no video') ||
+        lower.includes('no supported devices')
+      ) {
+        // 未检测到摄像头设备（NotFoundError / 枚举为空等）
+        return t('common:recovery_qr_no_camera');
+      }
+      return raw;
+    },
+    [t],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -97,15 +101,21 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
       return;
     }
 
-    const scanner = new Html5Qrcode(containerId);
+    // Android WebView 的原生探测可能因 GMS 元数据不匹配抛出 Java 异常，
+    // 无法通过 JS catch 恢复；Android 使用库内置的 JavaScript 解码器。
+    const scanner = new Html5Qrcode(containerId, {
+      verbose: false,
+      useBarCodeDetectorIfSupported: !isAndroidSync(),
+    });
     scannerRef.current = scanner;
 
     setLoading(true);
     setError(null);
 
     // 有具体设备 ID 时用该设备；否则用浏览器默认摄像头（environment 优先）
-    const cameraIdOrConfig: string | MediaTrackConstraints =
-      selectedCamera || { facingMode: 'environment' };
+    const cameraIdOrConfig: string | MediaTrackConstraints = selectedCamera || {
+      facingMode: 'environment',
+    };
 
     try {
       scanner
