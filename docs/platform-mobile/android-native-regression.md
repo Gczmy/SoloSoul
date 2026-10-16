@@ -346,3 +346,11 @@ python scripts/android-provider-feedback-fixture.py --port 27683 --output <isola
 沿用完整目录备份、专用AVD、独立ADB和全新输出目录。A/B通过真实UI保存六个外观键与true/false动效偏好，等待登录前镜像持久化；停止原进程后核对新进程、原两账户身份、锁定密码登录、系统浅深模式、DOM/色板/原生栏和实际导航CSS。全部恢复和原时间预算保持，API31按实际权限适用范围验收。
 
 本轮两完整模式共4项原生测试、46阶段、40张PNG独立核验通过。详细来源、16次账户观测、恢复与证据哈希见[当前API31冷启动／动效部分验收](../verification/rf112-current-api31-cold-motion-2026-10-16.json)。仅证明当前稳定帧和偏好交付，不是首帧连续无闪烁、动效性能、实体设备、Release性能或其他OS原生验收；RF-112及其余父任务仍未完成。
+
+## RF-112 当前 API31 生命周期恢复（2026-10-16）
+
+沿用同一当前默认Debug主包、完整canonical测试包、独立ADB和专用AVD，在API31/WebView91上补跑 `--scenario lifecycle` 的supported/fallback两组，使用全新输出目录和完整私有数据备份。每组保留原22阶段，原生 `ActivityScenario.recreate()` 与新旧Activity/WebView实例不相同断言必须实际通过。
+
+两账户在与显式主题相反的原生系统模式下，重建后保存的五个外观键、身份／对象数、DOM／色板／原生栏、画布及文字像素与操作命中均须一致；数据、blur、夜间和所有适用权限完整恢复后才能接受。API31不要求不存在的API33通知运行时权限字段。原测试、读取器和时间预算未改变。
+
+本轮两组2项原生测试、44阶段、4次Activity/WebView替换、40张PNG独立复核通过。18次账户观测、重建配对、来源与证据哈希见[当前API31生命周期部分验收](../verification/rf112-current-api31-lifecycle-2026-10-16.json)。本场景不替代前节独立进程冷启动证据，也不证明连续首帧、实体设备、Release性能或其他OS原生恢复；RF-112及其余父任务仍未完成。

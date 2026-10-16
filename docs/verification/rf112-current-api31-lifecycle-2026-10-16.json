@@ -1,0 +1,593 @@
+{
+  "task": "RF-112",
+  "date": "2026-10-16",
+  "status": "partial-native-lifecycle-theme-recovery",
+  "validatedSourceHead": "8f9ef7520f32c0c6f86c8b3bee93d7d638bcd3c0",
+  "reusedBuild": {
+    "sourceBaseline": "a03b578aa7ac6928de7bf1313105c8559bd633d7",
+    "sourceIncludesRF1183Patch": true,
+    "actualDefaultDebugBuild": true,
+    "original1793BuildInputsIdentical": true,
+    "twoPostBuildPortableValidationToolsNotProductBuildInputs": true,
+    "currentSourceFiles": 1795,
+    "rebuiltOrRepackedThisVerification": false,
+    "productionSigningUsed": false,
+    "apkSha256": {
+      "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+      "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+    }
+  },
+  "runtime": {
+    "api": 31,
+    "android": "12",
+    "abi": "x86_64",
+    "webView": "91.0.4472.114",
+    "emulator": true,
+    "acceleration": "WHPX",
+    "gpu": "SwiftShader",
+    "configuredVirtualCpus": 2,
+    "configuredMemoryMiB": 2048
+  },
+  "acceptance": {
+    "completeIndependentQueuePassed": true,
+    "modes": 2,
+    "nativeJUnitTests": 2,
+    "lifecycleStages": 44,
+    "decodedPngs": 40,
+    "actualActivityAndWebViewRecreations": 4,
+    "accountObservations": 18,
+    "savedAppearanceKeysPerAccount": 5,
+    "actualNativeSystemLightAndDarkAndExplicitAccountThemeVerified": true,
+    "originalActivityAndWebViewInstanceReplacementAssertionsUnchanged": true,
+    "originalNativeTestsReadersAndThreeSecondJsAndFortyFiveSecondUiBudgetsUnchanged": true,
+    "currentBootAnrAbsent": true,
+    "completeTerminalDropBoxEntries": 336
+  },
+  "cases": [
+    {
+      "label": "lifecycle-supported",
+      "mode": "supported",
+      "nativeJUnitTests": 1,
+      "stages": [
+        "local-light",
+        "enhanced-light",
+        "enhanced-dark",
+        "enhanced-dark-after-unlock",
+        "encrypted-preferences",
+        "object-editor-dark",
+        "object-list-dark",
+        "object-detail-dark",
+        "object-actions-dark",
+        "object-list-after-system-back",
+        "populated-enhanced-dark",
+        "populated-enhanced-light",
+        "account-a-custom-dark",
+        "account-b-custom-light",
+        "account-a-after-switch",
+        "account-b-after-switch",
+        "account-a-after-second-switch",
+        "account-a-system-light",
+        "account-a-after-activity-recreate",
+        "account-b-system-dark",
+        "account-b-after-activity-recreate",
+        "account-preferences-isolated"
+      ],
+      "actualActivityAndWebViewRecreatedForBothAccounts": true,
+      "sameAccountAndFiveSavedPreferenceKeysRetained": true,
+      "oppositeNativeSystemThemeAndExplicitAppThemeVerified": true,
+      "privateDirectoryAndOriginalSystemSettingsRestored": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "driverReportSha256": "166f68fd668b4039ab9a433799281a5e0a533d89bbeb4e2f1912a84b4d97b1e3",
+      "nativeLogSha256": "2a8fd8bd13fcec85bf53fb004671549bd28b8fa9702292c5e8ecf6429922e201",
+      "deviceEvidenceSha256": "c5d4ddb5ef5f9c94f360ffd3ecaa832fa68596f3014431bf4ed8cec4d05a0add"
+    },
+    {
+      "label": "lifecycle-fallback",
+      "mode": "fallback",
+      "nativeJUnitTests": 1,
+      "stages": [
+        "local-light",
+        "enhanced-light",
+        "enhanced-dark",
+        "enhanced-dark-after-unlock",
+        "encrypted-preferences",
+        "object-editor-dark",
+        "object-list-dark",
+        "object-detail-dark",
+        "object-actions-dark",
+        "object-list-after-system-back",
+        "populated-enhanced-dark",
+        "populated-enhanced-light",
+        "account-a-custom-dark",
+        "account-b-custom-light",
+        "account-a-after-switch",
+        "account-b-after-switch",
+        "account-a-after-second-switch",
+        "account-a-system-light",
+        "account-a-after-activity-recreate",
+        "account-b-system-dark",
+        "account-b-after-activity-recreate",
+        "account-preferences-isolated"
+      ],
+      "actualActivityAndWebViewRecreatedForBothAccounts": true,
+      "sameAccountAndFiveSavedPreferenceKeysRetained": true,
+      "oppositeNativeSystemThemeAndExplicitAppThemeVerified": true,
+      "privateDirectoryAndOriginalSystemSettingsRestored": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "driverReportSha256": "73ce8a99cbd3e7c69570a59f7ca85566e96f3d28f63779d4843615c7c2672b31",
+      "nativeLogSha256": "e8158e05c15042bc37614f564dcf17065e76fc03b60620471b5f6444dab8b7ed",
+      "deviceEvidenceSha256": "e9d19dc7b117af7ad9ec00e2ba749c90b2559687021b4050b9bb47dbb0240666"
+    }
+  ],
+  "recreatedAccountPairs": [
+    {
+      "case": "lifecycle-supported",
+      "pairs": [
+        {
+          "beforeStage": "account-a-system-light",
+          "afterStage": "account-a-after-activity-recreate",
+          "sameAccountAndPreferences": true,
+          "activityAndWebViewReplaced": true
+        },
+        {
+          "beforeStage": "account-b-system-dark",
+          "afterStage": "account-b-after-activity-recreate",
+          "sameAccountAndPreferences": true,
+          "activityAndWebViewReplaced": true
+        }
+      ]
+    },
+    {
+      "case": "lifecycle-fallback",
+      "pairs": [
+        {
+          "beforeStage": "account-a-system-light",
+          "afterStage": "account-a-after-activity-recreate",
+          "sameAccountAndPreferences": true,
+          "activityAndWebViewReplaced": true
+        },
+        {
+          "beforeStage": "account-b-system-dark",
+          "afterStage": "account-b-after-activity-recreate",
+          "sameAccountAndPreferences": true,
+          "activityAndWebViewReplaced": true
+        }
+      ]
+    }
+  ],
+  "accountObservations": [
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-a-custom-dark",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-b-custom-light",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-a-after-switch",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-b-after-switch",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-a-after-second-switch",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-a-system-light",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-a-after-activity-recreate",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": true,
+      "webViewRecreated": true
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-b-system-dark",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": true,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-supported",
+      "stage": "account-b-after-activity-recreate",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": true,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": true,
+      "webViewRecreated": true
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-a-custom-dark",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-b-custom-light",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-a-after-switch",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-b-after-switch",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 324,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-a-after-second-switch",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 5668,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-a-system-light",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 5668,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-a-after-activity-recreate",
+      "theme": "dark",
+      "glass": "enhanced",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultDarkTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 6459,
+      "nativeActionInkPixels": 998,
+      "actionContrast": 5.259082618914598,
+      "actionHittable": true,
+      "systemNightMode": false,
+      "statusBarLight": false,
+      "navigationBarLight": false,
+      "activityRecreated": true,
+      "webViewRecreated": true
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-b-system-dark",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": true,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": false,
+      "webViewRecreated": false
+    },
+    {
+      "case": "lifecycle-fallback",
+      "stage": "account-b-after-activity-recreate",
+      "theme": "light",
+      "glass": "local",
+      "savedPreferenceKeys": [
+        "accentColor",
+        "androidGlass",
+        "customAccentHex",
+        "defaultLightTheme",
+        "theme"
+      ],
+      "nativeBodyInkPixels": 7632,
+      "nativeActionInkPixels": 966,
+      "actionContrast": 4.529314742972726,
+      "actionHittable": true,
+      "systemNightMode": true,
+      "statusBarLight": true,
+      "navigationBarLight": true,
+      "activityRecreated": true,
+      "webViewRecreated": true
+    }
+  ],
+  "restoration": {
+    "allPrivateFileContentsLinksAndModesEqual": true,
+    "originalLiteralSystemSettingsUnchanged": true,
+    "originalNightAndBlurRestored": true,
+    "api31NotificationRuntimePermissionNotApplicable": true,
+    "onlyExactSelfOwnedApksEmulatorAndPrivateAdbCleaned": true,
+    "protectedOldAdbIdentityUnchanged": true,
+    "exactFourEmptyPrivateBackupsRemovedAfterIndependentAudit": true
+  },
+  "limitations": [
+    "Activity/WebView recreation is not process-cold startup; the separate current API31 cold report retains that scope",
+    "Stable rendered states do not prove continuous first-frame flicker absence or animation performance",
+    "Current Debug emulator coverage, not Release performance, physical hardware or API36",
+    "No iOS/macOS native theme or Windows desktop restore acceptance added",
+    "RF-112, RF-121 and RF-312 remain incomplete; RF-122 through RF-127 dependencies unchanged"
+  ],
+  "evidenceSha256": {
+    "currentSourceBinding": "5e19aff8d856f31cf341d4db976da83f08252615baa8f2a71f059b19fdca47f5",
+    "currentSourceMap": "9a1de4ce4fe921c2da373bcb62c3e91de4384d0304c4e48f9c403bfd5b7ab597",
+    "localToolMap": "2c245d0538511d118d7a1dc7048d4ae7849fd7ab97383c4d6cfd9394ebb78f6e",
+    "actualBuildPackageVerification": "6e01d68ef24bd20de71955c020c62d95fb51c6de89ad1c7f102c669d81d3379e",
+    "canonicalNativeTestSourceBinding": "d7effc6d891f750bd3cbe7034a1abba4b91c2510645a1dd83ace4c9c9b147d08",
+    "completeNativeQueue": "20aab02770dee15dd5eeb8ef8a785233d364289afa03ede64f0d8fb52d9bf887",
+    "completeNativeMatrix": "5a292ed99acc0ab0268d4a60a096f8d34226f828604a68be44d4cefb4043aae8",
+    "independentNativeAudit": "e69a199ee9f8b3107134be6751a5fdae274b6aac1ec988a43b51bb9ac0a128ae",
+    "hostBefore": "cf7560077a81217a508a19c7206f2b1c479601ba37f621fa1a008342751abee9",
+    "hostAfter": "06167c014ecb32cf4a1277eb3b3c41716040e58ba5bebbb0b66ca26b9eb30f33",
+    "preflight": "4edacef415b1cdc498443ac2b6cc05923d3cb3339b2037b9b38e4612f0a482cd",
+    "visualReview": "9d66cb29fab24c02e0d39158738d5663d4324bf951c7f1179f9d2c7c314a04f6",
+    "exactPrivateBackupCleanup": "f5b62326506d08a5f46adbd747c78169bd47be8b27e41bb93d31270ea7bc8d74"
+  }
+}
