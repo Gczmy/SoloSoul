@@ -225,6 +225,59 @@ def restore_private_data(adb, read, archive, backup, before, root_mode, output, 
     report["restored"] = True
 
 
+def verify_security_warning_evidence(evidence, expected):
+    """Additional actual default-Card body proof; the original complete baseline is verified separately."""
+    rows = evidence.get('securityWarningRecords')
+    stages = [f'security-{theme}-{kind}' for theme in ('light', 'dark') for kind in ('never', 'master')]
+    if (type(expected) is not bool or evidence.get('securityWarningsRequested') is not True
+            or evidence.get('scenario') != 'baseline' or not isinstance(rows, list)
+            or [row.get('stage') for row in rows] != stages):
+        raise RuntimeError('Security warnings require four ordered observations after the complete baseline')
+    def rgb(value):
+        if not isinstance(value, list) or len(value) != 3 or any(type(v) is not int or not 0 <= v <= 255 for v in value):
+            raise RuntimeError('Missing exact native warning RGB channels')
+        return value
+    def luminance(value):
+        return sum((v/255/12.92 if v/255 <= .04045 else ((v/255+.055)/1.055)**2.4)*w
+                   for v,w in zip(rgb(value),(.2126,.7152,.0722)))
+    for row,stage in zip(rows,stages):
+        _,theme,kind = stage.split('-')
+        before = row.get('rawBefore')
+        if (type(row.get('stableObservations')) is not int or row['stableObservations'] < 2
+                or row.get('path') != '/settings/security' or row.get('platform') != 'android'
+                or row.get('theme') != theme or row.get('warning') != kind
+                or row.get('cardSurface') != 'default' or row.get('expected') is not expected
+                or row.get('nativeEnabled') is not expected or row.get('effectiveHighContrast') is not expected
+                or row.get('androidHighTextContrast') != str(expected).lower()
+                or before not in (None,'0','1') or row.get('rawAfter') != before or (before == '1') is not expected
+                or row.get('visible') is not True or row.get('backgroundImagesAbsent') is not True
+                or row.get('noAppearanceOrStyleInjected') is not True
+                or row.get('screenshot') != stage+'.png'):
+            raise RuntimeError('Native warning scope, real contrast delivery or screenshot binding changed')
+        a,b = luminance(row.get('foreground')),luminance(row.get('background'))
+        contrast=(max(a,b)+.05)/(min(a,b)+.05)
+        if (type(row.get('contrast')) not in (int,float) or not math.isfinite(row['contrast']) or abs(row['contrast']-contrast)>1e-9 or contrast<4.5):
+            raise RuntimeError('Actual warning body contrast is below 4.5:1 or summary was substituted')
+        if expected and (row.get('warningToken') != row.get('primary')
+                         or row['foreground'] != ([255,255,255] if theme=='dark' else [17,17,17])):
+            raise RuntimeError('High-contrast warning must use the actual primary foreground')
+        rect,viewport,text = row.get('rect'),row.get('cssViewport'),row.get('textRects')
+        if not isinstance(rect,dict) or not isinstance(viewport,dict) or not isinstance(text,list) or not text:
+            raise RuntimeError('Missing actual body text geometry')
+        numbers=[rect.get(k) for k in ('x','y','width','height')]+[viewport.get(k) for k in ('width','height','dpr')]
+        if any(type(v) not in (int,float) or not math.isfinite(v) for v in numbers):
+            raise RuntimeError('Non-finite native body geometry')
+        if (rect['x']<0 or rect['y']<0 or min(rect['width'],rect['height'],viewport['width'],viewport['height'],viewport['dpr'])<=0
+                or rect['x']+rect['width']>viewport['width']+.5 or rect['y']+rect['height']>viewport['height']+.5):
+            raise RuntimeError('Warning body is clipped outside the actual viewport')
+        for line in text:
+            if (not isinstance(line,dict) or any(type(line.get(k)) not in (int,float) or not math.isfinite(line[k]) for k in ('x','y','width','height'))
+                    or line['width']<=0 or line['height']<=0 or line['x']<rect['x']-.5 or line['y']<rect['y']-.5
+                    or line['x']+line['width']>rect['x']+rect['width']+.5 or line['y']+line['height']>rect['y']+rect['height']+.5):
+                raise RuntimeError('Warning text is clipped inside its body')
+    return stages
+
+
 def verify_native(text, method=METHOD):
     text = text.replace("\r\n", "\n")
     statuses = [int(n) for n in re.findall(r"^INSTRUMENTATION_STATUS_CODE:\s*(-?\d+)\s*$", text, re.M)]
@@ -245,6 +298,7 @@ def verification_passed(report, needs_notification):
                 and (report.get('requestedFontScale') is None or report.get('fontScaleRestored'))
                 and (not report.get("recoveryCardsRequested") or (report.get("recoveryCardsPassed") and report.get("cameraPermissionRestored") and report.get("nativeTapCount")==8))
                 and (not report.get("qrCardsRequested") or (report.get("qrCardsPassed") and report.get("cameraPermissionRestored") and report.get("qrTapCount")==8 and report.get("nearbyPermissionRestored")))
+                and (not report.get("securityWarningsRequested") or report.get("securityWarningsPassed"))
                 and not report.get("cameraRestoreError")
                 and not report.get("nearbyRestoreError")
                 and not any(report.get(key) for key in
@@ -978,11 +1032,17 @@ def main():
     parser.add_argument("--scenario", choices=("baseline", "overlays", "keyboard", "accounts", "insets", "lifecycle", "cold", "previews", "rendering"), default="baseline")
     parser.add_argument("--qr-cards", action="store_true", help="Append real SyncPage QR host/sync/scan callers to complete baseline")
     parser.add_argument("--recovery-cards", action="store_true", help="Append real Login recovery card native touch/IME/rotation checks to baseline")
+    parser.add_argument("--security-warnings", action="store_true", help="Append real Security Settings warning body observations to the complete baseline")
+    parser.add_argument("--security-high-text-contrast", choices=("true","false"), help="Explicit actual system contrast lane for security warnings")
     parser.add_argument("--motion-preferences", action="store_true", help="Verify true/false reduced motion across account/process changes (cold only)")
     parser.add_argument('--font-scale', type=float, choices=(1.0, 1.3, 2.0), help='Actual Android system font scale; baseline only, restored afterward')
     parser.add_argument('--expected-high-text-contrast', choices=('true','false'), help='Optional native read-only MainActivity delivery probe')
     parser.add_argument("--high-text-contrast-live", action="store_true", help="Verify real system toggles without document reload")
     args = parser.parse_args()
+    if args.security_warnings and (args.scenario != 'baseline' or args.qr_cards or args.recovery_cards or args.security_high_text_contrast is None):
+        parser.error('Security warnings require a complete standalone baseline and explicit --security-high-text-contrast')
+    if args.security_high_text_contrast is not None and not args.security_warnings:
+        parser.error('Security contrast lane requires --security-warnings')
     if args.expected_high_text_contrast is not None and (args.scenario != 'baseline' or not args.qr_cards):
         parser.error('High text contrast observation requires the complete baseline with --qr-cards')
     if args.high_text_contrast_live and args.expected_high_text_contrast is None:
@@ -1004,6 +1064,8 @@ def main():
     report['requestedFontScale'] = args.font_scale
     report['recoveryCardsRequested'] = args.recovery_cards
     report['qrCardsRequested'] = args.qr_cards
+    report['securityWarningsRequested'] = args.security_warnings
+    report['securityHighTextContrastExpected'] = args.security_high_text_contrast
     report['expectedHighTextContrast'] = args.expected_high_text_contrast
     report['highTextContrastLiveRequested'] = args.high_text_contrast_live
     selected = False
@@ -1095,6 +1157,8 @@ def main():
         result = adb("shell", "am", "instrument", "-w", "-r", "-e", "waitForActivitiesToComplete", "false",
                      "-e", "privateDataBackedUp", "true", "-e", "evidenceTag", tag,
                      "-e", "qrCards", str(args.qr_cards).lower(),
+                     "-e", "securityWarnings", str(args.security_warnings).lower(),
+                     *(("-e", "securityHighTextContrast", args.security_high_text_contrast) if args.security_high_text_contrast is not None else ()),
                      "-e", "recoveryCards", str(args.recovery_cards).lower(),
                      "-e", "scenario", "accounts" if args.scenario == "cold" else args.scenario,
                      "-e", "prepareColdRestart", "true" if args.scenario == "cold" else "false",
@@ -1117,6 +1181,9 @@ def main():
                                  require_typography_header=args.font_scale is not None,
                                  require_keyboard_cancel=args.scenario == 'keyboard')
         report["stages"] = stages
+        if args.security_warnings:
+            report["securityWarningStages"] = verify_security_warning_evidence(evidence, args.security_high_text_contrast == 'true')
+            report["securityWarningsPassed"] = True
         if args.qr_cards:
             report["qrStages"] = verify_qr_evidence(evidence)
             report["cameraPrompts"] = verify_camera_prompts(evidence)

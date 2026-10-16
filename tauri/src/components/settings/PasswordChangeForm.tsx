@@ -122,7 +122,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
           marginBottom: 16,
           background: 'rgba(212, 133, 10, 0.10)',
           border: '1px solid rgba(212, 133, 10, 0.25)',
-          color: '#D4850A',
+          color: 'var(--text-warning)',
           fontSize: 'var(--text-caption)',
           lineHeight: 1.4,
         }}

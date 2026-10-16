@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1182",
+  "date": "2026-10-16",
+  "status": "complete",
+  "sourceBuildBaseCommit": "d8ae41a649cd826107111a7e5b90a65c6b63c60d",
+  "sourceIncludesTaskPatch": true,
+  "productionFiles": 8,
+  "validationSourceFiles": 4,
+  "problem": "Hard-coded amber warning bodies were below 4.5:1 and bypassed high-contrast semantic foregrounds.",
+  "change": {
+    "normalLightWarningForeground": "#805500",
+    "normalDarkWarningForegroundPreserved": true,
+    "allSevenBodiesUseTextWarning": true,
+    "highContrastUsesPrimaryForeground": true,
+    "warningBackgroundsBordersButtonFillsAndAccountFlowsPreserved": true
+  },
+  "checks": {
+    "types": true,
+    "lint": true,
+    "existingLintWarnings": 1,
+    "vitestPassed": 2400,
+    "nodePassed": 270,
+    "nodeExistingSkipped": 1,
+    "pythonReaderTestsPassed": 88,
+    "pythonReaderTestsSkipped": 0,
+    "targetedPrettierPassed": true,
+    "productionBuildPassed": true,
+    "productionBrowserCases": 576,
+    "newWarningBrowserCases": 360,
+    "warningBrowserSamples": 840,
+    "browserMinimumContrast": 5.652562842606634,
+    "browserRetries": 0,
+    "browserSkipped": 0,
+    "browserPlatformStyles": [
+      "android",
+      "windows",
+      "macos"
+    ],
+    "themeSchemes": 20,
+    "browserNativeHardwareProven": false
+  },
+  "build": {
+    "profile": "debug",
+    "defaultFeaturesOnly": true,
+    "extraFeatures": [],
+    "actualCargoBuild": true,
+    "sourceInputs": 1792,
+    "frontendFiles": 38,
+    "mobileResourceFiles": 46,
+    "librarySha256": "29b4018c777d44eaf3409878fcd817e3758e78f3ab75ccd73f1be52e82d2a7ff",
+    "libraryBytes": 91852320,
+    "packages": [
+      {
+        "kind": "main",
+        "sha256": "3e7e7a8a2d4bae090c17c95ac3a0a92fcf4cea7946cb9860a3d755732bfb6004",
+        "bytes": 218718733,
+        "package": "com.solosoul.app",
+        "signatureVerified": true,
+        "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6"
+      },
+      {
+        "kind": "test",
+        "sha256": "686cd1d420a50e454da5dd11e589a6f9ab8d794cefa642b4e7ba120d6e4b52b4",
+        "bytes": 2167959,
+        "package": "com.solosoul.app.test",
+        "signatureVerified": true,
+        "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6"
+      }
+    ],
+    "packageJniMatchesBuiltLibrary": true,
+    "fullCanonicalInstrumentationCopiedByteForByte": true,
+    "currentWarningTestMarkersVerifiedInDex": true
+  },
+  "native": {
+    "runtime": "API35 / x86_64 / WebView124",
+    "fontScale": 1.0,
+    "completeAfterCases": 4,
+    "acceptedBaselineStages": 48,
+    "acceptedWarningStates": 16,
+    "systemHighTextContrast": [
+      false,
+      true
+    ],
+    "blurConfigurations": [
+      "supported",
+      "fallback"
+    ],
+    "oldApkExpectedNativeFailureCasesInAcceptedQueue": 1,
+    "oldApkActualPixelContrast": 2.595298147738244,
+    "oldFailedReportStillRejectedByOriginalReaders": true,
+    "noNegativeEvidenceRecordsFiltered": true,
+    "afterActualPixelSamples": 16,
+    "afterMinimumPixelContrast": 5.774899862093916,
+    "decodedPngs": 73,
+    "privatePermissionAndSystemRestored": true,
+    "currentBootAnrAbsent": true,
+    "allOwnedInstancesAndPackagesCleaned": true,
+    "protectedOldAdbUnchanged": true,
+    "originalReadersAndThreeSecondJsAndFortyFiveSecondUiBudgetsPreserved": true
+  },
+  "retainedFailures": {
+    "initialBrowserCollectionFailureKept": true,
+    "initialNativeQueueFailed": true,
+    "initialNativeQueueAcceptedAfterCases": 0,
+    "initialOldApkFailedOnExpectedContrastAssertion": true,
+    "localNegativeClassifierOriginallyRejectedTerminalFailureRecord": true,
+    "classifierFixedWithoutChangingCanonicalReadersOrBudgets": true,
+    "invalidNegativeControlsRejected": 8,
+    "freshCompleteQueueRequiredAndPassed": true
+  },
+  "cleanup": {
+    "exactOwnedEmptyTarBackupsRemoved": 12,
+    "independentlyMatchedRestoredPrivateTrees": 6,
+    "rawLogsScreenshotsAndProgramsRetainedLocally": true
+  },
+  "limits": {
+    "api31And36RuntimeNotClaimed": true,
+    "physicalDeviceNotClaimed": true,
+    "otherCardCallersAndWindowsMacosIosNativeMaterialNotClosed": true,
+    "rf112Rf121Rf312RemainOpen": true,
+    "rf122Through127DependenciesUnchanged": true,
+    "goalRemainsActive": true
+  },
+  "evidenceSha256": {
+    "sourceGuard": "530783e77468198c1c7694b5d94846739c21fbb1978306798e26c356fe875df8",
+    "frontendChecks": "e07de4c43cc2d56e4f42895b39dea6e3d1f4f3836736c374cea8d07f69dfcf0f",
+    "vitest": "70b4e4c4fabc6546bea8b0d4ef6fab6676ed457d91e65b3b726ed06fdfde10c5",
+    "pythonReaderChecks": "041dd524be8dfc6e1a0df6f29f5bc8c58bce72c0985b324dee5aea05202eddee",
+    "browserAudit": "5af5d9a492dcb904cd9699aa4ec2d88fcbf6699467922e266e6b3b633f7456ee",
+    "nativeAudit": "d540acf1a7e660d9aa1621d506b0b938cacf75516c3d16a18f4ae1b1852528cb",
+    "nativeQueue": "efa72ec8388ccb321900eb55545439b26bcc0ccae9c63f00d6a0b389bb01c60e",
+    "nativeMatrix": "38d3dbbee6485a49b3b15f5f57bf278662ff643ce220ce60764a11e2c498777e",
+    "hostBefore": "ae48338f491e0cf18fd1f4d20f78b553c5f72d6ef2a1a8bd7fccc9234fb75f83",
+    "hostAfter": "a144a79d1ec8eec6e17c1c6203f808fdd9aa0a69b65e64f1fa4521dbcc2b34ce",
+    "initialFailedQueue": "1aeb38dd6ce5f842774e016ad338ed385b29233b6b647b19c85bc70373338e54",
+    "initialFailureRestoreAudit": "5a1dcb58d27982d04805c3d2824a0e6989fe2759e72217bbcd8ccb30eda31d71",
+    "negativeReaderControls": "c75a3894886d7cd155fb0158a893f09ca378c339b603b0d788ecbc25ccc8fa56",
+    "privateCleanup": "a623b666e6e103d1fc6142a710ae2b9f444337096c760d390a854de22af99362",
+    "nativePreflight": "96b3bd2475345ec65f88a79c07ac49205ac1e0cc45b8685055c82ed9a1575fe6",
+    "defaultLibrary": "16334a37e762ec06b4ce4f78fc964f059596f7b4f872cb980c6e16f9699181a8",
+    "packages": "49b771929ab9236074768a5cbd029b9640c070dcaa22bfd15dcefca4815734e2",
+    "copiedTestSourceBinding": "15ece719eb90be9fb2076e68099dbd69889561c051de026bee8aa58346e267fa",
+    "testDexBinding": "5cde4d001ecec29bf3daa824281d571b3424c0ecee06ff6434a5cca9e1877a7f",
+    "focusedReceiptCorrection": "929ab6b4283a6fe101da5246a89e1eae4c8a5ff7352b55290fab959bd412a6de"
+  },
+  "publishedRawLogsScreenshotsProgramsHostPathsProcessIdsAndAccountData": false
+}

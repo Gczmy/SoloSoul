@@ -1,5 +1,6 @@
 """首页原生驱动的恢复与拒绝条件；不连接设备。"""
 import importlib.util
+import copy
 import io
 import json
 from pathlib import Path
@@ -15,6 +16,76 @@ spec.loader.exec_module(runner)
 
 
 class HomeRunnerTests(unittest.TestCase):
+    @staticmethod
+    def security_evidence(expected=False):
+        rows = []
+        for theme in ('light', 'dark'):
+            foreground = ([255,255,255] if theme == 'dark' else [17,17,17]) if expected else ([230,199,128] if theme == 'dark' else [128,85,0])
+            background = [59,48,29] if theme == 'dark' else [249,240,224]
+            def luminance(rgb):
+                return sum((v/255/12.92 if v/255<=.04045 else ((v/255+.055)/1.055)**2.4)*w for v,w in zip(rgb,(.2126,.7152,.0722)))
+            a,b=luminance(foreground),luminance(background)
+            for kind in ('never','master'):
+                stage=f'security-{theme}-{kind}'
+                primary='#ffffff' if theme=='dark' else '#111111'
+                rows.append(dict(stage=stage,path='/settings/security',platform='android',theme=theme,warning=kind,stableObservations=2,
+                    expected=expected,nativeEnabled=expected,effectiveHighContrast=expected,androidHighTextContrast=str(expected).lower(),
+                    rawBefore='1' if expected else '0',rawAfter='1' if expected else '0',visible=True,backgroundImagesAbsent=True,
+                    noAppearanceOrStyleInjected=True,screenshot=stage+'.png',cardSurface='default',foreground=foreground,background=background,
+                    contrast=(max(a,b)+.05)/(min(a,b)+.05),primary=primary,warningToken=primary if expected else '#805500',
+                    rect=dict(x=10,y=20,width=200,height=100),cssViewport=dict(width=390,height=844,dpr=3),
+                    textRects=[dict(x=20,y=30,width=180,height=20)]))
+        return dict(securityWarningsRequested=True,scenario='baseline',securityWarningRecords=rows)
+
+    def test_security_warning_reader_accepts_both_explicit_native_lanes(self):
+        for expected in (False,True):
+            self.assertEqual(len(runner.verify_security_warning_evidence(self.security_evidence(expected),expected)),4)
+
+    def test_security_warning_reader_rejects_color_or_system_substitution(self):
+        mutations=[('foreground',[212,133,10]),('foreground',[True,85,0]),('contrast',1.0),('contrast',float('nan')),
+                   ('effectiveHighContrast',True),('rawAfter','1'),('nativeEnabled',True),('androidHighTextContrast','true'),
+                   ('screenshot','old.png'),('noAppearanceOrStyleInjected',False),('cardSurface','floating'),('platform','windows'),
+                   ('stableObservations',0),('stableObservations',1),('stableObservations',True),('stableObservations',2.0),('stableObservations',None)]
+        for key,value in mutations:
+            with self.subTest(key=key,value=value):
+                evidence=self.security_evidence();evidence['securityWarningRecords'][0][key]=value
+                with self.assertRaises(RuntimeError):runner.verify_security_warning_evidence(evidence,False)
+        evidence=self.security_evidence(True);evidence['securityWarningRecords'][0]['warningToken']='#805500'
+        with self.assertRaises(RuntimeError):runner.verify_security_warning_evidence(evidence,True)
+
+    def test_security_warning_reader_rejects_clipped_or_nonfinite_text(self):
+        for key,value in [('rect',dict(x=-1,y=20,width=200,height=100)),('textRects',[]),
+                          ('textRects',[dict(x=20,y=30,width=400,height=20)]),
+                          ('textRects',[dict(x=float('nan'),y=30,width=20,height=20)])]:
+            evidence=self.security_evidence();evidence['securityWarningRecords'][0][key]=value
+            with self.subTest(key=key,value=value),self.assertRaises(RuntimeError):runner.verify_security_warning_evidence(evidence,False)
+
+    def test_security_warning_reader_requires_exact_order_and_opt_in_baseline(self):
+        original=self.security_evidence()
+        variants=[]
+        for key,value in [('securityWarningsRequested',False),('scenario','cold'),('securityWarningRecords',original['securityWarningRecords'][:-1])]:
+            item=copy.deepcopy(original);item[key]=value;variants.append(item)
+        item=copy.deepcopy(original);item['securityWarningRecords'].reverse();variants.append(item)
+        for item in variants:
+            with self.assertRaises(RuntimeError):runner.verify_security_warning_evidence(item,False)
+
+    def test_security_warning_flags_reject_incomplete_scopes_before_device_commands(self):
+        common=['runner','--adb','unused-adb','--serial','emulator-5578','--avd','SoloSoul_Test',
+                '--apk','unused.apk','--test-apk','unused-test.apk','--output','must-not-be-created','--mode','supported']
+        pair=['--security-warnings','--security-high-text-contrast','true']
+        for flags in (['--security-warnings'],['--security-high-text-contrast','true'],pair+['--qr-cards'],pair+['--recovery-cards'],pair+['--scenario','cold']):
+            with self.subTest(flags=flags),mock.patch('sys.argv',common+flags),mock.patch('sys.stderr',new_callable=io.StringIO),mock.patch.object(runner.subprocess,'run') as device:
+                with self.assertRaises(SystemExit) as failure:runner.main()
+                self.assertEqual(failure.exception.code,2);device.assert_not_called()
+
+    def test_security_warning_success_requires_additional_reader_acceptance(self):
+        report=dict(nativePassed=True,restored=True,blurRestored=True,scenario='baseline',securityWarningsRequested=True)
+        self.assertFalse(runner.verification_passed(report,False))
+        report['securityWarningsPassed']=True
+        self.assertTrue(runner.verification_passed(report,False))
+        report['restoreError']='failed'
+        self.assertFalse(runner.verification_passed(report,False))
+
     def test_contrast_flags_reject_incomplete_lanes_before_any_device_command(self):
         common = ['runner', '--adb', 'unused-adb', '--serial', 'emulator-5578',
                   '--avd', 'SoloSoul_Test', '--apk', 'unused.apk', '--test-apk', 'unused-test.apk',
