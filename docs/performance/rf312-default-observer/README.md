@@ -55,3 +55,15 @@ python -B -m unittest discover -s . -p test_adb_control.py -v
 ```sh
 python -B -m unittest discover -s . -p test_body_navigation.py -v
 ```
+
+## 预览关闭范围与完成条件
+
+`preview_scope.py`按当前公开文件名和原生工具栏的返回／编辑附件属性／关闭控件限定网页预览按钮，原生PDF使用同文件标题和精确资源ID。当前公开夹具均为可编辑附件的英文界面；缺少、重复或不匹配的工具栏不回退到背景Close。
+
+`close_preview`调用既有入口的快照、唯一目标就绪检查和原生手指点击，沿用调用方的原期限。每种层只点击一次，原生PDF返回后仍有网页预览时继续关闭该层；三个跨至少350ms的观察及最终截图均确认预览控件消失、附件列表恢复后，才输出完成回执。背景附件名称本身不能证明预览已关闭。
+
+十项测试覆盖实际三Close歧义、错误文件／归属／状态／几何、原生PDF，以及残留工具栏不重复点击、不误报完成和两层先后关闭。实际默认行程仍需独立验证。
+
+```sh
+python -B -m unittest discover -s . -p test_preview_scope.py -v
+```
