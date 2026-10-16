@@ -362,3 +362,11 @@ python scripts/android-provider-feedback-fixture.py --port 27683 --output <isola
 保留原15秒加载、5秒JS、6秒报告、10秒原生绘制及2500ms夹具看门狗，系统动画启用；沿用夹具既有参数入口调用生产映射，不额外改写Card/CSS或延长等待。每组执行前确认固定证据名称缺席，备份完整专用空账户目录，结束后调用既有分阶段SHA校验与恢复函数，独立恢复原系统对比字面值并检查其余设置。私有恢复失败也继续尝试系统设置恢复，未全部恢复不得卸载或接受整组。
 
 详见[当前API31 Card表面部分验收](../verification/rf121-current-api31-card-surfaces-2026-10-16.json)。这是禁网、无账户的真实Android WebView组件/CSS验收；主窗口交付、其他Card调用方、Windows/macOS材质、实体设备及性能保持各自范围，不关闭RF-121或释放其前置依赖。
+
+## RF-121 当前 API35 独立 Card 表面（2026-10-16）
+
+当前HTML与实际默认Debug主APK资源逐字节一致，API35/WebView124重新运行原 AndroidCardSurfaceInstrumentedTest 的 lightAndDarkCardsRenderWithoutOverflow 与 lightAndDarkHighTextContrastCardsRenderWithoutOverflow；每个方法分别执行模糊支持／降级设置，合计4项JUnit、16个实际背景像素和16张PNG。旧API35结果资源与当前不同，保留旧来源与错误系统状态拒绝，未将旧结果重标当前或重复计数。
+
+保留原15秒加载、5秒JS、6秒报告、10秒原生绘制和2500ms夹具看门狗，系统动画启用。每组执行前确认7个固定输出名称缺席；结束后先独立恢复完整私有目录及原始系统对比／模糊字面设置，确认仅有原空目录，再通过系统卸载本次自有主测试包，核对7个证据名称全部缺席，并重装同一APK、复验主／测试包SHA。本地证据及哈希保留；不再调用被Android拒绝的run-as外部读取路径，前两轮本地权限／超时参数透传失败队列完整保留，后者已修正，未放宽原等待或读取保护。不得通过过滤私有目录、复用旧输出或延长等待接受队列。独立审计后仅删除8份已验证空目录备份，保留日志、图片、哈希清单与清理收据。
+
+详见[当前API35 Card表面部分验收](../verification/rf121-current-api35-card-surfaces-2026-10-16.json)。此处是禁网独立Android WebView中的生产组件/CSS验收；实际背景像素与CSS正文对比度分别检查，不启动MainActivity、账户或Vault。主窗口主题交付、其他Card调用方和平台材质、实体设备及性能仍保留各自范围，不关闭RF-121或释放依赖。
