@@ -229,7 +229,13 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
       </div>
 
       {error && (
-        <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}>
+        <div
+          style={{
+            color: 'var(--text-error)',
+            fontSize: 'var(--text-body-sm)',
+            textAlign: 'center',
+          }}
+        >
           {error}
         </div>
       )}

@@ -43,8 +43,7 @@ export function RecoveryScanView({
         cameraCapability={cameraCapability}
         scannerError={scannerError}
         unsupportedText={t('common:recovery_scan_unsupported', {
-          defaultValue:
-            'This device does not support QR scanning. Please use manual input mode.',
+          defaultValue: 'This device does not support QR scanning. Please use manual input mode.',
         })}
         unsupportedButtonLabel={t('common:recovery_manual_tab', { defaultValue: 'Manual' })}
         scannerErrorButtonLabel={t('common:recovery_use_manual', {
@@ -58,7 +57,7 @@ export function RecoveryScanView({
       {error && (
         <div
           style={{
-            color: '#e74c3c',
+            color: 'var(--text-error)',
             fontSize: 'var(--text-body-sm)',
             textAlign: 'center',
           }}

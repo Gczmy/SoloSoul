@@ -123,6 +123,6 @@ describe('RF-1023 manual recovery view', () => {
     expect(screen.getByText('No devices found')).toHaveStyle({ color: 'var(--text-tertiary)' });
 
     view.rerender(<RecoveryManualView {...props} scanDone={false} />);
-    expect(screen.getByText('No devices found')).toHaveStyle({ color: '#e74c3c' });
+    expect(screen.getByText('No devices found')).toHaveStyle({ color: 'var(--text-error)' });
   });
 });

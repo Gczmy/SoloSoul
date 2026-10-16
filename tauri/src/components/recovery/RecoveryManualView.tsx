@@ -187,7 +187,10 @@ export function RecoveryManualView({
           <div
             style={{
               fontSize: 'var(--text-caption)',
-              color: scanDone && discoveredHosts.length === 0 ? 'var(--text-tertiary)' : '#e74c3c',
+              color:
+                scanDone && discoveredHosts.length === 0
+                  ? 'var(--text-tertiary)'
+                  : 'var(--text-error)',
               padding: '2px 0',
             }}
           >
@@ -256,7 +259,9 @@ export function RecoveryManualView({
         {t('common:next')}
       </Button>
 
-      {error && <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>}
+      {error && (
+        <div style={{ color: 'var(--text-error)', fontSize: 'var(--text-body-sm)' }}>{error}</div>
+      )}
     </div>
   );
 }

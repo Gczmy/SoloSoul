@@ -122,7 +122,13 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
           </QrScanFallback>
 
           {error && (
-            <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}>
+            <div
+              style={{
+                color: 'var(--text-error)',
+                fontSize: 'var(--text-body-sm)',
+                textAlign: 'center',
+              }}
+            >
               {error}
             </div>
           )}
@@ -171,7 +177,13 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
             {t('common:sync_qr_confirm_sync_button')}
           </Button>
           {error && (
-            <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}>
+            <div
+              style={{
+                color: 'var(--text-error)',
+                fontSize: 'var(--text-body-sm)',
+                textAlign: 'center',
+              }}
+            >
               {error}
             </div>
           )}
