@@ -148,6 +148,67 @@ class MemoryTests(unittest.TestCase):
             with self.assertRaises(memory.MemoryEvidenceError):
                 memory.memory_values(text, expected)
 
+    def test_swap_pss_summary_keeps_proportional_swap_separate(self):
+        text = meminfo(10559, APP, 74134, 187864).replace('TOTAL SWAP (KB): 0', 'TOTAL SWAP PSS: 120')
+        result = memory.memory_values(text, dict(pid=10559, name=APP))
+        self.assertEqual(result['pssBytes'], 74134 * 1024)
+        self.assertEqual(result['rssBytes'], 187864 * 1024)
+        self.assertIsNone(result['swapBytes'])
+        self.assertEqual(result['swapPssBytes'], 120 * 1024)
+
+    def test_legacy_swap_summary_retains_its_exact_contract(self):
+        text = meminfo(10559, APP).replace('TOTAL SWAP (KB): 0', 'TOTAL SWAP (KB): 7')
+        self.assertEqual(memory.memory_values(text, dict(pid=10559, name=APP)),
+                         dict(pssBytes=100 * 1024, rssBytes=200 * 1024, swapBytes=7 * 1024))
+
+    def test_mixed_swap_formats_collect_one_complete_owned_snapshot(self):
+        run = Runner()
+
+        def mixed(*command):
+            value = run(*command)
+            if command == ('shell', 'dumpsys', 'meminfo', '--local', '-s', '10626'):
+                return value.replace('TOTAL SWAP (KB): 0', 'TOTAL SWAP PSS: 0')
+            return value
+
+        result = self.collect(mixed)
+        self.assertTrue(result['fullProcessScopeAccepted'])
+        self.assertEqual(result['pssBytes'], 200 * 1024)
+        renderer = next(row for row in result['processes'] if row['role'] == 'renderer')
+        self.assertIsNone(renderer['swapBytes'])
+        self.assertEqual(renderer['swapPssBytes'], 0)
+
+    def test_ambiguous_or_extended_total_rows_are_rejected(self):
+        text = meminfo(10559, APP)
+        pss = text.replace('TOTAL SWAP (KB): 0', 'TOTAL SWAP PSS: 1')
+        for invalid in [text + pss.splitlines()[-1] + '\n',
+                        text.rstrip('\n') + ' TOTAL SWAP PSS: 1\n',
+                        pss.rstrip('\n') + ' TOTAL SWAP (KB): 0\n',
+                        pss.rstrip('\n') + ' trailing-data\n']:
+            with self.subTest(text=invalid), self.assertRaises(memory.MemoryEvidenceError):
+                memory.memory_values(invalid, dict(pid=10559, name=APP))
+
+    def test_incomplete_or_unknown_swap_pss_summary_is_rejected(self):
+        text = meminfo(10559, APP).replace('TOTAL SWAP (KB): 0', 'TOTAL SWAP PSS: 1')
+        for invalid in [text.split(' TOTAL RSS:')[0], text.replace('TOTAL RSS:', 'RSS:'),
+                        text.replace('SWAP PSS:', 'SWAP RSS:'), text.replace('SWAP PSS: 1', 'SWAP PSS: NaN'),
+                        text.replace('SWAP PSS: 1', 'SWAP PSS: -1')]:
+            with self.subTest(text=invalid), self.assertRaises(memory.MemoryEvidenceError):
+                memory.memory_values(invalid, dict(pid=10559, name=APP))
+
+    def test_swap_pss_does_not_relax_pid_name_or_nonzero_total_validation(self):
+        for text in [meminfo(10560, APP), meminfo(10559, 'foreign.app'), meminfo(10559, APP, 0),
+                     meminfo(10559, APP, 201, 200), meminfo(10559, APP) * 2]:
+            with self.subTest(text=text), self.assertRaises(memory.MemoryEvidenceError):
+                memory.memory_values(text.replace('TOTAL SWAP (KB): 0', 'TOTAL SWAP PSS: 1'),
+                                     dict(pid=10559, name=APP))
+
+    def test_complete_native_swap_forms_accept_crlf_and_preserve_units(self):
+        for label in ['SWAP (KB)', 'SWAP PSS']:
+            text = meminfo(10559, APP).replace('SWAP (KB)', label).replace('\n', '\r\n')
+            result = memory.memory_values(text, dict(pid=10559, name=APP))
+            self.assertEqual(result['pssBytes'], 100 * 1024)
+            self.assertEqual(result['swapBytes'] if label == 'SWAP (KB)' else result['swapPssBytes'], 0)
+
     def test_target_validation_precedes_any_remote_command(self):
         run = Runner()
         for package in [APP + ';id', '', '-h']:

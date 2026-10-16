@@ -97,13 +97,19 @@ def kernel_identity(stat, status, expected):
 
 def memory_values(text, expected):
     headers = re.findall(r'^\*\* MEMINFO in pid (\d+) \[([^\]]+)\] \*\*\s*$', text, re.M)
-    totals = re.findall(r'TOTAL PSS:\s+(\d+)\s+TOTAL RSS:\s+(\d+)\s+TOTAL SWAP \(KB\):\s+(\d+)', text)
+    totals = re.findall(r'^[ \t]*TOTAL PSS:[ \t]+(\d+)[ \t]+TOTAL RSS:[ \t]+(\d+)'
+                        r'[ \t]+TOTAL (SWAP \(KB\)|SWAP PSS):[ \t]+(\d+)[ \t]*\r?$', text, re.M)
     if headers != [(str(expected['pid']), expected['name'])] or len(totals) != 1:
         raise MemoryEvidenceError('Memory summary is incomplete or belongs to another process')
-    pss, rss, swap = map(int, totals[0])
+    pss_text, rss_text, swap_label, swap_text = totals[0]
+    pss, rss, swap = map(int, (pss_text, rss_text, swap_text))
     if pss < 1 or rss < pss:
         raise MemoryEvidenceError('Memory totals are invalid')
-    return dict(pssBytes=pss * 1024, rssBytes=rss * 1024, swapBytes=swap * 1024)
+    values = dict(pssBytes=pss * 1024, rssBytes=rss * 1024,
+                  swapBytes=swap * 1024 if swap_label == 'SWAP (KB)' else None)
+    if swap_label == 'SWAP PSS':
+        values['swapPssBytes'] = swap * 1024
+    return values
 
 
 def collect_snapshot(run, package, uid, provider):

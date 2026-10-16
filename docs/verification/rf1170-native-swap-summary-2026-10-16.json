@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1170",
+  "recordedOn": "2026-10-16",
+  "accepted": true,
+  "sourceParent": "0952962a1a29167323541b1df7cc44568df39fe2",
+  "scope": "recognize complete native swap-PSS summary without conflating swap metrics",
+  "red": {
+    "testsRun": 26,
+    "exitCode": 1,
+    "failures": 2,
+    "errors": 3
+  },
+  "green": {
+    "memoryTestsPassed": 26,
+    "homeTestsPassed": 47,
+    "skipped": 0,
+    "exitCode": 0,
+    "pythonUtf8Mode": true
+  },
+  "nativeReplay": {
+    "actualCompleteSummariesAccepted": 4,
+    "oldMisrejections": 1,
+    "malformedVariantsRejected": 16,
+    "noOriginalFailedCohortReclassified": true,
+    "oldNonParserFunctionsByteIdentical": true
+  },
+  "currentControl": {
+    "requested": 10,
+    "attempted": 2,
+    "completePasses": 1,
+    "firstFailureStopped": true,
+    "accepted": false,
+    "distributions": null,
+    "allOriginalStateRestored": true,
+    "privateEntriesExcludingRoot": 142,
+    "independentPrivateRootModeAndAllContentsLinksModesMatch": true,
+    "systemSettingsAndPackagesRestored": true,
+    "ownedPackagesUninstalled": true,
+    "ownedVmAndAdbExited": true,
+    "oldPrivateServerIdentityPreserved": true,
+    "initialBlackTransitionPreserved": true,
+    "laterFullLauncherAndNoAnrReviewedBeforeInstall": true,
+    "actualMainActivityResourceFilesVerified": 89,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "verifiedOwnedPrivateTarCopiesRemoved": 5
+  },
+  "resultSemantics": {
+    "legacySwapBytesUnchanged": true,
+    "proportionalSwapUsesSwapPssBytes": true,
+    "unavailableOrdinarySwapIsNull": true,
+    "pssAndRssNotAdjusted": true,
+    "completeUniqueIdentityAndTotalsRequired": true
+  },
+  "sourceSha256": {
+    "tauri/scripts/android-process-memory.py": "bf3004168f5ff2029c3c47789d7adc7371deaff98f6b7d8dbac7f3a7c75bdd9f",
+    "tauri/scripts/test_android_process_memory.py": "dc4e990dfbdd0266ec02e5c20c293daab20fef6c851882c1835b5fb9f2cd983c"
+  },
+  "evidenceSha256": {
+    "rf1170/red.stderr.log": "6dcb7c5568e1f32a08a46eca386a867495ec82a54aec687e5cd29e9ebcb5b9be",
+    "rf1170/green.stderr.log": "b2a676f9223f8ea0e20ac0383bc7ff0a5871f2fa84b44141d6998f876e45e05f",
+    "rf1170/replay-result.json": "91099341ff310c24fa784d8571b19a24e4b5ba3e68d2ca600228dfa566729d18",
+    "external-terminal.json": "13db9c9e43f9b6676c339a09c3da3d9aae170ad942e0f9f8b6b097673b699390",
+    "native-default-controls/result.json": "049e6561bb2645148827373caeb7b9ba3e25597ff859f2ae53ef580b6dd54162",
+    "native-default-controls/continue-native.json": "69f605da95b9d2a2becc1c1937f92e3b7beae5ea4bc8782959f0276cd794be64",
+    "rf1170/private-backup-cleanup.json": "9654059faaf46189dbf3b1e612e3d6f4ea14014eff8813f37ff560b0184f5215"
+  },
+  "productionCodeOrBuildChanged": false,
+  "previousTransportTimeoutRootCauseClaimed": false,
+  "RF312Closed": false,
+  "dependentRF122Through127Released": false,
+  "rawLogsOrHostIdentifiersIncluded": false
+}
