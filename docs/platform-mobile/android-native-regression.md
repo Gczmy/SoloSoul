@@ -354,3 +354,11 @@ python scripts/android-provider-feedback-fixture.py --port 27683 --output <isola
 两账户在与显式主题相反的原生系统模式下，重建后保存的五个外观键、身份／对象数、DOM／色板／原生栏、画布及文字像素与操作命中均须一致；数据、blur、夜间和所有适用权限完整恢复后才能接受。API31不要求不存在的API33通知运行时权限字段。原测试、读取器和时间预算未改变。
 
 本轮两组2项原生测试、44阶段、4次Activity/WebView替换、40张PNG独立复核通过。18次账户观测、重建配对、来源与证据哈希见[当前API31生命周期部分验收](../verification/rf112-current-api31-lifecycle-2026-10-16.json)。本场景不替代前节独立进程冷启动证据，也不证明连续首帧、实体设备、Release性能或其他OS原生恢复；RF-112及其余父任务仍未完成。
+
+## RF-121 当前 API31 独立 Card 表面（2026-10-16）
+
+当前生产Card/CSS生成的独立HTML已与实际APK资源逐字节核对一致，在API31/WebView91运行原 `AndroidCardSurfaceInstrumentedTest#lightAndDarkCardsRenderWithoutOverflow` 和 `#lightAndDarkHighTextContrastCardsRenderWithoutOverflow`。普通／实际系统高文字对比两组分别覆盖浅深主题的默认／浮动表面，合计2项JUnit、8个真实像素与8张PNG。
+
+保留原15秒加载、5秒JS、6秒报告、10秒原生绘制及2500ms夹具看门狗，系统动画启用；沿用夹具既有参数入口调用生产映射，不额外改写Card/CSS或延长等待。每组执行前确认固定证据名称缺席，备份完整专用空账户目录，结束后调用既有分阶段SHA校验与恢复函数，独立恢复原系统对比字面值并检查其余设置。私有恢复失败也继续尝试系统设置恢复，未全部恢复不得卸载或接受整组。
+
+详见[当前API31 Card表面部分验收](../verification/rf121-current-api31-card-surfaces-2026-10-16.json)。这是禁网、无账户的真实Android WebView组件/CSS验收；主窗口交付、其他Card调用方、Windows/macOS材质、实体设备及性能保持各自范围，不关闭RF-121或释放其前置依赖。
