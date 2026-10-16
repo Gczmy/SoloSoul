@@ -537,6 +537,7 @@ class AndroidHomeInstrumentedTest {
         val provider = WebView.getCurrentWebViewPackage()
         File(evidence, "report.json").writeText(JSONObject().put("records", records)
             .put("processId", android.os.Process.myPid())
+            .put("nativeDocumentReadiness",nativeDocumentReadiness).put("readyDocumentEvaluations",readyDocumentEvaluations)
             .put("qrCardsRequested",qrChecks).put("qrRecords",qrRecords).put("qrNearbyPrompts",qrNearbyPrompts).put("qrEnableReadiness",qrEnableReadiness)
             .put("recoveryCardsRequested",recoveryChecks).put("recoveryRecords",recoveryRecords)
             .put("recoveryCameraPrompts",recoveryCameraPrompts).put("recoveryPermissionDiagnostics",recoveryPermissionDiagnostics)
@@ -618,13 +619,36 @@ class AndroidHomeInstrumentedTest {
         return if (parsed is String && parsed.startsWith("{")) JSONObject(parsed) else JSONObject()
     }
 
+    private val nativeDocumentReadiness = JSONArray()
+    private var lastNativeReadiness: String? = null
+    private var readyDocumentEvaluations = 0
+
     private fun waitFor(scenario: ActivityScenario<MainActivity>, label: String,
                         expression: String, predicate: (JSONObject) -> Boolean): JSONObject {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45)
         var last = JSONObject()
         do {
-            last = js(scenario, expression)
-            if (predicate(last)) return last
+            val document = JSONObject()
+            scenario.onActivity { activity ->
+                val view = webView(activity.window.decorView)
+                val url = view?.url
+                val progress = view?.progress ?: -1
+                val attached = view?.isAttachedToWindow == true
+                document.put("url",url?:JSONObject.NULL).put("progress",progress).put("attached",attached)
+                    .put("ready",attached && progress == 100 && url != null && url.isNotBlank() && !url.startsWith("about:"))
+            }
+            val key = label + document.toString()
+            if (key != lastNativeReadiness) {
+                lastNativeReadiness = key
+                nativeDocumentReadiness.put(document.put("label",label))
+            }
+            // The same 45-second deadline covers native navigation and UI readiness.
+            // A ready document still has the original strict 3-second JS response check.
+            if (document.getBoolean("ready")) {
+                readyDocumentEvaluations++
+                last = js(scenario, expression)
+                if (predicate(last)) return last
+            }
             Thread.sleep(100)
         } while (System.nanoTime() < deadline)
         throw AssertionError("$label: $last")

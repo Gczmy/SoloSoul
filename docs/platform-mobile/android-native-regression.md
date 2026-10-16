@@ -289,3 +289,10 @@ python scripts/android-home-native-regression.py \
 除状态/几何检查外，按原生 viewport 和卡片范围，在实际截图中定位正常字号错误字形，回读精确前景像素与文字范围背景众数，独立计算 sRGB 对比度。旧浅深前景 `(231,76,60)` 分别约 3.35:1、4.30:1；修复后两种 blur 的四张浅深错误图均至少 4.5:1。浏览器另验证三平台样式/20 色板/正常与提高对比，但不证明 MainActivity 的系统高文字对比度交付。
 
 本项明确只验收正常字号两组颜色复验，不挪用旧六组成功子集，不改变上节布局/字号变更需要完整六组的要求。全部恢复、当前启动 ANR 和新宿主清理审计通过；原生驱动/读取器/Kotlin 与已验收 canonical 来源字节一致。详见 [RF-1179 验证摘要](../verification/rf1179-recovery-error-contrast-2026-10-16.json)。
+
+
+## RF-1180 原生文档就绪前置（2026-10-16）
+
+`AndroidHomeInstrumentedTest.waitFor` 在原有 45 秒 UI 截止时间内等待实际主 WebView 附着、URL 非空且不是 about 文档、加载进度为 100%，然后调用原 3 秒 JS 响应检查。等待页面加载不能额外延长 45 秒，已就绪文档回调超时仍直接失败。此就绪条件不代表 UI 已完成绘制；原语义、几何、视觉状态提交、截图/像素及真实触摸断言仍全部执行。
+
+报告新增 `nativeDocumentReadiness` 与 `readyDocumentEvaluations`，用于区分文档加载和后续脚本/UI 等待；它们不是性能指标，也不能代替完整原生结果。三组当前 canonical 测试已使用同一原生产主包完成 supported/fallback 的二维码 baseline 及原 cold 场景，包含实际新进程、系统主题/账户恢复和完整清理。128 张 PNG、12 个未就绪状态及全部恢复记录独立核验；主窗口高文字对比另行验证。详见 [RF-1180 验证摘要](../verification/rf1180-native-document-readiness-2026-10-16.json)。
