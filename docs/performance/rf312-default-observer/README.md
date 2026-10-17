@@ -2,7 +2,7 @@
 
 本目录公开当前观察器的原样Java／Manifest源码及参数化离线构建入口。观察器插桩自己的独立包，读取指定公开夹具应用与系统文档选择器；构建命令只生成本地测试产物。
 
-本轮实际编译、签名和Manifest核验通过，生成DEX与冻结观察器完全一致；含空格输出路径通过，已有输出目录与缺失SDK均拒绝。原生完整行程仍待验收，见[执行记录](../RF-312-complete-default-entry.md)。
+本轮实际编译、签名和Manifest核验通过，生成DEX与冻结观察器完全一致；含空格输出路径通过，已有输出目录与缺失SDK均拒绝。当前界面子行程的显式输入入口及验证见[运行说明](../RF-312-runtime-inputs.md)；原构建[执行记录](../RF-312-complete-default-entry.md)保持。
 
 ## 构建
 
@@ -18,7 +18,7 @@ python build_observer.py --sdk "<SDK目录>" --jdk "<JDK目录>" --output "<新�
 
 ## 协议与边界
 
-观察器包名与instrumentation目标均为`org.solosoul.rf312observer`。只在专用公开测试AVD使用；调用方须先核验设备、APK、包缺席及公开数据，运行后按完整清单恢复。当前完整行程编排仍为本地冻结配方，尚需参数化公开。
+观察器包名与instrumentation目标均为`org.solosoul.rf312observer`。只在专用公开测试AVD使用；调用方须先核验设备、APK、包缺席及公开数据，运行后按完整清单恢复。界面子行程驱动、会话和输入准备已公开并参数化；机器准备／外层编排仍为本地冻结配方。
 
 启动参数`token`为新的32位小写十六进制命名空间。调用方在该包自己的`files/<token>/`目录按序原子发布`request-001.json`等文件，读取相应响应；`ready`表示连接就绪，`stop`／`stopped`完成正常停止。
 
@@ -183,3 +183,10 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 物理 OCR 的显式证据根
 
 `NativeOcrReader(bindings, evidence_root)`与`read-public-counter.ps1 -EvidenceRoot`显式限定本次公开证据目录；没有固定盘符回退。图片、输出及普通父目录须处于该根内，已有输出／reparse路径拒绝；原WinRT识别、原图哈希、精确计数与内容断言保持。`Journey`传入实际行程输出根，阶段余量和原10秒进程上限保持。14项回归、三次迁移目录后的实际原生识别、八次直接原生负向和三次Python junction预检通过。完整编排仍待参数化，见[使用及证据范围](../RF-312-portable-ocr-evidence.md)。
+
+
+## 完整界面子行程的显式输入
+
+`runtime_inputs.py --config ... --output ...`继承已独立验证快照的SHA及默认构建证明，重绑定SDK、工作区、产物和两档固定Vault；绝对工作区源转换为相对名，独立前端根显式声明，原1,881项全部保留。`default_driver.py --inputs ...`、`observer_session.py`和`default_journey.observe(..., inputs)`使用该清单，PID读取从canonical恢复驱动逐字提取，内存读取仍来自同库原实现。
+
+原206门禁及同库61项唯一回归分别通过；真实两档完整行程、原严格／5,874帧审计、清单绑定和各22条后置采样回放通过。外层机器准备／编排、重复分布、IPC、启动两帧和多端仍待完成，见[配置、运行和实际证据](../RF-312-runtime-inputs.md)。

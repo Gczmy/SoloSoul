@@ -163,12 +163,12 @@ class Journey:
   if len(nodes)!=1:raise RuntimeError('Exact native PDF image view required')
   return box(nodes[0])
 
-def observe(adb,read,output,count,uid,public_image_name):
- public_filename(public_image_name);inputs=load(S/'inputs.json')
- for name,key in [('journey-observer-session.py','journeyObserverSessionSha256'),('android-home-native-regression-fixed.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
+def observe(adb,read,output,count,uid,public_image_name,inputs):
+ public_filename(public_image_name)
+ for name,key in [('observer_session.py','journeyObserverSessionSha256'),('process_identity.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
   assert sha(S/name)==inputs[key]
- helper=module('independent_journey_session',S/'journey-observer-session.py')
- reader=module('strict_default_process_reader',S/'android-home-native-regression-fixed.py')
+ helper=module('independent_journey_session',S/'observer_session.py')
+ reader=module('strict_default_process_reader',S/'process_identity.py')
  process_id=None
  def focused(package=APP):
   if package not in (APP,PICKER):raise RuntimeError('Unowned requested focus')
@@ -176,8 +176,8 @@ def observe(adb,read,output,count,uid,public_image_name):
   if process_id is not None and reader.read_process_ids(read,APP)!=process_id:raise RuntimeError('Main application process changed')
   if APP in read('shell','dumpsys','activity','instrumentation'):raise RuntimeError('Target instrumentation forbidden')
  original_sdk_adb=adb
- with helper.session(adb,read,output) as observer:
-  with bind_transport(observer,adb,output,executable=helper.BASE/'sdk/platform-tools/adb.exe',serial='emulator-5578',expected_executable_sha256='b4a6b455702684652cccf7b46258b29e653538904359a58fd4931cf3ef286b3f',script=S/'control.sh',shell_crlf=True) as (adb,read):
+ with helper.session(adb,read,output,package=inputs['observer'],executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial']) as observer:
+  with bind_transport(observer,adb,output,executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial'],expected_executable_sha256=inputs['host']['adbSha256'],script=S/'persistent_control.sh',shell_crlf=True) as (adb,read):
    journey=Journey(observer,focused,output,inputs);j=journey
    adb('shell','am','force-stop',APP,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
    assert not reader.read_process_ids(read,APP)
@@ -244,7 +244,9 @@ def observe(adb,read,output,count,uid,public_image_name):
  assert load(output/'independent-observer/cleanup.json')['accepted']
  assert load(output/'persistent-control/cleanup.json')['accepted']
  checkpoint=module('post_ui_memory_checkpoint',S/'memory_checkpoint.py')
- memory=module('original_strict_memory_reader',S/'android-process-memory.py')
+ memory_path=Path(inputs['host']['workspaceRoot'])/'tauri/scripts/android-process-memory.py'
+ assert sha(memory_path)==inputs['canonicalMemoryReaderSha256']
+ memory=module('original_strict_memory_reader',memory_path)
  assert observer.adb is original_sdk_adb
  checkpoint.collect(memory.collect_snapshot,original_sdk_adb,output/'post-journey-memory',uid=uid,pid=int(process_id))
  return summary
