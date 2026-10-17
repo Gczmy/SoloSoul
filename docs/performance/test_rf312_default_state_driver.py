@@ -12,12 +12,14 @@ class DefaultDriverSourceTests(unittest.TestCase):
         import rf312_default_memory as memory
         import rf312_state_gate as gate
         import rf312_default_binding as binding
+        import rf312_journey_memory as trajectory
         def required(scope):
             names={symbol.get_name() for symbol in scope.get_symbols() if symbol.is_global() and symbol.is_referenced()}
             for child in scope.get_children():names.update(required(child))
             return names
-        for module,name in [(driver,'main'),(journey,'observe'),(memory,'collect'),(gate,'Gate'),
-                            (binding,'load'),(binding,'sources'),(binding,'shape')]:
+        for module,name in [(driver,'main'),(journey,'observe'),(journey,'ui_channel'),(memory,'collect'),(gate,'Gate'),
+                            (binding,'load'),(binding,'sources'),(binding,'shape'),
+                            (trajectory,'Stream'),(trajectory,'session'),(trajectory,'census'),(trajectory,'verify_census')]:
             table=symtable.symtable(Path(module.__file__).read_text(encoding='utf-8'),module.__file__,'exec')
             entry=next(child for child in table.get_children() if child.get_name()==name)
             with self.subTest(module=module.__name__,entry=name):

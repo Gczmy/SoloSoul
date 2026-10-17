@@ -6,6 +6,7 @@ import sys
 HERE=Path(__file__).resolve().parent
 HELPER=HERE/'rf312-default-observer'
 sys.path.insert(0,str(HELPER))
+sys.path.insert(0,str(HERE/'rf312-ipc-runtime'))
 import runtime_units
 from runtime_inputs import decode,hash_value,load_inputs
 from prepare_avd import ordinary
@@ -15,7 +16,10 @@ PUBLIC=('rf312_instrumentation_state.py','test_rf312_instrumentation_state.py',
         'rf312_default_memory.py','test_rf312_default_memory.py',
         'rf312_default_journey.py','test_rf312_default_journey.py',
         'rf312_default_state_driver.py','test_rf312_default_state_driver.py',
-        'rf312_default_binding.py','test_rf312_default_binding.py')
+        'rf312_default_binding.py','test_rf312_default_binding.py',
+        'rf312_journey_memory.py','test_rf312_journey_memory.py',
+        'rf312-ipc-runtime/diagnostic_exchange.py','rf312-ipc-runtime/exchange_control.sh',
+        'rf312-ipc-runtime/test_diagnostic_exchange.py')
 FIELDS={'schemaVersion','runtimeInputs','runtimeInputsSha256','sourceSha256'}
 sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 

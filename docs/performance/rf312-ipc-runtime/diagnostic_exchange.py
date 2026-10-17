@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from pathlib import Path
 import base64,hashlib,json,math,queue,re,shlex,subprocess,time
 import xml.etree.ElementTree as ET
-import diagnostic_binding
 import observer_session as original_session
 import persistent_control as original_control
 from persistent_adapter import Adapter as OriginalAdapter

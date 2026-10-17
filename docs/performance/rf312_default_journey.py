@@ -1,4 +1,5 @@
 """Default Release journey with supported native state checks; no app injection."""
+from contextlib import contextmanager
 import json,re,subprocess,time
 from pathlib import Path
 import rf312_default_binding
@@ -8,6 +9,7 @@ from default_journey import (APP,PICKER,labels,record_ids,expected_search_ids,FI
 from persistent_adapter import binding as bind_transport
 from rf312_state_gate import Gate
 import rf312_default_memory as checkpoint
+import rf312_journey_memory as trajectory
 S=original.S
 load=original.load
 sha=original.sha
@@ -15,14 +17,40 @@ save=original.save
 module=original.module
 
 
+@contextmanager
+def ui_channel(composite,helper,adb,read,output,inputs):
+ # The original session continues to own the one Observer process and cleanup.
+ # Only its host client changes; no target diagnostics or JavaScript are loaded.
+ with helper.session(adb,read,output,package=inputs['observer'],executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial']) as observer:
+  client=observer;binder=bind_transport;script=S/'persistent_control.sh'
+  if composite:
+   from diagnostic_exchange import Client,binding
+   client=Client(observer.adb,observer.output,observer.process,observer.remote)
+   client.deadline=observer.deadline;client.ordinal=observer.ordinal
+   binder=binding;script=Path(__file__).parent/'rf312-ipc-runtime/exchange_control.sh'
+  try:
+   with binder(client,adb,output,executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial'],expected_executable_sha256=inputs['host']['adbSha256'],script=script,shell_crlf=True) as (channel,read_channel):
+    yield client,channel,read_channel
+  finally:
+   if client is not observer:observer.ordinal=client.ordinal
+
+
 class Journey(original.Journey):
+ memory_stream=None
  def __init__(self,*args):
   super().__init__(*args);self.current_phase_deadline=None
  def remaining(self,deadline):
-  value=super().remaining(deadline);self.current_phase_deadline=deadline;return value
+  value=super().remaining(deadline);self.current_phase_deadline=deadline
+  if self.memory_stream is not None:self.memory_stream.check()
+  return value
+ def finish(self,name,started,row,**extra):
+  if self.memory_stream is not None:
+   if name!=PHASES[len(self.phases)]:raise RuntimeError('Full journey phase order mismatch')
+   extra['memoryBoundaryRequest']=self.memory_stream.submit_boundary(name,started+45)
+  return super().finish(name,started,row,**extra)
 
 
-def observe(adb,read,output,count,uid,public_image_name,inputs):
+def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling=False):
  public_filename(public_image_name)
  for name,key in [('observer_session.py','journeyObserverSessionSha256'),('process_identity.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
   assert sha(S/name)==inputs[key]
@@ -38,15 +66,18 @@ def observe(adb,read,output,count,uid,public_image_name,inputs):
  original_sdk_adb=adb
  gate=Gate(adb,output)
  gate.check({},deadline=time.monotonic()+10)
- with helper.session(adb,read,output,package=inputs['observer'],executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial']) as observer:
-  with bind_transport(observer,adb,output,executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial'],expected_executable_sha256=inputs['host']['adbSha256'],script=S/'persistent_control.sh',shell_crlf=True) as (adb,read):
+ with ui_channel(memory_sampling,helper,adb,read,output,inputs) as (observer,adb,read):
+  with trajectory.session(memory_sampling,inputs,output,uid=uid,deadline=observer.deadline,phases=PHASES) as stream:
    journey=Journey(observer,focused,output,inputs);j=journey
+   j.memory_stream=stream
    adb('shell','am','force-stop',APP,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
    assert not reader.read_process_ids(read,APP)
+   if stream is not None:stream.start()
    began=time.monotonic();framework=read('shell','am','start','-W','-n',APP+'/.MainActivity')
    assert re.search(r'^Status:\s*ok\s*$',framework,re.M)
    (j.proof/'framework-start.txt').write_text(framework,encoding='utf-8')
    process_id=reader.read_process_ids(read,APP);assert re.fullmatch(r'[1-9]\d*',process_id)
+   if stream is not None:stream.bind(int(process_id))
    save(j.proof/'observed-process-start.json',dict(pid=int(process_id),uid=uid))
    login=lambda:any(n.get('class')=='android.widget.EditText' and n.get('password')=='true' for n in j.nodes) and any(f'acc_rf312_{count}' in v for v in labels(j.nodes))
    row=j.wait(login,began+45,capture=True);j.finish('startup',began,row,twoCommittedFramesProven=False)
@@ -97,12 +128,21 @@ def observe(adb,read,output,count,uid,public_image_name,inputs):
    began=time.monotonic();deadline=began+45;j.tap(r'Lock Vault',deadline)
    row=j.wait(login,deadline,capture=True);j.finish('application-lock',began,row,passwordLoginRestored=True)
    unlock('password-reunlock','reunlock-pixel-counter');complete(j.phases)
+   if stream is not None:
+    boundaries=stream.complete_boundaries()
+    for phase in j.phases:phase['memoryBoundary']=boundaries[phase['name']]
+    (j.proof/'phase-progress.json').write_text(json.dumps(j.phases,indent=2)+'\n',encoding='utf-8')
    summary=dict(success=True,scope='default-release-supported-state-complete-ui-journey',objectCount=count,
     stageNames=list(PHASES),stages=j.phases,fullUiJourneyAccepted=True,fullDefaultJourneyAccepted=False,
     performanceDistributionAccepted=False,targetInstrumentationInjected=False,javaScriptInjected=False,
     defaultReleaseNonDebuggable=True,twoCommittedFramesProven=False,scrollGestures=len(j.scrolls),
-    ipcAttributed=False,strictAllProcessMemoryCollected=False,sameSourceObserverOverheadMeasured=False)
+    ipcAttributed=False,strictAllProcessMemoryCollected=False,sameSourceObserverOverheadMeasured=False,
+    journeyMemorySamplingEnabled=memory_sampling)
    save(j.proof/'evidence.json',summary)
+ if memory_sampling:
+  memory_trace=load(output/'journey-memory/result.json')
+  assert memory_trace['accepted'] and memory_trace['completeBoundaryCoverage'] and memory_trace['workerStopped']
+  summary['journeyMemory']=memory_trace
  gate.check({},deadline=time.monotonic()+10)
  summary['supportedNativeStateVerified']=True
  summary['supportedStateChecks']=len(gate.proof)

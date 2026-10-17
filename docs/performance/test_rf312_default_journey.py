@@ -1,4 +1,5 @@
 import ast
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -35,3 +36,49 @@ class DefaultJourneyGateTests(unittest.TestCase):
         self.assertEqual(value.current_phase_deadline,45)
         with patch.object(journey.original.time,'monotonic',return_value=46),self.assertRaises(TimeoutError):value.remaining(45)
         self.assertEqual(value.current_phase_deadline,45)
+
+
+class DefaultCompositeChannelTests(unittest.TestCase):
+    def run_channel(self,enabled,*,fail=False):
+        import diagnostic_exchange as exchange
+        original=SimpleNamespace(adb=object(),output=Path('owned-output'),process=object(),
+            remote='files/'+'a'*32+'/',deadline=123.5,ordinal=7)
+        events=[]
+        @contextmanager
+        def session(*args,**kwargs):
+            events.append('observer-start')
+            try:yield original
+            finally:events.append(('observer-cleanup',original.ordinal))
+        @contextmanager
+        def binding(client,*args,**kwargs):
+            events.append(('binding',client,kwargs['script']))
+            try:yield 'channel','read-channel'
+            finally:events.append('binding-cleanup')
+        helper=SimpleNamespace(session=session)
+        inputs=dict(observer='original-package',host=dict(adbExecutable='original-sdk',serial='original-endpoint',adbSha256='a'*64))
+        with patch.object(exchange,'binding',side_effect=binding),patch.object(journey,'bind_transport',side_effect=binding):
+            try:
+                with journey.ui_channel(enabled,helper,'sdk','read',Path('out'),inputs) as (client,channel,read):
+                    self.assertEqual((channel,read),('channel','read-channel'))
+                    self.assertIs(client.process,original.process);self.assertIs(client.output,original.output)
+                    self.assertEqual((client.remote,client.deadline,client.ordinal),(original.remote,123.5,7))
+                    self.assertIs(client.adb,original.adb)
+                    self.assertEqual(client is original,not enabled)
+                    client.ordinal=11
+                    if fail:raise TimeoutError('original deadline')
+            except TimeoutError:
+                self.assertTrue(fail)
+            else:self.assertFalse(fail)
+        self.assertEqual(events[-2:],['binding-cleanup',('observer-cleanup',11)])
+        expected='exchange_control.sh' if enabled else 'persistent_control.sh'
+        self.assertEqual(events[1][2].name,expected)
+        return events[1][1],original
+
+    def test_default_disabled_channel_preserves_original_session_and_transport(self):
+        self.run_channel(False)
+
+    def test_memory_channel_reuses_one_observer_and_exact_original_deadline(self):
+        self.run_channel(True)
+
+    def test_failed_composite_request_keeps_original_cleanup_and_request_count(self):
+        self.run_channel(True,fail=True)

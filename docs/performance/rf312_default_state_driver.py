@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--fixture',required=True)
     parser.add_argument("--inputs", required=True, type=Path)
     parser.add_argument("--state-inputs", required=True, type=Path)
+    parser.add_argument('--journey-memory',action='store_true',help='Explicit read-only periodic and twelve-boundary memory trajectory; original UI budgets remain')
     args = parser.parse_args()
     if args.scenario != 'baseline' or args.motion_preferences or args.font_scale is not None:
         parser.error('Fixed-Vault driver accepts baseline only; original restoration guards stay unchanged')
@@ -57,6 +58,7 @@ def main():
     report = {"serial": args.serial, "avd": args.avd, "mode": args.mode, "scenario": args.scenario,
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
+    report['journeyMemorySamplingEnabled']=args.journey_memory
     report['runtimeInputsSha256']=hashlib.sha256(input_bytes).hexdigest()
     report['runtimeSourcesSha256']=frozen_inputs['fullJourneyFiles']
     selected = False
@@ -237,7 +239,7 @@ def main():
         external_spec = importlib.util.spec_from_file_location('default_external', external_path)
         external = importlib.util.module_from_spec(external_spec)
         external_spec.loader.exec_module(external)
-        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs)
+        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs,memory_sampling=args.journey_memory)
         report['defaultExternalEvidence'] = evidence
         report['stages'] = evidence['stageNames']
         report['nativePassed'] = bool(evidence['success'] is True and evidence['supportedNativeStateVerified']
