@@ -204,3 +204,10 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 `runtime_units.py`绑定同库完整回归；`owner_inputs.py`复验已声明的产物、SDK／JDK／PowerShell、签名、完整资产、89项资源和未启动AVD；`runtime_owner.py`执行原启动／双图预检／两档十二步／完整恢复／原终态及帧／内存重放。`runtime_preflight.py`单独收集完整ANR和第二张Launcher图，实际看过两张图片后才记录对应SHA继续。
 
 `host_release.py`只在原45秒退出预算余量内观察严格归属的SDK关闭后代；原宿主读取器最终检查零残留。244项回归、实际新路径两档及九次关闭观察通过，首轮即时复核失败保持。原二十份行程源件、读取器及输入预算未改；详见[可执行配置、证据与未完成范围](../RF-312-portable-owner.md)。
+
+
+## 从显式源码快照生成生产前端
+
+`frontend_build.py capture`绑定当前产品／插件子模块、完整已安装Node依赖和工具；`build --plan ... --output ...`将全部输入逐份复制到新工作区，执行原`npm run build`。`dependency_lock.py`核对已安装记录与产品锁文件，并逐包检查实际版本。缓存／临时目录及生成物使用显式输出，原输入在构建后完整复核。
+
+三个NSIS位图和搜索索引可在隔离副本中重新生成；其他受版本控制输入变化拒绝。资源清单须完整覆盖实际文件、大小和SHA，版本按内容重算。此入口生成前端及移动资源，完整Rust／APK链及原生测量仍有后续工作；见[命令、边界和验证](../RF-312-portable-frontend.md)。
