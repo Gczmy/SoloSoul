@@ -18,7 +18,7 @@ python build_observer.py --sdk "<SDK目录>" --jdk "<JDK目录>" --output "<新�
 
 ## 协议与边界
 
-观察器包名与instrumentation目标均为`org.solosoul.rf312observer`。只在专用公开测试AVD使用；调用方须先核验设备、APK、包缺席及公开数据，运行后按完整清单恢复。界面子行程驱动、会话和输入准备已公开并参数化；新AVD准备入口已公开；启动与外层编排仍为本地冻结配方。
+观察器包名与instrumentation目标均为`org.solosoul.rf312observer`。只在专用公开测试AVD使用；调用方须先核验设备、APK、包缺席及公开数据，运行后按完整清单恢复。界面子行程驱动、会话和输入准备已公开并参数化；新AVD准备、显式环境计划、启动／独立预检／两档队列及终态重放入口均已公开，产物生成链及其余RF-312验收继续待完成。
 
 启动参数`token`为新的32位小写十六进制命名空间。调用方在该包自己的`files/<token>/`目录按序原子发布`request-001.json`等文件，读取相应响应；`ready`表示连接就绪，`stop`／`stopped`完成正常停止。
 
@@ -195,3 +195,10 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 显式 SDK/JDK 的新 AVD 准备
 
 `prepare_avd.py --config ... --output ...`在新输出中调用原SDK批处理创建专用API31 x86_64 AVD；SDK／JDK、六份入口身份和设备名显式声明。原样硬件配置绑定SHA，已有输出、reparse、代码页丢失、shell扩展或工具变化均拒绝，Java版本检查及120秒预算保持。18项回归、真实空格路径创建、1,040文件回读与六次CLI／junction负向通过，前三次原生失败保持。未启动模拟器或应用，完整外层编排仍待验，见[配置和证据](../RF-312-portable-avd.md)。
+
+
+## 显式环境计划与完整两档队列
+
+`runtime_units.py`绑定同库完整回归；`owner_inputs.py`复验已声明的产物、SDK／JDK／PowerShell、签名、完整资产、89项资源和未启动AVD；`runtime_owner.py`执行原启动／双图预检／两档十二步／完整恢复／原终态及帧／内存重放。`runtime_preflight.py`单独收集完整ANR和第二张Launcher图，实际看过两张图片后才记录对应SHA继续。
+
+`host_release.py`只在原45秒退出预算余量内观察严格归属的SDK关闭后代；原宿主读取器最终检查零残留。244项回归、实际新路径两档及九次关闭观察通过，首轮即时复核失败保持。原二十份行程源件、读取器及输入预算未改；详见[可执行配置、证据与未完成范围](../RF-312-portable-owner.md)。

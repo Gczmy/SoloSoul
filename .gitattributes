@@ -2,6 +2,9 @@
 *.sh text eol=lf
 
 # 持久控制通道的验证摘要绑定源码原始字节。
+docs/performance/rf312-default-observer/*.py text eol=lf
+docs/performance/rf312-default-observer/*.java text eol=lf
+docs/performance/rf312-default-observer/*.xml text eol=lf
 docs/performance/rf312-default-observer/persistent_control.py text eol=lf
 docs/performance/rf312-default-observer/persistent_adapter.py text eol=lf
 docs/performance/rf312-default-observer/test_persistent_control.py text eol=lf
