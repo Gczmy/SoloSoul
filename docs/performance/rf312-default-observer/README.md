@@ -103,3 +103,17 @@ python -B -m unittest discover -s . -p test_scaled_ocr.py -v
 ```sh
 python -B -m unittest discover -s . -p test_socket_stall_watch.py -v
 ```
+
+
+## 有界持久控制与原接口接入
+
+`persistent_control.py` 的 `Control(process, output)` 接收调用方自己创建的三路二进制管道进程及全新证据目录。先核验专用环境、观察器包／UID、自有临时根与 `persistent_control.sh` 哈希，再通过 `shell -T -e none` 启动固定脚本。`RF312B` 只允许固定操作、严格文件名、有界 payload 和单调序号；两路字节各自用长度及规范 Base64 保留，只接受 framing 的 LF／CRLF，不修改业务字节。阻塞读写、截断或序号错误后不重连、不复用或重放，保留原始回执，只结束自有管道客户端。
+
+`persistent_adapter.py` 的 `binding` 仅在原观察器已验证且正常就绪后接入，限定原文件命令和焦点／进程／插桩状态／启停命令，未识别命令拒绝且不回退 SDK。显式验证 Windows SDK 的换行方式后，仅复现固定 shell 输出的序列化，二进制 `exec-out` 内容不变。退出先恢复原回调，再正常关闭控制管道，原入口随后负责观察器停止和完整恢复；临时目录存在未知或存活残留时保留并拒绝清理验收。
+
+`SnapshotCadence.before(deadline)` 在原阶段期限内限制快照开始间隔至少 175ms，保留原三次／350ms 稳定要求及 512 次请求、45／240 秒预算。十四项编码／管道及十二项适配／节奏用例，加上原 170 项门禁共 196 项通过。真实公开文件诊断 1,000 轮、2,013 帧通过；完整原生接入已运行到 Tools 滚动前，只读目标几何变化导致队列停止，不能据此宣称两档完整行程通过。
+
+```sh
+python -B -m unittest discover -s . -p test_persistent_control.py -v
+python -B -m unittest discover -s . -p test_persistent_adapter.py -v
+```
