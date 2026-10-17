@@ -21,11 +21,38 @@ class AdbRecorder:
             raise ValueError('An existing caller-owned output directory is required')
         self.commands = []
 
-    def _record(self, row):
+    def _record(self, row, deadline):
         self.commands.append(row)
         temporary = self.output / 'commands.json.tmp'
         temporary.write_text(json.dumps(self.commands, indent=2) + '\n', encoding='utf-8')
-        temporary.replace(self.output / 'commands.json')
+        retry_until = min(deadline, time.monotonic() + .25)
+        previous = None
+        for attempt in range(1, 27):
+            if previous is not None and time.monotonic() >= retry_until:
+                raise previous
+            try:
+                temporary.replace(self.output / 'commands.json')
+                return
+            except PermissionError as error:
+                remaining = retry_until - time.monotonic()
+                if (getattr(error, 'winerror', None) not in (5, 32, 33)
+                        or attempt == 26 or remaining <= 0):
+                    raise
+                # Retry only this local atomic replacement. The SDK operation
+                # has already finished and must never be sent a second time.
+                try:
+                    if not temporary.is_file() or temporary.is_symlink():
+                        raise error
+                    event = dict(commandOrdinal=len(self.commands), replaceAttempt=attempt,
+                                 winerror=error.winerror, retryRemainingSeconds=remaining)
+                    with (self.output / 'commands-replace-events.jsonl').open('ab') as stream:
+                        stream.write((json.dumps(event) + '\n').encode('utf-8'))
+                except OSError as receipt_error:
+                    if receipt_error is error:
+                        raise
+                    raise error from receipt_error
+                previous = error
+                time.sleep(min(.01, max(0, retry_until - time.monotonic())))
 
     def run(self, *command, **kwargs):
         timeout = kwargs.pop('timeout', 240)
@@ -47,7 +74,7 @@ class AdbRecorder:
                         (self.output / filename).write_bytes(value)
                         row[name + 'Sha256'] = hashlib.sha256(value).hexdigest()
                         row[name + 'PartialFile'] = filename
-                self._record(row)
+                self._record(row, started + timeout)
             except OSError as receipt_error:
                 # Disk or receipt failure must not change the transport exception.
                 raise error from receipt_error
@@ -57,7 +84,7 @@ class AdbRecorder:
             value = getattr(result, name)
             if isinstance(value, bytes):
                 row[name + 'Sha256'] = hashlib.sha256(value).hexdigest()
-        self._record(row)
+        self._record(row, started + timeout)
         if result.returncode and isinstance(result.stderr, bytes):
             (self.output / f'failed-command-{len(self.commands):03d}.stderr.log').write_bytes(result.stderr)
         result.check_returncode()

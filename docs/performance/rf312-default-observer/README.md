@@ -36,7 +36,7 @@ python build_observer.py --sdk "<SDK目录>" --jdk "<JDK目录>" --output "<新�
 
 ## ADB 调用记录
 
-`adb_control.py`提供`AdbRecorder(executable, serial, output)`。调用方先完成专用模拟器、包身份及公开夹具检查，再通过`run(*command, timeout=...)`执行原命令；它保留固定`127.0.0.1:5057`连接与显式设备，不重试、不重启服务，也不改变客户端启动方式。设备、输入、恢复及完整行程的门禁继续由调用方负责。
+`adb_control.py`提供`AdbRecorder(executable, serial, output)`。调用方先完成专用模拟器、包身份及公开夹具检查，再通过`run(*command, timeout=...)`执行原命令；它保留固定`127.0.0.1:5057`连接与显式设备，不重试设备命令、不重启服务，也不改变客户端启动方式。设备、输入、恢复及完整行程的门禁继续由调用方负责。
 
 超时会先记录本次命令、原请求期限、实际耗时、`exitCode=null`和可取得的原始部分输出，再抛出同一个`TimeoutExpired`。成功及非零退出维持原结果语义；若保存证据失败，原超时仍是主异常。命令及部分输出可能带有本机信息，只保存在调用方指定的本地目录，不能直接作为公开摘要。
 
@@ -44,6 +44,12 @@ python build_observer.py --sdk "<SDK目录>" --jdk "<JDK目录>" --output "<新�
 
 ```sh
 python -B -m unittest discover -s . -p test_adb_control.py -v
+```
+
+本机JSON原子替换遇到Windows错误5／32／33时，只在原命令剩余期限内重试同一文件提交，另限0.25秒／26次；JSON字节不变，拒绝先记录到`commands-replace-events.jsonl`，SDK命令不重发。其他错误、永久拒绝、预算或证据写入失败继续拒绝；原超时保持主异常。八项新增回归含真实Windows读取句柄释放，见[记录与范围](../RF-312-receipt-replace.md)。该轮100档检查点通过，5000档因独立滚动几何变化未触达采样，原严格拒绝保持；原生未观察到本机替换重试，不能将真实句柄回归说成原生分支覆盖。
+
+```sh
+python -B -m unittest discover -s . -p test_receipt_replace.py -v
 ```
 
 ## 正文与底部导航边界
