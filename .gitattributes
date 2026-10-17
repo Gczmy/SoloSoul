@@ -55,3 +55,6 @@ tauri/src-tauri/resources/models/registry.json text eol=lf
 tauri/src/lib/generated/ipcContracts.ts text eol=lf
 tauri/src/lib/generated/ipcContractManifest.json text eol=lf
 docs/performance/rf312-ipc-diagnostic-library-2026-10-17.json text eol=lf
+docs/performance/rf312_startup_ui.py text eol=lf
+docs/performance/test_rf312_startup_ui.py text eol=lf
+docs/performance/rf312-startup-ui-2026-10-17.json text eol=lf
