@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -67,6 +68,94 @@ class Files(unittest.TestCase):
             return value
         with mock.patch.object(build.hashlib,'file_digest',side_effect=changed),self.assertRaisesRegex(ValueError,'changed while hashing'):
             build.entry(self.source/'one')
+
+
+class OpenedSnapshots(unittest.TestCase):
+    def setUp(self):
+        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
+        self.path=Path(temporary.name).resolve()/'public';self.path.write_bytes(b'public fixture')
+        self.original_stat=Path.lstat;self.row=self.original_stat(self.path)
+        self.original_hash=build.hashlib.file_digest
+
+    def metadata(self,**changes):
+        values={n:getattr(self.row,n) for n in ('st_dev','st_ino','st_size','st_mtime_ns','st_mode')}
+        values['st_file_attributes']=getattr(self.row,'st_file_attributes',0)
+        values.update(changes);return SimpleNamespace(**values)
+
+    def test_open_time_attributes_are_frozen_after_binding_the_handle(self):
+        calls=0
+        def metadata(path,*args,**kwargs):
+            nonlocal calls
+            if path==self.path:
+                calls+=1
+                return self.metadata(st_file_attributes=(getattr(self.row,'st_file_attributes',0)|0x40000) if calls==1 else getattr(self.row,'st_file_attributes',0))
+            return self.original_stat(path,*args,**kwargs)
+        with mock.patch.object(Path,'lstat',metadata):
+            self.assertEqual(build.entry(self.path),dict(bytes=14,sha256=hashlib.sha256(b'public fixture').hexdigest()))
+
+    def test_batch_filename_modes_are_bound_separately_from_handle_modes(self):
+        original=self.path;self.path=self.path.with_suffix('.bat');original.rename(self.path)
+        self.assertEqual(build.entry(self.path)['bytes'],14)
+        def metadata(path,*args,**kwargs):
+            actual=self.original_stat(path,*args,**kwargs)
+            return self.metadata(st_mode=actual.st_mode|0o111) if path==self.path else actual
+        with mock.patch.object(Path,'lstat',metadata):self.assertEqual(build.entry(self.path)['bytes'],14)
+
+    def test_path_mode_changes_during_hashing_are_refused(self):
+        hashed=False
+        def metadata(path,*args,**kwargs):
+            if path==self.path and hashed:return self.metadata(st_mode=self.row.st_mode^0o111)
+            return self.original_stat(path,*args,**kwargs)
+        def hash_file(*args,**kwargs):
+            nonlocal hashed
+            value=self.original_hash(*args,**kwargs);hashed=True;return value
+        with mock.patch.object(Path,'lstat',metadata),mock.patch.object(build.hashlib,'file_digest',hash_file),self.assertRaisesRegex(ValueError,'while hashing'):
+            build.entry(self.path)
+
+    def test_handle_mode_changes_during_hashing_are_refused(self):
+        original=build.os.fstat;calls=0
+        def metadata(fd):
+            nonlocal calls
+            calls+=1;row=original(fd)
+            return self.metadata(st_mode=row.st_mode^0o111) if calls>1 else row
+        with mock.patch.object(build.os,'fstat',metadata),self.assertRaisesRegex(ValueError,'while hashing'):build.entry(self.path)
+
+    def test_path_attribute_changes_during_hashing_are_refused(self):
+        hashed=False
+        def metadata(path,*args,**kwargs):
+            if path==self.path and hashed:return self.metadata(st_file_attributes=getattr(self.row,'st_file_attributes',0)^0x2)
+            return self.original_stat(path,*args,**kwargs)
+        def hash_file(*args,**kwargs):
+            nonlocal hashed
+            value=self.original_hash(*args,**kwargs);hashed=True;return value
+        with mock.patch.object(Path,'lstat',metadata),mock.patch.object(build.hashlib,'file_digest',hash_file),self.assertRaisesRegex(ValueError,'while hashing'):
+            build.entry(self.path)
+
+    def test_handle_attribute_changes_during_hashing_are_refused(self):
+        original=build.os.fstat;calls=0
+        def metadata(fd):
+            nonlocal calls
+            calls+=1;row=original(fd)
+            return self.metadata(st_file_attributes=getattr(row,'st_file_attributes',0)^0x2) if calls>1 else row
+        with mock.patch.object(build.os,'fstat',metadata),self.assertRaisesRegex(ValueError,'while hashing'):build.entry(self.path)
+
+    def test_foreign_handle_file_id_is_refused_before_hashing(self):
+        def metadata(_):return self.metadata(st_ino=self.row.st_ino+1)
+        with mock.patch.object(build.os,'fstat',metadata),mock.patch.object(build.hashlib,'file_digest') as hashed:
+            with self.assertRaisesRegex(ValueError,'while opening'):build.entry(self.path)
+            hashed.assert_not_called()
+
+    def test_nonattribute_identity_changes_while_opening_are_refused(self):
+        calls=0
+        def metadata(path,*args,**kwargs):
+            nonlocal calls
+            if path==self.path:
+                calls+=1
+                return self.metadata(st_mtime_ns=self.row.st_mtime_ns+1) if calls>1 else self.row
+            return self.original_stat(path,*args,**kwargs)
+        with mock.patch.object(Path,'lstat',metadata),mock.patch.object(build.hashlib,'file_digest') as hashed:
+            with self.assertRaisesRegex(ValueError,'while opening'):build.entry(self.path)
+            hashed.assert_not_called()
 
 
 class ResourceOutputs(unittest.TestCase):

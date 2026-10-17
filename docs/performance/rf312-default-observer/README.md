@@ -216,3 +216,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 显式默认Android库编译组件（生成验收未完成）
 
 `build_payload.py`绑定生产前端回执及冻结副本；`library_build.py`显式绑定SDK／NDK、工具链、完整目标标准库和锁定生成器，在新目录执行原默认Release库编译。301项回归及真实Cargo命令完成，结束后输入复核因打开文件的属性变化拒绝，整体未通过；独立产物取证不替代该拒绝。下一项单独修正输入冻结方式并使用新前端回执重跑，旧记录不回写。没有新APK或原生／性能样本，见[配置与实际范围](../RF-312-portable-library.md)。
+
+
+## 打开后绑定完整文件快照
+
+`frontend_build.entry`在打开后绑定路径与句柄，分别保持完整mode／属性及相同文件身份；原父目录reparse与哈希期间变化拒绝保留。309项回归及全新输入捕获、生产前端和默认Release库生成通过，旧拒绝原样保留。尚未构建新APK或追加原生／性能样本，见[修正与实际证据](../RF-312-opened-file-snapshot.md)。

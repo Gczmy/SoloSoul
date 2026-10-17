@@ -37,16 +37,27 @@ def relative(name):
 def entry(path):
     path=Path(path).absolute()
     if '..' in path.parts:path=ordinary(path)
-    before=path.lstat()
-    for item,metadata in [(path,before)]+[(p,p.lstat()) for p in path.parents]:
+    initial=path.lstat()
+    for item,metadata in [(path,initial)]+[(p,p.lstat()) for p in path.parents]:
         if stat.S_ISLNK(metadata.st_mode) or getattr(metadata,'st_file_attributes',0)&0x400:
             raise ValueError('Ordinary paths without reparse parents required')
         if not (stat.S_ISREG(metadata.st_mode) if item==path else stat.S_ISDIR(metadata.st_mode)):
             raise ValueError('Ordinary file with directory parents required')
-    with path.open('rb') as stream:value=hashlib.file_digest(stream,'sha256').hexdigest()
-    after=path.lstat()
     identity=lambda row:(row.st_dev,row.st_ino,row.st_size,row.st_mtime_ns,row.st_mode,getattr(row,'st_file_attributes',0))
-    if identity(before)!=identity(after):raise ValueError('Input changed while hashing')
+    with path.open('rb') as stream:
+        before=path.lstat();handle=os.fstat(stream.fileno())
+        # Opening can change metadata before hashing. Bind the opened file first;
+        # keep every attribute bit in the complete path and handle snapshots.
+        # Windows filename-derived mode bits can differ from handle mode bits.
+        shared=lambda row:identity(row)[:4]+identity(row)[5:]
+        if (identity(initial)[:-1]!=identity(before)[:-1] or not stat.S_ISREG(handle.st_mode)
+                or getattr(before,'st_file_attributes',0)&0x400
+                or shared(before)!=shared(handle)):
+            raise ValueError('Input identity changed while opening')
+        value=hashlib.file_digest(stream,'sha256').hexdigest()
+        after=path.lstat();handle_after=os.fstat(stream.fileno())
+        if identity(before)!=identity(after) or identity(handle)!=identity(handle_after):
+            raise ValueError('Input changed while hashing')
     return dict(bytes=after.st_size,sha256=value)
 
 
