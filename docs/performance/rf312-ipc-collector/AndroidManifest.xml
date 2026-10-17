@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.solosoul.rf312ipc">
+  <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="35" />
+  <application android:debuggable="false" android:allowBackup="false" android:hasCode="true" />
+  <instrumentation android:name="org.solosoul.rf312ipc.Collector"
+    android:targetPackage="com.solosoul.app" android:targetProcesses="com.solosoul.app"
+    android:functionalTest="true" android:handleProfiling="false" />
+</manifest>
