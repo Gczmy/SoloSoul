@@ -22,7 +22,7 @@ class Journey:
   self.cadence=SnapshotCadence()
   self.observer=observer;self.focused=focused;self.output=output;self.inputs=inputs
   self.bindings=dict(inputs['fullJourneyFiles'])
-  self.ocr=NativeOcrReader(inputs['pixelInputFiles']);self.phases=[];self.scrolls=[]
+  self.ocr=NativeOcrReader(inputs['pixelInputFiles'],output);self.phases=[];self.scrolls=[]
   self.proof=output/'default-external';self.proof.mkdir(exist_ok=False)
   self.ocr_folder=output/'journey-native-ocr';self.ocr_folder.mkdir(exist_ok=False)
  def remaining(self,deadline):

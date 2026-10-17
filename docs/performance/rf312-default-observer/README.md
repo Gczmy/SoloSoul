@@ -178,3 +178,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 可复用的 Windows 宿主核验
 
 同库[受保护旧服务入口](../RF-312-windows-host-audit.md)保留RF-1173完整身份保护；[空宿主前后入口](../RF-312-fresh-windows-host-audit.md)绑定原before快照、全部声明端口和运行前冻结的自有身份。两者只读查询CIM／TCP，不启动ADB或操作窗口。空宿主入口34项回归及五组真实进程／端口对照通过；完整行程编排的其余路径和产物绑定仍待参数化，不能把该步骤视作完整性能入口。
+
+
+## 物理 OCR 的显式证据根
+
+`NativeOcrReader(bindings, evidence_root)`与`read-public-counter.ps1 -EvidenceRoot`显式限定本次公开证据目录；没有固定盘符回退。图片、输出及普通父目录须处于该根内，已有输出／reparse路径拒绝；原WinRT识别、原图哈希、精确计数与内容断言保持。`Journey`传入实际行程输出根，阶段余量和原10秒进程上限保持。14项回归、三次迁移目录后的实际原生识别、八次直接原生负向和三次Python junction预检通过。完整编排仍待参数化，见[使用及证据范围](../RF-312-portable-ocr-evidence.md)。
