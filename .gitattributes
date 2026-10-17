@@ -82,3 +82,15 @@ docs/performance/rf312-startup-stack-2026-10-17.json text eol=lf
 docs/performance/rf312_instrumentation_state.py text eol=lf
 docs/performance/test_rf312_instrumentation_state.py text eol=lf
 docs/performance/rf312-instrumentation-state-2026-10-17.json text eol=lf
+
+docs/performance/rf312_default_binding.py text eol=lf
+docs/performance/test_rf312_default_binding.py text eol=lf
+docs/performance/rf312_state_gate.py text eol=lf
+docs/performance/test_rf312_state_gate.py text eol=lf
+docs/performance/rf312_default_memory.py text eol=lf
+docs/performance/test_rf312_default_memory.py text eol=lf
+docs/performance/rf312_default_journey.py text eol=lf
+docs/performance/test_rf312_default_journey.py text eol=lf
+docs/performance/rf312_default_state_driver.py text eol=lf
+docs/performance/test_rf312_default_state_driver.py text eol=lf
+docs/performance/rf312-default-supported-state-2026-10-17.json text eol=lf

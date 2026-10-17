@@ -58,4 +58,4 @@ python -B -m unittest discover -s docs/performance -p test_rf312_repeat_summary.
 
 ## 后续状态来源复核（2026-10-17）
 
-后续真实取证确认，原 `dumpsys activity instrumentation` 子命令在本 API31 环境返回零退出码的 Unknown command。五轮 10 个内存检查点的前后 20 次原始回复均回放确认；数值、原回执及统计输入不改，但该回复不能直接证明目标与 UI 观察插桩已退出。新读取器依据完整系统进程区段验证状态，已在明确插桩的 100／5000 十二阶段中通过；默认包还需另行接入有效门禁后验收。原界面回放与 PSS 数值保留，不用这项缺失证据关闭 RF-312。见[修正范围与真实验收](RF-312-instrumentation-state.md)。
+原 `dumpsys activity instrumentation` 专用子命令的前后 20 次回复确为零退出码的 Unknown command，不能用作状态证据。随后进一步回放原严格内存解析器内部保存的有效系统进程转储：五轮 10 个内存点各两份、共 20 份完整回复均未发现活动插桩，与原 SDK 摘要及当时独立回放副本一致，补齐这些 PSS 采样边界的直接证据。原数值、回执和统计输入不变；这不扩大为旧完整 UI 行程每个检查点的直接状态证明。新的默认入口已另行完成 100／5000 十二阶段及有效状态检查，新单点不并入本五轮。见[补证与新入口范围](RF-312-default-supported-state.md)。
