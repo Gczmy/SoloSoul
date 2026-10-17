@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1173",
+  "date": "2026-10-17",
+  "scope": "reviewed-source-integration-and-current-cli-refusal",
+  "integratedFromCommit": "0222f4430243aadfc865059380531df9a60fd02f",
+  "currentBase": "cecfcf85620001cdb5c79b15f64856188ee8682b",
+  "exactCodeAndTestsPreserved": true,
+  "originalHistoricalEvidenceUnchanged": true,
+  "tests": 18,
+  "skipped": 0,
+  "legacyDecodeMutations": 2,
+  "bothMutationsRejected": true,
+  "syntaxAndHelpPassed": true,
+  "historicalNativeReplayCases": [
+    {
+      "case": "actual-clean",
+      "passed": true,
+      "protectedIdentityUnchanged": true,
+      "snapshotSha256": "d1fc37462fc3b8280e7d299cabf745930a7d49c15316f25840506888483abaf7",
+      "specSha256": "321f0b78a579e2c94f95d183c09925549a945363f544556d9f809fb769f04824"
+    },
+    {
+      "case": "actual-wrong-birth",
+      "passed": false,
+      "protectedIdentityUnchanged": false,
+      "snapshotSha256": "d1fc37462fc3b8280e7d299cabf745930a7d49c15316f25840506888483abaf7",
+      "specSha256": "aeb2756f15f1148a0435273e7540906588bf17fc0eaecc931a054aec61859765"
+    },
+    {
+      "case": "actual-owned-live",
+      "passed": false,
+      "protectedIdentityUnchanged": true,
+      "snapshotSha256": "77de7394fd9bbb048793a0d3ab1e5e9d670a1c3493bcab759ebf9e35e7be03f7",
+      "specSha256": "c771921c1eccf65df7dbdc9f693a17ffcc1a9fda1a934b6009633889946aebea"
+    },
+    {
+      "case": "actual-owned-exited",
+      "passed": true,
+      "protectedIdentityUnchanged": true,
+      "snapshotSha256": "d1fc37462fc3b8280e7d299cabf745930a7d49c15316f25840506888483abaf7",
+      "specSha256": "c771921c1eccf65df7dbdc9f693a17ffcc1a9fda1a934b6009633889946aebea"
+    }
+  ],
+  "historicalNativeNotClaimedAsFresh": true,
+  "currentMissingProtectedAdbIdentityRejected": true,
+  "currentHostAdbOrVmProcesses": 0,
+  "currentDeclaredListeners": 0,
+  "adbCommandsExecuted": 0,
+  "appOrWindowInputExecuted": 0,
+  "processesStoppedOrRestartedByAudit": 0,
+  "protectedServerRequiredByThisCli": true,
+  "emptyHostEntryStillSeparate": true,
+  "fullPortablePerformanceRunnerAccepted": false,
+  "fullRF312Accepted": false,
+  "sourceSha256": {
+    "tauri/scripts/android-host-audit.py": "fc3933f8b0c6128a3feff119ecabec35aaca38e83a54545f234a1f35141fdd4f",
+    "tauri/scripts/test_android_host_audit.py": "c8bf552aa5c310c75c0fa1065d9632b5af50ad6b7fc199e66d90eb4c64c6ce10",
+    "docs/performance/RF-312-windows-host-audit.md": "e0f147dc4fcc10501a6edd81a59184fda34a1e593b2127ffc4958db7e1d849ee",
+    "docs/verification/rf1173-windows-host-audit-2026-10-16.json": "43a4465b43ef6b3d5dcbda435af602e397ee3e69bbcd1a8cde67293b81ab5feb"
+  },
+  "evidenceSha256": {
+    "unit-tests.log": "fe970b7292a7d9fb8050f795e9aa178dd98ffbf9d46a43e2980a89f4bfb51c47",
+    "legacy-decode-mutation.log": "1aa6798fc405603af0cacf96b1e47bd4c50fe5138fa99c19091117d33c861d14",
+    "help.stdout": "5e31ebb0125a2aee9e8e0e0f9c0896c94e6a7d18e3e66b8273928561aa914624",
+    "fresh-host.stdout": "0f17627e0a8be451a2862e50c59e40df1f6563c0af7ef545e2ff735c592262d9",
+    "current-protected-absent/result.json": "45f83251fa9905ecb83b0dd775ee2e94c49243a95ffac1e20ffe877118177c84",
+    "validation-result.json": "918a48ecf2a9db8ce55e7532b309c25adf08e37f55249c962fbe7e50bb30a79c"
+  }
+}
