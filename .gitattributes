@@ -104,3 +104,6 @@ docs/performance/rf312-kernel-highwater-2026-10-17.json text eol=lf
 docs/performance/rf312_journey_memory.py text eol=lf
 docs/performance/test_rf312_journey_memory.py text eol=lf
 docs/performance/rf312-journey-memory-2026-10-17.json text eol=lf
+docs/performance/rf312_memory_batches.py text eol=lf
+docs/performance/test_rf312_memory_batches.py text eol=lf
+docs/performance/rf312-metadata-pairs-2026-10-17.json text eol=lf

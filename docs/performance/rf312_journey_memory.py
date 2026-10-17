@@ -13,6 +13,7 @@ import threading
 import time
 
 import rf312_instrumentation_state as state
+import rf312_memory_batches as batches
 
 APP = 'com.solosoul.app'
 PROVIDER = 'com.android.webview'
@@ -96,6 +97,7 @@ class Stream:
         row = dict(ordinal=ordinal, kind=kind, phase=phase, plannedDueAt=due,
                    hostStartedAt=began, deadline=deadline, accepted=False, commands=[])
         native_states = []
+        transport = batches.Adapter(self.sdk, folder / 'native-sdk', self.uid)
 
         def read(*command):
             remaining = deadline - self.clock()
@@ -105,15 +107,28 @@ class Stream:
             record = dict(command=list(command), timeoutSeconds=min(10, remaining))
             row['commands'].append(record)
             try:
-                value = self.sdk(*command, timeout=record['timeoutSeconds'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                value = transport.run(*command, timeout=record['timeoutSeconds'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 code, out, err = value.returncode, value.stdout, value.stderr
+                record.update(nativeEvidence=value.nativeEvidence, logicalReplyAvailable=True)
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
                 code, out, err = getattr(error, 'returncode', None), error.stdout, error.stderr
                 record.update(exitCode=code, timedOut=isinstance(error, subprocess.TimeoutExpired))
+                evidence = getattr(error, 'nativeEvidence', None)
+                if evidence is not None:
+                    record['nativeEvidence'] = evidence
+                    record['logicalReplyAvailable'] = (not isinstance(error, subprocess.TimeoutExpired)
+                                                       and (evidence['kind'] == 'direct' or getattr(error, 'logicalReplyAvailable', False)))
+                    if evidence['kind'] == 'pair' and not getattr(error, 'logicalReplyAvailable', False):
+                        record['logicalReplyAvailable'] = False
+                        raise
                 for name, raw in [('stdout', out), ('stderr', err)]:
                     if raw is not None:
                         prefix.with_suffix('.' + name).write_bytes(raw)
                         record[name + 'Sha256'] = hashlib.sha256(raw).hexdigest()
+                raise
+            except BaseException as error:
+                record.update(errorType=type(error).__name__, logicalReplyAvailable=False)
+                if hasattr(error, 'nativeEvidence'):record['nativeEvidence'] = error.nativeEvidence
                 raise
             else:
                 record.update(exitCode=code, timedOut=False)
@@ -167,11 +182,15 @@ class Stream:
                     self.observed_root = root
             if self.clock() > deadline:
                 raise TimeoutError('Validated memory point exceeded the original deadline')
+            transport.require_empty()
             row['accepted'] = True
         except BaseException as error:
             row.update(errorType=type(error).__name__, error=str(error))
         finally:
+            row['nativeTransport'] = transport.close()
             row.update(hostFinishedAt=self.clock(), inputRetried=False)
+            if row['accepted'] and row['hostFinishedAt'] > deadline:
+                row.update(accepted=False,errorType='TimeoutError',error='Transport receipts exceeded original memory/UI deadline')
             save(folder / 'result.json', row)
             self.points.append(row)
         return row

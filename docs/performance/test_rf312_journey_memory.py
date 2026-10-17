@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import re
+import shlex
 from pathlib import Path
 import subprocess
 import tempfile
@@ -31,11 +33,26 @@ class Sdk:
         self.observer_pid = 88
         self.birth = 12698151
         self.package_reply = b'package:com.solosoul.app uid:10105\r\n'
+        self.wrong_uid = False
+        self.bad_meminfo = False
 
     def __call__(self, *args, **kwargs):
         self.calls.append((args, kwargs))
         assert 0 < kwargs['timeout'] <= 10
         assert kwargs['stdout'] == kwargs['stderr'] == subprocess.PIPE
+        if args[:6] == ('shell','-T','-e','none','sh','-c'):
+            script = shlex.split(args[6])[0];lines = script.splitlines()
+            assert len(lines) == 8
+            nonce = re.search(r'RF312PAIR ([0-9a-f]{32}) 1',lines[2])[1].encode()
+            values = [self.native('shell',*shlex.split(lines[index])) for index in (0,4)]
+            raw = b'';errors = b''
+            for index,value in enumerate(values,1):
+                raw += value.stdout + b'\0RF312PAIR '+nonce+b' '+str(index).encode()+b' '+str(value.returncode).encode()+b'\0'
+                errors += value.stderr + b'\0RF312PAIR '+nonce+b' '+str(index).encode()+b' '+str(value.returncode).encode()+b'\0'
+            return subprocess.CompletedProcess(args,0,raw,errors)
+        return self.native(*args)
+
+    def native(self,*args):
         if args == ('shell', 'pm', 'list', 'packages', '--uid', '10105'):
             raw = self.package_reply
         elif args == ('shell', 'ps', '-A', '-o', 'UID,PID,PPID,NAME'):
@@ -56,10 +73,10 @@ class Sdk:
         elif args[:2] == ('shell', 'cat'):
             pid = int(args[-1].split('/')[2])
             raw = (legacy.stat(pid, self.birth) if args[-1].endswith('/stat') else
-                   legacy.status(10105 if pid == 10559 else 99082)).encode()
+                   legacy.status(2000 if self.wrong_uid else (10105 if pid == 10559 else 99082))).encode()
         elif args[:5] == ('shell', 'dumpsys', 'meminfo', '--local', '-s'):
             pid = int(args[-1])
-            raw = legacy.meminfo(pid, memory.APP if pid == 10559 else legacy.NAME).encode()
+            raw = (legacy.meminfo(pid, memory.APP if pid == 10559 else legacy.NAME) if not self.bad_meminfo else 'invalid native memory values').encode()
         else:
             raise AssertionError('Unexpected command: ' + repr(args))
         return subprocess.CompletedProcess(args, self.exit_code, raw, b'unknown native error' if self.stderr else b'')
@@ -92,9 +109,49 @@ class StreamTests(unittest.TestCase):
         self.assertTrue(point['accepted'], point.get('error'))
         self.assertEqual(point['snapshot']['pssBytes'], 204800)
         self.assertEqual(len(point['commands']), 16)
+        self.assertEqual(point['nativeTransport']['nativeCalls'], 10)
+        self.assertEqual(len(self.sdk.calls), 10)
         self.assertEqual(len(point['stateProofs']), 2)
         self.assertTrue(point['uidCensusScopeVerified'])
         self.assertEqual([x['role'] for x in point['snapshot']['processes']], ['app', 'renderer'])
+
+    def test_kernel_identity_is_still_validated_before_any_meminfo(self):
+        self.sdk.wrong_uid = True
+        point = self.point();self.assertFalse(point['accepted'])
+        self.assertFalse(any(args[:3]==('shell','dumpsys','meminfo') for args,kwargs in self.sdk.calls))
+
+    def test_invalid_memory_values_do_not_prefetch_post_read_identity(self):
+        self.sdk.bad_meminfo = True
+        point = self.point();self.assertFalse(point['accepted'])
+        records=[json.loads(file.read_bytes()) for file in sorted((self.root/'trace/points/001/native-sdk').glob('[0-9][0-9][0-9].json'))]
+        pairs=[row for row in records if row['logicalMembers'][0]==['shell','cat','/proc/10559/stat']]
+        self.assertEqual(len(pairs),1)
+
+    def test_unused_pair_reply_is_retained_after_early_state_rejection(self):
+        self.assertTrue(self.point()['accepted']);self.sdk.observer_pid+=1
+        point=self.point();self.assertFalse(point['accepted'])
+        self.assertEqual(len(point['nativeTransport']['unconsumedPairMembers']),1)
+        member=point['nativeTransport']['unconsumedPairMembers'][0]
+        self.assertEqual(member['member'],2)
+        folder=self.root/'trace/points/002/native-sdk';record=json.loads((folder/member['nativeRecord']).read_bytes())
+        self.assertEqual(record['logicalMembers'][1],['shell','dumpsys','activity','services',memory.APP])
+        self.assertIn(legacy.SERVICES.encode(),(folder/f"{member['nativeOrdinal']:03d}.stdout").read_bytes())
+
+    def test_failed_second_member_keeps_its_own_stderr_and_logical_identity(self):
+        original=self.sdk.native
+        def fail_services(*args):
+            result=original(*args)
+            if args==('shell','dumpsys','activity','services',memory.APP):
+                return subprocess.CompletedProcess(args,7,result.stdout,b'owned service read failed')
+            return result
+        with patch.object(self.sdk,'native',side_effect=fail_services):point=self.point()
+        self.assertFalse(point['accepted'])
+        command=point['commands'][-1]
+        self.assertEqual(command['command'],['shell','dumpsys','activity','services',memory.APP])
+        self.assertEqual(command['exitCode'],7);self.assertTrue(command['logicalReplyAvailable'])
+        self.assertEqual(command['nativeEvidence']['member'],2)
+        path=self.root/f"trace/points/001/{len(point['commands']):03d}.stderr"
+        self.assertEqual(path.read_bytes(),b'owned service read failed')
 
     def test_unregistered_native_helper_is_not_silently_omitted(self):
         self.sdk.extra = True
