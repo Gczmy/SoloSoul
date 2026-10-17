@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "bounded-sampled-bootstrap-quiescence",
+  "bootstrapPolicyAccepted": true,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "productSourceChanged": false,
+  "helperAllowlistChanged": false,
+  "strictMemoryReaderChanged": false,
+  "completeUiAndMemoryCallerByteEqual": true,
+  "originalNativeActorsReadersAndRestorationKept": true,
+  "minimumSampledQuietSeconds": 5,
+  "originalBootBudgetSeconds": 240,
+  "maximumSnapshotQuerySeconds": 15,
+  "actualQuietWindow": {
+    "snapshots": 10,
+    "distinctHelpersObserved": 3,
+    "lateLogcatHelperObserved": true,
+    "helperOwnershipNeverGranted": true,
+    "quietSamples": 6,
+    "sampledQuietSeconds": 6.054882099968381
+  },
+  "regression": {
+    "newTests": 9,
+    "existingUiGates": 206,
+    "unchangedMemoryTests": 37,
+    "total": 252,
+    "passed": true,
+    "priorRejectionReplayPassed": true
+  },
+  "native": {
+    "requestedObjectCounts": [
+      100,
+      5000
+    ],
+    "attemptedObjectCounts": [
+      100
+    ],
+    "completedUiPhases": 12,
+    "physicallyVerifiedPdfPages": 3,
+    "originalObserverRequests": 354,
+    "controlFrames": 3026,
+    "nativeQueueAccepted": false,
+    "postUiMemoryAccepted": false,
+    "errorType": "RuntimeError",
+    "error": "Broken control channel cannot be reused or replayed",
+    "failureCause": "post-ui caller retained the closed temporary adapter",
+    "memorySnapshots": 0,
+    "originalStrictAuditPassedForActualFailedScope": true,
+    "allPrivateEntriesRestored": 148,
+    "originalApkUidDebugAndNineSettingsRestored": true,
+    "normalControlAndObserverCleanup": true
+  },
+  "cleanup": {
+    "firstHostAuditAccepted": false,
+    "firstHostHelperRows": 3,
+    "helpersExitedNaturally": true,
+    "finalHostAuditAccepted": true,
+    "finalProcesses": 0,
+    "finalListeners": 0,
+    "completeDropBoxEntries": 106,
+    "noAnr": true
+  },
+  "provenanceDiagnostics": [
+    {
+      "hostSnapshots": 67,
+      "productInstallations": 0,
+      "nativeUiInputs": 0,
+      "samplingErrors": 0,
+      "formalPerformanceCohort": false,
+      "hostClean": true
+    },
+    {
+      "hostSnapshots": 291,
+      "productInstallations": 0,
+      "nativeUiInputs": 0,
+      "samplingErrors": 0,
+      "formalPerformanceCohort": false,
+      "hostClean": true
+    }
+  ],
+  "sourceSha256": {
+    "bootstrap_quiet.py": "211a1155739251471af2e8b6b168d839b321aa8df75ee1f1ba76422e4f1201e2",
+    "test_bootstrap_quiet.py": "e77aafe927ef68283feefed8e95780321a7a739103dac5c3671d2324866e174a"
+  },
+  "evidenceSha256": {
+    "bootstrap-quiet-caller-audit.json": "fe6eb91818f834c6713008a5fabb1945877dd28020bcb489e82bebedef892f0b",
+    "bootstrap-quiet-unit-result.json": "8bc738b629fda950df77fdff4324456f4a4798f40c2d592e119793d5b581477e",
+    "bootstrap-rejection-replay.json": "7b40c0f76de7088e3ea6dbdc397863e8457ae402608cfb80e21753366593a7df",
+    "preparation-temp-rejection.json": "bb5f73c280500155cb3a2b4cd9666a97553eb4ba07180e263abbf6f660d5119c",
+    "independent-terminal-audit.json": "d1556d20a6bb14a41f9e48a52860017513115b760bc859f88d195041eb642c05",
+    "independent-empty-frame-journey-audit.json": "2f77faa0add390723746d57cf3ac75b568eb7b440d3bdb166acfd97c96bbac73",
+    "external-terminal-r2.json": "befc0dd64175186955ec64c12c309feafc593bbb76525d618dc8182a81bba13e",
+    "fresh-host-after/result.json": "a9606dd723081ae2a34010d8342412d4d86bea6ef5cb67efcafc2187d5f95cb6",
+    "fresh-host-after-r2/result.json": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  }
+}
