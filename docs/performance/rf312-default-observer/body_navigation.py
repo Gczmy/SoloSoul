@@ -46,3 +46,29 @@ def main_navigation_top(nodes):
     if any(len(items) != 1 for items in targets.values()):
         return None
     return area[1]
+
+
+def tool_card_candidates(nodes, tool):
+    """Match a frozen public Tools card only above the verified navigation."""
+    if tool not in ('OCR', 'Search'):
+        raise ValueError('Known public tool card required')
+    limit = main_navigation_top(nodes)
+    if limit is None:
+        return []
+    result = []
+    for node in nodes:
+        area = rectangle(node)
+        if (visible_owned(node) and node.get('class') == 'android.widget.Button'
+                and node.get('clickable') == 'true' and node.get('text') == tool
+                and area is not None and (area[1] + area[3]) / 2 < limit):
+            if not any(node is old for old in result):
+                result.append(node)
+    return result
+
+
+def open_tool_card(journey, tool, deadline):
+    """Reuse original native scroll/readiness and dispatch one exact tap."""
+    if tool not in ('OCR', 'Search'):
+        raise ValueError('Known public tool card required')
+    target = journey.unique(lambda: tool_card_candidates(journey.nodes, tool), deadline, allow_scroll=True)
+    return journey.observer.tap(target, journey.remaining(deadline))

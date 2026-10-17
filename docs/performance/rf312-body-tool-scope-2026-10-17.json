@@ -1,0 +1,130 @@
+{
+  "task": "RF-312",
+  "date": "2026-10-17",
+  "status": "body-tool-policy-test-and-replay-passed-native-validation-not-reached",
+  "sourceHeadAtStart": "b7a30525c85226086ee73f2e9f67feff2ebba978",
+  "compiledProductSourceHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+  "productSourceOrBuildConfigurationChanged": false,
+  "sourceSha256": {
+    "body_navigation.py": "33cddf6c8bd28c1f7c27eb36995d637e0b037ea15c26c534031042f840db69d0",
+    "test_body_navigation.py": "52e29a5d3be13b0e32074d5073fd4b139276f5657a7c81bca300edebbc13eb1b"
+  },
+  "change": {
+    "knownEnglishPublicToolsOnly": [
+      "OCR",
+      "Search"
+    ],
+    "ownedVisibleEnabledClickableNativeButtonWithExactTextRequired": true,
+    "centerMustBeAboveVerifiedNavigation": true,
+    "noGuessedBoundaryOrArbitraryDuplicateSelection": true,
+    "originalNativeScrollAndReadinessReused": true,
+    "originalDeadlineReused": true,
+    "oneExactTapOnly": true,
+    "nativeTapRefusalPropagatedWithoutRetry": true,
+    "onlyTwoToolCardCallSitesChanged": true,
+    "journeyClassMethodsAstUnchanged": true,
+    "originalNavigationBoundaryFunctionAstUnchanged": true,
+    "originalExactInputContentRestoreAndBudgetGuardsByteIdentical": true,
+    "sourceAuditSha256": "2cdadf81bc1db09cfa420d26d6fe28cc299375609f048744dd597c2db6cd2f8f"
+  },
+  "tests": {
+    "previousHostTests": 160,
+    "newToolPolicyTests": 10,
+    "totalPassed": 170,
+    "failures": 0,
+    "errors": 0,
+    "navigationAndToolPolicyTests": 18,
+    "unitResultSha256": "ec1206b85886fe66c332a145d41bd47eb5bc6483091152b72c9d314344aebb89"
+  },
+  "readOnlyReplay": {
+    "acceptedForReplayOnly": true,
+    "nativeInputDispatched": false,
+    "coveredCardCandidates": 0,
+    "recordedCurrentGeometryCandidates": 1,
+    "originalBounds": [
+      543,
+      1477,
+      1015,
+      1743
+    ],
+    "recordedCurrentBounds": [
+      543,
+      1197,
+      1015,
+      1462
+    ],
+    "navigationTop": 1569,
+    "underlyingGeometryChangeCauseProven": false,
+    "auditSha256": "4e31d43e7cfc5d2868c4da96fbabfc834bbccb7fda3dcb7468c820ec95f14ff4"
+  },
+  "nativeAttempt": {
+    "api": 31,
+    "abi": "x86_64",
+    "objectCount": 100,
+    "accepted": false,
+    "completedPhaseNames": [],
+    "observerRequests": 3,
+    "toolCardPolicyReached": false,
+    "pdfSupplementalOcrReached": false,
+    "object5000Started": false,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "failure": "ADB local TCP connection did not establish while checking observer error-file presence",
+    "windowsSocketError": 10060,
+    "failedAdbCallOrdinal": 65,
+    "callBudgetSeconds": 42.71618330013007,
+    "callElapsedSeconds": 21.106791600002907,
+    "nonemptyTransportErrorNotTreatedAsFileAbsence": true,
+    "requestRetried": false,
+    "passiveCaptures": 10,
+    "captureErrors": 0,
+    "successfulOwnedListenerChecks": 10,
+    "sameFailedClientSynSentSnapshots": 4,
+    "sameClientIdentityAndSocketTupleAcrossPendingSnapshots": true,
+    "pendingSnapshotSpanSeconds": 15.43295693397522,
+    "failureAtLocalTcpHandshakeConfirmed": true,
+    "specificWindowsDriverFilterOrSdkCauseProven": false,
+    "observerNormalStopAccepted": true,
+    "privateEntriesExactlyRestored": 153,
+    "originalApksUidsAndNineSettingsExactlyRestored": true,
+    "hostProcessesAndListenersAfterCleanup": 0,
+    "completeTerminalDropBoxEntries": 59,
+    "noAnrEntries": true,
+    "independentTerminalAuditPassed": true,
+    "nativeUiJourneyAccepted": false,
+    "terminalAuditSha256": "9cf4ff8dbaa212c0549aef3296fccb8ec5812db56ccb5c5a45a2fe8528ce29b2",
+    "transportAuditSha256": "779f9338fdac1f7e9d082a990a95bc09018c29423fda8089a1c40d397e9ae185",
+    "failedStderrSha256": "ea44e975fe2e3a0a8dcb146d6a28b7f9f599d165dcc1e97fe283318494c3597c",
+    "captureStdoutSha256": [
+      "ac86099a9a07a8caf5136f461046c99416efb71aac7a5c80d6d94ef602c24c30",
+      "a5be48d3c4b5dbd7a5094ac34a776d02d9873014f4cffedd11e58bc0176f8053",
+      "8d274a03ceb51cd0b4008d2b782ad70ab2290fc29002a77f79aab8bb63b2df08",
+      "66695d3b170632b819831c9a8179b3851c07f6b28ae1ae892151bde6049703ef",
+      "0358527db58ecf26eb0b19e47fe0022fc29d000a2d8bd49827cf0f9dc975eef7",
+      "f128be2997df885d24fc5e2a2bb331614ad3600528a9bbcb3c24d74c8c0f4867",
+      "cad2d2f25c0c56d40bb1a5014452c7903b3809fad3f7ffe1e9135090c5be0996",
+      "1aabf4834c95200db00aae14cdc5abd76f67e8427d6b9d3a952b99574aa75ea8",
+      "56749b8c855b5cae1d84dd63d4c65a6fe3b313fd241a07d16d332b9331b8629f",
+      "8ef69f7e6d5ff0520434baebb86ce5ba2642bf36f07cda4e4e1c198a4c994aa6"
+    ]
+  },
+  "historicalRejectedRunsPreserved": true,
+  "rawPathsPidsRunIdsLogsScreenshotsPrivateArchivesAndProgramsPublished": false,
+  "toolCardNativeAcceptanceProven": false,
+  "nativeHalfOcrAcceptanceProven": false,
+  "fullUiQueueAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "nextLocalWork": [
+    "Prototype a bounded persistent control transport to avoid repeated local TCP handshakes while preserving reader interfaces, deadlines and refusal semantics",
+    "Validate both full default twelve-stage journeys, body-scoped tools and supplemental native PDF OCR",
+    "Repeated distributions, strict process memory, same-source overhead, IPC and portable orchestration"
+  ],
+  "taskCounts": {
+    "closed": 364,
+    "total": 373,
+    "pendingParents": 3,
+    "dependencyBlocked": 6
+  }
+}

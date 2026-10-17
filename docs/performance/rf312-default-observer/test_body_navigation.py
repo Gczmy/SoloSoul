@@ -2,7 +2,7 @@ import copy
 import unittest
 import xml.etree.ElementTree as ET
 
-from body_navigation import APP, main_navigation_top
+from body_navigation import APP, main_navigation_top, open_tool_card, tool_card_candidates
 
 
 def node(text, bounds, *, clickable='false', description='', kind='android.view.View'):
@@ -74,6 +74,109 @@ class Navigation(unittest.TestCase):
             with self.subTest(bounds=bounds):
                 self.group[0].set('bounds', bounds)
                 self.assertIsNone(main_navigation_top(self.all_nodes()))
+
+
+class Tools(unittest.TestCase):
+    def setUp(self):
+        self.group = node('Main navigation', '[28,1569][1052,1782]')
+        for name, bounds in [('Home', '[42,1590][294,1761]'),
+                             ('Objects', '[288,1590][543,1761]'),
+                             ('Tools', '[540,1590][792,1761]'),
+                             ('Settings', '[787,1590][1042,1761]')]:
+            self.group.append(node(name, bounds, clickable='true'))
+        self.ocr = node('OCR', '[543,1477][1015,1743]', clickable='true', kind='android.widget.Button')
+        self.search = node('Search', '[49,630][525,895]', clickable='true', kind='android.widget.Button')
+
+    def nodes(self):
+        return [self.ocr, self.search, *self.group.iter('node')]
+
+    def test_recorded_ocr_center_under_navigation_is_not_selected(self):
+        self.assertEqual(tool_card_candidates(self.nodes(), 'OCR'), [])
+        self.assertEqual(tool_card_candidates(self.nodes(), 'Search'), [self.search])
+
+    def test_scrolled_card_above_navigation_is_selected(self):
+        self.ocr.set('bounds', '[543,1197][1015,1462]')
+        self.assertEqual(tool_card_candidates(self.nodes(), 'OCR'), [self.ocr])
+
+    def test_center_exactly_on_navigation_boundary_is_not_selected(self):
+        self.ocr.set('bounds', '[543,1469][1015,1669]')
+        self.assertEqual(tool_card_candidates(self.nodes(), 'OCR'), [])
+
+    def test_missing_or_duplicate_navigation_has_no_guessed_scope(self):
+        self.ocr.set('bounds', '[543,1197][1015,1462]')
+        self.assertEqual(tool_card_candidates([self.ocr], 'OCR'), [])
+        self.assertEqual(tool_card_candidates([*self.nodes(), copy.deepcopy(self.group)], 'OCR'), [])
+
+    def test_header_text_and_description_only_are_not_tool_buttons(self):
+        header = node('OCR', '[50,84][180,190]', clickable='true')
+        description = node('Other', '[50,630][300,800]', description='OCR', clickable='true', kind='android.widget.Button')
+        self.assertEqual(tool_card_candidates([header, description, *self.nodes()], 'OCR'), [])
+
+    def test_wrong_owner_state_role_or_invalid_geometry_refuses(self):
+        self.ocr.set('bounds', '[543,1197][1015,1462]')
+        for key, value in [('package', 'other.app'), ('enabled', 'false'), ('visible-to-user', 'false'),
+                           ('clickable', 'false'), ('class', 'android.widget.TextView'), ('bounds', 'invalid')]:
+            with self.subTest(key=key):
+                original = self.ocr.get(key)
+                self.ocr.set(key, value)
+                self.assertEqual(tool_card_candidates(self.nodes(), 'OCR'), [])
+                self.ocr.set(key, original)
+
+    def test_duplicate_visible_cards_are_not_arbitrarily_chosen(self):
+        self.ocr.set('bounds', '[543,1197][1015,1462]')
+        other = copy.deepcopy(self.ocr)
+        self.assertEqual(tool_card_candidates([*self.nodes(), other], 'OCR'), [self.ocr, other])
+
+    def test_unknown_tool_refuses_before_driver_is_used(self):
+        with self.assertRaises(ValueError):
+            open_tool_card(object(), 'Delete', 45)
+
+    def test_original_readiness_can_scroll_before_one_exact_tap(self):
+        test = self
+        events = []
+        class Observer:
+            def tap(self, target, remaining):
+                test.assertEqual(target, test.ocr)
+                test.assertEqual(remaining, 7)
+                events.append('tap')
+                return {'originalReceipt': True}
+        class Journey:
+            nodes = test.nodes()
+            observer = Observer()
+            def unique(self, candidates, deadline, *, allow_scroll):
+                test.assertEqual(candidates(), [])
+                test.assertEqual(deadline, 45)
+                test.assertTrue(allow_scroll)
+                events.append('original-native-scroll-and-readiness')
+                test.ocr.set('bounds', '[543,1197][1015,1462]')
+                found = candidates()
+                test.assertEqual(found, [test.ocr])
+                return found[0]
+            def remaining(self, deadline):
+                test.assertEqual(deadline, 45)
+                return 7
+        self.assertEqual(open_tool_card(Journey(), 'OCR', 45), {'originalReceipt': True})
+        self.assertEqual(events, ['original-native-scroll-and-readiness', 'tap'])
+
+    def test_native_refusal_propagates_without_retry(self):
+        self.ocr.set('bounds', '[543,1197][1015,1462]')
+        failure = RuntimeError('exact native target changed; input not dispatched')
+        taps = []
+        class Observer:
+            def tap(self, target, remaining):
+                taps.append(target)
+                raise failure
+        class Journey:
+            nodes = self.nodes()
+            observer = Observer()
+            def unique(self, candidates, deadline, *, allow_scroll):
+                return candidates()[0]
+            def remaining(self, deadline):
+                return 7
+        with self.assertRaises(RuntimeError) as caught:
+            open_tool_card(Journey(), 'OCR', 45)
+        self.assertIs(caught.exception, failure)
+        self.assertEqual(taps, [self.ocr])
 
 
 if __name__ == '__main__':

@@ -56,6 +56,16 @@ python -B -m unittest discover -s . -p test_adb_control.py -v
 python -B -m unittest discover -s . -p test_body_navigation.py -v
 ```
 
+Tools 页的公开 OCR／Search 卡片通过 `tool_card_candidates` 与 `open_tool_card` 选择：必须是当前应用内可见、启用、可点击且原文精确匹配的原生 Button，中心还须高于已核验的导航栏。标题、仅描述匹配、缺失或不明确的导航均不提供猜测候选；多个卡片交给原唯一性检查，不按位置挑选。
+
+卡片被底部导航遮挡时，复用原生滚动及原就绪过程，随后只派发一次精确点击，仍使用调用方原期限。原生层在输入前拒绝位置变化时，原异常继续向上传播，不捕获并重试该次点击。新增十项回归，加上原八项导航回归共十八项；同一命令可运行全部用例。
+
+```python
+from body_navigation import open_tool_card
+
+open_tool_card(journey, 'OCR', deadline)
+```
+
 ## 预览关闭范围与完成条件
 
 `preview_scope.py`按当前公开文件名和原生工具栏的返回／编辑附件属性／关闭控件限定网页预览按钮，原生PDF使用同文件标题和精确资源ID。当前公开夹具均为可编辑附件的英文界面；缺少、重复或不匹配的工具栏不回退到背景Close。
