@@ -58,3 +58,6 @@ docs/performance/rf312-ipc-diagnostic-library-2026-10-17.json text eol=lf
 docs/performance/rf312_startup_ui.py text eol=lf
 docs/performance/test_rf312_startup_ui.py text eol=lf
 docs/performance/rf312-startup-ui-2026-10-17.json text eol=lf
+docs/performance/rf312_ipc_package.py text eol=lf
+docs/performance/test_rf312_ipc_package.py text eol=lf
+docs/performance/rf312-ipc-package-2026-10-17.json text eol=lf
