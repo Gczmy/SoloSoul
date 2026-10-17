@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "five fixed default Android host-observed upper-bound journeys and post-journey checkpoints",
+  "productSourceHead": "305b86020a33b5368299b07594b94542f0869e09",
+  "runtimeCodeAnchor": "fd2b14bfebef1a8cb7bb6aa7913d4a243b227132",
+  "apkSha256": "45291865dd1f0fefaa3695ca26df145537ca29096ea7c19851c08b20a25141a2",
+  "nativeLibrarySha256": "2e952a20f8ca88470a8fc9fe877d32cfd02cca16e097d21cb0b7c83cc572d40b",
+  "sourceEntries": 2006,
+  "sourceInputs": {
+    "product": 1801,
+    "plugins": 108,
+    "mobile": 46,
+    "officialAndroidGenerated": 13,
+    "frontend": 38
+  },
+  "runtimeSourceFiles": 71,
+  "unchangedRuntimeUnitTests": 355,
+  "analysisUnitTests": 13,
+  "fixedAttempts": 5,
+  "acceptedAttempts": 5,
+  "failedAttempts": 0,
+  "completeUiPhases": 120,
+  "postJourneyCheckpoints": 10,
+  "guest": {
+    "api": 31,
+    "abi": "x86_64",
+    "cpuCores": 2,
+    "memoryMiB": 2048,
+    "gpu": "swiftshader",
+    "webview": "91.0.4472.114"
+  },
+  "host": {
+    "os": {
+      "Caption": "Microsoft Windows 11 Enterprise LTSC",
+      "Version": "10.0.26100",
+      "BuildNumber": "26100"
+    },
+    "cpu": [
+      {
+        "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+        "NumberOfCores": 8,
+        "NumberOfLogicalProcessors": 8,
+        "MaxClockSpeed": 3000
+      }
+    ],
+    "physicalMemoryBytes": 16951218176,
+    "hardwareOnlyNotLoadOrClockTrace": true
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "passed": true,
+      "originalPrivateEntries": [
+        142,
+        142
+      ],
+      "observerRequests": [
+        346,
+        344
+      ],
+      "rawControlProtocolFrames": 5911,
+      "nativeSavedPngs": 43,
+      "physicallyVerifiedPdfPages": 6,
+      "terminalDropBoxEntries": 100,
+      "strictMemoryCommands": 44,
+      "allOriginalStateRestored": true,
+      "hostCleanupPassed": true,
+      "chainSha256": "0840c07cc64ef48748db2a262ebc5ac189cc808fac1a7e25d4a74430d85609b3"
+    },
+    {
+      "attempt": 2,
+      "passed": true,
+      "originalPrivateEntries": [
+        148,
+        148
+      ],
+      "observerRequests": [
+        349,
+        345
+      ],
+      "rawControlProtocolFrames": 5979,
+      "nativeSavedPngs": 44,
+      "physicallyVerifiedPdfPages": 6,
+      "terminalDropBoxEntries": 101,
+      "strictMemoryCommands": 44,
+      "allOriginalStateRestored": true,
+      "hostCleanupPassed": true,
+      "chainSha256": "bd55d86a5c26fbda853dc28fce988808ea7d7d97670119753c242baa83c272f1"
+    },
+    {
+      "attempt": 3,
+      "passed": true,
+      "originalPrivateEntries": [
+        190,
+        190
+      ],
+      "observerRequests": [
+        341,
+        341
+      ],
+      "rawControlProtocolFrames": 5811,
+      "nativeSavedPngs": 43,
+      "physicallyVerifiedPdfPages": 6,
+      "terminalDropBoxEntries": 107,
+      "strictMemoryCommands": 44,
+      "allOriginalStateRestored": true,
+      "hostCleanupPassed": true,
+      "chainSha256": "8bf0215343fe13686dfec57f49b666b6e2b8998d361fe7f68a6e5fb98ee94d49"
+    },
+    {
+      "attempt": 4,
+      "passed": true,
+      "originalPrivateEntries": [
+        150,
+        150
+      ],
+      "observerRequests": [
+        349,
+        351
+      ],
+      "rawControlProtocolFrames": 5904,
+      "nativeSavedPngs": 45,
+      "physicallyVerifiedPdfPages": 6,
+      "terminalDropBoxEntries": 104,
+      "strictMemoryCommands": 44,
+      "allOriginalStateRestored": true,
+      "hostCleanupPassed": true,
+      "chainSha256": "d059506a31325abc61400c9194b7a53215a4cbca2587d1f3ddd0b93b2dd2ea74"
+    },
+    {
+      "attempt": 5,
+      "passed": true,
+      "originalPrivateEntries": [
+        148,
+        148
+      ],
+      "observerRequests": [
+        342,
+        338
+      ],
+      "rawControlProtocolFrames": 5797,
+      "nativeSavedPngs": 43,
+      "physicallyVerifiedPdfPages": 6,
+      "terminalDropBoxEntries": 105,
+      "strictMemoryCommands": 44,
+      "allOriginalStateRestored": true,
+      "hostCleanupPassed": true,
+      "chainSha256": "e5d221a43b488f58af9fd98ef86e5fd4d6ad864b19cdc6b2abc04c2c5518a139"
+    }
+  ],
+  "filesSha256": {
+    "rf312-default-fixed-five-2026-10-17.input.json": "044253598a20c9e832464608333e24b729dc76aae0442fcece8e5c19ce17036f",
+    "rf312-default-fixed-five-2026-10-17.summary.json": "9c614e8d1ecdbf06ac46c6fc44c63a48f159d04418c5d0fa2961d9cfd43e2304"
+  },
+  "analysisSourceSha256": {
+    "rf312_repeat_summary.py": "eb3ec12c330b96a05d5d4681dd579e68fad3e61c1d4733dffb0afc8b38c620b1",
+    "test_rf312_repeat_summary.py": "89e5d353ca87685604dc4a6ab24019a2bdac8c5a881bf22959b3539f43a64eee"
+  },
+  "evidenceSha256": {
+    "measurementPlan": "28a0b0ef1c11fe196d17d074f936b2a35ed21cd8bcbb000a651ed90c4fcbf6a7",
+    "attemptRegistry": "a0df5923c2563a0f1f32da175143db594732c0d795e41acbd16748540dc2b324",
+    "fullProjectionAudit": "2e0f09f7cddd7fcff7885565141e09d5c4253ee9d0868b3e54b3dda89151c149",
+    "negativeLfControl": "6ccd30b4c29285ae7bfdf33e7fe5bfec932d8c06fad452f504130889d682f0c0",
+    "positiveAnalysisTests": "9b9cd80d299c9ee86f416a15c1a4fa09d3082d95db9f6cb193bd802d629b30da",
+    "hostHardware": "ac698c4d7f4ed9bd7c491ba829f25ad04d8184fb7eb40d9b58be99ddd7f407be"
+  },
+  "rawControlFramesAreNotApplicationIpc": true,
+  "registeredBeforeTargetInput": true,
+  "freshAvdForEveryAttempt": true,
+  "failuresNotReplaced": true,
+  "earlierApkSamplesExcluded": true,
+  "originalIdentityPixelsRestorationAndBudgetsRetained": true,
+  "negativeLineEndingControlRetained": true,
+  "portableLfAndExclusiveOutputVerified": true,
+  "fixedHostObservedSeriesCollected": true,
+  "nativeTwoSizeUiQueueAccepted": true,
+  "performanceDistributionAccepted": false,
+  "applicationOnlyLatencyAttributed": false,
+  "wholeJourneyOrPeakMemoryAccepted": false,
+  "strictAllProcessMemoryCollected": false,
+  "sameSourceObserverOverheadMeasured": false,
+  "actualIpcAccepted": false,
+  "twoCommittedFramesProven": false,
+  "fullRF312Accepted": false
+}
