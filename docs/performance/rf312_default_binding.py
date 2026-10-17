@@ -20,7 +20,8 @@ PUBLIC=('rf312_instrumentation_state.py','test_rf312_instrumentation_state.py',
         'rf312_journey_memory.py','test_rf312_journey_memory.py',
         'rf312-ipc-runtime/diagnostic_exchange.py','rf312-ipc-runtime/exchange_control.sh',
         'rf312-ipc-runtime/test_diagnostic_exchange.py',
-        'rf312_memory_batches.py','test_rf312_memory_batches.py')
+        'rf312_memory_batches.py','test_rf312_memory_batches.py',
+        'rf312_ime_readiness.py','test_rf312_ime_readiness.py')
 FIELDS={'schemaVersion','runtimeInputs','runtimeInputsSha256','sourceSha256'}
 sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 

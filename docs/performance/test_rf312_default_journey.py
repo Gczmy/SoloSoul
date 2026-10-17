@@ -82,3 +82,17 @@ class DefaultCompositeChannelTests(unittest.TestCase):
 
     def test_failed_composite_request_keeps_original_cleanup_and_request_count(self):
         self.run_channel(True,fail=True)
+
+
+class DefaultImeReadinessIntegrationTests(unittest.TestCase):
+    def test_only_public_text_selection_uses_resized_viewport_readiness(self):
+        value=journey.Journey.__new__(journey.Journey);candidates=lambda:[];selected=object()
+        with patch.object(journey,'unique_input',return_value=selected)as settled,patch.object(journey.original.Journey,'unique')as original:
+            self.assertIs(value.unique(candidates,30,intent='type-public',allow_scroll=True),selected)
+        settled.assert_called_once_with(value,candidates,30,allow_scroll=True);original.assert_not_called()
+
+    def test_other_native_actions_keep_original_readiness_and_deadline(self):
+        value=journey.Journey.__new__(journey.Journey);candidates=lambda:[];selected=object()
+        with patch.object(journey,'unique_input')as settled,patch.object(journey.original.Journey,'unique',return_value=selected)as original:
+            self.assertIs(value.unique(candidates,30,intent='tap',allow_scroll=True),selected)
+        original.assert_called_once_with(candidates,30,intent='tap',allow_scroll=True);settled.assert_not_called()

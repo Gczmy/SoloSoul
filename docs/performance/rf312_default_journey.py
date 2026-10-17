@@ -10,6 +10,7 @@ from persistent_adapter import binding as bind_transport
 from rf312_state_gate import Gate
 import rf312_default_memory as checkpoint
 import rf312_journey_memory as trajectory
+from rf312_ime_readiness import unique_input
 S=original.S
 load=original.load
 sha=original.sha
@@ -43,6 +44,10 @@ class Journey(original.Journey):
   value=super().remaining(deadline);self.current_phase_deadline=deadline
   if self.memory_stream is not None:self.memory_stream.check()
   return value
+ def unique(self,candidates,deadline,*,intent='tap',allow_scroll=False):
+  if intent!='type-public':
+   return super().unique(candidates,deadline,intent=intent,allow_scroll=allow_scroll)
+  return unique_input(self,candidates,deadline,allow_scroll=allow_scroll)
  def finish(self,name,started,row,**extra):
   if self.memory_stream is not None:
    if name!=PHASES[len(self.phases)]:raise RuntimeError('Full journey phase order mismatch')
