@@ -81,3 +81,15 @@ python -B -m unittest discover -s . -p test_preview_scope.py -v
 ```sh
 python -B -m unittest discover -s . -p test_scaled_ocr.py -v
 ```
+
+## 连接停顿的被动现场采集
+
+`socket_stall_watch.py` 在调用记录超过一秒未更新时，最多每五秒保存一次 Windows ADB 进程与 5057 端口连接状态。采集只执行有十秒上限的只读 CIM／TCP 查询，不执行 ADB 命令、不发送输入、不停止或重启进程，也不重试工作请求。停顿记录本身不表示连接失败，须与实际错误和现场状态核对。
+
+调用方先完成原有设备、服务进程和公开夹具身份检查，再以真实服务与工作进程 PID 构造 `windows_capture`，将 `wait_for_worker` 用于原来的进程等待位置。它不增加工作进程期限，返回真实 `wait()` 退出码；采集超时、错误、元数据暂时不可读或输出目录已存在均只影响诊断。已完成的档位记录不再触发采集，整个等待仍以进程句柄为准。
+
+调用方保留原输入、读取、恢复和验收门禁。原始进程命令行及连接快照仅保存在本地，公开摘要只保留计数、结论与证据哈希。十项回归验证退出码保持、采集失败不打断工作进程、停顿采集限频、档位终态不替代进程终态、拒绝覆写及有界只读采集。
+
+```sh
+python -B -m unittest discover -s . -p test_socket_stall_watch.py -v
+```
