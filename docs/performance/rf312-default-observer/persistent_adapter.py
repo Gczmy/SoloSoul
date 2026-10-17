@@ -67,11 +67,19 @@ class SnapshotCadence:
     def before(self,deadline):
         now=self.clock()
         if now>=deadline:raise TimeoutError('Original snapshot phase deadline exhausted')
+        if self.last is not None and now<self.last:raise RuntimeError('Snapshot cadence clock moved backwards')
         due=now if self.last is None else self.last+.175
-        if due>now:self.sleep(min(due-now,deadline-now))
-        now=self.clock()
+        # A coarse monotonic clock can still read below due after a full sleep.
+        # Keep the same due/deadline and wait again; never release an early read.
+        for _ in range(32):
+            if now>=deadline:raise TimeoutError('Original snapshot phase deadline exhausted')
+            if now>=due:break
+            self.sleep(min(max(due-now,.001),deadline-now))
+            observed=self.clock()
+            if observed<now:raise RuntimeError('Snapshot cadence clock moved backwards')
+            now=observed
         if now>=deadline:raise TimeoutError('Original snapshot phase deadline exhausted')
-        if now+1e-9<due:raise RuntimeError('Snapshot cadence sleep returned prematurely')
+        if now<due:raise RuntimeError('Snapshot cadence clock failed to reach the original due time')
         self.last=now
 
 @contextmanager

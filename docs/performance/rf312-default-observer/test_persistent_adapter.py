@@ -98,7 +98,40 @@ class Cadence(unittest.TestCase):
         with self.assertRaises(TimeoutError):cadence.before(0)
         self.assertEqual(state['sleeps'],[])
     def test_premature_wakeup_fails_without_busy_polling(self):
-        cadence=SnapshotCadence(clock=lambda:0,sleep=lambda _:None);cadence.before(1)
+        sleeps=[];cadence=SnapshotCadence(clock=lambda:0,sleep=sleeps.append);cadence.before(1)
         with self.assertRaises(RuntimeError):cadence.before(1)
+        self.assertEqual(len(sleeps),32);self.assertTrue(all(value>=.001 for value in sleeps));self.assertEqual(cadence.last,0)
+    def test_coarse_clock_waits_until_due_without_rounding_down_the_interval(self):
+        import math
+        state={'actual':0.0,'sleeps':[]}
+        def clock():return math.floor(state['actual']/.015625)*.015625
+        def sleep(value):state['sleeps'].append(value);state['actual']+=value
+        cadence=SnapshotCadence(clock=clock,sleep=sleep);observed=[]
+        for _ in range(3):cadence.before(2);observed.append(cadence.last)
+        self.assertGreater(len(state['sleeps']),2)
+        self.assertGreaterEqual(observed[1]-observed[0],.175)
+        self.assertGreaterEqual(observed[2]-observed[1],.175)
+        self.assertGreaterEqual(observed[2]-observed[0],.350)
+    def test_progressing_early_wakeup_reuses_original_due_time(self):
+        state={'now':0.0,'sleeps':[]}
+        def sleep(value):
+            state['sleeps'].append(value);state['now']+=value-.001 if len(state['sleeps'])==1 else value
+        cadence=SnapshotCadence(clock=lambda:state['now'],sleep=sleep);cadence.before(1);cadence.before(1)
+        self.assertEqual(len(state['sleeps']),2);self.assertAlmostEqual(cadence.last,.175)
+    def test_repeated_wait_cannot_extend_short_original_deadline(self):
+        state={'now':0.0,'sleeps':[]}
+        def sleep(value):
+            state['sleeps'].append(value);state['now']+=value-.001 if len(state['sleeps'])==1 else value
+        cadence=SnapshotCadence(clock=lambda:state['now'],sleep=sleep);cadence.before(1)
+        with self.assertRaises(TimeoutError):cadence.before(.175)
+        self.assertEqual(cadence.last,0);self.assertAlmostEqual(state['now'],.175)
+        self.assertEqual(len(state['sleeps']),2)
+    def test_backward_clock_before_or_during_wait_preserves_last_snapshot(self):
+        state={'now':1.0};cadence=SnapshotCadence(clock=lambda:state['now'],sleep=lambda _:state.update(now=.9));cadence.before(2)
+        with self.assertRaisesRegex(RuntimeError,'backwards'):cadence.before(2)
+        self.assertEqual(cadence.last,1)
+        state['now']=.8
+        with self.assertRaisesRegex(RuntimeError,'backwards'):cadence.before(2)
+        self.assertEqual(cadence.last,1)
 
 if __name__=='__main__':unittest.main()
