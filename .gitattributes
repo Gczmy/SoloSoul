@@ -45,6 +45,8 @@ tauri/scripts/test_android_fresh_host_audit.py text eol=lf
 docs/performance/rf312_repeat_summary.py text eol=lf
 docs/performance/test_rf312_repeat_summary.py text eol=lf
 docs/performance/rf312-default-fixed-five-2026-10-17.*.json text eol=lf
+docs/performance/rf312_ipc_library.py text eol=lf
+docs/performance/test_rf312_ipc_library.py text eol=lf
 
 # 签名绑定原始字节，Windows 检出时也必须保留已签名 JSON 的 LF。
 tauri/src-tauri/resources/models/registry.json text eol=lf
@@ -52,3 +54,4 @@ tauri/src-tauri/resources/models/registry.json text eol=lf
 # IPC 生成检查逐字节比较，Windows 检出也保持确定性的 LF。
 tauri/src/lib/generated/ipcContracts.ts text eol=lf
 tauri/src/lib/generated/ipcContractManifest.json text eol=lf
+docs/performance/rf312-ipc-diagnostic-library-2026-10-17.json text eol=lf
