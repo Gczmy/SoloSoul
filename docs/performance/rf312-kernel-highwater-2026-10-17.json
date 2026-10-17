@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "recordedOn": "2026-10-17",
+  "scope": "existing-default-native-per-process-kernel-rss-high-water-replay",
+  "componentAccepted": true,
+  "closedTasks": 365,
+  "totalTasks": 374,
+  "validationHead": "8ec93df239330b13dfdd87e996601a901b7f67b3",
+  "productSourceAnchor": "305b86020a33b5368299b07594b94542f0869e09",
+  "defaultApkSha256": "45291865dd1f0fefaa3695ca26df145537ca29096ea7c19851c08b20a25141a2",
+  "nativeApi": 31,
+  "nativeAbi": "x86_64",
+  "nativeCpu": 2,
+  "nativeMemoryMiB": 2048,
+  "gpu": "SwiftShader",
+  "validation": {
+    "passed": true,
+    "uniqueTests": 56,
+    "newTests": 15,
+    "testsByModule": {
+      "test_rf312_kernel_highwater": 15,
+      "test_rf312_instrumentation_state": 15,
+      "test_android_process_memory": 26
+    },
+    "rawCommandsReplayed": 264,
+    "actualEmptyProcessDumps": 24,
+    "processHighWaterRecords": 24,
+    "independentlyParsedStatusRecords": 48,
+    "originalKernelReadersChanged": false,
+    "newNativeRuns": 0,
+    "newDeviceCommands": 0,
+    "crossProcessPeakAccepted": false,
+    "fullRF312Accepted": false
+  },
+  "analyzerSourcesSha256": {
+    "docs/performance/rf312_kernel_highwater.py": "5354aab51272dd3cf8f84de2f46d69bc844312168f089bae6fbf1cb62533bde7",
+    "docs/performance/test_rf312_kernel_highwater.py": "888cddf28c40cb5b06a794b65fe6b828e0b1a8f3c16ff9ddee95eb371b1ac9a5",
+    "tauri/scripts/android-process-memory.py": "bf3004168f5ff2029c3c47789d7adc7371deaff98f6b7d8dbac7f3a7c75bdd9f",
+    "tauri/scripts/test_android_process_memory.py": "dc4e990dfbdd0266ec02e5c20c293daab20fef6c851882c1835b5fb9f2cd983c",
+    "docs/performance/rf312_instrumentation_state.py": "a5fd1a6f36d8fe1d6ca202bf274288bc8e8df5ec7a50514c2eb84a0a21e837fe",
+    "docs/performance/test_rf312_instrumentation_state.py": "c7c32fc5e69d50a6dfbb304a6edd899045ba2f3f447805e41851f0ca01653166"
+  },
+  "firstTestFailure": {
+    "tests": 56,
+    "errors": 1,
+    "reason": "CRLF line endings in standalone status reader",
+    "originalLogAndSixSourceFilesPreserved": true,
+    "subsequentFullSuitePassed": true
+  },
+  "newNativeRuns": 0,
+  "newDeviceCommands": 0,
+  "newInputEvents": 0,
+  "highWaterResetPerformed": false,
+  "priorSeriesNotMerged": true,
+  "originalFivePssValuesUnchanged": true,
+  "originalFailedInstrumentationRepliesNotReclassified": true,
+  "seriesDefinitions": [
+    {
+      "id": "default-fixed-five",
+      "originalPlannedAttempts": 5,
+      "objectCounts": [
+        100,
+        5000
+      ],
+      "retrospectiveAdditionalMetric": true
+    },
+    {
+      "id": "supported-state-separate",
+      "originalPlannedAttempts": 1,
+      "objectCounts": [
+        100,
+        5000
+      ],
+      "includedInFiveAttemptDistribution": false
+    }
+  ],
+  "samples": [
+    {
+      "series": "default-fixed-five",
+      "attempt": 1,
+      "objectCount": 100,
+      "originalNativeReportSha256": "92ad86a053eeb583302d8387510ebacbd32b817286fa438e270fbec6701f5d2e",
+      "analysisInputSha256": "30d52865bd121e1d262d7391b1a47689cf68206c9b0521b1091ac971a3967446",
+      "replayResultSha256": "79b2fcfce221de7660ac061abcb1d8b06d1c25c5e9d6f255a0143c4bf9ff0a3c",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 398508032,
+          "rssBeforeBytes": 309624832,
+          "rssAfterBytes": 309579776
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 233144320,
+          "rssBeforeBytes": 224120832,
+          "rssAfterBytes": 224120832
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 1,
+      "objectCount": 5000,
+      "originalNativeReportSha256": "3528253b1342fefc21d54398223cc7eea3ce822be2a2735dec2bc062870a30fc",
+      "analysisInputSha256": "b88fe13ad41089d084273fd5b9771c9f83db8a901b99e1522d150d40555799e9",
+      "replayResultSha256": "b688335e4195ac9390033038906fdfae5e5fd717c708991bc54c972110cc66e4",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 383418368,
+          "rssBeforeBytes": 322899968,
+          "rssAfterBytes": 322871296
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 232681472,
+          "rssBeforeBytes": 223432704,
+          "rssAfterBytes": 223432704
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 2,
+      "objectCount": 100,
+      "originalNativeReportSha256": "1c74685a7257106bdc53873e15a02479c2f4f2629b5f8a60f23a1d555eac2a71",
+      "analysisInputSha256": "e29af79328e3483cdbe782be87266f6bb233baf1ef050a738069b1c220ff3350",
+      "replayResultSha256": "2b528e17f9f851991da0053f299c56bae5b9a1e221969f53262d469779383600",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 397991936,
+          "rssBeforeBytes": 309047296,
+          "rssAfterBytes": 309047296
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 228298752,
+          "rssBeforeBytes": 224534528,
+          "rssAfterBytes": 224534528
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 2,
+      "objectCount": 5000,
+      "originalNativeReportSha256": "e07e945a76b4189ea1e35a81f50cc6983edf94f596717e06e9e30b20527e9473",
+      "analysisInputSha256": "0d8551a7269505e563175794369e2b1ff5825fad4157119d36940d0378d6f1b6",
+      "replayResultSha256": "555ad8bd4da0d4ef62e007480bc8d6c561e9e25423f97cf405d5551fea4c867d",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 386334720,
+          "rssBeforeBytes": 338808832,
+          "rssAfterBytes": 338808832
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 235556864,
+          "rssBeforeBytes": 230219776,
+          "rssAfterBytes": 230219776
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 3,
+      "objectCount": 100,
+      "originalNativeReportSha256": "b289a9dd5325b176d2bd230ba5fba99685e17e37a7ff9b3fe58fb93274316044",
+      "analysisInputSha256": "df49ce3a5e5850ed4b3876042b831914e3a48e87017703d9a616e9327b93d59c",
+      "replayResultSha256": "565202af6785fe079d73eb7373579e52133106c0f3e53b9aeff8dea167a40ea6",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 393117696,
+          "rssBeforeBytes": 307896320,
+          "rssAfterBytes": 307896320
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 234598400,
+          "rssBeforeBytes": 226234368,
+          "rssAfterBytes": 226234368
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 3,
+      "objectCount": 5000,
+      "originalNativeReportSha256": "dfda4fdca5a667c0b74d0c100208217a466765efcb44342ce0b075b260bf52f0",
+      "analysisInputSha256": "c6df7e75d1f160a8e200af033052b96e8e6d3463f299b93554213b0c2a7675e6",
+      "replayResultSha256": "24fdeb1cf67c05a9d616cc10017ee98919f2d61e5cb6a00ec61ac29e41230605",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 377737216,
+          "rssBeforeBytes": 327561216,
+          "rssAfterBytes": 327561216
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 239255552,
+          "rssBeforeBytes": 226410496,
+          "rssAfterBytes": 226410496
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 4,
+      "objectCount": 100,
+      "originalNativeReportSha256": "a2788e24d5df6c208f1255106fa67ee99c0f59a5cf216fe95ad25e63995b26da",
+      "analysisInputSha256": "3749baa5fe2b129bbece3b3176994b26e02fad93bf5587200e8defdae56d2571",
+      "replayResultSha256": "c114923abccd5de6df8163cc0dedbb54f79b5a3fc9b167405fc915538bba51cc",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 395837440,
+          "rssBeforeBytes": 308461568,
+          "rssAfterBytes": 308461568
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 232316928,
+          "rssBeforeBytes": 210141184,
+          "rssAfterBytes": 210141184
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 4,
+      "objectCount": 5000,
+      "originalNativeReportSha256": "3fb0548e855d6e88926d3556b781b2c53a52d4278ead7f4dadebd53928892780",
+      "analysisInputSha256": "383ebcdce7ffa3d0d3b35d000d8ccd37ca6148fec67b60cdb6fa36d99ff6f002",
+      "replayResultSha256": "84c0f40f7df95c8779a084872859835e6f4d85f17b2077dc27a5bca2ae5eab79",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 381980672,
+          "rssBeforeBytes": 319680512,
+          "rssAfterBytes": 319680512
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 236281856,
+          "rssBeforeBytes": 233213952,
+          "rssAfterBytes": 233213952
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 5,
+      "objectCount": 100,
+      "originalNativeReportSha256": "c5bff0ead0c8abfe7efc3c3b94fb23e5a5e3d358e3357bf543174b0e7582c95c",
+      "analysisInputSha256": "227e46449ba503a24d917a9203ce85628d1b4c613af897dc913353e01b437ce8",
+      "replayResultSha256": "87682b834addbf2fdc28720912783592a0bf585819a664b8bd3b942ff1a89696",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 394268672,
+          "rssBeforeBytes": 328777728,
+          "rssAfterBytes": 328777728
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 231505920,
+          "rssBeforeBytes": 208855040,
+          "rssAfterBytes": 208855040
+        }
+      ]
+    },
+    {
+      "series": "default-fixed-five",
+      "attempt": 5,
+      "objectCount": 5000,
+      "originalNativeReportSha256": "984f89610f065a34f0cdaa59684a04cd0ae31b61cde1bc9765f662b644975f63",
+      "analysisInputSha256": "16275a68c7611d9f1baa893df1048e71522e420d9e5f6a51762f0c450a7a80e0",
+      "replayResultSha256": "236f484d40fa8e1602cb66f8ace185e961b374cc04c290d64248730ec972b872",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 383700992,
+          "rssBeforeBytes": 332271616,
+          "rssAfterBytes": 332271616
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 241422336,
+          "rssBeforeBytes": 229142528,
+          "rssAfterBytes": 229142528
+        }
+      ]
+    },
+    {
+      "series": "supported-state-separate",
+      "attempt": 1,
+      "objectCount": 100,
+      "originalNativeReportSha256": "ca812c9ab15b20a404307b5e900e8543bbe6258285bebc7038cbb389cacfa093",
+      "analysisInputSha256": "415f5b2ca1a82de18c0687e04f10d1442bc84eab18b252650c764e15af825459",
+      "replayResultSha256": "1048c25468a20966a9c7ae72fb4a63afcec8e4a8fa99fdb306c79074a5961791",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 375500800,
+          "rssBeforeBytes": 304951296,
+          "rssAfterBytes": 304951296
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 231981056,
+          "rssBeforeBytes": 197857280,
+          "rssAfterBytes": 197857280
+        }
+      ]
+    },
+    {
+      "series": "supported-state-separate",
+      "attempt": 1,
+      "objectCount": 5000,
+      "originalNativeReportSha256": "6c24e0fde69c65a856265abfb3069481bedcf5675d405072095b05dd947f1d2c",
+      "analysisInputSha256": "64ce178815e297f0717b03fc76dbee44f848fded493fd61f34481d8c8da35bc3",
+      "replayResultSha256": "c7387505753e6cc95abf56239802fe682a26f4a43b577146c5143c8a445d6e1c",
+      "processes": [
+        {
+          "role": "app",
+          "kernelRssHighWaterBytes": 389734400,
+          "rssBeforeBytes": 331300864,
+          "rssAfterBytes": 331300864
+        },
+        {
+          "role": "renderer",
+          "kernelRssHighWaterBytes": 238448640,
+          "rssBeforeBytes": 226295808,
+          "rssAfterBytes": 226295808
+        }
+      ]
+    }
+  ],
+  "distributions": [
+    {
+      "series": "default-fixed-five",
+      "objectCount": 100,
+      "role": "app",
+      "n": 5,
+      "kernelRssHighWaterBytesByAttempt": [
+        398508032,
+        397991936,
+        393117696,
+        395837440,
+        394268672
+      ],
+      "medianBytes": 395837440,
+      "empiricalP95Bytes": 398508032,
+      "maximumBytes": 398508032
+    },
+    {
+      "series": "default-fixed-five",
+      "objectCount": 100,
+      "role": "renderer",
+      "n": 5,
+      "kernelRssHighWaterBytesByAttempt": [
+        233144320,
+        228298752,
+        234598400,
+        232316928,
+        231505920
+      ],
+      "medianBytes": 232316928,
+      "empiricalP95Bytes": 234598400,
+      "maximumBytes": 234598400
+    },
+    {
+      "series": "default-fixed-five",
+      "objectCount": 5000,
+      "role": "app",
+      "n": 5,
+      "kernelRssHighWaterBytesByAttempt": [
+        383418368,
+        386334720,
+        377737216,
+        381980672,
+        383700992
+      ],
+      "medianBytes": 383418368,
+      "empiricalP95Bytes": 386334720,
+      "maximumBytes": 386334720
+    },
+    {
+      "series": "default-fixed-five",
+      "objectCount": 5000,
+      "role": "renderer",
+      "n": 5,
+      "kernelRssHighWaterBytesByAttempt": [
+        232681472,
+        235556864,
+        239255552,
+        236281856,
+        241422336
+      ],
+      "medianBytes": 236281856,
+      "empiricalP95Bytes": 241422336,
+      "maximumBytes": 241422336
+    },
+    {
+      "series": "supported-state-separate",
+      "objectCount": 100,
+      "role": "app",
+      "n": 1,
+      "kernelRssHighWaterBytesByAttempt": [
+        375500800
+      ]
+    },
+    {
+      "series": "supported-state-separate",
+      "objectCount": 100,
+      "role": "renderer",
+      "n": 1,
+      "kernelRssHighWaterBytesByAttempt": [
+        231981056
+      ]
+    },
+    {
+      "series": "supported-state-separate",
+      "objectCount": 5000,
+      "role": "app",
+      "n": 1,
+      "kernelRssHighWaterBytesByAttempt": [
+        389734400
+      ]
+    },
+    {
+      "series": "supported-state-separate",
+      "objectCount": 5000,
+      "role": "renderer",
+      "n": 1,
+      "kernelRssHighWaterBytesByAttempt": [
+        238448640
+      ]
+    }
+  ],
+  "kernelRssAccountingApproximate": true,
+  "peakTimeKnown": false,
+  "crossProcessPeakBytes": null,
+  "pssPeakAccepted": false,
+  "wholeJourneyPeakAccepted": false,
+  "performanceDistributionAccepted": false,
+  "fullRF312Accepted": false,
+  "limitations": [
+    "Surviving process lifetime high-water until post-journey checkpoint",
+    "Kernel RSS accounting is asynchronous and approximate",
+    "Exited processes, shared WebView and system services are outside this scope",
+    "Per-process peaks do not establish a simultaneous total or PSS peak",
+    "No causal probe overhead, application-only latency, startup-frame or multi-platform completion"
+  ],
+  "evidenceSha256": {
+    "passedTests": "f7c786a3b02dba30cdf9e259ae590ecd7b47486e1f747a6382ff1abe319295fc",
+    "uniqueTestLog": "367fa25ab118582b54bd894f38347df8a7c71b59158f60a6ebf9ad50e5bb1337",
+    "firstFailedTests": "26fd5535e8de3090b1fdc28651ac3eea02ee9e39d000beb829c49fe8bbaa2aaa",
+    "firstFailedTestLog": "a5d64614371a1f255aa3a28f56de4e569ca5d69cbf86579287691ac4c93d310c",
+    "declaredReplayPlan": "f318deb4f563d9d95128bfe40766a3ea0b4e22ed2ed5a8368633c539e81f783d",
+    "allNativeEvidenceReplays": "81cf0a66a9b80931252b451d03237785e81977cb3894e5a756b1290929f72c7f",
+    "independentAudit": "b5c8f00b6a74b267c7cbe2d92e9fc7860997ae441c0dfa813e863ed3863e5828"
+  },
+  "officialMetricDocumentation": "https://www.kernel.org/doc/html/v6.12/filesystems/proc.html"
+}
