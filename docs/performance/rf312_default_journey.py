@@ -19,7 +19,8 @@ module=original.module
 
 
 @contextmanager
-def ui_channel(composite,helper,adb,read,output,inputs):
+def ui_channel(composite,helper,adb,read,output,inputs,*,owned_ui=None):
+ if owned_ui is not None and not composite:raise ValueError('Owned UI requires the explicit composite channel')
  # The original session continues to own the one Observer process and cleanup.
  # Only its host client changes; no target diagnostics or JavaScript are loaded.
  with helper.session(adb,read,output,package=inputs['observer'],executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial']) as observer:
@@ -29,6 +30,9 @@ def ui_channel(composite,helper,adb,read,output,inputs):
    client=Client(observer.adb,observer.output,observer.process,observer.remote)
    client.deadline=observer.deadline;client.ordinal=observer.ordinal
    binder=binding;script=Path(__file__).parent/'rf312-ipc-runtime/exchange_control.sh'
+   if owned_ui is not None:
+    from rf312_owned_ui import binding
+    binder=binding;script=Path(owned_ui['artifact'])
   try:
    with binder(client,adb,output,executable=inputs['host']['adbExecutable'],serial=inputs['host']['serial'],expected_executable_sha256=inputs['host']['adbSha256'],script=script,shell_crlf=True) as (channel,read_channel):
     yield client,channel,read_channel
@@ -55,9 +59,11 @@ class Journey(original.Journey):
   return super().finish(name,started,row,**extra)
 
 
-def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling=False,composite_ui=False):
+def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling=False,composite_ui=False,owned_ui=None):
  if type(memory_sampling) is not bool or type(composite_ui) is not bool:
   raise ValueError('Explicit sampler and UI channel booleans required')
+ if owned_ui is not None and not (memory_sampling or composite_ui):
+  raise ValueError('Owned UI requires the explicit composite channel')
  public_filename(public_image_name)
  for name,key in [('observer_session.py','journeyObserverSessionSha256'),('process_identity.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
   assert sha(S/name)==inputs[key]
@@ -73,7 +79,8 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling
  original_sdk_adb=adb
  gate=Gate(adb,output)
  gate.check({},deadline=time.monotonic()+10)
- with ui_channel(memory_sampling or composite_ui,helper,adb,read,output,inputs) as (observer,adb,read):
+ channel_options={}if owned_ui is None else dict(owned_ui=owned_ui)
+ with ui_channel(memory_sampling or composite_ui,helper,adb,read,output,inputs,**channel_options) as (observer,adb,read):
   workload_started=time.monotonic()
   with trajectory.session(memory_sampling,inputs,output,uid=uid,deadline=observer.deadline,phases=PHASES) as stream:
    journey=Journey(observer,focused,output,inputs);j=journey
@@ -146,7 +153,7 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling
     defaultReleaseNonDebuggable=True,twoCommittedFramesProven=False,scrollGestures=len(j.scrolls),
     ipcAttributed=False,strictAllProcessMemoryCollected=False,sameSourceObserverOverheadMeasured=False,
     journeyMemorySamplingEnabled=memory_sampling,compositeUiRequested=composite_ui,
-    compositeUiEnabled=memory_sampling or composite_ui)
+    compositeUiEnabled=memory_sampling or composite_ui,ownedUiTransportEnabled=owned_ui is not None)
    save(j.proof/'evidence.json',summary)
   workload_finished=time.monotonic()
   if workload_finished>observer.deadline:raise TimeoutError('Measured workload exceeded original UI deadline')
@@ -169,6 +176,7 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling
  save(j.proof/'supported-state-ui-evidence.json',summary)
  assert load(output/'independent-observer/cleanup.json')['accepted']
  assert load(output/'persistent-control/cleanup.json')['accepted']
+ if owned_ui is not None:assert load(output/'auxiliary-control/persistent-control/cleanup.json')['accepted']
  memory_path=Path(inputs['host']['workspaceRoot'])/'tauri/scripts/android-process-memory.py'
  assert sha(memory_path)==inputs['canonicalMemoryReaderSha256']
  memory=module('original_strict_memory_reader',memory_path)

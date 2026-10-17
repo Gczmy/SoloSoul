@@ -21,7 +21,10 @@ PUBLIC=('rf312_instrumentation_state.py','test_rf312_instrumentation_state.py',
         'rf312-ipc-runtime/diagnostic_exchange.py','rf312-ipc-runtime/exchange_control.sh',
         'rf312-ipc-runtime/test_diagnostic_exchange.py',
         'rf312_memory_batches.py','test_rf312_memory_batches.py',
-        'rf312_ime_readiness.py','test_rf312_ime_readiness.py')
+        'rf312_ime_readiness.py','test_rf312_ime_readiness.py',
+        'rf312_owned_ui.py','test_rf312_owned_ui.py',
+        'rf312-owned-ui/OwnedUi.java','rf312-owned-ui/file_binding.py',
+        'rf312-owned-ui/protocol_tests.py')
 FIELDS={'schemaVersion','runtimeInputs','runtimeInputsSha256','sourceSha256'}
 sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
@@ -32,13 +35,20 @@ def sources():
 
 
 def shape(config):
-    if (not isinstance(config,dict) or set(config)!=FIELDS or type(config['schemaVersion']) is not int
-            or config['schemaVersion']!=1 or not isinstance(config['runtimeInputs'],str)
+    if not isinstance(config,dict):raise ValueError('Explicit default adapter inputs required')
+    version=config.get('schemaVersion')
+    fields=FIELDS if version==1 else FIELDS|{'ownedUiPackage','ownedUiPackageSha256'}
+    if (set(config)!=fields or type(version) is not int or version not in (1,2)
+            or not isinstance(config['runtimeInputs'],str)
             or not Path(config['runtimeInputs']).is_absolute() or not isinstance(config['sourceSha256'],dict)
             or set(config['sourceSha256'])!=set(sources())):
         raise ValueError('Complete explicit default runtime and adapter source binding required')
     hash_value(config['runtimeInputsSha256'])
     for value in config['sourceSha256'].values():hash_value(value)
+    if version==2:
+        if not isinstance(config['ownedUiPackage'],str) or not Path(config['ownedUiPackage']).is_absolute():
+            raise ValueError('Explicit absolute UI package receipt required')
+        hash_value(config['ownedUiPackageSha256'])
 
 
 def load(path):
@@ -47,7 +57,13 @@ def load(path):
     if sha(runtime_path)!=config['runtimeInputsSha256'] or config['sourceSha256']!=sources():
         raise ValueError('Default runtime or adapter source changed')
     runtime=load_inputs(runtime_path)
+    owned=None
+    if config['schemaVersion']==2:
+        from rf312_owned_ui import package
+        owned=package(config['ownedUiPackage'],config['ownedUiPackageSha256'])
     if (path.read_bytes()!=raw or sha(runtime_path)!=config['runtimeInputsSha256']
             or config['sourceSha256']!=sources()):
         raise ValueError('Default inputs changed while validating original guards')
-    return dict(config=config,runtime=runtime)
+    result=dict(config=config,runtime=runtime)
+    if owned is not None:result['ownedUi']=owned
+    return result

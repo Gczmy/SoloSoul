@@ -73,10 +73,14 @@ class IndependentCompositeCliTests(unittest.TestCase):
 
     def test_actual_native_call_forwards_both_selected_flags(self):
         statement=next(n for n in ast.walk(self.main_tree())if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='evidence'for t in n.targets))
+        options=next(n for n in ast.walk(self.main_tree())if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='channel_options'for t in n.targets))
         for sample,composite in [(False,False),(False,True),(True,False),(True,True)]:
             observe=Mock();adb=object();read=object();output=Path('unused');runtime={}
             scope=dict(external=SimpleNamespace(observe=observe),adb=adb,read=read,output=output,
                 args=SimpleNamespace(object_count=100,journey_memory=sample,composite_ui=composite),
                 original_packages={'main':{'uid':10105}},report={'publicOcrInput':{'fileName':'public-image'}},frozen_inputs=runtime)
-            with self.subTest(sample=sample,composite=composite):exec(compile(ast.Module(body=[statement],type_ignores=[]),'<actual-observe-call>','exec'),scope)
-            observe.assert_called_once_with(adb,read,output,100,10105,'public-image',runtime,memory_sampling=sample,composite_ui=composite)
+            for owned in (None,{'artifact':'explicit-package.jar'}):
+                scope['state_inputs']={}if owned is None else {'ownedUi':owned};observe.reset_mock()
+                with self.subTest(sample=sample,composite=composite,owned=owned):exec(compile(ast.Module(body=[options,statement],type_ignores=[]),'<actual-observe-call>','exec'),scope)
+                expected={}if owned is None else dict(owned_ui=owned)
+                observe.assert_called_once_with(adb,read,output,100,10105,'public-image',runtime,memory_sampling=sample,composite_ui=composite,**expected)

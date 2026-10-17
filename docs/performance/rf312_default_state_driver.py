@@ -32,6 +32,8 @@ def main():
     global shared_restore
     input_bytes=args.inputs.read_bytes()
     state_inputs=state_binding.load(args.state_inputs)
+    if 'ownedUi' in state_inputs and not (args.journey_memory or args.composite_ui):
+        parser.error('Version 2 UI package inputs require the explicit composite channel')
     if Path(state_inputs['config']['runtimeInputs']).resolve()!=args.inputs.resolve():parser.error('Exact bound runtime inputs required')
     frozen_inputs=load_inputs(args.inputs)
     assert state_inputs['runtime']==frozen_inputs
@@ -62,6 +64,9 @@ def main():
     report['journeyMemorySamplingEnabled']=args.journey_memory
     report['compositeUiRequested']=args.composite_ui
     report['compositeUiEnabled']=args.journey_memory or args.composite_ui
+    report['ownedUiTransportEnabled']='ownedUi' in state_inputs
+    if 'ownedUi' in state_inputs:
+        report['ownedUiPackageSha256']=state_inputs['config']['ownedUiPackageSha256']
     report['runtimeInputsSha256']=hashlib.sha256(input_bytes).hexdigest()
     report['runtimeSourcesSha256']=frozen_inputs['fullJourneyFiles']
     selected = False
@@ -242,7 +247,8 @@ def main():
         external_spec = importlib.util.spec_from_file_location('default_external', external_path)
         external = importlib.util.module_from_spec(external_spec)
         external_spec.loader.exec_module(external)
-        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs,memory_sampling=args.journey_memory,composite_ui=args.composite_ui)
+        channel_options={}if 'ownedUi'not in state_inputs else dict(owned_ui=state_inputs['ownedUi'])
+        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs,memory_sampling=args.journey_memory,composite_ui=args.composite_ui,**channel_options)
         assert evidence['compositeUiRequested'] is args.composite_ui
         assert evidence['compositeUiEnabled'] is (args.journey_memory or args.composite_ui)
         assert evidence['journeyMemorySamplingEnabled'] is args.journey_memory
