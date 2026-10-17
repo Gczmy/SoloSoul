@@ -34,6 +34,7 @@ digest = lambda path: hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def sources():
     return {**{'package/'+name: value for name, value in package.source_hashes().items()},
             **{'collector/'+name: digest(SOURCE/name) for name in [*PAYLOAD, 'query.node.test.mjs']},
+            **{name: digest(HERE/name) for name in ['rf312_startup_stack.py', 'test_rf312_startup_stack.py']},
             'rf312_ipc_collector.py': digest(Path(__file__)),
             'test_rf312_ipc_collector.py': digest(HERE/'test_rf312_ipc_collector.py')}
 

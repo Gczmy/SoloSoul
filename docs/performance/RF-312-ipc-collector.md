@@ -17,9 +17,9 @@ python -B docs/performance/rf312_ipc_collector.py --config collector-config.json
 
 Manifest 只允许三个直接子节点，固定包名 `org.solosoul.rf312ipc`、入口 `org.solosoul.rf312ipc.Collector`，目标包及进程都为 `com.solosoul.app`；非 debug，无额外组件或权限。编译 SDK 36、min SDK 28、target SDK 35。签名后的 APK 只有清单、资源表、一个 DEX 和 `assets/snapshot.js` 四项内容，不含原生库。
 
-Java、Manifest 和查询脚本保持此前单阶段原生功能探测的字节。采集器不获取 UiAutomation，也不发送界面输入；它仅在公开夹具的主进程、唯一主 WebView 中读取既有早期观察器的命令名、传输类型和时间元数据，不读取请求负载、不调用产品命令。请求顺序、run token、APK／PID／UID／进程出生时间、文档、累计事件前缀及读取期限均有门禁。十二阶段完整接受仍需外层实际界面行程和恢复审计；仅构建成功不能关闭 RF-312。
+采集器不获取 UiAutomation，也不发送界面输入；它仅在公开夹具的主进程、唯一主 WebView 中读取既有早期观察器的命令名、传输类型和时间元数据，不读取请求负载、不调用产品命令。请求顺序、run token、APK／PID／UID／进程出生时间、文档、累计事件前缀及读取期限均有门禁。Java 后续增加了缺省关闭的[启动堆栈取证](RF-312-startup-stack.md)，Manifest 和查询脚本保持；新包必须另建回执，不能重标旧原生证据。十二阶段完整接受仍需外层实际界面行程和恢复审计；仅构建成功不能关闭 RF-312。
 
-## 本轮验证
+## 初次公开构建的验证
 
 - 17 项 Python 回归和 4 项 JavaScript 查询回归通过，零跳过；覆盖源码及编译清单身份、节点层级、布尔属性、版本／SDK、缺失／额外属性、严格配置、工具摘要及确定性 ZIP 元数据。
 - 实际查询测试、Java 编译、D8、AAPT2、对齐、签名、证书／签名、签名后对齐、编译清单九步通过；81 份生产者／依赖源码和 HEAD 在构建期间保持。

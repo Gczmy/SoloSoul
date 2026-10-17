@@ -40,6 +40,8 @@ public final class Collector extends Instrumentation {
   private JSONObject process;
   private JSONObject previous;
   private ActivityMonitor monitor;
+  private volatile boolean startupTraceActive;
+  private Thread startupTracer;
   private int completed;
   private String step = "argument-admission";
   private String errorCode = "collector-contract-rejected";
@@ -221,11 +223,64 @@ public final class Collector extends Instrumentation {
       .put("nativeReadStartedNs", start).put("nativeReadFinishedNs", end).put("document", document);
   }
 
+  private void startStartupTrace() {
+    startupTraceActive = true;
+    startupTracer = new Thread(() -> {
+      long traceStarted = System.nanoTime();
+      long deadline = traceStarted + 8000000000L;
+      for (int index = 1; index <= 80 && startupTraceActive && System.nanoTime() < deadline; index++) {
+        try {
+          long began = System.nanoTime();
+          Thread main = Looper.getMainLooper().getThread();
+          StackTraceElement[] stack = main.getStackTrace();
+          JSONArray frames = new JSONArray();
+          for (int frame = 0; frame < Math.min(stack.length, 128); frame++) {
+            StackTraceElement item = stack[frame];
+            require(item.getClassName().length() <= 512 && item.getMethodName().length() <= 256
+              && (item.getFileName() == null || item.getFileName().length() <= 256));
+            frames.put(new JSONObject().put("className", item.getClassName()).put("methodName", item.getMethodName())
+              .put("fileName", item.getFileName() == null ? JSONObject.NULL : item.getFileName())
+              .put("lineNumber", item.getLineNumber()).put("nativeMethod", item.isNativeMethod()));
+          }
+          long end = System.nanoTime();
+          if (end >= deadline || !startupTraceActive) break;
+          JSONObject value = new JSONObject().put("schemaVersion", 1).put("scope", "forensic-startup-main-thread-stack")
+            .put("runId", token).put("sequence", index).put("process", identity()).put("traceStartedNs", traceStarted)
+            .put("nativeReadStartedNs", began).put("nativeReadFinishedNs", end)
+            .put("mainThreadId", main.getId()).put("threadState", main.getState().name())
+            .put("truncated", stack.length > 128).put("frames", frames).put("performanceSampleAccepted", false);
+          write(String.format(java.util.Locale.ROOT, "startup-stack-%03d.json", index), value);
+          long remaining = deadline - System.nanoTime();
+          if (remaining <= 0) break;
+          SystemClock.sleep(Math.min(100, Math.max(1, remaining / 1000000L)));
+        } catch (Throwable problem) {
+          try {
+            write("startup-stack-error.json", new JSONObject().put("schemaVersion", 1).put("runId", token)
+              .put("errorClass", problem.getClass().getName()).put("performanceSampleAccepted", false));
+          } catch (Throwable ignored) { /* The owned process may already be stopping. */ }
+          break;
+        }
+      }
+    }, "RF312StartupStack");
+    startupTracer.setDaemon(true);
+    startupTracer.start();
+  }
+
+  private void stopStartupTrace() {
+    startupTraceActive = false;
+    if (startupTracer != null) {
+      try { startupTracer.join(500); }
+      catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+    }
+  }
+
   @Override public void onStart() {
     Bundle result = new Bundle();
     try {
       token = arguments.getString("runId");
       String expected = arguments.getString("targetApkSha256");
+      String startupStacks = arguments.getString("startupThreadStacks");
+      require(startupStacks == null || "true".equals(startupStacks));
       require(token != null && token.matches("[a-f0-9]{32}") && expected != null && expected.matches("[a-f0-9]{64}"));
       step = "package-admission";
       require("true".equals(arguments.getString("privateDataBackedUp")) && APP.equals(getTargetContext().getPackageName()));
@@ -242,6 +297,7 @@ public final class Collector extends Instrumentation {
       write("ready.json", new JSONObject().put("schemaVersion", 1).put("runId", token).put("process", process)
         .put("targetApkSha256", expected).put("collectorApkSha256", fileSha(new File(getContext().getApplicationInfo().sourceDir)))
         .put("phaseCount", PHASES.length));
+      if ("true".equals(startupStacks)) startStartupTrace();
       long deadline = System.nanoTime() + 240000000000L;
       for (int index = 0; index < PHASES.length; index++) {
         step = "request-wait-" + PHASES[index]; errorCode = "collector-contract-rejected";
@@ -259,6 +315,7 @@ public final class Collector extends Instrumentation {
           && integer(message, "sequence") == index + 1 && PHASES[index].equals(message.get("stage")));
         step = "metadata-read-" + PHASES[index];
         JSONObject record = capture(index);
+        if (index == 0) startupTraceActive = false;
         errorCode = "collector-contract-rejected";
         require(System.nanoTime() < deadline);
         step = "response-publish-" + PHASES[index];
@@ -276,6 +333,7 @@ public final class Collector extends Instrumentation {
       // Do not print raw JSON, arbitrary exception messages, request bodies or credentials.
       finish(Activity.RESULT_CANCELED, result);
     } finally {
+      stopStartupTrace();
       if (monitor != null) removeMonitor(monitor);
     }
   }
