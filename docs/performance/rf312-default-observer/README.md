@@ -117,3 +117,14 @@ python -B -m unittest discover -s . -p test_socket_stall_watch.py -v
 python -B -m unittest discover -s . -p test_persistent_control.py -v
 python -B -m unittest discover -s . -p test_persistent_adapter.py -v
 ```
+
+
+## 滚动前只读就绪等待
+
+`scroll_readiness.py` 的 `scroll_if_ready(journey, node, direction, deadline)` 沿用原焦点、观察器探针和余量函数；只读检查未就绪返回 `False`，由原调用循环重新取快照与目标。实际手势调用异常直接传播，不重试，不猜测新坐标。成功后只追加一次原回执，原八次滚动、512 次请求及 45／240 秒限制保持。
+
+十项回归与原门禁共 206 项通过；旧真实探针回放使用原就绪谓词，确认零输入并延后处理。本轮原生回归完成前十一项和三页 PDF，滚动探针一次已就绪，未实际触发延后分支；最终重解锁耗尽总期限，正常停止和临时目录清理未通过。保持完整队列拒绝，未用前缀替代完整验收。
+
+```sh
+python -B -m unittest discover -s . -p test_scroll_readiness.py -v
+```

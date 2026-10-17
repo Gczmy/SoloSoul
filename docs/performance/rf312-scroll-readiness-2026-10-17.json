@@ -1,0 +1,177 @@
+{
+  "scope": "RF-312-read-only-scroll-readiness-defer",
+  "date": "2026-10-17",
+  "sourceSha256": {
+    "scroll_readiness.py": "3e68bfb01eec789b261f9d2fa003270078465dc987f9586baaae22ef3caf5ad1",
+    "test_scroll_readiness.py": "5496c7bcd20045d5d0d2ae54e4ea8f096df858ec72a486a1caa34769b81a8e20"
+  },
+  "change": {
+    "onlyReadOnlyNotReadyBranchDeferred": true,
+    "originalContainerSelectionKept": true,
+    "originalFocusAndRemainingBudgetCallsKept": true,
+    "nativeInputRefusalCaughtOrRetried": false,
+    "originalObserverApkChanged": false,
+    "originalContentReadersChanged": false,
+    "productSourceChanged": false,
+    "fixtureChanged": false,
+    "phaseBudgetSeconds": 45,
+    "overallBudgetSeconds": 240,
+    "observerRequestCap": 512
+  },
+  "tests": {
+    "totalPassed": 206,
+    "newScrollReadinessCases": 10,
+    "priorCases": 196,
+    "unitResultSha256": "6b6a7f30cd407770e918995286d9f8f63806330acc646ba495cf4069fd730785",
+    "callerAstAuditSha256": "6c0d35a6ec4d2a2bd1df1cf372eb5945d4a7af8c0e8ec6f8e390a23b9f55aa22",
+    "originalRecordedProbeReplayPassed": true,
+    "replayUsesOriginalClientReadinessPredicate": true,
+    "replayDispatchedInputs": 0,
+    "replayIsNativeAcceptance": false,
+    "replaySha256": "9a26c0107a1e5f5862f2f98d462aaea1653637d22509eee0b328ca816d27314f"
+  },
+  "layoutContext": {
+    "androidToastsUseNormalLayoutFlow": true,
+    "backupReminderAutoDismissMs": 8000,
+    "specificCauseOfRecordedGeometryChangeProven": false
+  },
+  "nativeAttempt": {
+    "requestedObjectCounts": [
+      100,
+      5000
+    ],
+    "attemptedObjectCounts": [
+      100
+    ],
+    "completedObjectCounts": [],
+    "completedPhaseNames": [
+      "startup",
+      "password-unlock",
+      "first-ocr-user-flow",
+      "workspace",
+      "search-needle",
+      "attachments-open",
+      "image-preview",
+      "text-preview",
+      "pdf-text-native",
+      "pdf-scanned-native",
+      "application-lock"
+    ],
+    "physicallyVerifiedPublicContentStages": 6,
+    "physicallyVerifiedPdfPages": 3,
+    "nativeSupplementalHalfOcrProofs": 1,
+    "verifiedPreviewCloses": 4,
+    "nativeScrollGestures": 1,
+    "readOnlyDeferralsObserved": 0,
+    "deferredBranchExercisedInThisLiveRun": false,
+    "deferredBranchVerifiedByRetainedReplayAndUnitTests": true,
+    "failure": "original-240-second-observer-budget-exhausted-during-final-reunlock",
+    "lastReadOnlyFrameRemainingBudgetSeconds": 0.045661999960429966,
+    "rawFrames": 2306,
+    "completeFramesVerified": 2305,
+    "lastTimedOutFrameRetainedNotAccepted": true,
+    "exactOriginalRequestPayloads": 319,
+    "exactSavedResponseReads": 319,
+    "exactSavedPngReads": 20,
+    "originalStrictAuditAccepted": false,
+    "strictAuditResultSha256": "f798b3f2b68fb365d31978ca140aae332cd69d5eee7eceb70ab5aa93122d162e",
+    "prefixAuditScope": "retained-prefix-physical-data-and-app-state-only",
+    "prefixAuditSha256": "22966181dc8f66d21a08771c5ec4aaacc12f300de25c6c5398507629938c1bed"
+  },
+  "restoration": {
+    "privateEntriesExactlyRestored": 142,
+    "originalApksUidAndDebugRestored": true,
+    "nineSettingsExactlyRestored": true,
+    "originalCallbacksRestored": true,
+    "observerPackageRemoved": true,
+    "observerNormalStopAccepted": false,
+    "controlNormalCloseAccepted": false,
+    "remoteScratchRemoved": false,
+    "scratchRetainedInStoppedDedicatedVm": true,
+    "hostProcessesAndListenersAbsent": true,
+    "completeTerminalDropBoxEntries": 107,
+    "currentBootAnrAbsent": true
+  },
+  "callChainProfile": {
+    "includesNativeWorkAndIsNotPureObserverOverhead": true,
+    "emptyExistsCalls": 844,
+    "emptyPutCalls": 319,
+    "operations": {
+      "ping": {
+        "calls": 1,
+        "elapsedSumSeconds": 0.11112949997186661,
+        "medianMs": 111.12949997186661,
+        "emptyBoth": 0
+      },
+      "app-stop": {
+        "calls": 1,
+        "elapsedSumSeconds": 0.06033100001513958,
+        "medianMs": 60.33100001513958,
+        "emptyBoth": 1
+      },
+      "pid": {
+        "calls": 155,
+        "elapsedSumSeconds": 9.626005200552754,
+        "medianMs": 59.02100005187094,
+        "emptyBoth": 1
+      },
+      "app-start": {
+        "calls": 1,
+        "elapsedSumSeconds": 0.8056575000518933,
+        "medianMs": 805.6575000518933,
+        "emptyBoth": 0
+      },
+      "exists": {
+        "calls": 844,
+        "elapsedSumSeconds": 64.46964690170716,
+        "medianMs": 64.92485001217574,
+        "emptyBoth": 844
+      },
+      "put": {
+        "calls": 319,
+        "elapsedSumSeconds": 32.151425399351865,
+        "medianMs": 91.1807999946177,
+        "emptyBoth": 319
+      },
+      "size": {
+        "calls": 339,
+        "elapsedSumSeconds": 25.331548999878578,
+        "medianMs": 66.57490006182343,
+        "emptyBoth": 0
+      },
+      "read": {
+        "calls": 339,
+        "elapsedSumSeconds": 59.54378319939133,
+        "medianMs": 117.33010003808886,
+        "emptyBoth": 0
+      },
+      "focus": {
+        "calls": 154,
+        "elapsedSumSeconds": 18.88874179974664,
+        "medianMs": 119.47320000035688,
+        "emptyBoth": 0
+      },
+      "instrumentation": {
+        "calls": 153,
+        "elapsedSumSeconds": 9.079670400358737,
+        "medianMs": 57.300600106827915,
+        "emptyBoth": 0
+      }
+    }
+  },
+  "fullUiQueueAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "taskRows": 373,
+  "closed": 364,
+  "parentTasksPending": 3,
+  "dependencyBlockedTasks": 6,
+  "goalStatus": "active",
+  "next": [
+    "controlled-same-output-comparison-of-transport-response-formatting",
+    "complete-original-two-size-twelve-step-journeys-without-extending-budgets",
+    "repeated-distributions-all-process-memory-same-source-observer-overhead-and-IPC",
+    "portable-complete-orchestration-and-remaining-platform-evidence"
+  ]
+}
