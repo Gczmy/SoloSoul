@@ -8,11 +8,98 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 import zipfile
+
+
+PACKAGE = 'org.solosoul.rf312observer'
+ANDROID = 'http://schemas.android.com/apk/res/android'
 
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def manifest_identity(package, instrumentation):
+    if (package != PACKAGE or len(instrumentation) != 1
+            or instrumentation[0] != dict(name='.Observer', targetPackage=PACKAGE)):
+        raise ValueError('Observer must instrument only its own package with .Observer')
+    return dict(package=package, instrumentationName=PACKAGE + '.Observer',
+                instrumentationTarget=instrumentation[0]['targetPackage'])
+
+
+def source_manifest_identity(raw):
+    root = ET.fromstring(raw)
+    if root.tag != 'manifest':
+        raise ValueError('One observer manifest root required')
+    instruments = list(root.iter('instrumentation'))
+    if any(node not in list(root) for node in instruments):
+        raise ValueError('Instrumentation must be a direct manifest child')
+    return manifest_identity(root.get('package'), [
+        {name: node.get('{' + ANDROID + '}' + name) for name in ('name', 'targetPackage')}
+        for node in instruments])
+
+
+def compiled_manifest_identity(text):
+    # aapt2 xmltree is indented: bind each attribute to its actual element.
+    # A package string in a label or the root cannot prove the targetPackage.
+    stack, roots, instruments = [], [], []
+    for line in text.splitlines():
+        element = re.fullmatch(r'( *)E: ([A-Za-z][A-Za-z0-9_.-]*) \(line=[0-9]+\)', line)
+        if element:
+            depth, tag = len(element[1]), element[2]
+            while stack and stack[-1]['depth'] >= depth:
+                stack.pop()
+            node = dict(depth=depth, tag=tag, attributes={})
+            if not stack:
+                roots.append(node)
+            if tag == 'instrumentation':
+                if len(stack) != 1 or stack[0]['tag'] != 'manifest':
+                    raise ValueError('Compiled instrumentation must be a direct manifest child')
+                instruments.append(node)
+            stack.append(node)
+            continue
+        attribute = re.fullmatch(r'( *)A: ([^=]+)=(.*)', line)
+        if attribute:
+            if not stack or len(attribute[1]) <= stack[-1]['depth']:
+                raise ValueError('Compiled manifest attribute has no element')
+            name = attribute[2]
+            if name in stack[-1]['attributes']:
+                raise ValueError('Duplicate compiled manifest attribute')
+            stack[-1]['attributes'][name] = attribute[3]
+            continue
+        if line.strip() and not re.fullmatch(r' *N: \S+ \(line=[0-9]+\)', line):
+            raise ValueError('Unknown compiled manifest tree entry')
+    if len(roots) != 1 or roots[0]['tag'] != 'manifest':
+        raise ValueError('One compiled observer manifest root required')
+
+    def string(node, name):
+        values = [value for key, value in node['attributes'].items()
+                  if key == name or key.startswith(name + '(')]
+        if len(values) != 1:
+            raise ValueError('One exact compiled manifest attribute required')
+        match = re.fullmatch(r'"([^"\\]*)"(?: \(Raw: "\1"\))?', values[0])
+        if not match:
+            raise ValueError('Unambiguous compiled manifest string required')
+        return match[1]
+
+    if '"com.solosoul.app"' in text:
+        raise ValueError('Product package cannot be an observer target')
+    return manifest_identity(string(roots[0], 'package'), [
+        {name: string(node, ANDROID + ':' + name) for name in ('name', 'targetPackage')}
+        for node in instruments])
+
+
+def package_receipt(apk, dex, sources, identity, certificate, compile_sdk, steps):
+    if identity != manifest_identity(PACKAGE, [dict(name='.Observer', targetPackage=PACKAGE)]):
+        raise ValueError('Verified compiled observer identity required')
+    apk_sha = digest(apk)
+    return dict(passed=True, sourceSha256=sources, apk=str(apk), sha256=apk_sha,
+                apkSha256=apk_sha, bytes=apk.stat().st_size, **identity,
+                dexSha256=digest(dex), certificateSha256=certificate,
+                compileSdk=compile_sdk, minSdk=28, targetSdk=35,
+                targetInstrumentationInjected=False, productInstalled=False,
+                nativeRuntimeAccepted=False, steps=steps)
 
 
 def main():
@@ -44,6 +131,7 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     output = output.resolve(strict=True)
     sources = {name: digest(source / name) for name in ('Observer.java', 'AndroidManifest.xml')}
+    source_identity = source_manifest_identity((source / 'AndroidManifest.xml').read_bytes())
     env = dict(os.environ, TEMP=str(output), TMP=str(output),
                JAVA_TOOL_OPTIONS='-Duser.home="' + output.as_posix() + '" -Djava.io.tmpdir="' + output.as_posix() + '"')
     steps = []
@@ -98,17 +186,14 @@ def main():
         raise RuntimeError('One internal test signer required')
     manifest = run('manifest', [executable(tools, 'aapt2'), 'dump', 'xmltree', apk,
                                 '--file', 'AndroidManifest.xml'])
-    if ('android:targetPackage' not in manifest or '"org.solosoul.rf312observer"' not in manifest
-            or '"com.solosoul.app"' in manifest):
-        raise RuntimeError('Observer must instrument only its own package')
+    identity = compiled_manifest_identity(manifest)
+    if identity != source_identity:
+        raise RuntimeError('Compiled observer identity differs from bound source')
     with zipfile.ZipFile(aligned) as before, zipfile.ZipFile(apk) as after:
         if any(before.read(name) != after.read(name) for name in before.namelist()):
             raise RuntimeError('APK payload changed during signing')
-    receipt = dict(passed=True, sourceSha256=sources, apk=str(apk), apkSha256=digest(apk),
-                   dexSha256=digest(dex / 'classes.dex'), certificateSha256=certificates[0],
-                   compileSdk=args.compile_sdk, minSdk=28, targetSdk=35,
-                   targetInstrumentationInjected=False, productInstalled=False,
-                   nativeRuntimeAccepted=False, steps=steps)
+    receipt = package_receipt(apk, dex / 'classes.dex', sources, identity,
+                              certificates[0], args.compile_sdk, steps)
     (output / 'package.json').write_text(json.dumps(receipt, indent=2), encoding='utf-8')
     print(json.dumps({'passed': True, 'productInstalled': False, 'nativeRuntimeAccepted': False}))
 

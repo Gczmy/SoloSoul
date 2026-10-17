@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "observer-producer-receipt-and-unchanged-runtime-consumer",
+  "baselineHead": "a3be1fdb0b928e45afb2e5e12bacae2cdfba1f3b",
+  "observerReceiptContractAccepted": true,
+  "fullDefaultArtifactGenerationAccepted": false,
+  "fullRF312Accepted": false,
+  "productSourceChanged": false,
+  "defect": {
+    "realOldBuilderSucceeded": true,
+    "oldReceiptRejectedByUnchangedRuntime": true,
+    "missingRequiredFields": [
+      "sha256",
+      "instrumentationTarget"
+    ]
+  },
+  "receipt": {
+    "canonicalHash": "sha256",
+    "legacyHashAlias": "apkSha256",
+    "bothHashesBoundToActualApk": true,
+    "actualSizeBound": true,
+    "package": "org.solosoul.rf312observer",
+    "instrumentationName": "org.solosoul.rf312observer.Observer",
+    "instrumentationTarget": "org.solosoul.rf312observer",
+    "sourceAndCompiledManifestMatch": true,
+    "targetInstrumentationInjected": false,
+    "productInstalled": false,
+    "nativeRuntimeAccepted": false
+  },
+  "artifact": {
+    "apkBytes": 20883,
+    "apkSha256": "a1eb71373dda02ed11750882096f500d73860da0024e93c8cda81df8c6cad70a",
+    "dexSha256": "c841d6dcb3a7931ab7055ccc7b308b5eee36327e6470fad2fca812997ac172b4",
+    "javaAndManifestUnchanged": true,
+    "dexMatchesPriorNativeArtifact": true,
+    "compileSdk": 36,
+    "minSdk": 28,
+    "targetSdk": 35,
+    "newlyGeneratedInternalTestSigning": true
+  },
+  "validation": {
+    "uniqueTests": 258,
+    "skipped": 0,
+    "newTests": 14,
+    "generatedReceiptUsedWithoutAdapter": true,
+    "unchangedPublicRuntimePreparationPassed": true,
+    "unchangedLoadInputsPassed": true,
+    "originalProductSourceEntries": 1881,
+    "workspaceSourceEntries": 1843,
+    "externalFrontendEntries": 38,
+    "originalRuntimeSourcesUnchanged": 20,
+    "unchangedSessionArtifactGateAccepted": true,
+    "sessionStoppedBeforeFirstSdkCall": true,
+    "realCompiledWrongTargetApkRefused": true,
+    "oldSubstringGuardWouldAcceptWrongTarget": true,
+    "wrongSourceRefusedBeforeSdkTool": true,
+    "existingOutputRefusedAndReceiptUnchanged": true,
+    "deviceCommandsExecuted": 0,
+    "targetInputsDispatched": 0,
+    "nativeUiOrPerformanceSamplesAdded": 0
+  },
+  "preservedFailures": [
+    {
+      "scope": "local reproduction wrapper",
+      "wrongExpectedExitCode": 2,
+      "actualRefusalExitCode": 1,
+      "correctedInSeparateRun": true
+    },
+    {
+      "scope": "new synthetic unit fixture",
+      "failedTests": 1,
+      "cause": "restore artifacts reused observer file",
+      "independentRestoreFixtureFixed": true
+    }
+  ],
+  "modifiedSourceSha256": {
+    "build_observer.py": "8571e2933b08425e0b8f8b8d5cc2315fb76a612974ba94fcbb8c4b226e1cc083",
+    "test_build_observer.py": "cc659bccc0c87c800aa2cd323046585aed4640e5ae33cc13ff770e5663d68d74"
+  },
+  "unchangedConsumerSha256": {
+    "runtime_inputs.py": "48ed00dcf1c992b7ee1abda2e37ab7fd08f1436cf3c7f22741a049b9cae1fb80",
+    "observer_session.py": "51c43ebfd7d188a1a4f007e4b052524e1da6baccdfbf3a041630e00359c761d9"
+  },
+  "completeRegressionSourceFiles": 58,
+  "evidenceSha256": {
+    "before": "3fc3f1746e02ec15637ed3815fefa53af596096715c0c90b2f403610247d8bcb",
+    "directRuntimePreparation": "ab75c3c8513f7a61c55a05eea5cd5c802c766b600a80d3d924267a08a439d5eb",
+    "nativeCliNegatives": "ff31e85ccb8583c29cb69eae7d73106f9e8602782df58e977a85411bb1b3c4ac",
+    "completeUnits": "4f69a3a0a00bd955e102cec4311e0260df25f3a60b8bf2d97f905ee8e68da930",
+    "completeUnitLog": "3415a362010ab174248c6b502f8becb3f9da4c03f7930f008ace8d82b2541905",
+    "retainedSetupFailures": "5b22da779697574e5a45cfb3cd95eb875bb96d04edc5c746bf63985f5b246eba"
+  },
+  "remaining": [
+    "remaining artifact generation chain",
+    "homogeneous repeated distributions",
+    "whole-journey memory peaks",
+    "same-source observer overhead",
+    "actual Tauri IPC attribution",
+    "two committed startup frames",
+    "multiplatform validation"
+  ]
+}

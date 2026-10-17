@@ -14,7 +14,9 @@ python build_observer.py --sdk "<SDK目录>" --jdk "<JDK目录>" --output "<新�
 
 可通过`--compile-sdk`和`--build-tools`指定已安装版本；当前实测为API36／35.0.0。脚本完成Java11编译、DEX、APK链接／对齐、生成内部测试签名、签名和内容回读；不会下载SDK或安装应用。产物包括APK、`package.json`和各步骤日志，测试签名材料保留在本地输出目录。
 
-`package.json`记录实际源件、DEX、APK和签名摘要。不同测试签名会改变APK字节；源码和DEX摘要用于核对同一程序。应用的当前默认Release、恢复用Debug／测试包及公开合成Vault由完整行程入口另行准备。
+`package.json`记录实际源件、DEX、APK和签名摘要。`sha256`为运行端使用的APK摘要，`apkSha256`保留为同值别名，`bytes`记录实际大小；`package`、`instrumentationName`和`instrumentationTarget`来自源码与编译后Manifest的一致身份核验。不同测试签名会改变APK字节；源码和DEX摘要用于核对同一程序。应用的当前默认Release、恢复用Debug／测试包及公开合成Vault由完整行程入口另行准备。
+
+构建回执可直接填入`runtime_inputs.py`配置的`observerPackage`，同时声明该JSON的SHA以及`artifactPaths.observer`的APK路径。无需转换字段；准备器和会话保留原严格校验。本轮实际旧回执拒绝、新回执完整准入、错误目标APK拒绝与258项回归见[回执契约验证](../RF-312-observer-contract.md)。构建成功仍不代表原生界面或性能验收。
 
 ## 协议与边界
 
