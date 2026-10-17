@@ -173,3 +173,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ```
 
 本轮原生5000档实际观察到五次提醒占位后再准入；两档十二步、原严格／原始帧审计和各22条后置检查点回放通过。仍不代表完整性能基线或分布，见[实际验证与限制](../RF-312-tools-layout-ready.md)。
+
+
+## 可复用的 Windows 宿主核验
+
+同库[受保护旧服务入口](../RF-312-windows-host-audit.md)保留RF-1173完整身份保护；[空宿主前后入口](../RF-312-fresh-windows-host-audit.md)绑定原before快照、全部声明端口和运行前冻结的自有身份。两者只读查询CIM／TCP，不启动ADB或操作窗口。空宿主入口34项回归及五组真实进程／端口对照通过；完整行程编排的其余路径和产物绑定仍待参数化，不能把该步骤视作完整性能入口。
