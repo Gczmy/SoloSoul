@@ -15,6 +15,7 @@ import diagnostic_owner as owner
 import diagnostic_journey as journey
 import diagnostic_ui_session as ui
 import native_collector as native
+import diagnostic_exchange as exchange
 
 
 class PublicEntryTests(unittest.TestCase):
@@ -28,7 +29,9 @@ class PublicEntryTests(unittest.TestCase):
         for module, name in [(driver, 'main'), (owner, 'main'), (journey, 'observe'),
                              (journey, 'target_session'), (journey, 'Journey'),
                              (ui, 'session'), (native, 'Collector'),
-                             (binding, 'load'), (binding, 'verify')]:
+                             (binding, 'load'), (binding, 'verify'), (exchange, 'Control'),
+                             (exchange, 'Adapter'), (exchange, 'Client'), (exchange, 'binding'),
+                             (exchange, 'request_line')]:
             table = symtable.symtable(Path(module.__file__).read_text(encoding='utf-8'),
                                       module.__file__, 'exec')
             entry = next(child for child in table.get_children() if child.get_name() == name)
@@ -45,7 +48,8 @@ class PublicEntryTests(unittest.TestCase):
                 shutil.copyfile(source, public / source.name)
             for folder in ['rf312-default-observer', 'rf312-ipc-collector']:
                 shutil.copytree(binding.PUBLIC / folder, public / folder)
-            for source in binding.ROOT.glob('*.py'):
+            for name in binding.LOCAL:
+                source = binding.ROOT / name
                 shutil.copyfile(source, runtime / source.name)
             environment = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
             environment.pop('PYTHONPATH', None)

@@ -12,7 +12,7 @@ import diagnostic_binding
 import default_journey as original
 from default_journey import (APP,PICKER,labels,record_ids,expected_search_ids,FILES,file_set,
     public_text_present,public_filename,open_tool_card,wait_for_counter,complete,PHASES)
-from persistent_adapter import binding as bind_transport
+from diagnostic_exchange import binding as bind_transport
 import process_identity as reader
 import diagnostic_ui_session as ui
 import native_collector as native
@@ -224,7 +224,7 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,diagnostic):
  gate.check({},deadline=time.monotonic()+10)
  host=diagnostic['host']
  with ui.session(adb,read,output,package=inputs['observer'],executable=host['adbExecutable'],serial=host['serial']) as observer:
-  with bind_transport(observer,adb,output,executable=host['adbExecutable'],serial=host['serial'],expected_executable_sha256=host['adbSha256'],script=S/'persistent_control.sh',shell_crlf=True) as (adb,read):
+  with bind_transport(observer,adb,output,executable=host['adbExecutable'],serial=host['serial'],expected_executable_sha256=host['adbSha256'],script=Path(__file__).parent/'exchange_control.sh',shell_crlf=True) as (adb,read):
    adb('shell','am','force-stop',APP,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
    assert not reader.read_process_ids(read,APP)
    with target_session(original_sdk_adb,original_sdk_read,output,observer,uid,diagnostic,gate) as collector:

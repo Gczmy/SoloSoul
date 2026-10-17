@@ -95,4 +95,6 @@ docs/performance/rf312_default_state_driver.py text eol=lf
 docs/performance/test_rf312_default_state_driver.py text eol=lf
 docs/performance/rf312-default-supported-state-2026-10-17.json text eol=lf
 docs/performance/rf312-ipc-runtime/*.py text eol=lf
+docs/performance/rf312-ipc-runtime/*.sh text eol=lf
 docs/performance/rf312-public-ipc-runtime-2026-10-17.json text eol=lf
+docs/performance/rf312-composite-observer-2026-10-17.json text eol=lf

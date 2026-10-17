@@ -14,7 +14,8 @@ FIELDS={'schemaVersion','runtimeInputs','runtimeInputsSha256','diagnosticPackage
         'adbExecutable','adbSha256','sourceSha256'}
 LOCAL=('ipc_receipt.py','native_collector.py','diagnostic_ui_session.py','diagnostic_binding.py',
        'diagnostic_driver.py','diagnostic_journey.py','test_ipc_receipt.py','test_native_collector.py',
-       'test_diagnostic_binding.py','test_diagnostic_journey.py','test_diagnostic_driver.py','diagnostic_owner.py')
+       'test_diagnostic_binding.py','test_diagnostic_journey.py','test_diagnostic_driver.py','diagnostic_owner.py',
+       'diagnostic_exchange.py','exchange_control.sh','test_diagnostic_exchange.py')
 sha=lambda path:hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 

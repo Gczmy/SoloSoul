@@ -7,7 +7,7 @@ import observer_session as original
 S=original.S
 PKG=original.PKG
 APP=original.APP
-Client=original.Client
+from diagnostic_exchange import Client
 sha=original.sha
 save=original.save
 @contextmanager
