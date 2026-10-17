@@ -83,12 +83,15 @@ class Tools(unittest.TestCase):
                              ('Objects', '[288,1590][543,1761]'),
                              ('Tools', '[540,1590][792,1761]'),
                              ('Settings', '[787,1590][1042,1761]')]:
-            self.group.append(node(name, bounds, clickable='true'))
+            self.group.append(node(name, bounds, clickable='true',
+                                   description='Tools, current page' if name == 'Tools' else name))
         self.ocr = node('OCR', '[543,1477][1015,1743]', clickable='true', kind='android.widget.Button')
         self.search = node('Search', '[49,630][525,895]', clickable='true', kind='android.widget.Button')
 
     def nodes(self):
-        return [self.ocr, self.search, *self.group.iter('node')]
+        return [node('Organize, connect, explore', '[112,336][952,420]'),
+                node('Your everyday tools, together in one place.', '[112,447][952,510]'),
+                self.ocr, self.search, *self.group.iter('node')]
 
     def test_recorded_ocr_center_under_navigation_is_not_selected(self):
         self.assertEqual(tool_card_candidates(self.nodes(), 'OCR'), [])
@@ -142,7 +145,12 @@ class Tools(unittest.TestCase):
                 return {'originalReceipt': True}
         class Journey:
             nodes = test.nodes()
+            all = nodes
             observer = Observer()
+            def wait(self, predicate, deadline):
+                test.assertTrue(predicate())
+                test.assertEqual(deadline, 45)
+                events.append('wait-tools-layout')
             def unique(self, candidates, deadline, *, allow_scroll):
                 test.assertEqual(candidates(), [])
                 test.assertEqual(deadline, 45)
@@ -156,7 +164,7 @@ class Tools(unittest.TestCase):
                 test.assertEqual(deadline, 45)
                 return 7
         self.assertEqual(open_tool_card(Journey(), 'OCR', 45), {'originalReceipt': True})
-        self.assertEqual(events, ['original-native-scroll-and-readiness', 'tap'])
+        self.assertEqual(events, ['wait-tools-layout', 'original-native-scroll-and-readiness', 'tap'])
 
     def test_native_refusal_propagates_without_retry(self):
         self.ocr.set('bounds', '[543,1197][1015,1462]')
@@ -168,7 +176,10 @@ class Tools(unittest.TestCase):
                 raise failure
         class Journey:
             nodes = self.nodes()
+            all = nodes
             observer = Observer()
+            def wait(self, predicate, deadline):
+                assert predicate()
             def unique(self, candidates, deadline, *, allow_scroll):
                 return candidates()[0]
             def remaining(self, deadline):

@@ -3,6 +3,9 @@ import re
 
 APP = 'com.solosoul.app'
 LABELS = frozenset(('Home', 'Objects', 'Tools', 'Settings'))
+TOOLS_BODY = ('Organize, connect, explore', 'Your everyday tools, together in one place.')
+BACKUP_REMINDER = ('It has been a while since your last backup. Please go to Settings > '
+                   'Backup & Restore to create one.')
 
 
 def labels(node):
@@ -66,9 +69,32 @@ def tool_card_candidates(nodes, tool):
     return result
 
 
+def tools_layout_ready(nodes):
+    """Wait for the owned Tools body and the known inline reminder to leave."""
+    limit = main_navigation_top(nodes)
+    if limit is None:
+        return False
+    group = next(node for node in nodes if 'Main navigation' in labels(node))
+    current = [node for node in group.iter('node')
+               if 'Tools, current page' in labels(node) and node.get('clickable') == 'true']
+    if len(current) != 1:
+        return False
+    for text in TOOLS_BODY:
+        found = [node for node in nodes if text in labels(node) and visible_owned(node)
+                 and rectangle(node) is not None and rectangle(node)[3] < limit]
+        if len(found) != 1:
+            return False
+    # A disabled reminder can still occupy layout space. Inspect the original
+    # unfiltered owned hierarchy, not only the actionable/visible node list.
+    return not any(node.get('package') == APP and node.get('visible-to-user') == 'true'
+                   and any(' '.join(value.split()).startswith(BACKUP_REMINDER) for value in labels(node))
+                   for node in nodes)
+
+
 def open_tool_card(journey, tool, deadline):
     """Reuse original native scroll/readiness and dispatch one exact tap."""
     if tool not in ('OCR', 'Search'):
         raise ValueError('Known public tool card required')
+    journey.wait(lambda: tools_layout_ready(journey.all), deadline)
     target = journey.unique(lambda: tool_card_candidates(journey.nodes, tool), deadline, allow_scroll=True)
     return journey.observer.tap(target, journey.remaining(deadline))
