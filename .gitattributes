@@ -111,3 +111,4 @@ docs/performance/rf312_ime_readiness.py text eol=lf
 docs/performance/test_rf312_ime_readiness.py text eol=lf
 docs/performance/rf312-ime-viewport-ready-2026-10-17.json text eol=lf
 docs/performance/rf312-sampling-control-2026-10-17.json text eol=lf
+docs/performance/rf312-state-transport-cost-2026-10-17.json text eol=lf
