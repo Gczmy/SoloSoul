@@ -78,3 +78,7 @@ docs/performance/rf312-launch-identity-2026-10-17.json text eol=lf
 docs/performance/rf312_startup_stack.py text eol=lf
 docs/performance/test_rf312_startup_stack.py text eol=lf
 docs/performance/rf312-startup-stack-2026-10-17.json text eol=lf
+
+docs/performance/rf312_instrumentation_state.py text eol=lf
+docs/performance/test_rf312_instrumentation_state.py text eol=lf
+docs/performance/rf312-instrumentation-state-2026-10-17.json text eol=lf
