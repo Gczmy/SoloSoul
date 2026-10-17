@@ -2,7 +2,7 @@ import ast
 from pathlib import Path
 from types import SimpleNamespace
 import builtins,symtable,tempfile,unittest
-from unittest.mock import Mock
+from unittest.mock import Mock,patch
 import rf312_default_state_driver as driver
 
 
@@ -53,3 +53,30 @@ class DefaultDriverSourceTests(unittest.TestCase):
         frozen,source,binding=self.frozen();binding.load.return_value={'strict':'changed'}
         with self.assertRaises(AssertionError):frozen()
         source.assert_called_once()
+
+
+class IndependentCompositeCliTests(unittest.TestCase):
+    def main_tree(self):
+        return next(n for n in ast.parse(Path(driver.__file__).read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)and n.name=='main')
+
+    def test_actual_cli_defaults_and_both_flags_remain_independent(self):
+        tree=self.main_tree();index=next(i for i,n in enumerate(tree.body)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='args'for t in n.targets))
+        tree.body=tree.body[:index+1]+[ast.Return(ast.Name('args',ast.Load()))]
+        module=ast.fix_missing_locations(ast.Module(body=[tree],type_ignores=[]))
+        scope=dict(argparse=driver.argparse,Path=Path,__doc__=driver.__doc__)
+        exec(compile(module,'<actual-default-cli>','exec'),scope)
+        base=['--adb','owned-adb','--serial','emulator-5578','--avd','SoloSoul_Public','--apk','release','--test-apk','probe','--output','unused','--mode','supported','--restore-apk','debug','--object-count','100','--fixture','fixture','--inputs','inputs','--state-inputs','binding']
+        for sample,composite in [(False,False),(False,True),(True,False),(True,True)]:
+            flags=(['--journey-memory']if sample else[])+(['--composite-ui']if composite else[])
+            with self.subTest(sample=sample,composite=composite),patch.object(driver.os.sys,'argv',['driver',*base,*flags]):args=scope['main']()
+            self.assertIs(args.journey_memory,sample);self.assertIs(args.composite_ui,composite)
+
+    def test_actual_native_call_forwards_both_selected_flags(self):
+        statement=next(n for n in ast.walk(self.main_tree())if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='evidence'for t in n.targets))
+        for sample,composite in [(False,False),(False,True),(True,False),(True,True)]:
+            observe=Mock();adb=object();read=object();output=Path('unused');runtime={}
+            scope=dict(external=SimpleNamespace(observe=observe),adb=adb,read=read,output=output,
+                args=SimpleNamespace(object_count=100,journey_memory=sample,composite_ui=composite),
+                original_packages={'main':{'uid':10105}},report={'publicOcrInput':{'fileName':'public-image'}},frozen_inputs=runtime)
+            with self.subTest(sample=sample,composite=composite):exec(compile(ast.Module(body=[statement],type_ignores=[]),'<actual-observe-call>','exec'),scope)
+            observe.assert_called_once_with(adb,read,output,100,10105,'public-image',runtime,memory_sampling=sample,composite_ui=composite)

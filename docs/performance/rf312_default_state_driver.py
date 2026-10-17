@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--inputs", required=True, type=Path)
     parser.add_argument("--state-inputs", required=True, type=Path)
     parser.add_argument('--journey-memory',action='store_true',help='Explicit read-only periodic and twelve-boundary memory trajectory; original UI budgets remain')
+    parser.add_argument('--composite-ui',action='store_true',help='Explicit composite UI control without requiring memory sampling; enables same-channel comparisons')
     args = parser.parse_args()
     if args.scenario != 'baseline' or args.motion_preferences or args.font_scale is not None:
         parser.error('Fixed-Vault driver accepts baseline only; original restoration guards stay unchanged')
@@ -59,6 +60,8 @@ def main():
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
     report['journeyMemorySamplingEnabled']=args.journey_memory
+    report['compositeUiRequested']=args.composite_ui
+    report['compositeUiEnabled']=args.journey_memory or args.composite_ui
     report['runtimeInputsSha256']=hashlib.sha256(input_bytes).hexdigest()
     report['runtimeSourcesSha256']=frozen_inputs['fullJourneyFiles']
     selected = False
@@ -239,7 +242,10 @@ def main():
         external_spec = importlib.util.spec_from_file_location('default_external', external_path)
         external = importlib.util.module_from_spec(external_spec)
         external_spec.loader.exec_module(external)
-        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs,memory_sampling=args.journey_memory)
+        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs,memory_sampling=args.journey_memory,composite_ui=args.composite_ui)
+        assert evidence['compositeUiRequested'] is args.composite_ui
+        assert evidence['compositeUiEnabled'] is (args.journey_memory or args.composite_ui)
+        assert evidence['journeyMemorySamplingEnabled'] is args.journey_memory
         report['defaultExternalEvidence'] = evidence
         report['stages'] = evidence['stageNames']
         report['nativePassed'] = bool(evidence['success'] is True and evidence['supportedNativeStateVerified']

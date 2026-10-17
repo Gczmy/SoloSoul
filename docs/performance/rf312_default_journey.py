@@ -55,7 +55,9 @@ class Journey(original.Journey):
   return super().finish(name,started,row,**extra)
 
 
-def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling=False):
+def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling=False,composite_ui=False):
+ if type(memory_sampling) is not bool or type(composite_ui) is not bool:
+  raise ValueError('Explicit sampler and UI channel booleans required')
  public_filename(public_image_name)
  for name,key in [('observer_session.py','journeyObserverSessionSha256'),('process_identity.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
   assert sha(S/name)==inputs[key]
@@ -71,7 +73,8 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling
  original_sdk_adb=adb
  gate=Gate(adb,output)
  gate.check({},deadline=time.monotonic()+10)
- with ui_channel(memory_sampling,helper,adb,read,output,inputs) as (observer,adb,read):
+ with ui_channel(memory_sampling or composite_ui,helper,adb,read,output,inputs) as (observer,adb,read):
+  workload_started=time.monotonic()
   with trajectory.session(memory_sampling,inputs,output,uid=uid,deadline=observer.deadline,phases=PHASES) as stream:
    journey=Journey(observer,focused,output,inputs);j=journey
    j.memory_stream=stream
@@ -142,8 +145,20 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,memory_sampling
     performanceDistributionAccepted=False,targetInstrumentationInjected=False,javaScriptInjected=False,
     defaultReleaseNonDebuggable=True,twoCommittedFramesProven=False,scrollGestures=len(j.scrolls),
     ipcAttributed=False,strictAllProcessMemoryCollected=False,sameSourceObserverOverheadMeasured=False,
-    journeyMemorySamplingEnabled=memory_sampling)
+    journeyMemorySamplingEnabled=memory_sampling,compositeUiRequested=composite_ui,
+    compositeUiEnabled=memory_sampling or composite_ui)
    save(j.proof/'evidence.json',summary)
+  workload_finished=time.monotonic()
+  if workload_finished>observer.deadline:raise TimeoutError('Measured workload exceeded original UI deadline')
+  window=dict(hostStartedAt=workload_started,hostFinishedAt=workload_finished,originalUiDeadline=observer.deadline,
+   hostElapsedUpperBoundMs=1000*(workload_finished-workload_started),
+   startBoundary='ui-channel-ready-before-sampler-context',
+   endBoundary='sampler-context-closed-before-ui-channel-cleanup',
+   compositeUiEnabled=memory_sampling or composite_ui,journeyMemorySamplingEnabled=memory_sampling,
+   includesUiObservationAndVerification=True,includesModeSetupAndFinalization=True,
+   applicationOnlyLatencyAccepted=False,originalUiDeadlineVerified=True)
+  save(j.proof/'measured-workload-window.json',window)
+  summary['measuredWorkloadWindow']=window
  if memory_sampling:
   memory_trace=load(output/'journey-memory/result.json')
   assert memory_trace['accepted'] and memory_trace['completeBoundaryCoverage'] and memory_trace['workerStopped']

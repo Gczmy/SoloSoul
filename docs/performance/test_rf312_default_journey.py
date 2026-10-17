@@ -96,3 +96,59 @@ class DefaultImeReadinessIntegrationTests(unittest.TestCase):
         with patch.object(journey,'unique_input')as settled,patch.object(journey.original.Journey,'unique',return_value=selected)as original:
             self.assertIs(value.unique(candidates,30,intent='tap',allow_scroll=True),selected)
         original.assert_called_once_with(candidates,30,intent='tap',allow_scroll=True);settled.assert_not_called()
+
+
+class IndependentSamplerControlTests(unittest.TestCase):
+    def test_actual_observe_routes_four_modes_without_coupling_sampler_to_channel(self):
+        class StopBeforeInputs(Exception):pass
+        for sample,composite in [(False,False),(False,True),(True,False),(True,True)]:
+            events=[];adb=Mock();read=Mock();gate=Mock()
+            @contextmanager
+            def channel(enabled,*args):
+                events.append(('channel',enabled))
+                try:yield SimpleNamespace(deadline=30),'channel-adb','channel-read'
+                finally:events.append('channel-closed')
+            @contextmanager
+            def sampler(enabled,*args,**kwargs):
+                events.append(('sampler',enabled,kwargs['deadline']))
+                raise StopBeforeInputs()
+                yield
+            inputs={key:'a'*64 for key in ['journeyObserverSessionSha256','processReaderSha256','livePixelCounterSha256']}
+            with self.subTest(sample=sample,composite=composite),patch.object(journey,'public_filename'),patch.object(journey,'sha',return_value='a'*64),patch.object(journey,'module'),patch.object(journey,'Gate',return_value=gate),patch.object(journey,'ui_channel',side_effect=channel),patch.object(journey.trajectory,'session',side_effect=sampler),self.assertRaises(StopBeforeInputs):
+                journey.observe(adb,read,Path('unused'),100,10105,'public-image',inputs,memory_sampling=sample,composite_ui=composite)
+            self.assertEqual(events,[('channel',sample or composite),('sampler',sample,30),'channel-closed'])
+            adb.assert_not_called();read.assert_not_called();gate.check.assert_called_once()
+
+    def test_truthy_or_missing_flags_are_refused_before_any_native_or_file_inputs(self):
+        for sample,composite in [(1,False),(False,1),(None,False),(False,None),('on',False),(False,'on')]:
+            with self.subTest(sample=sample,composite=composite),patch.object(journey,'public_filename')as public,patch.object(journey,'Gate')as gate,patch.object(journey,'ui_channel')as channel,self.assertRaises(ValueError):
+                journey.observe(Mock(),Mock(),Path('unused'),100,10105,'public-image',{},memory_sampling=sample,composite_ui=composite)
+            public.assert_not_called();gate.assert_not_called();channel.assert_not_called()
+
+
+class MatchedWorkloadWindowTests(unittest.TestCase):
+    def block(self,finished):
+        tree=ast.parse(Path(journey.__file__).read_text(encoding='utf-8'))
+        observe=next(n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='observe')
+        outer=next(n for n in observe.body if isinstance(n,ast.With)and isinstance(n.items[0].context_expr,ast.Call)and isinstance(n.items[0].context_expr.func,ast.Name)and n.items[0].context_expr.func.id=='ui_channel')
+        start=next(i for i,n in enumerate(outer.body)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='workload_finished'for t in n.targets))
+        self.assertIsInstance(outer.body[start-1],ast.With)
+        self.assertEqual(outer.body[start-1].items[0].context_expr.func.attr,'session')
+        saved=Mock();scope=dict(time=SimpleNamespace(monotonic=lambda:finished),observer=SimpleNamespace(deadline=10),workload_started=1,memory_sampling=False,composite_ui=True,save=saved,j=SimpleNamespace(proof=Path('owned-proof')),summary={})
+        return compile(ast.Module(body=outer.body[start:],type_ignores=[]),'<actual-post-sampler-window>','exec'),scope,saved
+
+    def test_expired_workload_cannot_publish_window_or_summary(self):
+        code,scope,saved=self.block(11)
+        with self.assertRaises(TimeoutError):exec(code,scope)
+        saved.assert_not_called();self.assertEqual(scope['summary'],{})
+
+    def test_actual_window_records_same_boundary_and_control_without_sampler(self):
+        code,scope,saved=self.block(9);exec(code,scope)
+        window=scope['summary']['measuredWorkloadWindow']
+        self.assertEqual(window['hostElapsedUpperBoundMs'],8000)
+        self.assertEqual(window['originalUiDeadline'],10)
+        self.assertTrue(window['compositeUiEnabled']);self.assertFalse(window['journeyMemorySamplingEnabled'])
+        self.assertEqual(window['startBoundary'],'ui-channel-ready-before-sampler-context')
+        self.assertEqual(window['endBoundary'],'sampler-context-closed-before-ui-channel-cleanup')
+        self.assertTrue(window['includesModeSetupAndFinalization']);self.assertFalse(window['applicationOnlyLatencyAccepted'])
+        saved.assert_called_once_with(Path('owned-proof/measured-workload-window.json'),window)
