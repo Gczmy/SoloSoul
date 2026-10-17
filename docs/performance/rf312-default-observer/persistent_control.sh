@@ -61,15 +61,20 @@ while IFS=' ' read -r magic seq op name payload extra; do
   if [ "$op" != put ]; then [ "$payload" = - ] || exit 64; fi
   perform > "$scratch/out" 2> "$scratch/err"
   rc=$?
-  out=$(stat -c %s "$scratch/out") || exit 65
-  err=$(stat -c %s "$scratch/err") || exit 65
-  [ "$out" -le 4194304 ] && [ "$err" -le 65536 ] || exit 65
-  printf 'RF312B %s %s %s %s\n' "$seq" "$rc" "$out" "$err"
-  printf 'O '
-  base64 -w 0 "$scratch/out" || exit 65
-  printf '\nE '
-  base64 -w 0 "$scratch/err" || exit 65
-  printf '\n'
+  if [ -f "$scratch/out" ] && [ -r "$scratch/out" ] && [ ! -s "$scratch/out" ] &&
+     [ -f "$scratch/err" ] && [ -r "$scratch/err" ] && [ ! -s "$scratch/err" ]; then
+    printf 'RF312B %s %s 0 0\nO \nE \n' "$seq" "$rc"
+  else
+    out=$(stat -c %s "$scratch/out") || exit 65
+    err=$(stat -c %s "$scratch/err") || exit 65
+    [ "$out" -le 4194304 ] && [ "$err" -le 65536 ] || exit 65
+    printf 'RF312B %s %s %s %s\n' "$seq" "$rc" "$out" "$err"
+    printf 'O '
+    base64 -w 0 "$scratch/out" || exit 65
+    printf '\nE '
+    base64 -w 0 "$scratch/err" || exit 65
+    printf '\n'
+  fi
   [ "$op" != close ] || exit 0
 done
 exit 65

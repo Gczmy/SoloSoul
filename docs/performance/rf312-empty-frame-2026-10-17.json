@@ -1,0 +1,244 @@
+{
+  "scope": "RF-312-empty-control-response-formatting",
+  "date": "2026-10-17",
+  "sourceSha256": {
+    "persistent_control.sh": "2988f77ae76b1049925ecabe652aef390716b97c1298ad45937465b6ecea819a"
+  },
+  "change": {
+    "onlyEmptyReadableRegularFilesUseFastPath": true,
+    "nonemptyEncodingAndBoundsUnchanged": true,
+    "dispatchAndInputValidationUnchanged": true,
+    "emptyReturnCodesAndOutputBytesUnchanged": true,
+    "newTemporaryFilesIntroduced": false,
+    "productSourceChanged": false,
+    "originalObserverApkChanged": false,
+    "originalContentReadersChanged": false,
+    "retriesAdded": false,
+    "phaseBudgetSeconds": 45,
+    "overallBudgetSeconds": 240,
+    "observerRequestCap": 512
+  },
+  "comparison": {
+    "order": [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline",
+      "baseline",
+      "candidate"
+    ],
+    "cohorts": 6,
+    "timedSamples": 1200,
+    "completeFramesVerified": 1368,
+    "identicalOutcomeTranscriptSha256": "a4990a4885f8bce89f76c2d7f0b337aa22a68352f49a93c994e8fe704b0aa546",
+    "sameExitStdoutStderrAndPayloadBytes": true,
+    "candidateFasterInEveryPairedEmptyComparison": true,
+    "statistics": {
+      "baseline": {
+        "exists": {
+          "samples": 150,
+          "medianMs": 54.705900023691356,
+          "p95Ms": 68.12949990853667
+        },
+        "put": {
+          "samples": 150,
+          "medianMs": 79.70564992865548,
+          "p95Ms": 96.65059996768832
+        },
+        "size": {
+          "samples": 150,
+          "medianMs": 61.23190000653267,
+          "p95Ms": 74.2409999947995
+        },
+        "read": {
+          "samples": 150,
+          "medianMs": 62.171599944122136,
+          "p95Ms": 79.74299998022616
+        }
+      },
+      "candidate": {
+        "exists": {
+          "samples": 150,
+          "medianMs": 18.455950019415468,
+          "p95Ms": 24.642999982461333
+        },
+        "put": {
+          "samples": 150,
+          "medianMs": 43.32549998071045,
+          "p95Ms": 51.31380003876984
+        },
+        "size": {
+          "samples": 150,
+          "medianMs": 60.75470003997907,
+          "p95Ms": 75.0459999544546
+        },
+        "read": {
+          "samples": 150,
+          "medianMs": 61.53895001625642,
+          "p95Ms": 76.20900007896125
+        }
+      }
+    },
+    "pairedEmptyOperationMediansMs": [
+      {
+        "baseline": 73.39014997705817,
+        "candidate": 31.785400002263486
+      },
+      {
+        "baseline": 72.5003500119783,
+        "candidate": 39.87089998554438
+      },
+      {
+        "baseline": 74.10099997650832,
+        "candidate": 32.216699968557805
+      }
+    ],
+    "baselineSha256": "1e45b461c51d4103d29708e5d4fbb6a701500e40bd88273736327874179f40eb",
+    "candidateSha256": "2988f77ae76b1049925ecabe652aef390716b97c1298ad45937465b6ecea819a",
+    "actualElapsedSeconds": 81.95235659996979,
+    "original180SecondBoundKept": true,
+    "allSixControlProcessesExitedNormally": true,
+    "scratchAndObserverRemoved": true,
+    "nineSettingsUnchanged": true,
+    "hostProcessesAndListenersAbsent": true,
+    "completeTerminalDropBoxEntries": 39,
+    "firstHostAuditRejectedShortLivedSdkHelpers": true,
+    "laterReadOnlyHostAuditPassedWithoutKillingHelpers": true,
+    "productPerformanceAccepted": false,
+    "pureWholeObserverOverheadProven": false,
+    "auditSha256": "3157523e0c592feb04fb63694a04f82c2ec0ef6342fde29c65efef25d755f7c1"
+  },
+  "tests": {
+    "totalPassed": 206,
+    "unitResultSha256": "f9800ba92aef5e2c748f98b2bf0fac6d92dd4fe8208dff3be18d8976203a4549"
+  },
+  "native": {
+    "objectCounts": [
+      100,
+      5000
+    ],
+    "allTwelvePhasesAcceptedForBoth": true,
+    "cases": [
+      {
+        "objectCount": 100,
+        "accepted": true,
+        "completedPhaseNames": [
+          "startup",
+          "password-unlock",
+          "first-ocr-user-flow",
+          "workspace",
+          "search-needle",
+          "attachments-open",
+          "image-preview",
+          "text-preview",
+          "pdf-text-native",
+          "pdf-scanned-native",
+          "application-lock",
+          "password-reunlock"
+        ],
+        "physicallyVerifiedPublicTextStages": 6,
+        "physicallyVerifiedPdfPages": 3,
+        "privateEntries": 164,
+        "allStateExactlyRestored": true,
+        "observerRequests": 348,
+        "failureEvidencePreserved": true
+      },
+      {
+        "objectCount": 5000,
+        "accepted": true,
+        "completedPhaseNames": [
+          "startup",
+          "password-unlock",
+          "first-ocr-user-flow",
+          "workspace",
+          "search-needle",
+          "attachments-open",
+          "image-preview",
+          "text-preview",
+          "pdf-text-native",
+          "pdf-scanned-native",
+          "application-lock",
+          "password-reunlock"
+        ],
+        "physicallyVerifiedPublicTextStages": 6,
+        "physicallyVerifiedPdfPages": 3,
+        "privateEntries": 164,
+        "allStateExactlyRestored": true,
+        "observerRequests": 338,
+        "failureEvidencePreserved": true
+      }
+    ],
+    "transportCases": [
+      {
+        "objectCount": 100,
+        "nativeJourneyAccepted": true,
+        "rpcFrames": 3007,
+        "unchangedOriginalObserverRequests": 348,
+        "exactOriginalRequestPayloads": 348,
+        "readOnlyScrollDeferrals": 1,
+        "deferredChecksNeverDispatchedInput": true,
+        "nativeScrollGestures": 1,
+        "exactSavedResponseReads": 348,
+        "exactSavedPngReads": 20,
+        "nonzeroExitFramesRetained": 1075,
+        "originalCallbackRestored": true,
+        "controlAndObserverCleanupAccepted": true,
+        "framesDigestSha256": "e14b351d127fe649f84a4515be05b6ca6e9cc3e11bfcd2ab8ce987191483ea11"
+      },
+      {
+        "objectCount": 5000,
+        "nativeJourneyAccepted": true,
+        "rpcFrames": 2922,
+        "unchangedOriginalObserverRequests": 338,
+        "exactOriginalRequestPayloads": 338,
+        "readOnlyScrollDeferrals": 1,
+        "deferredChecksNeverDispatchedInput": true,
+        "nativeScrollGestures": 1,
+        "exactSavedResponseReads": 338,
+        "exactSavedPngReads": 21,
+        "nonzeroExitFramesRetained": 1025,
+        "originalCallbackRestored": true,
+        "controlAndObserverCleanupAccepted": true,
+        "framesDigestSha256": "e981bf6a8bcdd141f6174cf674cd66d2081cec842701551c95aac50e49eee2fa"
+      }
+    ],
+    "nativeSupplementalHalfOcrProofsByCount": {
+      "100": 1,
+      "5000": 1
+    },
+    "exactOriginalPayloadAndSavedImageBytesVerified": true,
+    "allOriginalBudgetsAndCapsKept": true,
+    "allOriginalPrivateDataApksUidDebugAndNineSettingsRestored": true,
+    "allObserverNormalStopsAndControlClosesAccepted": true,
+    "allOwnedScratchAndObserverPackagesRemoved": true,
+    "completeTerminalDropBoxEntries": 106,
+    "currentBootAnrAbsent": true,
+    "hostProcessesAndListenersAbsent": true,
+    "originalStrictAuditAccepted": true,
+    "strictAuditSha256": "96d98dc683987a07fa2d73c1bbb6db80fe39595ebce5f0db33d230f9f5c7949a",
+    "transportAuditSha256": "94daf509c26e65ee16712c12dfdfb5808fe9a2ffe606b60ed2eb98795cf1062a"
+  },
+  "fullUiQueueAccepted": true,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "twoCommittedFramesProven": false,
+  "strictAllOwnedProcessMemoryCollected": false,
+  "sameSourceObserverOverheadMeasured": false,
+  "ipcAttributed": false,
+  "completePortableOrchestrationPublished": false,
+  "allPlatformEvidenceComplete": false,
+  "RF312Closed": false,
+  "taskRows": 373,
+  "closed": 364,
+  "parentTasksPending": 3,
+  "dependencyBlockedTasks": 6,
+  "goalStatus": "active",
+  "next": [
+    "repeated-samples-with-median-and-tail-metrics",
+    "strict-all-owned-process-memory",
+    "same-source-observer-overhead",
+    "IPC-attribution",
+    "two-committed-startup-frame-evidence",
+    "complete-portable-orchestration-and-remaining-platform-evidence"
+  ]
+}
