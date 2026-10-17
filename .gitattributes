@@ -71,3 +71,6 @@ docs/performance/rf312-ipc-collector-2026-10-17.json text eol=lf
 docs/performance/rf312_forensic_inventory.py text eol=lf
 docs/performance/test_rf312_forensic_inventory.py text eol=lf
 docs/performance/rf312-forensic-streaming-inventory-2026-10-17.json text eol=lf
+docs/performance/rf312_launch_identity.py text eol=lf
+docs/performance/test_rf312_launch_identity.py text eol=lf
+docs/performance/rf312-launch-identity-2026-10-17.json text eol=lf
