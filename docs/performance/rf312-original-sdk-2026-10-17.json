@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "original-sdk-callback-after-normal-observer-cleanup",
+  "callbackFixVerified": true,
+  "twoSizeUiCompleted": true,
+  "acceptedCheckpointObjectCounts": [
+    100
+  ],
+  "rejectedCheckpointObjectCounts": [
+    5000
+  ],
+  "twoSizeCheckpointAccepted": false,
+  "originalNativeQueueAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "wholeJourneyMemoryDistributionAccepted": false,
+  "source": {
+    "compiledProductHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+    "productFiles": 1797,
+    "runtimeBindings": 1881,
+    "apkSha256": "f7469ce3717849bf26623ea1ffdb1945c20154471247f38f419c65c272462b99",
+    "canonicalCallerSha256": "fda394ea13c4e8613b1a6c040f9f0354d46794c685104e16813e34fdc2dfebe6",
+    "oldClosedCallbackCallerSha256": "58bc6e77db1385556708a681b7da2d416bc6fd20ad44ca4e6cea90f0edf1d008",
+    "onlyCallbackCaptureIdentityAndPostUiArgumentChanged": true,
+    "allUiAndReadinessMethodsUnchanged": true,
+    "strictMemoryReaderControlAdapterClosedGuardAndBootstrapUnchanged": true,
+    "productSourceChanged": false
+  },
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "cpuCount": 2,
+    "memoryMiB": 2048,
+    "webView": "91.0.4472.114",
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false
+  },
+  "gates": {
+    "total": 252,
+    "uiGatesRerun": 206,
+    "unchangedMemoryAndQuietTestsReusedByExactHashes": 46,
+    "passed": true,
+    "originalPhaseSeconds": 45,
+    "originalObserverSeconds": 240,
+    "originalObserverRequestCap": 512,
+    "postUiCheckpointSeconds": 20,
+    "maximumMemoryCommandSeconds": 10,
+    "closedChannelNotReused": true,
+    "inputRetried": false
+  },
+  "samples": [
+    {
+      "objectCount": 100,
+      "uiPhasesCompleted": 12,
+      "physicalPdfPages": 3,
+      "checkpointAccepted": true,
+      "strictReaderBodyReplayed": true,
+      "confirmedMemoryCommands": 22,
+      "memoryCommandAttempts": 22,
+      "originalSdkLedgerMatchesEveryConfirmedOutput": true,
+      "closedAdapterNeverReused": true,
+      "allOriginalStateRestored": true,
+      "privateEntries": 190,
+      "checkpointResultSha256": "9e1f6003216e5b12f7ddc3b7b15f243eeebd6dfe78c62466276bfc7022e7ccba",
+      "pssBytes": 287780864,
+      "checkpointElapsedMs": 3396.024000016041,
+      "strictCollectionMs": 2803.4974000183865,
+      "processes": [
+        {
+          "role": "app",
+          "pssBytes": 182810624,
+          "rssBytes": 337657856,
+          "swapBytes": 53248,
+          "collectionMs": 461.19129995349795
+        },
+        {
+          "role": "renderer",
+          "pssBytes": 104970240,
+          "rssBytes": 220041216,
+          "swapBytes": null,
+          "swapPssBytes": 749568,
+          "collectionMs": 326.500799972564
+        }
+      ],
+      "controlFrames": 2960,
+      "originalObserverRequests": 345,
+      "exactSavedPngReads": 21
+    },
+    {
+      "objectCount": 5000,
+      "uiPhasesCompleted": 12,
+      "physicalPdfPages": 3,
+      "checkpointAccepted": false,
+      "strictReaderBodyReplayed": true,
+      "confirmedMemoryCommands": 18,
+      "memoryCommandAttempts": 19,
+      "originalSdkLedgerMatchesEveryConfirmedOutput": true,
+      "closedAdapterNeverReused": true,
+      "allOriginalStateRestored": true,
+      "privateEntries": 190,
+      "checkpointResultSha256": "3a7f175ae15c1caaf94750844b7fbd20410d3b4163d2113f058a247ca53d608b",
+      "localEvidenceReplaceDenied": true,
+      "lastSdkCommandExecutedOnce": true,
+      "checkpointFinalIdentityIncomplete": true,
+      "laterRecorderWritesSucceeded": true,
+      "noRejectedPssValuePromoted": true,
+      "exactLockOwnerProven": false,
+      "controlFrames": 2890,
+      "originalObserverRequests": 337,
+      "exactSavedPngReads": 21
+    }
+  ],
+  "restoration": {
+    "originalApkUidDebugPrivateAndNineSettingsRestored": true,
+    "privateEntriesPerCase": [
+      190,
+      190
+    ],
+    "completeDropBoxEntries": 107,
+    "noAnr": true,
+    "normalControlAndObserverCleanup": true,
+    "hostProcesses": 0,
+    "hostListeners": 0
+  },
+  "localReplaceDiagnostic": {
+    "passed": true,
+    "realWindowsReadHandle": true,
+    "atomicReplaceWinerror": 5,
+    "deviceCommandsExecuted": 0,
+    "sdkCallsMocked": true,
+    "noSdkReplay": true,
+    "laterWriteSucceededAfterHandleClosed": true,
+    "actualNativeLockOwnerIdentified": false,
+    "resultSha256": "f3e6cdc0a4b1a4f0763950ac69fb324eb827751f521f3838aad7fe9127f607de"
+  },
+  "stillUnproven": [
+    "two-size-checkpoint-acceptance",
+    "repeated-latency-and-memory-distributions",
+    "whole-journey-all-owned-process-memory",
+    "same-source-observer-overhead",
+    "tauri-ipc-attribution",
+    "two-committed-startup-frames",
+    "complete-portable-orchestrator",
+    "other-platform-evidence"
+  ],
+  "evidenceSha256": {
+    "independent-sdk-callback-partial-audit.json": "5427a67d96cc55070a39a03feecef87df09a767c2519b7443ee6e3e02661f4d8",
+    "independent-terminal-audit.json": "4fe8cd505bf8cb1968e36734ea22b980b83414a7f0b549c0eefc41f077df70ee",
+    "independent-empty-frame-journey-audit.json": "7602b95ca0c24cd26859102c936f3c3fec8d9544d4637042cc394f7683eb34dd",
+    "original-sdk-caller-audit.json": "54951da8832fd87177490253361a4fa17166287a2a7a95c1197099a77e7fe0f5",
+    "external-terminal-r2.json": "e14e2ebc74e2f69bc5524fdd5e389a7c16986ac9a5b59a9a4a81911a7cac4fdb",
+    "combined-current-host-unit-result.json": "e36862079ce50eef4170d05ec218ba6bcbf2be90fd010d4748cd7505a2a7a3f5",
+    "memory-checkpoint-unit-result.json": "b78f1981e2e8a06bb17e270ac2b8c3786db9235a7aa08fc35ea5cfaf3d80e290",
+    "bootstrap-quiet-unit-result.json": "8bc738b629fda950df77fdff4324456f4a4798f40c2d592e119793d5b581477e",
+    "fresh-host-after/result.json": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  }
+}
