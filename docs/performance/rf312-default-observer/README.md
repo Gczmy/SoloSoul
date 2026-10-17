@@ -221,3 +221,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 打开后绑定完整文件快照
 
 `frontend_build.entry`在打开后绑定路径与句柄，分别保持完整mode／属性及相同文件身份；原父目录reparse与哈希期间变化拒绝保留。309项回归及全新输入捕获、生产前端和默认Release库生成通过，旧拒绝原样保留。尚未构建新APK或追加原生／性能样本，见[修正与实际证据](../RF-312-opened-file-snapshot.md)。
+
+
+## 当前默认库到 APK 的显式生成
+
+`package_build.py --config <config.json> --output <新目录>`消费正式通过的同源默认库，`package_environment.py`隔离并固定真实 Gradle／工具，`package_payload.py`验证源码资源、锁定模块及最终 APK。完整配置字段以 `package_build.FIELDS` 为准，必须提供完整工具／Gradle运行时／配置、旧依赖参考和内部测试签名身份；旧失败回执或可选观察器库拒绝。完整355项回归及实际Release打包／签名／独立内容审计通过；尚未追加原生或性能样本，见[说明与边界](../RF-312-source-default-apk.md)。
