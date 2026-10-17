@@ -211,3 +211,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 `frontend_build.py capture`绑定当前产品／插件子模块、完整已安装Node依赖和工具；`build --plan ... --output ...`将全部输入逐份复制到新工作区，执行原`npm run build`。`dependency_lock.py`核对已安装记录与产品锁文件，并逐包检查实际版本。缓存／临时目录及生成物使用显式输出，原输入在构建后完整复核。
 
 三个NSIS位图和搜索索引可在隔离副本中重新生成；其他受版本控制输入变化拒绝。资源清单须完整覆盖实际文件、大小和SHA，版本按内容重算。此入口生成前端及移动资源，完整Rust／APK链及原生测量仍有后续工作；见[命令、边界和验证](../RF-312-portable-frontend.md)。
+
+
+## 显式默认Android库编译组件（生成验收未完成）
+
+`build_payload.py`绑定生产前端回执及冻结副本；`library_build.py`显式绑定SDK／NDK、工具链、完整目标标准库和锁定生成器，在新目录执行原默认Release库编译。301项回归及真实Cargo命令完成，结束后输入复核因打开文件的属性变化拒绝，整体未通过；独立产物取证不替代该拒绝。下一项单独修正输入冻结方式并使用新前端回执重跑，旧记录不回写。没有新APK或原生／性能样本，见[配置与实际范围](../RF-312-portable-library.md)。
