@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "scope": "rf312-document-startup-milestone-observations",
+  "protocolSha256": "87fac4291dabd8e066cdd6860d781ca7a91a10bd848b981ba5c376adca05a1ff",
+  "queues": [
+    {
+      "slot": 1,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "473cf81d278b945c13e974de7eb9d7a9fa52ad4720ab817ebd40a37396d6ecf7",
+      "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+      "samples": [
+        {
+          "objectCount": 100,
+          "metadataSha256": "d265f7570dcb0d57c9209629ed27e42e9c08494ff0c30338bb3d6e8110caaf33",
+          "metrics": {
+            "reactMountMs": 1646.2000000000116,
+            "startupDismissedMs": 2595,
+            "mountInvocationToHandoffMs": 948.7999999999884,
+            "firstPaintMs": 1167.7999999999884,
+            "firstContentfulPaintMs": 1167.7999999999884
+          }
+        },
+        {
+          "objectCount": 5000,
+          "metadataSha256": "eb0d17911ad20c47a62dcc9898836aea3ff03e41f1f747b8e7dc26855ee4d13f",
+          "metrics": {
+            "reactMountMs": 1475.2000000000116,
+            "startupDismissedMs": 2542.7999999999884,
+            "mountInvocationToHandoffMs": 1067.5999999999767,
+            "firstPaintMs": 309.9000000000233,
+            "firstContentfulPaintMs": 309.9000000000233
+          }
+        }
+      ]
+    },
+    {
+      "slot": 2,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "ff31aea8db97bd070a312ea2836246e00df0196ba89b02122ba2687cb4d09d87",
+      "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+      "samples": [
+        {
+          "objectCount": 100,
+          "metadataSha256": "3564569dcc5c7964e9aaf6e9e5197ab1d39c2298bbbc45cc7318de0abe86f5c9",
+          "metrics": {
+            "reactMountMs": 1245.2999999999884,
+            "startupDismissedMs": 2042.0999999999767,
+            "mountInvocationToHandoffMs": 796.7999999999884,
+            "firstPaintMs": 1049.7000000000116,
+            "firstContentfulPaintMs": 1049.7000000000116
+          }
+        },
+        {
+          "objectCount": 5000,
+          "metadataSha256": "19b07068f506d9614cf7208b87a9ee6f66f1423f31ccb7ae0fcb52d187d11183",
+          "metrics": {
+            "reactMountMs": 1062.7000000000116,
+            "startupDismissedMs": 1254.100000000035,
+            "mountInvocationToHandoffMs": 191.40000000002328,
+            "firstPaintMs": 914.9000000000233,
+            "firstContentfulPaintMs": 914.9000000000233
+          }
+        }
+      ]
+    },
+    {
+      "slot": 3,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "0a53edbf9833151650cbcc259d275d4e60b35608553ee87c2af7038afe82f202",
+      "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+      "samples": [
+        {
+          "objectCount": 100,
+          "metadataSha256": "70b887c3e7e841657eff68b8871ccbac1c76fdb84ac73b944132b997f33da55d",
+          "metrics": {
+            "reactMountMs": 1809.1000000000058,
+            "startupDismissedMs": 2748.100000000006,
+            "mountInvocationToHandoffMs": 939.0,
+            "firstPaintMs": 1239,
+            "firstContentfulPaintMs": 1239
+          }
+        },
+        {
+          "objectCount": 5000,
+          "metadataSha256": "175c9dfad4ef7dd3b5311e5fbb36c476ff5676817504595da7ac8add4f4ead0c",
+          "metrics": {
+            "reactMountMs": 1817.399999999965,
+            "startupDismissedMs": 2740.5999999999767,
+            "mountInvocationToHandoffMs": 923.2000000000116,
+            "firstPaintMs": 529.5999999999767,
+            "firstContentfulPaintMs": 529.5999999999767
+          }
+        }
+      ]
+    },
+    {
+      "slot": 4,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "fc86ad799b52fbef05655d8a7572ee66a18138b6886400c040493276037539ae",
+      "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+      "samples": [
+        {
+          "objectCount": 100,
+          "metadataSha256": "43ae40f154fc2c8e699d9bbbd0762ce59ca41ce18dc7dcd344fb1cf355a790b7",
+          "metrics": {
+            "reactMountMs": 1837.5,
+            "startupDismissedMs": 2925.5999999999767,
+            "mountInvocationToHandoffMs": 1088.0999999999767,
+            "firstPaintMs": 735.6999999999825,
+            "firstContentfulPaintMs": 735.6999999999825
+          }
+        },
+        {
+          "objectCount": 5000,
+          "metadataSha256": "58d2574a2836bf67945fc2bb3c18907bfdfda5737a1652b582ba5b2c81b9106a",
+          "metrics": {
+            "reactMountMs": 1347,
+            "startupDismissedMs": 2455.8000000000466,
+            "mountInvocationToHandoffMs": 1108.8000000000466,
+            "firstPaintMs": 322.1000000000349,
+            "firstContentfulPaintMs": 322.1000000000349
+          }
+        }
+      ]
+    },
+    {
+      "slot": 5,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "172a73fd7838edce0f82ed08ec6be04bdaa904449e9bb89d58dabee16ca30814",
+      "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+      "samples": [
+        {
+          "objectCount": 100,
+          "metadataSha256": "c85317c68fdc2cc7d6b58d44bacd611902e75cf319e6f41d203a95b3696b7798",
+          "metrics": {
+            "reactMountMs": 1809.3000000000175,
+            "startupDismissedMs": 2961.899999999994,
+            "mountInvocationToHandoffMs": 1152.5999999999767,
+            "firstPaintMs": 1382.1000000000058,
+            "firstContentfulPaintMs": 1382.1000000000058
+          }
+        },
+        {
+          "objectCount": 5000,
+          "metadataSha256": "c03a9586da5d601b1a48a30b39e49ff6f2e02e3b913a1fbe059567f1db85a8f7",
+          "metrics": {
+            "reactMountMs": 1625.2999999999884,
+            "startupDismissedMs": 2781.100000000035,
+            "mountInvocationToHandoffMs": 1155.8000000000466,
+            "firstPaintMs": 563.5,
+            "firstContentfulPaintMs": 563.5
+          }
+        }
+      ]
+    }
+  ]
+}

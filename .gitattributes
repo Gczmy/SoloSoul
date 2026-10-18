@@ -156,3 +156,6 @@ docs/performance/rf312-frame-runtime/frame_manifest.py whitespace=-blank-at-eof
 docs/performance/rf312_milestone_statistics.py text eol=lf
 docs/performance/test_rf312_milestone_statistics.py text eol=lf
 docs/performance/rf312-startup-milestone-cohort-protocol-2026-10-18.json text eol=lf
+docs/performance/rf312-milestone-cohort-input-2026-10-18.json text eol=lf
+docs/performance/rf312-milestone-cohort-summary-2026-10-18.json text eol=lf
+docs/performance/rf312-milestone-cohort-2026-10-18.validation.json text eol=lf
