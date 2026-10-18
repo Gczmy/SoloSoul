@@ -113,3 +113,10 @@ docs/performance/rf312-ime-viewport-ready-2026-10-17.json text eol=lf
 docs/performance/rf312-sampling-control-2026-10-17.json text eol=lf
 docs/performance/rf312-state-transport-cost-2026-10-17.json text eol=lf
 docs/performance/rf312-ui-exchange-investigation-2026-10-17.json text eol=lf
+
+# Java UI 传输的冻结输入绑定源码原始字节，Windows 检出也保持 LF。
+docs/performance/rf312_owned_ui.py text eol=lf
+docs/performance/test_rf312_owned_ui.py text eol=lf
+docs/performance/rf312-owned-ui/*.py text eol=lf
+docs/performance/rf312-owned-ui/*.java text eol=lf
+docs/performance/rf1186-windows-source-checkout-2026-10-18.json text eol=lf
