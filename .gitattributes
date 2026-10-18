@@ -151,3 +151,8 @@ docs/performance/rf312-frame-runtime/*.mjs text eol=lf
 
 # 保留已验证生成器原字节；该文件仅例外处理历史 EOF 空行。
 docs/performance/rf312-frame-runtime/frame_manifest.py whitespace=-blank-at-eof
+
+# 固定统计源码与预声明协议的字节，避免检出换行改变绑定。
+docs/performance/rf312_milestone_statistics.py text eol=lf
+docs/performance/test_rf312_milestone_statistics.py text eol=lf
+docs/performance/rf312-startup-milestone-cohort-protocol-2026-10-18.json text eol=lf

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "scope": "rf312-document-startup-five-queue-protocol",
+  "plannedQueues": 5,
+  "objectCounts": [
+    100,
+    5000
+  ],
+  "clock": "document-relative-ms",
+  "order": "ascending-slots-then-100-5000",
+  "failurePolicy": "stop-and-retain-no-replacement",
+  "quantile": "nearest-rank-p95",
+  "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+  "statisticsSourceSha256": "e51ff947f6c8db4daf8028db9c7c432a01835193d7e7652b3e72046a36d61a4a",
+  "targetApkSha256": "45291865dd1f0fefaa3695ca26df145537ca29096ea7c19851c08b20a25141a2",
+  "collectorApkSha256": "e0f9c40149fd70907453949c74726da50a161e54f8efa4006d2b0b2c9533515d",
+  "exploratoryPairIncluded": false
+}
