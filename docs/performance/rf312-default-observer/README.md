@@ -226,3 +226,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 当前默认库到 APK 的显式生成
 
 `package_build.py --config <config.json> --output <新目录>`消费正式通过的同源默认库，`package_environment.py`隔离并固定真实 Gradle／工具，`package_payload.py`验证源码资源、锁定模块及最终 APK。完整配置字段以 `package_build.FIELDS` 为准，必须提供完整工具／Gradle运行时／配置、旧依赖参考和内部测试签名身份；旧失败回执或可选观察器库拒绝。完整355项回归及实际Release打包／签名／独立内容审计通过；尚未追加原生或性能样本，见[说明与边界](../RF-312-source-default-apk.md)。
+
+
+## 启动帧隔离诊断（仍未通过）
+
+四次显式目标插桩均未收到两次提交回调，最新已进入登录就绪边界；5000 档均未启动。源码候选与离线可迁移生产者的构建验证不替代原生成功，尚不作为本公开默认入口的一部分。保留首轮终态 JSON 缺失、公开 OCR 清理未确认及一条控制拒绝尾部；数据／包／系统设置恢复与四份原期限内宿主归零已回放。见[实际拒绝及下一步](../RF-312-startup-frame-diagnostics.md)。
