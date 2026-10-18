@@ -1,0 +1,132 @@
+{
+  "task": "RF-121",
+  "at": "2026-10-15T00:45:59.586423+00:00",
+  "fullTaskAccepted": false,
+  "scope": "current-source-native-build-checkpoint-only",
+  "sourceHead": "ad93ff0d4d115229aabffae1faaf2de2be520ea7",
+  "sourceCount": 1988,
+  "sourceManifestSha256": "06b5c001dcb96c62f9e7619d39793bbca78ba8f96654615ff7c0f48e04d10c6e",
+  "runtimeSha256": "6cb829ee42e54cef1f487c56865b8e45fb02aeeb09c0ff1cb402d4a7982b9306",
+  "runtimeBytes": 103965696,
+  "resources": 94,
+  "frontendOutputs": 38,
+  "frontendManifestSha256": "6a671b60b8d192707127ef1d67ca030c64d345a368404f5af6a54dac09481f6a",
+  "toolchain": {
+    "at": "2026-10-15T00:08:29.121979+00:00",
+    "versions": {
+      "node": "v24.19.0",
+      "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+      "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)"
+    },
+    "architecture": "AMD64",
+    "windowsBuild": 26100,
+    "python": "3.14.6",
+    "userNamesRead": false,
+    "systemSettingsChanged": false
+  },
+  "matrixRuntimeTools": {
+    "nodeOnPath": "v24.16.0",
+    "probeRunsOutsideSandbox": true,
+    "systemSettingsChanged": false
+  },
+  "defaultFeaturesAndProductSourceUnchanged": true,
+  "checks": {
+    "typeScriptExitCode": 0,
+    "productionFrontendExitCode": 0,
+    "nativeDiagnosticNodePassed": 115,
+    "surfaceAndPreferenceNodePassed": 34,
+    "nativeClippyExitCode": 0,
+    "nativeRustPassed": 142,
+    "nativeRustFailed": 0,
+    "nativeRustIgnored": 0,
+    "nativeReleaseExitCode": 0
+  },
+  "ownedReader": {
+    "passed": 10,
+    "skipped": 1,
+    "skipReason": "missing SeCreateSymbolicLinkPrivilege",
+    "taskClosed": false,
+    "sandboxJunctionCreationRefusalPreserved": true,
+    "ordinaryPermissionJunctionCasePassed": true
+  },
+  "desktopPreflights": [
+    {
+      "at": "2026-10-15T00:10:36.698152+00:00",
+      "callerPid": 25036,
+      "callerSessionId": 1,
+      "userNamesRead": false,
+      "pixelsRead": 0,
+      "inputEventsSent": 0,
+      "systemSettingsChanged": false,
+      "connectionState": 4,
+      "connectionStateName": "Disconnected",
+      "inputDesktopAvailable": false,
+      "inputDesktopError": 5,
+      "nativeInputDesktopPreconditionAvailable": false
+    },
+    {
+      "at": "2026-10-15T00:25:05.972277+00:00",
+      "callerPid": 3400,
+      "callerSessionId": 1,
+      "userNamesRead": false,
+      "pixelsRead": 0,
+      "inputEventsSent": 0,
+      "systemSettingsChanged": false,
+      "connectionState": 4,
+      "connectionStateName": "Disconnected",
+      "inputDesktopAvailable": false,
+      "inputDesktopError": 5,
+      "nativeInputDesktopPreconditionAvailable": false
+    },
+    {
+      "at": "2026-10-15T00:45:57.970337+00:00",
+      "callerPid": 27324,
+      "callerSessionId": 1,
+      "userNamesRead": false,
+      "pixelsRead": 0,
+      "inputEventsSent": 0,
+      "systemSettingsChanged": false,
+      "connectionState": 4,
+      "connectionStateName": "Disconnected",
+      "inputDesktopAvailable": false,
+      "inputDesktopError": 5,
+      "nativeInputDesktopPreconditionAvailable": false
+    },
+    {
+      "at": "2026-10-14T23:58:29.673454+00:00",
+      "callerPid": 31532,
+      "callerSessionId": 1,
+      "userNamesRead": false,
+      "pixelsRead": 0,
+      "inputEventsSent": 0,
+      "systemSettingsChanged": false,
+      "connectionState": 4,
+      "connectionStateName": "Disconnected",
+      "inputDesktopAvailable": false,
+      "inputDesktopError": 5,
+      "nativeInputDesktopPreconditionAvailable": false
+    }
+  ],
+  "guiAcceptanceIncluded": false,
+  "fullFourCohortMatrixAccepted": false,
+  "matrixPreparationOnly": true,
+  "originalUiActionsIdentityBudgetsAndRestorationRequirementsPreserved": true,
+  "runtimeAndResourceCopiesRetainedForFurtherValidation": true,
+  "pending": [
+    "current complete four-cohort Windows native matrix",
+    "remaining RF-121 native accessibility/platform coverage",
+    "RF-112 isolated macOS lock/unlock",
+    "RF-1128 actual Windows file-symlink rejection"
+  ],
+  "archive": {
+    "path": "rf121-current-source-native-build-2026-10-15/raw.zip",
+    "members": 56,
+    "bytes": 248279,
+    "sha256": "0e5ba0db8e2977578480b7facf4c983e6f2af38f98b426c36f4f012d9e177e87",
+    "allLengthsSha256AndCrcVerified": true
+  },
+  "docValidationReference": "rf121-current-source-native-build-2026-10-15/doc-validation.json",
+  "runtimeEntryUsesSharedFormalSetup": true,
+  "sharedFormalSetupExecutionAccepted": false,
+  "legacyPackageSetupFlagMeaning": "Static code-path linkage only; not an observed setup invocation. No GUI was started for this checkpoint."
+}

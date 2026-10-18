@@ -1,0 +1,26 @@
+{
+  "firstAttempt": {
+    "check": "node tauri/scripts/check-markdown-chunk-boundary.mjs",
+    "workingDirectory": "repository root",
+    "exitCode": 1,
+    "observedError": "UNRESOLVED_ENTRY: Cannot resolve entry module index.html.",
+    "classification": "incorrect working directory; required working directory is tauri",
+    "viteWritesOutput": false,
+    "originalToolOutputPreservedInConversation": true,
+    "productCodeChanged": false
+  },
+  "correctedAttempt": {
+    "command": [
+      "node",
+      "scripts/check-markdown-chunk-boundary.mjs"
+    ],
+    "workingDirectory": "tauri",
+    "exitCode": 0,
+    "nodeVersion": "24.16.0",
+    "dependencyFamilies": 13,
+    "log": "markdown-chunk-check.log.gz",
+    "rawBytes": 94,
+    "rawSha256": "abfdf70db7efe8c7958233249d814ae44050d7f26c8abab8c94de1ab10d1e060"
+  },
+  "buildArchiveRemainsUnchanged": true
+}

@@ -1,0 +1,343 @@
+{
+  "task": "RF-121",
+  "members": [
+    {
+      "member": "build/archive-build.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\archive-build.py",
+      "bytes": 6469,
+      "sha256": "2aa4f3090e610d3af93ff2d087d974425061fd397efc921f1327c502f187b6c6"
+    },
+    {
+      "member": "build/build-current.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\build-current.py",
+      "bytes": 6248,
+      "sha256": "61e6e84077e1ddec245deba0d2b05355d71ecc82160ffff3b45d5ed790f6a756"
+    },
+    {
+      "member": "build/desktop-preflight-20261015T001036623716Z.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\desktop-preflight-20261015T001036623716Z.json",
+      "bytes": 385,
+      "sha256": "a7515943f85d838c2bb843017cb7a64a24e886bb1e993dbb726a9db327cbeae6"
+    },
+    {
+      "member": "build/desktop-preflight-20261015T002505903178Z.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\desktop-preflight-20261015T002505903178Z.json",
+      "bytes": 384,
+      "sha256": "beb827c126384593c79ee9d547241c63e7eaf8da2d1b36eac46e53b49da8d246"
+    },
+    {
+      "member": "build/desktop-preflight-20261015T004557910133Z.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\desktop-preflight-20261015T004557910133Z.json",
+      "bytes": 385,
+      "sha256": "2fde85ca5c0ab6b5e24df9f7aa8b946fc3819732663fd5474b578d6aaf0a959a"
+    },
+    {
+      "member": "build/desktop-preflight.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\desktop-preflight.json",
+      "bytes": 385,
+      "sha256": "a42a8419c82fd0c355e3ae3892d7121a184eb3bece1f52e50c6ccfc897cfbd0b"
+    },
+    {
+      "member": "build/frontend-production.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-production.live.json",
+      "bytes": 232,
+      "sha256": "13f76683733bad87306af6f0e844099a015e67f292e7f664ea51423de15d7cde"
+    },
+    {
+      "member": "build/frontend-production.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-production.receipt.json",
+      "bytes": 256,
+      "sha256": "6f004581e6a85fa61f3652f6dc471538857202db760eaae743adbc56a124c606"
+    },
+    {
+      "member": "build/frontend-production.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-production.stderr.log",
+      "bytes": 1842,
+      "sha256": "77c9a7fd721c14dbf72d8d0209b871f8c62e04afe047f084f388155b2df047d9"
+    },
+    {
+      "member": "build/frontend-production.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-production.stdout.log",
+      "bytes": 3335,
+      "sha256": "5f0c3f2f96be9bd950478b63c1771a1992353867e08722b3e35ac41f5fd6776b"
+    },
+    {
+      "member": "build/frontend-types.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-types.live.json",
+      "bytes": 237,
+      "sha256": "25c2a32d4e7d18fbab0d54ff3775574d62f713e459239300eb2b85c660a0035b"
+    },
+    {
+      "member": "build/frontend-types.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-types.receipt.json",
+      "bytes": 260,
+      "sha256": "eb9f27c6cd0d6769e6631a9d74534680989dbaeb549db64925dec8c57ba90892"
+    },
+    {
+      "member": "build/frontend-types.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-types.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build/frontend-types.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend-types.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build/frontend.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\frontend.json",
+      "bytes": 5860,
+      "sha256": "6a671b60b8d192707127ef1d67ca030c64d345a368404f5af6a54dac09481f6a"
+    },
+    {
+      "member": "build/matrix-preflight.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix-preflight.py",
+      "bytes": 2134,
+      "sha256": "0c061f357e087f14264531d1ca0e2070bd6ef9c72ede4ea52d85d6fb48514d3c"
+    },
+    {
+      "member": "build/matrix-runtime-tools.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix-runtime-tools.json",
+      "bytes": 105,
+      "sha256": "29363b19bb817fa20d47e4fdf05895b172519cbd90e5939ef34d35dbfd9f9d65"
+    },
+    {
+      "member": "build/native-build-config.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-build-config.json",
+      "bytes": 84,
+      "sha256": "ba35d2e33965dda135eb36975909f092817552bb8fd6400d8cfd30d1bae35f04"
+    },
+    {
+      "member": "build/native-clippy.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-clippy.live.json",
+      "bytes": 296,
+      "sha256": "0ce3785b9148c67ae707b72dc87dd4d5e81191d50fdeebe7bd3d6d86c0193c34"
+    },
+    {
+      "member": "build/native-clippy.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-clippy.receipt.json",
+      "bytes": 320,
+      "sha256": "8c7d5ca68b7333ab6aae915d547ef6e087d1c346eccf8ac7757eb98013b9683e"
+    },
+    {
+      "member": "build/native-clippy.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-clippy.stderr.log",
+      "bytes": 132,
+      "sha256": "50948070e9c8a0c935fa84888f230fe63740010fb8fba0b9b8a36eaa0848144b"
+    },
+    {
+      "member": "build/native-clippy.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build/native-node.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-node.live.json",
+      "bytes": 468,
+      "sha256": "61a43686db5e45f39345a2dcceede0305bda65c9c31e969db28d2283cc2da283"
+    },
+    {
+      "member": "build/native-node.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-node.receipt.json",
+      "bytes": 493,
+      "sha256": "35557e7be9708ff8ce865cf7e7d1a274661eada8783caf09993c2e9e009c6620"
+    },
+    {
+      "member": "build/native-node.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-node.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build/native-node.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-node.stdout.log",
+      "bytes": 11623,
+      "sha256": "796c7eb8d3db9c6414abd1012bdc1ea8399a70a6eb3e63072a74e897770532ed"
+    },
+    {
+      "member": "build/native-release.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-release.live.json",
+      "bytes": 285,
+      "sha256": "104e8716c181c7edbb14695e2232df1210c10cddcf26ec5c7333e57e279a36fb"
+    },
+    {
+      "member": "build/native-release.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-release.receipt.json",
+      "bytes": 308,
+      "sha256": "a37c60a64cac1d5f204ac88fdaca207531649c183bbfb28cbfa5a1c37cba8e63"
+    },
+    {
+      "member": "build/native-release.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-release.stderr.log",
+      "bytes": 659,
+      "sha256": "d60b73687752c1d85b680d2e8b29756d2bd7ff5c906316ac425e8a137be8928d"
+    },
+    {
+      "member": "build/native-release.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-release.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "member": "build/native-tests.live.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-tests.live.json",
+      "bytes": 299,
+      "sha256": "ef22e690ce8a8af961e308e3eb4adbd13668f2c23db6006f78698d5da8333a69"
+    },
+    {
+      "member": "build/native-tests.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-tests.receipt.json",
+      "bytes": 323,
+      "sha256": "47f23bb1706380306527af7ff13736e848ee7974b96b1505ba5ff6989aad5045"
+    },
+    {
+      "member": "build/native-tests.stderr.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-tests.stderr.log",
+      "bytes": 1422,
+      "sha256": "04c37fe97cfd01339efe0c525989a687e5e8eb6545d36e30039f6f21b1b8c58d"
+    },
+    {
+      "member": "build/native-tests.stdout.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\native-tests.stdout.log",
+      "bytes": 57639,
+      "sha256": "676500d3f47cc56add97415fd49379c86a87ca82d21704f71afc61afd45480aa"
+    },
+    {
+      "member": "build/owned-reader-tests-unsandboxed.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\owned-reader-tests-unsandboxed.log",
+      "bytes": 1979,
+      "sha256": "671695d630b3e166330e27e0b64450ea08f8a8bf31124b6a328a6a3a451858ea"
+    },
+    {
+      "member": "build/owned-reader-tests.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\owned-reader-tests.log",
+      "bytes": 2646,
+      "sha256": "a8253ab42824585a8bf7295251bde24efb668ee4ec1f034d9ebc061a4b5e5e7e"
+    },
+    {
+      "member": "build/preflight.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\preflight.py",
+      "bytes": 2593,
+      "sha256": "09012f710652e90754d8e23a72227744b6ff8f2ce6c780e11c589fa6a9a2e3b5"
+    },
+    {
+      "member": "build/prepare-matrix.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\prepare-matrix.py",
+      "bytes": 4373,
+      "sha256": "4b32cb7a91d7ac324619f8e940203ccf977be39f1a2d38cfaf0750a7022e7e73"
+    },
+    {
+      "member": "build/recheck-desktop.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\recheck-desktop.py",
+      "bytes": 559,
+      "sha256": "8706217f414d29afe9c653d6dc8184175b2164d68c775e2db8f98bba100aa143"
+    },
+    {
+      "member": "build/render-surface.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\render-surface.py",
+      "bytes": 2161,
+      "sha256": "bb43675bd238d112a929d64960ce14e44ced95880132db6f2e104c9f46190b0b"
+    },
+    {
+      "member": "build/run-cohorts.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\run-cohorts.py",
+      "bytes": 2800,
+      "sha256": "37ce825ea4e1c2342fe7b45b0b4d7f5377a05e93559c2e8df333a285344927f6"
+    },
+    {
+      "member": "build/run-surface.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\run-surface.py",
+      "bytes": 21433,
+      "sha256": "7de118dfccf595ca505126d2d92652e77253e9d37a754e06528821e16df3784c"
+    },
+    {
+      "member": "build/runtime-package.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\runtime-package.json",
+      "bytes": 36164,
+      "sha256": "9385d3ded22d40d175dc8ad8272820ed9b464dd537a1bc03c4b13cbaaedaf51e"
+    },
+    {
+      "member": "build/source-context.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\source-context.json",
+      "bytes": 615,
+      "sha256": "7a8c4c03ed6bff4b017642912322162ff0b86460311eb4626dec125fb6d73cef"
+    },
+    {
+      "member": "build/sources.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\sources.json",
+      "bytes": 247207,
+      "sha256": "06b5c001dcb96c62f9e7619d39793bbca78ba8f96654615ff7c0f48e04d10c6e"
+    },
+    {
+      "member": "build/surface-node.log",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\surface-node.log",
+      "bytes": 3238,
+      "sha256": "7baa8f6e522164b4c71440ac49bed9e0a3900dfa476ea40f86a443dd300071ed"
+    },
+    {
+      "member": "build/surface-node.receipt.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\surface-node.receipt.json",
+      "bytes": 387,
+      "sha256": "fd664f471cc63e408ab53ed875429ad56270b0bf51d72390526fbbadfcd4b416"
+    },
+    {
+      "member": "build/toolchain.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\toolchain.json",
+      "bytes": 329,
+      "sha256": "f706ce46fa513b0c8f8aac3d5f8f6ac3aab8273d0a5758f686ca4496afbdd5e3"
+    },
+    {
+      "member": "build/toolchain.py",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\toolchain.py",
+      "bytes": 1013,
+      "sha256": "493e77ccddebb96a6c99895b9ee2005c489ed3e2e1b758956c895a7fb8b9aca8"
+    },
+    {
+      "member": "build/verify-surface.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\verify-surface.mjs",
+      "bytes": 26599,
+      "sha256": "b1a818246e1b947fcd3665a3667d0b2cfe2dd2777ad5d2009ef26232e352de1b"
+    },
+    {
+      "member": "build/window-restore-contract.mjs",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\window-restore-contract.mjs",
+      "bytes": 3086,
+      "sha256": "0b57153435af7163be784ebfbae28e9bc759361e956702d10320349b209810c8"
+    },
+    {
+      "member": "matrix/caption-runtime-package.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix\\caption-runtime-package.json",
+      "bytes": 37654,
+      "sha256": "e4c462b3e71659197208e3cfddbc68e7e44f49f53e7c12c8809eadb79d3047a7"
+    },
+    {
+      "member": "matrix/preparation.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix\\preparation.json",
+      "bytes": 3194,
+      "sha256": "a0e58a1a399825b4c4b882998073512b90329ee4524537ebd939929fdc485a0a"
+    },
+    {
+      "member": "matrix/restore-helper.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix\\restore-helper.json",
+      "bytes": 555,
+      "sha256": "fdad076e9e33e4e975335cde18183d6e1b91577cf51b996df2732e8730d8f600"
+    },
+    {
+      "member": "matrix/sources.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix\\sources.json",
+      "bytes": 247207,
+      "sha256": "06b5c001dcb96c62f9e7619d39793bbca78ba8f96654615ff7c0f48e04d10c6e"
+    },
+    {
+      "member": "matrix/tools.json",
+      "source": "D:\\SoloSoul\\build\\rf121-resume-20261015\\matrix\\tools.json",
+      "bytes": 1203,
+      "sha256": "c377602036778b5535b337fa1ec8c67a6ed0a48c9944c1192a41a68a24405081"
+    }
+  ],
+  "allLengthsSha256AndCrcVerified": true,
+  "executablesRuntimeResourcesProfilesVaultsAndTemporaryFixturesExcluded": true
+}
