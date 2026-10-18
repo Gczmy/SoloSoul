@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "task": "RF-312",
+  "scope": "existing-local-baseline-consolidation-and-remaining-task-audit",
+  "sourceRevision": "06241404773fef1d86f45377196b6e5b80e7eb44",
+  "productRevision": "305b86020a33b5368299b07594b94542f0869e09",
+  "latestMainRevision": "30391266843358b0829643b7fb4f9d82bd10532f",
+  "latestMainAlreadyAncestor": true,
+  "productSourceUnchangedSinceVerifiedDefaultRelease": true,
+  "sourceSha256": {
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md": "c3c9efa067ebd87471c2f07bcf737ae19576672c5825f46027417f62ee6f0d83",
+    "docs/performance/RF-312-source-default-apk.md": "d2bd5d025762b904c0287e16d7814bb7b0f814480b63851ff7b2b11997f8df03",
+    "docs/performance/RF-312-default-fixed-five.md": "4a84d464fc47260b2df7ac5e9ee90e9b90c3432e90d985e9551fb03a03bf135b",
+    "docs/performance/rf312-sampling-cohort-summary-2026-10-18.json": "4bf9ae9283b880d9580bb5d8ec599da92b71d076ceb30b95e41fee4684c9a6c1",
+    "docs/performance/rf312-sampling-cohort-input-2026-10-18.json": "1f31588fdbda816fe6908955185119b903f1d2c3e61035f7fa2fdc1bd14ad25d",
+    "docs/performance/RF-312-sampling-cohort.md": "688b768f9350f2037161fdcce21f3af3aeaac3cd98c3d1fa40bf3936c33b0b07",
+    "docs/performance/RF-312-observer-cohort-timing.md": "efa159df402150d5731bb8423e81d29fad04a0deb18fb717c4d156b7a0a9b18c",
+    "docs/performance/rf312-current-ipc-2026-10-18.json": "ed9404632ba902241757e4cd3aded38d58cef2147fda80012e818f9f2332fc42",
+    "docs/performance/RF-312-current-ipc.md": "64e387b4801861789718d79c1bfe3d3d0aebf19d8b0d04bd1283822276fa9708",
+    "docs/performance/rf312-startup-am-profile-2026-10-18.json": "d8a4104eb16faab9f37ab91c50bec2163da968a35df604768ef4d3ff7836f5cc",
+    "docs/performance/rf312-application-observation-endpoints-2026-10-18.json": "a66068dfaa13aed536ba0e4e35b4c7e33a401ad88da9a707169d446255d55e76",
+    "docs/performance/RF-312-current-windows-gui-baseline.md": "8b7f85ee77b9ff7520d76c1cd5365300e292a816b649bbe63601162f6adb9568",
+    "docs/performance/RF-312-current-windows-media-baseline.md": "616193d5539547e01d2ffe97b3a50f70d671aaee91da064805bb1d74ea7c7d58",
+    "docs/performance/RF-312-current-native-vault-baseline.md": "b5317c1dbae7b4a94cccc6b5dcae919bb56e1b375aa0e0b54e4a84e579070952",
+    "docs/verification/rf112-theme-controller-2026-10-02.json": "8e6b77084267040015d4ddb949247ead3a35628f3b7e6832f1fbac3b9036cd83",
+    "docs/verification/rf112-current-api31-lifecycle-2026-10-16.json": "241378fbe751d83f85c946dc9baf5e6769bd43cbf9342198da5fd46439ea0860",
+    "docs/verification/rf112-current-api31-cold-motion-2026-10-16.json": "f442dc8e086e4d546bc63aeeb1a386fdc256eb6e7730365618dc315d501c2842",
+    "docs/verification/rf121-macos-native-checkpoint-2026-10-02.json": "874583a20d7748da76f8739dd4c09c824f48cbeffe90440398fe0453c7ad9b2b",
+    "docs/verification/rf121-current-api31-card-surfaces-2026-10-16.json": "3d3b771fd3d267c4ac95ab08223a29cd5325bacacd51395e60fe49da92f0af87",
+    "docs/verification/rf121-current-api35-card-surfaces-2026-10-16.json": "1b29cb687ae401a0a5ef05a87649a3d7d7b179e817920aa0198a414d068a5b89",
+    "docs/verification/rf121-current-windows-four-scenes-2026-10-15.json": "309d0f7a0d4520171f2550873e8ef2f2379fe6a2383048e2d4dabef032d535eb",
+    "docs/verification/rf121-current-card-transparency-2026-10-15.json": "fccda784bf886084b98345b9b70bdd31933d244a6dd6087fb5d895120528062c"
+  },
+  "previouslyProtectedFilesVerified": 246,
+  "nativeEvidenceReexecuted": false,
+  "newNativeRuns": 0,
+  "newSdkCalls": 0,
+  "newInputEvents": 0,
+  "allOriginalReadersBudgetsFailuresAndAcceptanceFlagsPreserved": true,
+  "ledger": {
+    "closed": 369,
+    "total": 378,
+    "unfinished": 9
+  },
+  "defaultReleaseCohort": {
+    "modeOutcomes": {
+      "accepted": 9,
+      "refused": 3,
+      "awaiting-terminal-evidence": 0
+    },
+    "cells": [
+      {
+        "mode": "off",
+        "objectCount": 100,
+        "samples": 5,
+        "workloadWindowUpperBoundMs": {
+          "valuesInPairOrder": [
+            134078.00000009593,
+            127781.00000007544,
+            124406.00000007544,
+            null,
+            124327.99999997951,
+            125312.00000003446
+          ],
+          "acceptedSamples": 5,
+          "median": 125312.00000003446,
+          "nearestRankEmpiricalP95": 134078.00000009593,
+          "maximum": 134078.00000009593
+        },
+        "postJourneySerialPssBytes": {
+          "valuesInPairOrder": [
+            243662848,
+            266075136,
+            266280960,
+            null,
+            265978880,
+            245167104
+          ],
+          "acceptedSamples": 5,
+          "median": 265978880,
+          "nearestRankEmpiricalP95": 266280960,
+          "maximum": 266280960
+        }
+      },
+      {
+        "mode": "off",
+        "objectCount": 5000,
+        "samples": 5,
+        "workloadWindowUpperBoundMs": {
+          "valuesInPairOrder": [
+            121280.99999995902,
+            122483.99999993853,
+            122827.99999997951,
+            null,
+            123311.99999991804,
+            126125.0
+          ],
+          "acceptedSamples": 5,
+          "median": 122827.99999997951,
+          "nearestRankEmpiricalP95": 126125.0,
+          "maximum": 126125.0
+        },
+        "postJourneySerialPssBytes": {
+          "valuesInPairOrder": [
+            290655232,
+            289199104,
+            292104192,
+            null,
+            301043712,
+            287897600
+          ],
+          "acceptedSamples": 5,
+          "median": 290655232,
+          "nearestRankEmpiricalP95": 301043712,
+          "maximum": 301043712
+        }
+      },
+      {
+        "mode": "on",
+        "objectCount": 100,
+        "samples": 4,
+        "workloadWindowUpperBoundMs": {
+          "valuesInPairOrder": [
+            138094.00000004098,
+            null,
+            138547.0000000205,
+            null,
+            140422.0000000205,
+            159218.99999992456
+          ],
+          "acceptedSamples": 4,
+          "median": 139484.5000000205,
+          "nearestRankEmpiricalP95": 159218.99999992456,
+          "maximum": 159218.99999992456
+        },
+        "postJourneySerialPssBytes": {
+          "valuesInPairOrder": [
+            262881280,
+            null,
+            265060352,
+            null,
+            242159616,
+            268550144
+          ],
+          "acceptedSamples": 4,
+          "median": 263970816.0,
+          "nearestRankEmpiricalP95": 268550144,
+          "maximum": 268550144
+        }
+      },
+      {
+        "mode": "on",
+        "objectCount": 5000,
+        "samples": 4,
+        "workloadWindowUpperBoundMs": {
+          "valuesInPairOrder": [
+            142452.9999999795,
+            null,
+            140077.9999999795,
+            null,
+            134811.99999991804,
+            158577.9999999795
+          ],
+          "acceptedSamples": 4,
+          "median": 141265.4999999795,
+          "nearestRankEmpiricalP95": 158577.9999999795,
+          "maximum": 158577.9999999795
+        },
+        "postJourneySerialPssBytes": {
+          "valuesInPairOrder": [
+            281702400,
+            null,
+            278060032,
+            null,
+            284653568,
+            292413440
+          ],
+          "acceptedSamples": 4,
+          "median": 283177984.0,
+          "nearestRankEmpiricalP95": 292413440,
+          "maximum": 292413440
+        }
+      }
+    ]
+  },
+  "separateDiagnosticIpc": {
+    "samplesPerSize": 1,
+    "sendAttempts": [
+      235,
+      238
+    ],
+    "targetInstrumentationInjected": true,
+    "countsAreSendAttemptsNotBackendSuccesses": true
+  },
+  "separateStartupAmObservations": [
+    {
+      "objectCount": 100,
+      "samples": 1,
+      "systemColdStartupWindowNs": 414148520,
+      "stableLoginTapChecksCompleteAfterIntentNs": 11236910770,
+      "unlockMethodStartToVerifiedCounterSnapshotEndNs": 5319867261,
+      "sampledMaximumSerialPssBytes": 269769728,
+      "memoryExclusiveCategories": {
+        "numeric": 84,
+        "validPrelaunchAbsence": 1,
+        "failedCaptures": 0,
+        "missedSlots": 1
+      }
+    },
+    {
+      "objectCount": 5000,
+      "samples": 1,
+      "systemColdStartupWindowNs": 549114365,
+      "stableLoginTapChecksCompleteAfterIntentNs": 7517224507,
+      "unlockMethodStartToVerifiedCounterSnapshotEndNs": 5006712509,
+      "sampledMaximumSerialPssBytes": 305081344,
+      "memoryExclusiveCategories": {
+        "numeric": 82,
+        "validPrelaunchAbsence": 1,
+        "failedCaptures": 0,
+        "missedSlots": 1
+      }
+    }
+  ],
+  "requirements": {
+    "reproducibleBuildAndFixture": "RF-312-source-default-apk.md",
+    "reproducibleNativeQueue": "rf312-native-queue/README.md",
+    "repeatedStartupUnlockSearchOcrPreviewLockRestore": "RF-312-sampling-cohort.md",
+    "memorySamplingAndRefusals": "RF-312-sampling-cohort.md",
+    "actualDiagnosticTransportCounts": "RF-312-current-ipc.md",
+    "systemStartupAndFunctionalObservation": "RF-312-application-observation-endpoints.md",
+    "windowsGuiAndFirstMedia": "RF-312-current-windows-media-baseline.md",
+    "hardwareBuildSampleAndMethod": "RF-312-observer-cohort-timing.md",
+    "loadingAndPaginationDecision": "retain-current-strategy; insufficient-bottleneck-attribution",
+    "crossPlatformNativeCoverage": "incomplete; no-current-Apple-native-acceptance"
+  },
+  "remaining": {
+    "RF112": "isolated-macOS-native-lock-unlock-restore",
+    "RF121": "remaining-Windows-native-accessibility-and-macOS-material-restore-matrix",
+    "RF312": "cross-platform-native-baseline; existing-method-limits-remain-explicit",
+    "deferredSurfaceDependencies": {
+      "RF-122": [
+        "RF-121",
+        "RF-115",
+        "RF-116"
+      ],
+      "RF-123": [
+        "RF-121",
+        "RF-102",
+        "RF-104"
+      ],
+      "RF-124": [
+        "RF-117",
+        "RF-121"
+      ],
+      "RF-125": [
+        "RF-107",
+        "RF-109",
+        "RF-121",
+        "RF-122"
+      ],
+      "RF-126": [
+        "RF-122"
+      ],
+      "RF-127": [
+        "RF-115",
+        "RF-116",
+        "RF-117",
+        "RF-118",
+        "RF-119",
+        "RF-120",
+        "RF-121",
+        "RF-122",
+        "RF-123",
+        "RF-124",
+        "RF-125",
+        "RF-126"
+      ]
+    }
+  },
+  "currentWindowsPreflight": {
+    "connectionState": "Disconnected",
+    "inputDesktopAvailable": false,
+    "inputDesktopError": 5,
+    "systemSettingsChanged": false,
+    "inputEventsSent": 0
+  },
+  "ownedSdkProcessesAndListenersZero": true,
+  "exactFirstInteractiveTimeAccepted": false,
+  "firstTwoFrameContentsAccepted": false,
+  "exclusiveApplicationLatencyAccepted": false,
+  "exclusiveObserverCostAccepted": false,
+  "continuousMemoryPeakAccepted": false,
+  "physicalHardwarePerformanceAccepted": false,
+  "fullRF312Accepted": false,
+  "RF112Accepted": false,
+  "RF121Accepted": false,
+  "RF122Through127PrerequisitesReleased": false,
+  "originalTaskDoesNotRequirePerfectExclusiveLatencyOrContinuousPeakBeforeRecordingABaseline": true,
+  "localNextAction": "No additional dependency-ready implementation identified in the audited nine tasks under the current environment; resume native gates when their environment is available."
+}
