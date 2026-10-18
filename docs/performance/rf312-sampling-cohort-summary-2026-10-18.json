@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "inputProjectionSha256": "03f2f7a88b0975d06eb63ec937a162da220815da8a36f4030a1ce2082fcb53f6",
+  "inputProjectionSha256": "be8fba839c7400f4ad5a4020407955fd31b8d048e36581190d3b9ffd2b1b3dfe",
   "bindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
   "plannedPairs": 6,
   "plannedModeRuns": 12,
   "modeOutcomeCounts": {
-    "accepted": 7,
+    "accepted": 9,
     "refused": 3,
-    "awaiting-terminal-evidence": 2
+    "awaiting-terminal-evidence": 0
   },
-  "allPlannedModeOutcomesTerminal": false,
-  "completeAcceptedPairs": 3,
+  "allPlannedModeOutcomesTerminal": true,
+  "completeAcceptedPairs": 4,
   "cells": [
     {
       "mode": "off",
       "objectCount": 100,
       "plannedSamples": 6,
       "caseOutcomeCounts": {
-        "accepted": 4,
+        "accepted": 5,
         "completed-before-refusal": 1,
         "refused": 0,
         "not-reached": 0,
-        "awaiting-terminal-evidence": 1
+        "awaiting-terminal-evidence": 0
       },
       "workloadWindowUpperBoundMs": {
         "valuesInPairOrder": [
@@ -30,10 +30,10 @@
           124406.00000007544,
           null,
           124327.99999997951,
-          null
+          125312.00000003446
         ],
-        "acceptedSamples": 4,
-        "median": 126093.50000007544,
+        "acceptedSamples": 5,
+        "median": 125312.00000003446,
         "nearestRankEmpiricalP95": 134078.00000009593,
         "maximum": 134078.00000009593
       },
@@ -44,10 +44,10 @@
           266280960,
           null,
           265978880,
-          null
+          245167104
         ],
-        "acceptedSamples": 4,
-        "median": 266027008.0,
+        "acceptedSamples": 5,
+        "median": 265978880,
         "nearestRankEmpiricalP95": 266280960,
         "maximum": 266280960
       },
@@ -60,10 +60,10 @@
             7687.999999965541,
             null,
             7530.999999959022,
-            null
+            8280.999999959022
           ],
-          "acceptedSamples": 4,
-          "median": 7609.499999962281,
+          "acceptedSamples": 5,
+          "median": 7687.999999965541,
           "nearestRankEmpiricalP95": 8592.99999999348,
           "maximum": 8592.99999999348
         },
@@ -75,10 +75,10 @@
             14765.999999945052,
             null,
             14359.000000054948,
-            null
+            14030.999999959022
           ],
-          "acceptedSamples": 4,
-          "median": 15828.499999945052,
+          "acceptedSamples": 5,
+          "median": 14765.999999945052,
           "nearestRankEmpiricalP95": 17218.999999924563,
           "maximum": 17218.999999924563
         },
@@ -90,10 +90,10 @@
             20297.00000002049,
             null,
             19562.99999996554,
-            null
+            20406.000000075437
           ],
-          "acceptedSamples": 4,
-          "median": 19929.999999993015,
+          "acceptedSamples": 5,
+          "median": 20297.00000002049,
           "nearestRankEmpiricalP95": 23547.00000002049,
           "maximum": 23547.00000002049
         },
@@ -105,12 +105,12 @@
             4920.999999972992,
             null,
             4842.999999993481,
-            null
+            5172.000000020489
           ],
-          "acceptedSamples": 4,
-          "median": 4960.499999986496,
-          "nearestRankEmpiricalP95": 5171.999999904074,
-          "maximum": 5171.999999904074
+          "acceptedSamples": 5,
+          "median": 5000.0,
+          "nearestRankEmpiricalP95": 5172.000000020489,
+          "maximum": 5172.000000020489
         },
         {
           "name": "search-needle",
@@ -120,10 +120,10 @@
             7782.000000006519,
             null,
             8734.99999998603,
-            null
+            7922.000000020489
           ],
-          "acceptedSamples": 4,
-          "median": 8531.49999998277,
+          "acceptedSamples": 5,
+          "median": 8327.99999997951,
           "nearestRankEmpiricalP95": 8844.000000040978,
           "maximum": 8844.000000040978
         },
@@ -135,10 +135,10 @@
             4202.999999979511,
             null,
             4405.999999959022,
-            null
+            4437.000000034459
           ],
-          "acceptedSamples": 4,
-          "median": 4343.499999959022,
+          "acceptedSamples": 5,
+          "median": 4405.999999959022,
           "nearestRankEmpiricalP95": 4672.000000020489,
           "maximum": 4672.000000020489
         },
@@ -150,10 +150,10 @@
             6407.000000006519,
             null,
             6391.000000061467,
-            null
+            6265.999999945052
           ],
-          "acceptedSamples": 4,
-          "median": 6586.499999975786,
+          "acceptedSamples": 5,
+          "median": 6407.000000006519,
           "nearestRankEmpiricalP95": 6827.999999979511,
           "maximum": 6827.999999979511
         },
@@ -165,10 +165,10 @@
             5890.999999945052,
             null,
             5687.999999965541,
-            null
+            5765.00000001397
           ],
-          "acceptedSamples": 4,
-          "median": 5921.999999962281,
+          "acceptedSamples": 5,
+          "median": 5890.999999945052,
           "nearestRankEmpiricalP95": 5984.000000054948,
           "maximum": 5984.000000054948
         },
@@ -180,10 +180,10 @@
             10702.99999997951,
             null,
             10500.0,
-            null
+            10609.000000054948
           ],
-          "acceptedSamples": 4,
-          "median": 10554.499999969266,
+          "acceptedSamples": 5,
+          "median": 10608.999999938533,
           "nearestRankEmpiricalP95": 10702.99999997951,
           "maximum": 10702.99999997951
         },
@@ -195,10 +195,10 @@
             6890.999999945052,
             null,
             6891.000000061467,
-            null
+            6687.000000034459
           ],
-          "acceptedSamples": 4,
-          "median": 6891.00000000326,
+          "acceptedSamples": 5,
+          "median": 6890.999999945052,
           "nearestRankEmpiricalP95": 7172.000000020489,
           "maximum": 7172.000000020489
         },
@@ -210,10 +210,10 @@
             2030.9999999590218,
             null,
             1984.000000054948,
-            null
+            1967.9999999934807
           ],
-          "acceptedSamples": 4,
-          "median": 2062.4999999417923,
+          "acceptedSamples": 5,
+          "median": 2030.9999999590218,
           "nearestRankEmpiricalP95": 2657.0000000065193,
           "maximum": 2657.0000000065193
         },
@@ -225,12 +225,12 @@
             10062.000000034459,
             null,
             10468.999999924563,
-            null
+            11108.999999938533
           ],
-          "acceptedSamples": 4,
-          "median": 10265.49999997951,
-          "nearestRankEmpiricalP95": 10516.000000061467,
-          "maximum": 10516.000000061467
+          "acceptedSamples": 5,
+          "median": 10468.999999924563,
+          "nearestRankEmpiricalP95": 11108.999999938533,
+          "maximum": 11108.999999938533
         }
       ]
     },
@@ -239,11 +239,11 @@
       "objectCount": 5000,
       "plannedSamples": 6,
       "caseOutcomeCounts": {
-        "accepted": 4,
+        "accepted": 5,
         "completed-before-refusal": 0,
         "refused": 1,
         "not-reached": 0,
-        "awaiting-terminal-evidence": 1
+        "awaiting-terminal-evidence": 0
       },
       "workloadWindowUpperBoundMs": {
         "valuesInPairOrder": [
@@ -252,12 +252,12 @@
           122827.99999997951,
           null,
           123311.99999991804,
-          null
+          126125.0
         ],
-        "acceptedSamples": 4,
-        "median": 122655.99999995902,
-        "nearestRankEmpiricalP95": 123311.99999991804,
-        "maximum": 123311.99999991804
+        "acceptedSamples": 5,
+        "median": 122827.99999997951,
+        "nearestRankEmpiricalP95": 126125.0,
+        "maximum": 126125.0
       },
       "postJourneyPssBytes": {
         "valuesInPairOrder": [
@@ -266,10 +266,10 @@
           292104192,
           null,
           301043712,
-          null
+          287897600
         ],
-        "acceptedSamples": 4,
-        "median": 291379712.0,
+        "acceptedSamples": 5,
+        "median": 290655232,
         "nearestRankEmpiricalP95": 301043712,
         "maximum": 301043712
       },
@@ -282,10 +282,10 @@
             4718.999999924563,
             null,
             6734.000000054948,
-            null
+            5094.000000040978
           ],
-          "acceptedSamples": 4,
-          "median": 5133.000000030734,
+          "acceptedSamples": 5,
+          "median": 5094.000000040978,
           "nearestRankEmpiricalP95": 6734.000000054948,
           "maximum": 6734.000000054948
         },
@@ -297,12 +297,12 @@
             13640.00000001397,
             null,
             13015.999999945052,
-            null
+            14827.99999997951
           ],
-          "acceptedSamples": 4,
-          "median": 13062.5,
-          "nearestRankEmpiricalP95": 13640.00000001397,
-          "maximum": 13640.00000001397
+          "acceptedSamples": 5,
+          "median": 13109.000000054948,
+          "nearestRankEmpiricalP95": 14827.99999997951,
+          "maximum": 14827.99999997951
         },
         {
           "name": "first-ocr-user-flow",
@@ -312,12 +312,12 @@
             18922.00000002049,
             null,
             18719.00000004098,
-            null
+            20500.0
           ],
-          "acceptedSamples": 4,
-          "median": 18976.499999989755,
-          "nearestRankEmpiricalP95": 19172.00000002049,
-          "maximum": 19172.00000002049
+          "acceptedSamples": 5,
+          "median": 19030.99999995902,
+          "nearestRankEmpiricalP95": 20500.0,
+          "maximum": 20500.0
         },
         {
           "name": "workspace",
@@ -327,10 +327,10 @@
             5359.000000054948,
             null,
             5359.000000054948,
-            null
+            5140.00000001397
           ],
-          "acceptedSamples": 4,
-          "median": 5148.0000000447035,
+          "acceptedSamples": 5,
+          "median": 5140.00000001397,
           "nearestRankEmpiricalP95": 5359.000000054948,
           "maximum": 5359.000000054948
         },
@@ -342,10 +342,10 @@
             8186.999999918044,
             null,
             7922.000000020489,
-            null
+            8077.999999979511
           ],
-          "acceptedSamples": 4,
-          "median": 8117.499999993015,
+          "acceptedSamples": 5,
+          "median": 8077.999999979511,
           "nearestRankEmpiricalP95": 8186.999999918044,
           "maximum": 8186.999999918044
         },
@@ -357,12 +357,12 @@
             4375.0,
             null,
             4532.000000006519,
-            null
+            4594.000000040978
           ],
-          "acceptedSamples": 4,
-          "median": 4304.999999993015,
-          "nearestRankEmpiricalP95": 4532.000000006519,
-          "maximum": 4532.000000006519
+          "acceptedSamples": 5,
+          "median": 4375.0,
+          "nearestRankEmpiricalP95": 4594.000000040978,
+          "maximum": 4594.000000040978
         },
         {
           "name": "image-preview",
@@ -372,10 +372,10 @@
             6452.999999979511,
             null,
             6500.0,
-            null
+            6265.999999945052
           ],
-          "acceptedSamples": 4,
-          "median": 7101.499999989755,
+          "acceptedSamples": 5,
+          "median": 6500.0,
           "nearestRankEmpiricalP95": 8577.99999997951,
           "maximum": 8577.99999997951
         },
@@ -387,10 +387,10 @@
             6295.999999972992,
             null,
             5859.99999998603,
-            null
+            6937.000000034459
           ],
-          "acceptedSamples": 4,
-          "median": 6085.499999986496,
+          "acceptedSamples": 5,
+          "median": 6295.999999972992,
           "nearestRankEmpiricalP95": 7155.999999959022,
           "maximum": 7155.999999959022
         },
@@ -402,12 +402,12 @@
             10047.00000002049,
             null,
             10483.999999938533,
-            null
+            10734.000000054948
           ],
-          "acceptedSamples": 4,
-          "median": 10242.499999993015,
-          "nearestRankEmpiricalP95": 10483.999999938533,
-          "maximum": 10483.999999938533
+          "acceptedSamples": 5,
+          "median": 10359.99999998603,
+          "nearestRankEmpiricalP95": 10734.000000054948,
+          "maximum": 10734.000000054948
         },
         {
           "name": "pdf-scanned-native",
@@ -417,10 +417,10 @@
             6952.999999979511,
             null,
             7155.999999959022,
-            null
+            6750.0
           ],
-          "acceptedSamples": 4,
-          "median": 6984.500000020489,
+          "acceptedSamples": 5,
+          "median": 6952.999999979511,
           "nearestRankEmpiricalP95": 7155.999999959022,
           "maximum": 7155.999999959022
         },
@@ -432,10 +432,10 @@
             2140.999999945052,
             null,
             2015.0000000139698,
-            null
+            2079.0000000270084
           ],
-          "acceptedSamples": 4,
-          "median": 2039.5000000135042,
+          "acceptedSamples": 5,
+          "median": 2047.000000020489,
           "nearestRankEmpiricalP95": 2140.999999945052,
           "maximum": 2140.999999945052
         },
@@ -447,10 +447,10 @@
             10062.999999965541,
             null,
             12015.00000001397,
-            null
+            11327.99999997951
           ],
-          "acceptedSamples": 4,
-          "median": 10851.999999955297,
+          "acceptedSamples": 5,
+          "median": 11327.99999997951,
           "nearestRankEmpiricalP95": 12015.00000001397,
           "maximum": 12015.00000001397
         }
@@ -461,11 +461,11 @@
       "objectCount": 100,
       "plannedSamples": 6,
       "caseOutcomeCounts": {
-        "accepted": 3,
+        "accepted": 4,
         "completed-before-refusal": 1,
         "refused": 0,
         "not-reached": 1,
-        "awaiting-terminal-evidence": 1
+        "awaiting-terminal-evidence": 0
       },
       "workloadWindowUpperBoundMs": {
         "valuesInPairOrder": [
@@ -474,12 +474,12 @@
           138547.0000000205,
           null,
           140422.0000000205,
-          null
+          159218.99999992456
         ],
-        "acceptedSamples": 3,
-        "median": 138547.0000000205,
-        "nearestRankEmpiricalP95": 140422.0000000205,
-        "maximum": 140422.0000000205
+        "acceptedSamples": 4,
+        "median": 139484.5000000205,
+        "nearestRankEmpiricalP95": 159218.99999992456,
+        "maximum": 159218.99999992456
       },
       "postJourneyPssBytes": {
         "valuesInPairOrder": [
@@ -488,12 +488,12 @@
           265060352,
           null,
           242159616,
-          null
+          268550144
         ],
-        "acceptedSamples": 3,
-        "median": 262881280,
-        "nearestRankEmpiricalP95": 265060352,
-        "maximum": 265060352
+        "acceptedSamples": 4,
+        "median": 263970816.0,
+        "nearestRankEmpiricalP95": 268550144,
+        "maximum": 268550144
       },
       "phases": [
         {
@@ -504,12 +504,12 @@
             7390.999999945052,
             null,
             6750.0,
-            null
+            9047.00000002049
           ],
-          "acceptedSamples": 3,
-          "median": 7390.999999945052,
-          "nearestRankEmpiricalP95": 8937.999999965541,
-          "maximum": 8937.999999965541
+          "acceptedSamples": 4,
+          "median": 8164.4999999552965,
+          "nearestRankEmpiricalP95": 9047.00000002049,
+          "maximum": 9047.00000002049
         },
         {
           "name": "password-unlock",
@@ -519,12 +519,12 @@
             16282.00000000652,
             null,
             15359.000000054948,
-            null
+            17812.00000003446
           ],
-          "acceptedSamples": 3,
-          "median": 15437.999999965541,
-          "nearestRankEmpiricalP95": 16282.00000000652,
-          "maximum": 16282.00000000652
+          "acceptedSamples": 4,
+          "median": 15859.99999998603,
+          "nearestRankEmpiricalP95": 17812.00000003446,
+          "maximum": 17812.00000003446
         },
         {
           "name": "first-ocr-user-flow",
@@ -534,12 +534,12 @@
             21702.99999997951,
             null,
             22030.99999995902,
-            null
+            23077.99999997951
           ],
-          "acceptedSamples": 3,
-          "median": 21702.99999997951,
-          "nearestRankEmpiricalP95": 22030.99999995902,
-          "maximum": 22030.99999995902
+          "acceptedSamples": 4,
+          "median": 21866.999999969266,
+          "nearestRankEmpiricalP95": 23077.99999997951,
+          "maximum": 23077.99999997951
         },
         {
           "name": "workspace",
@@ -549,12 +549,12 @@
             5811.999999918044,
             null,
             5421.999999904074,
-            null
+            7704.000000027008
           ],
-          "acceptedSamples": 3,
-          "median": 5421.999999904074,
-          "nearestRankEmpiricalP95": 5811.999999918044,
-          "maximum": 5811.999999918044
+          "acceptedSamples": 4,
+          "median": 5616.999999911059,
+          "nearestRankEmpiricalP95": 7704.000000027008,
+          "maximum": 7704.000000027008
         },
         {
           "name": "search-needle",
@@ -564,12 +564,12 @@
             8483.999999938533,
             null,
             9016.000000061467,
-            null
+            10015.999999945052
           ],
-          "acceptedSamples": 3,
-          "median": 8609.000000054948,
-          "nearestRankEmpiricalP95": 9016.000000061467,
-          "maximum": 9016.000000061467
+          "acceptedSamples": 4,
+          "median": 8812.500000058208,
+          "nearestRankEmpiricalP95": 10015.999999945052,
+          "maximum": 10015.999999945052
         },
         {
           "name": "attachments-open",
@@ -579,12 +579,12 @@
             4859.99999998603,
             null,
             4625.0,
-            null
+            5250.0
           ],
-          "acceptedSamples": 3,
-          "median": 4625.0,
-          "nearestRankEmpiricalP95": 4859.99999998603,
-          "maximum": 4859.99999998603
+          "acceptedSamples": 4,
+          "median": 4742.499999993015,
+          "nearestRankEmpiricalP95": 5250.0,
+          "maximum": 5250.0
         },
         {
           "name": "image-preview",
@@ -594,12 +594,12 @@
             7750.0,
             null,
             7500.0,
-            null
+            9468.999999924563
           ],
-          "acceptedSamples": 3,
-          "median": 7500.0,
-          "nearestRankEmpiricalP95": 7750.0,
-          "maximum": 7750.0
+          "acceptedSamples": 4,
+          "median": 7625.0,
+          "nearestRankEmpiricalP95": 9468.999999924563,
+          "maximum": 9468.999999924563
         },
         {
           "name": "text-preview",
@@ -609,10 +609,10 @@
             6563.000000081956,
             null,
             8016.000000061467,
-            null
+            7515.999999945052
           ],
-          "acceptedSamples": 3,
-          "median": 6563.000000081956,
+          "acceptedSamples": 4,
+          "median": 7039.500000013504,
           "nearestRankEmpiricalP95": 8016.000000061467,
           "maximum": 8016.000000061467
         },
@@ -624,12 +624,12 @@
             11297.00000002049,
             null,
             11437.999999965541,
-            null
+            12281.000000075437
           ],
-          "acceptedSamples": 3,
-          "median": 11437.999999965541,
-          "nearestRankEmpiricalP95": 11875.0,
-          "maximum": 11875.0
+          "acceptedSamples": 4,
+          "median": 11656.49999998277,
+          "nearestRankEmpiricalP95": 12281.000000075437,
+          "maximum": 12281.000000075437
         },
         {
           "name": "pdf-scanned-native",
@@ -639,12 +639,12 @@
             7562.999999965541,
             null,
             8047.000000020489,
-            null
+            8094.000000040978
           ],
-          "acceptedSamples": 3,
-          "median": 7562.999999965541,
-          "nearestRankEmpiricalP95": 8047.000000020489,
-          "maximum": 8047.000000020489
+          "acceptedSamples": 4,
+          "median": 7804.999999993015,
+          "nearestRankEmpiricalP95": 8094.000000040978,
+          "maximum": 8094.000000040978
         },
         {
           "name": "application-lock",
@@ -654,12 +654,12 @@
             2234.000000054948,
             null,
             2405.999999959022,
-            null
+            2484.99999998603
           ],
-          "acceptedSamples": 3,
-          "median": 2234.000000054948,
-          "nearestRankEmpiricalP95": 2405.999999959022,
-          "maximum": 2405.999999959022
+          "acceptedSamples": 4,
+          "median": 2320.000000006985,
+          "nearestRankEmpiricalP95": 2484.99999998603,
+          "maximum": 2484.99999998603
         },
         {
           "name": "password-reunlock",
@@ -669,12 +669,12 @@
             11297.00000002049,
             null,
             11157.00000000652,
-            null
+            15125.0
           ],
-          "acceptedSamples": 3,
-          "median": 11297.00000002049,
-          "nearestRankEmpiricalP95": 11969.000000040978,
-          "maximum": 11969.000000040978
+          "acceptedSamples": 4,
+          "median": 11633.000000030734,
+          "nearestRankEmpiricalP95": 15125.0,
+          "maximum": 15125.0
         }
       ],
       "sampledMaximumSerialPssBytes": {
@@ -684,12 +684,12 @@
           278128640,
           null,
           288891904,
-          null
+          333947904
         ],
-        "acceptedSamples": 3,
-        "median": 284508160,
-        "nearestRankEmpiricalP95": 288891904,
-        "maximum": 288891904
+        "acceptedSamples": 4,
+        "median": 286700032.0,
+        "nearestRankEmpiricalP95": 333947904,
+        "maximum": 333947904
       },
       "trajectoryCoverageInPairOrder": [
         {
@@ -781,7 +781,33 @@
             "independentMemoryReplay": "e8df324ed1562dcbc093376208ceea136532671c09af409643f3e3cc8bd80edb"
           }
         },
-        null
+        {
+          "points": 92,
+          "acceptedMemoryPoints": 89,
+          "refusedPoints": 2,
+          "missedPeriodicSlots": 1,
+          "plannedPeriodicSlots": 79,
+          "boundaryPoints": 12,
+          "refusedPeriodicCaptures": [
+            {
+              "pointOrdinal": 2,
+              "kind": "periodic",
+              "errorType": "MemoryEvidenceError",
+              "numericSnapshotAccepted": false,
+              "provisionalSnapshotPresent": false,
+              "unconsumedPairMembers": 0,
+              "receiptSha256": "8782b3b9cb56b81837613e3e6d3446f59478caa2a30fd5238457ea2712245cc5"
+            }
+          ],
+          "allPeriodicCapturesSucceeded": false,
+          "sampledMaximumSerialPssBytes": 333947904,
+          "workerStopped": true,
+          "allScheduledPeriodicSlotsAccounted": true,
+          "evidenceSha256": {
+            "trace": "2fc054655cb65bf94ef2a818e9cd363ff6d37d088a8397ca69a7e2acb4c4eb5a",
+            "independentMemoryReplay": "8afb7588e83f46e4369b52acc5faba2aa844ec4fe0fba56f990f80738cb32df6"
+          }
+        }
       ]
     },
     {
@@ -789,11 +815,11 @@
       "objectCount": 5000,
       "plannedSamples": 6,
       "caseOutcomeCounts": {
-        "accepted": 3,
+        "accepted": 4,
         "completed-before-refusal": 0,
         "refused": 1,
         "not-reached": 1,
-        "awaiting-terminal-evidence": 1
+        "awaiting-terminal-evidence": 0
       },
       "workloadWindowUpperBoundMs": {
         "valuesInPairOrder": [
@@ -802,12 +828,12 @@
           140077.9999999795,
           null,
           134811.99999991804,
-          null
+          158577.9999999795
         ],
-        "acceptedSamples": 3,
-        "median": 140077.9999999795,
-        "nearestRankEmpiricalP95": 142452.9999999795,
-        "maximum": 142452.9999999795
+        "acceptedSamples": 4,
+        "median": 141265.4999999795,
+        "nearestRankEmpiricalP95": 158577.9999999795,
+        "maximum": 158577.9999999795
       },
       "postJourneyPssBytes": {
         "valuesInPairOrder": [
@@ -816,12 +842,12 @@
           278060032,
           null,
           284653568,
-          null
+          292413440
         ],
-        "acceptedSamples": 3,
-        "median": 281702400,
-        "nearestRankEmpiricalP95": 284653568,
-        "maximum": 284653568
+        "acceptedSamples": 4,
+        "median": 283177984.0,
+        "nearestRankEmpiricalP95": 292413440,
+        "maximum": 292413440
       },
       "phases": [
         {
@@ -832,12 +858,12 @@
             4842.999999993481,
             null,
             4984.99999998603,
-            null
+            6547.000000020489
           ],
-          "acceptedSamples": 3,
-          "median": 4952.999999979511,
-          "nearestRankEmpiricalP95": 4984.99999998603,
-          "maximum": 4984.99999998603
+          "acceptedSamples": 4,
+          "median": 4968.9999999827705,
+          "nearestRankEmpiricalP95": 6547.000000020489,
+          "maximum": 6547.000000020489
         },
         {
           "name": "password-unlock",
@@ -847,12 +873,12 @@
             15843.999999924563,
             null,
             14719.000000040978,
-            null
+            17625.0
           ],
-          "acceptedSamples": 3,
-          "median": 15843.999999924563,
-          "nearestRankEmpiricalP95": 15937.999999965541,
-          "maximum": 15937.999999965541
+          "acceptedSamples": 4,
+          "median": 15890.999999945052,
+          "nearestRankEmpiricalP95": 17625.0,
+          "maximum": 17625.0
         },
         {
           "name": "first-ocr-user-flow",
@@ -862,12 +888,12 @@
             20672.00000002049,
             null,
             19030.99999995902,
-            null
+            22092.99999999348
           ],
-          "acceptedSamples": 3,
-          "median": 20125.0,
-          "nearestRankEmpiricalP95": 20672.00000002049,
-          "maximum": 20672.00000002049
+          "acceptedSamples": 4,
+          "median": 20398.500000010245,
+          "nearestRankEmpiricalP95": 22092.99999999348,
+          "maximum": 22092.99999999348
         },
         {
           "name": "workspace",
@@ -877,12 +903,12 @@
             5297.000000020489,
             null,
             5140.00000001397,
-            null
+            6342.999999993481
           ],
-          "acceptedSamples": 3,
-          "median": 5297.000000020489,
-          "nearestRankEmpiricalP95": 5484.99999998603,
-          "maximum": 5484.99999998603
+          "acceptedSamples": 4,
+          "median": 5391.00000000326,
+          "nearestRankEmpiricalP95": 6342.999999993481,
+          "maximum": 6342.999999993481
         },
         {
           "name": "search-needle",
@@ -892,12 +918,12 @@
             9077.99999997951,
             null,
             9609.99999998603,
-            null
+            10561.999999918044
           ],
-          "acceptedSamples": 3,
-          "median": 9515.999999945052,
-          "nearestRankEmpiricalP95": 9609.99999998603,
-          "maximum": 9609.99999998603
+          "acceptedSamples": 4,
+          "median": 9562.999999965541,
+          "nearestRankEmpiricalP95": 10561.999999918044,
+          "maximum": 10561.999999918044
         },
         {
           "name": "attachments-open",
@@ -907,10 +933,10 @@
             4937.000000034459,
             null,
             5062.000000034459,
-            null
+            5907.000000006519
           ],
-          "acceptedSamples": 3,
-          "median": 5062.000000034459,
+          "acceptedSamples": 4,
+          "median": 5484.500000020489,
           "nearestRankEmpiricalP95": 6155.999999959022,
           "maximum": 6155.999999959022
         },
@@ -922,12 +948,12 @@
             8640.999999945052,
             null,
             6844.000000040978,
-            null
+            9141.000000061467
           ],
-          "acceptedSamples": 3,
-          "median": 8640.999999945052,
-          "nearestRankEmpiricalP95": 9109.000000054948,
-          "maximum": 9109.000000054948
+          "acceptedSamples": 4,
+          "median": 8875.0,
+          "nearestRankEmpiricalP95": 9141.000000061467,
+          "maximum": 9141.000000061467
         },
         {
           "name": "text-preview",
@@ -937,12 +963,12 @@
             7842.999999993481,
             null,
             8296.999999904074,
-            null
+            8875.0
           ],
-          "acceptedSamples": 3,
-          "median": 7890.999999945052,
-          "nearestRankEmpiricalP95": 8296.999999904074,
-          "maximum": 8296.999999904074
+          "acceptedSamples": 4,
+          "median": 8093.999999924563,
+          "nearestRankEmpiricalP95": 8875.0,
+          "maximum": 8875.0
         },
         {
           "name": "pdf-text-native",
@@ -952,10 +978,10 @@
             11078.000000095926,
             null,
             10765.999999945052,
-            null
+            12000.0
           ],
-          "acceptedSamples": 3,
-          "median": 11078.000000095926,
+          "acceptedSamples": 4,
+          "median": 11539.000000047963,
           "nearestRankEmpiricalP95": 12155.999999959022,
           "maximum": 12155.999999959022
         },
@@ -967,10 +993,10 @@
             7625.0,
             null,
             8562.000000034459,
-            null
+            8390.00000001397
           ],
-          "acceptedSamples": 3,
-          "median": 7625.0,
+          "acceptedSamples": 4,
+          "median": 8007.500000006985,
           "nearestRankEmpiricalP95": 8562.000000034459,
           "maximum": 8562.000000034459
         },
@@ -982,12 +1008,12 @@
             2437.999999965541,
             null,
             2297.000000020489,
-            null
+            2734.99999998603
           ],
-          "acceptedSamples": 3,
-          "median": 2297.000000020489,
-          "nearestRankEmpiricalP95": 2437.999999965541,
-          "maximum": 2437.999999965541
+          "acceptedSamples": 4,
+          "median": 2367.499999993015,
+          "nearestRankEmpiricalP95": 2734.99999998603,
+          "maximum": 2734.99999998603
         },
         {
           "name": "password-reunlock",
@@ -997,12 +1023,12 @@
             13812.999999965541,
             null,
             12812.000000034459,
-            null
+            15079.000000027008
           ],
-          "acceptedSamples": 3,
-          "median": 12891.000000061467,
-          "nearestRankEmpiricalP95": 13812.999999965541,
-          "maximum": 13812.999999965541
+          "acceptedSamples": 4,
+          "median": 13352.000000013504,
+          "nearestRankEmpiricalP95": 15079.000000027008,
+          "maximum": 15079.000000027008
         }
       ],
       "sampledMaximumSerialPssBytes": {
@@ -1012,10 +1038,10 @@
           312325120,
           null,
           300717056,
-          null
+          323475456
         ],
-        "acceptedSamples": 3,
-        "median": 312325120,
+        "acceptedSamples": 4,
+        "median": 317900288.0,
         "nearestRankEmpiricalP95": 339805184,
         "maximum": 339805184
       },
@@ -1073,7 +1099,23 @@
             "independentMemoryReplay": "e8df324ed1562dcbc093376208ceea136532671c09af409643f3e3cc8bd80edb"
           }
         },
-        null
+        {
+          "points": 92,
+          "acceptedMemoryPoints": 88,
+          "refusedPoints": 3,
+          "missedPeriodicSlots": 3,
+          "plannedPeriodicSlots": 79,
+          "boundaryPoints": 12,
+          "refusedPeriodicCaptures": [],
+          "allPeriodicCapturesSucceeded": true,
+          "sampledMaximumSerialPssBytes": 323475456,
+          "workerStopped": true,
+          "allScheduledPeriodicSlotsAccounted": true,
+          "evidenceSha256": {
+            "trace": "e8907ce6015d7d6c34f6ce6e0b1e05e62be4dcfddcda789f54c271a861349db4",
+            "independentMemoryReplay": "8afb7588e83f46e4369b52acc5faba2aa844ec4fe0fba56f990f80738cb32df6"
+          }
+        }
       ]
     }
   ],
@@ -1087,12 +1129,12 @@
           14140.999999945052,
           null,
           16094.000000040978,
-          null
+          33906.999999890104
         ],
-        "acceptedSamples": 3,
-        "median": 14140.999999945052,
-        "nearestRankEmpiricalP95": 16094.000000040978,
-        "maximum": 16094.000000040978
+        "acceptedSamples": 4,
+        "median": 15117.499999993015,
+        "nearestRankEmpiricalP95": 33906.999999890104,
+        "maximum": 33906.999999890104
       },
       "postJourneyPssBytes": {
         "valuesInPairOrder": [
@@ -1101,12 +1143,12 @@
           -1220608,
           null,
           -23819264,
-          null
+          23383040
         ],
-        "acceptedSamples": 3,
-        "median": -1220608,
-        "nearestRankEmpiricalP95": 19218432,
-        "maximum": 19218432
+        "acceptedSamples": 4,
+        "median": 8998912.0,
+        "nearestRankEmpiricalP95": 23383040,
+        "maximum": 23383040
       }
     },
     {
@@ -1118,12 +1160,12 @@
           17250.0,
           null,
           11500.0,
-          null
+          32452.99999997951
         ],
-        "acceptedSamples": 3,
-        "median": 17250.0,
-        "nearestRankEmpiricalP95": 21172.00000002049,
-        "maximum": 21172.00000002049
+        "acceptedSamples": 4,
+        "median": 19211.000000010245,
+        "nearestRankEmpiricalP95": 32452.99999997951,
+        "maximum": 32452.99999997951
       },
       "postJourneyPssBytes": {
         "valuesInPairOrder": [
@@ -1132,12 +1174,12 @@
           -14044160,
           null,
           -16390144,
-          null
+          4515840
         ],
-        "acceptedSamples": 3,
-        "median": -14044160,
-        "nearestRankEmpiricalP95": -8952832,
-        "maximum": -8952832
+        "acceptedSamples": 4,
+        "median": -11498496.0,
+        "nearestRankEmpiricalP95": 4515840,
+        "maximum": 4515840
       }
     }
   ],
@@ -2560,55 +2602,323 @@
       "modes": [
         {
           "mode": "on",
-          "status": "awaiting-terminal-evidence",
+          "status": "accepted",
           "bindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
           "failureCategory": null,
-          "evidenceSha256": {},
+          "evidenceSha256": {
+            "nativeResult": "7bd3e282f685adbb48a2128bf33491f79b113fe70fdf20975028f5cb5b46a6c7",
+            "replayResult": "70dd96aae54e1346f5a64f88bde2ae64c93ca1a348f3983ee93ea290ec44dcea",
+            "replayContext": "af61b36efcafdc7146218265718c36de24310c324ffa535d38d0892c4f3f074b",
+            "stateReplay": "af5d6aa628d9f793875b9fedecfe4cb6cc5a483fe1b5daced712af4e863a5cbf"
+          },
           "cases": [
             {
               "objectCount": 100,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
-              "workloadWindowUpperBoundMs": null,
-              "postJourneyPssBytes": null,
-              "journeyMemory": null,
-              "evidenceSha256": {}
+              "status": "accepted",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 9047.00000002049
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 17812.00000003446
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 23077.99999997951
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 7704.000000027008
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 10015.999999945052
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 5250.0
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 9468.999999924563
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 7515.999999945052
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 12281.000000075437
+                },
+                {
+                  "name": "pdf-scanned-native",
+                  "hostObservedUpperBoundMs": 8094.000000040978
+                },
+                {
+                  "name": "application-lock",
+                  "hostObservedUpperBoundMs": 2484.99999998603
+                },
+                {
+                  "name": "password-reunlock",
+                  "hostObservedUpperBoundMs": 15125.0
+                }
+              ],
+              "workloadWindowUpperBoundMs": 159218.99999992456,
+              "postJourneyPssBytes": 268550144,
+              "journeyMemory": {
+                "points": 92,
+                "acceptedMemoryPoints": 89,
+                "refusedPoints": 2,
+                "missedPeriodicSlots": 1,
+                "plannedPeriodicSlots": 79,
+                "boundaryPoints": 12,
+                "refusedPeriodicCaptures": [
+                  {
+                    "pointOrdinal": 2,
+                    "kind": "periodic",
+                    "errorType": "MemoryEvidenceError",
+                    "numericSnapshotAccepted": false,
+                    "provisionalSnapshotPresent": false,
+                    "unconsumedPairMembers": 0,
+                    "receiptSha256": "8782b3b9cb56b81837613e3e6d3446f59478caa2a30fd5238457ea2712245cc5"
+                  }
+                ],
+                "allPeriodicCapturesSucceeded": false,
+                "sampledMaximumSerialPssBytes": 333947904,
+                "workerStopped": true,
+                "allScheduledPeriodicSlotsAccounted": true,
+                "evidenceSha256": {
+                  "trace": "2fc054655cb65bf94ef2a818e9cd363ff6d37d088a8397ca69a7e2acb4c4eb5a",
+                  "independentMemoryReplay": "8afb7588e83f46e4369b52acc5faba2aa844ec4fe0fba56f990f80738cb32df6"
+                }
+              },
+              "evidenceSha256": {
+                "driver": "2ef1755d3cd0b22fd03ff52fbc8ef274a8701e62ee3264340d997d7f8f32a582",
+                "supportedState": "dd463df378cffabb70b82cee29421920d482b0dd09e3bdfee47112d6c67709a8",
+                "checkpoint": "479194ef57a1b60da28616d509f26c303b03f170fdd17483ddc0073368cfcff7",
+                "workloadWindow": "e642c95b955273738bf15cd68d907ae347869ca1e36e7e9750f1ae34cdbe4170"
+              }
             },
             {
               "objectCount": 5000,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
-              "workloadWindowUpperBoundMs": null,
-              "postJourneyPssBytes": null,
-              "journeyMemory": null,
-              "evidenceSha256": {}
+              "status": "accepted",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 6547.000000020489
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 17625.0
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 22092.99999999348
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 6342.999999993481
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 10561.999999918044
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 5907.000000006519
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 9141.000000061467
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 8875.0
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 12000.0
+                },
+                {
+                  "name": "pdf-scanned-native",
+                  "hostObservedUpperBoundMs": 8390.00000001397
+                },
+                {
+                  "name": "application-lock",
+                  "hostObservedUpperBoundMs": 2734.99999998603
+                },
+                {
+                  "name": "password-reunlock",
+                  "hostObservedUpperBoundMs": 15079.000000027008
+                }
+              ],
+              "workloadWindowUpperBoundMs": 158577.9999999795,
+              "postJourneyPssBytes": 292413440,
+              "journeyMemory": {
+                "points": 92,
+                "acceptedMemoryPoints": 88,
+                "refusedPoints": 3,
+                "missedPeriodicSlots": 3,
+                "plannedPeriodicSlots": 79,
+                "boundaryPoints": 12,
+                "refusedPeriodicCaptures": [],
+                "allPeriodicCapturesSucceeded": true,
+                "sampledMaximumSerialPssBytes": 323475456,
+                "workerStopped": true,
+                "allScheduledPeriodicSlotsAccounted": true,
+                "evidenceSha256": {
+                  "trace": "e8907ce6015d7d6c34f6ce6e0b1e05e62be4dcfddcda789f54c271a861349db4",
+                  "independentMemoryReplay": "8afb7588e83f46e4369b52acc5faba2aa844ec4fe0fba56f990f80738cb32df6"
+                }
+              },
+              "evidenceSha256": {
+                "driver": "35dc9ba8ae5a5f837673227ccbdf0eb8b1b4a7a91032799d49578cc93afea958",
+                "supportedState": "ff0dfb88eb3edd14d661d672111335f7d882b8054a357258589165dd9cb327de",
+                "checkpoint": "1b4badbecf87ebfded320dd7b63ca7aad6481bd31bf72be3242fde75f435aad2",
+                "workloadWindow": "79e49d69b7292758921d07aa42402b2d1a518e85541024714735a6c3c0c22bea"
+              }
             }
           ]
         },
         {
           "mode": "off",
-          "status": "awaiting-terminal-evidence",
+          "status": "accepted",
           "bindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
           "failureCategory": null,
-          "evidenceSha256": {},
+          "evidenceSha256": {
+            "nativeResult": "578fbceaaaca11f05b239037a596527952378668dd24b244804761124796425a",
+            "replayResult": "9700b9d70ac71c1b82337b22ed61f6ca95f1f13305a23fa7a09e06e361686763",
+            "replayContext": "473ae1aef8c28d00b2d313cc82d4e9a6f462eadd093727e146e54aac1231cdd3",
+            "stateReplay": "9cdd406789ac16b5f9c4654166fb80e0c3ebda1462ddd6a72bd0863203e34fc8"
+          },
           "cases": [
             {
               "objectCount": 100,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
-              "workloadWindowUpperBoundMs": null,
-              "postJourneyPssBytes": null,
+              "status": "accepted",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 8280.999999959022
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 14030.999999959022
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 20406.000000075437
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 5172.000000020489
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 7922.000000020489
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 4437.000000034459
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 6265.999999945052
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 5765.00000001397
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 10609.000000054948
+                },
+                {
+                  "name": "pdf-scanned-native",
+                  "hostObservedUpperBoundMs": 6687.000000034459
+                },
+                {
+                  "name": "application-lock",
+                  "hostObservedUpperBoundMs": 1967.9999999934807
+                },
+                {
+                  "name": "password-reunlock",
+                  "hostObservedUpperBoundMs": 11108.999999938533
+                }
+              ],
+              "workloadWindowUpperBoundMs": 125312.00000003446,
+              "postJourneyPssBytes": 245167104,
               "journeyMemory": null,
-              "evidenceSha256": {}
+              "evidenceSha256": {
+                "driver": "965aed62141aafb60a6ec8155f5c60d63d6f1ae49dbce9940469c8df48ffe04f",
+                "supportedState": "77d8eb4ec0f077ffe77dd005091587b13261fb61ee94195d81ee762ab53ea56e",
+                "checkpoint": "7b5af507e1dddccde904dd7ed34a7412ce25b8b15de026a289582ff0a8449942",
+                "workloadWindow": "da637c81505192e1642d00f21dbb6ce4acb11c15de6de5708fd7ea5aabca2a22"
+              }
             },
             {
               "objectCount": 5000,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
-              "workloadWindowUpperBoundMs": null,
-              "postJourneyPssBytes": null,
+              "status": "accepted",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 5094.000000040978
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 14827.99999997951
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 20500.0
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 5140.00000001397
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 8077.999999979511
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 4594.000000040978
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 6265.999999945052
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 6937.000000034459
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 10734.000000054948
+                },
+                {
+                  "name": "pdf-scanned-native",
+                  "hostObservedUpperBoundMs": 6750.0
+                },
+                {
+                  "name": "application-lock",
+                  "hostObservedUpperBoundMs": 2079.0000000270084
+                },
+                {
+                  "name": "password-reunlock",
+                  "hostObservedUpperBoundMs": 11327.99999997951
+                }
+              ],
+              "workloadWindowUpperBoundMs": 126125.0,
+              "postJourneyPssBytes": 287897600,
               "journeyMemory": null,
-              "evidenceSha256": {}
+              "evidenceSha256": {
+                "driver": "3ad1e0560bf700aa21ddf334ace5f3d95c9bbec4fede1123c76bd4b5e2d2e01a",
+                "supportedState": "0ac7babff7843a64eccd1aa476ddc6a271fc3283353c5ef614af37817f6c0a91",
+                "checkpoint": "8eb8df721cdfbabac59d438becdcd6aa2c1f0aa5e9741b6f5ad09ef11d4dda3b",
+                "workloadWindow": "ed499af9fbc606e3ab65c6069b7c54a3115c60b5c03eca7cafad908f8515ca02"
+              }
             }
           ]
         }
@@ -2627,7 +2937,7 @@
   "twoCommittedFramesProven": false,
   "performanceDistributionAccepted": false,
   "fullRF312Accepted": false,
-  "inputFileSha256": "0200d355abde3b90ab3a876a1e24bad9db7c583e0bb3ba7b34b05a25a9828442",
+  "inputFileSha256": "1f31588fdbda816fe6908955185119b903f1d2c3e61035f7fa2fdc1bd14ad25d",
   "analysisSourceSha256": {
     "rf312_sampling_cohort.py": "cc3d800da51b5e76f5bdf0791f48f45e2ec799f353e17da50e5d510a7a233fc3",
     "rf312_repeat_summary.py": "eb3ec12c330b96a05d5d4681dd579e68fad3e61c1d4733dffb0afc8b38c620b1"
