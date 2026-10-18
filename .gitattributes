@@ -175,3 +175,5 @@ docs/performance/rf312-system-trace-completion-2026-10-18.json text eol=lf
 # 已有原生控制时钟分析按源码摘要绑定，固定新检出字节。
 docs/performance/rf312-observer-timing/*.py text eol=lf
 docs/performance/rf312-observer-timing-2026-10-18.json text eol=lf
+
+docs/performance/rf312-observer-cohort-timing-2026-10-18.json text eol=lf
