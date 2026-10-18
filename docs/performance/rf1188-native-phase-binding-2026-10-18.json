@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1188",
+  "date": "2026-10-18",
+  "scope": "bind-derived-phase-progress-to-unchanged-canonical-state-ui-records",
+  "baseRevision": "cfd32d7fd84b2406d1f48ff60287b82d55132ec4",
+  "sourceSha256": {
+    "native_timing.py": "2e5f6852683b359ed01c1598ec90487a84c0db3b97d8f6f5b684001ba37835e0",
+    "read-native-timing.py": "811b65b42fafe159bfa7a4eb9162d978729a6fab60e453fc57a622a56d6c6c69",
+    "test_native_timing.py": "79434ee4e8035344d2927bda9cbbea6f176425c79b1625e0436d312b7ada4395"
+  },
+  "uniqueTests": 18,
+  "portableSameTestsPassed": true,
+  "portableFiles": 240,
+  "originalOrderedAlternativeScreenshotCouldPassTimingCollection": true,
+  "canonicalPhaseRetargetNowRefused": true,
+  "numberBooleanAndFloatSubstitutionsRefused": true,
+  "supportedStateBytesFrozenBeforeCanonicalReaders": true,
+  "supportedStateBytesRecheckedAfterCanonicalReadersAndAnalysis": true,
+  "originalStateImeUiReadersUnchanged": true,
+  "originalReaderRegressionEvidenceAndBudgetsPreserved": true,
+  "pythonOptimizedModeRefused": true,
+  "allEighteenHistoricalCohortStagesMatch": true,
+  "completeCurrentCliStateImeUiReplaysPassed": true,
+  "currentDerivedTimingFilesByteIdenticalToBeforeFix": true,
+  "nativeParentSha256": "4fe40b461303305f99f5d98f646129a649c3ce957698c82ad48d3c50c6fdbb91",
+  "supportedStateSha256": {
+    "100": "c8735d33b435727b192bee6cb67b046827f33d06906ee3f37ca39703cc86465c",
+    "5000": "f6fa5c3d1c92cb4837504a127249c45ca96ba43c7f442732a2d5314aeaa3b320"
+  },
+  "canonicalReaderReceiptSha256": {
+    "state": "f83c611f77d784a7e693d986da845e137c12508676ed4cce2f4410af58a6b187",
+    "ime": "9183491d886d368da87915be6fc80cb27bd19f4015a9978eb872011b5465c401",
+    "ui": "424446d62841412e81634f3c841c00b3b9de90fbc833d980b85a7a9d131e175e"
+  },
+  "actualAnalysisReceiptSha256": "b5c426e68531c392a2bd0c8bc61dee40c50e8986b52a02d978899deb96e7a6c4",
+  "portableVerificationSha256": "98236d9b7756ce29f0458ea82c9e6486920e244b22facae8db01da6a14467e5c",
+  "cases": [
+    {
+      "objectCount": 100,
+      "requests": 418,
+      "unchangedTimingSha256": "9feffe00b9e8991bae988efb927dc96cbc85134b5fade17b37cc8abec974c5a5"
+    },
+    {
+      "objectCount": 5000,
+      "requests": 401,
+      "unchangedTimingSha256": "10bd9e03413710dbd2711d9385006b2bde2d8d331c34035ce5ec3ac796503736"
+    }
+  ],
+  "sdkCommandsExecuted": 0,
+  "inputEventsDispatched": 0,
+  "newNativeSamples": 0,
+  "exclusiveObserverOverheadAccepted": false,
+  "applicationOnlyLatencyAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "nativeFramesAccepted": false,
+  "performanceDistributionAccepted": false,
+  "fullRF312Accepted": false,
+  "ledger": {
+    "closed": 369,
+    "total": 378,
+    "unfinished": 9
+  }
+}

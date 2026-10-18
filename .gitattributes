@@ -181,3 +181,5 @@ docs/performance/rf312-observer-cohort-timing-2026-10-18.json text eol=lf
 docs/performance/rf312-first-main-frames.sql text eol=lf
 docs/performance/rf312-startup-indicators.sql text eol=lf
 docs/performance/rf312-first-main-frames-2026-10-18.json text eol=lf
+
+docs/performance/rf1188-native-phase-binding-2026-10-18.json text eol=lf

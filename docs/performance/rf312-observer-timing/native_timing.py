@@ -67,6 +67,17 @@ def fingerprint(folder, phase_file):
     return value
 
 
+def bind_phase_records(phase_raw, supported_state_raw):
+    """Bind progress to stages already accepted by the original state/UI readers."""
+    progress, evidence = decode(phase_raw), decode(supported_state_raw)
+    stages = evidence.get('stages') if isinstance(evidence, dict) else None
+    normalized = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    if (not isinstance(progress, list) or not isinstance(stages, list) or not stages
+            or normalized(progress) != normalized(stages)):
+        raise ValueError('Phase progress differs from canonically verified stages')
+    return len(stages)
+
+
 def statistics(values):
     ordered = sorted(values)
     if not ordered:

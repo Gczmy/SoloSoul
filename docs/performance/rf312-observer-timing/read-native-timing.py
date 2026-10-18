@@ -76,13 +76,21 @@ def main():
         context = native_timing.decode(native_timing.raw_file(context_path))
         frozen = {count: native_timing.fingerprint(native/f'journey-{count}/independent-observer',
                     native/f'journey-{count}/default-external/phase-progress.json') for count in (100, 5000)}
+        state_files = {count: native/f'journey-{count}/default-external/supported-state-evidence.json'
+                       for count in (100, 5000)}
+        state_bytes = {count: native_timing.raw_file(path) for count, path in state_files.items()}
         source = {p.name: sha(p) for p in sorted(HERE.glob('*.py'))}
         receipts = replay_readers(context_path, output, context)
         receipt = context_path.parent/'independent-ui-r1.json'
         cases = []
         for count in (100, 5000):
+            phase_file = native/f'journey-{count}/default-external/phase-progress.json'
+            if native_timing.raw_file(state_files[count]) != state_bytes[count]:
+                raise ValueError('Canonical state evidence changed during replay')
+            if native_timing.bind_phase_records(native_timing.raw_file(phase_file), state_bytes[count]) != len(PHASES):
+                raise ValueError('All original canonical phase records required')
             case = native_timing.collect(native/f'journey-{count}/independent-observer',
-                    native/f'journey-{count}/default-external/phase-progress.json', PHASES, frozen[count])
+                    phase_file, PHASES, frozen[count])
             save(output/f'timing-{count}.json', case)
             cases.append(dict(objectCount=count, requests=case['requests'],
                               nativeChannelSpanNs=case['nativeChannelSpanNs'],
@@ -95,9 +103,12 @@ def main():
                 or native_timing.decode(native_timing.raw_file(context_path)) != context
                 or context['sourceSha256'] != canonical.context.binding.sources()
                 or context['queueSourceSha256'] != canonical.context.sources()
+                or any(native_timing.raw_file(state_files[count]) != raw for count, raw in state_bytes.items())
                 or sha(native/'result.json') != context['inputSha256']['nativeResult']):
             raise ValueError('Bound sources or original inputs changed during analysis')
         result.update(passed=True, canonicalUiReplayPassed=True, nativeReplyBytesRevalidated=True,
+                      canonicalPhaseRecordsBound=True,
+                      supportedStateSha256={str(count): native_timing.digest(raw) for count, raw in state_bytes.items()},
                       sourceSha256=source, canonicalReaderReceiptSha256=receipts, canonicalUiReceiptSha256=sha(receipt),
                       contextSha256=sha(context_path), nativeParentSha256=sha(native/'result.json'),
                       canonicalUiStdoutSha256=sha(output/'canonical-ui.stdout'),

@@ -71,6 +71,31 @@ class NativeControlTiming(unittest.TestCase):
         self.assertEqual((result['medianNumeratorNs'], result['medianDenominator']), (21, 2))
         self.assertEqual(result['nearestRankP95Ns'], 19)
 
+    def test_canonical_phase_records_accept_only_equivalent_typed_json(self):
+        phases = [dict(name='one', nativeScreenshot='frame-002.png', hostObservedUpperBoundMs=1)]
+        raw = json.dumps(dict(stages=phases)).encode()
+        self.assertEqual(m.bind_phase_records(json.dumps(phases, indent=2).encode(), raw), 1)
+
+    def test_valid_screenshot_retarget_cannot_rebind_a_canonical_phase(self):
+        observer, phases = self.fixture()
+        canonical = json.loads(phases.read_bytes())
+        self.mutate(observer/'request-003.json', action='snapshot', screenshot=True)
+        self.mutate(observer/'response-003.json', action='snapshot', screenshot='frame-003.png', xml='<hierarchy/>')
+        retargeted = [dict(name='one', nativeScreenshot='frame-003.png'), canonical[1]]
+        phases.write_text(json.dumps(retargeted), encoding='utf-8')
+        # The previous timing reader accepts this real, ordered response, but it
+        # belongs to a different image than the canonical state/UI evidence.
+        self.assertEqual([r['responseOrdinal'] for r in self.collect(observer, phases)['phaseScreenshotObservationWindows']], [3, 5])
+        with self.assertRaisesRegex(ValueError, 'canonically verified stages'):
+            m.bind_phase_records(phases.read_bytes(), json.dumps(dict(stages=canonical)).encode())
+
+    def test_phase_number_boolean_and_float_substitution_refused(self):
+        canonical = [dict(name='one', hostObservedUpperBoundMs=1)]
+        for number in (True, 1.0):
+            with self.subTest(number=number), self.assertRaises(ValueError):
+                m.bind_phase_records(json.dumps([dict(name='one', hostObservedUpperBoundMs=number)]).encode(),
+                                     json.dumps(dict(stages=canonical)).encode())
+
     def test_changed_bytes_after_verification_refused_without_overwrite(self):
         observer, phases = self.fixture()
         frozen = m.fingerprint(observer, phases)
