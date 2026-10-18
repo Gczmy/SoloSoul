@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import types
 import unittest
+from unittest.mock import patch
 
 import trace_session as m
 
@@ -23,6 +24,7 @@ def log(message):return b'[100.000] perfetto_cmd.cc:792     '+message+b'\n'
 class Device:
     def __init__(self,names,fault=None):
         self.names=names;self.fault=fault;self.active=False;self.files={};self.calls=[]
+        self.atrace_reads=0
         self.trace=field(1,b'public-native-packet')
     def __call__(self,label,args,*,timeout):
         self.calls.append((label,args,timeout));out=err=b'';code=0
@@ -31,6 +33,16 @@ class Device:
             if self.fault=='foreign-before' and label=='session-state-before':count=1
             if self.fault=='wrong-active' and label=='session-state-active':count=2
             out=state(count)
+        elif label.startswith('session-atrace-'):
+            mask=64 if self.active else 0
+            if label.endswith('-active'):
+                self.atrace_reads+=1
+                if self.fault=='atrace-late-active' and self.atrace_reads<3:mask=0
+            if self.fault=='atrace-before' and label.endswith('-before'):mask=32
+            if self.fault=='atrace-after' and label.endswith('-after'):mask=64
+            if self.fault=='atrace-active' and label.endswith('-active'):mask=0
+            count=1 if self.fault=='atrace-empty-slot' and label.endswith('-active') else 0
+            out=(str(mask)+'\n'+str(count)+'\n\n'+str(count)+'\n'+str(mask)+'\n').encode()
         elif label.endswith('-reserve'):
             path=args[-1].removeprefix('set -C; : > ')
             if self.fault=='nonzero-reserve':
@@ -62,15 +74,15 @@ class Device:
         return types.SimpleNamespace(returncode=code,stdout=out,stderr=err)
 
 class WholeJourneySession(unittest.TestCase):
-    def case(self,fault=None):
+    def case(self,fault=None,profile='default'):
         folder=tempfile.TemporaryDirectory();self.addCleanup(folder.cleanup)
         root=Path(folder.name);inputs=root/'inputs';inputs.mkdir();out=root/'out';out.mkdir()
         base=(ROOT/'base-config.pbtxt').read_bytes();names=m.transport.remote_paths('c'*32)
         (inputs/'base-config.pbtxt').write_bytes(base)
         (inputs/'file-plan.json').write_text(json.dumps({'nonce':'c'*32}),encoding='utf-8')
         (inputs/'roundtrip.bin').write_bytes(m.transport.ROUNDTRIP)
-        (inputs/'trace-config.pbtxt').write_bytes(m.config(base,names[2]))
-        device=Device(names,fault);session=m.Session(device,inputs,out)
+        (inputs/'trace-config.pbtxt').write_bytes(m.config(base,names[2],profile=profile))
+        device=Device(names,fault);session=m.Session(device,inputs,out,profile=profile)
         return session,device,out,inputs
     def test_one_session_brackets_work_and_stops_exact_key(self):
         s,d,out,_=self.case();s.start();self.assertTrue(d.active)
@@ -143,5 +155,132 @@ class WholeJourneySession(unittest.TestCase):
         with self.assertRaises(ValueError):s.start()
         s.finish()
         with self.assertRaises(ValueError):s.finish()
+
+    def test_default_configuration_golden_and_no_atrace_queries(self):
+        base=(ROOT/'base-config.pbtxt').read_bytes()
+        self.assertEqual(hashlib.sha256(m.config(base,m.transport.remote_paths('d'*32)[2])).hexdigest(),
+                         'd92de1d19cbd53d52a1ce3d2894c4a54e1ca268f198d0ae8e242deb9ec806081')
+        s,d,_,_=self.case();s.start();s.finish()
+        self.assertFalse(any(label.startswith('session-atrace-')for label,_,_ in d.calls))
+
+    def test_startup_am_profile_binds_tags_and_disables_after_stop(self):
+        s,d,out,_=self.case(profile='startup-am');s.start();result=s.finish()
+        self.assertEqual(result['traceProfile'],'startup-am')
+        self.assertEqual({k:v['tagMask']for k,v in result['atraceStates'].items()},dict(before=0,active=64,after=0))
+        self.assertEqual(sum(label.startswith('session-atrace-')for label,_,_ in d.calls),3)
+        self.assertEqual(d.files,{})
+        self.assertTrue(json.loads((out/'session-cleanup.json').read_bytes())['passed'])
+
+    def test_occupied_atrace_before_start_never_stops_foreign_state(self):
+        s,d,out,_=self.case('atrace-before',profile='startup-am')
+        with self.assertRaises(ValueError):s.start()
+        self.assertNotIn('session-start',[label for label,_,_ in d.calls])
+        self.assertNotIn('session-stop',[label for label,_,_ in d.calls])
+        self.assertEqual(d.files,{})
+
+    def test_inactive_am_profile_is_refused_and_owned_session_restored(self):
+        s,d,out,_=self.case('atrace-active',profile='startup-am')
+        with patch.object(m.time,'sleep'),self.assertRaises(ValueError):s.start()
+        self.assertFalse(d.active);self.assertEqual(d.files,{})
+        self.assertTrue(json.loads((out/'session-cleanup.json').read_bytes())['passed'])
+
+    def test_atrace_not_disabled_after_stop_refuses_trace_without_retry(self):
+        s,d,out,_=self.case('atrace-after',profile='startup-am');s.start()
+        with self.assertRaises(ValueError):s.finish()
+        self.assertEqual(sum(label=='session-stop'for label,_,_ in d.calls),1)
+        self.assertFalse((out/'session-transport.json').exists())
+        self.assertFalse(json.loads((out/'session-cleanup.json').read_bytes())['passed'])
+
+    def test_profile_cannot_silently_consume_other_configuration(self):
+        s,d,out,inputs=self.case(profile='startup-am')
+        with self.assertRaises(ValueError):m.Session(d,inputs,out)
+        self.assertEqual(d.calls,[])
+
+    def test_unknown_profile_refused_without_custom_config_injection(self):
+        base=(ROOT/'base-config.pbtxt').read_bytes()
+        for profile in (None,True,'unknown','am\natrace_apps: "*"'):
+            with self.subTest(profile=profile),self.assertRaises(ValueError):
+                m.config(base,m.transport.remote_paths('d'*32)[2],profile=profile)
+
+    def test_atrace_property_parser_refuses_missing_extra_foreign_or_invalid_values(self):
+        s,d,_,_=self.case(profile='startup-am')
+        for raw in (b'0\n',b'0\n0\nextra\n',b'bad\n0\n\n0\n0\n',b'-1\n0\n\n0\n0\n',
+                    b'0\n1\n\n1\n0\n',b'64\n0\n\n0\n64\n',b'0'*257+b'\n0\n\n0\n0\n'):
+            s.raw_call=lambda *args,**kwargs:types.SimpleNamespace(returncode=0,stdout=raw,stderr=b'')
+            with self.subTest(raw=raw),self.assertRaises(ValueError):s._atrace_state('before',0)
+        self.assertEqual(d.calls,[])
+
+    def test_disabled_unset_and_hex_property_forms_are_read_only_equivalents(self):
+        s,_,_,_=self.case(profile='startup-am');calls=[]
+        for stage,raw,mask in (('before',b'\n\n\n\n\n',0),('active',b'0x40\n0\n\n0\n0x40\n',64),
+                               ('after',b'0x0\r\n0\r\n\r\n0\r\n0x0\r\n',0)):
+            def call(label,args,*,timeout):
+                calls.append(args)
+                return types.SimpleNamespace(returncode=0,stdout=raw,stderr=b'')
+            s.raw_call=call;s._atrace_state(stage,mask)
+        self.assertEqual({k:v['tagMask']for k,v in s.atrace_states.items()},dict(before=0,active=64,after=0))
+        self.assertTrue(all(args[:3]==['exec-out','sh','-c']and 'setprop'not in args[-1]for args in calls))
+
+    def test_delayed_am_readiness_preserves_zero_probes_and_requires_real_64(self):
+        s,d,_,_=self.case('atrace-late-active',profile='startup-am');s.start();result=s.finish()
+        self.assertTrue(result['atraceReadiness']['withinBudget'])
+        self.assertEqual(len(result['atraceReadiness']['disabledProbesRetained']),2)
+        self.assertTrue(all(v['tagMask']==0 for v in result['atraceReadiness']['disabledProbesRetained']))
+        self.assertEqual(result['atraceStates']['active']['tagMask'],64)
+        self.assertTrue(all(0<timeout<=5 for label,_,timeout in d.calls if label=='session-atrace-active'))
+
+    def test_ready_reply_after_total_budget_is_not_accepted(self):
+        s,d,out,_=self.case(profile='startup-am')
+        with patch.object(m.time,'monotonic',side_effect=[0,0.1,5.1]),self.assertRaises(ValueError):s.start()
+        self.assertFalse(s.atrace_ready);self.assertFalse(d.active);self.assertEqual(d.files,{})
+        self.assertEqual(sum(label=='session-stop'for label,_,_ in d.calls),1)
+
+    def test_only_active_profile_reads_can_use_a_shorter_remaining_timeout(self):
+        s,d,_,_=self.case(profile='startup-am')
+        for label,timeout in (('session-state-before',4.0),('session-atrace-active',5.1),
+                              ('session-atrace-active',45),('session-atrace-active',0),('session-atrace-active',True)):
+            with self.subTest(label=label,timeout=timeout),self.assertRaises(ValueError):s.call(label,[],timeout=timeout)
+        self.assertEqual(d.calls,[])
+
+    def test_single_empty_app_slot_is_verified_without_hiding_the_raw_count(self):
+        s,d,out,_=self.case('atrace-empty-slot',profile='startup-am');s.start();result=s.finish()
+        active=result['atraceStates']['active']
+        self.assertEqual(active['appCount'],1)
+        self.assertEqual(active['appCountReadbacks'],[1,1])
+        self.assertTrue(active['emptyAppEntryVerified']);self.assertTrue(active['stableReadback'])
+        self.assertEqual(result['atraceStates']['before']['appCount'],0)
+        self.assertEqual(result['atraceStates']['after']['appCount'],0)
+        self.assertTrue(json.loads((out/'session-cleanup.json').read_bytes())['passed'])
+
+    def test_actual_app_patterns_counts_and_unproven_old_replies_remain_refused(self):
+        s,_,_,_=self.case(profile='startup-am')
+        raws=[b'0x40\n1\n'+entry+b'\n1\n0x40\n'
+              for entry in (b'*',b'com.solosoul.app',b'com.*',b'?',b' ',b'\0')]
+        raws.extend((b'64\n2\n\n2\n64\n',b'64\n1\n',b'64\n0\n',b'64\n0\n\n1\n64\n'))
+        for raw in raws:
+            s.raw_call=lambda *args,**kwargs:types.SimpleNamespace(returncode=0,stdout=raw,stderr=b'')
+            with self.subTest(raw=raw),self.assertRaises(ValueError):s._atrace_state('active',64)
+
+    def test_empty_slot_does_not_relax_original_zero_count_before_or_after(self):
+        s,_,_,_=self.case(profile='startup-am')
+        s.raw_call=lambda *args,**kwargs:types.SimpleNamespace(returncode=0,stdout=b'0\n1\n\n1\n0\n',stderr=b'')
+        for stage in ('before','after'):
+            with self.subTest(stage=stage),self.assertRaises(ValueError):s._atrace_state(stage,0)
+
+    def test_transition_during_property_read_is_pending_until_fresh_stable_64(self):
+        s,_,_,_=self.case(profile='startup-am')
+        for raw in (b'0\n0\n\n1\n64\n',b'64\n0\n\n1\n64\n',b'0\n1\n\n1\n0\n'):
+            s.raw_call=lambda *args,**kwargs:types.SimpleNamespace(returncode=0,stdout=raw,stderr=b'')
+            self.assertFalse(s._atrace_state('active',64,allow_starting=True))
+            self.assertNotIn('active',s.atrace_states)
+        s.raw_call=lambda *args,**kwargs:types.SimpleNamespace(returncode=0,stdout=b'64\n1\n\n1\n64\n',stderr=b'')
+        self.assertTrue(s._atrace_state('active',64,allow_starting=True))
+        self.assertEqual(len(s.atrace_pending),3)
+
+    def test_unknown_tag_or_app_filter_is_rejected_even_while_starting(self):
+        s,_,_,_=self.case(profile='startup-am')
+        for raw in (b'32\n0\n\n0\n64\n',b'0\n1\n*\n1\n0\n',b'0\n2\n\n2\n0\n'):
+            s.raw_call=lambda *args,**kwargs:types.SimpleNamespace(returncode=0,stdout=raw,stderr=b'')
+            with self.subTest(raw=raw),self.assertRaises(ValueError):s._atrace_state('active',64,allow_starting=True)
 
 if __name__=='__main__':unittest.main()

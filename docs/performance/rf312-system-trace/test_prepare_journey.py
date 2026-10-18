@@ -99,6 +99,48 @@ class JourneyPreparation(unittest.TestCase):
         with self.assertRaises(ValueError):
             trace_binding.verify(plan)
 
+    def startup(self):
+        root, runtime, adapter, pwsh, state = self.case()
+        with patch.object(m,'load_state',return_value=state):
+            path=m.prepare(runtime,adapter,pwsh,root/'startup capture',profile='startup-am')
+        return path,json.loads(path.read_bytes())
+
+    def test_startup_profile_is_explicit_separate_schema_and_exact_am_config(self):
+        path,plan=self.startup()
+        self.assertEqual(trace_binding.load(path),plan)
+        self.assertEqual((plan['schemaVersion'],plan['traceProfile']),(2,'startup-am'))
+        for case in plan['inputCases'].values():
+            root=Path(case['root']);body=(root/'trace-config.pbtxt').read_bytes()
+            self.assertEqual(body.count(b'atrace_categories: "am"'),1)
+            self.assertNotIn(b'atrace_apps',body)
+            self.assertEqual((root/'base-config.pbtxt').read_bytes(),(m.ROOT/'base-config.pbtxt').read_bytes())
+
+    def test_startup_configuration_cannot_be_downgraded_to_legacy_binding(self):
+        _,plan=self.startup();plan['schemaVersion']=1;plan.pop('traceProfile')
+        with self.assertRaisesRegex(ValueError,'exact declared configuration'):trace_binding.verify(plan)
+
+    def test_legacy_configuration_cannot_claim_startup_profile(self):
+        _,plan=self.prepared();plan.update(schemaVersion=2,traceProfile='startup-am')
+        with self.assertRaisesRegex(ValueError,'exact declared configuration'):trace_binding.verify(plan)
+
+    def test_profile_field_on_legacy_or_unknown_schema_is_refused(self):
+        _,plan=self.startup()
+        for version,profile in ((1,'startup-am'),(2,'default'),(2,'other'),(True,'startup-am')):
+            changed=copy.deepcopy(plan);changed.update(schemaVersion=version,traceProfile=profile)
+            with self.subTest(version=version,profile=profile),self.assertRaises(ValueError):trace_binding.verify(changed)
+
+    def test_unknown_preparation_profile_rejected_before_output_or_state_load(self):
+        root,runtime,adapter,pwsh,_=self.case()
+        with patch.object(m,'load_state')as load,self.assertRaises(ValueError):
+            m.prepare(runtime,adapter,pwsh,root/'never created',profile='am')
+        load.assert_not_called();self.assertFalse((root/'never created').exists())
+
+    def test_configuration_tampering_with_refreshed_digest_still_refused(self):
+        _,plan=self.startup();case=plan['inputCases']['100'];path=Path(case['root'])/'trace-config.pbtxt'
+        path.write_bytes(path.read_bytes()+b'\nduration_ms: 1\n')
+        case['files']['trace-config.pbtxt']=m.sha(path)
+        with self.assertRaisesRegex(ValueError,'exact declared configuration'):trace_binding.verify(plan)
+
 
 if __name__ == '__main__':
     unittest.main()

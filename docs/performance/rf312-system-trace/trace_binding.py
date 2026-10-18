@@ -9,7 +9,11 @@ FIELDS={'schemaVersion','adapterInputs','adapterInputsSha256','runtimeInputs','r
         'sources','originalSources','inputCases','powershell','powershellSha256'}
 
 def verify(plan):
-    if (set(plan)!=FIELDS or type(plan['schemaVersion']) is not int or plan['schemaVersion']!=1
+    import trace_session
+    legacy = set(plan)==FIELDS and type(plan.get('schemaVersion')) is int and plan['schemaVersion']==1
+    startup = (set(plan)==FIELDS|{'traceProfile'} and type(plan.get('schemaVersion')) is int
+               and plan['schemaVersion']==2 and plan.get('traceProfile')=='startup-am')
+    if (not (legacy or startup)
             or set(plan['inputCases'])!={'100','5000'}):
         raise ValueError('Exact full-journey trace binding required')
     required={'trace_binding.py','trace_journey.py','trace_session.py','transport.py',
@@ -41,6 +45,15 @@ def verify(plan):
         for name,digest in case['files'].items():
             if (folder/name).is_symlink() or sha(folder/name)!=digest:
                 raise ValueError('Frozen session input changed')
+        file_plan = json.loads((folder/'file-plan.json').read_bytes())
+        if set(file_plan) != {'nonce'}:
+            raise ValueError('Exact session nonce required')
+        remote = trace_session.transport.remote_paths(file_plan['nonce'])[2]
+        expected = trace_session.config((folder/'base-config.pbtxt').read_bytes(), remote,
+                                        profile=plan.get('traceProfile','default'))
+        if ((folder/'trace-config.pbtxt').read_bytes()!=expected
+                or (folder/'roundtrip.bin').read_bytes()!=trace_session.transport.ROUNDTRIP):
+            raise ValueError('Session profile differs from exact declared configuration')
     return plan
 
 def load(path,*,runtime=None,adapter=None):

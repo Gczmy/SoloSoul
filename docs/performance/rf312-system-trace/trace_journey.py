@@ -57,7 +57,8 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,trace_inputs,**
         raise ValueError('Canonical birth identity reader differs')
     folder=output/'system-trace';folder.mkdir()
     calls=TraceCalls(adb,folder/'sdk')
-    session=trace_session.Session(calls,trace_inputs['inputCases'][str(count)]['root'],folder)
+    session_options = {'profile':trace_inputs['traceProfile']} if 'traceProfile' in trace_inputs else {}
+    session=trace_session.Session(calls,trace_inputs['inputCases'][str(count)]['root'],folder,**session_options)
     # Session sees an empty directory before any recording files are created.
     identities=[];phases=[];readiness=[];original_save=base.save;identity=None;capture=None
     def kernel(pid):
@@ -133,6 +134,8 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,*,trace_inputs,**
         traceSha256=capture['traceSha256'],traceContentAttributionAccepted=False,
         wholeJourneyMemoryPeakAccepted=False,nativeFramesAccepted=False,
         firstInteractiveTimeProven=False,fullRF312Accepted=False)
+    if 'traceProfile' in trace_inputs:
+        proof['traceProfile']=trace_inputs['traceProfile']
     original_save(folder/'whole-workload-binding.json',proof)
     evidence['systemTraceHostBracketsVerified']=True
     return evidence

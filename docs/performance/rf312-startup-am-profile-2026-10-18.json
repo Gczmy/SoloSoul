@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "scope": "explicit-startup-am-profile-and-one-two-size-native-queue",
+  "baseRevision": "9650c81831b193747381e5eb7f5d3c9209ac8bea",
+  "productRevision": "305b86020a33b5368299b07594b94542f0869e09",
+  "sourceSha256": {
+    "docs/performance/rf312-system-trace/test_trace_session.py": "55a9bc2d8536eb6cf16dc8798c7649d9533e34381f11911e178bb2f83cc43f08",
+    "docs/performance/rf312-system-trace/trace_binding.py": "a77f0bae04e3e159b4ed77d18152b44888a3a15e94e2f7e2fd2e6c73760f3ef4",
+    "docs/performance/rf312-system-trace/test_trace_adapter.py": "c9693f02d951587fc94e0b4723bd9a90d74edb2ce38cddf890df8430144928db",
+    "docs/performance/rf312-system-trace/prepare_journey.py": "01e6a9554d96b8a20bd3b17808142a60091b505c97b965bcb13a2b6082e785e4",
+    "docs/performance/rf312-system-trace/test_prepare_journey.py": "d925b8f4c6625ddaac388f3aa861e9d19c227711d13250a050508361f8c0bf93",
+    "docs/performance/rf312-system-trace/trace_journey.py": "1be725ac0be25fe712d50987651b88772b5f15df1794b7cd094be0fd3ce9c915",
+    "docs/performance/rf312-system-trace/trace_session.py": "ccf83ac284094e48ab8beee176b188ef64d29eab59e8c94fa3db61740921e4d7"
+  },
+  "uniqueTests": 140,
+  "same140TestsPassedInPortableCopy": true,
+  "defaultSchema1AndGoldenConfigurationPreserved": true,
+  "defaultGoldenConfigSha256": "d92de1d19cbd53d52a1ce3d2894c4a54e1ca268f198d0ae8e242deb9ec806081",
+  "explicitProfile": "startup-am",
+  "explicitBindingSchemaVersion": 2,
+  "activeReadback": {
+    "requiredTagMask": 64,
+    "allowedCounts": [
+      0,
+      1
+    ],
+    "actuallyEmptyAppEntryRequired": true,
+    "repeatedTagAndCountValuesMustBeStable": true,
+    "totalBudgetMs": 5000,
+    "maximumProbes": 51,
+    "disabledAndTornReadbacksRetained": true,
+    "namedAndWildcardAppFiltersRefused": true
+  },
+  "fixedBudgets": {
+    "bootSeconds": 240,
+    "actualPreflightSeconds": 600,
+    "phaseSeconds": 45,
+    "observerSeconds": 240,
+    "observerRequests": 512,
+    "javaScriptSeconds": 3,
+    "smallSdkSeconds": 5,
+    "stopPullSeconds": 45,
+    "normalHostExitSeconds": 45
+  },
+  "traceBounds": {
+    "ttlMs": 240000,
+    "maximumBytes": 33554432,
+    "bufferKiB": 8192,
+    "periodMs": 500
+  },
+  "platform": {
+    "api": 31,
+    "architecture": "x86_64",
+    "device": "fresh isolated emulator",
+    "traceProcessor": "58.2",
+    "processorSha256": "adfa6bad3d72be3ba9b83fa2b17b69fa13b3ab1cad0f42e52b86188bd5f0f997"
+  },
+  "freshDeviceRuns": 1,
+  "samplesPerObjectCount": 1,
+  "previousAttemptsNotPooled": true,
+  "earlierRestrictedCimRefusalBeforeSdkRetained": true,
+  "previousNativeRefusals": [
+    {
+      "stage": "immediate-active-zero",
+      "stillRefused": true,
+      "uiStagesCompleted": 0,
+      "largeCaseNotStarted": true,
+      "originalRestorationPassed": true,
+      "independentAuditSha256": "21b02d9bd09a0c9aae3058846f2ecda36aac2d9b4e1134251c521c32127d922d"
+    },
+    {
+      "stage": "active64-with-unproven-app-slot",
+      "stillRefused": true,
+      "uiStagesCompleted": 0,
+      "largeCaseNotStarted": true,
+      "originalRestorationPassed": true,
+      "independentAuditSha256": "ff592d48110f1a8f555874508941faad6336660503f7f95d919395342cce4c99"
+    }
+  ],
+  "originalReaderSourcesUnchanged": 97,
+  "additionalBoundSources": 19,
+  "frozenInputsVerified": 85,
+  "outerSdkRawRecords": 129,
+  "outerExitCodes": {
+    "0": 112,
+    "1": 17
+  },
+  "fullOriginalReplaysPassed": true,
+  "all24UiStagesPassed": true,
+  "all26BirthIdentityChecksPassed": true,
+  "originalRestorationPassed": true,
+  "strictOwnedHostProcessesAndListenersZero": true,
+  "terminalHealth": {
+    "dropBoxEntries": 107,
+    "preflightEntries": 38,
+    "warningsNotErased": true,
+    "anrOrCrashTagsObserved": false,
+    "lastAnrReportsRead": true,
+    "fullOriginalTextActuallyReviewed": true,
+    "fullDropBoxSha256": "daabed1fdba7bcc9fd7ab7ee5e3b595de7f6994cf4cb6b57abdeb6d96f55dacc"
+  },
+  "cases": [
+    {
+      "objectCount": 100,
+      "sdkCommands": 74,
+      "sessionCommandsReplayed": 21,
+      "startupProfile": "startup-am",
+      "activeTagMask": 64,
+      "rawActiveAppCount": 1,
+      "emptyAppEntryVerified": true,
+      "disabledOrTornProbesRetained": 2,
+      "kernelIdentityCommandsReplayed": 52,
+      "stablePidUidBirthChecks": 13,
+      "nativeClockTicksPerSecond": 100,
+      "traceBoottimeBirthQuantisationVerified": true,
+      "traceSha256": "b721091f9afabdfe7e9d0d3b45810d2b610e410b4341b1c79c3ca63cdc37575e",
+      "rawBytes": 11604870,
+      "packets": 14512,
+      "completeHostBracketedPhases": 12,
+      "nonceOwnershipLifecycleAndOnlyThreeFilesVerified": true,
+      "originalSessionCodeReplayedWithoutSdk": true,
+      "applicationPerformanceAccepted": false,
+      "fullRF312Accepted": false,
+      "startup": {
+        "objectCount": 100,
+        "traceSha256": "b721091f9afabdfe7e9d0d3b45810d2b610e410b4341b1c79c3ca63cdc37575e",
+        "matchedColdStartWindows": 1,
+        "parsedSystemStartups": 2,
+        "systemStartupDurationNs": 414148520,
+        "systemServerIntentAndSuccessMarkersVerified": true,
+        "processMappingAndNativeIdentityVerified": true,
+        "processBirthAfterIntentNs": 14372950,
+        "boottimeOffsetNs": 0,
+        "earliestObservedMainBufferFramesVerified": 20,
+        "expectedAndDisplayLinksUnique": true,
+        "firstTwo": [
+          {
+            "displayEndAfterLaunchIntentNs": 432203817,
+            "displayEndAfterSystemWindowEndNs": 18055297,
+            "surfaceFrameDurationNs": 295534605,
+            "presentType": "Late Present"
+          },
+          {
+            "displayEndAfterLaunchIntentNs": 3723483887,
+            "displayEndAfterSystemWindowEndNs": 3309335367,
+            "surfaceFrameDurationNs": 429382255,
+            "presentType": "Late Present"
+          }
+        ],
+        "failedIntentNotificationsRetained": 2,
+        "startupQuerySha256": "19388e5185f2441b0895164eca72d499ad14be0e62ec945540e08de9c64bab08",
+        "startupReplySha256": "f2f45ad9b630190010d325d481484f939bed74e2c72ab9e0006cc83111d6daa7",
+        "frameQuerySha256": "bcc43618609c51bbf5e7b23b3be8d386e69ea256182efb3459afbd56aa08b97a",
+        "frameReplySha256": "52d95089b446fbc94f7dc29fda0b6af441a1a633b3737e6602736cf3d2e7b1ce",
+        "identityProgressSha256": "f0dcf81b8dfe0efc571926d8eb63768204ffa84b696e0d1b8a6b16e83f5f75df"
+      },
+      "traceQuality": {
+        "objectCount": 100,
+        "traceSha256": "b721091f9afabdfe7e9d0d3b45810d2b610e410b4341b1c79c3ca63cdc37575e",
+        "counts": {
+          "process": 8262,
+          "counter": 521472,
+          "ftrace_event": 245787,
+          "frame_timeline": 2237,
+          "clock_snapshot": 1812
+        },
+        "rssStatEvents": 203727,
+        "processMemoryCounterSamples": 486149,
+        "nonzeroErrorsOrDataLoss": [],
+        "platformTraceQualityAccepted": true,
+        "stdoutSha256": "5fb5c4bd07ce03be832004ccee6d17a3fd5fecb15b394ed1fa6ecef4f269d85b",
+        "stderrSha256": "4ad3aef5e7ff6aee8e20b50a16e36808c4532bacd9e493d2cd72cc7b2923ff3f",
+        "nativeFramesAccepted": false,
+        "applicationPerformanceAccepted": false,
+        "fullRF312Accepted": false
+      },
+      "nonzeroInformationAndKnownLimits": {
+        "frame_timeline_event_parser_errors": 2,
+        "rss_stat_unknown_thread_for_mm_id": 170,
+        "rss_stat_negative_size": 0,
+        "traced_chunks_discarded": 0
+      },
+      "uiObserverReplies": 415,
+      "uniquePngHashes": 21,
+      "physicalTextProofs": 6,
+      "memoryExclusiveCategories": {
+        "numeric": 84,
+        "validPrelaunchAbsence": 1,
+        "failedCaptures": 0,
+        "missedSlots": 1
+      },
+      "sampledMaximumSerialPssBytes": 269769728
+    },
+    {
+      "objectCount": 5000,
+      "sdkCommands": 72,
+      "sessionCommandsReplayed": 19,
+      "startupProfile": "startup-am",
+      "activeTagMask": 64,
+      "rawActiveAppCount": 1,
+      "emptyAppEntryVerified": true,
+      "disabledOrTornProbesRetained": 0,
+      "kernelIdentityCommandsReplayed": 52,
+      "stablePidUidBirthChecks": 13,
+      "nativeClockTicksPerSecond": 100,
+      "traceBoottimeBirthQuantisationVerified": true,
+      "traceSha256": "e597ef541822c03e749b34e9c4b058ddc60fdad603232702681b5b3c769b80de",
+      "rawBytes": 11431833,
+      "packets": 14215,
+      "completeHostBracketedPhases": 12,
+      "nonceOwnershipLifecycleAndOnlyThreeFilesVerified": true,
+      "originalSessionCodeReplayedWithoutSdk": true,
+      "applicationPerformanceAccepted": false,
+      "fullRF312Accepted": false,
+      "startup": {
+        "objectCount": 5000,
+        "traceSha256": "e597ef541822c03e749b34e9c4b058ddc60fdad603232702681b5b3c769b80de",
+        "matchedColdStartWindows": 1,
+        "parsedSystemStartups": 2,
+        "systemStartupDurationNs": 549114365,
+        "systemServerIntentAndSuccessMarkersVerified": true,
+        "processMappingAndNativeIdentityVerified": true,
+        "processBirthAfterIntentNs": 40557259,
+        "boottimeOffsetNs": 0,
+        "earliestObservedMainBufferFramesVerified": 20,
+        "expectedAndDisplayLinksUnique": true,
+        "firstTwo": [
+          {
+            "displayEndAfterLaunchIntentNs": 574399530,
+            "displayEndAfterSystemWindowEndNs": 25285165,
+            "surfaceFrameDurationNs": 400335503,
+            "presentType": "Late Present"
+          },
+          {
+            "displayEndAfterLaunchIntentNs": 1097436390,
+            "displayEndAfterSystemWindowEndNs": 548322025,
+            "surfaceFrameDurationNs": 134171770,
+            "presentType": "Late Present"
+          }
+        ],
+        "failedIntentNotificationsRetained": 2,
+        "startupQuerySha256": "19388e5185f2441b0895164eca72d499ad14be0e62ec945540e08de9c64bab08",
+        "startupReplySha256": "81fe88e413e1b0f15743846a29b5b3621bb3f6fb9b5037876671f793077fdcdf",
+        "frameQuerySha256": "bcc43618609c51bbf5e7b23b3be8d386e69ea256182efb3459afbd56aa08b97a",
+        "frameReplySha256": "41e79a9bf946769e9b8198657bfb903cae41c334087c6a3ec05b570b97e00e85",
+        "identityProgressSha256": "516f6a9dd81906961445f1777e5eb7122c4b0dc3d4af9b112ff95de279621095"
+      },
+      "traceQuality": {
+        "objectCount": 5000,
+        "traceSha256": "e597ef541822c03e749b34e9c4b058ddc60fdad603232702681b5b3c769b80de",
+        "counts": {
+          "process": 8130,
+          "counter": 502421,
+          "ftrace_event": 238834,
+          "frame_timeline": 2201,
+          "clock_snapshot": 1764
+        },
+        "rssStatEvents": 197973,
+        "processMemoryCounterSamples": 468431,
+        "nonzeroErrorsOrDataLoss": [],
+        "platformTraceQualityAccepted": true,
+        "stdoutSha256": "ed143367a749ca58415ba2b7c7be985285219cf2f585fc170491b073a6a2a567",
+        "stderrSha256": "c2f1d90d9b92c4008e795b3ab8df86ea899027651f3133a435c732954f9cea25",
+        "nativeFramesAccepted": false,
+        "applicationPerformanceAccepted": false,
+        "fullRF312Accepted": false
+      },
+      "nonzeroInformationAndKnownLimits": {
+        "frame_timeline_event_parser_errors": 2,
+        "rss_stat_negative_size": 25,
+        "rss_stat_unknown_thread_for_mm_id": 1437,
+        "traced_chunks_discarded": 1
+      },
+      "uiObserverReplies": 401,
+      "uniquePngHashes": 21,
+      "physicalTextProofs": 6,
+      "memoryExclusiveCategories": {
+        "numeric": 82,
+        "validPrelaunchAbsence": 1,
+        "failedCaptures": 0,
+        "missedSlots": 1
+      },
+      "sampledMaximumSerialPssBytes": 305081344
+    }
+  ],
+  "evidenceSha256": {
+    "preparation": "86d7adcdc02d468a497582261fe9926598a907ce85ec15d33c671b9d02d9d8fd",
+    "nativeParent": "c142f7b0ebfd541ee24ee11c1a95998d33affc886ce95377517cad7614d7d29c",
+    "originalFourReaders": "bc3990ff27ec836ea37be84a3fc46238e6f2ddc946651bbbc55c7de8c08384cd",
+    "addedCaptureAudit": "bafc641f3256ffdcac870dd2134577be90982b31d3806c285307a01dbefc034d",
+    "startupFrameBinding": "be02d167fc6878aa6dfbad7cc685a5edfce7c2806524a173e86b14b8be7c9387",
+    "quality": "9e63d9bdf1b06d3671b3cb4eecc303d3cf8146eb379e9c11383f6a5bf10e78ea"
+  },
+  "firstInteractiveTimeProven": false,
+  "firstTwoFrameContentsProven": false,
+  "applicationOnlyLatencyAccepted": false,
+  "allApplicationFramesComplete": false,
+  "continuousMemoryPeakAccepted": false,
+  "performanceDistributionAccepted": false,
+  "fullRF312Accepted": false,
+  "ledger": {
+    "closed": 369,
+    "total": 378,
+    "unfinished": 9
+  }
+}

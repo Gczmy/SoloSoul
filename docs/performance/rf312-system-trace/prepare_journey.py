@@ -32,7 +32,9 @@ def write_json(path, value):
         stream.write('\n')
 
 
-def prepare(runtime, adapter, powershell, output):
+def prepare(runtime, adapter, powershell, output, *, profile='default'):
+    if type(profile) is not str or profile not in trace_session.PROFILES:
+        raise ValueError('Unknown explicit trace profile')
     if sys.flags.optimize:
         raise ValueError('Assertions must remain enabled for the original owner')
     runtime, adapter, powershell, output = (Path(p).absolute() for p in (runtime, adapter, powershell, output))
@@ -62,7 +64,7 @@ def prepare(runtime, adapter, powershell, output):
         (folder / 'base-config.pbtxt').write_bytes(base.read_bytes())
         (folder / 'roundtrip.bin').write_bytes(trace_session.transport.ROUNDTRIP)
         remote = trace_session.transport.remote_paths(nonce)[2]
-        (folder / 'trace-config.pbtxt').write_bytes(trace_session.config(base.read_bytes(), remote))
+        (folder / 'trace-config.pbtxt').write_bytes(trace_session.config(base.read_bytes(), remote, profile=profile))
         cases[str(count)] = dict(root=str(folder), files={p.name: sha(p) for p in sorted(folder.iterdir())})
     for path, digest in {**sources, **originals, **frozen}.items():
         if sha(path) != digest:
@@ -71,6 +73,8 @@ def prepare(runtime, adapter, powershell, output):
                 runtimeInputs=str(runtime), runtimeInputsSha256=sha(runtime), sources=sources,
                 originalSources=originals, inputCases=cases,
                 powershell=str(powershell), powershellSha256=sha(powershell))
+    if profile != 'default':
+        plan.update(schemaVersion=2, traceProfile=profile)
     trace_binding.verify(plan)
     destination = output / 'trace-plan.json'
     write_json(destination, plan)
@@ -81,9 +85,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('runtime-inputs', 'adapter-inputs', 'powershell', 'output'):
         parser.add_argument('--' + name, required=True, type=Path)
+    parser.add_argument('--profile', choices=trace_session.PROFILES, default='default')
     args = parser.parse_args()
     try:
-        destination = prepare(args.runtime_inputs, args.adapter_inputs, args.powershell, args.output)
+        destination = prepare(args.runtime_inputs, args.adapter_inputs, args.powershell, args.output, profile=args.profile)
     except (OSError, ValueError) as error:
         parser.error(str(error))
     print(json.dumps(dict(prepared=True, tracePlan=str(destination), sdkStarted=False)))

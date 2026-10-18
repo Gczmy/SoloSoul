@@ -35,7 +35,7 @@ class TraceAdapter(unittest.TestCase):
             with self.assertRaises(subprocess.TimeoutExpired):call('public',[],timeout=5)
             self.assertEqual((Path(folder)/'0001-public.partial.stdout').read_bytes(),b'raw\0')
             self.assertFalse((Path(folder)/'0001-public.partial.stderr').exists())
-    def flow(self,*,changed_birth=False,missing_phase=False,early_failure=False):
+    def flow(self,*,changed_birth=False,missing_phase=False,early_failure=False,startup=False):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);out=Path(temp.name)
         calls=[];saved=[];identity_count=0
         class BaseJourney:
@@ -64,7 +64,9 @@ class TraceAdapter(unittest.TestCase):
             return dict(expected,startTicks=99 if changed_birth and identity_count>2 else 88)
         memory=types.SimpleNamespace(kernel_identity=kernel)
         class Session:
-            def __init__(self,*args):self.cleanup_recorded=False
+            def __init__(self,*args,**kwargs):
+                assert kwargs==({'profile':'startup-am'} if startup else {})
+                self.cleanup_recorded=False
             def start(self):calls.append('trace-start')
             def finish(self):
                 self.cleanup_recorded=True;calls.append('trace-stop')
@@ -76,6 +78,7 @@ class TraceAdapter(unittest.TestCase):
         source=m.PUBLIC/'rf312_default_journey.py'
         memory_file=out/'tauri/scripts/android-process-memory.py';memory_file.parent.mkdir(parents=True);memory_file.write_bytes(b'public-memory-reader')
         plan=dict(inputCases={'100':{'root':str(out)}})
+        if startup:plan['traceProfile']='startup-am'
         inputs=dict(host={'workspaceRoot':str(out)},canonicalMemoryReaderSha256=m.sha(memory_file.read_bytes()))
         def load_module(name,path):return fake_base if Path(path)==source else memory
         with patch.object(m.trace_binding,'verify'),patch.object(m,'module',side_effect=load_module),patch.object(m.trace_session,'Session',Session):
@@ -94,6 +97,13 @@ class TraceAdapter(unittest.TestCase):
         out,calls,result=self.flow(changed_birth=True)
         self.assertIsInstance(result,ValueError);self.assertEqual(calls[-1],'trace-stop')
         self.assertFalse((out/'system-trace/whole-workload-binding.json').exists())
+
+    def test_explicit_startup_profile_reaches_session_and_saved_binding(self):
+        out,calls,result=self.flow(startup=True)
+        self.assertTrue(result['systemTraceHostBracketsVerified'])
+        proof=json.loads((out/'system-trace/whole-workload-binding.json').read_bytes())
+        self.assertEqual(proof['traceProfile'],'startup-am')
+        self.assertEqual(calls[0],'trace-start');self.assertEqual(calls[-1],'trace-stop')
     def test_incomplete_journey_not_accepted(self):
         out,calls,result=self.flow(missing_phase=True)
         self.assertIsInstance(result,ValueError);self.assertEqual(calls[-1],'trace-stop')
