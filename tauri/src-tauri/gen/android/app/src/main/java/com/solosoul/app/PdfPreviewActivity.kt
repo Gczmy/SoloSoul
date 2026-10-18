@@ -78,6 +78,10 @@ class PdfPreviewActivity : AppCompatActivity() {
             return
         }
         openRenderer()
+        if (pageCount > 0) {
+            // 首次测量前设置页码，避免图片布局回调中才改变兄弟控件的 wrap_content 宽度。
+            updateControls()
+        }
         // 关键：必须等首次布局完成后才能读取 pageImage.width。
         // 若在 onCreate 中立即 showPage(0)，此时 width==0，会渲染出 1×1 位图，
         // fitCenter 拉伸后显示为黑色块（PdfRenderer 经典时序 bug）。

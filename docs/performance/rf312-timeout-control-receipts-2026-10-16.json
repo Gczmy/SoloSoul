@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "scope": "adb-timeout-receipt-fix-and-current-default-five-stage-attempt",
+  "compiledProductSource": "525da2ea01aa9966726a951d0282735caa315d04",
+  "originalProductFilesUnchanged": 1795,
+  "defaultReleaseApkSha256": "e16dd7cdb2e7c1084a9215f5cc1e5fda2a3d4d65687b42363727528629e7acfd",
+  "fix": {
+    "portableSource": "rf312-default-observer/adb_control.py",
+    "sourceSha256": "bed894a4a2ca4dea463346d001a6db3e39bb6aade685e8a168217c2a4a179c0a",
+    "testSourceSha256": "e32cd92898164dc8f2f4a450623397eaaa517b3433d9a11571ad88c9cbc2013d",
+    "regressionCasesAdded": 5,
+    "allUniqueUnitCases": 123,
+    "passed": true,
+    "sameTimeoutExceptionRethrown": true,
+    "partialBytesAndHashesRetained": true,
+    "requestedBudgetNotExtended": true,
+    "successAndNonzeroExitSemanticsKept": true,
+    "receiptWriteFailureDoesNotMaskTimeout": true,
+    "actualCliReceiptVerified": true,
+    "clientCreationFlagsAndLocalhostBindingUnchanged": true,
+    "protectedStateFunctionByteEqual": true
+  },
+  "actualTimeout": {
+    "count": 1,
+    "requestedResidualBudgetMs": 4.5875,
+    "exitCode": null,
+    "capturedPartialStreams": {
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "bothStreamsEmpty": true,
+    "originalPhaseExpired": true,
+    "classifiedAsEarlierReadyFailure": false,
+    "fullCommandAndNamespaceLocalOnly": true,
+    "commandsReceiptSha256": "3c3ff24313285e277a8a493bc25ee993e1c0e21f38e7f6b8535536981b6284e0"
+  },
+  "defaultNativeAttempt": {
+    "objectCount": 100,
+    "accepted": false,
+    "completedPhaseNames": [
+      "startup",
+      "password-unlock",
+      "first-ocr-user-flow",
+      "workspace",
+      "search-needle"
+    ],
+    "liveHomeTotalVerified": 100,
+    "firstOcrAndOwnedFilePickerAccepted": true,
+    "pickerReceiptHashes": [
+      {
+        "requestSha256": "cfdadf95d4467dc67cdcc40dad083fdf7e1264d77d720a5ee5de267d51d9024d",
+        "responseSha256": "b571b005347f18430a459ff0cfcce2130db3b97971245e82a7b21dcdb13c93b6"
+      }
+    ],
+    "physicallyVerifiedPublicTextStages": 1,
+    "observerRequests": 292,
+    "privateEntriesExactlyRestored": 139,
+    "originalApksUidDebugAndNineSettingsRestored": true,
+    "normalObserverStopAndRemoval": true,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "case5000Started": false
+  },
+  "nextLocatorDefect": {
+    "readOnlyReplayVerified": true,
+    "unfilteredPublicRecordMatches": 1,
+    "bodyFilteredMatches": 0,
+    "headerLabel": "Objects",
+    "incorrectHeaderTop": 115,
+    "actualMainNavigationTop": 1569,
+    "headerWasMistakenForBottomNavigation": true,
+    "fixIncludedInThisCommit": false,
+    "sourceSha256": "e56893fbde57b98f19dc0fadf5f52f239647122a0979541e76ec2d8df390fa81",
+    "responseSha256": "22a970873e5ad560d8e886a89092a0d71c33f67b2a2f23047d76d548d9f568eb"
+  },
+  "cleanup": {
+    "completeTerminalDropBoxEntries": 103,
+    "noAnrEntries": true,
+    "allStateRestored": true,
+    "ownedProcessesAndListenersAbsent": true
+  },
+  "evidence": {
+    "unitResultSha256": "99d2bffbb62609c7344a2a807fca80f98e36fb2d0214608c0243e0436f1e59e8",
+    "independentTerminalAuditSha256": "f40b3ca18c04b924ee5d5757fa622455043a4a785d436d9a574227788f293f91",
+    "preparationAuditSha256": "c52637043d5471f9296823d46e956375b7fbe9faa0e2f4ceb79e3ae8c02518f6",
+    "hostAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  },
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "parentTaskClosed": false,
+  "closedTasks": 363,
+  "totalTasks": 372,
+  "rawEvidenceLocalOnly": true,
+  "remaining": [
+    "native-navigation-container-scoped-body-selection",
+    "complete-twelve-stage-default-ui",
+    "repeated-distributions",
+    "strict-all-process-memory",
+    "same-source-overhead",
+    "ipc-attribution",
+    "portable-full-orchestration",
+    "other-platform-evidence"
+  ]
+}

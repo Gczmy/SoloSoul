@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1169",
+  "recordedOn": "2026-10-16",
+  "accepted": true,
+  "sourceParent": "0a95806cd40e9d09200e16795a139f1c7ee755b2",
+  "scope": "configure loopback ADB endpoint before first dedicated AVD identity command",
+  "before": {
+    "transportMocked": true,
+    "realAdbServersContacted": false,
+    "callerLateOverrideUnreachable": true,
+    "requestedEndpointSuiteExitCode": 1,
+    "testsRun": 19,
+    "subtestErrorRecords": 15
+  },
+  "after": {
+    "memoryTestsPassed": 19,
+    "homeDriverTestsPassed": 47,
+    "skipped": 0,
+    "cliHelpExitCode": 0,
+    "syntaxChecksPassed": 2,
+    "realAdbServersContacted": false,
+    "pythonUtf8Mode": true
+  },
+  "retainedInitialEnvironmentFailure": {
+    "homeTestsRun": 47,
+    "fixtureDecodeErrors": 2,
+    "windowsDefaultEncoding": true,
+    "sourceOrAssertionsChangedToPass": false
+  },
+  "contract": {
+    "legacyDefaultPreserved": true,
+    "explicitLoopbackEndpointBoundBeforeFirstCommand": true,
+    "invalidEndpointRejectedBeforeOutputOrTransport": true,
+    "dedicatedEmulatorAndAvdValidationPreserved": true,
+    "timeoutAndRawOutputAndNonzeroRejectionUnchanged": true,
+    "entireMemoryScopeOwnershipPidUidBirthAndParsingBytesUnchanged": true
+  },
+  "sourceSha256": {
+    "tauri/scripts/android-process-memory.py": "88cc7b313c1c699eb5a4d85d77b131810bc0c5e678503e8fc72b4ab72baa228d",
+    "tauri/scripts/test_android_process_memory.py": "c420d6b6915fb031a483098b7e1ae9ef504dd5905024c496abd2c8a4f07502ec"
+  },
+  "beforeSourceSha256": "d5ab2415ee55ca856f64e1612a3fe414ef473a5f5f0cdbb5ff07922a085df82b",
+  "evidenceSha256": {
+    "endpoint-coupling-before/proof.json": "a8a32fa2d95b74b0ec6c6bf368476cce0595d4f835b6542d5ec022d32f0efe4d",
+    "rf1169-red/verification.stderr.log": "b6957357f885680999d1b521d9e201979fcf70586730fdf403a2fc8371a76f25",
+    "rf1169-validation/result.json": "05d27a3f07b01e9577eac9dba8e75604c34ca9850cd927846b3eccdb9c0b7420",
+    "rf1169-validation-default-encoding/test_android_home_native_regression.stderr.log": "fd3390f3956f47a7f88ca0f060691a255dc931dd023b5c709a41573956bdb802"
+  },
+  "frozenCurrentDefaultReleasePackagePreparedBeforeSourceEdit": true,
+  "productionFrontendAndResourcesUnchanged": true,
+  "previousConnectionTimeoutRootCauseClaimed": false,
+  "nativeDefaultControlAcceptedByThisUnitVerification": false,
+  "RF312Closed": false,
+  "dependentRF122Through127Released": false,
+  "rawLogsOrHostIdentifiersIncluded": false
+}

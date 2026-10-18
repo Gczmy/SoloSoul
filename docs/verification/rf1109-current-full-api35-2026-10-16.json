@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1109",
+  "recordedOn": "2026-10-16",
+  "status": "closed",
+  "sourceCommit": "27e512a9fc2d20ada16cc6e05a4d1b5023bdcb69",
+  "codeChangedForThisVerification": false,
+  "environment": {
+    "api": 35,
+    "abi": "x86_64",
+    "webViewVersion": "124.0.6367.219",
+    "graphics": "SwiftShader software",
+    "profile": "default Debug",
+    "physicalDevice": false
+  },
+  "build": {
+    "productionFrontendExitCode": 0,
+    "actualDefaultRustLibraryBuildExitCode": 0,
+    "offlineGradleExitCode": 0,
+    "testAndMainSignaturesVerified": true,
+    "sameInternalDebugCertificate": true,
+    "productionSigningUsed": false,
+    "exactNewNativeLibraryInsideMainApk": true,
+    "mainApkSha256": "6af65c2aa0dde4f0f74a5b92f955b640f8f9e572a4845a2f751833b5e20f01c9",
+    "testApkSha256": "a1cab009da6d8a5ff5b2c8b8915dbb6815a0321420a0969313dc66efb6ff4441",
+    "librarySha256": "4ad42caf38082565a5d2b823b7dba713c4a155c56c570dc47c91f9af4e728355",
+    "sourceFilesUnchanged": 1777,
+    "frontendFilesUnchanged": 38,
+    "mobileResourceFilesUnchanged": 46,
+    "ignoredKotlinGeneratedFromLockedTauriAndWryTemplates": true
+  },
+  "home": {
+    "cases": [
+      {
+        "label": "baseline-supported",
+        "passed": true,
+        "restored": true,
+        "junitTests": 1,
+        "stages": 12,
+        "coldStages": 0,
+        "previousProcessExited": null,
+        "distinctColdProcess": false,
+        "reportSha256": "d3aa5d1377bb5ed1ca33094acfc769bf82c57bb1828b72d23843b5c86dd74b23",
+        "privateEntriesRestored": 2
+      },
+      {
+        "label": "baseline-fallback",
+        "passed": true,
+        "restored": true,
+        "junitTests": 1,
+        "stages": 12,
+        "coldStages": 0,
+        "previousProcessExited": null,
+        "distinctColdProcess": false,
+        "reportSha256": "f4fb5a120b9d7c793651607135e91d0b41550fc308dbaa7be8b892d80eea26e8",
+        "privateEntriesRestored": 2
+      },
+      {
+        "label": "cold-supported",
+        "passed": true,
+        "restored": true,
+        "junitTests": 2,
+        "stages": 18,
+        "coldStages": 5,
+        "previousProcessExited": true,
+        "distinctColdProcess": true,
+        "reportSha256": "80faf37fe84a8c1f1b8b896a93d75dda100f7be01747034d5e4c88cfe37183f8",
+        "privateEntriesRestored": 2
+      },
+      {
+        "label": "cold-fallback",
+        "passed": true,
+        "restored": true,
+        "junitTests": 2,
+        "stages": 18,
+        "coldStages": 5,
+        "previousProcessExited": true,
+        "distinctColdProcess": true,
+        "reportSha256": "3b11814771d5fd62e0aa0354bae2c38462604630b37f23fb5aaa44c3d5af8a9b",
+        "privateEntriesRestored": 2
+      }
+    ],
+    "groupsPassed": 4,
+    "junitTestsPassed": 6,
+    "allOriginalStagesAndSecondProcessColdChecksPassed": true,
+    "privateContentsLinksModesAndRootPermissionsRestored": true,
+    "blurNotificationPermissionAndColdNightModeRestored": true,
+    "pngsCrcAndDecompressedSizeVerified": 62,
+    "original45SecondWaitsAndCopyPixelThresholdsUnchanged": true,
+    "motionPreferenceMatrixAccepted": false
+  },
+  "independent": {
+    "cases": [
+      {
+        "mode": "supported",
+        "count": 13,
+        "successes": 13,
+        "settingsRestored": true,
+        "reportSha256": "839c8360800d38f9974d469b746bf17dd214ce9c77aa3d27356b9649cd5e7b4e",
+        "liquidEvidenceSha256": "b7a310731e325548215690b0e1037f0cc3445cf029c0f6f91cffed86469813f8"
+      },
+      {
+        "mode": "fallback",
+        "count": 11,
+        "successes": 11,
+        "settingsRestored": true,
+        "reportSha256": "5ee4eacb04147ee60e57aa39d84dfb98a4517dd42a2648cae884b6a40561fa76",
+        "liquidEvidenceSha256": "04a69bc67bab18b7d063c933512a7dade8744313eeeebfa0ab2ea0be792125eb"
+      }
+    ],
+    "completeOriginalDriver": true,
+    "themeAndResourceMethodsPerMode": 7,
+    "totalNativeTestsPassed": 24,
+    "themeFramesIndependentlyDecoded": 24,
+    "themePixelsIndependentlyMatched": 48,
+    "cardFramesIndependentlyDecoded": 8,
+    "cardPixelsIndependentlyMatched": 8,
+    "perChannelPixelToleranceUnchanged": 6,
+    "crcTamperRejected": true,
+    "gpuUniformsVerified": true,
+    "actualContextLossAndRecoveryPassed": true,
+    "blurAndNightModesExactlyRestored": true
+  },
+  "failures": {
+    "priorWebGlFailuresRetained": true,
+    "missingIgnoredSdkCodegenPackageFailureRetained": true,
+    "original240SecondBootTimeoutRetained": true,
+    "occupiedPortPreflightFailureRetained": true,
+    "systemUiBlockedHomeFailureRetained": true,
+    "systemUiStartupAnrPredatedProductInstallationAndTest": true,
+    "noAnrSinceBootAndFullLauncherVisuallyCheckedBeforeNewTests": true,
+    "anrDialogsSuppressedOrDismissed": false,
+    "immediateExitGuardObservedOwnedDelayedExitHelper": true,
+    "finalReadonlyProcessAndPortsRecheckPassed": true
+  },
+  "cleanup": {
+    "testPackagesUninstalled": true,
+    "ownedEmulatorsAndServersExited": true,
+    "originalPrivateAdbProcessIdentityUnchanged": true,
+    "forcedProcessTerminationUsed": false
+  },
+  "visualReview": {
+    "representativeScreenshotsReviewed": 10,
+    "sha256": [
+      "90a70a2a664df225a96dffd43f22cfb1e8b7c61fb44a08e75116e12cbde93484",
+      "198c0f87ad88075f6902ef0fb7ed92b863e2fff892a4bc85f7eda6ac380b942e",
+      "13195fb64f6c870e252868a4387031a03c7deee792698436edbc0da86d4d1fab",
+      "4bff749503559b404f4beabf70e53b26929bfc78a6ef289d4c97137f5662177f",
+      "e63badd0e1458428600d534afad6f7e11375ed0c2410a4bc65e259431b80e088",
+      "dfda1c2259f8e6b309d56d6819586d5463ec2cd8ddec8fc9b5a7c8f264e9eb40",
+      "4f877b76862067b18573ea9c2ddfca08b16e2f9dc4f6017783e0e1990266d071",
+      "f35afdcb165f07e2a5cfe831e0da7af81d8b0b0afbad326d7578296d50945525",
+      "c7f1d6c8f37f936bc049a29224ee86de17c5727db5666829933a58768d20414d",
+      "caa324007a12bc4416b6d4c403d0f65b3d055d26c7870582d1074bb80189234b"
+    ],
+    "allFramesVisuallyReviewed": false
+  },
+  "boundaries": {
+    "RF1109Accepted": true,
+    "RF121Closed": false,
+    "RF112Closed": false,
+    "RF312Closed": false,
+    "RF122Through127Released": false,
+    "api31AcceptedByThisRun": false,
+    "allHomeScenariosAccepted": false,
+    "accessibilityMatrixAccepted": false,
+    "performanceOrTrueOsColdStartAccepted": false
+  },
+  "evidenceSha256": {
+    "sources.json": "6a3090ef3035a82ce844395d81ad6457615c879fd7dae9a2eb77b21b07983e29",
+    "frontend.json": "2a7e6733a0d4f0c9b1d1e9bc10a2d3f9648a7144fa1b2ce6f8d1d35ec5587177",
+    "mobile-resources.json": "8cf5f00b593748d0b4e48ce1beb8d8d3e90b494e58ddeb93b72b932272247246",
+    "android-debug-build/input-proof.json": "6da955dce57fe595539798fe05e066510f3fda12c924b76922fc542a92fe0ea8",
+    "android-debug-build/receipt.json": "ef51cbc7aee446b0a1d5d2a33d7c637417ca7d6a3073d99b97ed4fe65e1cce48",
+    "android-debug-build/library.json": "35320886af88d733326c3e95cd3b32cd1aa6999a93f1463bb391c9fcd122d27d",
+    "android-debug-package2/receipt.json": "91c0a67eb449fcaa561ca2e035be0a5a9303cee00b90e1f3dee213e2d39503f5",
+    "android-debug-package2/packages.json": "acccaef18bf199f5e29b1b51b2b3d26bfaa41938be55e4090c84640b887fe69a",
+    "home-independent-audit.json": "8e24f906d9f48b8205d8547fdf9b2d0fcca5a8f13e57c7c29a53fe1d07f741b7",
+    "native-independent-audit.json": "a251a2c57aa03448ad67224d2accdb88fd25081112a66f8342b2bbb89d5e54b2",
+    "native-theme-pixel-audit.json": "ae6ea71fe7a67405ef28f3414190184d5fd31fd8eec0e26166b9b11b6404af14",
+    "native-home4/result.json": "14527c1abe3bc546f8a0d7230ffb8cc184f61fcd7ef6b348294e1fea029db96e",
+    "native-home5/result.json": "4dc64fc0a9848a6bff7d7a74fe77ed0816c3d9cacc7ef83749c66419008663f4",
+    "native-independent3/result.json": "874c1b090267e6ef9e99dd001ecabdbd6ac759b65c8ceae1401eb26de8b9a1e4",
+    "native-home5/029-preflight-system-anr.stdout": "907005711c823c37580540c85d3ced0914643c4b1f0e9559348e425877170c40",
+    "native-home5/review-ready.json": "10a3e4a556ea19b9f061dd2c70e933339dda71cdf23e415ac885437734f12690",
+    "native-independent3/review2-ready.json": "7465f5b861f5a5bfd0f5b7b9348dae204a3975abe03f365f37b8cc50035aab48",
+    "native-independent3/terminal-processes-recheck.json": "d98e02c8df7da0f4554205ccd11c39fd42662e750704326b79d6c9041b61073d",
+    "audit-home.py": "534d2979fbd4c0f749bb0fc9e8e31fa18ea21658040c66e9343f17e96765f3d8",
+    "audit-independent.py": "550c8f0772dfbc505afcdfee7ead98b2510857cba58d4e2ea22eee2e12641778",
+    "audit-native-pixels.mjs": "ed551939e1370889de96b8e8f04ee3103d687ab5e7a3516aa86356ef64d93058"
+  },
+  "publication": {
+    "rawLogsScreenshotsApksPrivateBackupsAndMachineIdentityKeptLocal": true,
+    "machinePathsPidsRunIdentifiersOrAccountDataIncluded": false
+  }
+}

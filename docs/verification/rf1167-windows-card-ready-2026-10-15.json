@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1167",
+  "recordedOn": "2026-10-15",
+  "accepted": true,
+  "scope": "Windows independent Card fixture readiness; no production Rust change",
+  "sourceBase": "e4d458e77a5d26cacb8a1475b15cbe8fb2b95fd9",
+  "before": {
+    "nativeExitCode": 1,
+    "nativeDomReports": 0,
+    "diagnosticExitCode": 1,
+    "observedOrder": [
+      "first sample eval",
+      "report wait",
+      "index.html asset request",
+      "page load Started",
+      "page load Finished"
+    ],
+    "browserProbe": {
+      "cardSampleFunction": "function",
+      "cardCount": 2,
+      "scriptErrors": 0,
+      "nativeAcceptance": false
+    },
+    "originalFailuresRetained": true
+  },
+  "after": {
+    "buildExitCode": 0,
+    "workspaceRustFormatExitCode": 0,
+    "unitPassed": 33,
+    "unitFailed": 0,
+    "unitIgnored": 0,
+    "newReadinessTests": 4,
+    "strictClippyExitCode": 0,
+    "nativeExitCode": 0,
+    "nativeSamples": [
+      {
+        "sampleId": "initial-light",
+        "theme": "light",
+        "frameCount": 10,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "light",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "initial-dark",
+        "theme": "dark",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "dark",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "hide-show-light",
+        "theme": "light",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "light",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "hide-show-dark",
+        "theme": "dark",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "dark",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "resize-light",
+        "theme": "light",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "light",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "resize-dark",
+        "theme": "dark",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "dark",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "minimize-restore-light",
+        "theme": "light",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "light",
+        "matchedCardPixelPoints": 2
+      },
+      {
+        "sampleId": "minimize-restore-dark",
+        "theme": "dark",
+        "frameCount": 11,
+        "backdropType": 2,
+        "webviewAlpha": 0,
+        "windowTheme": "dark",
+        "matchedCardPixelPoints": 2
+      }
+    ],
+    "independentlyDecodedPngs": 8,
+    "independentCardPixelPointsMatched": 16,
+    "allEightImagesInspected": true,
+    "sourceFilesUnchangedDuringRun": 40,
+    "changedInputRelativeToFailedProgram": "tauri/src-tauri/examples/windows_card_surfaces.rs",
+    "other39InputsUnchanged": true,
+    "fixtureByteIdentical": true,
+    "runtimeVersion": "155.0.4283.45",
+    "transparencyEnabled": true,
+    "highContrastEnabled": false,
+    "globalSettingsUnchanged": true,
+    "computerUseActivations": 0
+  },
+  "budgets": {
+    "wholeGroupSeconds": 50,
+    "reportSeconds": 5,
+    "paintMilliseconds": 2500,
+    "newPageLoadWaitSeconds": 5,
+    "originalGuardsAndBudgetsUnchanged": true
+  },
+  "cleanup": {
+    "ownedProcessesConfirmedExited": true,
+    "profilesRemoved": 3,
+    "evidenceFilesVerifiedUnchanged": 78,
+    "processTerminations": 0
+  },
+  "retainedTeardownDiagnostic": {
+    "afterFinalPass": true,
+    "component": "Chrome_WidgetWin_0 unregister",
+    "errorCode": 1412,
+    "rootCauseProven": false
+  },
+  "sourceLfSha256": {
+    "before": "cbad49944f05e576cf6c33175f0ea4757f16a98fc366fabdcefab6ebea91349e",
+    "after": "f55c4fdee9adf4b2501b84e55c2edea4ad7cfed54cdbc92c4908dd88f13b1758"
+  },
+  "proofSha256": {
+    "native-run-receipt.json": "5e518428cb51cff49c220733befec6564ffe4e2c487a8edd12e2fb770eefa12a",
+    "independent-audit.json": "396cd339ed4d190dfaf028ab44e8726d424f74dbbdc399d95d7c98a2a44c63ee",
+    "independent-png-pixels.json": "7bb68e5406feb6bf5cec4e6eefa3f9eb602918c6034a4ec8d1bbcd3520eba3be",
+    "cleanup.json": "85b67da835d9db5520c5ec8519de4258ebb9893c31c04c1200903f9c8f1caef6"
+  },
+  "limits": {
+    "fullRF121Accepted": false,
+    "allCardFamiliesAccepted": false,
+    "nativeCaptionPixelsAccepted": false,
+    "highContrastOrReducedTransparencyMatrixAccepted": false,
+    "macOSAccepted": false,
+    "performanceSample": false
+  },
+  "publication": {
+    "hostPathsIncluded": false,
+    "processIdentitiesIncluded": false,
+    "rawLogsScreenshotsProgramsOrVaultsIncluded": false
+  }
+}

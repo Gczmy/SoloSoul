@@ -88,100 +88,110 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
   return (
     <QrModalShell onClose={handleClose} title={t('common:sync_qr_scan_title')}>
       {!scanned ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p
-                style={{
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-secondary)',
-                  margin: '0 0 12px',
-                  lineHeight: 1.5,
-                }}
-              >
-                {t('common:sync_qr_scan_desc')}
-              </p>
-              <QrScanFallback
-                cameraCapability={cameraCapability}
-                scannerError={scannerError}
-                unsupportedText={t('common:sync_scan_unsupported', {
-                  defaultValue:
-                    'This device does not support QR scanning. Use device discovery or manual input instead.',
-                })}
-                unsupportedButtonLabel={t('common:sync_use_manual', {
-                  defaultValue: 'Use discovery or manual input',
-                })}
-                scannerErrorButtonLabel={t('common:sync_use_manual', {
-                  defaultValue: 'Use discovery or manual input',
-                })}
-                onAction={handleClose}
-              >
-                <RecoveryQrScanner
-                  onScan={handleScan}
-                  onError={setScannerError}
-                  onCancel={handleClose}
-                />
-              </QrScanFallback>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              margin: '0 0 12px',
+              lineHeight: 1.5,
+            }}
+          >
+            {t('common:sync_qr_scan_desc')}
+          </p>
+          <QrScanFallback
+            cameraCapability={cameraCapability}
+            scannerError={scannerError}
+            unsupportedText={t('common:sync_scan_unsupported', {
+              defaultValue:
+                'This device does not support QR scanning. Use device discovery or manual input instead.',
+            })}
+            unsupportedButtonLabel={t('common:sync_use_manual', {
+              defaultValue: 'Use discovery or manual input',
+            })}
+            scannerErrorButtonLabel={t('common:sync_use_manual', {
+              defaultValue: 'Use discovery or manual input',
+            })}
+            onAction={handleClose}
+          >
+            <RecoveryQrScanner
+              onScan={handleScan}
+              onError={setScannerError}
+              onCancel={handleClose}
+            />
+          </QrScanFallback>
 
-              {error && (
-                <div
-                  style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}
-                >
-                  {error}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p
-                style={{
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-secondary)',
-                  margin: 0,
-                  lineHeight: 1.5,
-                }}
-              >
-                {t('common:sync_qr_confirm_sync', {
-                  deviceName: scanned.deviceName || scanned.addr,
-                })}
-              </p>
-              <div
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: 8,
-                  background: 'var(--bg-toolbar)',
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                <div>
-                  <strong>{t('common:sync_qr_addr')}:</strong>{' '}
-                  <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
-                    {scanned.addr}
-                  </span>
-                </div>
-                {scanned.fingerprint && (
-                  <div style={{ marginTop: 4 }}>
-                    <strong>{t('common:sync_qr_fingerprint')}:</strong>{' '}
-                    <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
-                      {scanned.fingerprint}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <Button onClick={handleConfirmSync} style={{ width: '100%' }}>
-                {t('common:sync_qr_confirm_sync_button')}
-              </Button>
-              {error && (
-                <div
-                  style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}
-                >
-                  {error}
-                </div>
-              )}
-              <Button variant="secondary" onClick={() => setScanned(null)} style={{ width: '100%' }}>
-                {t('common:cancel')}
-              </Button>
+          {error && (
+            <div
+              style={{
+                color: 'var(--text-error)',
+                fontSize: 'var(--text-body-sm)',
+                textAlign: 'center',
+              }}
+            >
+              {error}
             </div>
           )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              margin: 0,
+              lineHeight: 1.5,
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {t('common:sync_qr_confirm_sync', {
+              deviceName: scanned.deviceName || scanned.addr,
+            })}
+          </p>
+          <div
+            style={{
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: 'var(--bg-toolbar)',
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            <div>
+              <strong>{t('common:sync_qr_addr')}:</strong>{' '}
+              <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
+                {scanned.addr}
+              </span>
+            </div>
+            {scanned.fingerprint && (
+              <div style={{ marginTop: 4 }}>
+                <strong>{t('common:sync_qr_fingerprint')}:</strong>{' '}
+                <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
+                  {scanned.fingerprint}
+                </span>
+              </div>
+            )}
+          </div>
+          <Button onClick={handleConfirmSync} style={{ width: '100%' }}>
+            {t('common:sync_qr_confirm_sync_button')}
+          </Button>
+          {error && (
+            <div
+              style={{
+                color: 'var(--text-error)',
+                fontSize: 'var(--text-body-sm)',
+                textAlign: 'center',
+              }}
+            >
+              {error}
+            </div>
+          )}
+          <Button variant="secondary" onClick={() => setScanned(null)} style={{ width: '100%' }}>
+            {t('common:cancel')}
+          </Button>
+        </div>
+      )}
     </QrModalShell>
   );
 }

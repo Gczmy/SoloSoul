@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "scope": "current-public-file-preview-close-and-layer-absence-fix",
+  "compiledProductSource": "525da2ea01aa9966726a951d0282735caa315d04",
+  "originalProductFilesUnchanged": 1795,
+  "fix": {
+    "source": "rf312-default-observer/preview_scope.py",
+    "sourceSha256": "0c82956619dcc8bbc81a321ef23332e8d0aaffe781125492ce0b411b1da2b9a1",
+    "testSourceSha256": "a7d6477370269a6f14d0c4db6bb4cb11f4245e92b6dd4994916fa13a21588597",
+    "regressionCasesAdded": 10,
+    "allUniqueUnitCases": 141,
+    "passed": true,
+    "nativeWebToolbarScopedByExactFilenameBackEditAndClose": true,
+    "nativePdfScopedByExactTitleAndResourceIds": true,
+    "eachLayerClickedAtMostOnce": true,
+    "completionRequiresAllPreviewControlsAbsentAndAttachmentsRestored": true,
+    "completionRequiresThreeObservationsAcrossAtLeast350msAndFinalNativeFrame": true,
+    "genericNativeUniqueReadinessFingerAndOriginalBudgetsUnchanged": true
+  },
+  "readOnlyOriginalReplay": {
+    "genericCloseCandidates": 3,
+    "scopedCloseCandidates": 1,
+    "nativeInputDispatched": false,
+    "resultSha256": "279510d0bc54d714da8681bad69d39a0f5691b6dac77d2659e6183632151aa24"
+  },
+  "nativeClosures": [
+    {
+      "fileName": "ocr_test.png",
+      "closedLayers": [
+        "web-preview"
+      ],
+      "nativeSingleFingerClicks": 1,
+      "stableCompletionObservations": 3,
+      "stableCompletionElapsedMs": 1085.047,
+      "previewControlsAbsent": true,
+      "attachmentsRestored": true,
+      "receiptSha256": "7b2c4fe3920a8e074bcbf502f70fbdbdcb0cc780ac06effe984b25d9bc4750e3",
+      "imageSha256": "b1a9b132c0e3bc1f3787dc14bcfa75d91a6e34960bf5b040261ff4f20685864c"
+    },
+    {
+      "fileName": "preview.txt",
+      "closedLayers": [
+        "web-preview"
+      ],
+      "nativeSingleFingerClicks": 1,
+      "stableCompletionObservations": 3,
+      "stableCompletionElapsedMs": 1064.136,
+      "previewControlsAbsent": true,
+      "attachmentsRestored": true,
+      "receiptSha256": "c2bd8242007b960e8e1696d5e62b039976d6cbddb6914ffd0f0b8582879e011c",
+      "imageSha256": "b1a9b132c0e3bc1f3787dc14bcfa75d91a6e34960bf5b040261ff4f20685864c"
+    }
+  ],
+  "defaultNativeAttempt": {
+    "objectCount": 100,
+    "accepted": false,
+    "completedPhaseNames": [
+      "startup",
+      "password-unlock",
+      "first-ocr-user-flow",
+      "workspace",
+      "search-needle",
+      "attachments-open",
+      "image-preview",
+      "text-preview"
+    ],
+    "physicallyVerifiedPublicTextStages": 3,
+    "observerRequests": 347,
+    "privateEntriesExactlyRestored": 190,
+    "nativePdfCloseNotReached": true,
+    "case5000Started": false,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false
+  },
+  "nextPdfInvestigation": {
+    "nativeTitleMatches": true,
+    "pageInfoText": "1 / 2",
+    "pageInfoNativeAxBounds": [
+      540,
+      1695,
+      540,
+      1746
+    ],
+    "nativeAxVisibleFlag": "false",
+    "sourceAndCompiledLayoutWidthWrapContent": true,
+    "physicalCounterVisibilityProven": false,
+    "actualViewWidthMeasured": false,
+    "productDefectNotYetClassified": true,
+    "visibilityGuardNotRelaxed": true,
+    "fixIncludedInThisCommit": false,
+    "responseSha256": "915e5ac12636f7959534212a2204a13f53780c729b368040b496debbb1d1cc41",
+    "resourceInspectionSha256": "3330d4bd51cdbe38e5051580bfe5e7e86524281e4c1b7dd5b724f63ac220ce0b"
+  },
+  "cleanup": {
+    "originalApksUidDebugAndNineSettingsRestored": true,
+    "allPrivateEntriesAndRootModeRestored": true,
+    "normalObserverStopAndRemoval": true,
+    "completeTerminalDropBoxEntries": 106,
+    "noAnrEntries": true,
+    "ownedProcessesAndListenersAbsent": true
+  },
+  "evidence": {
+    "unitResultSha256": "56ef59b6261fac407476292188138a063beec53f6cbe321938bb3348325554bb",
+    "independentTerminalAuditSha256": "d12d0f5818d846ee75598b10b73b1d34514cb9210340daf1e1d3c321154019a3",
+    "hostAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  },
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "parentTaskClosed": false,
+  "closedTasks": 363,
+  "totalTasks": 372,
+  "rawEvidenceLocalOnly": true,
+  "nextAction": "targeted-current-default-native-pdf-pixels-and-actual-view-geometry-diagnostic"
+}

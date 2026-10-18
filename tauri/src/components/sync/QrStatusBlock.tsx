@@ -36,7 +36,7 @@ export function QrStatusBlock({
     return (
       <div
         style={{
-          color: '#e74c3c',
+          color: 'var(--text-error)',
           fontSize: 'var(--text-body-sm)',
           display: 'flex',
           alignItems: 'center',

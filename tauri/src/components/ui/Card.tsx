@@ -53,7 +53,10 @@ export const Card = memo(
         onKeyDown={
           onClick
             ? (e) => {
-                if (e.key === 'Enter' || e.key === ' ') onClick();
+                if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onClick();
+                }
               }
             : undefined
         }

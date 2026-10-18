@@ -1,0 +1,89 @@
+{
+  "scope": "rf312-perfetto-v15-service-state-decoder-only",
+  "sourceHeadBeforeChange": "2dd86f54827f21d6421c7853076de3db3f7eb349",
+  "productBuildSourceHead": "305b86020a33b5368299b07594b94542f0869e09",
+  "protocolSchemaVersion": "v15.0",
+  "androidApi": 31,
+  "abi": "x86_64",
+  "queryByteLimit": 262144,
+  "fieldLimit": 4096,
+  "fourByteNestedLengthPaddingSupported": true,
+  "tagAndScalarRedundancyStillRejected": true,
+  "requiredCountsCannotBeMissing": true,
+  "deviceAdmissionOrRecordingEntryPublished": false,
+  "publicSources": {
+    "service_state.py": "cef8aa5bf83e7e8b40ddffa4d5aaaebdff8d871d51ab40e05d591b70bca1b292",
+    "test_service_state.py": "edbfb1006c33da104ae2ae188ea08945760c310bb527de79bec72c31d6a69be0"
+  },
+  "verification": {
+    "uniqueRegressionCases": 28,
+    "checkoutTestsPassed": 28,
+    "portableTestsPassed": 28,
+    "optimizedCliRejectionIncluded": true,
+    "actualRawQueryReplays": 2,
+    "rawQueryBytesEach": 825,
+    "rawQueriesByteIdentical": true,
+    "producerCount": 4,
+    "dataSourceRows": 17,
+    "uniqueDataSources": 16,
+    "totalSessionsAtBothQueries": 0,
+    "currentlyStartedSessionsAtBothQueries": 0,
+    "countsAreNotCumulative": true,
+    "rawStateSha256": "3a016af8efd4659daefc0f19dd83d8842160d807ee69edff009c03954d9483dd",
+    "publicValidationSha256": "76a86afc39d55af06f5fb66de93284ea96dc84a1b2b0feffaf46b6e7b7df8a17"
+  },
+  "attempts": [
+    {
+      "outcome": "refused-before-recording-command",
+      "completedSdkCommandsWithStreams": 64,
+      "nativeAccepted": false,
+      "traceRecordingStarted": false,
+      "originalResultSha256": "8f492c701983cba415e89281219ad0bdd8a0167753d52945e440c7ff34b5fc28",
+      "independentAuditSha256": "5346ab42beee87e16daddf977f732c02fb5c789f59d706ae906afde23bca92bc"
+    },
+    {
+      "outcome": "recording-command-timeout",
+      "completedSdkCommandsWithStreams": 60,
+      "nativeAccepted": false,
+      "recordingCommandAttempted": true,
+      "sdkDeadlineSeconds": 45,
+      "traceRecordingStarted": null,
+      "traceRecordingCompleted": false,
+      "partialTimeoutStreamsPreserved": false,
+      "missingOutputSequence": 48,
+      "originalResultSha256": "099a47719cffa9c093cf7f9ea2e0683f46231b5a0ca01e91527788ee1e538a8a",
+      "independentAuditSha256": "0ae1d564ce81464a16866546f2d69c088636cc943db0716018def01ab5c4fec1"
+    }
+  ],
+  "bothAttempts": {
+    "preflightTilesActuallyViewedEach": 3,
+    "preflightDropBoxEntriesEach": 38,
+    "terminalHealthNotCollected": true,
+    "initialProductPackagesAbsent": 5,
+    "noInstallOrPrivateDataCommands": true,
+    "settingsExactlyUnchanged": true,
+    "allFrozenInputsRehashed": true,
+    "normalSdkShutdownPassed": true,
+    "strictHostZeroReplayed": true,
+    "shutdownDeadlineSeconds": 45
+  },
+  "limits": {
+    "actualCompleteTraces": 0,
+    "applicationPerformanceSamples": 0,
+    "nativeFramesAccepted": false,
+    "firstInteractiveTimeProven": false,
+    "applicationOnlyLatencyAccepted": false,
+    "defaultPerformanceSampleAccepted": false,
+    "fullRF312Accepted": false
+  },
+  "nextLocalWork": [
+    "Fix configuration transport without exec-out stdin; preserve timeout streams",
+    "Verify real trace packets, loss statistics, clocks and process identity",
+    "Integrate the complete small/large public-Vault journey and business-usability conditions"
+  ],
+  "ledger": {
+    "total": 377,
+    "closed": 368,
+    "unfinished": 9
+  }
+}

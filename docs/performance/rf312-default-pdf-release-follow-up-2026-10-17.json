@@ -1,0 +1,159 @@
+{
+  "task": "RF-312",
+  "date": "2026-10-17",
+  "status": "default-release-nine-stages-passed-scanned-pdf-rejected",
+  "sourceHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+  "sourceFilesVerified": 1797,
+  "runtimeBindingsVerified": 1881,
+  "productSourceOrBuildConfigurationChangedInThisFollowUp": false,
+  "testOutputRecovery": {
+    "originalMissingClassRejectionPreserved": true,
+    "nonincrementalTestTaskRebuilt": true,
+    "fullCacheDeletionUsed": false,
+    "subsequentNormalIncrementalBuildPassed": true,
+    "normalBuildForcedCompileTask": false,
+    "bothApksByteIdentical": true,
+    "actualNativeTestClassDefinitions": 9,
+    "testApkBytes": 2189001,
+    "testApkSha256": "8d38aee3f46d467f2ea570602a12b896e962b437d2873f5bef7cedcd18ad49d2",
+    "publicPdfAssetSha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe",
+    "uniqueOriginalCauseProven": false,
+    "newTestApkNativeTestRunClaimed": false,
+    "nonincrementalResultSha256": "ec4e9fbfc59d942003912d0935fb8e8aacdb4a66d6e7183057189199db9f0790",
+    "normalIncrementalResultSha256": "f507fb46567881469dd745f05ec9c61ed211ad66045c353eeb6279c84f0a37a6"
+  },
+  "releasePackage": {
+    "defaultFeaturesOnly": true,
+    "debuggable": false,
+    "internalValidationSigningOnly": true,
+    "productionSigningUsed": false,
+    "apkBytes": 78663007,
+    "apkSha256": "f7469ce3717849bf26623ea1ffdb1945c20154471247f38f419c65c272462b99",
+    "rustLibraryOriginalSourceHead": "525da2ea01aa9966726a951d0282735caa315d04",
+    "rustLibrarySha256": "3f875064a018328e443d8d50a0d1e4addc0f59329a3fce9e2be8a7b14335f99e",
+    "rustLibrariesByteIdenticalToPreviousDefaultRelease": true,
+    "newCargoBuildClaimed": false,
+    "appAssetsVerified": 98,
+    "dependencyAssetsVerified": 25,
+    "generatedArtProfilesVerified": 2,
+    "allAssetsVerified": 125,
+    "unknownAssetsRejected": true,
+    "initialIncorrectAllAssetsEqualAppAssetsRejectionPreserved": true,
+    "sameUnsignedApkSubsequentlyVerifiedAndSigned": true,
+    "packageAuditSha256": "e15110af5e7f199722379220b439019dae529fca3b04be4e47cdcbd1e1fd5735",
+    "allAssetAuditSha256": "f2ddae5949f7b2d36237551d201e012c8d4eab1b29f378e143ffe9a0503551f8"
+  },
+  "nativeJourney": {
+    "api": 31,
+    "abi": "x86_64",
+    "objectCount": 100,
+    "accepted": false,
+    "defaultReleaseNonDebuggable": true,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "completedPhases": [
+      {
+        "name": "startup",
+        "hostObservedUpperBoundMs": 7968.574800062925,
+        "imageSha256": "a71d357f21e601e13d4bca44c8a0dced0d34c936696650c2d838ce96e2d62130"
+      },
+      {
+        "name": "password-unlock",
+        "hostObservedUpperBoundMs": 20411.50269994978,
+        "imageSha256": "e9d393892a9dfe16305768c066a441383e2ca73a68fc318e9acf36ef78b3059e"
+      },
+      {
+        "name": "first-ocr-user-flow",
+        "hostObservedUpperBoundMs": 26609.507499961182,
+        "imageSha256": "dd2025b30aa8e9ced433854174ac07c3a4c9f3eb006d756739a4c2e61eb8b47d"
+      },
+      {
+        "name": "workspace",
+        "hostObservedUpperBoundMs": 9197.308500064537,
+        "imageSha256": "8c37dbe3be0e23ccfdab319ff0cf4c23c6f848b683bc270bc72601a0cafaf3f6"
+      },
+      {
+        "name": "search-needle",
+        "hostObservedUpperBoundMs": 17379.912700038403,
+        "imageSha256": "673072c9bdc27531bcb4e457899ef25a604b5fdee9eb32f204d9fe3460b70da5"
+      },
+      {
+        "name": "attachments-open",
+        "hostObservedUpperBoundMs": 8024.0021999925375,
+        "imageSha256": "b9911bc6f429c5bbb93ab5fc4bf3828f0a755a1fa6991145bd8a845c44118841"
+      },
+      {
+        "name": "image-preview",
+        "hostObservedUpperBoundMs": 10878.056399989873,
+        "imageSha256": "ae8b55d0a7f1cdad8939492535b1f7c80f78b145a532d967f889dae1ef153f99"
+      },
+      {
+        "name": "text-preview",
+        "hostObservedUpperBoundMs": 9529.293999890797,
+        "imageSha256": "bde13da492fcaee3db525df5e2489df451150b1d8c6df89e3b7099a774a3f3c7"
+      },
+      {
+        "name": "pdf-text-native",
+        "hostObservedUpperBoundMs": 17065.9341000719,
+        "imageSha256": "025e189453f19d49dacf2f7b0628c0df7c0319a1a098cb10216ecd3055537432"
+      }
+    ],
+    "completedPhaseCount": 9,
+    "expectedPhaseCount": 12,
+    "textPdfPagesPhysicallyVerified": 2,
+    "exactVisibleCounterDigits": [
+      "1/2",
+      "2/2"
+    ],
+    "textPdfFirstPageImageSha256": "18cd755ecd5399374b04056d0b8746f708e2d0bea94788effaa34e97f6bf65cc",
+    "textPdfSecondPageImageSha256": "025e189453f19d49dacf2f7b0628c0df7c0319a1a098cb10216ecd3055537432",
+    "previewCloseFilesVerified": [
+      "ocr_test.png",
+      "preview.txt",
+      "text_only.pdf"
+    ],
+    "scannedPdfStageAccepted": false,
+    "scannedPdfOcrLineRejected": "1 234567890",
+    "scannedPdfLastCompletedOcrImageSha256": "380ad96c9e4840b4e8352685e950181d2686c36b3af2f7ad147eeb341df76df3",
+    "finalFailure": "Native host OCR subprocess exhausted remaining original stage budget",
+    "finalOcrSubprocessTimeoutSeconds": 0.151047799969092,
+    "originalPhaseBudgetSeconds": 45,
+    "originalStrictContentReaderAndBudgetsUnchanged": true,
+    "digitSubstitutionOrWhitespaceJoiningFallbackUsed": false,
+    "productRenderingFailureOrLatencyProven": false,
+    "observerRequests": 309,
+    "privateEntriesExactlyRestored": 141,
+    "originalApksUidsAndNineSettingsExactlyRestored": true,
+    "ownedProcessesAfterCleanup": 0,
+    "listenerRowsAfterCleanup": 0,
+    "completeTerminalDropBoxEntries": 106,
+    "noAnrEntries": true,
+    "independentTerminalAuditPassed": true,
+    "object5000Started": false,
+    "independentTerminalAuditSha256": "899da3eda5ccab1132bc5ee58cf4d516ac34610ba6d071a012d5603ad71ba3f4",
+    "failureTraceSha256": "ff3d52e3fa3513ef0699234855f17c0e41caa8eda321139a52c105efb412165b",
+    "hostCleanupAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  },
+  "targetedHostTests": {
+    "tests": 141,
+    "passed": true,
+    "resultSha256": "1dba4911d7c23e7f1f7ea9cd74c5f12e1a8691fc4cf06b44c35a81b4ba3b69b2"
+  },
+  "historicalRf1184RedGreenAndRejectedRunsPreserved": true,
+  "rawPathsPidsRunIdsLogsScreenshotsPrivateArchivesAndProgramsPublished": false,
+  "fullUiQueueAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "remainingLocalWork": [
+    "Investigate the scanned-PDF physical OCR token mismatch without weakening exact-content checks",
+    "Complete both default twelve-stage public-fixture journeys",
+    "Repeated distributions, strict process memory, same-source observer overhead, IPC and portable orchestration"
+  ],
+  "taskCounts": {
+    "closed": 364,
+    "total": 373,
+    "pendingParents": 3,
+    "dependencyBlocked": 6
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "scope": "document-milestone-statistics-only",
+  "protocolSha256": "87fac4291dabd8e066cdd6860d781ca7a91a10bd848b981ba5c376adca05a1ff",
+  "plannedQueues": 5,
+  "acceptedQueues": 5,
+  "refusedQueues": 0,
+  "notStartedQueues": 0,
+  "queueStatuses": [
+    {
+      "slot": 1,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "473cf81d278b945c13e974de7eb9d7a9fa52ad4720ab817ebd40a37396d6ecf7"
+    },
+    {
+      "slot": 2,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "ff31aea8db97bd070a312ea2836246e00df0196ba89b02122ba2687cb4d09d87"
+    },
+    {
+      "slot": 3,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "0a53edbf9833151650cbcc259d275d4e60b35608553ee87c2af7038afe82f202"
+    },
+    {
+      "slot": 4,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "fc86ad799b52fbef05655d8a7572ee66a18138b6886400c040493276037539ae"
+    },
+    {
+      "slot": 5,
+      "status": "accepted",
+      "reason": null,
+      "evidenceSha256": "172a73fd7838edce0f82ed08ec6be04bdaa904449e9bb89d58dabee16ca30814"
+    }
+  ],
+  "statisticsComplete": true,
+  "metrics": {
+    "100": {
+      "reactMountMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 1809.1000000000058,
+        "p95Ms": 1837.5,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "startupDismissedMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 2748.100000000006,
+        "p95Ms": 2961.899999999994,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "mountInvocationToHandoffMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 948.7999999999884,
+        "p95Ms": 1152.5999999999767,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "firstPaintMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 1167.7999999999884,
+        "p95Ms": 1382.1000000000058,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "firstContentfulPaintMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 1167.7999999999884,
+        "p95Ms": 1382.1000000000058,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      }
+    },
+    "5000": {
+      "reactMountMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 1475.2000000000116,
+        "p95Ms": 1817.399999999965,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "startupDismissedMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 2542.7999999999884,
+        "p95Ms": 2781.100000000035,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "mountInvocationToHandoffMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 1067.5999999999767,
+        "p95Ms": 1155.8000000000466,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "firstPaintMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 529.5999999999767,
+        "p95Ms": 914.9000000000233,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      },
+      "firstContentfulPaintMs": {
+        "availableN": 5,
+        "missingN": 0,
+        "plannedN": 5,
+        "medianMs": 529.5999999999767,
+        "p95Ms": 914.9000000000233,
+        "distributionComplete": true,
+        "tailIsMaximumWhenNIsFive": true
+      }
+    }
+  },
+  "nativeVerificationPerformed": false,
+  "nativeFramesAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "applicationOnlyLatencyAccepted": false,
+  "observerOverheadRemoved": false,
+  "defaultPerformanceSampleAccepted": false,
+  "fullRF312Accepted": false,
+  "observationsSha256": "4296d736106b73e1ab74cfb1e27cc3f4dc0afb6cc368f5fb86c51c89c504c91d"
+}

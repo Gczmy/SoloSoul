@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "scope": "independent-observer-control-transport-only",
+  "compiledProductSource": "525da2ea01aa9966726a951d0282735caa315d04",
+  "environment": {
+    "configuredApi": 31,
+    "abi": "x86_64",
+    "vCpu": 2,
+    "configuredMemoryMiB": 2048,
+    "gpu": "SwiftShader",
+    "adbVersion": "37.0.1-15733141"
+  },
+  "originalMatrixAccepted": false,
+  "supportedBindingGroups": [
+    {
+      "serverBinding": "localhost",
+      "actualListeningAddress": "127.0.0.1",
+      "clientAddress": "127.0.0.1",
+      "hiddenClient": false,
+      "samples": 3,
+      "passed": 3,
+      "readyMs": [
+        1437.369,
+        635.53,
+        431.887
+      ],
+      "responseMs": [
+        337.02,
+        382.119,
+        437.751
+      ]
+    },
+    {
+      "serverBinding": "localhost",
+      "actualListeningAddress": "127.0.0.1",
+      "clientAddress": "127.0.0.1",
+      "hiddenClient": true,
+      "samples": 3,
+      "passed": 3,
+      "readyMs": [
+        292.8,
+        586.966,
+        303.282
+      ],
+      "responseMs": [
+        408.881,
+        432.266,
+        467.4
+      ]
+    }
+  ],
+  "normalStops": 6,
+  "productInstalls": 0,
+  "uiInputs": 0,
+  "screenshots": 0,
+  "helperInstalls": 1,
+  "readyLimitSeconds": 15,
+  "stopLimitSeconds": 10,
+  "observerLimitSeconds": 240,
+  "unsupportedCandidate": {
+    "serverBinding": "127.0.0.1",
+    "clientAddress": "127.0.0.1",
+    "serverRefused": true,
+    "reason": "listening-on-specified-hostname-currently-unsupported",
+    "nativeTrials": 0,
+    "helperInstalls": 0,
+    "productInstalls": 0,
+    "originalResultAccepted": false,
+    "terminalAndroidAnrInspectionAvailable": false,
+    "originalEmulatorGracefullyStopped": true
+  },
+  "ordering": "default-client-before-hidden-client",
+  "randomized": false,
+  "loadedProductPathExercised": false,
+  "loadedPathRootCauseConfirmed": false,
+  "noTransportConfigurationChangeApplied": true,
+  "initialPreparationFailure": {
+    "nativeTrials": 0,
+    "helperInstalls": 0,
+    "reason": "memory-parser-crlf-normalization-omitted",
+    "sdkCleanupClientMissingIdentityRefused": true,
+    "firstImmediateHostAuditPassed": false,
+    "afterNaturalHelperExitHostAuditPassed": true,
+    "originalResultSha256": "89d2108aa15b62446476a612afcfe6a7e52f601a89572ac60e98526266c65d1e",
+    "settledHostAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  },
+  "supportedGroupHealth": {
+    "initialDropBoxEntries": 38,
+    "terminalDropBoxEntries": 49,
+    "noAnrEntries": true,
+    "observerUninstalled": true
+  },
+  "finalHostCleanup": {
+    "passed": true,
+    "remainingOwnProcesses": 0,
+    "listeners": 0,
+    "onlyNaturalExitUsed": true
+  },
+  "sourceUnchanged": {
+    "observerJava": "e92c4312d2f148d9271ec3938306c2e1e7b6e481a0160ad3b29bb65509bba1e2",
+    "observerManifest": "e234f90f46d761a5a8e81b072e480e5bcca05ac827fb037ec604804e8e76c9e3",
+    "observerProtocol": "39f5f93a0a97de1c04a5ec9f525623d6535812cfe1ca4a491cf0c36e129354e9",
+    "hostAudit": "2b9007deb7ebb7fda5ed1f9582731ded88d3b094eb791d8981e14081bda680f8",
+    "identityReader": "fc3933f8b0c6128a3feff119ecabec35aaca38e83a54545f234a1f35141fdd4f"
+  },
+  "evidence": {
+    "originalMatrixResultSha256": "5f83771ea506cc41cad00d448bfccf87b3fedca4ac1cc4d105e11c36e311f6b1",
+    "independentAuditSha256": "d66953102cd32af77e03680c8769bd31db305cc2c5b6be505cdc4226701e0db0",
+    "settledHostAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc",
+    "priorLoadedReadyRejectionPreserved": true
+  },
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "parentTaskClosed": false,
+  "closedTasks": 363,
+  "totalTasks": 372,
+  "rawEvidenceLocalOnly": true,
+  "nextAction": "retain-supported-localhost-binding-and-diagnose-loaded-complete-default-path"
+}

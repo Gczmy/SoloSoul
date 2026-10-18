@@ -1,0 +1,1088 @@
+{
+  "schemaVersion": 1,
+  "measurementInputDigestSha256": "b36f71deaa2aab5143b6f10ff388562ef8b725cea5b68689e4deabf8ab2067b4",
+  "plannedAttempts": 5,
+  "acceptedAttempts": 5,
+  "failedAttempts": 0,
+  "bindingSha256": "17b8c3cf84d449386b23aee9c6142b638dfa8bbfab9d35a804c349461e47305b",
+  "metric": "hostObservedUpperBoundMs",
+  "cases": [
+    {
+      "objectCount": 100,
+      "phases": [
+        {
+          "name": "startup",
+          "valuesInAttemptOrder": [
+            7086.630899924785,
+            7509.299700031988,
+            6253.621199983172,
+            9304.1319999611,
+            6936.064800014719
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 7086.630899924785,
+          "nearestRankEmpiricalP95": 9304.1319999611,
+          "maximum": 9304.1319999611
+        },
+        {
+          "name": "password-unlock",
+          "valuesInAttemptOrder": [
+            21287.529000081122,
+            22807.393399998546,
+            20762.18359998893,
+            21550.867400015704,
+            20787.985400063917
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 21287.529000081122,
+          "nearestRankEmpiricalP95": 22807.393399998546,
+          "maximum": 22807.393399998546
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "valuesInAttemptOrder": [
+            24799.213099991903,
+            25688.229299965315,
+            25046.861300012097,
+            27084.53620004002,
+            25196.046800003387
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 25196.046800003387,
+          "nearestRankEmpiricalP95": 27084.53620004002,
+          "maximum": 27084.53620004002
+        },
+        {
+          "name": "workspace",
+          "valuesInAttemptOrder": [
+            8602.080399985425,
+            8484.328099992126,
+            8764.532800065354,
+            10350.486500072293,
+            8743.18809993565
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 8743.18809993565,
+          "nearestRankEmpiricalP95": 10350.486500072293,
+          "maximum": 10350.486500072293
+        },
+        {
+          "name": "search-needle",
+          "valuesInAttemptOrder": [
+            15265.7197000226,
+            15760.97890001256,
+            14867.47529997956,
+            16123.810500022955,
+            14741.290999925695
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 15265.7197000226,
+          "nearestRankEmpiricalP95": 16123.810500022955,
+          "maximum": 16123.810500022955
+        },
+        {
+          "name": "attachments-open",
+          "valuesInAttemptOrder": [
+            9374.084000010043,
+            9542.046000016853,
+            8645.842300029472,
+            9220.474199973978,
+            8578.728400054388
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 9220.474199973978,
+          "nearestRankEmpiricalP95": 9542.046000016853,
+          "maximum": 9542.046000016853
+        },
+        {
+          "name": "image-preview",
+          "valuesInAttemptOrder": [
+            12119.898200035095,
+            11466.98460006155,
+            10605.453500058502,
+            11316.652599954978,
+            10235.632500029169
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 11316.652599954978,
+          "nearestRankEmpiricalP95": 12119.898200035095,
+          "maximum": 12119.898200035095
+        },
+        {
+          "name": "text-preview",
+          "valuesInAttemptOrder": [
+            10032.988099963404,
+            12262.672299984843,
+            10637.857399997301,
+            11130.30359998811,
+            10401.184299960732
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 10637.857399997301,
+          "nearestRankEmpiricalP95": 12262.672299984843,
+          "maximum": 12262.672299984843
+        },
+        {
+          "name": "pdf-text-native",
+          "valuesInAttemptOrder": [
+            15663.922199979424,
+            15544.42890000064,
+            16250.41490001604,
+            18217.530999914743,
+            16496.080399956554
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 16250.41490001604,
+          "nearestRankEmpiricalP95": 18217.530999914743,
+          "maximum": 18217.530999914743
+        },
+        {
+          "name": "pdf-scanned-native",
+          "valuesInAttemptOrder": [
+            11079.157699947245,
+            10910.175599972717,
+            12618.706699926406,
+            11047.663799952716,
+            10742.666200036183
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 11047.663799952716,
+          "nearestRankEmpiricalP95": 12618.706699926406,
+          "maximum": 12618.706699926406
+        },
+        {
+          "name": "application-lock",
+          "valuesInAttemptOrder": [
+            4222.307899966836,
+            4167.779500014149,
+            4590.881699929014,
+            4645.529399975203,
+            4581.44270000048
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 4581.44270000048,
+          "nearestRankEmpiricalP95": 4645.529399975203,
+          "maximum": 4645.529399975203
+        },
+        {
+          "name": "password-reunlock",
+          "valuesInAttemptOrder": [
+            14844.394900021143,
+            17144.833000027575,
+            15292.172799934633,
+            16797.032000031322,
+            14865.585300023668
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 15292.172799934633,
+          "nearestRankEmpiricalP95": 17144.833000027575,
+          "maximum": 17144.833000027575
+        }
+      ],
+      "postJourneyPssBytes": {
+        "valuesInAttemptOrder": [
+          267359232,
+          270602240,
+          269391872,
+          253383680,
+          272644096
+        ],
+        "acceptedSamples": 5,
+        "failedAttempts": 0,
+        "median": 269391872,
+        "nearestRankEmpiricalP95": 272644096,
+        "maximum": 272644096
+      }
+    },
+    {
+      "objectCount": 5000,
+      "phases": [
+        {
+          "name": "startup",
+          "valuesInAttemptOrder": [
+            6226.338700042106,
+            5769.508400000632,
+            6042.706100037321,
+            7930.33630005084,
+            6332.6567999320105
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 6226.338700042106,
+          "nearestRankEmpiricalP95": 7930.33630005084,
+          "maximum": 7930.33630005084
+        },
+        {
+          "name": "password-unlock",
+          "valuesInAttemptOrder": [
+            20200.753599987365,
+            23378.3650000114,
+            20839.464899967425,
+            20615.75640004594,
+            20995.20040000789
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 20839.464899967425,
+          "nearestRankEmpiricalP95": 23378.3650000114,
+          "maximum": 23378.3650000114
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "valuesInAttemptOrder": [
+            23781.930800061673,
+            24670.217699953355,
+            24210.804000031203,
+            26135.691599920392,
+            22984.54249999486
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 24210.804000031203,
+          "nearestRankEmpiricalP95": 26135.691599920392,
+          "maximum": 26135.691599920392
+        },
+        {
+          "name": "workspace",
+          "valuesInAttemptOrder": [
+            9112.126599997282,
+            8895.375600084662,
+            9029.34149990324,
+            10879.13750007283,
+            8508.15559993498
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 9029.34149990324,
+          "nearestRankEmpiricalP95": 10879.13750007283,
+          "maximum": 10879.13750007283
+        },
+        {
+          "name": "search-needle",
+          "valuesInAttemptOrder": [
+            16501.567899947986,
+            16297.442400013097,
+            15257.960299961269,
+            16867.886899970472,
+            16008.491800050251
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 16297.442400013097,
+          "nearestRankEmpiricalP95": 16867.886899970472,
+          "maximum": 16867.886899970472
+        },
+        {
+          "name": "attachments-open",
+          "valuesInAttemptOrder": [
+            8465.919499984011,
+            8324.577399995178,
+            8228.96049998235,
+            9294.111399911344,
+            8261.402099975385
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 8324.577399995178,
+          "nearestRankEmpiricalP95": 9294.111399911344,
+          "maximum": 9294.111399911344
+        },
+        {
+          "name": "image-preview",
+          "valuesInAttemptOrder": [
+            10759.59380005952,
+            11080.267300014384,
+            11572.169000050053,
+            13175.379000022076,
+            11240.05969997961
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 11240.05969997961,
+          "nearestRankEmpiricalP95": 13175.379000022076,
+          "maximum": 13175.379000022076
+        },
+        {
+          "name": "text-preview",
+          "valuesInAttemptOrder": [
+            12083.876800024882,
+            10314.639099990018,
+            9864.75279997103,
+            10536.285599926487,
+            10067.941999994218
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 10314.639099990018,
+          "nearestRankEmpiricalP95": 12083.876800024882,
+          "maximum": 12083.876800024882
+        },
+        {
+          "name": "pdf-text-native",
+          "valuesInAttemptOrder": [
+            15884.550099959597,
+            16037.158900056966,
+            15778.039800003171,
+            17555.05439999979,
+            15933.211999945343
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 15933.211999945343,
+          "nearestRankEmpiricalP95": 17555.05439999979,
+          "maximum": 17555.05439999979
+        },
+        {
+          "name": "pdf-scanned-native",
+          "valuesInAttemptOrder": [
+            11288.167799939401,
+            11745.30720000621,
+            11041.098600020632,
+            11141.748399939388,
+            10611.245599924587
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 11141.748399939388,
+          "nearestRankEmpiricalP95": 11745.30720000621,
+          "maximum": 11745.30720000621
+        },
+        {
+          "name": "application-lock",
+          "valuesInAttemptOrder": [
+            4631.240699905902,
+            4315.326499985531,
+            4334.832899970934,
+            4705.25150001049,
+            4242.716699955054
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 4334.832899970934,
+          "nearestRankEmpiricalP95": 4705.25150001049,
+          "maximum": 4705.25150001049
+        },
+        {
+          "name": "password-reunlock",
+          "valuesInAttemptOrder": [
+            16404.936000006273,
+            18407.097599934787,
+            16502.757699927315,
+            18524.626600090414,
+            16472.186099970713
+          ],
+          "acceptedSamples": 5,
+          "failedAttempts": 0,
+          "median": 16502.757699927315,
+          "nearestRankEmpiricalP95": 18524.626600090414,
+          "maximum": 18524.626600090414
+        }
+      ],
+      "postJourneyPssBytes": {
+        "valuesInAttemptOrder": [
+          280853504,
+          307335168,
+          291879936,
+          287246336,
+          295789568
+        ],
+        "acceptedSamples": 5,
+        "failedAttempts": 0,
+        "median": 291879936,
+        "nearestRankEmpiricalP95": 307335168,
+        "maximum": 307335168
+      }
+    }
+  ],
+  "allAttemptOutcomes": [
+    {
+      "attempt": 1,
+      "accepted": true,
+      "bindingSha256": "17b8c3cf84d449386b23aee9c6142b638dfa8bbfab9d35a804c349461e47305b",
+      "evidenceSha256": {
+        "chain": "0840c07cc64ef48748db2a262ebc5ac189cc808fac1a7e25d4a74430d85609b3",
+        "ownerPlan": "ac472978bbfa15ab7a093868e759993d203a5070f88693c03d72d653d1155cc1",
+        "owner": "af8c4556dabaf2eda67ce8790521aa17a9f6404e03fbdd438da1b4d016b6a8e5",
+        "terminal": "b9ef0d6451be76dbc1b96f258507cc7aa20bf420278e02ff9e158954cfc1ae50",
+        "frames": "3a197dc31a31f19e185725cf967f59f6f2eee43d54d50b3a99fbff10413fe3a7",
+        "memory": "2b29fda67ada641db4a8bd557966c0375cd4242817cd1da95068d75e06a55a71",
+        "preflight": "da277830d68d57588dd2bc325b712570088a158c2971a4e093c98fce7a858c50",
+        "avdPreparation": "5a0a34e6e131beb109e15327f58399ff18f5bba35c55021db85c187433c18855",
+        "phases100": "ad9fce516d8ff22ca41f37306c85314df523cd08fb0934d98274e0ae153868df",
+        "report100": "92ad86a053eeb583302d8387510ebacbd32b817286fa438e270fbec6701f5d2e",
+        "phases5000": "3a665d2a51af239d309ea101b22342f8aee4477bdc7d9798bc2be31eb18ba305",
+        "report5000": "3528253b1342fefc21d54398223cc7eea3ce822be2a2735dec2bc062870a30fc"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 7086.630899924785
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 21287.529000081122
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 24799.213099991903
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 8602.080399985425
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 15265.7197000226
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 9374.084000010043
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 12119.898200035095
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 10032.988099963404
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 15663.922199979424
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 11079.157699947245
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4222.307899966836
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 14844.394900021143
+            }
+          ],
+          "postJourneyPssBytes": 267359232,
+          "failureEvidenceSha256": null
+        },
+        {
+          "objectCount": 5000,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 6226.338700042106
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 20200.753599987365
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 23781.930800061673
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 9112.126599997282
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 16501.567899947986
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 8465.919499984011
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 10759.59380005952
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 12083.876800024882
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 15884.550099959597
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 11288.167799939401
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4631.240699905902
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 16404.936000006273
+            }
+          ],
+          "postJourneyPssBytes": 280853504,
+          "failureEvidenceSha256": null
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "accepted": true,
+      "bindingSha256": "17b8c3cf84d449386b23aee9c6142b638dfa8bbfab9d35a804c349461e47305b",
+      "evidenceSha256": {
+        "chain": "bd55d86a5c26fbda853dc28fce988808ea7d7d97670119753c242baa83c272f1",
+        "ownerPlan": "7ae5b24799af7e848eccbdd8c63e3bcfbe1aabdf5133054aaa452e60b194373a",
+        "owner": "503929528b4ca454b565531629e3073994b9da939cb58d189eb0e19786b479c6",
+        "terminal": "68b1822b7bdf848d6c91ce75d6982d99e9e75c7c2f47dc8e93595a753bc11f17",
+        "frames": "aba922a3a8de7ba24b9a25804b539a2400371f937a4fb72f7b6feac27afab558",
+        "memory": "157cbaf17138e9f663c8a0ceb0cc833cf19455534f0209596cc7afd2b521f079",
+        "preflight": "980b1d870590df8d8890b18b4a2cef15bdc48fac2391b9c826447d4ba3318ba3",
+        "avdPreparation": "034be3273b1b693b8b3969ede86f6ecc0b150d2330814aca1815d42966375293",
+        "phases100": "ac1d6a7e0569008805c01bb90a5b7e7c5e8fec9de2bb8911d4dcfaf5daf1244b",
+        "report100": "1c74685a7257106bdc53873e15a02479c2f4f2629b5f8a60f23a1d555eac2a71",
+        "phases5000": "cc8733507646086bb4638c31d4d675fd5f321218dcf5c89f4d1ce6509583e37a",
+        "report5000": "e07e945a76b4189ea1e35a81f50cc6983edf94f596717e06e9e30b20527e9473"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 7509.299700031988
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 22807.393399998546
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 25688.229299965315
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 8484.328099992126
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 15760.97890001256
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 9542.046000016853
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 11466.98460006155
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 12262.672299984843
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 15544.42890000064
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 10910.175599972717
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4167.779500014149
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 17144.833000027575
+            }
+          ],
+          "postJourneyPssBytes": 270602240,
+          "failureEvidenceSha256": null
+        },
+        {
+          "objectCount": 5000,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 5769.508400000632
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 23378.3650000114
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 24670.217699953355
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 8895.375600084662
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 16297.442400013097
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 8324.577399995178
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 11080.267300014384
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 10314.639099990018
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 16037.158900056966
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 11745.30720000621
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4315.326499985531
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 18407.097599934787
+            }
+          ],
+          "postJourneyPssBytes": 307335168,
+          "failureEvidenceSha256": null
+        }
+      ]
+    },
+    {
+      "attempt": 3,
+      "accepted": true,
+      "bindingSha256": "17b8c3cf84d449386b23aee9c6142b638dfa8bbfab9d35a804c349461e47305b",
+      "evidenceSha256": {
+        "chain": "8bf0215343fe13686dfec57f49b666b6e2b8998d361fe7f68a6e5fb98ee94d49",
+        "ownerPlan": "ee1836c8656947d5ac4e55bcd4c2162da1e7a3c61c6202712ab9230e069248e8",
+        "owner": "652d874693fe63ff76ad3d99fabe18b7f64d2e706d2fe8b35052ae28b8c4da13",
+        "terminal": "20177fa512e094343cf258b61aaa8299a57327f6dce57e63dc2cb3b06ab24707",
+        "frames": "e162468c14445bb3c709003dfd20c3bf8caabd0f1dbae1691ce9da73f39f9785",
+        "memory": "01daa40105a159fbf85ff3181f59086083682af5ae205b44410032159e98b385",
+        "preflight": "953b414202af7bc131480a47e408a81b422b0f1d706c6d2fcebcabe1aadabd7f",
+        "avdPreparation": "79a3b60b98e87dd694b17396a1134f0536d6a831e95012241397c6aa42fc64c2",
+        "phases100": "f06e6ab6dc7c51a3ee27fb8e3e6f83df5267532bed302db26412992df62f8806",
+        "report100": "b289a9dd5325b176d2bd230ba5fba99685e17e37a7ff9b3fe58fb93274316044",
+        "phases5000": "7acabe9dfda711b3de2a19cd9304615dd89210e5bf8fd1d5ba215856b81a733a",
+        "report5000": "dfda4fdca5a667c0b74d0c100208217a466765efcb44342ce0b075b260bf52f0"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 6253.621199983172
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 20762.18359998893
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 25046.861300012097
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 8764.532800065354
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 14867.47529997956
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 8645.842300029472
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 10605.453500058502
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 10637.857399997301
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 16250.41490001604
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 12618.706699926406
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4590.881699929014
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 15292.172799934633
+            }
+          ],
+          "postJourneyPssBytes": 269391872,
+          "failureEvidenceSha256": null
+        },
+        {
+          "objectCount": 5000,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 6042.706100037321
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 20839.464899967425
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 24210.804000031203
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 9029.34149990324
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 15257.960299961269
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 8228.96049998235
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 11572.169000050053
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 9864.75279997103
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 15778.039800003171
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 11041.098600020632
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4334.832899970934
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 16502.757699927315
+            }
+          ],
+          "postJourneyPssBytes": 291879936,
+          "failureEvidenceSha256": null
+        }
+      ]
+    },
+    {
+      "attempt": 4,
+      "accepted": true,
+      "bindingSha256": "17b8c3cf84d449386b23aee9c6142b638dfa8bbfab9d35a804c349461e47305b",
+      "evidenceSha256": {
+        "chain": "d059506a31325abc61400c9194b7a53215a4cbca2587d1f3ddd0b93b2dd2ea74",
+        "ownerPlan": "bd2c1e592f30f78d30e0c526d9845ce8c6d04f96f11e67270896d7f5bd26eb73",
+        "owner": "ee8656bffefcd237f76bfdabffcec3666768080f34891bce359de7941f7ea2a2",
+        "terminal": "aa37961564a1e463adeba3296aae7ca594f3306d9f5ffd23b2dcd6a72e46cc3c",
+        "frames": "d4b1044347646682b49cb0efccf2ae2bc442fbe0e6b86e3116538fb583fe3f78",
+        "memory": "e80e5380b653035a3fd291aabec2e4da44e33fc93f6c376b8bd3d369281878d4",
+        "preflight": "0503d822708ceeeccde7fafbd1a2f5533c277a84cdc9d07cc00ae71c8f4cf6bb",
+        "avdPreparation": "cd77867a60c785503e334f4e4ba6a07b1c0fdaf4a45b9ff31e951f9167bb708e",
+        "phases100": "d264a71d93e31c94d0be974255d39a0fc92c5737978674c928dacaea62ab3723",
+        "report100": "a2788e24d5df6c208f1255106fa67ee99c0f59a5cf216fe95ad25e63995b26da",
+        "phases5000": "7d9195735264d2f384a5ecbaf27202a031ab463b4e4849040dc6693b10dfcadb",
+        "report5000": "3fb0548e855d6e88926d3556b781b2c53a52d4278ead7f4dadebd53928892780"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 9304.1319999611
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 21550.867400015704
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 27084.53620004002
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 10350.486500072293
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 16123.810500022955
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 9220.474199973978
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 11316.652599954978
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 11130.30359998811
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 18217.530999914743
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 11047.663799952716
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4645.529399975203
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 16797.032000031322
+            }
+          ],
+          "postJourneyPssBytes": 253383680,
+          "failureEvidenceSha256": null
+        },
+        {
+          "objectCount": 5000,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 7930.33630005084
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 20615.75640004594
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 26135.691599920392
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 10879.13750007283
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 16867.886899970472
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 9294.111399911344
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 13175.379000022076
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 10536.285599926487
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 17555.05439999979
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 11141.748399939388
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4705.25150001049
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 18524.626600090414
+            }
+          ],
+          "postJourneyPssBytes": 287246336,
+          "failureEvidenceSha256": null
+        }
+      ]
+    },
+    {
+      "attempt": 5,
+      "accepted": true,
+      "bindingSha256": "17b8c3cf84d449386b23aee9c6142b638dfa8bbfab9d35a804c349461e47305b",
+      "evidenceSha256": {
+        "chain": "e5d221a43b488f58af9fd98ef86e5fd4d6ad864b19cdc6b2abc04c2c5518a139",
+        "ownerPlan": "1da061c2bf30cb918cb0554eade9fb219896f3ad9d5a9cc0fe8eef1057889fd1",
+        "owner": "63361e040fc53677ed830d3df744bfb3ae00c4e864e1e5bb922fda6a26471702",
+        "terminal": "badf4358cb6e73e37e1911a7d408a0a2e00b3bffa564cbe1c580d98b0f3cacb1",
+        "frames": "5dd9cdd0f780c9b7f5c1b63db0e2d6b97e731340c0d2f0e64993aee720151e41",
+        "memory": "adee91cbf56c5a69067866d0e362980fe812f81466ad2b7a71c153c6ee09b012",
+        "preflight": "21fbf43384e03a4d960b34e2cd6650b5435c72cfa9c2d8385af350a8b748cd00",
+        "avdPreparation": "1fcef98943238030917d94c52404783a3ffe8e0b4da1ce4f5f452c3576e84a99",
+        "phases100": "4252d62d4a546985e2602bdc67ea3f2361defc13bc4d6650dfde505b5b4216c1",
+        "report100": "c5bff0ead0c8abfe7efc3c3b94fb23e5a5e3d358e3357bf543174b0e7582c95c",
+        "phases5000": "ee7d11abd9b58f28345ae97553a3b7b12e118f2004f539521de269b73dfaf399",
+        "report5000": "984f89610f065a34f0cdaa59684a04cd0ae31b61cde1bc9765f662b644975f63"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 6936.064800014719
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 20787.985400063917
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 25196.046800003387
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 8743.18809993565
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 14741.290999925695
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 8578.728400054388
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 10235.632500029169
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 10401.184299960732
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 16496.080399956554
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 10742.666200036183
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4581.44270000048
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 14865.585300023668
+            }
+          ],
+          "postJourneyPssBytes": 272644096,
+          "failureEvidenceSha256": null
+        },
+        {
+          "objectCount": 5000,
+          "accepted": true,
+          "completedPhases": [
+            {
+              "name": "startup",
+              "hostObservedUpperBoundMs": 6332.6567999320105
+            },
+            {
+              "name": "password-unlock",
+              "hostObservedUpperBoundMs": 20995.20040000789
+            },
+            {
+              "name": "first-ocr-user-flow",
+              "hostObservedUpperBoundMs": 22984.54249999486
+            },
+            {
+              "name": "workspace",
+              "hostObservedUpperBoundMs": 8508.15559993498
+            },
+            {
+              "name": "search-needle",
+              "hostObservedUpperBoundMs": 16008.491800050251
+            },
+            {
+              "name": "attachments-open",
+              "hostObservedUpperBoundMs": 8261.402099975385
+            },
+            {
+              "name": "image-preview",
+              "hostObservedUpperBoundMs": 11240.05969997961
+            },
+            {
+              "name": "text-preview",
+              "hostObservedUpperBoundMs": 10067.941999994218
+            },
+            {
+              "name": "pdf-text-native",
+              "hostObservedUpperBoundMs": 15933.211999945343
+            },
+            {
+              "name": "pdf-scanned-native",
+              "hostObservedUpperBoundMs": 10611.245599924587
+            },
+            {
+              "name": "application-lock",
+              "hostObservedUpperBoundMs": 4242.716699955054
+            },
+            {
+              "name": "password-reunlock",
+              "hostObservedUpperBoundMs": 16472.186099970713
+            }
+          ],
+          "postJourneyPssBytes": 295789568,
+          "failureEvidenceSha256": null
+        }
+      ]
+    }
+  ],
+  "fixedHostObservedSeriesCollected": true,
+  "p95IsSmallSampleEmpiricalNotPopulationTail": true,
+  "memoryScope": "one unlocked-home post-journey checkpoint per case per accepted attempt",
+  "nativeReceiptAuditsReplacedByThisReducer": false,
+  "performanceDistributionAccepted": false,
+  "applicationOnlyLatencyAttributed": false,
+  "wholeJourneyOrPeakMemoryAccepted": false,
+  "sameSourceObserverOverheadMeasured": false,
+  "actualIpcAccepted": false,
+  "twoCommittedFramesProven": false,
+  "fullRF312Accepted": false,
+  "inputFileSha256": "044253598a20c9e832464608333e24b729dc76aae0442fcece8e5c19ce17036f"
+}

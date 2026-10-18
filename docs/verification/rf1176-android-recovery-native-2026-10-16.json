@@ -1,0 +1,981 @@
+{
+  "task": "RF-1176",
+  "date": "2026-10-16",
+  "status": "completed",
+  "source": {
+    "productionCommit": "9223a6be51ea29d5f3e550b376af5eb3080730c3",
+    "productionAndFrontendAndConfigUnchanged": true,
+    "defaultCargoFeaturesOnly": true,
+    "frontendMapSha256": "2af0ea89bc70c9312211d7dddab3c248c96103195267874813e39c975c4ebf26",
+    "mobileResourceMapSha256": "8cf5f00b593748d0b4e48ce1beb8d8d3e90b494e58ddeb93b72b932272247246",
+    "promotedCodeSha256": {
+      "tauri/scripts/android-home-native-regression.py": "e3dbbc4bb4147ce2a78c2375ef3b58c22abec964461e5793b591f4aca5aead90",
+      "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt": "6fda364b3101bf3128f08021678a8e1c98793efcd72145cc2602b581d14430b6",
+      "tauri/scripts/test_android_recovery_native_evidence.py": "0e4bfde31daf281bb4fd1c779034f12e35c1036fd949ff06729dd32634636e6d",
+      "tauri/scripts/test_android_recovery_native_taps.py": "bc9f4184720c470312e42ccf52a84452d6288821e17ea288b270bdb0d98f0887"
+    },
+    "originalProtectedReaderFunctionsUnchanged": [
+      "night_mode",
+      "font_scale",
+      "activity_font_scale",
+      "effective_font_scale",
+      "font_deadline",
+      "capture_font_scale",
+      "restore_font_scale",
+      "read_process_ids",
+      "validate_previous_process",
+      "notification_permission",
+      "digest",
+      "inventory",
+      "stage_private_restore",
+      "restore_private_data",
+      "verify_native",
+      "typography_clipped",
+      "verify_font_scale_pair",
+      "verify_evidence"
+    ]
+  },
+  "build": {
+    "profile": "debug",
+    "api": 35,
+    "abi": "x86_64",
+    "webView": "124.0.6367.219",
+    "hostAcceleration": "WHPX",
+    "renderer": "SwiftShader",
+    "defaultFeatures": [
+      "custom-protocol"
+    ],
+    "librarySha256": "51d5fbf19beda2bc50c53a9157315521fcc9e6d8efe94c94065acd8b8a5ae23b",
+    "mainApkSha256": "996347dedc446558594073f22765f17bbfdda2e9a187a874bea786637c73adbc",
+    "testApkSha256": "573dc92d7f59adbc5042f9f1ee12667ce05a080f92b2bbc3d7589790230d19ff",
+    "signaturesVerified": true,
+    "mainReusedFromSameVerifiedCurrentDefaultBuild": true
+  },
+  "validation": {
+    "candidateUnitTests": 63,
+    "unitSkipped": 0,
+    "nativeCasesPassed": 6,
+    "nativeSkipped": 0,
+    "originalHomeStages": 72,
+    "recoveryStages": 108,
+    "singleNativeLabelTouches": 36,
+    "singleNativeCloseTouches": 12,
+    "recoveryFramesDecoded": 96,
+    "preTouchFramesDecoded": 48,
+    "nativeCameraDenials": 12,
+    "matchedTextComparisons": 48,
+    "actualNativeFontPairs": [
+      {
+        "mode": "supported",
+        "scale": 1.3,
+        "comparisons": 12,
+        "minHeightRatio": 1.2999997997284318,
+        "maxHeightRatio": 1.3023263179270117
+      },
+      {
+        "mode": "supported",
+        "scale": 2.0,
+        "comparisons": 12,
+        "minHeightRatio": 1.9999994993210795,
+        "maxHeightRatio": 2.0000010013583425
+      },
+      {
+        "mode": "fallback",
+        "scale": 1.3,
+        "comparisons": 12,
+        "minHeightRatio": 1.2999997997284318,
+        "maxHeightRatio": 1.3023263179270117
+      },
+      {
+        "mode": "fallback",
+        "scale": 2.0,
+        "comparisons": 12,
+        "minHeightRatio": 1.9999994993210795,
+        "maxHeightRatio": 2.0000010013583425
+      }
+    ],
+    "cases": [
+      {
+        "label": "font-1.0-supported",
+        "fontScale": 1.0,
+        "mode": "supported",
+        "baselineStages": 12,
+        "recoveryStages": 18,
+        "nativeCameraDenials": 2,
+        "nativeReportSha256": "d2e1017842028be0ec32e79cf86b7f0a102267ad2a6e9e6c97f32d72a5907516",
+        "driverReportSha256": "7d29e1b4b905f0190e05738a0700121452e401dbb96ee77458451b44c2cd9e78",
+        "deviceEvidenceSha256": "b02db19cadb2e5c33f3e66a2ec2e4874c6973eeb7b1a6a75feaabacfd1d64391",
+        "allDataAndSettingsAndPermissionsRestored": true
+      },
+      {
+        "label": "font-1.0-fallback",
+        "fontScale": 1.0,
+        "mode": "fallback",
+        "baselineStages": 12,
+        "recoveryStages": 18,
+        "nativeCameraDenials": 2,
+        "nativeReportSha256": "7daab75731aa815661a143f487c29a667951cca6ccb221c1a2d1f31bfaf4fcc3",
+        "driverReportSha256": "324606a5421b4f6cdf737139dd0cf592e8576a614a10b7ea8f9dea9a2f0efc18",
+        "deviceEvidenceSha256": "b57e5428a5b98ed3d67f1c6b9e9d5db283c2eefa7673d412567447864aee9833",
+        "allDataAndSettingsAndPermissionsRestored": true
+      },
+      {
+        "label": "font-1.3-supported",
+        "fontScale": 1.3,
+        "mode": "supported",
+        "baselineStages": 12,
+        "recoveryStages": 18,
+        "nativeCameraDenials": 2,
+        "nativeReportSha256": "d41830d7e1c1afe4b9a1346307e631b47eddc16186f87a9838cbe3fdb58a9fc1",
+        "driverReportSha256": "d1c9213b18b15e971cb272ed1b23a91888c1e3427ffba2f885d7be3a070705e9",
+        "deviceEvidenceSha256": "d2265d5cd92a4e76320469c30227b7f862802075d16431b9b5f32a5963cdd65a",
+        "allDataAndSettingsAndPermissionsRestored": true
+      },
+      {
+        "label": "font-1.3-fallback",
+        "fontScale": 1.3,
+        "mode": "fallback",
+        "baselineStages": 12,
+        "recoveryStages": 18,
+        "nativeCameraDenials": 2,
+        "nativeReportSha256": "e4d018ba96ea1897e93cf37910010fb8ef76e44f670a2bdd150cc9b2df0ff97a",
+        "driverReportSha256": "585f26a39db8af7f4ba3753951791904ff22f3e26c94251e839e76573640051d",
+        "deviceEvidenceSha256": "5059c7a7dd2d727dfb2839af39ad1af8d4c1e6d9cffafb5cb7c29c30853fee4d",
+        "allDataAndSettingsAndPermissionsRestored": true
+      },
+      {
+        "label": "font-2.0-supported",
+        "fontScale": 2.0,
+        "mode": "supported",
+        "baselineStages": 12,
+        "recoveryStages": 18,
+        "nativeCameraDenials": 2,
+        "nativeReportSha256": "aed21635c90e96db5222854ec98e112b6e0b1ef382fcde4353671134ae768489",
+        "driverReportSha256": "8d1f6c1aa6fa0d2c47735ef1eb29bc18c9b0d5055863b2f88a65cda07e0335e0",
+        "deviceEvidenceSha256": "3feddbc7f88bfc0708a6e7c73ece7812742f8ee8a3c5475f9f6894fb3f647600",
+        "allDataAndSettingsAndPermissionsRestored": true
+      },
+      {
+        "label": "font-2.0-fallback",
+        "fontScale": 2.0,
+        "mode": "fallback",
+        "baselineStages": 12,
+        "recoveryStages": 18,
+        "nativeCameraDenials": 2,
+        "nativeReportSha256": "7f50f0381bdea0a12b0781d95fa95d24e998fe8c1d1043c626380fc9cc61633d",
+        "driverReportSha256": "c1f07a6896741853e5da971f6c959284d0edf664dff3d0c3c6df898a9ad3a855",
+        "deviceEvidenceSha256": "5bebe79adca2989844537caed435f38c49b7ac81f60c03bd51a1ccac1021a5ff",
+        "allDataAndSettingsAndPermissionsRestored": true
+      }
+    ],
+    "canonicalUnitTests": 63,
+    "canonicalUnitSkipped": 0
+  },
+  "previousNativeQueuesRemainFailed": [
+    {
+      "reason": "Original guard refused unknown camera permission popup",
+      "nativeAccepted": false,
+      "evidenceAuditSha256": "9a9c3cce18afde61d7c09367c05f343f97bcf821a75b58ea26b9cfef44528856"
+    },
+    {
+      "reason": "Initial onboarding WebView callback deadline; not classified resolved",
+      "nativeAccepted": false,
+      "evidenceAuditSha256": "0e51317bbb231b421beb47eca3f5f16d9c8a4411bae7481db63570b0261fcdbb"
+    },
+    {
+      "reason": "Actual uppercase native denial caption did not match provisional fixture",
+      "nativeAccepted": false,
+      "evidenceAuditSha256": "db4606043a2810dfe43185ccb67c4c1a3709dd7cf7323b8e357b721fa77add85"
+    },
+    {
+      "reason": "Third field focus differed after provisional coordinate injection",
+      "nativeAccepted": false,
+      "evidenceAuditSha256": "b03f9cf794b07d572391dd9f7148f757c46e27dba705b1e68c60860d98c413bb"
+    },
+    {
+      "reason": "Trusted own-label hit but pointer type empty; strict touch guard refused",
+      "nativeAccepted": false,
+      "evidenceAuditSha256": "1be317da200e77682b5015e00cd28205ccb501c5573704a11efaf1d596a437bd"
+    }
+  ],
+  "previousPublicSdkCompileFailure": {
+    "preserved": true,
+    "receiptSha256": "63cdb1dd81689b94581ef25953e34933c9a93568e76a1e82b2436a4086d4495d"
+  },
+  "restoration": {
+    "privateInventoryAndModesEqual": true,
+    "rootModeVerified": true,
+    "blurAndExactRawFontScaleRestored": true,
+    "cameraGrantAndUserFlagsRestored": true,
+    "notificationGrantAndUserFlagsRestored": true,
+    "targetPackagesUninstalled": true,
+    "ownedEmulatorAndAdbExited": true,
+    "ownedDescendantsAndListenersAbsent": true,
+    "protectedOldAdbUnchanged": true
+  },
+  "preflight": {
+    "originalExactCountRejectionPreserved": true,
+    "quotaPruningProvenByCompleteGlobalInventory": true,
+    "currentBootAnrAbsentBeforeAndAfterEveryCase": true,
+    "oldHistoricalFailuresNotDeleted": true
+  },
+  "evidenceSha256": {
+    "independent-native-audit.json": "1c111480f799ecff3a43e3053192aedb153827b968c9642557cc5431a3c301e4",
+    "candidate-source-audit.json": "c78daabcaf4b5d3af1d988439f3446a7e598ebd12382129b376d1ee3834c6cea",
+    "source-audit-before-native.json": "c78daabcaf4b5d3af1d988439f3446a7e598ebd12382129b376d1ee3834c6cea",
+    "driver-units.stderr": "f36718e85b5a5cb1531aa3c58ec9ef2f8889041f02e8d60cd89955b31cb0987d",
+    "native-recovery/result.json": "a54f63bc10ad27c6220e7323b814cdeaf1588eb3c2218b862d479cea4e41c622",
+    "host-audit-after/result.json": "ca7ca16882557ce0c9d64bc323a2ed94a8d11b2080f1d2b81348a0c73dc7e067",
+    "preflight-quota-pruning-audit.json": "220b2c0095cedc3d6e8ce887ff86d68512c4dea03e534ae4a5b6dfba727f4a47",
+    "canonical-promotion-audit.json": "82eb9f2c3343e1c6122942221bd4cf8652a4275144386774f0f6dd1757a86f9e",
+    "canonical-units.stderr": "506b76a88469a039d3fed45688ffce026f7eec72e68613a8d7c1721a63ea8a16"
+  },
+  "recoveryFrameSha256": [
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-portrait",
+      "sha256": "116a551b89b2e27834554326101668889d6e9aea3ed7b9d1781bcc5bd951ff38"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-next-portrait",
+      "sha256": "60c258c2592001e1b7385640578736972942897900ae9c2daeff1e5b30c6629d"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-label-0-ime",
+      "sha256": "bab3de85cce3f58b8954e9f7419e48c539931b0bb6d8ae352cf45ca70fe30448"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-label-1-ime",
+      "sha256": "00926df183f73c893098dd02ff50c725424fd76609d68dd03856fe2de8ae5dca"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-label-2-ime",
+      "sha256": "25c4791d29f4c107c07a3aacc9ed83e9763980aec8c48807a775953412e49c24"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-landscape",
+      "sha256": "9c254505bd007e0c6658d4ea0b5f3076e56568f6f46a7c026c4823b19ea0edbe"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-next-landscape",
+      "sha256": "5e357c38b5d0d25d93d8c3d2631a098a0c95e0ed4b417baef1b5de33310f1299"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-light-close-landscape",
+      "sha256": "7322a78574225c3a0a0d6a7ad66478baafe3b6ea00d4bc9360e4f2f7654fa936"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-portrait",
+      "sha256": "eebeb40e0da149c93eb5809824a1d76c5054b6183afcb85bcee9c24abcb6ef29"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-next-portrait",
+      "sha256": "e05603b25c2e56a6f511ff7e14ffbd3764a71da9886092076dab855a91308719"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-label-0-ime",
+      "sha256": "a49c4712e7647e471ec28868763241448875a6a6a2f2cb7cb7b4c4a9e91fa30c"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-label-1-ime",
+      "sha256": "cfac22ef7534cba166849bd074efdce805ee0112e3e7aa31d00c533f10a0537b"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-label-2-ime",
+      "sha256": "4f4959a62c8c146c617ca71d16117b3cdfc6dd9ec3b54777b4a47c5b3fca3a51"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-landscape",
+      "sha256": "32dbf0e5038861129d04a477abea08ad3102a2895b4a67202b030378e4188498"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-next-landscape",
+      "sha256": "a50901d15f0791dc776019ff978d0a7a0f80a17ee1e3daf7bfb81aaf6676f23b"
+    },
+    {
+      "case": "font-1.0-supported",
+      "stage": "recovery-dark-close-landscape",
+      "sha256": "f08d6172f26fd06c69375de0565357a3c7de54ecc4a44dbf1f2b34dbbe0bddfb"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-portrait",
+      "sha256": "99e345246b23e7c3fafd7d934ecf58ee9e4a13c84af828a7ae65e74177689429"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-next-portrait",
+      "sha256": "946aaba45a1a05fa917537f5a7c50bb8ccca4d61e2ec3c303680098439b442f4"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-label-0-ime",
+      "sha256": "5f5b42451a4ebecd221ec01426bae2970f3eb0ef197b4882a5e07dec758df0e8"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-label-1-ime",
+      "sha256": "08229f69bdf307349170619018e0d988db425940928362d4537a1d7de97899a1"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-label-2-ime",
+      "sha256": "5fba509fa0fed20a05e8dd5d168d7af32e996d43dd503c2da31ea89355fb5e9f"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-landscape",
+      "sha256": "801be86e05b90b6e16357e74114aaf511ea4b5d68808a4fdc2f69ec5718a0e87"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-next-landscape",
+      "sha256": "d400971e00b0bcf35c1eb82544da6ebbc932f7d1f0a2b72911ef1ab3a016ae39"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-light-close-landscape",
+      "sha256": "444be56c4b2dc3f835a2070fb2fb94fd53b2e8c5ea0a35f5373afa31a0573ebc"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-portrait",
+      "sha256": "5925dd61e4bd409df569c3e5f821ea12a2fd5992e0e91b2a27b3d96249593cb2"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-next-portrait",
+      "sha256": "b465a4ea0bc01d32fdff856b97baa29ca9b4b1a14d695a712271ecaf14eddfbf"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-label-0-ime",
+      "sha256": "d1729dedac6fad05363eab20711c56916005813d57d85c501529490481e467f2"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-label-1-ime",
+      "sha256": "6fd65bb964df10265c71fac459fd3d3d3cc3e7f7475764ab264cccb5e5f02223"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-label-2-ime",
+      "sha256": "9a7f38c2a1eb65a717c20a95247a181fcb84787fc18c6d136af835831ee6acde"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-landscape",
+      "sha256": "a69ef520e6cef11da5db1ff66f9acc6c59548232743ff0b025018ebee875b749"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-next-landscape",
+      "sha256": "4bb6bd693d7b36d38a068f9a3445a7a7aa173cd487516fb3d0b231bb6af58bac"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "stage": "recovery-dark-close-landscape",
+      "sha256": "0c0f0ed96f333b0ab5380bb4ed2e963b9929875c36a5d1a5deb2e7f5dd92775f"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-portrait",
+      "sha256": "19c1974ef4fb41cf51bf2a6d7fd1efff54099d39996d9c3dd1ccec9f2b8b5e6b"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-next-portrait",
+      "sha256": "4c86bdf6be5cd2a540cdc0dbd3388579ee26aead0c60029534a3f2019ef7b75d"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-label-0-ime",
+      "sha256": "74b7d989bf14be1c33c58526298e9102ea4767ee712aa848d1084343b9692ba6"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-label-1-ime",
+      "sha256": "33b109adb99df980aedae7fd2cf1367074454986d9ff77950b8c32dc57865f3b"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-label-2-ime",
+      "sha256": "48c8903b00f1f578a6ff6146382988243576e4647518b81e01edd6707871e77d"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-landscape",
+      "sha256": "4468a4b0ff65d212b8cbf1b9db9608459f0ea1b34e1368b3f05b6f75b760bbaa"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-next-landscape",
+      "sha256": "5a8f6a098835dd3ce56f04af0532f252e26a12625c6398bce46cb43cbda1e191"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-light-close-landscape",
+      "sha256": "08e5414a21374ef4752e8f8ab379115c996d84ef2f28667e10412ade92d6fa20"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-portrait",
+      "sha256": "5e19a9411f54a26b5c4b6db946f78ea22f15d6852f15c350456d1877c1531878"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-next-portrait",
+      "sha256": "b48d353ef551f1c49879ff9c42857225c694cc4fda357149f2fbdb4b51ac5166"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-label-0-ime",
+      "sha256": "5fc5c73a9ba2be067ede8ad93bb775824648f3307b776655eca5d3a494c7cabc"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-label-1-ime",
+      "sha256": "cee558d5ac65357238897985f45d9bfe39dbbf4b431411f1d7b6ea61768c6732"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-label-2-ime",
+      "sha256": "40fcb50315023a2eed45403f4af6c28663928508fb86038fc2bdbf8ee107e74e"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-landscape",
+      "sha256": "84d69aa2c90ba8529a48726d4c4b223df43b7db08f691073f3f075768df6914e"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-next-landscape",
+      "sha256": "2d5b5fad18de7327417dbf3fbd7aad33bea6c0af655d022dafce09dfcd0e537a"
+    },
+    {
+      "case": "font-1.3-supported",
+      "stage": "recovery-dark-close-landscape",
+      "sha256": "c8395dbc7a157d51e4af2651e369d3ab6a8277dd60bb830f527412df88aa9696"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-portrait",
+      "sha256": "964033c16105f0bc98d22129b75c028dc7e6dbd0e3505bd3f3f07b44e8e6ee5d"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-next-portrait",
+      "sha256": "bf8f1b56368fb2b2cd4da1e3a2ead6c9f0b9a9fb01a72cb2fe54c0fcab574679"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-label-0-ime",
+      "sha256": "b8f3f23bb56af5e9eb0ab57556823d4ad40ceaa8bdaba0d3c6714f67294ea478"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-label-1-ime",
+      "sha256": "baf4e38045ce510daf42e1da4b0129fde2bf1c0a371347c9c0f34578ed88c9ea"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-label-2-ime",
+      "sha256": "8cd804939b93c499640ca711666d395c23e8e9d3dd239df2f9245a9ab60865a2"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-landscape",
+      "sha256": "aa2fdd86c9792a784fae8baf9a8d15f146f5e8b442b0888d05f5052e047a4f4c"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-next-landscape",
+      "sha256": "459ac2971fbd27bc8718adbea24568523e139337da5c03eeef44ab6f49377315"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-light-close-landscape",
+      "sha256": "3b7136fb5a49745b6360c3df06f74efdf0571caa9f8aee2bbb2e5e65e048bc02"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-portrait",
+      "sha256": "2fb90280ff2e6ad528d160bcd62045ffd8714bbd0353b00531112738c546718a"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-next-portrait",
+      "sha256": "2c0fd0f36b16b2f6e4d54e373fc39b78d7aa9be21a92bacc02ffde14e7d81820"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-label-0-ime",
+      "sha256": "d982bcb0215fb9ebcefc2266fdba4f7d53ecffe56f751cb64c9c1edba2965d40"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-label-1-ime",
+      "sha256": "f0ec4c3ce18460a8cd0fb03060763db618cf648e341bbabf609db6536a8ffedc"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-label-2-ime",
+      "sha256": "6ba0b1a70451dd752edaa6c72d0cb81f746bee0d4a51d299f57c1a06834f1263"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-landscape",
+      "sha256": "2aa68c137b68d82dfd1dfeba7fc9f9a8012bdbd82d8b76380f22841e36f08839"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-next-landscape",
+      "sha256": "600ffe4c6e48f3195ade3ad8ad497aa664f5d0bc791ce377f69a80c047eb4720"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "stage": "recovery-dark-close-landscape",
+      "sha256": "316bc81737eb4a909e6e8eecd41d84a1ffef8d5f76acfbbd0e9836307f95aaea"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-portrait",
+      "sha256": "6d88634890b6e152cc1a3e6eb75463736375bb0baab20034f78ceee0bb666865"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-next-portrait",
+      "sha256": "14c72b754dfe943732dac2e072ddc85d5fb139e863436ae20c45f71af4e47834"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-label-0-ime",
+      "sha256": "6fc02ea2d360917d8a68a797dba610bf6d47b8e82631c548b6a5f8ace3e89b57"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-label-1-ime",
+      "sha256": "1dd3f266743a5f5fb0b9c0d373e214d95e11fa6a509608e4ef6a6d5d59e76581"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-label-2-ime",
+      "sha256": "a031b7515cdec7c257a6a9bf0bed9f0106d402d2bcce1c84078b06a3223846bd"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-landscape",
+      "sha256": "7f999f981b030a5fcfd0fa56d51293f3a31de2b0594017198ea96dde83526e1e"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-next-landscape",
+      "sha256": "b954f1f3a6f5b1fbf2483e183943d386a1de7eaf0f3a78c55260d3cd03495ab3"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-light-close-landscape",
+      "sha256": "424b22f619af6363c60d69a5788484323881f626a40fb7cf331b79ce951f8b5c"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-portrait",
+      "sha256": "cec64de45378289a43d35c34f5f31585b8d12001b188082f1d6d41a0aa742226"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-next-portrait",
+      "sha256": "36b523e85a80a4fbe082f7bb286ce3f3a67ff61d418b368c747b85b908376017"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-label-0-ime",
+      "sha256": "a2efb7a3c8a636a5a8265d25c0de61bbae763cef81775e9f9ba58d23076ab084"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-label-1-ime",
+      "sha256": "ccd499e6dcb9c37cbbdfefac451e157d1dcfe6c514751019af89d8fccade63e8"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-label-2-ime",
+      "sha256": "f21870644dd6eaa0577a39100a110bac71028c1670db4d8064b8543b92ee5037"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-landscape",
+      "sha256": "836d7a1223563a9a33d38e34b114ff94c3fb606ea6f4795fbaad53ccaa578775"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-next-landscape",
+      "sha256": "e1878428ab9ff298371873a1a24014efbb8936e8e6e6ecbfed773cc8f057f9e1"
+    },
+    {
+      "case": "font-2.0-supported",
+      "stage": "recovery-dark-close-landscape",
+      "sha256": "b5c7bf16a61253630434a0873830dbf739d2fa5a9fcc86e8c0e3db4a6ac81b08"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-portrait",
+      "sha256": "456fdd8b1b367e85a2bf8b70a081bacf0decf23358422eea9557758b638f345b"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-next-portrait",
+      "sha256": "3587961ce8d587cbe928e49ebf354a227c1c1fa7e83729bdd0c942e3f7e45328"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-label-0-ime",
+      "sha256": "ea900a40f2eab948e800d6d6995604ad9b0b650a920e96a1440e0ba8824117e2"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-label-1-ime",
+      "sha256": "e77c1127b31d55e67b12d86f797f61250903d675e7f49119c32b20214106cae8"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-label-2-ime",
+      "sha256": "adf545f91829ca965e52a8ce36eef3d5408c6d0f6a2609851213782bea5c31a0"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-landscape",
+      "sha256": "d58fe9dafbb8491dffeb3fc182eb491ffc87aa3829d05c429f0d5abcae6bb1bb"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-next-landscape",
+      "sha256": "34f49ebf666028d23870614cba4fb8c48e3ab14ebd21d91518d3c25ba138b774"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-light-close-landscape",
+      "sha256": "0fc0f81cfb26f2979d7bded5cc5271e18ad6e694d8b561d262397c2752ab3365"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-portrait",
+      "sha256": "28e0b7d96ec31b420e9ec584ecec03ba1f98e7a1e1024e6dc591eb9839c0aa5d"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-next-portrait",
+      "sha256": "7b41c5732758e8dc665d5a36644e6490ae7457fe2cf6391009503f879fea3e3b"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-label-0-ime",
+      "sha256": "29b876a7a4b3cdc04726059fd0125170ff928a5e4805835475568c3e86ffda28"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-label-1-ime",
+      "sha256": "417d157d150f08ae1bad8a883ae6af736cf100e73d62a3ed784b19c98d6d69e5"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-label-2-ime",
+      "sha256": "4e8b2878d8b412e816a43ed8115aaa477f4c99e22c427cc6bc049dd33a2843fc"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-landscape",
+      "sha256": "6503402904e5e73cf83be4b0a348ca6e9843c6b566cb2df94a369f20df43159e"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-next-landscape",
+      "sha256": "0bccfac46c378c6227b3bf62d5ee65d5430a38278a990462f27b0956a513557e"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "stage": "recovery-dark-close-landscape",
+      "sha256": "569690c28e45a2b03313490cf750cb65abf0f7c7894d1c551f46149d26b0b056"
+    }
+  ],
+  "preTouchFrameSha256": [
+    {
+      "case": "font-1.0-supported",
+      "index": 0,
+      "sha256": "116a551b89b2e27834554326101668889d6e9aea3ed7b9d1781bcc5bd951ff38"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 1,
+      "sha256": "07c4f8ccb14d7eb71a3f0e6fd7aae3775c131e0b9903b548bce0aeb924ca9fd4"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 2,
+      "sha256": "58e002b40b53a6ccaa34d8b0b06c5b72fc087a83bde6d746eb4ab9a288955707"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 3,
+      "sha256": "7322a78574225c3a0a0d6a7ad66478baafe3b6ea00d4bc9360e4f2f7654fa936"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 4,
+      "sha256": "eebeb40e0da149c93eb5809824a1d76c5054b6183afcb85bcee9c24abcb6ef29"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 5,
+      "sha256": "eaaef803fe9a7c1e59f27d79091a486beca11c6e70e06643ef838da99a6be474"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 6,
+      "sha256": "1975a10c8d2aabc51c23b4da408d05880406c252842c75f753839b0fb8cdd673"
+    },
+    {
+      "case": "font-1.0-supported",
+      "index": 7,
+      "sha256": "f08d6172f26fd06c69375de0565357a3c7de54ecc4a44dbf1f2b34dbbe0bddfb"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 0,
+      "sha256": "99e345246b23e7c3fafd7d934ecf58ee9e4a13c84af828a7ae65e74177689429"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 1,
+      "sha256": "25ec356259f740849ece08660253bf2ce54c1460b17de092a00581e89c3c0cef"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 2,
+      "sha256": "fff4fc64c309405d561ae70a7cba0de1f5297878e5c8ddf0c0ab7b2aad189383"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 3,
+      "sha256": "444be56c4b2dc3f835a2070fb2fb94fd53b2e8c5ea0a35f5373afa31a0573ebc"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 4,
+      "sha256": "5925dd61e4bd409df569c3e5f821ea12a2fd5992e0e91b2a27b3d96249593cb2"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 5,
+      "sha256": "33de57fd34161afbbf8ad92a8173619268ced1f844fd3c60ad1ce4361ba1d278"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 6,
+      "sha256": "848f7c05ae56423554b74b75f3d65d0aaeef1d4441e8050fd09701b6814303b8"
+    },
+    {
+      "case": "font-1.0-fallback",
+      "index": 7,
+      "sha256": "0c0f0ed96f333b0ab5380bb4ed2e963b9929875c36a5d1a5deb2e7f5dd92775f"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 0,
+      "sha256": "19c1974ef4fb41cf51bf2a6d7fd1efff54099d39996d9c3dd1ccec9f2b8b5e6b"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 1,
+      "sha256": "3e42a909e44973f443e52132512d3f872e276481c9447af4b6ef0e2dceb09dc9"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 2,
+      "sha256": "b74d242b32bd2961f6c7f0009851974f448de0f5e0fe338af53353940058998f"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 3,
+      "sha256": "08e5414a21374ef4752e8f8ab379115c996d84ef2f28667e10412ade92d6fa20"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 4,
+      "sha256": "5e19a9411f54a26b5c4b6db946f78ea22f15d6852f15c350456d1877c1531878"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 5,
+      "sha256": "0a95c73f880c1d68fcce4402538b4e580d9a66f688446dab4d1536042eef20af"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 6,
+      "sha256": "c3b755a62a0ea6776d841edbba32bd86cb9092b5b3af5052a4f5ec5033da10bc"
+    },
+    {
+      "case": "font-1.3-supported",
+      "index": 7,
+      "sha256": "c8395dbc7a157d51e4af2651e369d3ab6a8277dd60bb830f527412df88aa9696"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 0,
+      "sha256": "964033c16105f0bc98d22129b75c028dc7e6dbd0e3505bd3f3f07b44e8e6ee5d"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 1,
+      "sha256": "debbb3208da78c54c061f098956c32e41ffa813438d9642cc7464bf65c77caba"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 2,
+      "sha256": "b58615a06a1e6accb04701138082757e614fb594bab6468503524baf195fc397"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 3,
+      "sha256": "3b7136fb5a49745b6360c3df06f74efdf0571caa9f8aee2bbb2e5e65e048bc02"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 4,
+      "sha256": "2fb90280ff2e6ad528d160bcd62045ffd8714bbd0353b00531112738c546718a"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 5,
+      "sha256": "86beba18d5925648f0638a907190c7e0b5b7dc660a734b2e8a8fc780249d2a6f"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 6,
+      "sha256": "ffff9aa39d134f648be6a75fb73a96ae4cc4228b36971cd3515acf62afba1469"
+    },
+    {
+      "case": "font-1.3-fallback",
+      "index": 7,
+      "sha256": "316bc81737eb4a909e6e8eecd41d84a1ffef8d5f76acfbbd0e9836307f95aaea"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 0,
+      "sha256": "71731b7f0038ae5b9446b24fc5f0b5a4f9a6f1d6bccd4aeb0c241db320401e0a"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 1,
+      "sha256": "9204a34a26ed8986b0c83e1111689b350882b66b7aed9f0ab71c00949e784d6c"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 2,
+      "sha256": "75b31273cd97be791ab5019eeee0f9452fd33028b8e5354220de7a1e53a27159"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 3,
+      "sha256": "424b22f619af6363c60d69a5788484323881f626a40fb7cf331b79ce951f8b5c"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 4,
+      "sha256": "19a77730b3aa9712a567732f2266520c3ae829708df0e39b00cf6ba07d84a332"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 5,
+      "sha256": "588d647b9d3b885635ca00ae2f38bc69bc0620fb737266a10517fef25e0fa583"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 6,
+      "sha256": "afdb92ab77f93aade5f9926b03e082a3c89164eecd6abe65c83c0a70f790a048"
+    },
+    {
+      "case": "font-2.0-supported",
+      "index": 7,
+      "sha256": "b5c7bf16a61253630434a0873830dbf739d2fa5a9fcc86e8c0e3db4a6ac81b08"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 0,
+      "sha256": "a6f536d1ddcdb77c8f9474fb34c61a5cccd94a9dbb15f8835b8168f60cb34ab7"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 1,
+      "sha256": "708bb21c7220289a004613ecc0a1506f50a5b4eb69c3627f078eec333e6ae1d9"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 2,
+      "sha256": "bddeda1bfcbf46369ec80f526966871779e044f4aa632de1a8bd96a334b26bb6"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 3,
+      "sha256": "ca691c3831c89a8bcb59645d6c575df8d35d092d2994389c4dc3cfb68b40578b"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 4,
+      "sha256": "4cef7c31a3c1caa2f4335530cd378f46ab45a1c0412026c4ef8e254fcefa0fda"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 5,
+      "sha256": "cfc77226c633c806d6a57fc1b15b02bd8d5ab6d80ae785cfb874062f0dfea86c"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 6,
+      "sha256": "9258c2c0cebbf8035f6c00396eb0077b6838b53b5ec87e44e08d71002f08270a"
+    },
+    {
+      "case": "font-2.0-fallback",
+      "index": 7,
+      "sha256": "569690c28e45a2b03313490cf750cb65abf0f7c7894d1c551f46149d26b0b056"
+    }
+  ],
+  "notClaimed": [
+    "camera scanning",
+    "pairing transfer",
+    "QrModalShell caller",
+    "TalkBack",
+    "physical Android",
+    "macOS",
+    "full material/accessibility matrix",
+    "performance",
+    "resolution of earlier startup callback failure"
+  ],
+  "fullRf121Accepted": false,
+  "fullRf312Accepted": false,
+  "rawMachinePathsPidsControlIdsLogsScreenshotsApksOrPrivateBackupsPublished": false,
+  "canonicalVerification": {
+    "promotedCodeMatchesAllNativeInputs": true,
+    "originalProtectedReadersAndKotlinAssertionsPreserved": true,
+    "otherSourceAndConfigFilesUnchanged": 1778,
+    "exactTaskFiles": 7,
+    "canonicalUnitTests": 63,
+    "canonicalUnitSkipped": 0,
+    "guideAndLedgerLinksChecked": true,
+    "fullParentTasksRemainOpen": true
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "task": "RF-1184",
+  "date": "2026-10-17",
+  "status": "completed-for-api31-native-layout",
+  "sourceBaseHead": "04337ba3dae1165b49cd8e67269928a77442d98b",
+  "sourceFileSha256": {
+    "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/PdfPreviewActivity.kt": "cc972763f8e46244e41d900be2ba5e3f4ff0671eeca1cf2e91baefc71fd6b08c",
+    "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/PdfPreviewLayoutInstrumentedTest.kt": "ac97be3df44db6b21a459b61526d479230e241a5d26d93e3a1d05c719d535718",
+    "tauri/src-tauri/gen/android/app/src/androidTest/assets/text_only.pdf": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+  },
+  "productChange": "Initialize valid page controls before the first measurement; retain image doOnLayout rendering",
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "fixture": "public-two-page-text-pdf",
+    "publicFixtureSha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+  },
+  "build": {
+    "gradleExitCode": 0,
+    "kotlinDebugProductBuilt": true,
+    "jvmUnitTests": 10,
+    "jvmFailures": 0,
+    "jvmErrors": 0,
+    "jvmSummarySha256": "0e1687389e9ab5567f4c8dba59e7d0877430e1c5404801375f67790d83c21115",
+    "productPatchProofSha256": "3ab65906a9fa418b6282743f17747e5a552fb46af81a4732e66e1ec55f9fae99",
+    "fixedMainApkSha256": "fc7ad051fbee39c737cd97aca2dcc6402161749fb2b0571b1adc8bdd2c7dd86d",
+    "nativeTestApkSha256": "b487c343816d179e9e54c7e153e89befa8cea4b473958f33189ab5159c73a1db",
+    "oldNativeLibrariesAndFrontendAssetsByteIdentical": true,
+    "resourceIdsByteIdentical": true,
+    "actualOnCreateUpdateControlsCallsBefore": 0,
+    "actualOnCreateUpdateControlsCallsAfter": 1,
+    "dexCallProofSha256": "d3dca3cb1467046ba44cfe7e4213775f69b630a4e3969814083424eeaf2bb4ce",
+    "exactPreviouslyCompiledNativeTestReused": true,
+    "canonicalNativeTestSourceExactlyMatches": true,
+    "freshTestApkAccepted": false,
+    "freshTestApkRejectedMissingClass": true,
+    "actualKotlinTestInputs": 9,
+    "freshTestBytecodeRejectionSha256": "1bcd9e23a51239747ab46249d82ce5c3900c3acdbb00b55cc9e94f4d3c8c5ecb",
+    "incrementalOutputDiagnosisStillPending": true
+  },
+  "nativeCases": [
+    {
+      "label": "before-fix",
+      "tests": 1,
+      "failures": 1,
+      "targetInstrumentationInjected": true,
+      "defaultReleaseAccepted": false,
+      "privateEntries": 175,
+      "allPrivateDataApksUidsAndNineSettingsExactlyRestored": true,
+      "completeTerminalDropBoxEntries": 42,
+      "noAnrEntries": true,
+      "hostCleanupPassed": true,
+      "samples": [
+        {
+          "label": "initial",
+          "counterWidth": 0,
+          "counterHeight": 51,
+          "globallyVisible": false,
+          "footerOcrWords": [],
+          "bodyPhysicallyVerified": true,
+          "imageSha256": "32b97937ce0267d40e4424bc2b4a45341e285662cd991b9abc19bb25aa8b56bf",
+          "ocrSha256": "4483a50ae6ecf301cd52de4aac8421b4836a45bef61f42880b171017b3d3f427"
+        },
+        {
+          "label": "after-next",
+          "counterWidth": 75,
+          "counterHeight": 51,
+          "globallyVisible": true,
+          "footerOcrWords": [
+            "2/2"
+          ],
+          "bodyPhysicallyVerified": true,
+          "imageSha256": "4d9119166c3875fa72c7e57392620e6f20988b996168ad07295657dfe755be8e",
+          "ocrSha256": "ab23468bb3028c3372f0763c87763035dbec778be75b7835e485fcf1f45881a3"
+        }
+      ],
+      "auditSha256": "2a97f159d9cbecba6ad8830164fa927a8c971600dde96480700421690c035f18"
+    },
+    {
+      "label": "after-fix",
+      "tests": 1,
+      "failures": 0,
+      "targetInstrumentationInjected": true,
+      "defaultReleaseAccepted": false,
+      "privateEntries": 184,
+      "allPrivateDataApksUidsAndNineSettingsExactlyRestored": true,
+      "completeTerminalDropBoxEntries": 44,
+      "noAnrEntries": true,
+      "hostCleanupPassed": true,
+      "samples": [
+        {
+          "label": "initial",
+          "counterWidth": 75,
+          "counterHeight": 51,
+          "globallyVisible": true,
+          "footerOcrWords": [
+            "1/2"
+          ],
+          "bodyPhysicallyVerified": true,
+          "imageSha256": "e936f58553c7077341e4a5bb60b91177acbf7a20754b026f427333b7d9234e78",
+          "ocrSha256": "b7e2bf016d8ba6e08f0c49d5af71b9be996f9931377e85442e350d6daa890c68"
+        },
+        {
+          "label": "after-next",
+          "counterWidth": 75,
+          "counterHeight": 51,
+          "globallyVisible": true,
+          "footerOcrWords": [
+            "2/2"
+          ],
+          "bodyPhysicallyVerified": true,
+          "imageSha256": "4d9119166c3875fa72c7e57392620e6f20988b996168ad07295657dfe755be8e",
+          "ocrSha256": "ab23468bb3028c3372f0763c87763035dbec778be75b7835e485fcf1f45881a3"
+        }
+      ],
+      "auditSha256": "e4ca41e3beb5bc89d0788e4dbbaca6c3feaf7110e50d928e8eab65aeff07d2b9"
+    }
+  ],
+  "previousRejectedDiagnostics": [
+    {
+      "kind": "default-ui-scroll-geometry-changed",
+      "accepted": false,
+      "completedNormalStages": 2,
+      "privateInventoryExactlyRestored": true,
+      "privateEntries": 148,
+      "auditSha256": "bba0d01b4709544cb2be6fb9d5e930b3bfb7af3e1d2b44e47e4652f30a18168f"
+    },
+    {
+      "kind": "default-ui-adb-loopback-connection-failed",
+      "accepted": false,
+      "completedNormalStages": 2,
+      "privateInventoryExactlyRestored": true,
+      "privateEntries": 137,
+      "errorCode": 10060,
+      "auditSha256": "90b44f6f1f1620d0536d22b139be72e34720e502d6943a49e6e3d4ffa7c58d03"
+    },
+    {
+      "kind": "debug-direct-shell-uid-launch-rejected",
+      "accepted": false,
+      "nativePdfOpenAccepted": false,
+      "laterCleanupFindAbsentDirectoryAlsoFailed": true,
+      "privateInventoryRestorationAccepted": false,
+      "ownedNewPackagesUninstalled": true,
+      "hostCleanupPassed": true,
+      "terminalSha256": "ae27708b328108563a355f2334a5f21757392d77691813016d8964421e9023f7"
+    }
+  ],
+  "immediateSdkShutdownHelperRejectionsPreserved": true,
+  "laterSameIdentityAuditsRequireZeroProcessesAndListeners": true,
+  "rawPathsPidsRunIdsLogsScreenshotsPrivateArchivesAndProgramsPublished": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "remainingLocalWork": [
+    "Diagnose fresh Kotlin test APK output and repack the corrected default Release",
+    "Run both full default twelve-stage public-fixture journeys",
+    "Repeated distributions, strict process memory, observer overhead, IPC attribution and portable orchestration"
+  ],
+  "coverageLimits": [
+    "API31 Debug native PDF layout only",
+    "Target instrumentation is present",
+    "No default Release, physical device, API35/36, other platform or performance acceptance"
+  ]
+}

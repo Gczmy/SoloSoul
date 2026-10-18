@@ -1,9 +1,189 @@
 # Force LF line endings for shell scripts so they work in Git Bash on Windows
 *.sh text eol=lf
 
+# 持久控制通道的验证摘要绑定源码原始字节。
+docs/performance/rf312-default-observer/*.py text eol=lf
+docs/performance/rf312-default-observer/*.java text eol=lf
+docs/performance/rf312-default-observer/*.xml text eol=lf
+docs/performance/rf312-default-observer/persistent_control.py text eol=lf
+docs/performance/rf312-default-observer/persistent_adapter.py text eol=lf
+docs/performance/rf312-default-observer/test_persistent_control.py text eol=lf
+docs/performance/rf312-default-observer/test_persistent_adapter.py text eol=lf
+docs/performance/rf312-default-observer/scroll_readiness.py text eol=lf
+docs/performance/rf312-default-observer/test_scroll_readiness.py text eol=lf
+docs/performance/rf312-default-observer/memory_checkpoint.py text eol=lf
+docs/performance/rf312-default-observer/test_memory_checkpoint.py text eol=lf
+docs/performance/rf312-default-observer/bootstrap_quiet.py text eol=lf
+docs/performance/rf312-default-observer/test_bootstrap_quiet.py text eol=lf
+docs/performance/rf312-default-observer/default_journey.py text eol=lf
+docs/performance/rf312-default-observer/adb_control.py text eol=lf
+docs/performance/rf312-default-observer/test_receipt_replace.py text eol=lf
+docs/performance/rf312-default-observer/body_navigation.py text eol=lf
+docs/performance/rf312-default-observer/test_body_navigation.py text eol=lf
+docs/performance/rf312-default-observer/test_tools_layout_ready.py text eol=lf
+docs/performance/rf312-default-observer/live_pixel_counter.py text eol=lf
+docs/performance/rf312-default-observer/public_pixel_counter.py text eol=lf
+docs/performance/rf312-default-observer/native_journey_contract.py text eol=lf
+docs/performance/rf312-default-observer/read-public-counter.ps1 text eol=lf
+docs/performance/rf312-default-observer/test_ocr_evidence_root.py text eol=lf
+docs/performance/rf312-default-observer/default_driver.py text eol=lf
+docs/performance/rf312-default-observer/observer_session.py text eol=lf
+docs/performance/rf312-default-observer/process_identity.py -text whitespace=cr-at-eol
+docs/performance/rf312-default-observer/runtime_inputs.py text eol=lf
+docs/performance/rf312-default-observer/test_observer_protocol.py text eol=lf
+docs/performance/rf312-default-observer/test_native_probe.py text eol=lf
+docs/performance/rf312-default-observer/test_runtime_inputs.py text eol=lf
+docs/performance/rf312-default-observer/prepare_avd.py text eol=lf
+docs/performance/rf312-default-observer/test_prepare_avd.py text eol=lf
+docs/performance/rf312-default-observer/api31-hardware.ini -text whitespace=cr-at-eol
+tauri/scripts/android-host-audit.py text eol=lf
+tauri/scripts/test_android_host_audit.py text eol=lf
+tauri/scripts/android-fresh-host-audit.py text eol=lf
+tauri/scripts/test_android_fresh_host_audit.py text eol=lf
+
+# 固定系列统计绑定原始字节，Windows 检出也保持 LF。
+docs/performance/rf312_repeat_summary.py text eol=lf
+docs/performance/test_rf312_repeat_summary.py text eol=lf
+docs/performance/rf312-default-fixed-five-2026-10-17.*.json text eol=lf
+docs/performance/rf312_ipc_library.py text eol=lf
+docs/performance/test_rf312_ipc_library.py text eol=lf
+
 # 签名绑定原始字节，Windows 检出时也必须保留已签名 JSON 的 LF。
 tauri/src-tauri/resources/models/registry.json text eol=lf
 
 # IPC 生成检查逐字节比较，Windows 检出也保持确定性的 LF。
 tauri/src/lib/generated/ipcContracts.ts text eol=lf
 tauri/src/lib/generated/ipcContractManifest.json text eol=lf
+docs/performance/rf312-ipc-diagnostic-library-2026-10-17.json text eol=lf
+docs/performance/rf312_startup_ui.py text eol=lf
+docs/performance/test_rf312_startup_ui.py text eol=lf
+docs/performance/rf312-startup-ui-2026-10-17.json text eol=lf
+docs/performance/rf312_ipc_package.py text eol=lf
+docs/performance/test_rf312_ipc_package.py text eol=lf
+docs/performance/rf312-ipc-package-2026-10-17.json text eol=lf
+docs/performance/rf312_ipc_collector.py text eol=lf
+docs/performance/test_rf312_ipc_collector.py text eol=lf
+docs/performance/rf312-ipc-collector/Collector.java text eol=lf
+docs/performance/rf312-ipc-collector/AndroidManifest.xml text eol=lf
+docs/performance/rf312-ipc-collector/snapshot.js text eol=lf
+docs/performance/rf312-ipc-collector/query.node.test.mjs text eol=lf
+docs/performance/rf312-ipc-collector-2026-10-17.json text eol=lf
+docs/performance/rf312_forensic_inventory.py text eol=lf
+docs/performance/test_rf312_forensic_inventory.py text eol=lf
+docs/performance/rf312-forensic-streaming-inventory-2026-10-17.json text eol=lf
+docs/performance/rf312_launch_identity.py text eol=lf
+docs/performance/test_rf312_launch_identity.py text eol=lf
+docs/performance/rf312-launch-identity-2026-10-17.json text eol=lf
+
+docs/performance/rf312_startup_stack.py text eol=lf
+docs/performance/test_rf312_startup_stack.py text eol=lf
+docs/performance/rf312-startup-stack-2026-10-17.json text eol=lf
+
+docs/performance/rf312_instrumentation_state.py text eol=lf
+docs/performance/test_rf312_instrumentation_state.py text eol=lf
+docs/performance/rf312-instrumentation-state-2026-10-17.json text eol=lf
+
+docs/performance/rf312_default_binding.py text eol=lf
+docs/performance/test_rf312_default_binding.py text eol=lf
+docs/performance/rf312_state_gate.py text eol=lf
+docs/performance/test_rf312_state_gate.py text eol=lf
+docs/performance/rf312_default_memory.py text eol=lf
+docs/performance/test_rf312_default_memory.py text eol=lf
+docs/performance/rf312_default_journey.py text eol=lf
+docs/performance/test_rf312_default_journey.py text eol=lf
+docs/performance/rf312_default_state_driver.py text eol=lf
+docs/performance/test_rf312_default_state_driver.py text eol=lf
+docs/performance/rf312-default-supported-state-2026-10-17.json text eol=lf
+docs/performance/rf312-ipc-runtime/*.py text eol=lf
+docs/performance/rf312-ipc-runtime/*.sh text eol=lf
+docs/performance/rf312-public-ipc-runtime-2026-10-17.json text eol=lf
+docs/performance/rf312-composite-observer-2026-10-17.json text eol=lf
+docs/performance/rf312_kernel_highwater.py text eol=lf
+docs/performance/test_rf312_kernel_highwater.py text eol=lf
+docs/performance/rf312-kernel-highwater-2026-10-17.json text eol=lf
+docs/performance/rf312_journey_memory.py text eol=lf
+docs/performance/test_rf312_journey_memory.py text eol=lf
+docs/performance/rf312-journey-memory-2026-10-17.json text eol=lf
+docs/performance/rf312_memory_batches.py text eol=lf
+docs/performance/test_rf312_memory_batches.py text eol=lf
+docs/performance/rf312-metadata-pairs-2026-10-17.json text eol=lf
+docs/performance/rf312_ime_readiness.py text eol=lf
+docs/performance/test_rf312_ime_readiness.py text eol=lf
+docs/performance/rf312-ime-viewport-ready-2026-10-17.json text eol=lf
+docs/performance/rf312-sampling-control-2026-10-17.json text eol=lf
+docs/performance/rf312-state-transport-cost-2026-10-17.json text eol=lf
+docs/performance/rf312-ui-exchange-investigation-2026-10-17.json text eol=lf
+
+# Java UI 传输的冻结输入绑定源码原始字节，Windows 检出也保持 LF。
+docs/performance/rf312_owned_ui.py text eol=lf
+docs/performance/test_rf312_owned_ui.py text eol=lf
+docs/performance/rf312-owned-ui/*.py text eol=lf
+docs/performance/rf312-owned-ui/*.java text eol=lf
+docs/performance/rf1186-windows-source-checkout-2026-10-18.json text eol=lf
+
+# 公开原生队列单独绑定源码字节，保持新检出与验证来源一致。
+docs/performance/rf312-native-queue/*.py text eol=lf
+docs/performance/rf312-public-native-queue-2026-10-18.json text eol=lf
+
+# 六对采集开关的离线统计与去标识输入保持可重放的原字节。
+docs/performance/rf312_sampling_cohort.py text eol=lf
+docs/performance/test_rf312_sampling_cohort.py text eol=lf
+docs/performance/rf312-sampling-cohort-input-2026-10-18.json text eol=lf
+docs/performance/rf312-sampling-cohort-summary-2026-10-18.json text eol=lf
+
+# 拒绝队列的独立前缀审计也绑定原始源码字节。
+docs/performance/rf312_rejected_queue.py text eol=lf
+docs/performance/test_rf312_rejected_queue.py text eol=lf
+docs/performance/rf312-rejected-queue-2026-10-18.json text eol=lf
+
+# 关闭采集的拒绝前缀独立绑定，不改动先前审计入口。
+docs/performance/rf312_rejected_off_queue.py text eol=lf
+docs/performance/test_rf312_rejected_off_queue.py text eol=lf
+docs/performance/rf312-rejected-off-queue-2026-10-18.json text eol=lf
+docs/performance/rf312-current-ipc-2026-10-18.json text eol=lf
+docs/performance/rf312-startup-frame-diagnostics-2026-10-18.json text eol=lf
+
+# 显式启动帧诊断的源码绑定要求新检出保持原始 LF 字节。
+docs/performance/rf312-frame-runtime/*.py text eol=lf
+docs/performance/rf312-frame-runtime/*.java text eol=lf
+docs/performance/rf312-frame-runtime/*.xml text eol=lf
+docs/performance/rf312-frame-runtime/*.mjs text eol=lf
+
+# 保留已验证生成器原字节；该文件仅例外处理历史 EOF 空行。
+docs/performance/rf312-frame-runtime/frame_manifest.py whitespace=-blank-at-eof
+
+# 固定统计源码与预声明协议的字节，避免检出换行改变绑定。
+docs/performance/rf312_milestone_statistics.py text eol=lf
+docs/performance/test_rf312_milestone_statistics.py text eol=lf
+docs/performance/rf312-startup-milestone-cohort-protocol-2026-10-18.json text eol=lf
+docs/performance/rf312-milestone-cohort-input-2026-10-18.json text eol=lf
+docs/performance/rf312-milestone-cohort-summary-2026-10-18.json text eol=lf
+docs/performance/rf312-milestone-cohort-2026-10-18.validation.json text eol=lf
+docs/performance/rf312-system-trace-capability-2026-10-18.json text eol=lf
+
+# 固定系统追踪协议读取器与证据摘要的检出字节。
+docs/performance/rf312-system-trace/*.py text eol=lf
+docs/performance/rf312-system-trace-protocol-2026-10-18.json text eol=lf
+
+# 系统追踪传输的配置、SQL 和分析合同均按摘要绑定。
+docs/performance/rf312-system-trace/*.pbtxt text eol=lf
+docs/performance/rf312-system-trace/*.sql text eol=lf
+docs/performance/rf312-system-trace/*.json text eol=lf
+docs/performance/rf312-system-trace-transport-2026-10-18.json text eol=lf
+docs/performance/rf312-system-trace-completion-2026-10-18.json text eol=lf
+
+# 已有原生控制时钟分析按源码摘要绑定，固定新检出字节。
+docs/performance/rf312-observer-timing/*.py text eol=lf
+docs/performance/rf312-observer-timing-2026-10-18.json text eol=lf
+
+docs/performance/rf312-observer-cohort-timing-2026-10-18.json text eol=lf
+
+docs/performance/rf312-first-main-frames.sql text eol=lf
+docs/performance/rf312-startup-indicators.sql text eol=lf
+docs/performance/rf312-first-main-frames-2026-10-18.json text eol=lf
+
+docs/performance/rf1188-native-phase-binding-2026-10-18.json text eol=lf
+
+# 历史构建记录按原摘要保全，Windows 检出保持原 LF。
+docs/verification/rf121-current-source-native-build-2026-10-15.json text eol=lf
+docs/verification/rf121-current-source-native-build-2026-10-15/** -text

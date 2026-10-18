@@ -207,3 +207,177 @@ python3 tauri/scripts/android-home-native-regression.py \
 旧 WebView91 的导航、登录 / IME、旋转与重载已在系统模糊开启 / 关闭两组验证；实际横屏右侧系统栏 126px，通知槽补横向安全区。规则限定已登录 Android 壳，认证壳与平板轨道已占用的安全区不再次叠加。原生 insets 现强制实际限时备份提醒及操作 / 关闭按钮安全、可点击；没有延长生产提醒。
 
 最终两组各 1/1、19 阶段 / 18 PNG、0 跳过、退出 0，数据 / 权限 / blur 完整恢复。浏览器定向复验 4/4，Python 拒绝检查 26/26；历史范围缺少通知证据不能升级为新范围通过。新增 `verify_evidence(..., require_safe_notifications=True)` 仅用于要求新范围，当前设备驱动对 insets 强制开启；旧报告的原结论保留。浮点相邻边界误判与浏览器夹具失败、最终包 / 源码来源均见 [证据目录](../verification/fe2-api31-insets-2026-10-08/README.md)。不代表旧引擎全产品、实体性能、iOS 或 macOS 原生已完成。
+
+
+## 2026-10-16 RF-1171：真实限时提醒的场景准备
+
+编辑与需检查提醒的对象菜单分别经已有公开账户偏好IPC、真实锁定/主密码解锁触发新提醒。准备前等待旧提醒自然结束，触发后断言实际 `Back Up Now` 按钮仅一份，防止同一通知容器中叠入多条提醒。不是等待待测提醒过期来通过遮挡检查：所有原布局、命中和最终截图后提醒仍存在的断言保持，生产8秒时长不变。
+
+独立到期负向对照在原断言处拒绝；单纯时序诊断未复现原失败，两者分别保留。第一版新夹具导致两条提醒挤压大字菜单的候选失败也保留。最终API35 x86_64默认Debug主包保持，仅重建测试包。
+
+字体队列5组通过、2.0回退在新增准备执行前的首页文字裁切断言失败，完整8组仍未通过；36个匹配文字尺寸比较和59张PNG独立复核。另一个独立冷账户动态效果/安全区/附件预览队列6组、8个原生方法通过，126张PNG校验，完整私有目录及对应系统设置恢复。没有以两队列拼接关闭完整字体或RF-121验收。
+
+2.0菜单标题/关闭入口的顶部裁切也已目测发现，仍待独立诊断。当前结果不覆盖实体设备、全部Card调用族、其他平台或性能。[来源、边界及去标识证据](../verification/rf1171-native-reminder-lifetime-2026-10-16.json)。
+
+
+## 2026-10-16 RF-1172：提醒占位后测量原生大字号首页
+
+生产主密码解锁在2秒后检查备份提醒。字体场景先等待真实且唯一的提醒处于正常流，再取得首页几何和执行原生滚动；截图前后再次核对提醒存在及阅读区顶部/底部不变。不是增加手势、缩小字体或放宽裁切容差；生产2秒/8秒时长、原捕获/Range/像素/后端/恢复逻辑保持。
+
+稳定提醒正向诊断通过，取得旧坐标后等待真实提醒插入的负向对照精确复现原裁切，原严格读者继续拒绝。最终候选首个完整队列在更早的既有3秒WebView响应检查失败，尚未到新增检查，原判和恢复证据保持，不宣称已证明该启动失败的唯一根因。
+
+同一主包与候选测试包的新完整8组（1.0/1.3/2.0字号×两种材质模式，以及冷账户动态效果×两种模式）全部通过，10个原生方法、0跳过；48个匹配文字尺寸比较、六组真实提醒和截图前后阅读区以及全部PNG独立核验。完整数据/系统恢复及旧ADB保持核验后清理本次22份私有TAR；不与旧成功子集拼接。菜单标题/关闭入口滚动后的可见性仍需独立判断，全部Card族、其他平台、实体设备及RF-121/312不因此关闭。[来源和验证摘要](../verification/rf1172-home-reminder-sampling-2026-10-16.json)。
+
+## RF-1176 登录恢复卡片的原生入口（2026-10-16）
+
+`android-home-native-regression.py` 可在 `--scenario baseline` 上增加 `--recovery-cards`，保留全部首页检查，再走生产 MainActivity 的登录页→从其他设备恢复→Manual→可选指纹。只允许已备份、无账户的专用 SoloSoul AVD；系统权限界面使用英语。它不替换认证、IPC、卡片或摄像头能力检测。
+
+每组检查浅深主题各 9 个恢复阶段：竖屏卡片与末尾操作、三个标签的原生手指触摸/真实输入法、横屏卡片及 Next/Close 内部滚动命中、单次触摸关闭后真实主密码解锁。每组额外 8 次触摸均要求 WebView 已提交绘制、DOM/原生尺寸稳定、键盘关闭后高度恢复；记录 Android FINGER 工具、触屏来源及浏览器可信 touch 事件，逐一绑定显示标签、输入 ID、焦点和截图。不能通过重复注入或 JS focus 绕过命中。
+
+摄像头仅在系统应用包、SoloSoul 名称、完整请求文案和启用的拒绝按钮均确认后拒绝；兼容系统按钮的大小写和弯引号，不接受 Allow 或其他权限请求。保留原未知弹窗拒绝、读取器、备份恢复和超时。finally 在 force-stop 后恢复私有目录与根权限，以及 CAMERA/通知授权和用户标记、blur、原始字号并复读确认；任一失败都不能通过。
+
+在 `tauri/` 中，先按上文构建与来源核对主包/测试包，设置明确的专用设备、路径和新的输出目录后运行：
+
+```bash
+python scripts/android-home-native-regression.py \
+  --adb "$ADB" --serial "$SERIAL" --avd "$AVD" \
+  --apk "$APK" --test-apk "$TEST_APK" --output "$NEW_OUTPUT" \
+  --scenario baseline --recovery-cards --font-scale 1.0 --mode supported
+```
+
+分别使用 1.0 / 1.3 / 2.0 与 supported / fallback、新输出目录执行六组，不能拼接失败队列的成功子集。局部驱动测试在 `tauri/scripts/` 运行 `python -m unittest test_android_home_native_regression test_android_recovery_native_evidence test_android_recovery_native_taps`。
+
+当前 API35 / x86_64 / WebView124、同一默认 Debug 主包的六组完整队列通过，原 72 个首页阶段加 108 个恢复阶段；36 次标签及 12 次关闭均为单次真实手指触摸。96 张恢复截图和 48 张触摸前截图独立解码、12 次原生摄像头拒绝、48 项匹配文字高度比较及完整数据/设置/权限恢复均核对。此前权限识别、启动响应、第三字段焦点和未知指针类型失败仍保留，启动响应失败不因此改记解决。
+
+[去标识验收摘要](../verification/rf1176-android-recovery-native-2026-10-16.json)绑定构建与各轮证据。此入口不证明摄像头扫码、配对传输、QrModalShell 调用方、TalkBack、实体设备、macOS 或完整原生材质矩阵；RF-112／121／312 与 RF-122～127 前置保持。
+
+
+## RF-1177 当前二维码调用方与软件解码选择（2026-10-16）
+
+Android `RecoveryQrScanner` 使用现有 JavaScript 解码器，避免 WebView 原生 BarcodeDetector 绑定 GMS 元数据时抛出无法由 JavaScript 捕获的异常。其他平台保留库原有选择；权限、设备选择、回调和停止清理不变。默认生产包不增加测试 feature 或权限，也不改 GMS 元数据。
+
+在正常 `tauri/scripts` 目录，六个模块可一并验证：
+
+```bash
+python -m unittest test_android_home_native_regression test_android_recovery_native_evidence test_android_recovery_native_taps test_android_qr_native_evidence test_android_qr_nearby_permission test_android_qr_enable_readiness
+```
+
+82 项含原读取器回归，以及缺失/重复/错序二维码状态、伪造触摸、未知权限、CAMERA 被误授权、附近设备标记未恢复和 UI-only 开启证据的拒绝；单测不作为原生运行证明。
+
+`android-home-native-regression.py` 的 `--scenario baseline --qr-cards` 保留全部原首页检查，再走真实同步页的未开启提示、恢复二维码与手动说明、同步二维码，以及拒绝 CAMERA 后的扫码回退。该额外入口要求 API33+，不能与 `--recovery-cards` 合并；旧 baseline 的 API31 准入不变。沿用上节专用 AVD、APK 来源与数据备份要求，在 `tauri/` 使用新的输出目录：
+
+```bash
+python scripts/android-home-native-regression.py \
+  --adb "$ADB" --serial "$SERIAL" --avd "$AVD" \
+  --apk "$APK" --test-apk "$TEST_APK" --output "$NEW_OUTPUT" \
+  --scenario baseline --qr-cards --font-scale 1.0 --mode supported
+```
+
+三档实际字号 1.0 / 1.3 / 2.0 分别配 supported / fallback，必须在同一完整队列逐组运行。每组明暗主题共 40 个二维码状态、30 张卡片截图、8 次单次真实关闭触摸；关闭前核对已提交绘制、坐标/尺寸、可信触摸及原生/DOM 命中。核对恢复会话取消/关闭后的导出文件清理与真实后端状态，不用 mock 代替配对状态。
+
+仅在用户明确开启同步、且真实授权与界面就绪同时成立的阶段处理完整识别的系统附近设备请求；未知权限仍失败，摄像头只拒绝。快照并严格恢复 NEARBY_WIFI_DEVICES 的授权/用户标记，保留 CAMERA、通知、字号、blur、私有数据和身份/超时保护。不能仅等按钮可点就结束原生权限阶段，也不能拼接失败队列的成功子集。
+
+当前新默认 Debug 主包在 API35 / x86_64 / WebView124.0.6367.219 完整六组通过；原 72 个首页阶段及 240 个二维码状态、48 次关闭、12 次 CAMERA 拒绝、6 次原生附近设备授权、完整恢复与主机清理均独立核对。180 张卡片及 48 张触摸前 PNG、48 项首页文字尺寸比较通过，200% 字号保持横向溢出检查。原权限/就绪/GMS 异常和布局依赖失败均保留。
+
+浏览器另以真实生成二维码像素驱动实际软件解码，确认完整载荷和视频流停止，摄像头/IPC 是夹具。当前原生入口主要验证摄像头拒绝后的回退，不证明实体摄像头视频识别、真实配对传输、TalkBack、实体设备、macOS 或全部原生材质/性能。见[RF-1177 验证摘要](../verification/rf1177-android-qr-software-decoder-2026-10-16.json)。
+
+
+## RF-1179 错误正文实际颜色复验（2026-10-16）
+
+此项仅改九处错误正文颜色，使用新默认 Debug 主包，正常系统字号 1.0 在 supported/fallback 各跑完整原二维码 baseline，原身份、超时、触摸、权限与私有数据恢复检查全保留。两组共 24 个首页阶段、80 个二维码状态、16 次真实关闭、4 次 CAMERA 拒绝和 2 次附近设备授权通过；独立解码 60 张二维码画面和 16 张触摸前画面。
+
+除状态/几何检查外，按原生 viewport 和卡片范围，在实际截图中定位正常字号错误字形，回读精确前景像素与文字范围背景众数，独立计算 sRGB 对比度。旧浅深前景 `(231,76,60)` 分别约 3.35:1、4.30:1；修复后两种 blur 的四张浅深错误图均至少 4.5:1。浏览器另验证三平台样式/20 色板/正常与提高对比，但不证明 MainActivity 的系统高文字对比度交付。
+
+本项明确只验收正常字号两组颜色复验，不挪用旧六组成功子集，不改变上节布局/字号变更需要完整六组的要求。全部恢复、当前启动 ANR 和新宿主清理审计通过；原生驱动/读取器/Kotlin 与已验收 canonical 来源字节一致。详见 [RF-1179 验证摘要](../verification/rf1179-recovery-error-contrast-2026-10-16.json)。
+
+
+## RF-1180 原生文档就绪前置（2026-10-16）
+
+`AndroidHomeInstrumentedTest.waitFor` 在原有 45 秒 UI 截止时间内等待实际主 WebView 附着、URL 非空且不是 about 文档、加载进度为 100%，然后调用原 3 秒 JS 响应检查。等待页面加载不能额外延长 45 秒，已就绪文档回调超时仍直接失败。此就绪条件不代表 UI 已完成绘制；原语义、几何、视觉状态提交、截图/像素及真实触摸断言仍全部执行。
+
+报告新增 `nativeDocumentReadiness` 与 `readyDocumentEvaluations`，用于区分文档加载和后续脚本/UI 等待；它们不是性能指标，也不能代替完整原生结果。三组当前 canonical 测试已使用同一原生产主包完成 supported/fallback 的二维码 baseline 及原 cold 场景，包含实际新进程、系统主题/账户恢复和完整清理。128 张 PNG、12 个未就绪状态及全部恢复记录独立核验；主窗口高文字对比另行验证。详见 [RF-1180 验证摘要](../verification/rf1180-native-document-readiness-2026-10-16.json)。
+
+
+## RF-1181 主窗口实际系统高文字对比（2026-10-16）
+
+`--expected-high-text-contrast true|false` 只在完整 `--scenario baseline --qr-cards` 生效，不替代原首页、权限或触摸检查。静态观测只读取系统键、真实页面标记/媒体查询、语义色及浮动 Card；调用方须先快照并准备真实系统值，最终恢复键的原始存在状态与字面值，不得用 JS 注入主题标记代替系统设置。
+
+追加 `--high-text-contrast-live` 会在第一张真实二维码卡片上，由测试端 shell 使系统开关往返四次，等待主文档实际交付并记录 `main-high-text-live.json`；finally 恢复本轮原始值。30 项静态观测另存 `main-high-text-contrast.json`。两种记录均包含文档时间戳、实际系统值及截图，不能用未刷新静态截图或成功子集代替完整队列。没有显式期望或完整二维码 baseline 时 CLI 在设备命令前拒绝。
+
+当前同一新默认 Debug 包在 API35/WebView124 完成开/关 × supported/fallback 四整组，共 120 静态及 16 同页动态观测；正文实际像素、全部数据/权限/设置恢复和主机清理独立核验。此颜色/偏好任务仅运行正常系统字号，不替代前文布局变更的六档字号队列要求。API36 公共监听分支编译通过，未运行 API36 或旧 provider 回退，不关闭全部 RF-121。详见 [RF-1181 验证摘要](../verification/rf1181-android-high-text-contrast-2026-10-16.json)。
+
+
+## RF-1183：真实 Provider 连接反馈正文
+
+默认Debug生产包与完整canonical测试源集可在完整`baseline`后追加连接成功/失败Card观测。仅使用专用SoloSoul模拟器和自有ADB端点，先保存真实`high_text_contrast_enabled`原值，分别设置0/1，最后精确恢复；`--feedback-high-text-contrast`只声明预期，不代替系统设置。
+
+在`tauri/`下运行仓库内公开响应夹具，将记录写入隔离目录（端口须确认空闲，输出文件须不存在）：
+
+```text
+python scripts/android-provider-feedback-fixture.py --port 27683 --output <isolated-output>/provider-requests.json
+```
+
+夹具只绑定`127.0.0.1`，只接受公开`fixture-model`、`Hello`、10 token上限和`public-unused`测试key；成功路径`/success/v1/chat/completions`返回固定公开响应，错误路径`/error/v1/chat/completions`返回HTTP500。不是外部Provider，不发送Vault资料。通过本轮自有ADB端点给专用模拟器配置同一端口的`reverse`；保存原`reverse --list`，结束仅移除本轮映射并核对恢复，不能调用`--remove-all`或操作受保护的其他ADB。
+
+在既有完整驱动命令上追加（端口与上文保持一致）：
+
+```text
+--scenario baseline --font-scale 1.0 --provider-feedback --feedback-high-text-contrast false --feedback-url http://127.0.0.1:27683
+```
+
+该入口必须声明实际对比状态及回环URL，不能混用QR/恢复/安全警告追加场景。真实UI填写未保存的公开Provider并调用既有Rust连接测试，保留URL/SSRF与登记保护；不修改页面外观或注入IPC结果。浅深色各成功/失败四个状态，原3秒JS与45秒UI预算内连续两次颜色/几何稳定，正文至少4.5:1且高对比为主前景。普通/高文字对比×blur支持/降级须各跑完整基线；每个成功组应有4次公开HTTP响应，旧包低对比反例单列且原成功读取器必须拒绝整份失败记录，不删末尾failure或拼接成功子集。
+
+完整核对数据、权限、字号、blur和对比设置恢复，以及自有服务、映射、APK、模拟器与ADB退出；原生像素、全局ANR清单和完整证据读取通过前不关闭任务。工具本身可运行`python -m unittest test_android_provider_feedback_fixture`（工作目录`tauri/scripts/`），覆盖真实回环200/500/拒绝响应及不覆盖已有输出。浏览器三平台/20色板回归独立保留，不称为其他OS原生材质、API31/36、实体设备或Release性能验收。详见[RF-1183验证摘要](../verification/rf1183-status-feedback-contrast-2026-10-16.json)。
+
+## RF-121 当前 API31 主窗口补验（2026-10-16）
+
+当前默认Debug主包和全套canonical测试包还在API31/WebView91上完成普通/高文字对比 × blur支持/降级四组完整 `--scenario baseline --font-scale 1.0 --provider-feedback`。每组仍包含首页原12阶段，实际生产Provider连接调用公开回环成功/失败响应；浅深四态、系统对比交付、真实文字像素和逐项恢复须全部通过，不能拼接单组或仅据DOM样式验收。
+
+沿用前节Provider工具、独立ADB、反向映射、APK来源及空账户备份要求，为每组声明 `--feedback-high-text-contrast true|false` 和已拥有的回环 `--feedback-url`，使用全新输出目录。API31由原生驱动与读取器按真实API选择权限范围：`POST_NOTIFICATIONS`运行时权限从API33起适用；API31不得伪造该恢复字段，也不能要求它来接受成功队列。字号、blur、完整私有目录与所有适用权限保护保持。
+
+若拒绝队列因安全恢复而保留精确自有APK，后续在新启动先核对包内SHA和无账户，再处理恢复清理。重启可产生框架私有文件；原始读取与拒绝记录应保留，不能删去它们或改判原队列。正式每组仍对本组的完整前后目录逐项比较内容、链接和权限。全部原始日志/截图/私有备份只留本地，发布摘要只含版本、计数、像素数值及证据哈希。
+
+详见[当前API31部分验收摘要](../verification/rf121-current-api31-main-2026-10-16.json)。本轮没有重新构建或修改APK、产品代码及原生测试；不代表全部Card调用族、API36、实体设备、其他OS原生材质、Release性能或RF-121整体通过。
+
+## RF-112 当前 API31 冷启动与减少动态效果（2026-10-16）
+
+与当前主窗口覆盖相同默认Debug APK/完整canonical测试包，在API31/WebView91上补跑 `--scenario cold --motion-preferences` 的supported/fallback两组。每组仍须原账户准备18阶段与新进程冷启动5阶段、两个精确JUnit成功；不能仅运行账户页面或Activity重建就称为进程恢复。该参数不能与baseline专用字号／QR追加参数混用。
+
+沿用完整目录备份、专用AVD、独立ADB和全新输出目录。A/B通过真实UI保存六个外观键与true/false动效偏好，等待登录前镜像持久化；停止原进程后核对新进程、原两账户身份、锁定密码登录、系统浅深模式、DOM/色板/原生栏和实际导航CSS。全部恢复和原时间预算保持，API31按实际权限适用范围验收。
+
+本轮两完整模式共4项原生测试、46阶段、40张PNG独立核验通过。详细来源、16次账户观测、恢复与证据哈希见[当前API31冷启动／动效部分验收](../verification/rf112-current-api31-cold-motion-2026-10-16.json)。仅证明当前稳定帧和偏好交付，不是首帧连续无闪烁、动效性能、实体设备、Release性能或其他OS原生验收；RF-112及其余父任务仍未完成。
+
+## RF-112 当前 API31 生命周期恢复（2026-10-16）
+
+沿用同一当前默认Debug主包、完整canonical测试包、独立ADB和专用AVD，在API31/WebView91上补跑 `--scenario lifecycle` 的supported/fallback两组，使用全新输出目录和完整私有数据备份。每组保留原22阶段，原生 `ActivityScenario.recreate()` 与新旧Activity/WebView实例不相同断言必须实际通过。
+
+两账户在与显式主题相反的原生系统模式下，重建后保存的五个外观键、身份／对象数、DOM／色板／原生栏、画布及文字像素与操作命中均须一致；数据、blur、夜间和所有适用权限完整恢复后才能接受。API31不要求不存在的API33通知运行时权限字段。原测试、读取器和时间预算未改变。
+
+本轮两组2项原生测试、44阶段、4次Activity/WebView替换、40张PNG独立复核通过。18次账户观测、重建配对、来源与证据哈希见[当前API31生命周期部分验收](../verification/rf112-current-api31-lifecycle-2026-10-16.json)。本场景不替代前节独立进程冷启动证据，也不证明连续首帧、实体设备、Release性能或其他OS原生恢复；RF-112及其余父任务仍未完成。
+
+## RF-121 当前 API31 独立 Card 表面（2026-10-16）
+
+当前生产Card/CSS生成的独立HTML已与实际APK资源逐字节核对一致，在API31/WebView91运行原 `AndroidCardSurfaceInstrumentedTest#lightAndDarkCardsRenderWithoutOverflow` 和 `#lightAndDarkHighTextContrastCardsRenderWithoutOverflow`。普通／实际系统高文字对比两组分别覆盖浅深主题的默认／浮动表面，合计2项JUnit、8个真实像素与8张PNG。
+
+保留原15秒加载、5秒JS、6秒报告、10秒原生绘制及2500ms夹具看门狗，系统动画启用；沿用夹具既有参数入口调用生产映射，不额外改写Card/CSS或延长等待。每组执行前确认固定证据名称缺席，备份完整专用空账户目录，结束后调用既有分阶段SHA校验与恢复函数，独立恢复原系统对比字面值并检查其余设置。私有恢复失败也继续尝试系统设置恢复，未全部恢复不得卸载或接受整组。
+
+详见[当前API31 Card表面部分验收](../verification/rf121-current-api31-card-surfaces-2026-10-16.json)。这是禁网、无账户的真实Android WebView组件/CSS验收；主窗口交付、其他Card调用方、Windows/macOS材质、实体设备及性能保持各自范围，不关闭RF-121或释放其前置依赖。
+
+## RF-121 当前 API35 独立 Card 表面（2026-10-16）
+
+当前HTML与实际默认Debug主APK资源逐字节一致，API35/WebView124重新运行原 AndroidCardSurfaceInstrumentedTest 的 lightAndDarkCardsRenderWithoutOverflow 与 lightAndDarkHighTextContrastCardsRenderWithoutOverflow；每个方法分别执行模糊支持／降级设置，合计4项JUnit、16个实际背景像素和16张PNG。旧API35结果资源与当前不同，保留旧来源与错误系统状态拒绝，未将旧结果重标当前或重复计数。
+
+保留原15秒加载、5秒JS、6秒报告、10秒原生绘制和2500ms夹具看门狗，系统动画启用。每组执行前确认7个固定输出名称缺席；结束后先独立恢复完整私有目录及原始系统对比／模糊字面设置，确认仅有原空目录，再通过系统卸载本次自有主测试包，核对7个证据名称全部缺席，并重装同一APK、复验主／测试包SHA。本地证据及哈希保留；不再调用被Android拒绝的run-as外部读取路径，前两轮本地权限／超时参数透传失败队列完整保留，后者已修正，未放宽原等待或读取保护。不得通过过滤私有目录、复用旧输出或延长等待接受队列。独立审计后仅删除8份已验证空目录备份，保留日志、图片、哈希清单与清理收据。
+
+详见[当前API35 Card表面部分验收](../verification/rf121-current-api35-card-surfaces-2026-10-16.json)。此处是禁网独立Android WebView中的生产组件/CSS验收；实际背景像素与CSS正文对比度分别检查，不启动MainActivity、账户或Vault。主窗口主题交付、其他Card调用方和平台材质、实体设备及性能仍保留各自范围，不关闭RF-121或释放依赖。
+
+
+## RF-1184 原生 PDF 首屏页码（2026-10-17）
+
+`PdfPreviewActivity` 在首次布局前设置已知总页数和前后页按钮，图片仍等待 `doOnLayout` 后按实际宽度渲染。不要改固定宽度或把零宽、不可见的页码节点当作成功条件。
+
+`PdfPreviewLayoutInstrumentedTest#firstPageCounterIsVisibleBeforeNavigation` 使用测试 APK 内的公开 `text_only.pdf`，直接运行真实 Activity；原生窗口 PixelCopy 记录首屏和切页后的视图尺寸、页码、按钮与图像。该用例在专用新装、空账户环境运行，输出位于测试缓存的固定命名空间。宿主归档公开证据后，调用既有全私有目录恢复函数并核对原 APK／UID／根权限、9 项系统设置及自有进程；不在正式 Vault 上执行环境清理。fixture SHA、断言和首次可见宽度均须保持。
+
+API31 的旧主包真实失败：首屏页码 0×51 px 且底栏空白；修复主包用同一测试 APK 通过，首屏与第二页均 75×51 px、实际底栏为 1/2 和 2/2，正文与按钮状态正确。Kotlin/Debug 构建和 10 项 JVM 测试通过。新测试包的字节码缺用例输出被拒绝，复验使用源码与资源 ID 完全相同的已编译测试 APK，不接受缺类产物或零项测试。该增量构建问题继续待查。
+
+详见[去标识原生红／绿验收](../verification/rf1184-pdf-first-counter-2026-10-17.json)。本项含目标 instrumentation，不代表默认 Release、实体设备、API35/36、其他平台或性能通过；RF-312 默认十二步仍须新默认包从头验证，既有失败不重标成功。

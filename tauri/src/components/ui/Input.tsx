@@ -1,10 +1,11 @@
-import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef } from 'react';
+import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import styles from './Input.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  /** 可见标签关联调用方的显式 ID，未提供时使用稳定且唯一的默认 ID。 */
   label?: string;
   error?: string;
   /** 错误抖动重触发计数器：error 字符串相同但 tick 变化时也重新抖动（可选）。 */
@@ -22,6 +23,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
+      id,
       label,
       error,
       errorTick = 0,
@@ -36,6 +38,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     ref,
   ) => {
     const { t } = useTranslation('common');
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
     const [shouldShake, setShouldShake] = useState(false);
     const prevErrorRef = useRef(error);
     const prevTickRef = useRef(errorTick);
@@ -58,7 +62,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={styles.wrapper}>
         {label && (
-          <label className={styles.label}>
+          <label className={styles.label} htmlFor={inputId}>
             <span className={styles.labelRow}>
               {icon}
               <span className={styles.labelText}>{label}</span>
@@ -69,6 +73,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <div className={styles.inputWrap}>
           {prefixIcon && <span className={styles.prefixIcon}>{prefixIcon}</span>}
           <input
+            id={inputId}
             data-ui-input
             ref={ref}
             className={[

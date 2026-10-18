@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1166",
+  "recordedOn": "2026-10-15",
+  "accepted": true,
+  "sourceBase": "30391266843358b0829643b7fb4f9d82bd10532f",
+  "scope": "shared Card keyboard event ownership and default action",
+  "before": {
+    "regressionTests": 7,
+    "failed": 6,
+    "passed": 1
+  },
+  "after": {
+    "regressionTestsPassedInFullSuite": 7,
+    "vitestFilesPassed": 267,
+    "vitestTestsPassed": 2385,
+    "nodePassed": 270,
+    "nodeFailed": 0,
+    "nodeExistingPlatformSkipped": 1,
+    "typeCheckExitCode": 0,
+    "lintExitCode": 0,
+    "existingLintWarnings": 1,
+    "formatCheckExitCode": 0
+  },
+  "checkedBehaviors": [
+    "focused Card Enter/Space activates once and cancels default action",
+    "nested button retains keyboard default and does not open Card",
+    "nested input Enter/Space does not open Card",
+    "pointer activation retained",
+    "Tab default retained"
+  ],
+  "sourceLfSha256": {
+    "cardBefore": "dd92f40093d96975402f389f294b8568ea6c6478594c82763f6a46e534a5a727",
+    "cardAfter": "15cd88c8d6e80f51e9f948e59dc177629169c31ba8458b8a32059ef5469fb256",
+    "test": "af3afe97d0cc83c1c6dc48fd8983aaa219a2f00606898697766fc3593d0e4c65"
+  },
+  "retainedEnvironmentFailure": "sandbox temporary rename EPERM before tests; host red regression recorded separately",
+  "rawLogsAndHostIdentifiersIncluded": false,
+  "nativeMaterialAcceptanceAdded": false,
+  "rf121Closed": false,
+  "rf122Through127PrerequisiteReleased": false
+}

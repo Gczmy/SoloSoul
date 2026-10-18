@@ -1,0 +1,590 @@
+{
+  "task": "RF-1181",
+  "status": "completed",
+  "date": "2026-10-16",
+  "sourceBaseline": "b674150d125aa5ef08f2ba6e7675c540c56e5ea7",
+  "sourceIncludesTaskPatch": true,
+  "problem": "Android system high text contrast was enabled but the real MainActivity retained ordinary semantic colors",
+  "fix": {
+    "readOnlyNativePreferenceDelivery": true,
+    "independentAndroidRootFlag": true,
+    "documentStartAndLiveChangesAndResume": true,
+    "disposedListenersAndScripts": true,
+    "api36PublicQueryAndListenerCompiled": true,
+    "legacySecureObserverVerifiedOnApi35": true,
+    "existingHighContrastSemanticTokensReused": true,
+    "noNewPermissionsDependenciesOrPaletteChanges": true
+  },
+  "nativeBefore": {
+    "wholeQueuePassed": false,
+    "normalLaneObservations": 30,
+    "enabledLaneObservations": 1,
+    "systemEnabledButApplicationDisabled": true,
+    "completeActualErrorRegionUnchanged": true,
+    "originalNativeFailurePreservedAndRejected": true,
+    "privatePermissionsAndSystemRestored": true
+  },
+  "checks": {
+    "driverTestsPassed": 82,
+    "driverTestsSkipped": 0,
+    "vitestPassed": 2400,
+    "vitestSkipped": 0,
+    "nodePassed": 270,
+    "nodeExistingSkipped": 1,
+    "typesAndLintPassed": true,
+    "productionBuildPassed": true,
+    "browserOldExpectedAndroidFailures": 2,
+    "browserOldOtherPlatformControlsPassed": 4,
+    "browserFixedFocusedPassed": 6,
+    "browserFullPassed": 216,
+    "browserSkipped": 0,
+    "browserRetries": 0
+  },
+  "build": {
+    "defaultFeaturesOnly": true,
+    "actualCargoBuild": true,
+    "bothApksFreshlyBuiltAndSignatureVerified": true,
+    "newFrontendEmbedded": true,
+    "frozenSourceFiles": 1791,
+    "frontendFiles": 38,
+    "nativeLibrarySha256": "e2c2f67e9026d4e55a488a334bb2b1df08d796760d6d3d1b24243d6d530823b4",
+    "apkHashes": {
+      "main": "472631cfafd37a39321b10b5a89c3a87c535e0e4233e96450b398be13af2d2c0",
+      "test": "80cec4718715737d2ac1c72ca1aa0141aa1c0507e74d7d1f306fa3a5a98d29b9"
+    }
+  },
+  "nativeAfter": {
+    "api": 35,
+    "abi": "x86_64",
+    "webView": "124.0.6367.219",
+    "gpu": "SwiftShader",
+    "fontScale": 1.0,
+    "completeCases": 4,
+    "cases": [
+      {
+        "name": "normal-supported",
+        "baselineStages": 12,
+        "qrStages": 40,
+        "actualContrastObservations": 30,
+        "sameDocumentLiveOnOffObservations": 4,
+        "originalNativeCloseTaps": 8,
+        "reportSha256": "15c90bfd726e648b2fc40bdcc947d3a64eb49e48b63fb15d3b3ff199d64e30fc",
+        "privatePermissionAndSystemRestored": true
+      },
+      {
+        "name": "hc-supported",
+        "baselineStages": 12,
+        "qrStages": 40,
+        "actualContrastObservations": 30,
+        "sameDocumentLiveOnOffObservations": 4,
+        "originalNativeCloseTaps": 8,
+        "reportSha256": "f4ea32e33549fcb490f814c4c467f6feea89b937d39ff1ff2d3d0644e8428ecb",
+        "privatePermissionAndSystemRestored": true
+      },
+      {
+        "name": "normal-fallback",
+        "baselineStages": 12,
+        "qrStages": 40,
+        "actualContrastObservations": 30,
+        "sameDocumentLiveOnOffObservations": 4,
+        "originalNativeCloseTaps": 8,
+        "reportSha256": "2485dbb6028e25409694b8d6a54d38ada85f8d740bffb929de324e73294f0aff",
+        "privatePermissionAndSystemRestored": true
+      },
+      {
+        "name": "hc-fallback",
+        "baselineStages": 12,
+        "qrStages": 40,
+        "actualContrastObservations": 30,
+        "sameDocumentLiveOnOffObservations": 4,
+        "originalNativeCloseTaps": 8,
+        "reportSha256": "0f5e47d5b1d174244aca031c0ebd74621706c42ba3fcbb4b5370772d19fed5ce",
+        "privatePermissionAndSystemRestored": true
+      }
+    ],
+    "baselineStages": 48,
+    "qrStages": 160,
+    "nativeCloseTaps": 32,
+    "staticActualContrastObservations": 120,
+    "sameDocumentActualSystemToggles": 16,
+    "decodedPngs": 349,
+    "actualErrorPixelSamples": 24,
+    "representativeProductScreenshotsVisuallyInspected": 4,
+    "allPngsManuallyReviewed": false,
+    "minimumActualBodyContrast": 5.612853117726948,
+    "actualBodyPixelSamples": [
+      {
+        "case": "normal-supported",
+        "stage": "qr-light-disabled",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "2ed949b05e42b29e876bf763ad0fda974a29b4888768bf3d38693c4926295764"
+      },
+      {
+        "case": "normal-supported",
+        "stage": "qr-dark-disabled",
+        "enabled": false,
+        "foreground": [
+          224,
+          122,
+          110
+        ],
+        "background": [
+          34,
+          31,
+          26
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 5.612853117726948,
+        "screenshotSha256": "e08b4311b1baf81cfe2f3b6c351559f015cce63ba51d441437b5a2fa3bafbfa1"
+      },
+      {
+        "case": "normal-supported",
+        "stage": "live-contrast-0",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "a3327ab6d5babee4d25b57af182fe4cdd1ba2b398ad83291cf49f0b8a086effd"
+      },
+      {
+        "case": "normal-supported",
+        "stage": "live-contrast-1",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "2ed949b05e42b29e876bf763ad0fda974a29b4888768bf3d38693c4926295764"
+      },
+      {
+        "case": "normal-supported",
+        "stage": "live-contrast-2",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "a3327ab6d5babee4d25b57af182fe4cdd1ba2b398ad83291cf49f0b8a086effd"
+      },
+      {
+        "case": "normal-supported",
+        "stage": "live-contrast-3",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "2ed949b05e42b29e876bf763ad0fda974a29b4888768bf3d38693c4926295764"
+      },
+      {
+        "case": "hc-supported",
+        "stage": "qr-light-disabled",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "1090bbf9563ced6ccd376555bc701f21ab66433a429bae98270d49b9fa9be978"
+      },
+      {
+        "case": "hc-supported",
+        "stage": "qr-dark-disabled",
+        "enabled": true,
+        "foreground": [
+          255,
+          255,
+          255
+        ],
+        "background": [
+          34,
+          31,
+          26
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.42001330963261,
+        "screenshotSha256": "31fc7dedf49e9ffc98345296aa8f374bc6a053b48fb3fed5ae0d613ba7472318"
+      },
+      {
+        "case": "hc-supported",
+        "stage": "live-contrast-0",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "0ee4eb55675ab63acfee7e9c27a2611718981ddfd34ce43898541d482d3f2fbc"
+      },
+      {
+        "case": "hc-supported",
+        "stage": "live-contrast-1",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "1090bbf9563ced6ccd376555bc701f21ab66433a429bae98270d49b9fa9be978"
+      },
+      {
+        "case": "hc-supported",
+        "stage": "live-contrast-2",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "0ee4eb55675ab63acfee7e9c27a2611718981ddfd34ce43898541d482d3f2fbc"
+      },
+      {
+        "case": "hc-supported",
+        "stage": "live-contrast-3",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "1090bbf9563ced6ccd376555bc701f21ab66433a429bae98270d49b9fa9be978"
+      },
+      {
+        "case": "normal-fallback",
+        "stage": "qr-light-disabled",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "fb7894a6f9cc89e15114d9ffedd8eaeb2a6ab44770ef8cab39e8849bed00c602"
+      },
+      {
+        "case": "normal-fallback",
+        "stage": "qr-dark-disabled",
+        "enabled": false,
+        "foreground": [
+          224,
+          122,
+          110
+        ],
+        "background": [
+          34,
+          31,
+          26
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 5.612853117726948,
+        "screenshotSha256": "23d6c3f6e7bb6c20a7a8cfa5fe85a20940c7e2e2fc70d9452a5958f1ef128f5d"
+      },
+      {
+        "case": "normal-fallback",
+        "stage": "live-contrast-0",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "99055023201cb31caa4493fb2c2e4b657367efccd5efd248d351cbc104c3b6e0"
+      },
+      {
+        "case": "normal-fallback",
+        "stage": "live-contrast-1",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "253f1ac8598031daa00c70f29c403fb291e8b93fcfd1312c4cb65993903be3c6"
+      },
+      {
+        "case": "normal-fallback",
+        "stage": "live-contrast-2",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "99055023201cb31caa4493fb2c2e4b657367efccd5efd248d351cbc104c3b6e0"
+      },
+      {
+        "case": "normal-fallback",
+        "stage": "live-contrast-3",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "253f1ac8598031daa00c70f29c403fb291e8b93fcfd1312c4cb65993903be3c6"
+      },
+      {
+        "case": "hc-fallback",
+        "stage": "qr-light-disabled",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "037e5dbc7a61b8d72e4e3ef771b862383163fb6af00bdf08aadcba91322a33db"
+      },
+      {
+        "case": "hc-fallback",
+        "stage": "qr-dark-disabled",
+        "enabled": true,
+        "foreground": [
+          255,
+          255,
+          255
+        ],
+        "background": [
+          34,
+          31,
+          26
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.42001330963261,
+        "screenshotSha256": "aab72dbd686942879f34a6dbb44cb821c20cb4debc1ef76e5ed9924dfcd62448"
+      },
+      {
+        "case": "hc-fallback",
+        "stage": "live-contrast-0",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "85be7821a14d896d54cc8e5285310d8f7b597122c847242308fb620bfa65267d"
+      },
+      {
+        "case": "hc-fallback",
+        "stage": "live-contrast-1",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "037e5dbc7a61b8d72e4e3ef771b862383163fb6af00bdf08aadcba91322a33db"
+      },
+      {
+        "case": "hc-fallback",
+        "stage": "live-contrast-2",
+        "enabled": false,
+        "foreground": [
+          163,
+          47,
+          35
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 6.1629857521441265,
+        "screenshotSha256": "85be7821a14d896d54cc8e5285310d8f7b597122c847242308fb620bfa65267d"
+      },
+      {
+        "case": "hc-fallback",
+        "stage": "live-contrast-3",
+        "enabled": true,
+        "foreground": [
+          17,
+          17,
+          17
+        ],
+        "background": [
+          242,
+          240,
+          233
+        ],
+        "exactForegroundPixels": 3308,
+        "actualContrast": 16.559655711981343,
+        "screenshotSha256": "037e5dbc7a61b8d72e4e3ef771b862383163fb6af00bdf08aadcba91322a33db"
+      }
+    ],
+    "originalThreeSecondCallbackAndFortyFiveSecondWaitAndAllReadersPreserved": true,
+    "completeCurrentBootAnrInventoryChecked": true,
+    "privatePermissionsAndSystemRestored": true,
+    "packagesUninstalledAndOwnedInstancesExited": true,
+    "protectedOldAdbIdentityUnchanged": true
+  },
+  "cleanup": {
+    "twelveExactOwnedEmptyTarBackupsRemovedAfterIndependentMatch": true,
+    "onlyOwnedDependencyJunctionRemoved": true,
+    "sharedDependenciesRetained": true,
+    "allLogsScreenshotsApksAndFailedVerdictsRetainedLocally": true
+  },
+  "limits": {
+    "api36RuntimeNotRun": true,
+    "olderProviderFallbackRuntimeNotClaimed": true,
+    "physicalDeviceAndTalkBackNotClaimed": true,
+    "earlierSixLargeFontCasesNotReused": true,
+    "allCardCallersAndOtherPlatformsNotClosedByThisItem": true,
+    "parentRF121StillPending": true,
+    "parentRF112AndRF312Unchanged": true,
+    "RF122ThroughRF127GatesUnchanged": true,
+    "goalRemainsActive": true
+  },
+  "evidenceHashes": {
+    "nativeBefore": "8a3a05d37d201c87a56d1c57f24aa9bc4bfcc20c2a9cc9908f967c7e65a99fb0",
+    "sourceGuard": "e348ca95076f8805b545873702883a2b35c6699c8cc143ff02f2cdc6889dadf4",
+    "currentBuildInputs": "f5e6d7122c237a4fee62fcdeb1fd5e22697b2279a6da6a9db454808f1b7444d3",
+    "nativeAfter": "32fbc1ee8f6af1eb474f0ed8dfc85d27a3d30966efadd747f826fbc0f7f4c75f",
+    "nativeQueue": "1c4db5c7a9ec11f224a764a32fef28998e399a583728770f3da7473734a0afa8",
+    "nativeMatrix": "7271d94ce6f6161b759244bf24f79be4f5880eccff5a82a38cf37c109a951727",
+    "hostBefore": "ae48338f491e0cf18fd1f4d20f78b553c5f72d6ef2a1a8bd7fccc9234fb75f83",
+    "hostAfter": "3688b0732b50325eb1c8f9fddcc19e0e3cb55a2bc4dfbff515ee25b0c6d3b690",
+    "preflightHistory": "c30c5949ed0fd0ad3ac9dfcd8d2e19bdbd2b00a7951df6367dfdc1f4bbc7d8ed",
+    "driverTests": "39548b0feb863effc280b6dd23dd16a55abc8b2e3ec80e152ce28b882d48c944",
+    "frontChecks": "197197ca67ca85d30683e6b47ddce111857a7dc30865deafc089aeb145fbb179",
+    "browserOld": "ea7f45477d80aad0e9c1ac7fbe08b8ad3f22e7dfe4ee0a73c6b68388ab0b1810",
+    "browserFixed": "5d202e9952d47f1955aa5d882c3187fa8565d8b5ca5c99b0db0d784f5d033b53",
+    "emptyBackupCleanup": "0c8d9bfc1ff4503a4ea1205b9134765226f6fb07ea3313598ed9cc5211c54c8a",
+    "dependencyCleanup": "3a90b69aa7a90e4c3061e3e189de83c0b50ed00b8d3517f58adbf3dce3d7f3b0"
+  },
+  "rawLogsScreenshotsProgramsAndMachineIdentityNotPublished": true
+}

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "scope": "RF-312-current-default-home-observer-protocol-correlation",
+  "currentSourceHead": "70192a22e4d815cda8ab8ebe4b7173f641de6057",
+  "compiledSourceHead": "525da2ea01aa9966726a951d0282735caa315d04",
+  "productInputFiles": 1795,
+  "productCodeChanged": false,
+  "defaultApkSha256": "e16dd7cdb2e7c1084a9215f5cc1e5fda2a3d4d65687b42363727528629e7acfd",
+  "nodeRefreshRejection": {
+    "protocolAccepted": false,
+    "pairs": 3,
+    "refreshedNodes": [
+      63,
+      60,
+      60
+    ],
+    "obsoleteNodes": 0,
+    "physicalCounter": 100,
+    "accessibleCounter": "em-dash",
+    "allPrivateEntriesRestored": 148,
+    "terminalAnrAbsent": true,
+    "auditSha256": "c0ced70099ef10d373648a0685dc40486e3dd02c99a9b5c3d5d4b89c3d5a6550"
+  },
+  "frameworkCacheReset": {
+    "fullQueueAccepted": false,
+    "caseResults": [
+      true,
+      false
+    ],
+    "pixelCounts": [
+      100,
+      5000
+    ],
+    "stale5000Pairs": 4,
+    "allPrivateEntriesRestoredPerCase": 149,
+    "terminalAnrAbsent": true,
+    "auditSha256": "541e291a36214dba7381dff28d0e8f5d466b19489fba3e41985597d439b8cce0"
+  },
+  "observerReconnect": {
+    "protocolQueueAccepted": false,
+    "plannedCases": 2,
+    "executedCounts": [
+      100
+    ],
+    "originalPrivateEntries": 139,
+    "obsoleteNodesObserved": true,
+    "ownObserverReconnectedOnce": true,
+    "protocolUnitTests": 34,
+    "preflightDropBoxEntries": 823,
+    "terminalDropBoxEntries": 873,
+    "noNewAnrEntries": true,
+    "allOriginalPrivateStateAndPackagesRestored": true,
+    "systemSettingKeysVerified": 9,
+    "auditSha256": "7db6ca1af4eab59965d06e5aa6fd34ab8ec353ec7804cb11bec0735f461ef3db"
+  },
+  "pixelCounterPreparation": {
+    "nativeWindowsOcrAvailable": true,
+    "language": "en-GB",
+    "offlineBoundaryTests": 14,
+    "observations": [
+      {
+        "count": 100,
+        "imageSha256": "2cc4effeb40e8158fb9588931000520367dede96217ef4d6d03680eec1120c35",
+        "engine": "Windows.Media.Ocr",
+        "language": "en-GB",
+        "counterBounds": {
+          "x": 127,
+          "y": 1076,
+          "width": 216,
+          "height": 100
+        },
+        "titleAndFooterVerified": true,
+        "exactDigitsWithoutSubstitution": true,
+        "alignedObjectUnitVerified": true,
+        "recognizerReceiptSha256": "4a245da7be4b27206a3950255232ad94fce4f3643a1b8cd17f25beddae92f980"
+      },
+      {
+        "count": 5000,
+        "imageSha256": "7976259617971344aee56ea2f526034bb377a37df982cd9057d70386803c5f34",
+        "engine": "Windows.Media.Ocr",
+        "language": "en-GB",
+        "counterBounds": {
+          "x": 123,
+          "y": 794,
+          "width": 298,
+          "height": 100
+        },
+        "titleAndFooterVerified": true,
+        "exactDigitsWithoutSubstitution": true,
+        "alignedObjectUnitVerified": true,
+        "recognizerReceiptSha256": "96fc07e68f47e68f05b733551197c564f8aa272d090464649c39cec19f068961"
+      }
+    ],
+    "sourceOnlyPrepared": true,
+    "liveNativeProtocolAccepted": false,
+    "noAmbiguousDigitSubstitution": true,
+    "uniqueTitleFooterAndAlignedUnitRequired": true,
+    "nativeWinrtReadSandboxDeniedThenReadOutsideSandboxSucceeded": true
+  },
+  "budgets": {
+    "phaseSeconds": 45,
+    "observerSeconds": 240,
+    "requests": 512,
+    "cleanupStopSeconds": 10
+  },
+  "ownership": {
+    "independentSelfTargetedObserver": true,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "allThreeOwnedHostClosuresVerified": true,
+    "protectedOldAdbUnchanged": true
+  },
+  "fullDefaultJourneyAccepted": false,
+  "acceptedPerformanceSamples": 0,
+  "rf312Closed": false,
+  "goalComplete": false,
+  "remaining": [
+    "full default search/first OCR/image/text/PDF/lock/re-unlock journey",
+    "repeat distributions and strict process memory sampling",
+    "same-source observer overhead and IPC",
+    "portable replay and remaining platform requirements"
+  ],
+  "localSourceArchive": {
+    "archivedLocally": true,
+    "originalMembers": 77,
+    "allOriginalBytesAndCrcVerified": true,
+    "published": false
+  }
+}

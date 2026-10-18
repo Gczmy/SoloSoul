@@ -50,10 +50,501 @@ class AndroidHomeInstrumentedTest {
     private val requestedFontScale get() = InstrumentationRegistry.getArguments().getString("fontScale")?.toDouble()
     private val motionChecks get() = InstrumentationRegistry.getArguments().getString("motionPreferenceChecks") == "true"
 
+    // RF-121: a real Login caller, native label taps and real IME/rotation.
+    // This supplements all original baseline records; it does not replace them.
+    private val recoveryChecks get() = InstrumentationRegistry.getArguments().getString("recoveryCards") == "true"
+    private val recoveryRecords = JSONArray()
+
+    private val recoveryGeometry = """(() => {
+      const card=document.querySelector('[data-ui-card="floating"]');
+      const rect=e=>{if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};
+      const shown=e=>!!e&&e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0;
+      const targets=card?[...card.querySelectorAll('button,label,input')].map(e=>{
+        const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+        return {tag:e.tagName,text:e.tagName==='INPUT'?'':e.textContent.trim(),aria:e.getAttribute('aria-label'),id:e.id,
+          htmlFor:e.htmlFor||null,rect:rect(e),hittable:shown(e)&&(hit===e||e.contains(hit))};
+      }):[];
+      const r=card?.getBoundingClientRect(), style=card?getComputedStyle(card):null;
+      return JSON.stringify({path:location.pathname,platform:document.documentElement.dataset.platform,
+        theme:document.documentElement.dataset.theme,card:rect(card),targets,activeId:document.activeElement?.id,
+        scrollTop:card?.scrollTop,scrollHeight:card?.scrollHeight,clientHeight:card?.clientHeight,
+        overflowY:style?.overflowY,maxHeight:style?.maxHeight,width:innerWidth,height:innerHeight,
+        visualViewport:visualViewport?{height:visualViewport.height,offsetTop:visualViewport.offsetTop}:null,
+        documentOverflow:document.documentElement.scrollWidth>innerWidth,
+        bounded:!!r&&r.x>=15&&r.y>=15&&r.right<=innerWidth-15&&r.bottom<=innerHeight-15,
+        mocked:!!window.__E2E_MOCKS__||!!window.__MOCK_PLATFORM__,
+        realIpc:typeof window.__TAURI_INTERNALS__?.invoke==='function'});
+    })()"""
+
+    private fun recoveryTarget(scenario: ActivityScenario<MainActivity>, text: String,
+                               label: Boolean = false, scroll: Boolean = true): JSONObject {
+        val expression="""(() => {
+          const card=document.querySelector('[data-ui-card="floating"]');
+          const e=[...(card?.querySelectorAll(${if(label) "'label'" else "'button'"})||[])].find(e=>
+            e.textContent.trim()===${JSONObject.quote(text)}||e.getAttribute('aria-label')===${JSONObject.quote(text)});
+          ${if(scroll) "e?.scrollIntoView({block:'center',behavior:'instant'});" else ""}const r=e?.getBoundingClientRect();
+          const hit=r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2):null;
+          return JSON.stringify({x:r?.x+r?.width/2,y:r?.y+r?.height/2,width:innerWidth,viewportHeight:innerHeight,theme:document.documentElement.dataset.theme,
+            hittable:!!e&&(hit===e||e.contains(hit)),id:e?.htmlFor,
+            associated:!!e?.htmlFor&&document.getElementById(e.htmlFor)?.tagName==='INPUT'});
+        })()"""
+        val result=waitFor(scenario,"真实卡片目标可点击: $text",expression) { it.optBoolean("hittable") }
+        if(label) assertTrue("显示标签必须关联自己的输入框",result.getBoolean("associated"))
+        return result.put("caption",text).put("label",label)
+    }
+
+    private fun tapRecoveryTarget(scenario: ActivityScenario<MainActivity>, target: JSONObject) {
+        performReadyRecoveryTap(scenario,target)
+    }
+
+    private fun captureRecovery(scenario: ActivityScenario<MainActivity>, stage: String,
+                                dark: Boolean, ime: Boolean = false, activeId: String? = null) {
+        val row=waitFor(scenario,stage,recoveryGeometry) {
+            it.optBoolean("bounded")&&it.optString("theme")==if(dark) "dark" else "light"
+        }
+        assertEquals("android",row.getString("platform"))
+        assertEquals("/login",row.getString("path"))
+        assertFalse("不能用浏览器 mock 替代原生",row.getBoolean("mocked"))
+        assertTrue("必须为真实 Tauri IPC",row.getBoolean("realIpc"))
+        assertFalse("恢复卡片不能撑宽文档",row.getBoolean("documentOverflow"))
+        assertEquals("auto",row.getString("overflowY"))
+        if(activeId!=null) assertEquals("实际标签触摸必须聚焦其输入框",activeId,row.getString("activeId"))
+        val native=waitForIme(scenario,ime)
+        val card=row.getJSONObject("card")
+        val scale=native.getDouble("webViewWidthPx")/row.getDouble("width")
+        val bottom=native.getDouble("webViewScreenY")+card.getDouble("bottom")*scale
+        val safeBottom=if(ime) native.getInt("screenHeightPx")-native.getInt("imeHeightPx")
+          else native.getInt("screenHeightPx")-native.getJSONObject("systemBars").getInt("bottom")
+        assertTrue("原生输入法/系统栏不能遮住卡片底部: $bottom > $safeBottom",bottom<=safeBottom+2)
+        val bitmap=screenshot(scenario)
+        File(evidence,"$stage.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+        val sampled=bitmap.getPixel(bitmap.width/2,bitmap.height/2)
+        row.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height).put("samplePixel",sampled)
+        bitmap.recycle()
+        val after=js(scenario,recoveryGeometry)
+        assertEquals("截图前后卡片状态必须一致",row.getString("theme"),after.getString("theme"))
+        assertTrue("截图后仍须在视口内",after.getBoolean("bounded"))
+        if(activeId!=null) assertEquals(activeId,after.getString("activeId"))
+        row.put("stage",stage).put("nativeViewport",native).put("dark",dark)
+          .put("ime",ime).put("expectedActiveId",activeId?:JSONObject.NULL).put("screenshotStateConfirmed",true)
+        recoveryRecords.put(row);writeReport()
+    }
+
+    private fun verifyRecoveryCards(scenario: ActivityScenario<MainActivity>) {
+        assertTrue("仅允许保留全部原始基线的附加场景",!overlayChecks&&!keyboardChecks&&!accountChecks&&!insetsChecks&&!previewChecks&&!renderingChecks)
+        for(dark in listOf(false,true)) {
+            val theme=if(dark) "dark" else "light"
+            openAppearance(scenario);clickText(scenario,if(dark) "Dark" else "Light")
+            clickSelector(scenario,".android-navigation a[href='/']")
+            waitFor(scenario,"恢复场景前真实首页",home) { it.optBoolean("home")&&it.optString("theme")==theme }
+            lockToPassword(scenario)
+            clickText(scenario,"Restore from another device")
+            waitFor(scenario,"真实恢复浮层加载",recoveryGeometry) { !it.isNull("card") }
+            clickText(scenario,"Manual");clickText(scenario,"Show optional fingerprint")
+            installRecoveryPointerTrace(scenario)
+            captureRecovery(scenario,"recovery-$theme-portrait",dark)
+            recoveryTarget(scenario,"Next")
+            captureRecovery(scenario,"recovery-$theme-next-portrait",dark)
+            val restoredHeight=waitForIme(scenario,false).getInt("webViewHeightPx")
+            val ids=mutableSetOf<String>()
+            for((index,name) in listOf("Host Address","PIN","Host fingerprint").withIndex()) {
+                val target=recoveryTarget(scenario,name,label=true).put("expectedRestoredHeight",restoredHeight)
+                val id=target.getString("id")
+                assertTrue("每个字段 ID 必须唯一且非空",id.isNotEmpty()&&ids.add(id))
+                tapRecoveryTarget(scenario,target);waitForIme(scenario,true)
+                captureRecovery(scenario,"recovery-$theme-label-$index-ime",dark,ime=true,activeId=id)
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);waitForIme(scenario,false,restoredHeight=restoredHeight)
+                assertFalse("键盘优先返回不能关闭恢复卡片",js(scenario,recoveryGeometry).isNull("card"))
+            }
+            var original=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            scenario.onActivity { original=it.requestedOrientation;it.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+            try {
+                waitFor(scenario,"恢复卡片横屏完成",recoveryGeometry) { it.optDouble("width")>it.optDouble("height") }
+                captureRecovery(scenario,"recovery-$theme-landscape",dark)
+                recoveryTarget(scenario,"Next")
+                captureRecovery(scenario,"recovery-$theme-next-landscape",dark)
+                val target=recoveryTarget(scenario,"Close")
+                captureRecovery(scenario,"recovery-$theme-close-landscape",dark)
+                tapRecoveryTarget(scenario,target)
+                waitFor(scenario,"横屏真实触摸关闭恢复卡片",recoveryGeometry) { it.isNull("card")&&it.optString("path")=="/login" }
+            } finally { scenario.onActivity { it.requestedOrientation=original } }
+            waitFor(scenario,"恢复竖屏登录",recoveryGeometry) { it.optDouble("width")<it.optDouble("height")&&it.isNull("card") }
+            unlockPublicVisualAccount(scenario)
+            waitFor(scenario,"恢复卡片检查后真实解锁",home) { it.optBoolean("home") }
+            recoveryRecords.put(JSONObject().put("stage","recovery-$theme-returned-home").put("theme",theme).put("nativeCloseSucceeded",true).put("unlocked",true));writeReport()
+        }
+    }
+
+    private val recoveryCameraPrompts = JSONArray()
+    private val recoveryPermissionDiagnostics = JSONArray()
+    private var lastRecoveryPermissionTree = ""
+
+    private fun recoveryPermissionTree(root: AccessibilityNodeInfo): JSONArray {
+        val result=JSONArray()
+        fun walk(node: AccessibilityNodeInfo, depth: Int) {
+            if(result.length()>=256||depth>16)return
+            result.put(JSONObject().put("text",node.text?.toString()).put("description",node.contentDescription?.toString())
+                .put("class",node.className?.toString()).put("package",node.packageName?.toString()).put("clickable",node.isClickable))
+            for(index in 0 until node.childCount)node.getChild(index)?.let { walk(it,depth+1) }
+        }
+        walk(root,0);return result
+    }
+
+    private fun handleRecoveryCameraPrompt(root: AccessibilityNodeInfo): Boolean {
+        val context=instrumentation.targetContext
+        val controller=root.packageName?.toString()?:return false
+        if(controller !in listOf("com.android.permissioncontroller","com.google.android.permissioncontroller"))return false
+        val controllerInfo=context.packageManager.getApplicationInfo(controller,0)
+        if((controllerInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM)==0)return false
+        val app=context.applicationInfo.loadLabel(context.packageManager).toString()
+        val pattern=Regex("""Allow ${Regex.escape(app)} to take pictures and record video\?""")
+        fun normalized(text: CharSequence?)=text?.toString().orEmpty().replace(Regex("\\s+")," ").trim()
+        val message=root.findAccessibilityNodeInfosByText(app).firstOrNull { pattern.matches(normalized(it.text)) }
+        val deny=root.findAccessibilityNodeInfosByText("allow").firstOrNull {
+            normalized(it.text).replace('\u2019','\'').equals("Don't allow",ignoreCase=true)&&it.isClickable&&it.isEnabled&&it.className?.toString()=="android.widget.Button"
+        }
+        if(message==null||deny==null) {
+            val tree=recoveryPermissionTree(root)
+            if(tree.toString()!=lastRecoveryPermissionTree) {
+                lastRecoveryPermissionTree=tree.toString()
+                val file="permission-diagnostic-${recoveryPermissionDiagnostics.length()}.png"
+                instrumentation.uiAutomation.takeScreenshot()?.let { bitmap ->
+                    File(evidence,file).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
+                }
+                recoveryPermissionDiagnostics.put(JSONObject().put("tree",tree).put("screenshot",file).put("dismissed",false));writeReport()
+            }
+            return false // All original notification checks still run; unknown dialogs fail.
+        }
+        assertEquals("本场景仅拒绝摄像头请求，不授予权限",android.content.pm.PackageManager.PERMISSION_DENIED,
+            context.checkSelfPermission(android.Manifest.permission.CAMERA))
+        val screenshot="camera-permission-${recoveryCameraPrompts.length()}.png"
+        val bitmap=requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        File(evidence,screenshot).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
+        val record=JSONObject().put("controllerPackage",controller).put("controllerIsSystemApp",true).put("appLabel",app)
+            .put("message",normalized(message.text)).put("denyLabel",normalized(deny.text).replace('\u2019','\''))
+            .put("permission",android.Manifest.permission.CAMERA).put("screenshot",screenshot)
+            .put("tree",recoveryPermissionTree(root))
+        assertTrue("只点击已完整识别的本应用摄像头请求拒绝按钮",deny.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        instrumentation.waitForIdleSync()
+        assertEquals("原生权限拒绝必须生效",android.content.pm.PackageManager.PERMISSION_DENIED,
+            context.checkSelfPermission(android.Manifest.permission.CAMERA))
+        recoveryCameraPrompts.put(record.put("deniedByNativeUi",true).put("permissionDeniedAfter",true));writeReport()
+        return true
+    }
+
+    private val recoveryTapPlans = JSONArray()
+    private var recoveryPointerEvents = JSONArray()
+
+    private fun installRecoveryPointerTrace(scenario: ActivityScenario<MainActivity>) {
+        val result=js(scenario,"""(() => {
+          if(!window.__rf121RecoveryTraceInstalled){
+            window.__rf121RecoveryTraceInstalled=true;window.__rf121RecoveryPointers=[];window.__rf121RecoveryClicks=[];
+            document.addEventListener('pointerdown',event=>{
+              const card=document.querySelector('[data-ui-card="floating"]');
+              if(!card?.contains(event.target))return;
+              const label=event.target.closest?.('label'),button=event.target.closest?.('button');
+              window.__rf121RecoveryPointers.push({trusted:event.isTrusted,pointerType:event.pointerType,
+                clientX:event.clientX,clientY:event.clientY,width:innerWidth,height:innerHeight,
+                tag:event.target.tagName,id:event.target.id||null,labelFor:label?.htmlFor||null,
+                buttonLabel:button?.getAttribute('aria-label')||null,inCard:true,
+                theme:document.documentElement.dataset.theme,atMs:performance.now()});
+            },{capture:true,passive:true});
+            document.addEventListener('click',event=>{
+              const card=document.querySelector('[data-ui-card="floating"]');
+              if(!card?.contains(event.target))return;
+              window.__rf121RecoveryClicks.push({trusted:event.isTrusted,tag:event.target.tagName,
+                id:event.target.id||null,labelFor:event.target.closest?.('label')?.htmlFor||null,
+                buttonLabel:event.target.closest?.('button')?.getAttribute('aria-label')||null,
+                clientX:event.clientX,clientY:event.clientY,atMs:performance.now()});
+            },{capture:true,passive:true});
+          }
+          return JSON.stringify({installed:window.__rf121RecoveryTraceInstalled});
+        })()""")
+        assertTrue("只读触摸事件观察必须安装成功",result.getBoolean("installed"))
+    }
+
+    private fun performReadyRecoveryTap(scenario: ActivityScenario<MainActivity>, requested: JSONObject) {
+        val index=recoveryTapPlans.length()
+        val label=requested.getBoolean("label")
+        val caption=requested.getString("caption")
+        var target=requested
+        var stable=false
+        var native=JSONObject()
+        var attempts=0
+        for(attempt in 1..3) {
+            attempts=attempt
+            val before=nativeViewport(scenario)
+            val bitmap=screenshot(scenario) // Existing bounded visual-commit fence; no input retry.
+            val current=recoveryTarget(scenario,caption,label,scroll=false)
+            val after=nativeViewport(scenario)
+            stable=listOf("x","y","width","viewportHeight").all { kotlin.math.abs(target.getDouble(it)-current.getDouble(it))<=0.5 }&&
+                listOf("webViewWidthPx","webViewHeightPx","webViewScreenX","webViewScreenY").all { before.getInt(it)==after.getInt(it) }&&
+                !before.getBoolean("imeVisible")&&!after.getBoolean("imeVisible")&&current.getBoolean("hittable")&&
+                before.getInt("webViewHeightPx")==requested.optInt("expectedRestoredHeight",before.getInt("webViewHeightPx"))
+            if(stable) {
+                File(evidence,"native-tap-$index-before.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                native=after;target=current
+            } else target=current
+            bitmap.recycle()
+            if(stable)break
+        }
+        val plan=JSONObject().put("index",index).put("caption",caption).put("label",label)
+            .put("geometry",target).put("nativeViewport",native).put("preparationFrames",attempts)
+            .put("frameCommittedAndGeometryStable",stable).put("beforeScreenshot","native-tap-$index-before.png")
+            .put("expectedRestoredHeight",requested.optInt("expectedRestoredHeight",native.optInt("webViewHeightPx")))
+            .put("injectedTapCount",0)
+        recoveryTapPlans.put(plan);writeReport()
+        assertTrue("真实触摸前必须完成绘制并确认 DOM/原生坐标稳定",stable)
+        if(label)assertEquals("渲染同步不能替换预期字段",requested.getString("id"),target.getString("id"))
+        val scale=native.getDouble("webViewWidthPx")/target.getDouble("width")
+        val x=(native.getDouble("webViewScreenX")+target.getDouble("x")*scale).toFloat()
+        val y=(native.getDouble("webViewScreenY")+target.getDouble("y")*scale).toFloat()
+        plan.put("screenX",x.toDouble()).put("screenY",y.toDouble())
+        val down=SystemClock.uptimeMillis()
+        val properties=MotionEvent.PointerProperties().apply { id=0;toolType=MotionEvent.TOOL_TYPE_FINGER }
+        val coordinates=MotionEvent.PointerCoords()
+        coordinates.x=x;coordinates.y=y;coordinates.pressure=1f;coordinates.size=1f
+        for(action in listOf(MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP)) {
+            coordinates.pressure=if(action==MotionEvent.ACTION_DOWN)1f else 0f
+            val event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,1,arrayOf(properties),arrayOf(coordinates),
+                0,0,1f,1f,0,0,android.view.InputDevice.SOURCE_TOUCHSCREEN,0)
+            assertEquals(MotionEvent.TOOL_TYPE_FINGER,event.getToolType(0))
+            assertEquals(android.view.InputDevice.SOURCE_TOUCHSCREEN,event.source)
+            plan.put("injectedSource",event.source).put("injectedToolType",event.getToolType(0))
+            instrumentation.sendPointerSync(event);event.recycle()
+        }
+        plan.put("injectedTapCount",1);writeReport()
+        val observed=waitFor(scenario,"原生触点必须产生真实页面事件","""JSON.stringify({
+          events:window.__rf121RecoveryPointers||[],activations:window.__rf121RecoveryClicks||[],activeId:document.activeElement?.id,
+          card:!!document.querySelector('[data-ui-card="floating"]')})""") {
+            (it.optJSONArray("events")?.length()?:0)>=index+1
+        }
+        recoveryPointerEvents=observed.getJSONArray("events");plan.put("activationEvents",observed.getJSONArray("activations"));writeReport()
+        assertEquals("不能通过重复触摸凑聚焦",index+1,recoveryPointerEvents.length())
+        val event=recoveryPointerEvents.getJSONObject(index)
+        assertTrue("原生触点必须是可信触摸事件",event.getBoolean("trusted")&&event.getString("pointerType")=="touch")
+        assertTrue("真实 CSS 触点必须与准备坐标一致",kotlin.math.abs(event.getDouble("clientX")-target.getDouble("x"))<=1&&
+            kotlin.math.abs(event.getDouble("clientY")-target.getDouble("y"))<=1)
+        if(label)assertEquals("真实事件必须命中显示标签",target.getString("id"),event.getString("labelFor"))
+        else assertEquals("真实事件必须命中关闭按钮","Close",event.getString("buttonLabel"))
+        val after=waitFor(scenario,"单次原生触摸后的状态","""JSON.stringify({activeId:document.activeElement?.id,
+          card:!!document.querySelector('[data-ui-card="floating"]'),activations:window.__rf121RecoveryClicks||[]})""") {
+            if(label)it.optString("activeId")==target.getString("id") else !it.optBoolean("card")
+        }
+        plan.put("activeAfter",after.optString("activeId")).put("cardPresentAfter",after.getBoolean("card"))
+            .put("activationEvents",after.getJSONArray("activations"));writeReport()
+    }
+
+
+    private var qrNearbyExpected = false
+    private val qrNearbyPrompts = JSONArray()
+
+    private fun handleQrNearbyPrompt(root: AccessibilityNodeInfo): Boolean {
+        if(!qrChecks||!qrNearbyExpected||android.os.Build.VERSION.SDK_INT<33)return false
+        val context=instrumentation.targetContext
+        val controller=root.packageName?.toString()?:return false
+        if(controller !in listOf("com.android.permissioncontroller","com.google.android.permissioncontroller"))return false
+        val controllerInfo=context.packageManager.getApplicationInfo(controller,0)
+        if((controllerInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM)==0)return false
+        val app=context.applicationInfo.loadLabel(context.packageManager).toString()
+        val expected="Allow $app to find, connect to, and determine the relative position of nearby devices?"
+        fun normalized(text: CharSequence?)=text?.toString().orEmpty().replace(Regex("\\s+")," ").trim()
+        val message=root.findAccessibilityNodeInfosByText(app).firstOrNull { normalized(it.text)==expected }?:return false
+        val allow=root.findAccessibilityNodeInfosByText("allow").firstOrNull {
+            normalized(it.text).equals("Allow",ignoreCase=true)&&it.isClickable&&it.isEnabled&&it.className?.toString()=="android.widget.Button"
+        }?:return false
+        val permission=android.Manifest.permission.NEARBY_WIFI_DEVICES
+        assertEquals("只能在明确开启同步时处理尚未授权的附近 Wi-Fi 请求",android.content.pm.PackageManager.PERMISSION_DENIED,context.checkSelfPermission(permission))
+        val cameraBefore=context.checkSelfPermission(android.Manifest.permission.CAMERA)
+        val screenshot="nearby-permission-${qrNearbyPrompts.length()}.png"
+        val bitmap=requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        File(evidence,screenshot).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
+        val row=JSONObject().put("controllerPackage",controller).put("controllerIsSystemApp",true).put("appLabel",app)
+            .put("message",normalized(message.text)).put("allowLabel",normalized(allow.text)).put("allowEnabled",allow.isEnabled)
+            .put("allowClickable",allow.isClickable).put("permission",permission).put("phase","qr-enable-sync")
+            .put("explicitEnablePending",qrNearbyExpected).put("permissionGrantedBefore",false)
+            .put("screenshot",screenshot).put("tree",recoveryPermissionTree(root)).put("nativeActionCount",0)
+        qrNearbyPrompts.put(row);writeReport()
+        assertTrue("只点击完整识别的本应用附近设备请求",allow.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        row.put("nativeActionCount",1);writeReport()
+        val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(3)
+        while(context.checkSelfPermission(permission)!=android.content.pm.PackageManager.PERMISSION_GRANTED&&System.nanoTime()<deadline)Thread.sleep(20)
+        assertEquals("必须回读实际附近 Wi-Fi 权限授权",android.content.pm.PackageManager.PERMISSION_GRANTED,context.checkSelfPermission(permission))
+        assertEquals("附近设备操作不能改变摄像头权限",cameraBefore,context.checkSelfPermission(android.Manifest.permission.CAMERA))
+        row.put("permissionGrantedAfter",true).put("cameraPermissionUnchanged",true).put("grantedByNativeUi",true);writeReport()
+        return true
+    }
+
+    // Real SyncPage callers; explicit opt-in supplements the complete baseline.
+    private val qrChecks get() = InstrumentationRegistry.getArguments().getString("qrCards") == "true"
+    private val qrRecords = JSONArray()
+    private val qrEnableReadiness = JSONArray()
+    private val qrGeometry get() = """(() => {
+      const base=JSON.parse(($recoveryGeometry)),card=document.querySelector('[data-ui-card="floating"]');
+      const headings=card?[...card.querySelectorAll('h2')].map(e=>e.textContent.trim()):[];
+      const buttons=card?[...card.querySelectorAll('button')].map(e=>e.textContent.trim()):[];
+      const qr=card?[...card.querySelectorAll('svg[width="200"][height="200"]')].filter(e=>!!e.querySelector('path')):[];
+      return JSON.stringify({...base,headings,qrCount:qr.length,cardClientWidth:card?.clientWidth,cardScrollWidth:card?.scrollWidth,
+        disabledMessage:!!card?.textContent.includes('Synchronization is disabled. Enable it first.'),
+        manualOpen:buttons.includes('Hide manual entry guide'),
+        manualAction:buttons.includes('Use discovery or manual input'),
+        hostPinPresent:!!card&&[...card.querySelectorAll('span')].some(e=>/^\d{6}$/.test(e.textContent.trim())),
+        syncEnabled:[...document.querySelectorAll('button')].some(e=>!e.disabled&&e.textContent.trim()==='Disable'),
+        showReady:!!document.querySelector('[aria-label="Show QR"]')&&!document.querySelector('[aria-label="Show QR"]').disabled,
+        syncDisabled:document.querySelector('[aria-label="Scan QR"]')?.disabled===true});
+    })()"""
+
+    private fun qrRecoveryFileCount(): Int {
+        val root=instrumentation.targetContext.filesDir.parentFile!!
+        return root.walkTopDown().maxDepth(6).filter { it.isFile&&it.name.startsWith("solosoul-recovery-")&&it.name.endsWith(".solosoul") }.count()
+    }
+
+    private fun qrAction(scenario: ActivityScenario<MainActivity>, caption: String, aria: Boolean = false): JSONObject {
+        val expression="""(() => {
+          const card=document.querySelector('[data-ui-card="floating"]');
+          const e=[...(card?.querySelectorAll('button')||[])].find(e=>${if(aria) "e.getAttribute('aria-label')" else "e.textContent.trim()"}===${JSONObject.quote(caption)});
+          e?.scrollIntoView({block:'center',behavior:'instant'});const r=e?.getBoundingClientRect();
+          const hit=r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2):null;
+          return JSON.stringify({caption:${JSONObject.quote(caption)},aria:$aria,hittable:!!e&&!e.disabled&&(hit===e||e.contains(hit))});
+        })()"""
+        return waitFor(scenario,"真实二维码卡片操作必须可命中: $caption",expression) { it.optBoolean("hittable") }
+    }
+
+    private fun captureQr(scenario: ActivityScenario<MainActivity>, stage: String, theme: String,
+                          kind: String, action: String? = null, actionAria: Boolean = false) {
+        val target=if(action!=null)qrAction(scenario,action,actionAria) else null
+        val row=waitFor(scenario,stage,qrGeometry) { it.optBoolean("bounded")&&it.optString("theme")==theme }
+        assertEquals("/sync",row.getString("path"));assertEquals("android",row.getString("platform"))
+        assertTrue(row.getBoolean("realIpc"));assertFalse(row.getBoolean("mocked"));assertFalse(row.getBoolean("documentOverflow"))
+        assertEquals("auto",row.getString("overflowY"))
+        assertTrue("二维码卡片内不能横向溢出",row.getInt("cardScrollWidth")<=row.getInt("cardClientWidth")+1)
+        when(kind) {
+            "disabled" -> { assertTrue(row.getBoolean("disabledMessage"));assertEquals(0,row.getInt("qrCount"));assertTrue(row.getBoolean("syncDisabled")) }
+            "host" -> { assertEquals("Link New Device",row.getJSONArray("headings").getString(0));assertEquals(1,row.getInt("qrCount"));assertTrue(row.getBoolean("manualOpen"));assertTrue(row.getBoolean("hostPinPresent"));assertEquals(1,qrRecoveryFileCount()) }
+            "sync" -> { assertEquals("Sync QR Code",row.getJSONArray("headings").getString(0));assertEquals(1,row.getInt("qrCount"));assertFalse(row.getBoolean("syncDisabled")) }
+            "scan" -> { assertEquals("Scan QR Code",row.getJSONArray("headings").getString(0));assertTrue(row.getBoolean("manualAction"));assertFalse(row.getBoolean("syncDisabled")) }
+            else -> error("Unknown real QR caller kind")
+        }
+        val native=waitForIme(scenario,false)
+        val card=row.getJSONObject("card")
+        val bottom=native.getDouble("webViewScreenY")+card.getDouble("bottom")*native.getDouble("webViewWidthPx")/row.getDouble("width")
+        assertTrue("原生系统栏不能遮住二维码卡片",bottom<=native.getInt("screenHeightPx")-native.getJSONObject("systemBars").getInt("bottom")+2)
+        val bitmap=screenshot(scenario)
+        File(evidence,"$stage.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+        row.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height).put("samplePixel",bitmap.getPixel(bitmap.width/2,bitmap.height/2));bitmap.recycle()
+        val after=js(scenario,qrGeometry)
+        assertEquals(row.getString("theme"),after.getString("theme"));assertTrue(after.getBoolean("bounded"))
+        assertEquals(row.getJSONArray("headings").toString(),after.getJSONArray("headings").toString())
+        row.put("stage",stage).put("kind",kind).put("nativeViewport",native).put("action",target?:JSONObject.NULL)
+            .put("exportFileCount",qrRecoveryFileCount()).put("screenshotStateConfirmed",true)
+        qrRecords.put(row);writeReport()
+        observeMainHighTextContrast(scenario,stage)
+    }
+
+    private fun qrClosed(scenario: ActivityScenario<MainActivity>, stage: String, theme: String) {
+        val row=waitFor(scenario,"单次原生触摸关闭真实二维码卡片",qrGeometry) { it.isNull("card")&&it.optString("path")=="/sync" }
+        val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(10)
+        while(qrRecoveryFileCount()!=0&&System.nanoTime()<deadline)Thread.sleep(50)
+        assertEquals("关闭必须清理实际导出的临时恢复包",0,qrRecoveryFileCount())
+        qrRecords.put(JSONObject().put("stage",stage).put("theme",theme).put("closed",true).put("path",row.getString("path"))
+            .put("exportFileCount",0).put("syncDisabled",row.getBoolean("syncDisabled")));writeReport()
+    }
+
+    private fun qrLandscape(scenario: ActivityScenario<MainActivity>, block: () -> Unit) {
+        var original=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        scenario.onActivity { original=it.requestedOrientation;it.requestedOrientation=android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+        try {
+            waitFor(scenario,"真实二维码横屏完成",qrGeometry) { it.optDouble("width")>it.optDouble("height") }
+            block()
+        } finally { scenario.onActivity { it.requestedOrientation=original } }
+        waitFor(scenario,"二维码关闭后恢复竖屏",qrGeometry) { it.optDouble("width")<it.optDouble("height")&&it.isNull("card") }
+    }
+
+    private fun verifyQrCards(scenario: ActivityScenario<MainActivity>) {
+        assertTrue("二维码调用方只附加在完整基线，不能混用恢复触摸记录",!recoveryChecks&&!overlayChecks&&!keyboardChecks&&!accountChecks&&!insetsChecks&&!previewChecks&&!renderingChecks)
+        assertTrue("二维码附近 Wi-Fi 原生验收要求 API33+，不请求定位权限",android.os.Build.VERSION.SDK_INT>=33)
+        assertEquals("只能使用隔离公开账户的空白恢复临时目录",0,qrRecoveryFileCount())
+        for(dark in listOf(false,true)) {
+            val theme=if(dark)"dark" else "light"
+            openAppearance(scenario);clickText(scenario,if(dark)"Dark" else "Light")
+            clickSelector(scenario,".android-navigation a[href='/settings']")
+            val entry=js(scenario,"""(() => {
+              const candidates=[...document.querySelectorAll('[data-ui-card][role="button"]')].filter(e=>e.textContent.trim().startsWith('Device Sync'));
+              if(candidates.length===1)candidates[0].click();return JSON.stringify({unique:candidates.length===1});
+            })()""")
+            assertTrue("必须从设置中点击真实设备同步入口",entry.getBoolean("unique"))
+            waitFor(scenario,"实际同步页面初始化",qrGeometry) { it.optString("path")=="/sync"&&it.optBoolean("syncDisabled")&&it.optBoolean("showReady") }
+            clickSelector(scenario,"[aria-label='Show QR']");installRecoveryPointerTrace(scenario)
+            waitFor(scenario,"未开启同步的真实错误分支",qrGeometry) { it.optBoolean("disabledMessage") }
+            captureQr(scenario,"qr-$theme-disabled",theme,"disabled",action="Close",actionAria=true)
+            tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"))
+            qrClosed(scenario,"qr-$theme-disabled-closed",theme)
+
+            clickSelector(scenario,"[aria-label='Show QR']")
+            waitFor(scenario,"实际显示二维码外壳已加载",qrGeometry) { !it.isNull("card") }
+            clickText(scenario,"Recovery QR")
+            waitFor(scenario,"实际恢复会话已生成二维码",qrGeometry) { it.optInt("qrCount")==1&&it.optBoolean("hostPinPresent") }
+            clickText(scenario,"No camera? Enter details manually")
+            captureQr(scenario,"qr-$theme-host-portrait",theme,"host")
+            captureQr(scenario,"qr-$theme-host-cancel-portrait",theme,"host",action="Cancel")
+            qrLandscape(scenario) {
+                captureQr(scenario,"qr-$theme-host-landscape",theme,"host")
+                captureQr(scenario,"qr-$theme-host-cancel-landscape",theme,"host",action="Cancel")
+                captureQr(scenario,"qr-$theme-host-close-landscape",theme,"host",action="Close",actionAria=true)
+                tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"));qrClosed(scenario,"qr-$theme-host-closed",theme)
+            }
+            qrNearbyExpected=true
+            try {
+                clickText(scenario,"Enable")
+                val ready=waitFor(scenario,"同步 UI 与原生 NSD 权限均已就绪",qrGeometry) {
+                    it.optString("path")=="/sync"&&it.optBoolean("syncEnabled")&&it.optBoolean("showReady")&&!it.optBoolean("syncDisabled")&&
+                        instrumentation.targetContext.checkSelfPermission(android.Manifest.permission.NEARBY_WIFI_DEVICES)==android.content.pm.PackageManager.PERMISSION_GRANTED
+                }
+                qrEnableReadiness.put(JSONObject().put("theme",theme).put("phase","qr-enable-sync").put("explicitEnablePending",qrNearbyExpected)
+                    .put("path",ready.getString("path")).put("syncEnabled",ready.getBoolean("syncEnabled")).put("showReady",ready.getBoolean("showReady"))
+                    .put("realIpc",ready.getBoolean("realIpc")).put("mocked",ready.getBoolean("mocked"))
+                    .put("nearbyPermissionGranted",instrumentation.targetContext.checkSelfPermission(android.Manifest.permission.NEARBY_WIFI_DEVICES)==android.content.pm.PackageManager.PERMISSION_GRANTED));writeReport()
+            } finally { qrNearbyExpected=false }
+            clickSelector(scenario,"[aria-label='Show QR']")
+            waitFor(scenario,"实际同步二维码加载",qrGeometry) { it.optInt("qrCount")==1&&it.optJSONArray("headings")?.optString(0)=="Sync QR Code" }
+            captureQr(scenario,"qr-$theme-sync-portrait",theme,"sync")
+            captureQr(scenario,"qr-$theme-sync-close-portrait",theme,"sync",action="Close")
+            qrLandscape(scenario) {
+                captureQr(scenario,"qr-$theme-sync-landscape",theme,"sync")
+                captureQr(scenario,"qr-$theme-sync-close-landscape",theme,"sync",action="Close",actionAria=true)
+                tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"));qrClosed(scenario,"qr-$theme-sync-closed",theme)
+            }
+            clickSelector(scenario,"[aria-label='Scan QR']")
+            waitFor(scenario,"真实摄像头能力/拒绝后的手动回退",qrGeometry) { it.optBoolean("manualAction") }
+            captureQr(scenario,"qr-$theme-scan-portrait",theme,"scan")
+            captureQr(scenario,"qr-$theme-scan-manual-portrait",theme,"scan",action="Use discovery or manual input")
+            qrLandscape(scenario) {
+                captureQr(scenario,"qr-$theme-scan-landscape",theme,"scan")
+                captureQr(scenario,"qr-$theme-scan-manual-landscape",theme,"scan",action="Use discovery or manual input")
+                captureQr(scenario,"qr-$theme-scan-close-landscape",theme,"scan",action="Close",actionAria=true)
+                tapRecoveryTarget(scenario,recoveryTarget(scenario,"Close"));qrClosed(scenario,"qr-$theme-scan-closed",theme)
+            }
+            clickText(scenario,"Disable")
+            waitFor(scenario,"实际同步停止并恢复初始关闭状态",qrGeometry) { it.optBoolean("syncDisabled") }
+            clickSelector(scenario,".android-navigation a[href='/']")
+            waitFor(scenario,"二维码调用方完成后返回真实首页",home) { it.optBoolean("home")&&it.optString("theme")==theme }
+            qrRecords.put(JSONObject().put("stage","qr-$theme-returned-home").put("theme",theme).put("unlocked",true)
+                .put("syncDisabled",true).put("exportFileCount",qrRecoveryFileCount()));writeReport()
+        }
+    }
+
+
     private fun writeReport() {
         val provider = WebView.getCurrentWebViewPackage()
         File(evidence, "report.json").writeText(JSONObject().put("records", records)
             .put("processId", android.os.Process.myPid())
+            .put("nativeDocumentReadiness",nativeDocumentReadiness).put("readyDocumentEvaluations",readyDocumentEvaluations)
+            .put("qrCardsRequested",qrChecks).put("qrRecords",qrRecords).put("qrNearbyPrompts",qrNearbyPrompts).put("qrEnableReadiness",qrEnableReadiness)
+            .put("securityWarningsRequested",securityWarningChecks).put("securityWarningRecords",securityWarningRecords)
+            .put("providerFeedbackRequested",providerFeedbackChecks).put("providerFeedbackRecords",providerFeedbackRecords)
+            .put("recoveryCardsRequested",recoveryChecks).put("recoveryRecords",recoveryRecords)
+            .put("recoveryCameraPrompts",recoveryCameraPrompts).put("recoveryPermissionDiagnostics",recoveryPermissionDiagnostics)
+            .put("recoveryTapPlans",recoveryTapPlans).put("recoveryPointerEvents",recoveryPointerEvents)
             .put("runtime", JSONObject().put("api", android.os.Build.VERSION.SDK_INT)
                 .put("webViewPackage", provider?.packageName).put("webViewVersion", provider?.versionName)
                 .put("webViewVersionCode", provider?.longVersionCode))
@@ -89,6 +580,8 @@ class AndroidHomeInstrumentedTest {
         do {
             val root = instrumentation.uiAutomation.rootInActiveWindow ?: return
             if (root.packageName?.toString()?.endsWith(".permissioncontroller") != true) return
+            if(qrChecks&&handleQrNearbyPrompt(root))return
+            if((recoveryChecks||qrChecks)&&handleRecoveryCameraPrompt(root))return
             val message = root.findAccessibilityNodeInfosByText("notifications")
             val known = message.any { it.text?.toString()?.contains("SoloSoul") == true }
             val deny = root.findAccessibilityNodeInfosByText("allow").firstOrNull {
@@ -129,13 +622,36 @@ class AndroidHomeInstrumentedTest {
         return if (parsed is String && parsed.startsWith("{")) JSONObject(parsed) else JSONObject()
     }
 
+    private val nativeDocumentReadiness = JSONArray()
+    private var lastNativeReadiness: String? = null
+    private var readyDocumentEvaluations = 0
+
     private fun waitFor(scenario: ActivityScenario<MainActivity>, label: String,
                         expression: String, predicate: (JSONObject) -> Boolean): JSONObject {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45)
         var last = JSONObject()
         do {
-            last = js(scenario, expression)
-            if (predicate(last)) return last
+            val document = JSONObject()
+            scenario.onActivity { activity ->
+                val view = webView(activity.window.decorView)
+                val url = view?.url
+                val progress = view?.progress ?: -1
+                val attached = view?.isAttachedToWindow == true
+                document.put("url",url?:JSONObject.NULL).put("progress",progress).put("attached",attached)
+                    .put("ready",attached && progress == 100 && url != null && url.isNotBlank() && !url.startsWith("about:"))
+            }
+            val key = label + document.toString()
+            if (key != lastNativeReadiness) {
+                lastNativeReadiness = key
+                nativeDocumentReadiness.put(document.put("label",label))
+            }
+            // The same 45-second deadline covers native navigation and UI readiness.
+            // A ready document still has the original strict 3-second JS response check.
+            if (document.getBoolean("ready")) {
+                readyDocumentEvaluations++
+                last = js(scenario, expression)
+                if (predicate(last)) return last
+            }
             Thread.sleep(100)
         } while (System.nanoTime() < deadline)
         throw AssertionError("$label: $last")
@@ -206,6 +722,13 @@ class AndroidHomeInstrumentedTest {
       home:!!document.querySelector('[data-testid="android-home"]'),
       alerts:[...document.querySelectorAll('[role="alert"]')].map(e=>e.textContent.trim())})"""
 
+    private val backupReminderLayout = """(() => {
+      const scope=document.querySelector('[data-shell-notifications]'),toast=scope?.querySelector('[data-toast-container]');
+      const main=document.querySelector('[data-shell-content]'),r=main?.getBoundingClientRect();
+      return JSON.stringify({count:[...(scope?.querySelectorAll('button')||[])].filter(e=>e.textContent.trim()==='Back Up Now').length,
+        inFlow:!!toast&&getComputedStyle(toast).position==='static',readingTop:r?.top,readingBottom:r?.bottom});
+    })()"""
+
     private val home = """(() => {
       const root=document.documentElement, style=getComputedStyle(root);
       const copy=document.querySelector('.android-overview-copy'), art=document.querySelector('.android-liquid-artwork');
@@ -229,6 +752,298 @@ class AndroidHomeInstrumentedTest {
         navigationBackdrop:navigation?getComputedStyle(navigation).backdropFilter:null,
         navCount:document.querySelectorAll('.android-navigation a').length});
     })()"""
+
+    private val securityWarningChecks get() = InstrumentationRegistry.getArguments().getString("securityWarnings") == "true"
+    private val securityWarningRecords = JSONArray()
+
+    /** Exercise real settings controls and observe real system contrast; no appearance/style injection. */
+    private fun verifySecurityWarnings(scenario: ActivityScenario<MainActivity>) {
+        val requested = InstrumentationRegistry.getArguments().getString("securityHighTextContrast")
+        require(requested == "true" || requested == "false")
+        val expected = requested == "true"
+        for (dark in listOf(false, true)) {
+            val theme = if (dark) "dark" else "light"
+            openAppearance(scenario)
+            clickText(scenario, if (dark) "Dark" else "Light")
+            clickSelector(scenario, ".android-navigation a[href='/settings']")
+            val opened = js(scenario, """(() => {
+              const e=[...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('Security Settings'));
+              e?.click();return JSON.stringify({clicked:!!e});
+            })()""")
+            assertTrue("Open actual security settings", opened.getBoolean("clicked"))
+            waitFor(scenario, "security route $theme", page) { it.optString("path") == "/settings/security" }
+            chooseValue(scenario, "main [data-ui-card='default'] select", "0")
+            for (kind in listOf("never", "master")) {
+                val message = if (kind == "never") "Never locking reduces security. We recommend setting an auto-lock time when you step away from your device." else "Please keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!"
+                val locate = """[...document.querySelectorAll('main div,main p,main span')]
+                  .find(e=>e.textContent.trim()===${JSONObject.quote(message)}&&e.closest('[data-ui-card="default"]'))"""
+                waitFor(scenario, "warning rendered $theme $kind", """(() => {
+                  const e=$locate;e?.scrollIntoView({block:'center'});return JSON.stringify({present:!!e});
+                })()""") { it.optBoolean("present") }
+                val resolver = instrumentation.targetContext.contentResolver
+                val raw = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+                val nativeEnabled = android.provider.Settings.Secure.getInt(resolver, "high_text_contrast_enabled", 0) == 1
+                var stableReads = 0
+                var previousState: String? = null
+                val state = waitFor(scenario, "visible security warning $theme $kind", """(() => {
+                  const e=$locate,root=document.documentElement,rs=getComputedStyle(root);
+                  if(!e)return JSON.stringify({present:false});
+                  const rect=n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+                  const r=rect(e),es=getComputedStyle(e),card=e.closest('[data-ui-card="default"]');
+                  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+                  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+                  const layers=['#ffffff'];
+                  const ancestors=[];for(let n=e;n;n=n.parentElement)ancestors.unshift(getComputedStyle(n));
+                  layers.push(...ancestors.map(s=>s.backgroundColor));
+                  const sample=colors=>{ctx.clearRect(0,0,1,1);for(const c of colors){ctx.fillStyle=c;ctx.fillRect(0,0,1,1)}return [...ctx.getImageData(0,0,1,1).data].slice(0,3)};
+                  const background=sample(layers),foreground=sample([...layers,es.color]);
+                  const luminance=rgb=>rgb.map(v=>{v/=255;return v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+                  const a=luminance(background),b=luminance(foreground);
+                  const textRects=[];const walker=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let node;
+                  while(node=walker.nextNode()){if(!node.textContent.trim())continue;const range=document.createRange();range.selectNodeContents(node);
+                    for(const t of range.getClientRects())if(t.width>0&&t.height>0)textRects.push({x:t.x,y:t.y,width:t.width,height:t.height})}
+                  const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                  return JSON.stringify({present:true,path:location.pathname,platform:root.dataset.platform,theme:root.dataset.theme,
+                    warning:kind,foreground,background,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),
+                    warningToken:rs.getPropertyValue('--text-warning').trim(),primary:rs.getPropertyValue('--text-primary').trim(),
+                    rootHighContrast:root.dataset.highContrast??null,androidHighTextContrast:root.dataset.androidHighTextContrast??null,
+                    prefersMore:matchMedia('(prefers-contrast: more)').matches,
+                    effectiveHighContrast:root.dataset.highContrast==='true'||root.dataset.androidHighTextContrast==='true'||matchMedia('(prefers-contrast: more)').matches,
+                    cardSurface:card?.dataset.uiCard,rect:r,textRects,cssViewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},
+                    backgroundImagesAbsent:ancestors.every(s=>s.backgroundImage==='none'),
+                    visible:r.x>=0&&r.y>=0&&r.x+r.width<=innerWidth+.5&&r.y+r.height<=innerHeight+.5&&!!hit&&e.contains(hit)});
+                })()""".replace("warning:kind", "warning:" + JSONObject.quote(kind))) {
+                    val ready = it.optBoolean("present") && it.optBoolean("visible") && it.optString("theme") == theme
+                    val signature = it.toString()
+                    stableReads = if (ready && signature == previousState) stableReads + 1 else if (ready) 1 else 0
+                    previousState = if (ready) signature else null
+                    stableReads >= 2
+                }
+                val stage = "security-$theme-$kind"
+                val filename = "$stage.png"
+                val bitmap = screenshot(scenario)
+                try {
+                    File(evidence, filename).outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+                    state.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height)
+                } finally { bitmap.recycle() }
+                val after = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+                state.put("stage",stage).put("stableObservations",stableReads).put("expected",expected).put("nativeEnabled",nativeEnabled)
+                    .put("rawBefore",raw?:JSONObject.NULL).put("rawAfter",after?:JSONObject.NULL)
+                    .put("screenshot",filename).put("nativeViewport",nativeViewport(scenario))
+                    .put("noAppearanceOrStyleInjected",true)
+                securityWarningRecords.put(state)
+                writeReport()
+                assertEquals(expected,nativeEnabled)
+                assertEquals(raw,after)
+                assertEquals("android",state.getString("platform"))
+                assertEquals("default",state.getString("cardSurface"))
+                assertTrue("Actual body must meet 4.5:1: $state",state.getDouble("contrast") >= 4.5)
+                assertTrue(state.getBoolean("backgroundImagesAbsent"))
+                assertEquals(expected,state.getBoolean("effectiveHighContrast"))
+                assertEquals(expected.toString(),state.getString("androidHighTextContrast"))
+                if(expected)assertEquals(state.getString("primary"),state.getString("warningToken"))
+            }
+        }
+        clickSelector(scenario, ".android-navigation a[href='/']")
+        waitFor(scenario, "security warnings returned home", home) { it.optBoolean("home") }
+    }
+
+
+    private fun fillFeedbackInput(scenario: ActivityScenario<MainActivity>, label: String, value: String) {
+        val result = js(scenario, """(() => {
+          const label=[...document.querySelectorAll('main label')].find(e=>e.textContent.trim()===${JSONObject.quote(label)});
+          const input=label?.htmlFor?document.getElementById(label.htmlFor):null;
+          if(!input||input.tagName!=='INPUT'||input.disabled)return JSON.stringify({filled:false});
+          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSONObject.quote(value)});
+          input.dispatchEvent(new Event('input',{bubbles:true}));return JSON.stringify({filled:input.value===${JSONObject.quote(value)}});
+        })()""")
+        assertTrue("Actual labeled provider input: $label",result.getBoolean("filled"))
+    }
+
+    private val providerFeedbackChecks get() = InstrumentationRegistry.getArguments().getString("providerFeedback") == "true"
+    private val providerFeedbackRecords = JSONArray()
+
+    /** Exercise real settings controls and observe real system contrast; no appearance/style injection. */
+    private fun verifyProviderFeedback(scenario: ActivityScenario<MainActivity>) {
+        val requested = InstrumentationRegistry.getArguments().getString("feedbackHighTextContrast")
+        require(requested == "true" || requested == "false")
+        val expected = requested == "true"
+        for (dark in listOf(false, true)) {
+            val theme = if (dark) "dark" else "light"
+            openAppearance(scenario)
+            clickText(scenario, if (dark) "Dark" else "Light")
+            clickSelector(scenario, ".android-navigation a[href='/tools']")
+            waitFor(scenario, "actual Tools route $theme", page) { it.optString("path") == "/tools" }
+            clickText(scenario, "AI Chat")
+            waitFor(scenario, "actual AI Chat route $theme", page) { it.optString("path") == "/llm-chat" }
+            clickText(scenario, "Configure LLM")
+            waitFor(scenario, "actual provider settings route $theme", page) { it.optString("path") == "/settings/llm" }
+            clickText(scenario, "Add Custom Provider")
+            fillFeedbackInput(scenario, "Provider Name", "Public fixture")
+            fillFeedbackInput(scenario, "Model", "fixture-model")
+            fillFeedbackInput(scenario, "API Key", "public-unused")
+            for (kind in listOf("success", "error")) {
+                val endpoint = InstrumentationRegistry.getArguments().getString("feedbackUrl")!! + "/$kind/v1"
+                fillFeedbackInput(scenario, "Base URL", endpoint)
+                clickText(scenario, "Test Connection")
+                val prefix = if (kind == "success") "✓ Connected" else "✗ Connection failed"
+                val locate = """[...document.querySelectorAll('main div')]
+                  .find(e=>e.childElementCount===0&&e.textContent.trim().startsWith(${JSONObject.quote(prefix)})&&e.closest('[data-ui-card="default"]'))"""
+                waitFor(scenario, "provider feedback rendered $theme $kind", """(() => {
+                  const e=$locate;e?.scrollIntoView({block:'center'});return JSON.stringify({present:!!e});
+                })()""") { it.optBoolean("present") }
+                val resolver = instrumentation.targetContext.contentResolver
+                val raw = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+                val nativeEnabled = android.provider.Settings.Secure.getInt(resolver, "high_text_contrast_enabled", 0) == 1
+                var stableReads = 0
+                var previousState: String? = null
+                val state = waitFor(scenario, "visible provider feedback $theme $kind", """(() => {
+                  const kind=${JSONObject.quote(kind)},e=$locate,root=document.documentElement,rs=getComputedStyle(root);
+                  if(!e)return JSON.stringify({present:false});
+                  const rect=n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+                  const r=rect(e),es=getComputedStyle(e),card=e.closest('[data-ui-card="default"]');
+                  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+                  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+                  const layers=['#ffffff'];
+                  const ancestors=[];for(let n=e;n;n=n.parentElement)ancestors.unshift(getComputedStyle(n));
+                  layers.push(...ancestors.map(s=>s.backgroundColor));
+                  const sample=colors=>{ctx.clearRect(0,0,1,1);for(const c of colors){ctx.fillStyle=c;ctx.fillRect(0,0,1,1)}return [...ctx.getImageData(0,0,1,1).data].slice(0,3)};
+                  const background=sample(layers),foreground=sample([...layers,es.color]);
+                  const luminance=rgb=>rgb.map(v=>{v/=255;return v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+                  const a=luminance(background),b=luminance(foreground);
+                  const textRects=[];const walker=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let node;
+                  while(node=walker.nextNode()){if(!node.textContent.trim())continue;const range=document.createRange();range.selectNodeContents(node);
+                    for(const t of range.getClientRects())if(t.width>0&&t.height>0)textRects.push({x:t.x,y:t.y,width:t.width,height:t.height})}
+                  const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                  return JSON.stringify({present:true,path:location.pathname,platform:root.dataset.platform,theme:root.dataset.theme,
+                    feedback:kind,foreground,background,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),
+                    feedbackToken:rs.getPropertyValue(kind==='success'?'--text-success':'--text-error').trim(),primary:rs.getPropertyValue('--text-primary').trim(),
+                    rootHighContrast:root.dataset.highContrast??null,androidHighTextContrast:root.dataset.androidHighTextContrast??null,
+                    prefersMore:matchMedia('(prefers-contrast: more)').matches,
+                    effectiveHighContrast:root.dataset.highContrast==='true'||root.dataset.androidHighTextContrast==='true'||matchMedia('(prefers-contrast: more)').matches,
+                    cardSurface:card?.dataset.uiCard,rect:r,textRects,cssViewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},
+                    backgroundImagesAbsent:ancestors.every(s=>s.backgroundImage==='none'),
+                    visible:r.x>=0&&r.y>=0&&r.x+r.width<=innerWidth+.5&&r.y+r.height<=innerHeight+.5&&!!hit&&e.contains(hit)});
+                })()""".replace("feedback:kind", "feedback:" + JSONObject.quote(kind))) {
+                    val ready = it.optBoolean("present") && it.optBoolean("visible") && it.optString("theme") == theme
+                    val signature = it.toString()
+                    stableReads = if (ready && signature == previousState) stableReads + 1 else if (ready) 1 else 0
+                    previousState = if (ready) signature else null
+                    stableReads >= 2
+                }
+                val stage = "feedback-$theme-$kind"
+                val filename = "$stage.png"
+                val bitmap = screenshot(scenario)
+                try {
+                    File(evidence, filename).outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+                    state.put("screenshotWidth",bitmap.width).put("screenshotHeight",bitmap.height)
+                } finally { bitmap.recycle() }
+                val after = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+                state.put("stage",stage).put("stableObservations",stableReads).put("expected",expected).put("nativeEnabled",nativeEnabled)
+                    .put("rawBefore",raw?:JSONObject.NULL).put("rawAfter",after?:JSONObject.NULL)
+                    .put("screenshot",filename).put("nativeViewport",nativeViewport(scenario))
+                    .put("noAppearanceOrStyleInjected",true).put("endpoint",endpoint).put("message",js(scenario,"JSON.stringify({text:($locate)?.textContent.trim()})").getString("text"))
+                providerFeedbackRecords.put(state)
+                writeReport()
+                assertEquals(expected,nativeEnabled)
+                assertEquals(raw,after)
+                assertEquals("android",state.getString("platform"))
+                assertEquals("default",state.getString("cardSurface"))
+                assertTrue("Actual provider feedback must meet 4.5:1: $state",state.getDouble("contrast") >= 4.5)
+                assertTrue(state.getBoolean("backgroundImagesAbsent"))
+                assertEquals(expected,state.getBoolean("effectiveHighContrast"))
+                assertEquals(expected.toString(),state.getString("androidHighTextContrast"))
+                if(expected)assertEquals(state.getString("primary"),state.getString("feedbackToken"))
+            }
+        }
+        clickSelector(scenario, ".android-navigation a[href='/']")
+        waitFor(scenario, "provider feedback returned home", home) { it.optBoolean("home") }
+    }
+
+
+    private val mainContrastRecords = JSONArray()
+    private val mainLiveContrastRecords = JSONArray()
+
+    /** Observe the production document; never inject an appearance value or override styles. */
+    private fun observeMainHighTextContrast(scenario: ActivityScenario<MainActivity>, stage: String,
+                                            expectedOverride: Boolean? = null, live: Boolean = false) {
+        val requested = InstrumentationRegistry.getArguments().getString("expectedHighTextContrast") ?: return
+        require(requested == "true" || requested == "false")
+        val expected = expectedOverride ?: (requested == "true")
+        val resolver = instrumentation.targetContext.contentResolver
+        val raw = android.provider.Settings.Secure.getString(resolver, "high_text_contrast_enabled")
+        assertTrue("Only real absent/0/1 settings are accepted", raw == null || raw == "0" || raw == "1")
+        val nativeEnabled = android.provider.Settings.Secure.getInt(resolver, "high_text_contrast_enabled", 0) == 1
+        val state = js(scenario, """JSON.stringify((() => {
+          const root=document.documentElement,style=getComputedStyle(root);
+          const card=document.querySelector('[data-ui-card="floating"]');
+          const color=card?getComputedStyle(card):null,rect=card?.getBoundingClientRect();
+          return {path:location.pathname,platform:root.dataset.platform,documentTimeOrigin:performance.timeOrigin,
+            rootHighContrast:root.dataset.highContrast??null,
+            androidHighTextContrast:root.dataset.androidHighTextContrast??null,
+            prefersMore:matchMedia('(prefers-contrast: more)').matches,
+            effectiveHighContrast:root.dataset.highContrast==='true'||root.dataset.androidHighTextContrast==='true'||matchMedia('(prefers-contrast: more)').matches,
+            primary:style.getPropertyValue('--text-primary').trim(),border:style.getPropertyValue('--border-subtle').trim(),
+            error:style.getPropertyValue('--text-error').trim(),
+            card:card?{surface:card.dataset.uiCard,color:color.color,background:color.backgroundColor,
+              border:color.borderTopColor,rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}}:null};
+        })())""")
+        val bitmap = screenshot(scenario)
+        val filename = "main-contrast-$stage.png"
+        try {
+            File(evidence,filename).outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+        } finally { bitmap.recycle() }
+        val after = android.provider.Settings.Secure.getString(resolver,"high_text_contrast_enabled")
+        state.put("stage",stage).put("expected",expected).put("nativeEnabled",nativeEnabled)
+            .put("rawBefore",raw?:JSONObject.NULL).put("rawAfter",after?:JSONObject.NULL)
+            .put("screenshot",filename).put("noAppearanceOrStyleInjected",true)
+        val records = if (live) mainLiveContrastRecords else mainContrastRecords
+        records.put(state)
+        File(evidence,if (live) "main-high-text-live.json" else "main-high-text-contrast.json").writeText(records.toString(2))
+        assertEquals("Actual Android system contrast must match the explicit main-window lane",expected,nativeEnabled)
+        assertEquals("Native setting must remain unchanged while observing MainActivity",raw,after)
+        assertEquals("android",state.getString("platform"))
+        assertFalse("MainActivity must expose an actual production Card",state.isNull("card"))
+        assertEquals("MainActivity must receive the actual Android high text contrast preference",expected,state.getBoolean("effectiveHighContrast"))
+        if(expected) {
+            assertEquals("High-contrast semantic border must use the existing primary foreground",state.getString("primary"),state.getString("border"))
+            assertEquals("High-contrast error body must use the existing primary foreground",state.getString("primary"),state.getString("error"))
+        }
+        if (!live && stage == "qr-light-disabled" &&
+            InstrumentationRegistry.getArguments().getString("mainHighTextContrastLiveChecks") == "true")
+            verifyLiveHighTextContrast(scenario, expected)
+    }
+
+    /** 仅测试端使用 shell 更改真实系统偏好；从不写入页面标记或样式。 */
+    private fun verifyLiveHighTextContrast(scenario: ActivityScenario<MainActivity>, initial: Boolean) {
+        val resolver = instrumentation.targetContext.contentResolver
+        val original = android.provider.Settings.Secure.getString(resolver,"high_text_contrast_enabled")
+        fun write(value: String?) {
+            val command = if (value == null) "settings delete secure high_text_contrast_enabled"
+                else "settings put secure high_text_contrast_enabled $value"
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(
+                instrumentation.uiAutomation.executeShellCommand(command)).use { it.readBytes() }
+            assertEquals("Live setting write must affect the real system",value,
+                android.provider.Settings.Secure.getString(resolver,"high_text_contrast_enabled"))
+        }
+        fun delivered(expected: Boolean) {
+            waitFor(scenario,"实际系统高文字对比变化交付主文档",
+                """JSON.stringify({enabled:document.documentElement.dataset.androidHighTextContrast==='true'})""") {
+                it.getBoolean("enabled") == expected
+            }
+        }
+        try {
+            listOf(!initial,initial,!initial,initial).forEachIndexed { index, enabled ->
+                write(if (enabled) "1" else "0")
+                delivered(enabled)
+                observeMainHighTextContrast(scenario,"live-contrast-$index",enabled,true)
+            }
+        } finally {
+            write(original)
+            delivered(initial)
+        }
+    }
+
 
     private fun capture(scenario: ActivityScenario<MainActivity>, stage: String,
                         dark: Boolean, enhanced: Boolean, count: String = "0") {
@@ -269,7 +1084,22 @@ class AndroidHomeInstrumentedTest {
             assertTrue("装饰不得盖住资料库文案", copy.getDouble("right") <= art.getDouble("x") + 1)
         }
         if (requestedFontScale != null) captureTypography(scenario, result)
+        val reminderBefore = if (requestedFontScale != null && stage == "enhanced-dark-after-unlock") {
+            js(scenario, backupReminderLayout).also {
+                assertEquals("大字号解锁首页截图前必须有一条真实提醒", 1, it.getInt("count"))
+                assertTrue("首页提醒必须正常流占位", it.getBoolean("inFlow"))
+            }
+        } else null
         val bitmap = screenshot(scenario)
+        if (reminderBefore != null) {
+            val reminderAfter = js(scenario, backupReminderLayout)
+            assertEquals("大字号解锁首页截图后真实提醒必须仍存在", 1, reminderAfter.getInt("count"))
+            assertTrue("截图后提醒必须保留正常流占位", reminderAfter.getBoolean("inFlow"))
+            assertTrue("最终合成帧前后阅读区不能发生位移",
+                kotlin.math.abs(reminderAfter.getDouble("readingTop")-reminderBefore.getDouble("readingTop")) <= 1 &&
+                    kotlin.math.abs(reminderAfter.getDouble("readingBottom")-reminderBefore.getDouble("readingBottom")) <= 1)
+            result.put("backupReminderBeforeScreenshot", reminderBefore).put("backupReminderAfterScreenshot", reminderAfter)
+        }
         // 检查最终合成帧里的真实文字像素，不能仅以 DOM 存在作为“没有被材质遮住”。
         var viewWidth = 0
         val location = IntArray(2)
@@ -543,6 +1373,8 @@ class AndroidHomeInstrumentedTest {
         waitFor(scenario, "新建前局部玻璃首页", home) {
             it.optBoolean("home") && it.optString("glass") == "local"
         }
+        // 编辑采样使用新一轮真实限时提醒，避免前面的外观/首页截图耗尽同一8秒窗口。
+        renewPublicBackupReminder(scenario)
         // 首页路由 DOM 就绪不等于 AndroidNavigation 的入口已完成视觉提交。
         // 实际 WebView 绘制后再操作；这不替换菜单 handler 或重试失败操作。
         screenshot(scenario).recycle()
@@ -634,6 +1466,20 @@ class AndroidHomeInstrumentedTest {
     }
 
     private fun captureObjectActionsAndBack(scenario: ActivityScenario<MainActivity>) {
+        if (!overlayChecks && !keyboardChecks && !previewChecks) {
+            // 菜单的通知布局独立验收；保留生产时长和截图后存在断言。
+            clickSelector(scenario, ".android-navigation a[href='/']")
+            waitFor(scenario, "菜单提醒复验返回有数据首页", home) {
+                it.optBoolean("home") && it.optString("count") == "1"
+            }
+            renewPublicBackupReminder(scenario)
+            val category = js(scenario, """(() => {const b=[...document.querySelectorAll('.android-category button')].find(b=>b.querySelector('strong')?.textContent==='Travel');b?.click();return JSON.stringify({clicked:!!b})})()""")
+            assertTrue("菜单提醒复验点击真实分类入口", category.getBoolean("clicked"))
+            waitFor(scenario, "菜单提醒复验返回公开对象列表", """JSON.stringify({path:location.pathname,search:location.search,card:document.querySelector('[data-testid="workspace-object-card"]')?.textContent})""") {
+                it.optString("path") == "/workspace" && it.optString("search").contains("section=travel") &&
+                    it.optString("card").contains("FE2 public object")
+            }
+        }
         clickSelector(scenario, "[data-testid='workspace-object-card'] button[aria-haspopup='dialog']")
         captureContent(scenario, "object-actions-dark", ".android-sheet[role='dialog']", "Attachments")
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
@@ -829,6 +1675,11 @@ class AndroidHomeInstrumentedTest {
 
     /** 为每个限时提醒场景重置仅公开账户的夹具，再执行真实锁定/主密码解锁。 */
     private fun renewPublicBackupReminder(scenario: ActivityScenario<MainActivity>) {
+        // 先让上一轮真实提醒自然结束，再独立准备下一轮；不能把两条提醒叠入同一通知容器。
+        // 这不是等待过期来通过布局断言：后面的采样仍须在新提醒存在期间完成。
+        waitFor(scenario, "准备新场景前上一轮真实提醒已自然结束", """JSON.stringify({count:[...document.querySelectorAll('[data-toast-container] button')].filter(b=>b.textContent.trim()==='Back Up Now').length})""") {
+            it.getInt("count") == 0
+        }
         js(scenario, """(() => {window.fe2InsetsReminder={pending:true};
           const invoke=window.__TAURI_INTERNALS__.invoke;
           invoke('vault_list_accounts',{}).then(async accounts=>{
@@ -845,9 +1696,10 @@ class AndroidHomeInstrumentedTest {
         assertFalse("公开提醒夹具失败: $fixture",fixture.has("error"))
         lockToPassword(scenario)
         unlockPublicVisualAccount(scenario)
-        waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({present:[...document.querySelectorAll('[data-shell-notifications] button')].some(b=>b.textContent.trim()==='Back Up Now')})") {
-            it.optBoolean("present")
+        val reminder = waitFor(scenario,"新一轮真实限时提醒","JSON.stringify({count:[...document.querySelectorAll('[data-shell-notifications] button')].filter(b=>b.textContent.trim()==='Back Up Now').length})") {
+            it.getInt("count") > 0
         }
+        assertEquals("每个新场景只能有一条真实备份提醒", 1, reminder.getInt("count"))
     }
 
     /** 每次在未过期的生产提醒下重新进入对象附件，避免多次截图耗尽同一8秒提醒。 */
@@ -1831,6 +2683,13 @@ class AndroidHomeInstrumentedTest {
                     it.optBoolean("enabled") && !it.optBoolean("pending") && !it.optBoolean("home")
             }
             unlockPublicVisualAccount(scenario)
+            if (requestedFontScale != null) {
+                // 生产解锁在2秒后异步检查提醒；先等真实提醒占位，再测量阅读区和注入原生手势。
+                val reminder = waitFor(scenario, "大字号首页等待真实解锁提醒占位", backupReminderLayout) {
+                    it.optInt("count") > 0 && it.optBoolean("inFlow")
+                }
+                assertEquals("大字号首页只允许一条真实备份提醒", 1, reminder.getInt("count"))
+            }
             capture(scenario, "enhanced-dark-after-unlock", dark = true, enhanced = true)
             // 真实持久化 IPC 核对，等待 debounce 完成，不假定 DOM 即代表保存。
             js(scenario, """(() => {window.fe2HomePrefs={pending:true};
@@ -1848,6 +2707,10 @@ class AndroidHomeInstrumentedTest {
             if (accountChecks) verifyAccounts(scenario)
             if (insetsChecks) verifyInsets(scenario)
             if (renderingChecks) verifyRenderingWork(scenario)
+            if (recoveryChecks) verifyRecoveryCards(scenario)
+            if (qrChecks) verifyQrCards(scenario)
+            if (securityWarningChecks) verifySecurityWarnings(scenario)
+            if (providerFeedbackChecks) verifyProviderFeedback(scenario)
         } catch (error: Throwable) {
             // 仅公开临时账户；记录可见文案，不读取任何输入值或私有 Vault 文件。
             liveScenario?.let { scenario ->

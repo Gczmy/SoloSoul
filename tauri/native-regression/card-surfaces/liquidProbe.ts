@@ -63,7 +63,7 @@ export function startLiquidProbe(theme: 'light' | 'dark', accent: string) {
         String(available);
       if (!available) return;
       draws += 1;
-      const gl = canvas!.getContext('webgl')!;
+      const gl = (canvas!.getContext('webgl') ?? canvas!.getContext('webgl2'))!;
       const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
       const uniforms = Object.fromEntries(
         ['container', 'accent', 'secondary', 'tertiary'].map((key) => {
@@ -126,7 +126,9 @@ export function readLiquidProbe() {
 
 export function loseLiquidProbeContext(lost: boolean) {
   const extension = lost
-    ? canvas?.getContext('webgl')?.getExtension('WEBGL_lose_context')
+    ? (canvas?.getContext('webgl') ?? canvas?.getContext('webgl2'))?.getExtension(
+        'WEBGL_lose_context',
+      )
     : lossExtension;
   if (!extension) throw new Error('Context loss extension unavailable; cannot accept this lane');
   if (lost) {

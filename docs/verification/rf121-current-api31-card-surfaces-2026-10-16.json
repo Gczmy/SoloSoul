@@ -1,0 +1,262 @@
+{
+  "task": "RF-121",
+  "date": "2026-10-16",
+  "status": "partial-native-default-floating-card",
+  "validatedSourceHead": "eb29608b8a3d0a3fc93ddb057bf8de9b0f3c4442",
+  "currentSourceFiles": 1795,
+  "fixture": {
+    "currentSourceGeneratorActuallyExecuted": true,
+    "packagedAssetByteIdentical": true,
+    "sha256": "a0be2730a8c87e310e564803096ebb0e671d0c4325a9efee47f4541217f724f4",
+    "bytes": 276043,
+    "originalDebugAssetPreserved": true,
+    "productionSourcesAndApksUnchanged": true,
+    "accountOrVaultOrMainActivityLoadedByFixture": false,
+    "networkDisabled": true
+  },
+  "runtime": {
+    "api": 31,
+    "android": "12",
+    "abi": "x86_64",
+    "webView": "91.0.4472.114",
+    "emulator": true,
+    "gpu": "SwiftShader"
+  },
+  "acceptance": {
+    "completeContrastModes": 2,
+    "nativeJUnitTests": 2,
+    "themesPerMode": 2,
+    "surfacesPerTheme": 2,
+    "physicalSurfacePixelSamples": 8,
+    "decodedPngs": 8,
+    "actualNativeHighTextContrast": true,
+    "normalSystemAnimationsPreserved": true,
+    "longContentAndPageOverflowAbsent": true,
+    "originalFixtureLoadEvalReportPaintAndWatchdogBudgetsUnchanged": true,
+    "currentBootAnrAbsent": true,
+    "completeTerminalDropBoxEntries": 388
+  },
+  "cases": [
+    {
+      "label": "normal",
+      "expectedHighTextContrast": false,
+      "nativeMethod": "lightAndDarkCardsRenderWithoutOverflow",
+      "acceptedThemes": 2,
+      "acceptedSurfaceSamples": 4,
+      "originalEvidenceAbsentBeforeTest": true,
+      "privateAndLiteralSystemRestored": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "nativeLogSha256": "c08af775fe9a2b2cffd22121cb45abdb83ce782c04073283e7f4bcb21363257f",
+      "driverReportSha256": "4f18f1048dfd8f8b6c388c9a2aa2e3b9cf96e62a646e528574313aade57a8de7"
+    },
+    {
+      "label": "high-text-contrast",
+      "expectedHighTextContrast": true,
+      "nativeMethod": "lightAndDarkHighTextContrastCardsRenderWithoutOverflow",
+      "acceptedThemes": 2,
+      "acceptedSurfaceSamples": 4,
+      "originalEvidenceAbsentBeforeTest": true,
+      "privateAndLiteralSystemRestored": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "nativeLogSha256": "925677f322c438b1c34a17b527b567e6208fad268abe3921d49627a62d458dfd",
+      "driverReportSha256": "8abcce87cc63c833c99e84e87a2defd8f4eee051673c2e8a1d877d203fca9e2b"
+    }
+  ],
+  "physicalSurfacePixelSamples": [
+    {
+      "case": "normal",
+      "theme": "light",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        253,
+        252,
+        249
+      ],
+      "expectedRgb": [
+        253,
+        252,
+        249
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "3ed457e8f4aa7ef6db8dfdac9c8e1d073a540fc2ae1367abb4ca1a64ce9e1beb"
+    },
+    {
+      "case": "normal",
+      "theme": "light",
+      "surface": "floating",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        242,
+        240,
+        233
+      ],
+      "expectedRgb": [
+        242,
+        240,
+        233
+      ],
+      "textCssContrast": 16.559655711981343,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "47b10d3b700b40fe7764e5ee8a82e29adb044ce130f7c252ac7b571af444e9c1"
+    },
+    {
+      "case": "normal",
+      "theme": "dark",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "4fb86f32342bf349ce33b820be94917197a6e2f062bc7e18273fc86e9b52496b"
+    },
+    {
+      "case": "normal",
+      "theme": "dark",
+      "surface": "floating",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "7f56bbc53d14ee9848da7160cba09b92055600292e5832c51be9462bfae15ae3"
+    },
+    {
+      "case": "high-text-contrast",
+      "theme": "light",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        253,
+        252,
+        249
+      ],
+      "expectedRgb": [
+        253,
+        252,
+        249
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "54ac80cfb1527ab7a9762d967a12315d2ab5b95560376dab80bf40cd7ae84dfe"
+    },
+    {
+      "case": "high-text-contrast",
+      "theme": "light",
+      "surface": "floating",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        242,
+        240,
+        233
+      ],
+      "expectedRgb": [
+        242,
+        240,
+        233
+      ],
+      "textCssContrast": 16.559655711981343,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "fc5b0b5a4b595ef9957ad4854c6de51776391ecef7876e9bc22dc3fad469cd47"
+    },
+    {
+      "case": "high-text-contrast",
+      "theme": "dark",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "ce8ba99f88712f7b4ee6ece01fc8742538fa33a46d551a8d064c06fb9f4565f7"
+    },
+    {
+      "case": "high-text-contrast",
+      "theme": "dark",
+      "surface": "floating",
+      "pixelX": 125,
+      "pixelY": 157,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "5717749d2b17acec9cbe18d513359e2adfeb1ef0f083b2643d0faeee0ed13c60"
+    }
+  ],
+  "restoration": {
+    "fullPrivateContentsLinksModesAndRootModeVerified": true,
+    "originalLiteralSystemSettingsRestored": true,
+    "exactFourEmptyBackupsRemovedAfterIndependentAudit": true,
+    "ownedApksEmulatorAndPrivateAdbCleaned": true,
+    "protectedOldAdbUnchanged": true
+  },
+  "limitations": [
+    "Standalone production Card/CSS in real Android WebView; separate MainActivity reports cover its theme delivery",
+    "No claim of all Card callers, macOS glass, Windows forced-colors/Mica, physical devices, API36 or performance",
+    "RF-112, RF-121, RF-312 and RF-122 through RF-127 dependencies remain incomplete"
+  ],
+  "evidenceSha256": {
+    "fixtureSourceComparison": "927caba80a1d3e56777bcccb53e88de9ec1b0457d252c691e8e134d0dbe3a26a",
+    "fixtureBuildReceipt": "7eac7e1ceb7b55a3ae6ba0847eb68564666b739d00615fcf607d0f92968c1dbd",
+    "currentSourceMap": "9a1de4ce4fe921c2da373bcb62c3e91de4384d0304c4e48f9c403bfd5b7ab597",
+    "sourceGuard": "c58adc78303a8c9b1339e882088f853d162a6fd148898eb25043ebab4d51918e",
+    "nativeToolMap": "ac33c375c10bfc2435c9e118439882c64a99aa6fc80c9d017dfe3ad96433ac2c",
+    "actualPackageVerification": "6e01d68ef24bd20de71955c020c62d95fb51c6de89ad1c7f102c669d81d3379e",
+    "canonicalTestSourceBinding": "d7effc6d891f750bd3cbe7034a1abba4b91c2510645a1dd83ace4c9c9b147d08",
+    "nativeQueue": "5c817de45b50150096bf3e31a587ecb40154c86fe838e3eecd4b0f8707f87ca1",
+    "nativeMatrix": "16f440e5f5aac67efd26424aafbe69604cf96388bab958d2d151e9840841de8e",
+    "independentNativeAudit": "77db1f22790b0c219b002d5a79422839fc439b2af52fe6de3e68feb194404072",
+    "hostBefore": "cf7560077a81217a508a19c7206f2b1c479601ba37f621fa1a008342751abee9",
+    "hostAfter": "71e50219635acabf5ba233952d36659c4a6da410774f16f9d853fae7e7ccfafb",
+    "preflight": "61669fe3220ea234d635fa7ed0c6880c0fcba6c6ec371f545309ab14af2fd9a6",
+    "visualReview": "c6215710c1637f310531874c320be114d201933b9625370832f73e9eab501998",
+    "exactPrivateBackupCleanup": "63b391cd848dadbf8a7f97b554c68ce4a61d0ccb4e7259f8474a9edd2dccab74"
+  }
+}

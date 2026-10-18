@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "bounded-local-command-receipt-replacement",
+  "localReceiptFixVerified": true,
+  "fullNativeQueueAccepted": false,
+  "twoSizeCheckpointAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "policy": {
+    "retryOperation": "same local atomic metadata replacement only",
+    "sdkCommandReplayed": false,
+    "maximumRetrySeconds": 0.25,
+    "maximumReplaceAttempts": 26,
+    "remainingOriginalCommandDeadlineRequired": true,
+    "windowsErrorCodes": [
+      5,
+      32,
+      33
+    ],
+    "everyRetriedDenialRecorded": true,
+    "unknownErrorsPermanentDenialsAndExpiredBudgetStillRefused": true,
+    "originalSdkTimeoutExceptionPreserved": true,
+    "originalCommandArgumentsReturnValuesAndCapturedOutputUnchanged": true
+  },
+  "gates": {
+    "total": 260,
+    "originalUiGatesRerun": 206,
+    "newReceiptReplaceTests": 8,
+    "unchangedMemoryAndQuietTestsReused": 46,
+    "passed": true,
+    "realWindowsReadHandleCaseExecuted": true,
+    "skipped": 0,
+    "originalPhaseSeconds": 45,
+    "originalObserverSeconds": 240,
+    "originalObserverRequestCap": 512,
+    "checkpointSeconds": 20
+  },
+  "source": {
+    "compiledProductHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+    "productSourceChanged": false,
+    "apkSha256": "f7469ce3717849bf26623ea1ffdb1945c20154471247f38f419c65c272462b99",
+    "productFiles": 1797,
+    "runtimeBindings": 1881,
+    "onlyLocalReceiptCommitChanged": true,
+    "uiMemoryReadersActorAdapterClosedGuardAndRestoreUnchanged": true,
+    "sourceSha256": {
+      "adb_control.py": "e641bf87c9e294230b63ac36ca01277d3582a4104fe90022287e8a69eaf5a968",
+      "test_receipt_replace.py": "84b7117e43283b4a8ff7cd129d98c0e60c1a52196bb0c866eec71a827f60d0c3"
+    }
+  },
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "cpuCount": 2,
+    "memoryMiB": 2048,
+    "webView": "91.0.4472.114",
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false
+  },
+  "cases": [
+    {
+      "objectCount": 100,
+      "completedUiPhases": 12,
+      "physicallyVerifiedPdfPages": 3,
+      "privateEntriesRestored": 149,
+      "observerNormalStopAccepted": true,
+      "observerPackageRemoved": true,
+      "normalControlCloseAndScratchRemoval": true,
+      "originalCallbackRestored": true,
+      "controlFrames": 3041,
+      "originalRequests": 346,
+      "savedResponseReads": 346,
+      "savedPngReads": 20,
+      "framesDigestSha256": "0769de90a79543fd007cd9fb91f3a8797077271c7ecafab663bc8e7f42c7781f",
+      "localReplaceDenialsRetained": 0,
+      "localReplaceCommands": 0,
+      "realNativeReplaceRetryObserved": false,
+      "checkpointAccepted": true,
+      "memoryCommands": 22,
+      "pssBytes": 254406656,
+      "checkpointElapsedMs": 1869.6175999939442,
+      "strictMemoryBodyReplayed": true
+    },
+    {
+      "objectCount": 5000,
+      "completedUiPhases": 2,
+      "physicallyVerifiedPdfPages": 0,
+      "privateEntriesRestored": 149,
+      "observerNormalStopAccepted": false,
+      "observerPackageRemoved": true,
+      "normalControlCloseAndScratchRemoval": true,
+      "originalCallbackRestored": true,
+      "controlFrames": 483,
+      "originalRequests": 41,
+      "savedResponseReads": 40,
+      "savedPngReads": 3,
+      "framesDigestSha256": "e8183e7c0df2f28259977832f13a70618b41450a101980d2c1675da32b6655de",
+      "localReplaceDenialsRetained": 0,
+      "localReplaceCommands": 0,
+      "realNativeReplaceRetryObserved": false,
+      "checkpointAccepted": false,
+      "memoryCommands": 0,
+      "lastScrollInputDispatched": false,
+      "geometryChangedAfterSuccessfulReadOnlyProbe": true
+    }
+  ],
+  "nativeReplacementDenialsObserved": 0,
+  "nativeRetryBranchObserved": false,
+  "realReadHandleRegressionCoversRetryBranch": true,
+  "rejected5000": {
+    "reason": "scroll target geometry changed after read-only readiness",
+    "completedPhases": 2,
+    "requestedScrollBounds": [
+      0,
+      511,
+      1084,
+      1572
+    ],
+    "currentScrollBounds": [
+      0,
+      231,
+      1084,
+      1572
+    ],
+    "lastScrollInputDispatched": false,
+    "memoryCheckpointReached": false,
+    "normalObserverStopAccepted": false,
+    "originalStrictAuditAccepted": false
+  },
+  "restoration": {
+    "privateEntriesPerCase": [
+      149,
+      149
+    ],
+    "originalApkUidDebugPrivateAndNineSettingsRestored": true,
+    "allObserverPackagesRemoved": true,
+    "allControlsNormallyClosed": true,
+    "allRemoteScratchRemoved": true,
+    "hostProcesses": 0,
+    "hostListeners": 0,
+    "completeDropBoxEntries": 107,
+    "noAnr": true
+  },
+  "exactNativeFileLockOwnerProven": false,
+  "evidenceSha256": {
+    "receipt-replace-unit-result.json": "d3e9ae5862cbbd1310242c23bcd7fc2447b62d05d5e52b0ab375f656a1a7a495",
+    "receipt-replace-caller-audit.json": "4851adaf204a6b377e615314bde88d0052949a0f19201fca99f8ea2a3ac2ce59",
+    "independent-receipt-prefix-audit.json": "f1659ced6b40f92759e61115e4cac95aa4180e15f3fbd79ffdc55670ad70347b",
+    "strict-audit-result.json": "43d405b18ac8e3b746f37f7c9bbdbe05ef99c59c64396ac3f06d478847175a65",
+    "external-terminal-r2.json": "b7b8300e6d95824e96cb668e4db0b036f84ca0f2ebb68d771281bbb1d7f76602",
+    "combined-current-host-unit-result.json": "7458b2bb0a4ff069786c9e34dd09a9d4900b8e932291db7b63f9498532c138a9",
+    "memory-checkpoint-unit-result.json": "b78f1981e2e8a06bb17e270ac2b8c3786db9235a7aa08fc35ea5cfaf3d80e290",
+    "bootstrap-quiet-unit-result.json": "8bc738b629fda950df77fdff4324456f4a4798f40c2d592e119793d5b581477e",
+    "fresh-host-after/result.json": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  }
+}

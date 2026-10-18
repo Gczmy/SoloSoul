@@ -1,0 +1,151 @@
+{
+  "task": "RF-312",
+  "date": "2026-10-17",
+  "status": "bound-half-ocr-offline-verified-native-validation-pending",
+  "sourceHeadAtStart": "0047e0198e439fece13ba923a2d71d48068a36c5",
+  "compiledProductSourceHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+  "productSourceOrBuildConfigurationChanged": false,
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "python": "3.14.6",
+    "pillow": "12.2.0"
+  },
+  "sourceSha256": {
+    "scaled_ocr.py": "3cd38d95deeffa5bea8d9a9e881533acd1cdd40c0d11563e577a2a878616c59c",
+    "test_scaled_ocr.py": "71c869577ee4769c29c6f13b17b6b214785c39fec9a8e1d50b2845b59a6f694d"
+  },
+  "offlineSameImageDiagnosis": {
+    "diagnosticOnly": true,
+    "sourceNativeScreenshotUnchanged": true,
+    "sourceImageSha256": "380ad96c9e4840b4e8352685e950181d2686c36b3af2f7ad147eeb341df76df3",
+    "fixedScaleResults": [
+      {
+        "percent": 100,
+        "exactOriginalContentVerifierPassed": false,
+        "imageSha256": "380ad96c9e4840b4e8352685e950181d2686c36b3af2f7ad147eeb341df76df3",
+        "ocrSha256": "d349340b489b0d67dadb7d1a2729d43ad906763d72666ab6a26b56874ceeb35c"
+      },
+      {
+        "percent": 75,
+        "exactOriginalContentVerifierPassed": false,
+        "imageSha256": "f51a209d780ccd04f1dd4aaa26bd6ba371740659de400fcee21c3cb9d3ce0e1c",
+        "ocrSha256": "a2f98bcc34f827b0aaef6f3414b20e9814dc916481c0603aadc6dcd2f5ca7789"
+      },
+      {
+        "percent": 67,
+        "exactOriginalContentVerifierPassed": false,
+        "imageSha256": "da868d7a1fd31bbacde8909543577d33e300ac9c7cdc8da40a652a5d2631f0aa",
+        "ocrSha256": "a79669d23d7fbe22e2d0e43a4973cfaad654527458050dc5cd4f49bea99b5846"
+      },
+      {
+        "percent": 50,
+        "exactOriginalContentVerifierPassed": true,
+        "imageSha256": "f0eb16d941efd4f8061bd57d3ddd9ace35e4fef906ff85f868b8a4d4b6310370",
+        "ocrSha256": "97a252a836ef67491ef968672072be6f57c6240ed635be4e7e7d266426e6ce56"
+      }
+    ],
+    "fullSizeSplitDigitsStillRejected": true,
+    "halfSizeExactBodyTokensVerified": true,
+    "originalScreenshotCounterPhysicallyVerified": true,
+    "transform": {
+      "kind": "fixed-half-lanczos",
+      "sourceImageSha256": "380ad96c9e4840b4e8352685e950181d2686c36b3af2f7ad147eeb341df76df3",
+      "sourceOcrSha256": "d349340b489b0d67dadb7d1a2729d43ad906763d72666ab6a26b56874ceeb35c",
+      "halfImageSha256": "f0eb16d941efd4f8061bd57d3ddd9ace35e4fef906ff85f868b8a4d4b6310370",
+      "halfOcrSha256": "97a252a836ef67491ef968672072be6f57c6240ed635be4e7e7d266426e6ce56",
+      "sourceSize": [
+        1080,
+        1920
+      ],
+      "halfSize": [
+        540,
+        960
+      ],
+      "exactDerivativePixelsVerified": true,
+      "recognizedTextUnchanged": true
+    },
+    "digitsJoinedReplacedOrInferred": false,
+    "independentAuditSha256": "a14c0a79e3db4d536108cee612fa8448ac74539a370c5e92c25cc9cd6a4c7a83"
+  },
+  "observationPolicy": {
+    "nativePdfBodyOnly": true,
+    "originalReceiptReadFirst": true,
+    "onlyPublicContentNotReadyAllowsOneSupplementalReadPerScreenshot": true,
+    "originalWrongCompleteDigitExceptionRemainsFailClosed": true,
+    "headerFooterAndHomeCounterUseOriginalReceipt": true,
+    "fixedHalfDimensionsFloorAndLanczos": true,
+    "allDerivativePixelsIndependentlyRegenerated": true,
+    "originalAndHalfRawReceiptsAndImagesRetainedLocally": true,
+    "recognizedWordTextUnchanged": true,
+    "wordBoxesMappedByActualDimensions": true,
+    "originalExactContentVerifierSha256": "e8273ac3e84428ba82541512c388240dbdbb7c4de9fd32bd4b7bfc7edb36688c",
+    "originalNativeInputFocusProcessReadinessRestoreAndBudgetsUnchanged": true,
+    "originalJourneyMethodsUnchanged": 18,
+    "callerAstAuditSha256": "641b400f336cc8f549591c9891a285f4b823de202a87e29bc3bb833395fa09d6"
+  },
+  "tests": {
+    "baseHostTests": 141,
+    "newTransformTests": 9,
+    "totalPassed": 150,
+    "failures": 0,
+    "errors": 0,
+    "unitResultSha256": "9c7ff2c47f70303a2299c60e126bd403e78024adb3d30ff81224be1d681ee95d",
+    "initialSandboxTempPermissionRejectionRetained": true,
+    "initialExactFloatTestAssertionCorrectedToApproximateComparison": true
+  },
+  "preflightRejectedAttempt": {
+    "accepted": false,
+    "reason": "Review record omitted required blocking-dialog and ANR-review fields",
+    "testPackageInstallationOrApplicationJourneyStarted": false,
+    "originalGuardKept": true,
+    "ownedHostProcessesAndListenersAfterCleanup": 0,
+    "terminalSha256": "af4f3b39ff6cc02123f741f3276932d7e9bd9b6f777bdd10c8cc11a73411b8ef",
+    "cleanupAuditSha256": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  },
+  "currentNativeAttempt": {
+    "accepted": false,
+    "objectCount": 100,
+    "completedPhaseNames": [
+      "startup",
+      "password-unlock",
+      "first-ocr-user-flow"
+    ],
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "failure": "ADB localhost connection failed before workspace completion",
+    "windowsSocketError": 10060,
+    "failedObserverResponseOrdinal": 100,
+    "observerRequests": 100,
+    "pdfSupplementalReadReached": false,
+    "pdfPagesPhysicallyVerified": 0,
+    "object5000Started": false,
+    "privateEntriesExactlyRestored": 148,
+    "originalApksUidsAndNineSettingsExactlyRestored": true,
+    "completeTerminalDropBoxEntries": 102,
+    "noAnrEntries": true,
+    "ownedProcessesAfterCleanup": 0,
+    "listenersAfterCleanup": 0,
+    "independentTerminalAuditPassed": true,
+    "nativeAuditSha256": "1bf8f4077b9d8e7e1b290c6a99738337417955213e4d5507617fd08bb7699caf",
+    "failureTraceSha256": "99814093344c2dfce0949880a6ac2fb9b635d6f8ee2f9f37c684284b66009ee3"
+  },
+  "historicalRejectedSamplesPreserved": true,
+  "rawPathsPidsRunIdsLogsScreenshotsPrivateArchivesAndProgramsPublished": false,
+  "nativeHalfOcrAcceptanceProven": false,
+  "fullUiQueueAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "nextLocalWork": [
+    "Diagnose intermittent host ADB localhost failures without changing native target guards or retrying failed gestures",
+    "Complete both full default twelve-step journeys and independently verify supplemental PDF OCR",
+    "Repeated distributions, strict process memory, same-source overhead, IPC and portable orchestration"
+  ],
+  "taskCounts": {
+    "closed": 364,
+    "total": 373,
+    "pendingParents": 3,
+    "dependencyBlocked": 6
+  }
+}

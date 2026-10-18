@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1173",
+  "date": "2026-10-16",
+  "status": "resolved",
+  "scope": "Reusable read-only Windows CIM host cleanup step with explicit UTF-8 decoding",
+  "baseCommit": "81f144d82e3cb7a648dd2903edad1e72d9fa39fa",
+  "local": {
+    "passed": true,
+    "tests": 18,
+    "skipped": 0,
+    "legacyDecodeMutationTests": 2,
+    "legacyDecodeMutationRejected": true,
+    "cliHelpPassed": true,
+    "syntaxPassed": true,
+    "sourceSha256": "fc3933f8b0c6128a3feff119ecabec35aaca38e83a54545f234a1f35141fdd4f",
+    "testsSha256": "c8bf552aa5c310c75c0fa1065d9632b5af50ad6b7fc199e66d90eb4c64c6ce10",
+    "unitLogSha256": "6d3521d7fc89076997c3f8ae417d0d125793793c0fb33ab2072de1130a0012ce",
+    "negativeLogSha256": "288418d7deb214766edc049b717ee83ba292ecfdec5d6d8495b6a8cdf0a67b7a"
+  },
+  "actualWindowsControls": {
+    "cleanAccepted": true,
+    "wrongBirthByOneMicrosecondRejected": true,
+    "sameRawSnapshotForCleanAndWrongBirth": true,
+    "realOwnedUnicodeProcessAndDescendantsRejected": true,
+    "observedOwnedRows": 4,
+    "rawUnicodeCommandsPreserved": true,
+    "legacyCp1252DecodeRejected": true,
+    "naturalExitThenSameExpectedIdentitySpecAccepted": true,
+    "protectedOldAdbIdentityUnchanged": true,
+    "declaredPortsNotListening": true,
+    "forceTerminationUsed": false,
+    "windowsOrAdbControlUsed": false
+  },
+  "diagnosticSetup": {
+    "initialReadinessControlRejected": true,
+    "hostAuditNotRunInInitialAttempt": true,
+    "boundedReadinessCorrectedToObserveActualUnicodeChild": true,
+    "initialFailurePreserved": true
+  },
+  "archivalSource": {
+    "unchanged": true,
+    "members": 13,
+    "crcVerified": true,
+    "sha256": "1ff5094622f519626c424ce63a8a45e451130b19e0928afe8704758e524c18b7",
+    "originalFailureNotRewritten": true
+  },
+  "evidenceSha256": {
+    "actual-clean/result.json": "f613ab20cf3dcd90418c102c85ffe30a9630db4595df90b62846f445f8f42e5c",
+    "actual-wrong-birth/result.json": "20a4bc02499e1206b30455f453668590dd94a9c0f13293ca9ddf042e1b2895a2",
+    "actual-owned-live/result.json": "02c9d1945e09f68d2730d35823ee51cd21f47672b96e6ec644c02fc8beab606b",
+    "actual-owned-exited/result.json": "6bc50f2e7b4a190d615125c18aedd1c811577d7ce91b2ddf4a102e498fd74416",
+    "local-summary.json": "b6ad307ee436965fec3df446940bed1e371fb7dd03385830f2dac55b603cf167",
+    "real-host-summary.json": "9284f2b83ff75dd321e6dd17ec5db0ed3196a0a0995f76d853ac455d26c21b78",
+    "initial-worker-control-rejected.json": "9148ecc1fc050305eb2534f850fe699b97aa9b5fdc9c7c6d7eedcf472bf0ecda"
+  },
+  "collectionBudgetSeconds": 15,
+  "retries": 0,
+  "wholePortablePerformanceRunnerComplete": false,
+  "fullRF312Accepted": false,
+  "rawProcessIdentitiesPathsPidsCommandsOrSnapshotsPublished": false
+}

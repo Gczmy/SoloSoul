@@ -1,0 +1,239 @@
+{
+  "task": "RF-1171",
+  "date": "2026-10-16",
+  "status": "resolved",
+  "scope": "Native real-backup-reminder fixture lifetime and uniqueness; production timer unchanged",
+  "environment": {
+    "api": 35,
+    "abi": "x86_64",
+    "renderer": "SwiftShader software",
+    "webView": "124.0.6367.219",
+    "defaultDebug": true
+  },
+  "source": {
+    "baseCommit": "a7cbb338179467e4e253699f331cfa5b5a880609",
+    "productionSourceCommit": "27e512a9fc2d20ada16cc6e05a4d1b5023bdcb69",
+    "kotlinSha256": "25e062fe404693e1a47f522753fea76c41d8bbe2ccdb826c82bd3352002414a5",
+    "originalKotlinSha256": "4abf34c6c465a6be9441c8daf125d2ccb8d626b0e6d2d387c97d2e4009828817",
+    "unchangedPythonHomeDriverSha256": "a8608087f189f14e1510fe5d56a479263238b2167423bb33a17d2575492bbf7e",
+    "validationInputCount": 1861
+  },
+  "packages": [
+    {
+      "kind": "main",
+      "sha256": "6af65c2aa0dde4f0f74a5b92f955b640f8f9e572a4845a2f751833b5e20f01c9",
+      "signatureVerified": true
+    },
+    {
+      "kind": "test",
+      "sha256": "2d540606aaf6826bcaaca44cfa5010535cda7271363df7af42928cbaf5d1b227",
+      "signatureVerified": true
+    }
+  ],
+  "guards": {
+    "passed": true,
+    "onlyTwoScenarioSetupInsertionsAndReminderHelperChanged": true,
+    "originalCaptureAndGeometryAndHitAndPostScreenshotAssertionsByteIdentical": true,
+    "originalBackendOwnershipAndPersistedPreferenceAndRealLockUnlockByteIdentical": true,
+    "originalScreenshotAndTimeoutsByteIdentical": true,
+    "newReminderUniquenessAsserted": true,
+    "oldReminderNaturallyEndsBeforeNewFixture": true,
+    "productEightSecondTimerUnchanged": true,
+    "originalLfNormalizedSourceSha256": "ff485fd1a2de8cb1e99a6c1524d9256d0d49f81fbe83ae0905b3b0255cb07ca7",
+    "fixedLfNormalizedSourceSha256": "db450783d011acfc430f6801703547148d3d4c0d3efd221dfe96e2a741325425",
+    "rawByteRecheck": {
+      "passed": true,
+      "originalRawKotlinSha256": "4abf34c6c465a6be9441c8daf125d2ccb8d626b0e6d2d387c97d2e4009828817",
+      "fixedRawKotlinSha256": "25e062fe404693e1a47f522753fea76c41d8bbe2ccdb826c82bd3352002414a5",
+      "originalLfNormalizedKotlinSha256": "ff485fd1a2de8cb1e99a6c1524d9256d0d49f81fbe83ae0905b3b0255cb07ca7",
+      "fixedLfNormalizedKotlinSha256": "db450783d011acfc430f6801703547148d3d4c0d3efd221dfe96e2a741325425",
+      "rawCaptureAndScreenshotAndLockUnlockMethodBodiesIdentical": true,
+      "rawBackendOwnershipAndPersistedPreferenceGuardIdentical": true,
+      "priorSourceGuardNormalizedLineEndingsExplicitly": true
+    }
+  },
+  "diagnosis": {
+    "originalFontFailurePreserved": true,
+    "timingOnlyPositiveDidNotReproduceOriginalFailure": true,
+    "originalFailureUniqueRootCauseNotClaimed": true,
+    "negativeControlRejectedByOriginalReader": true,
+    "negativeCaptureBeforeAgeMs": 7768.1,
+    "negativeCaptureAfterAgeMs": 8331.1,
+    "observedNaturalReminderLifetimeMs": 8000.5,
+    "firstCandidateDuplicatesInsideOneContainerRejected": true
+  },
+  "fontCohort": {
+    "plannedGroups": 8,
+    "attemptedGroups": 6,
+    "passedGroups": 5,
+    "failedGroups": 1,
+    "unstartedGroups": 2,
+    "fullMatrixAccepted": false,
+    "matchedGlyphComparisons": 36,
+    "verifiedPngs": 59,
+    "cases": [
+      {
+        "label": "font-1.0-supported",
+        "originalPassed": true,
+        "restored": true,
+        "membersIncludingRoot": 3,
+        "rootMode": 448,
+        "allContentsLinksAndModesMatch": true,
+        "fontLiteralAndEffectiveExactlyRestored": true,
+        "reportSha256": "377cb01dc453cb8efad79099503faaca50e237b04f9db6c90f6dee890f545bc6",
+        "nativeLogSha256": "981054df5e6331880333edf631267f0b38660e3fe7bfce2a32be7315d99437cf"
+      },
+      {
+        "label": "font-1.0-fallback",
+        "originalPassed": true,
+        "restored": true,
+        "membersIncludingRoot": 3,
+        "rootMode": 448,
+        "allContentsLinksAndModesMatch": true,
+        "fontLiteralAndEffectiveExactlyRestored": true,
+        "reportSha256": "8a1da5872370b0cdfc77cd068d3dd2c56426d36bba831c77723d6613a87621e8",
+        "nativeLogSha256": "682c31b0e2410071bcbf423308c08c190fba616188a59ba6d4321a1e6ec85878"
+      },
+      {
+        "label": "font-1.3-supported",
+        "originalPassed": true,
+        "restored": true,
+        "membersIncludingRoot": 3,
+        "rootMode": 448,
+        "allContentsLinksAndModesMatch": true,
+        "fontLiteralAndEffectiveExactlyRestored": true,
+        "reportSha256": "76802a8e0b46570191d2b3bff0293f0d2302cac4f0bb020c97057e17d33b3b3c",
+        "nativeLogSha256": "a9cd4c7d0a13369af015b51b23ca2122bdc28d2b541ce63c2b4ec2d37be30d59"
+      },
+      {
+        "label": "font-1.3-fallback",
+        "originalPassed": true,
+        "restored": true,
+        "membersIncludingRoot": 3,
+        "rootMode": 448,
+        "allContentsLinksAndModesMatch": true,
+        "fontLiteralAndEffectiveExactlyRestored": true,
+        "reportSha256": "231b0aa3653241a86c28e6fb2a8cd19266c4d9d6c35e0adf43e4edfed1fe82a0",
+        "nativeLogSha256": "afd2e546374956f43bd4812ee549ebc4c105e4c0444bb8269513684ed261d0c3"
+      },
+      {
+        "label": "font-2.0-supported",
+        "originalPassed": true,
+        "restored": true,
+        "membersIncludingRoot": 3,
+        "rootMode": 448,
+        "allContentsLinksAndModesMatch": true,
+        "fontLiteralAndEffectiveExactlyRestored": true,
+        "reportSha256": "5387a870d294c05d3ac84afbc479f6e5d23392db3532e78deb3fd32122cb11a2",
+        "nativeLogSha256": "60df520dd8f9c69cc8247d659053ae49da915727c9d18a18f34cf7c6b14b71c6"
+      },
+      {
+        "label": "font-2.0-fallback",
+        "originalPassed": false,
+        "restored": true,
+        "membersIncludingRoot": 3,
+        "rootMode": 448,
+        "allContentsLinksAndModesMatch": true,
+        "fontLiteralAndEffectiveExactlyRestored": true,
+        "reportSha256": "8f861dd1ae393b9601c0c0f88e34548da8d22ef080b0b23e208fcc15c8a33bb9",
+        "nativeLogSha256": "567921ff1de378dfbb328720dbd111a99c7efe0794e57d681081ecca1d823a0e"
+      }
+    ],
+    "failure": "2.0 fallback: unchanged Home typography clipped before new reminder setup",
+    "separateMenuTitleAndCloseClippingObserved": true,
+    "independentAuditSha256": "e7af621864fbd7f50991c9d93b11e32169234825ff3843aebe31c573acc301af"
+  },
+  "callerCohort": {
+    "groups": 6,
+    "nativeMethods": 8,
+    "passed": true,
+    "skipped": 0,
+    "cases": [
+      {
+        "label": "cold-motion-supported",
+        "passed": true,
+        "nativeTests": 2,
+        "allPrivateContentsLinksModesAndRootRestored": true,
+        "membersIncludingRoot": 3,
+        "originalNativeAndStrictReaderRechecked": true,
+        "reportSha256": "d183b70623a6670e00eb86513e1fdc889859cb17c4db117dcfeebb00c915173c"
+      },
+      {
+        "label": "cold-motion-fallback",
+        "passed": true,
+        "nativeTests": 2,
+        "allPrivateContentsLinksModesAndRootRestored": true,
+        "membersIncludingRoot": 3,
+        "originalNativeAndStrictReaderRechecked": true,
+        "reportSha256": "15462fd54012904ee55ad2499b8f5a01677f8e659d6a7e29b5faf6357afffd11"
+      },
+      {
+        "label": "insets-supported",
+        "passed": true,
+        "nativeTests": 1,
+        "allPrivateContentsLinksModesAndRootRestored": true,
+        "membersIncludingRoot": 3,
+        "originalNativeAndStrictReaderRechecked": true,
+        "reportSha256": "8747c9c05a39ca504af57d121b845ef911207a9144757b97a9ba72f87bba0a40"
+      },
+      {
+        "label": "insets-fallback",
+        "passed": true,
+        "nativeTests": 1,
+        "allPrivateContentsLinksModesAndRootRestored": true,
+        "membersIncludingRoot": 3,
+        "originalNativeAndStrictReaderRechecked": true,
+        "reportSha256": "8b2779c0c2cf4e11245a49b66461973aeba9b61aa8ed1e8d3dc51ec3459954df"
+      },
+      {
+        "label": "previews-supported",
+        "passed": true,
+        "nativeTests": 1,
+        "allPrivateContentsLinksModesAndRootRestored": true,
+        "membersIncludingRoot": 3,
+        "originalNativeAndStrictReaderRechecked": true,
+        "reportSha256": "aa489a5f8e2c57c948f33504aa8f8f9e245d9d8ebb3cd511fc5a5b01ac5850ff"
+      },
+      {
+        "label": "previews-fallback",
+        "passed": true,
+        "nativeTests": 1,
+        "allPrivateContentsLinksModesAndRootRestored": true,
+        "membersIncludingRoot": 3,
+        "originalNativeAndStrictReaderRechecked": true,
+        "reportSha256": "9d05c6a892bb4547ce8879e8947420c04d2e15338eccbdeb7e1aa09e1ecdf462"
+      }
+    ],
+    "verifiedPngs": 126,
+    "independentAuditSha256": "2a98b7b938a3ecee765a885fdf1e5a57de9d0250afaa1c1268574cee2553bc58"
+  },
+  "manualReview": {
+    "reviewCompleted": true,
+    "reviewedImages": 6,
+    "allFontUiAccepted": false,
+    "localReceiptSha256": "8f7f1328d70c072497272ede58f3d255263bdcf842ee9b9b3329bc49b7495308"
+  },
+  "preservation": {
+    "allAttemptedPrivateDataAndSystemSettingsRestored": true,
+    "ownedRuntimeAndPortsAbsent": true,
+    "oldPrivateAdbIdentityUnchanged": true,
+    "forcedTerminationUsed": false,
+    "verifiedPrivateTarCopiesRemoved": 40,
+    "rawLogsScreenshotsApksAndPrivateBackupsPublished": false,
+    "terminalProofSha256": "dc1c0d9fdc074a5543125a2c6b2e55c0c1de374467adcd110ac132ebb7876482"
+  },
+  "retainedFailures": {
+    "originalMatrixSha256": "2975f4e692912c1d1a874e5712722904d85bbf46c2348b9c82af7dbe4c9fba4c",
+    "negativeBoundarySha256": "30f07556acf4ec003d22d7f79e21d3e95c9a56a829421285541bfe01f7cca755",
+    "firstCandidateMatrixSha256": "fe94b2e4e9355cb19b7e040f4cca6ddc0707357a1701e875676923d4f27eec5d",
+    "currentFontMatrixSha256": "e6fdae47dbb27a487aab96eb4cccc1c343ba07dc112c0fec0a6c3565f680e53a"
+  },
+  "limits": {
+    "RF121Closed": false,
+    "RF112AndRF312Closed": false,
+    "RF122Through127Released": false,
+    "fullFontMatrixAccepted": false,
+    "physicalDeviceOrOtherPlatformsOrPerformanceAccepted": false,
+    "nextWork": "Diagnose 2.0 Home clipping and menu title/close clipping separately"
+  }
+}

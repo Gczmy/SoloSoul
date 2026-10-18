@@ -152,7 +152,7 @@ export function RecoveryAccountView({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                color: '#e74c3c',
+                color: 'var(--text-error)',
                 fontWeight: 700,
                 fontSize: 'var(--text-body)',
               }}
@@ -276,7 +276,9 @@ export function RecoveryAccountView({
         </Button>
       )}
 
-      {error && <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>}
+      {error && (
+        <div style={{ color: 'var(--text-error)', fontSize: 'var(--text-body-sm)' }}>{error}</div>
+      )}
 
       {/* 二次确认覆盖弹窗：确认后进入覆盖模式密码输入 */}
       <ConfirmDialog

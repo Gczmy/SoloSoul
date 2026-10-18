@@ -164,6 +164,82 @@ describe('Android liquid artwork rendering lifecycle', () => {
     expect(frames.size).toBe(0);
   });
 
+  it('WebGL 1 可用时保持现有上下文及 GLSL，不额外创建 WebGL 2', () => {
+    start();
+    expect(canvas.getContext).toHaveBeenCalledTimes(1);
+    expect(canvas.getContext).toHaveBeenCalledWith('webgl', {
+      alpha: false,
+      antialias: false,
+      preserveDrawingBuffer: false,
+      powerPreference: 'low-power',
+    });
+    const sources = gl.shaderSource.mock.calls.map((call) => call[1]);
+    expect(sources[0]).toContain('attribute vec2 position');
+    expect(sources[1]).toContain('gl_FragColor=');
+    expect(sources.every((source) => !source.includes('#version 300 es'))).toBe(true);
+  });
+
+  it('仅 WebGL 2 可用时编译对应 GLSL 并绘制，而不提前显示 fallback', () => {
+    vi.mocked(canvas.getContext).mockImplementation((type) =>
+      type === 'webgl2' ? (gl as unknown as WebGL2RenderingContext) : null,
+    );
+    const { renderer, onAvailability } = start();
+    expect(renderer).not.toBeNull();
+    expect(onAvailability).toHaveBeenCalledExactlyOnceWith(true);
+    expect(gl.drawArrays).toHaveBeenCalledExactlyOnceWith(gl.TRIANGLES, 0, 6);
+    expect(canvas.getContext).toHaveBeenLastCalledWith('webgl2', {
+      alpha: false,
+      antialias: false,
+      preserveDrawingBuffer: false,
+      powerPreference: 'low-power',
+    });
+    const sources = gl.shaderSource.mock.calls.map((call) => call[1]);
+    expect(sources[0]).toMatch(/^#version 300 es\nin vec2 position/);
+    expect(sources[1]).toMatch(/^#version 300 es\nprecision highp float;/);
+    expect(sources[1]).toContain('out vec4 fragmentColor;');
+    expect(sources[1]).toContain('fragmentColor=');
+    expect(sources[1]).not.toContain('gl_FragColor');
+    expect(frames.size).toBe(0);
+  });
+
+  it('WebGL 2 丢失后恢复相同版本资源、最新主题及按需绘制', () => {
+    vi.mocked(canvas.getContext).mockImplementation((type) =>
+      type === 'webgl2' ? (gl as unknown as WebGL2RenderingContext) : null,
+    );
+    const { renderer, onAvailability } = start();
+    expect(renderer).not.toBeNull();
+    canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
+    expect(onAvailability).toHaveBeenLastCalledWith(false);
+    renderer!.update({ ...appearance, dark: true });
+    expect(frames.size).toBe(0);
+    canvas.dispatchEvent(new Event('webglcontextrestored'));
+    flushFrame();
+    expect(onAvailability).toHaveBeenLastCalledWith(true);
+    expect(gl.createProgram).toHaveBeenCalledTimes(2);
+    expect(gl.drawArrays).toHaveBeenCalledTimes(2);
+    expect(gl.uniform1f).toHaveBeenLastCalledWith({ name: 'dark' }, 1);
+    expect(
+      gl.shaderSource.mock.calls.every((call) => call[1].startsWith('#version 300 es\n')),
+    ).toBe(true);
+    expect(canvas.getContext).toHaveBeenCalledTimes(2);
+    expect(frames.size).toBe(0);
+  });
+
+  it.each(['shader', 'program'] as const)('WebGL 2 %s 失败仍降级且清理已分配资源', (failure) => {
+    vi.mocked(canvas.getContext).mockImplementation((type) =>
+      type === 'webgl2' ? (gl as unknown as WebGL2RenderingContext) : null,
+    );
+    if (failure === 'shader') gl.getShaderParameter.mockReturnValue(false);
+    else gl.getProgramParameter.mockReturnValue(false);
+    const { renderer, onAvailability } = start();
+    expect(renderer).toBeNull();
+    expect(onAvailability).toHaveBeenCalledExactlyOnceWith(false);
+    expect(gl.drawArrays).not.toHaveBeenCalled();
+    expect(gl.deleteShader).toHaveBeenCalledTimes(gl.createShader.mock.calls.length);
+    expect(gl.deleteProgram).toHaveBeenCalledTimes(gl.createProgram.mock.calls.length);
+    expect(gl.deleteBuffer).toHaveBeenCalledTimes(gl.createBuffer.mock.calls.length);
+  });
+
   it('零尺寸卡片保持 fallback，获得实际尺寸且可见后才显示画布', () => {
     rect = new DOMRect(16, 80, 0, 0);
     const { onAvailability } = start();

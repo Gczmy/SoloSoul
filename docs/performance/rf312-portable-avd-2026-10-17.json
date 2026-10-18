@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "explicit-sdk-jdk-fresh-api31-avd-preparation",
+  "freshAvdPreparationAccepted": true,
+  "nativeRuntimeAccepted": false,
+  "fullPortableOuterRunnerAccepted": false,
+  "fullRF312Accepted": false,
+  "applicationOrVaultUsed": false,
+  "emulatorStarted": false,
+  "adbCommandsExecuted": 0,
+  "targetInputsDispatched": 0,
+  "evidence": {
+    "unitTests": 18,
+    "uniqueUnitCases": 18,
+    "unitSkipped": 0,
+    "negativeCliCases": 5,
+    "actualJunctionParentRefused": true,
+    "junctionRemovedTargetPreserved": true,
+    "finalRelocatedSdkJdkFilesFullyReadBack": 1040,
+    "sdkJdkAndOutputSpacesActuallyUsed": true,
+    "arbitraryUnicodePathsAccepted": false,
+    "localSdkCodePageGate": true,
+    "originalSdkBatchEntryRetained": true,
+    "javaVersionGateBypassed": false,
+    "declaredToolIdentityFiles": 6,
+    "originalAndAppliedHardwareConfigMatch": true,
+    "hardwareProfileSha256": "b6268289e372b91822d745867c06e4ee3c866e295be4202ae65dd3945131e448",
+    "runtimeCpuAndMemoryOverridesVerified": false,
+    "originalTwelveStepRuntimeSourcesUnchanged": 20
+  },
+  "priorFailuresPreserved": [
+    {
+      "kind": "unrepresentable-jdk-installation-path",
+      "sdkBatchExitCode": 0,
+      "generatedConfigMissing": true,
+      "accepted": false
+    },
+    {
+      "kind": "unrepresentable-sdk-classpath-and-output",
+      "sdkBatchExitCode": 1,
+      "accepted": false
+    },
+    {
+      "kind": "emulator-package-missing-from-relocated-sdk",
+      "sdkBatchExitCode": 1,
+      "accepted": false
+    }
+  ],
+  "failedUnitProfileSetupPreserved": true,
+  "initialSandboxJunctionSetupDeniedBeforeSdk": true,
+  "localRawPathsIdentifiersLogsAndBinariesPublished": false,
+  "sourceSha256": {
+    "prepare_avd.py": "130cc57177ff666c3ff2e626681f74b470683c3dd76e3f2c0db93e1cffd351a2",
+    "test_prepare_avd.py": "f5f916b28b10ba0416979c19edefb982ac7b043d58056915e3e12ec4e15a5b00",
+    "runtime_inputs.py": "48ed00dcf1c992b7ee1abda2e37ab7fd08f1436cf3c7f22741a049b9cae1fb80",
+    "api31-hardware.ini": "b6268289e372b91822d745867c06e4ee3c866e295be4202ae65dd3945131e448"
+  },
+  "evidenceSha256": {
+    "independentAudit": "3ccbb8476f3bc23d8c5ecf6f8b01bf1e068bc429a4c51ec4a7b605565dba184f",
+    "finalUnitResult": "1b973a435f96192651bf3fe540b733baa0fb58cf27c8137631cb455ec820a614",
+    "sdkCopyManifest": "af06e0df070e881998be57fcefd48ff9ef9d89a2ac76d26fd578f562671592d7",
+    "jdkCopyManifest": "60af0129ec8c56f5cb36f121df8c8078d0bf328d2d30435d23904479d62bdea2",
+    "emulatorCopyManifest": "2ad7403b54d9ed9fa43743bb2334d94ecec0505265d6825b7ef5447586b2d4d5",
+    "javaPlacementComparison": "954cd52a3a095a73f77f27dd89322d160c30ab3814b8bb6bdcf2796982d4a542",
+    "junctionResult": "e312f2f109af4901b2cde7d29a340181217a65d41eb8dabd4c17ae65c7552ef1",
+    "successfulPreparationReceipt": "b73f68e085e7b05f75d71a19071c95a9eed423e30bcbfeff4e60733ca6e2f451",
+    "successfulSdkStdout": "02d50877cc306d5152f0e312f885c525a33a9270a67b027d67c79d14c74ef385",
+    "successfulSdkStderr": "930c86e69e52bc24027cd2080c6afb101e88e3c3ca7db7de79bf300e4c19f39a"
+  },
+  "remaining": [
+    "complete-owner-startup-and-preflight-orchestration",
+    "independent-terminal-audit-entry",
+    "homogeneous-repeated-performance-and-memory-distributions",
+    "actual-tauri-ipc-attribution",
+    "two-committed-startup-frames",
+    "other-platforms"
+  ]
+}

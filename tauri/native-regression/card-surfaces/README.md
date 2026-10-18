@@ -37,6 +37,8 @@ default/floating Card 的长文本、背景像素及正文对比度至少 4.5。
 私有目录前后快照，逐项恢复后才接受整组。Android 高文字对比不等同于 Windows forced-colors；
 本入口只证明真实组件在当前系统交付下的表现，不证明 MainActivity 的辅助功能订阅/传递或完整多端矩阵。
 
+`liquidProbe.ts` 复用生产装饰渲染器；读取 GPU 输入、像素及真实上下文丢失扩展时，使用画布实际创建的 WebGL 1 或 WebGL 2 上下文。两种版本都必须校验绘制、颜色、错误码和恢复，不能把 WebGL 1 不可用直接等同于全部 WebGL 不可用；独立夹具通过仍不替代完整首页、账户合成或实体设备性能验收。
+
 ## Windows 独立验收
 
 `src-tauri/examples/windows_card_surfaces.rs` 复用生产 Windows 窗口配置与材质命令，仅注册合成页的测量报告。独立应用标识、窗口标签和新建输出目录中的 WebView2 profile 与正式客户端分离，不运行正式 setup，不访问账户、日志或插件。使用已有、默认关闭的 `native-perf` SDK 依赖，不新增依赖。
@@ -51,6 +53,8 @@ cargo build --locked -p solo_soul --features native-perf --example windows_card_
 ```
 
 系统当前确实关闭透明效果或启用高对比度时，将 `--expect` 分别改为 `transparency-off` 或 `high-contrast`，使用新的输出目录。例程只读取系统设置，不切换全局辅助功能；预期与真实设置不符即失败。未实测这些设置时不能记为通过。
+
+首次测量必须先收到本地夹具页面的真实加载完成事件；窗口显示和固定延迟不代表模块脚本已就绪。仅接受 `http://tauri.localhost/` 或其 `index.html` 的 Finished 事件，加载未完成或通道关闭即失败；加载等待上限5秒，整组原50秒及每份报告原5秒预算保持。
 
 每次在浅/深主题下检查首次显示、隐藏恢复、调整尺寸、最小化恢复，共8份报告；断言实际绘制帧、Card token、长文本和页面横向布局、客户区几何。读回 DWM 背景类型、Tauri 窗口主题、系统 caption 和 WebView2 背景 alpha；Mica 必须是实际类型2和透明 WebView，实色回退必须是不透明 WebView。
 

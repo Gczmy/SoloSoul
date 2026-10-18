@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "scope": "independently-reviewed-document-milestone-cohort",
+  "milestoneSamplingAccepted": true,
+  "predeclarationCommit": "f7f635e321f65e7689d285581fb34e6933fcc2a9",
+  "protocolSha256": "87fac4291dabd8e066cdd6860d781ca7a91a10bd848b981ba5c376adca05a1ff",
+  "samplerSourcesSha256": "1e8c16d24eee2f47f64181a38a632299f1abb32cab2437210b783f221d694e7a",
+  "runtimeSourceCount": 117,
+  "statisticsSourceSha256": "e51ff947f6c8db4daf8028db9c7c432a01835193d7e7652b3e72046a36d61a4a",
+  "productSource": "305b86020a33b5368299b07594b94542f0869e09",
+  "environment": {
+    "hostOs": "Windows 11 Enterprise LTSC",
+    "hostBuild": "26100",
+    "hostCpu": "Intel Core i7-9700",
+    "hostCores": 8,
+    "hostLogicalProcessors": 8,
+    "hostMemoryGiB": 15.79,
+    "hostHardwareReadAfterSeries": true,
+    "hostLoadTraceRecorded": false,
+    "androidApi": 31,
+    "androidAbi": "x86_64",
+    "configuredCores": 2,
+    "configuredMemoryMiB": 2048,
+    "configuredGpu": "swiftshader",
+    "nativePngSize": [1080, 1920],
+    "systemImageSourcePropertiesSha256": "df7aad3e6bba94fc964fb919ed88a082e3f828fc2981fcf33b466dbfa0da5922",
+    "perQueueWebViewVersionRead": false,
+    "osAndStorageCachesCleared": false,
+    "vaultUnlockedDuringTheseSamples": false
+  },
+  "defaultApkSha256": "45291865dd1f0fefaa3695ca26df145537ca29096ea7c19851c08b20a25141a2",
+  "collectorApkSha256": "e0f9c40149fd70907453949c74726da50a161e54f8efa4006d2b0b2c9533515d",
+  "plannedQueues": 5,
+  "acceptedQueues": 5,
+  "refusedQueues": 0,
+  "notStartedQueues": 0,
+  "acceptedSizeSamples": 10,
+  "exploratorySamplesIncluded": false,
+  "allQueuesUsedFreshUniqueDevices": true,
+  "allNativePngsActuallyViewed": true,
+  "allPrivateApksUidSettingsAndOwnedInputsRestored": true,
+  "allOriginalDeadlineHostZeroReplayed": true,
+  "nativeStateChecks": 170,
+  "decodedNativePngs": 20,
+  "controlCompletePairs": 498,
+  "readOnlyUiReplies": 228,
+  "controlRefusedTails": 0,
+  "observerOverheadRemoved": false,
+  "independentStatisticsFormulaChecked": true,
+  "inputSha256": "4296d736106b73e1ab74cfb1e27cc3f4dc0afb6cc368f5fb86c51c89c504c91d",
+  "summarySha256": "e975bb4753e6808685cb2f800f8c82cc9131ff82e68f63e29ddc380f93d7941d",
+  "queueEvidence": [
+    {
+      "slot": 1,
+      "status": "accepted",
+      "independentAuditSha256": "473cf81d278b945c13e974de7eb9d7a9fa52ad4720ab817ebd40a37396d6ecf7",
+      "parentReceiptSha256": "f957119c541610cfab8511978584a62858d334e09eae4a83cb7fb2819d0a32c7",
+      "hostZeroReceiptSha256": "1350b95b3e304fd6093c4eab905468334923131d7126005f4d04a23f9fd2c72b",
+      "visualHealthReviewSha256": "b05bfafcf183ebdddb66a4dab8d3cd0fd6c50dcd24044500ee7ce01ce67189ea",
+      "preflightReviewSha256": "d4548be9ef7977f0c042f391df09f654833da13f6768fcf9dbe063a3d1579e3e",
+      "terminalDropBoxEntries": 63,
+      "parentPrivateEntriesRestored": 134,
+      "nativePngSha256": [
+        "a1048d0f9b79e723a22f160973f3ef1377f2561bb1236f7b0e582ea2eba06489",
+        "683bf235c66b9dafee64a89916817ce32d070a0509438a8e93f84545755f636f",
+        "d70794f882dd309d4e9a46e4e6b2d8c7edc83b6fb399ca36c5ad977b53a419cf",
+        "d70794f882dd309d4e9a46e4e6b2d8c7edc83b6fb399ca36c5ad977b53a419cf"
+      ],
+      "samples": [
+        {
+          "objectCount": 100,
+          "privateEntriesRestored": 134,
+          "rawMetadataSha256": "d265f7570dcb0d57c9209629ed27e42e9c08494ff0c30338bb3d6e8110caaf33",
+          "contractSha256": "bebeb53424003c9ec35ac124f7b0b8b9eaf5f87c7c9e0b0a595f06c866296f0f",
+          "childReportSha256": "f2bc2415d116221cf8575d592376abf6c1fd9f2d083b02903c26c317b3ad588b",
+          "nativeStateChecks": 17,
+          "observerRequests": 23,
+          "controlCompletePairs": 50,
+          "controlRefusedTails": 0
+        },
+        {
+          "objectCount": 5000,
+          "privateEntriesRestored": 134,
+          "rawMetadataSha256": "eb0d17911ad20c47a62dcc9898836aea3ff03e41f1f747b8e7dc26855ee4d13f",
+          "contractSha256": "b55f683836e361b138b5ae0dc39b35acab12c81f136d00243a77b73d5bca69b9",
+          "childReportSha256": "f7bae1b9de60142efbf6d3a3cb3bab8eff9049c2aa96f8ff15770b5dfbabae80",
+          "nativeStateChecks": 17,
+          "observerRequests": 23,
+          "controlCompletePairs": 50,
+          "controlRefusedTails": 0
+        }
+      ]
+    },
+    {
+      "slot": 2,
+      "status": "accepted",
+      "independentAuditSha256": "ff31aea8db97bd070a312ea2836246e00df0196ba89b02122ba2687cb4d09d87",
+      "parentReceiptSha256": "9b63e3c11af0c3b1b1d99420e97e8e68b79595328990a960f2f093113f8d5274",
+      "hostZeroReceiptSha256": "15230c87de617fbdfdfb739141fb329c8d0f124faa871edef2f2ab96b53a35e5",
+      "visualHealthReviewSha256": "e39005cc9d4fd6f4b1ef88e351b8dbc7fdc3f1246edd1813b3b68109de9a8119",
+      "preflightReviewSha256": "5e67be1a13d4465e365efa83bf4ecda58c33bce70ddc065c56a7349725c0544d",
+      "terminalDropBoxEntries": 63,
+      "parentPrivateEntriesRestored": 75,
+      "nativePngSha256": [
+        "78eeb11119313089c2b3d3297332b174e514239c7f3e7f47626bffaf0393d58c",
+        "079af9ffb0596f883af3d43c174fd3bf7a043df1a30d656f51e1b2c0d72b8451",
+        "b86a26db4017d7aad35096e7dfb7bc1f2969575666ac142462089d9d0ccef635",
+        "b86a26db4017d7aad35096e7dfb7bc1f2969575666ac142462089d9d0ccef635"
+      ],
+      "samples": [
+        {
+          "objectCount": 100,
+          "privateEntriesRestored": 75,
+          "rawMetadataSha256": "3564569dcc5c7964e9aaf6e9e5197ab1d39c2298bbbc45cc7318de0abe86f5c9",
+          "contractSha256": "f3073f16b2dd1f8562b59f6ad5102c313069f1d14a953a96d4bcd4a0be40d7a4",
+          "childReportSha256": "ebeb5d69e7235db3af8577be126aadbf6f3502d43115f813d115a2ecc74cd365",
+          "nativeStateChecks": 17,
+          "observerRequests": 23,
+          "controlCompletePairs": 50,
+          "controlRefusedTails": 0
+        },
+        {
+          "objectCount": 5000,
+          "privateEntriesRestored": 75,
+          "rawMetadataSha256": "19b07068f506d9614cf7208b87a9ee6f66f1423f31ccb7ae0fcb52d187d11183",
+          "contractSha256": "45cb125d0e8cce93f37f7950049a3a83817aa128c631d099f5a244fe558ace5e",
+          "childReportSha256": "2692d9e9872a0fb6c4ff31ea18fe73fef1820d2052c56b2212af95abf0577906",
+          "nativeStateChecks": 17,
+          "observerRequests": 18,
+          "controlCompletePairs": 45,
+          "controlRefusedTails": 0
+        }
+      ]
+    },
+    {
+      "slot": 3,
+      "status": "accepted",
+      "independentAuditSha256": "0a53edbf9833151650cbcc259d275d4e60b35608553ee87c2af7038afe82f202",
+      "parentReceiptSha256": "62a1753600e36ed0d65cd4de822d696ede29cd3357dbe0ed4096a825f8f200da",
+      "hostZeroReceiptSha256": "0b03afa6a77c6b224b3cbb49a96545e6d418c558e62bd26ae1fde2d63f1aa117",
+      "visualHealthReviewSha256": "ab3ccd1b7097cf01debd512e5e5bc178b332c2764ee793a74510fa0e28153929",
+      "preflightReviewSha256": "000ae86cb7c08b5962e0ff6622650261fae71fb4408d8f2d53145442356986a5",
+      "terminalDropBoxEntries": 59,
+      "parentPrivateEntriesRestored": 134,
+      "nativePngSha256": [
+        "bc5e0a9b7b22bfb11721db5f4d8d8d31553153a64d2092b0f52cb0836ac99004",
+        "bc5e0a9b7b22bfb11721db5f4d8d8d31553153a64d2092b0f52cb0836ac99004",
+        "a45ffaa590de917d05552bdc7824842ca0c0c52692c9ba1164d02a95bd723b65",
+        "d042151e72c7630ba5fabdf235045db0517c91ccad9c4387ec6bf05541e872d7"
+      ],
+      "samples": [
+        {
+          "objectCount": 100,
+          "privateEntriesRestored": 134,
+          "rawMetadataSha256": "70b887c3e7e841657eff68b8871ccbac1c76fdb84ac73b944132b997f33da55d",
+          "contractSha256": "f37da2bcf04b44dbed2c685fe26c2b216145dbb46614449ef1a7105bc127db7e",
+          "childReportSha256": "ee151353aa517634644eec165cf7031ef72f88d77743153b941b24cebe32c50b",
+          "nativeStateChecks": 17,
+          "observerRequests": 25,
+          "controlCompletePairs": 52,
+          "controlRefusedTails": 0
+        },
+        {
+          "objectCount": 5000,
+          "privateEntriesRestored": 134,
+          "rawMetadataSha256": "175c9dfad4ef7dd3b5311e5fbb36c476ff5676817504595da7ac8add4f4ead0c",
+          "contractSha256": "8ca1a317041431d18e21c57799c960b5e7eaaa2e01a92379a99c572ecf8aa676",
+          "childReportSha256": "423ced5fdfdd421f1fc694818c348d0ede72223853cf324464609016c04ec17b",
+          "nativeStateChecks": 17,
+          "observerRequests": 23,
+          "controlCompletePairs": 50,
+          "controlRefusedTails": 0
+        }
+      ]
+    },
+    {
+      "slot": 4,
+      "status": "accepted",
+      "independentAuditSha256": "fc86ad799b52fbef05655d8a7572ee66a18138b6886400c040493276037539ae",
+      "parentReceiptSha256": "509b4f98fb4fb777abc028abd36730b5517aa9b40add140e060bf0a8e2941cb7",
+      "hostZeroReceiptSha256": "d963444f5aaa7a463c997b8e3f1782c2c36cea13670d7fd41f4ba57128db530d",
+      "visualHealthReviewSha256": "643ca1b41f12525c26ab9d0c34a94b8e0f21a1107273fca50c2f67570e45d93b",
+      "preflightReviewSha256": "dd90dc9a36e7d17b164febc36c0618df508aeeb371a19d99cd9aff09d714a24d",
+      "terminalDropBoxEntries": 64,
+      "parentPrivateEntriesRestored": 134,
+      "nativePngSha256": [
+        "b6cddbca253bcc68c822d2f904764a176d9d9aead9b1bfdb9dffcfdaa50a0bb4",
+        "b6cddbca253bcc68c822d2f904764a176d9d9aead9b1bfdb9dffcfdaa50a0bb4",
+        "d4a3bd70c09d774aca2fc718c014669be2bfa3213b8589890e15b78b209c9b83",
+        "d4a3bd70c09d774aca2fc718c014669be2bfa3213b8589890e15b78b209c9b83"
+      ],
+      "samples": [
+        {
+          "objectCount": 100,
+          "privateEntriesRestored": 134,
+          "rawMetadataSha256": "43ae40f154fc2c8e699d9bbbd0762ce59ca41ce18dc7dcd344fb1cf355a790b7",
+          "contractSha256": "d2e6f91dc406b8336dd624644931fd4a719aa59065f751ed951c756d00ae291a",
+          "childReportSha256": "6004336e2413d43ce7fbcb0478dcf42c7d737e6c296985959f74edc511245bb4",
+          "nativeStateChecks": 17,
+          "observerRequests": 25,
+          "controlCompletePairs": 52,
+          "controlRefusedTails": 0
+        },
+        {
+          "objectCount": 5000,
+          "privateEntriesRestored": 134,
+          "rawMetadataSha256": "58d2574a2836bf67945fc2bb3c18907bfdfda5737a1652b582ba5b2c81b9106a",
+          "contractSha256": "aaf9af2c487b2743d211733c69d4745a90e4a1c1c7d89f9a9df7ed5c43ea12fd",
+          "childReportSha256": "0a2808615e3ab0c429a1a1b4364ce24d57172f3976acd49cf3a2f0325d728683",
+          "nativeStateChecks": 17,
+          "observerRequests": 22,
+          "controlCompletePairs": 49,
+          "controlRefusedTails": 0
+        }
+      ]
+    },
+    {
+      "slot": 5,
+      "status": "accepted",
+      "independentAuditSha256": "172a73fd7838edce0f82ed08ec6be04bdaa904449e9bb89d58dabee16ca30814",
+      "parentReceiptSha256": "d551c1584b16ce5915ad267070c8c4bf7eba1d9f479de9177abeb1c45878ff49",
+      "hostZeroReceiptSha256": "c06541cfc25c0b8e9814ab9919dcc5913bdf62eae22ed950dbb9be1826a59555",
+      "visualHealthReviewSha256": "b9ebd7df870e2dfdce84c537ed2a31197f8ffcdd958a4e22c06d936af1df6038",
+      "preflightReviewSha256": "25f155da761176a666fdca79cb6a470d9e82c3549d974993750d5534a4c40732",
+      "terminalDropBoxEntries": 60,
+      "parentPrivateEntriesRestored": 133,
+      "nativePngSha256": [
+        "8e367af8a63e352477c46ce5768c2d4d10b01a1b067cec9207324ec82e38372a",
+        "b61557ec6ffedc7c71c7a1f0157a54a80265e2f12fb9d0ba9379932294560d43",
+        "dde6804142b1a45b261d567e6f3278a8d46ff1189ca017517177022489e7a0c4",
+        "1d042fb881255e5fed4dc3133db6be1765724faeb0071e3c8342542b6ca051ba"
+      ],
+      "samples": [
+        {
+          "objectCount": 100,
+          "privateEntriesRestored": 133,
+          "rawMetadataSha256": "c85317c68fdc2cc7d6b58d44bacd611902e75cf319e6f41d203a95b3696b7798",
+          "contractSha256": "4fc461978add5d79a1839c78df4eefeada88f26d55e0feefbeda9bc9d0bc93cb",
+          "childReportSha256": "680cf795060e39a6d589e38ebfd7352f41926999331ae6c91eee2ad830abc73e",
+          "nativeStateChecks": 17,
+          "observerRequests": 23,
+          "controlCompletePairs": 50,
+          "controlRefusedTails": 0
+        },
+        {
+          "objectCount": 5000,
+          "privateEntriesRestored": 133,
+          "rawMetadataSha256": "c03a9586da5d601b1a48a30b39e49ff6f2e02e3b913a1fbe059567f1db85a8f7",
+          "contractSha256": "20a8eb13df5929d9514d8af072649fc91ad299ef51f31d3eef91e3e9d3702447",
+          "childReportSha256": "91bab247361f780a69749118ca8402f1da424fac47cedcef72fc86cf7484e09a",
+          "nativeStateChecks": 17,
+          "observerRequests": 23,
+          "controlCompletePairs": 50,
+          "controlRefusedTails": 0
+        }
+      ]
+    }
+  ],
+  "nativeFramesAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "applicationOnlyLatencyAccepted": false,
+  "defaultPerformanceSampleAccepted": false,
+  "fullRF312Accepted": false
+}

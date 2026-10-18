@@ -1,0 +1,179 @@
+{
+  "task": "RF-1180",
+  "date": "2026-10-16",
+  "status": "resolved",
+  "baseCommit": "0f0875d4f7deeba673af646adf9002ac90699387",
+  "scope": "Wait for an attached fully loaded MainActivity document before invoking the unchanged strict JS callback check",
+  "source": {
+    "passed": true,
+    "baseCommit": "0f0875d4f7deeba673af646adf9002ac90699387",
+    "canonicalKotlinFile": "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidHomeInstrumentedTest.kt",
+    "originalRawSha256": "0ebda05decf61ccfdcb1a350ff2347674ffb2b16fce68caeeb6e089cdb8aac7c",
+    "fixedRawSha256": "877e38c7cc8775441a6f8c16f5de7234097a0372cf6b3f73cd5a9b4f8a83da8e",
+    "onlyNativeReadyGateAndReadOnlyDiagnosticsAdded": true,
+    "originalBodyRestoredAfterThreeExactEditsRemoved": true,
+    "originalJavaScriptThreeSecondAssertionUnchanged": true,
+    "originalFortyFiveSecondDeadlineUnchanged": true,
+    "originalPermissionDataIdentityAndEvidenceAssertionsUnmodified": true,
+    "productionSourceUnmodified": true,
+    "oldFailureDoesNotProveItsOnlyRuntimeCause": true
+  },
+  "budgets": {
+    "originalJsCallbackSeconds": 3,
+    "originalUiWaitSeconds": 45,
+    "nativeNavigationUsesSameUiDeadline": true,
+    "noRetryOrBudgetExtension": true
+  },
+  "checks": {
+    "existingPythonDriverTestsPassed": 81,
+    "skipped": 0,
+    "initialInheritedSandboxTempPermissionErrors": 12,
+    "initialUnitFailureToolOutputRetained": true,
+    "DDriveTempRerunUsed": true,
+    "testSourceAndAssertionsUnchanged": true,
+    "sourceAuditSharedParameterDexSymbolFalseRejectionRecorded": true
+  },
+  "build": {
+    "productionApkSha256": "9c01ec86a07c538129fbabcfd60089b72dcc83425a4b32e897efee11d8ba0f97",
+    "testApkSha256": "6600f5a6fede8197cd07aa34d5a40b3fea81120ce1b630f35c620c701b3b58e5",
+    "productionApkAndLibraryAndFrontendByteIdentical": true,
+    "currentCanonicalTestActuallyCompiled": true,
+    "allTestInputsExactlyCanonical": true,
+    "unacceptedContrastProbeNotCompiled": true,
+    "testApkContainsNoNativeLibrary": true,
+    "matchingVerifiedDebugCertificates": true,
+    "productionSigningUsed": false,
+    "copiedOptionalProbeManifestFlagIgnoredInFavorOfWholeSourceAndUniqueMethodChecks": true
+  },
+  "native": {
+    "api": 35,
+    "architecture": "x86_64",
+    "webViewPackage": "com.android.webview",
+    "webViewVersion": "124.0.6367.219",
+    "completeCases": 3,
+    "retries": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "label": "baseline-supported",
+        "initialStages": 12,
+        "driverReportSha256": "1de91a5faa27d85a5eec2cc87f869fb133c9beb59b4b5f0950892e459bbacbad",
+        "originalPrivateDataPermissionsAndSettingsRestored": true,
+        "noCurrentBootAnrAcrossCompleteInventory": true,
+        "qrStates": 40,
+        "nativeCloseTaps": 8
+      },
+      {
+        "label": "baseline-fallback",
+        "initialStages": 12,
+        "driverReportSha256": "70a4a344a5c24ac516165947c4293a55d279e9fa3e089c374787deac29763896",
+        "originalPrivateDataPermissionsAndSettingsRestored": true,
+        "noCurrentBootAnrAcrossCompleteInventory": true,
+        "qrStates": 40,
+        "nativeCloseTaps": 8
+      },
+      {
+        "label": "cold-supported",
+        "initialStages": 18,
+        "driverReportSha256": "df1fc622d31a25185c2b39498c8e246700aafd3a2107b0fcf46c3a7690a3074f",
+        "originalPrivateDataPermissionsAndSettingsRestored": true,
+        "noCurrentBootAnrAcrossCompleteInventory": true,
+        "coldStages": 5,
+        "actualNewProcessIdentityVerified": true
+      }
+    ],
+    "baselineStates": 24,
+    "qrStates": 80,
+    "nativeQrCloseTaps": 16,
+    "accountPreparationStates": 18,
+    "actualColdProcessStates": 5,
+    "actualNewProcessIdentityVerified": true,
+    "nativeReadinessTraces": [
+      {
+        "case": "baseline-supported",
+        "phase": "initial",
+        "states": 173,
+        "readyStates": 170,
+        "unreadyStates": 3,
+        "actualReadyDocumentEvaluations": 336,
+        "allReadyStatesAttachedAndLoaded": true,
+        "originalThreeSecondCallbackAndFortyFiveSecondWaitSourceGuardsPreserved": true
+      },
+      {
+        "case": "baseline-fallback",
+        "phase": "initial",
+        "states": 171,
+        "readyStates": 168,
+        "unreadyStates": 3,
+        "actualReadyDocumentEvaluations": 328,
+        "allReadyStatesAttachedAndLoaded": true,
+        "originalThreeSecondCallbackAndFortyFiveSecondWaitSourceGuardsPreserved": true
+      },
+      {
+        "case": "cold-supported",
+        "phase": "initial",
+        "states": 81,
+        "readyStates": 77,
+        "unreadyStates": 4,
+        "actualReadyDocumentEvaluations": 154,
+        "allReadyStatesAttachedAndLoaded": true,
+        "originalThreeSecondCallbackAndFortyFiveSecondWaitSourceGuardsPreserved": true
+      },
+      {
+        "case": "cold-supported",
+        "phase": "actual-process-cold",
+        "states": 16,
+        "readyStates": 14,
+        "unreadyStates": 2,
+        "actualReadyDocumentEvaluations": 18,
+        "allReadyStatesAttachedAndLoaded": true,
+        "originalThreeSecondCallbackAndFortyFiveSecondWaitSourceGuardsPreserved": true
+      }
+    ],
+    "unreadyStatesObserved": 12,
+    "decodedPngs": 128,
+    "allRequiredRecordFramesPresent": true,
+    "qrBitmapCentersIndependentlyMatched": true,
+    "originalPrivateDataAndInvolvedPermissionsAndSystemSettingsRestored": true,
+    "currentBootAnrAbsentInCompleteInventories": true,
+    "sourceAfterNativeUnchanged": true
+  },
+  "failures": {
+    "firstProbeWrongHomeCardAssumptionRemainsFailed": true,
+    "secondProbeThreeSecondResponseFailureRemainsFailed": true,
+    "neitherProbeAcceptedHighTextContrast": true,
+    "noRuntimeLoadingProgressCapturedAtOldTimeout": true,
+    "oldTimeoutOnlyCauseNotProven": true,
+    "successfulSubsetsNotStitched": true
+  },
+  "cleanup": {
+    "freshHostAuditPassed": true,
+    "oldAdbIdentityUnchanged": true,
+    "ownedPackagesEmulatorAndServerCleaned": true,
+    "sixCurrentAndFourRejectedProbeEmptyTarsRemovedAfterIndependentComparison": true,
+    "rawFailedVerdictsLogsFramesApksAndBackupHashesPreservedLocally": true
+  },
+  "evidenceSha256": {
+    "source-guard.json": "907bf0c54913dcc1116214761ee4d506441121947e30ddd15c30a4ee6e8e4e59",
+    "build-source-proof.json": "1162b0aaa908d3d88b79e367b83ee10e1dd0294967cbf7c26398f3dddc13aef5",
+    "driver-units/receipt.json": "4ce15be85f9878c4102fd3d98b32f7c45ebf0b007419be6ab67c9582e31e01a3",
+    "declared-native-scope.json": "8b01249f45fb886a74f66913c92db082f42d907a56f1f9c8803289c5a253964a",
+    "source-audit-before-native.json": "6b5af9252e4c3b7b1b85e804e7c74d1fcde5f1ff164ba8aeafba43e36ed70b13",
+    "candidate-source-audit.json": "6b5af9252e4c3b7b1b85e804e7c74d1fcde5f1ff164ba8aeafba43e36ed70b13",
+    "rejected-probe-binding.json": "9efc9a8919a74e67b3addf27fea9352ba4d6ae5a63535a7ab25a3ce6697324da",
+    "native-qr/result.json": "67fe076144f1f7ec94d64652f0c86aed6a910c64b599eca04ecf98e67b41a036",
+    "independent-native-audit.json": "f93ee5d2665520a5627784d1132065590a202dc77b31e3717b7c5e35cad30053",
+    "private-backup-cleanup.json": "c3321cbbdca52f7c848f78b273bd680d8be5649f2c8f2ea1860b3e9c8b0a7e72",
+    "manual-frame-review.json": "f301d92cbe9ce1692f2ea278f40f0855a59cfd609f8fc2d26b34290f2d376f3b",
+    "preflight-quota-pruning-audit.json": "c57f5ea6081c9d724e2034324c9a5c661ea2bf0bec5505938b221d83a197c32c",
+    "host-audit-after/result.json": "95874629a81874aea9f36235f5646334ce5350dc2827ae8b219856a81b142a13"
+  },
+  "highTextContrastDeliveryAccepted": false,
+  "productRenderingOrPerformanceChanged": false,
+  "windowsOrMacosOrPhysicalAndroidAccepted": false,
+  "RF112Closed": false,
+  "RF121Closed": false,
+  "RF312Closed": false,
+  "RF122Through127Released": false,
+  "rawPathsPidsAccountIdsScreenshotsLogsProgramsOrPrivateDataPublished": false
+}

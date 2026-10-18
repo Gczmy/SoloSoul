@@ -11,7 +11,10 @@ mod regression {
         Arc,
     };
     use std::time::Duration;
-    use tauri::{utils::config::WindowConfig, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+    use tauri::{
+        utils::config::WindowConfig, webview::PageLoadEvent, WebviewUrl, WebviewWindow,
+        WebviewWindowBuilder,
+    };
     use webview2_com::{
         CallDevToolsProtocolMethodCompletedHandler,
         Microsoft::Web::WebView2::Win32::{ICoreWebView2Controller2, COREWEBVIEW2_COLOR},
@@ -310,15 +313,36 @@ mod regression {
             json!({"width":image.width(),"height":image.height(),"points":points,"scope":"actual WebView pixels; excludes DWM/non-client pixels"}),
         )
     }
+    fn fixture_loaded(event: PageLoadEvent, url: &tauri::Url) -> bool {
+        event == PageLoadEvent::Finished
+            && url.scheme() == "http"
+            && url.host_str() == Some("tauri.localhost")
+            && url.port().is_none()
+            && url.username().is_empty()
+            && url.password().is_none()
+            && matches!(url.path(), "/" | "/index.html")
+            && url.query().is_none()
+            && url.fragment().is_none()
+    }
+    async fn wait_for_fixture(mut ready: tokio::sync::mpsc::Receiver<()>) -> Result<(), String> {
+        tokio::time::timeout(Duration::from_secs(5), ready.recv())
+            .await
+            .map_err(|_| "Fixture page did not finish loading within 5 seconds".to_string())?
+            .ok_or_else(|| "Fixture page load channel closed".to_string())
+    }
     async fn check(
         window: WebviewWindow,
         mut reports: tokio::sync::mpsc::Receiver<Value>,
+        ready: tokio::sync::mpsc::Receiver<()>,
         output: PathBuf,
         expected_mode: String,
     ) -> Result<Value, String> {
         let transparency = transparency_enabled()?;
         window.show().map_err(|e| e.to_string())?;
         window.set_focus().map_err(|e| e.to_string())?;
+        // A newly created WebView can still be navigating after it is shown.
+        // Do not dispatch the first sample into its temporary empty document.
+        wait_for_fixture(ready).await?;
         tokio::time::sleep(Duration::from_millis(1400)).await;
         let mut results = Vec::new();
         for phase in ["initial", "hide-show", "resize", "minimize-restore"] {
@@ -479,6 +503,7 @@ mod regression {
         }
         std::fs::create_dir(&output).map_err(|e| e.to_string())?;
         let (tx, rx) = tokio::sync::mpsc::channel(16);
+        let (ready_tx, ready_rx) = tokio::sync::mpsc::channel(1);
         let mut context = tauri::test::mock_context(Assets(html));
         context.config_mut().identifier = "com.solosoul.windows-card-regression".into();
         let passed = Arc::new(AtomicBool::new(false));
@@ -487,10 +512,14 @@ mod regression {
             let config:Value=serde_json::from_str(include_str!("../tauri.windows.conf.json"))?;
             let mut config:WindowConfig=serde_json::from_value(config["app"]["windows"][0].clone())?;
             config.label="windows-card-regression".into(); config.title="RF-121 — Windows 独立 Card 验收".into(); config.url=WebviewUrl::App("index.html".into());
-            let window=WebviewWindowBuilder::from_config(app,&config)?.data_directory(output.join("webview-profile")).build()?;
+            let window=WebviewWindowBuilder::from_config(app,&config)?.on_page_load(move |_, payload| {
+                if fixture_loaded(payload.event(), payload.url()) {
+                    let _ = ready_tx.try_send(());
+                }
+            }).data_directory(output.join("webview-profile")).build()?;
             let handle=app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let result=tokio::time::timeout(Duration::from_secs(50),check(window,rx,output.clone(),mode)).await;
+                let result=tokio::time::timeout(Duration::from_secs(50),check(window,rx,ready_rx,output.clone(),mode)).await;
                 let result=match result {Ok(result)=>result,Err(error)=>Err(error.to_string())};
                 let record=match &result {Ok(value)=>value.clone(),Err(error)=>json!({"success":false,"error":error,"performanceSample":false})};
                 if let Err(error)=write_new(&output.join("result.json"),serde_json::to_string_pretty(&record).unwrap().as_bytes()) {eprintln!("FAIL: result write: {error}");std::process::exit(1);}
@@ -506,6 +535,61 @@ mod regression {
     #[cfg(test)]
     mod tests {
         use super::*;
+        #[test]
+        fn page_readiness_requires_the_finished_local_fixture() {
+            for url in [
+                "http://tauri.localhost/",
+                "http://tauri.localhost/index.html",
+            ] {
+                let url = tauri::Url::parse(url).unwrap();
+                assert!(!fixture_loaded(PageLoadEvent::Started, &url));
+                assert!(fixture_loaded(PageLoadEvent::Finished, &url));
+            }
+            for url in [
+                "about:blank",
+                "http://example.test/",
+                "http://tauri.localhost.example.test/",
+                "http://tauri.localhost:8080/",
+                "http://user@tauri.localhost/",
+                "http://tauri.localhost/other.html",
+                "http://tauri.localhost/?other-page",
+                "http://tauri.localhost/#other-page",
+            ] {
+                assert!(!fixture_loaded(
+                    PageLoadEvent::Finished,
+                    &tauri::Url::parse(url).unwrap()
+                ));
+            }
+        }
+        #[tokio::test]
+        async fn first_sample_waits_for_the_fixture_load_signal() {
+            use std::future::Future;
+            use std::task::{Context, Waker};
+
+            let (tx, rx) = tokio::sync::mpsc::channel(1);
+            let mut waiting = Box::pin(wait_for_fixture(rx));
+            let mut context = Context::from_waker(Waker::noop());
+            assert!(waiting.as_mut().poll(&mut context).is_pending());
+            tx.send(()).await.unwrap();
+            assert!(waiting.await.is_ok());
+        }
+        #[tokio::test]
+        async fn a_closed_load_channel_cannot_start_sampling() {
+            let (tx, rx) = tokio::sync::mpsc::channel(1);
+            drop(tx);
+            assert!(wait_for_fixture(rx)
+                .await
+                .unwrap_err()
+                .contains("channel closed"));
+        }
+        #[tokio::test]
+        async fn a_missing_load_signal_fails_with_the_original_report_budget() {
+            let (_tx, rx) = tokio::sync::mpsc::channel(1);
+            assert!(wait_for_fixture(rx)
+                .await
+                .unwrap_err()
+                .contains("within 5 seconds"));
+        }
         #[test]
         fn javascript_integer_geometry_round_trip_preserves_native_appearance() {
             let native = WindowAppearance {

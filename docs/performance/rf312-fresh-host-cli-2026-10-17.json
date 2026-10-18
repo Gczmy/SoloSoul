@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "parameterized-empty-windows-host-audit",
+  "passed": true,
+  "unitTests": 34,
+  "originalHostTests": 18,
+  "newFreshHostTests": 16,
+  "skipped": 0,
+  "actualCliCases": [
+    {
+      "case": "before",
+      "exitCode": 0,
+      "passed": true,
+      "processRows": 0,
+      "listenerRows": 0,
+      "reasons": [],
+      "resultSha256": "f30ec046213d4d5e66d30c13a127ad9901801a99ad6586bb8d147d780218e748"
+    },
+    {
+      "case": "owned-live",
+      "exitCode": 1,
+      "passed": false,
+      "processRows": 4,
+      "listenerRows": 0,
+      "reasons": [
+        "adb_vm_or_owned_helpers_present"
+      ],
+      "resultSha256": "dc4ede70a5270cffd3fd60b4b1d1190994316f942ed0b625e5dde9b5bf559b71"
+    },
+    {
+      "case": "owned-exited",
+      "exitCode": 0,
+      "passed": true,
+      "processRows": 0,
+      "listenerRows": 0,
+      "reasons": [],
+      "resultSha256": "d91602bb531087eec75ef5e5600d3abc73cc6b4adb17aa68f1d908caa6a20a7f"
+    },
+    {
+      "case": "owned-port-live",
+      "exitCode": 1,
+      "passed": false,
+      "processRows": 0,
+      "listenerRows": 1,
+      "reasons": [
+        "protected_or_owned_ports_listening"
+      ],
+      "resultSha256": "4d5f903019198f19fc10e9d6cffbca66d41c1a4144fbb56907491041d5410a6d"
+    },
+    {
+      "case": "owned-port-closed",
+      "exitCode": 0,
+      "passed": true,
+      "processRows": 0,
+      "listenerRows": 0,
+      "reasons": [],
+      "resultSha256": "d91602bb531087eec75ef5e5600d3abc73cc6b4adb17aa68f1d908caa6a20a7f"
+    }
+  ],
+  "allFourActualOwnedIdentitiesBound": true,
+  "realUnicodeRootChildAndTwoConsolesObserved": true,
+  "ownedWorkerExitedNaturally": true,
+  "sameOriginalBeforeEvidenceUsedForAllAfterCases": true,
+  "realOwnedPortLiveRefusedAndClosedAccepted": true,
+  "initialDiagnosticRejected": true,
+  "initialRejectionRetained": true,
+  "initialOwnedLiveCliNotRun": true,
+  "cliSourceUnchangedAfterDiagnosticFix": true,
+  "processTerminationUsed": false,
+  "adbCommandsExecuted": 0,
+  "emulatorStarted": false,
+  "appOrWindowInputExecuted": 0,
+  "finalHostProcesses": 0,
+  "finalHostListeners": 0,
+  "originalProtectedServiceCliUnchanged": true,
+  "fullPortablePerformanceRunnerAccepted": false,
+  "fullRF312Accepted": false,
+  "sourceSha256": {
+    "android-host-audit.py": "fc3933f8b0c6128a3feff119ecabec35aaca38e83a54545f234a1f35141fdd4f",
+    "test_android_host_audit.py": "c8bf552aa5c310c75c0fa1065d9632b5af50ad6b7fc199e66d90eb4c64c6ce10",
+    "android-fresh-host-audit.py": "546a5018ec112a2ca612d07b46c331a33bf248498d7a5cf5793d4db49609866e",
+    "test_android_fresh_host_audit.py": "df8759c30f6920499b8753e31d4dad0fa69ca0c21abba9b20894e4a215351025"
+  },
+  "evidenceSha256": {
+    "unit-tests.log": "be31b36feaa9df198f73a26c2eafd4232f195c9677fdf88b75b63b87ed9f2f00",
+    "before/result.json": "f30ec046213d4d5e66d30c13a127ad9901801a99ad6586bb8d147d780218e748",
+    "owned-live/result.json": "dc4ede70a5270cffd3fd60b4b1d1190994316f942ed0b625e5dde9b5bf559b71",
+    "owned-exited/result.json": "d91602bb531087eec75ef5e5600d3abc73cc6b4adb17aa68f1d908caa6a20a7f",
+    "owned-port-live/result.json": "4d5f903019198f19fc10e9d6cffbca66d41c1a4144fbb56907491041d5410a6d",
+    "owned-port-closed/result.json": "d91602bb531087eec75ef5e5600d3abc73cc6b4adb17aa68f1d908caa6a20a7f",
+    "worker-identities.stdout": "1f2fffab9d3a0fbf198bacfd876fbd0a0c7b58ad5cabec9b9a301d8a1cb45519",
+    "before-expected.json": "eacc725fb48c996c4dd655cbda1050439569abb0facf2f470f1a8e50782701d3",
+    "after-expected.json": "f78dcf1226896346e970d1903df48f90acd5dad455985c7f6d4b82079e18863e",
+    "validation-result.json": "58e3ba3a85e16a4dc6c453e6ce8b4d950cfc64403d3a0dbfdc89cdb9b0482d98",
+    "initial-diagnostic-rejection": "491c1be9ee9940af624de95772a9b3155aa18abf2d8b339fcba37b8ce848d304"
+  }
+}

@@ -77,12 +77,14 @@ export function SyncQrContent({
             <QRCodeSVG value={info.payload} size={200} level="M" includeMargin />
           </div>
 
-          <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', minWidth: 0 }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '6px 12px',
                 padding: '10px 12px',
                 borderRadius: 8,
                 background: 'var(--bg-toolbar)',
@@ -96,6 +98,11 @@ export function SyncQrContent({
                 style={{
                   fontSize: 'var(--text-body-sm)',
                   fontWeight: 500,
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  overflowWrap: 'anywhere',
+                  marginLeft: 'auto',
+                  textAlign: 'right',
                   color: 'var(--text-primary)',
                 }}
               >
@@ -107,6 +114,8 @@ export function SyncQrContent({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '6px 12px',
                 padding: '10px 12px',
                 borderRadius: 8,
                 background: 'var(--bg-toolbar)',
@@ -119,6 +128,11 @@ export function SyncQrContent({
               <span
                 style={{
                   fontFamily: 'monospace',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  overflowWrap: 'anywhere',
+                  marginLeft: 'auto',
+                  textAlign: 'right',
                   fontSize: 'var(--text-body-sm)',
                   color: 'var(--text-primary)',
                 }}
@@ -131,6 +145,8 @@ export function SyncQrContent({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '6px 12px',
                 padding: '10px 12px',
                 borderRadius: 8,
                 background: 'var(--bg-toolbar)',
@@ -142,11 +158,13 @@ export function SyncQrContent({
               <span
                 style={{
                   fontFamily: 'monospace',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  overflowWrap: 'anywhere',
+                  marginLeft: 'auto',
+                  textAlign: 'right',
                   fontSize: 'var(--text-body-sm)',
                   color: 'var(--text-primary)',
-                  wordBreak: 'break-all',
-                  maxWidth: '60%',
-                  textAlign: 'right',
                 }}
               >
                 {info.fingerprint}

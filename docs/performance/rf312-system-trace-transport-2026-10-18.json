@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "scope": "system-trace-transport-component-only",
+  "sourceHead": "85162a997b8d7c0bd7d2646f74b720daaba6d4db",
+  "productBuildSourceHead": "305b86020a33b5368299b07594b94542f0869e09",
+  "platform": {
+    "host": "Windows amd64",
+    "deviceApi": 31,
+    "deviceAbi": "x86_64",
+    "perfettoDeviceVersion": "15",
+    "processorVersion": "58.2"
+  },
+  "runtime": {
+    "exactNativeSourceExport": true,
+    "noNewDependencies": true,
+    "productCodeChanged": false,
+    "sdkLauncherIncluded": false,
+    "callerMustPreserveNativeAdmissionAndCleanup": true
+  },
+  "validation": {
+    "uniqueTests": 64,
+    "stateReaderTests": 28,
+    "transportTests": 21,
+    "timeoutTests": 7,
+    "preparationTests": 8,
+    "portableCopySameTests": 64,
+    "duplicateRunsNotDoubleCounted": true,
+    "spacePathCliPreparationPassed": true,
+    "realHostSubprocessTimeoutPassed": true,
+    "offlineActualTransportCommandsReplayed": 13,
+    "offlineReplayIsNotNewNativeSample": true
+  },
+  "currentNative": {
+    "sdkCommandsReplayed": 80,
+    "sourceBindings": 117,
+    "frozenInputs": 47,
+    "frozenInputsPreserved": true,
+    "requestedDurationMs": 5000,
+    "bufferKiB": 8192,
+    "writePeriodMs": 500,
+    "flushPeriodMs": 500,
+    "processPollMs": 500,
+    "rawRoundtripBytes": 280,
+    "configReadbackBytes": 839,
+    "rawRoundtripSha256": "6b8f1fd25eb5d3e0d3f4898f13143a23f494f8d373fdf35d29b12d3ac480ea51",
+    "traceBytes": 86580,
+    "topLevelPackets": 95,
+    "traceSha256": "fc1690774cb95ff8aa262cbb0caf1e0691915a27e1161b76d4c1e8d838024402",
+    "remoteAndLocalHashMatched": true,
+    "serviceBeforeTotal": 0,
+    "serviceBeforeCurrentlyStarted": 0,
+    "serviceAfterTotal": 0,
+    "serviceAfterCurrentlyStarted": 0,
+    "serviceCountsAreCurrentNotCumulative": true,
+    "producers": 4,
+    "dataSourceRows": 17,
+    "uniqueDataSources": 16,
+    "nativeTransportPassed": true,
+    "preflightDropBoxEntries": 38,
+    "terminalDropBoxEntries": 38,
+    "currentAnrObserved": false,
+    "allThreeExactScreenshotTilesActuallyViewed": true,
+    "completeHealthRecordsActuallyRead": true,
+    "productAndObserverPackagesAbsentBeforeAndAfter": 5,
+    "privateProductDataTouched": false,
+    "settingsExactlyUnchanged": true,
+    "exclusiveServiceWriter": true,
+    "ownedRemoteFilesRemoved": true,
+    "directoriesCreated": false,
+    "rootOrPolicyChange": false,
+    "normalSdkShutdownPassed": true,
+    "originalHostZeroDeadlineSeconds": 45,
+    "strictHostZeroReplayed": true
+  },
+  "analysis": {
+    "methodRevision": "offline-full-sort-r2",
+    "thresholdsUnchanged": true,
+    "onlyCommandDelta": "--full-sort",
+    "rawTraceUnmodified": true,
+    "noNewDeviceForSortComparison": true,
+    "binarySha256": "adfa6bad3d72be3ba9b83fa2b17b69fa13b3ab1cad0f42e52b86188bd5f0f997",
+    "sqlSha256": "43ab8ef931c2b3196397728a74843cb3d20fd12a6d04f077accbf35c0be4e462",
+    "maximumInputBytes": 33554432,
+    "processorTimeoutSeconds": 45,
+    "fullSortUsesHigherHostMemory": true,
+    "defaultSortAccepted": false,
+    "defaultSortRefusal": [
+      {
+        "name": "sorter_push_event_out_of_order",
+        "severity": "error",
+        "value": 8
+      }
+    ],
+    "currentFullSort": {
+      "label": "current-periodic",
+      "traceSha256": "fc1690774cb95ff8aa262cbb0caf1e0691915a27e1161b76d4c1e8d838024402",
+      "counts": {
+        "process": 270,
+        "counter": 9904,
+        "ftrace_event": 4,
+        "frame_timeline": 4,
+        "clock_snapshot": 78
+      },
+      "rssStatEvents": 4,
+      "memoryCounterSamples": 8804,
+      "nonzeroErrorOrDataLossCount": 0,
+      "methodQualityAccepted": true,
+      "stdoutSha256": "c1dff3fde3368ee38d8322a96d05472e64c5f78dd88f424b78353da4c9ad0b4d",
+      "stderrSha256": "4bdc89e51db761bf8488b23647ce67a372631f5d4f4e944a26a836bb8d8e8074"
+    },
+    "previousConfigurationStillRejected": {
+      "label": "previous-discard",
+      "traceSha256": "15cb0640b32fbddab3d95aeb3b2a3e971bf5b4a58fe35d292699da0b8bacd0a6",
+      "counts": {
+        "process": 269,
+        "counter": 10894,
+        "ftrace_event": 5,
+        "frame_timeline": 0,
+        "clock_snapshot": 18
+      },
+      "rssStatEvents": 5,
+      "memoryCounterSamples": 9684,
+      "nonzeroErrorOrDataLossCount": 2,
+      "methodQualityAccepted": false,
+      "stdoutSha256": "81507b7e82430da6f3f78ebc7c59aa6c86f35dc83a030ada51d0291466e9f476",
+      "stderrSha256": "01e983a0e5a5a1db37d53ac01dc33c9013d5b645ea21ff5256336f717a8e44c2"
+    },
+    "qualityAcceptedIsNotApplicationFrameOrPerformanceAcceptance": true
+  },
+  "previousNativeRefusalsRetained": [
+    {
+      "stage": "service-query",
+      "reason": "four-byte ProtoZero length rejected before recording"
+    },
+    {
+      "stage": "exec-out-stdin",
+      "reason": "configuration stdin not forwarded; original timeout and missing partial streams retained"
+    },
+    {
+      "stage": "shell-stdin-roundtrip",
+      "expectedBytes": 280,
+      "observedBytes": 49,
+      "reason": "raw binary mismatch; no normalization used"
+    },
+    {
+      "stage": "file-sync-local-tmp",
+      "reason": "byte-exact input but Perfetto config read denied"
+    },
+    {
+      "stage": "system-directory-child",
+      "reason": "shell directory creation denied before recording"
+    },
+    {
+      "stage": "service-writer-discard",
+      "transportPassed": true,
+      "analysisAccepted": false,
+      "reason": "DISCARD and no periodic flush configuration health flags"
+    },
+    {
+      "stage": "periodic-writer-default-sort",
+      "transportPassed": true,
+      "analysisAccepted": false,
+      "reason": "8 out-of-order sorting errors; original refusal not overwritten"
+    }
+  ],
+  "sourceSha256": {
+    "analysis-method.json": "0bc448ace04bfced2a5bc68c7aed847097747c01357388500ffee67969c73949",
+    "analyze.sql": "43ab8ef931c2b3196397728a74843cb3d20fd12a6d04f077accbf35c0be4e462",
+    "base-config.pbtxt": "de6be90adb296dcaa2cb168e141fb76d5eb6ffe0ed15340c174bab544d40a518",
+    "prepare_inputs.py": "0695c69f7673f87a3d2a00f55c826a213594756045bbe70697b0daf8f894ec79",
+    "service_state.py": "cef8aa5bf83e7e8b40ddffa4d5aaaebdff8d871d51ab40e05d591b70bca1b292",
+    "test_prepare_inputs.py": "7203e07c426004b118700b845e454484871d605956957b69d594d21235bd01a9",
+    "test_service_state.py": "edbfb1006c33da104ae2ae188ea08945760c310bb527de79bec72c31d6a69be0",
+    "test_timeout_streams.py": "2e4dfd3cd9c4a80bfc3850c6c98b096d4d03a5d899fcf5b5cb57dc4c6f3077b6",
+    "test_transport.py": "8042a5d4a7d5b610410b5cca973aeeb77f16def26404d234c33acdd013c86994",
+    "timeout_streams.py": "da54d225722d2b674b6b8fcef022ba129b7c53ff5be969e7afa3a5990c4e4a72",
+    "transport.py": "e6bd003633b2ec8f7714b1b9a7c076d122a16211b7862bba4f1f15678a33cd27"
+  },
+  "privateEvidenceSha256": {
+    "nativeReceipt": "adea6d7ad57507c452411729f7baeb97d527e1a1b2679b883a782c1b5fe3a9d2",
+    "nativeAuditor": "43ab510779063dd0c479fedc6d468a7379529743da9bec6399238bbecbfc63bc",
+    "nativeAuditReceipt": "3e7a3836b249b3da5856506b53884f779cd03e21605cba7b76704ee2e680879c",
+    "sortingAuditor": "a3c3c64907a8859f0e821e72505eec8266063ff2edbf2c002a92357712702c0b",
+    "sortingAuditReceipt": "1d57c532fddf3bad90232dd002d726547be4ddc886ee0204e2499674861eeaed",
+    "publicExportVerifier": "4ce770f41ee675787f7aaaedf5095ef335063727b14c120a9f9f2f06759ebe55",
+    "publicExportReceipt": "9feca190899a0c54b0f1fc7756698dabd3a9632d45401488dfc675b4472eab1d"
+  },
+  "originalNativeFrameRefusals": 7,
+  "nativeFramesAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "applicationPerformanceAccepted": false,
+  "fullRF312Accepted": false,
+  "ledger": {
+    "closed": 368,
+    "total": 377,
+    "unfinished": 9
+  },
+  "goalStatus": "active"
+}

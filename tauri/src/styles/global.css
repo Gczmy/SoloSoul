@@ -295,13 +295,16 @@ html[data-platform='ios'] #root {
   height: 100%;
 }
 
-/* AppKit 的提高对比度设置不一定映射成 WebView 的 forced-colors。 */
-:root[data-high-contrast='true'] {
+/* 原生对比度偏好未必映射到媒体查询；Android 独立于桌面窗框同步。 */
+:root[data-high-contrast='true'],
+:root[data-platform='android'][data-android-high-text-contrast='true'] {
   --border-subtle: var(--text-primary) !important;
   --text-secondary: var(--text-primary) !important;
   --text-tertiary: var(--text-primary) !important;
   /* 错误已由明确文字表达；提高对比度时使用黑白前景，不能沿用危险按钮底色。 */
   --text-error: var(--text-primary) !important;
+  --text-warning: var(--text-primary) !important;
+  --text-success: var(--text-primary) !important;
 }
 
 @media (prefers-contrast: more) {
@@ -310,6 +313,8 @@ html[data-platform='ios'] #root {
     --text-secondary: var(--text-primary) !important;
     --text-tertiary: var(--text-primary) !important;
     --text-error: var(--text-primary) !important;
+    --text-warning: var(--text-primary) !important;
+    --text-success: var(--text-primary) !important;
   }
 }
 

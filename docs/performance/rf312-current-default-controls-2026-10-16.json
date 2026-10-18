@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "recordedOn": "2026-10-16",
+  "currentDefaultStartupControlAccepted": true,
+  "fullRF312Accepted": false,
+  "compiledSourceHead": "0a95806cd40e9d09200e16795a139f1c7ee755b2",
+  "productionCodeBase": "27e512a9fc2d20ada16cc6e05a4d1b5023bdcb69",
+  "diagnosticSourceHead": "dec54ef77e24f99386eac63d2f31a61eec689b64",
+  "diagnosticOnlyDeltas": [
+    "tauri/scripts/android-process-memory.py",
+    "tauri/scripts/test_android_process_memory.py"
+  ],
+  "frozenInputFiles": 1861,
+  "defaultFeaturesOnly": true,
+  "applicationDebuggable": false,
+  "apkSha256": "6a3618f7cf4e531837a386a6879254b369dc808a2a783866d2a6cd7631e544fe",
+  "librarySha256": "15b8922fb2c85494da608ee1bc0879772ba1f285e620cc9a2228caa79ece3123",
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "virtualCpus": 2,
+    "memoryMiB": 2048,
+    "gpu": "SwiftShader",
+    "webview": "91.0.4472.114",
+    "host": "Windows with WHPX",
+    "hostLoadAndDiskCachesFixed": false
+  },
+  "actualMainActivityResourceFilesVerified": 89,
+  "preparedPrivateEntries": 141,
+  "requested": 10,
+  "attempted": 10,
+  "passed": 10,
+  "failed": 0,
+  "retried": 0,
+  "pairedOrder": "100 then 5000, repeated five rounds",
+  "originalFormBudgetSeconds": 45,
+  "targetInstrumentationInjected": false,
+  "javaScriptInjected": false,
+  "twoCommittedFramesProven": false,
+  "processBirthIdentities": 10,
+  "groups": {
+    "100": {
+      "frameworkTotalTimeMs": {
+        "samples": [433, 669, 497, 412, 476],
+        "median": 476,
+        "p95NearestRank": 669,
+        "maximum": 669
+      },
+      "formReadyUpperBoundMs": {
+        "samples": [
+          7360.8667000662535, 5215.53699998185, 4504.074399941601,
+          4880.660999915563, 5638.24460003525
+        ],
+        "median": 5215.53699998185,
+        "p95NearestRank": 7360.8667000662535,
+        "maximum": 7360.8667000662535
+      },
+      "pssBytes": {
+        "samples": [183888896, 181929984, 181345280, 182189056, 182178816],
+        "median": 182178816,
+        "p95NearestRank": 183888896,
+        "maximum": 183888896
+      }
+    },
+    "5000": {
+      "frameworkTotalTimeMs": {
+        "samples": [482, 663, 487, 436, 482],
+        "median": 482,
+        "p95NearestRank": 663,
+        "maximum": 663
+      },
+      "formReadyUpperBoundMs": {
+        "samples": [
+          5108.838099986315, 4901.423600036651, 4814.439099980518,
+          4980.800200020894, 9076.707100030035
+        ],
+        "median": 4980.800200020894,
+        "p95NearestRank": 9076.707100030035,
+        "maximum": 9076.707100030035
+      },
+      "pssBytes": {
+        "samples": [181124096, 181710848, 181623808, 181465088, 173779968],
+        "median": 181465088,
+        "p95NearestRank": 181710848,
+        "maximum": 181710848
+      }
+    }
+  },
+  "samples": [
+    {
+      "objectCount": 100,
+      "ordinal": 1,
+      "frameworkTotalTimeMs": 433,
+      "formReadyUpperBoundMs": 7360.8667000662535,
+      "pssBytes": 183888896,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "713603a849a54d7709bb6da319ed6d3630f67ec1ea2c4cada1263128f602f6f2",
+      "evidenceSha256": "633a9bf28c2d3940a51a27f025ffd930877374056dd85ba44a35e868a603bfc1",
+      "memorySha256": "ade60acab4fff41ebc6f147f1bb8bbd2d571bfc15fe7679991489897d3cd4b46"
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 1,
+      "frameworkTotalTimeMs": 482,
+      "formReadyUpperBoundMs": 5108.838099986315,
+      "pssBytes": 181124096,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "15bda852e6a6d4d86d605b5f60086c53b5f43acb6c3dd1c1bbc258152048c2af",
+      "evidenceSha256": "0ca60b1f1fafbdf0dba3cc9acdf8a0314356ec2e7e3455dbd359ba0c70a4ac46",
+      "memorySha256": "363a03398400a73bc0c648e30a23442f2cd50fe608ca95c0448a0e4c33b3ea53"
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 2,
+      "frameworkTotalTimeMs": 669,
+      "formReadyUpperBoundMs": 5215.53699998185,
+      "pssBytes": 181929984,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "1bc37e0934c10f8c3a96eb05e1d64c39e2979fc4e621e21b7a41706d94b7590e",
+      "evidenceSha256": "a3df03b95a7cac03136d8388ba743cd396eba1426630d7a82bf7e62cc1a9b217",
+      "memorySha256": "4facf43469c5bc6248387342896fdfa59f410c7ab74affa7e8a45437d6ab535d"
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 2,
+      "frameworkTotalTimeMs": 663,
+      "formReadyUpperBoundMs": 4901.423600036651,
+      "pssBytes": 181710848,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "fe399164d753d92d436b00f50969c4a9e52ff4c51081ba1c33da90d920e12610",
+      "evidenceSha256": "a6dd2a956b375af55da918a6c74621399ef9f1fbec183a3d719a245f10ce256f",
+      "memorySha256": "1b70f25e1aebd91bcf0043b16062c26bec7d0ce4c082efd72f76ba7dde18cc44"
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 3,
+      "frameworkTotalTimeMs": 497,
+      "formReadyUpperBoundMs": 4504.074399941601,
+      "pssBytes": 181345280,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "6e1cf0da952ccffdc7e497cb9a4c28087b7f3e9821f10ff5d46a90af8e3091ce",
+      "evidenceSha256": "70ad1d945d306a091d28c996f888786e20c30145831c3c43eee11f49fea251bc",
+      "memorySha256": "a6a7e3432be386b259cca11b47aa5cf8e2f7dc9620f08fd008005343a3aebacb"
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 3,
+      "frameworkTotalTimeMs": 487,
+      "formReadyUpperBoundMs": 4814.439099980518,
+      "pssBytes": 181623808,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "09884e0cfbcc4b64156dca9a6051ab2c403cbed7778894320bbb64de251551b0",
+      "evidenceSha256": "bc2c5895bd53339f497b5c784d74117473332c85ab990b61eaa5af687224cff0",
+      "memorySha256": "8021d771e6992ab8f041d7d8d7ed0ca79cef20a859cbbee4ad6e786a5898fa5e"
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 4,
+      "frameworkTotalTimeMs": 412,
+      "formReadyUpperBoundMs": 4880.660999915563,
+      "pssBytes": 182189056,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "91487bbcbba939d4e77208e002cc0853afeea4bb9b6d320d9acaeb759a9dd1cd",
+      "evidenceSha256": "6cfd44a2072275f9e601212b67de3bdbb726f41eef125e470c068c72567ebb4f",
+      "memorySha256": "10c96bb197c151ea7868e8c29c6e425a1b31b9feeb2eea24b59acb196357618e"
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 4,
+      "frameworkTotalTimeMs": 436,
+      "formReadyUpperBoundMs": 4980.800200020894,
+      "pssBytes": 181465088,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "49c19d27928bf5e3d4ac8fc820b512c9984a848e293075be81bddf0cbdbc1eb9",
+      "evidenceSha256": "e77c3f4b5d53ffca1bbf41c1456d49507fbf8345a96f95a708c66c8a48a6779d",
+      "memorySha256": "59830873ab12c7ddbeec776fb414df3469365ea54de22aeb433cf9682694ba91"
+    },
+    {
+      "objectCount": 100,
+      "ordinal": 5,
+      "frameworkTotalTimeMs": 476,
+      "formReadyUpperBoundMs": 5638.24460003525,
+      "pssBytes": 182178816,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "9cacf0020f9ffa0944700f8d7a9378a8e94aa0b6bd4b2fa2aa9c73602deb1316",
+      "evidenceSha256": "45a62ba2e2b1eef2e1f29c301a466e69a0e85b98115b796b23694f14b3707a16",
+      "memorySha256": "b5f214176be5c68046508345a2e187b03bbea68cf741dccbd2da08a099bf227f"
+    },
+    {
+      "objectCount": 5000,
+      "ordinal": 5,
+      "frameworkTotalTimeMs": 482,
+      "formReadyUpperBoundMs": 9076.707100030035,
+      "pssBytes": 173779968,
+      "appProcesses": 1,
+      "renderers": 1,
+      "allOriginalStateRestored": true,
+      "reportSha256": "3e29091a9d2c5ae1668ecd95fabfaaa9b8ce9503138fefc0f3479095da0a7d89",
+      "evidenceSha256": "d2838434c6506e32e052e108e3e102db314e60224f442abe5b87b154a1a583fd",
+      "memorySha256": "bcb52046f14cb1fc966a7a1b2a06f34a0cf8ead1f198cb1098cb3cbf2f7eda47"
+    }
+  ],
+  "p95Method": "nearest rank; n=5 so equals maximum",
+  "memory": {
+    "scope": "app UID and bound isolated renderers",
+    "rawCompleteSummaries": 20,
+    "swapForms": {
+      "ordinary": 14,
+      "proportional": 6
+    },
+    "proportionalSwapSeparated": true,
+    "continuousPeakMeasured": false
+  },
+  "restoration": {
+    "controls": 10,
+    "contentsLinksModesRootAndPreparedBaselineMatch": true,
+    "apkUidAndDebugFlagsRestored": true,
+    "systemSettingsExactlyRestored": true,
+    "ownedPackagesAndVmAndAdbAndExitHelpersAbsent": true,
+    "oldPrivateServerIdentityPreserved": true,
+    "privateTarCopiesRemoved": 21,
+    "duplicateApkPayloadsRemoved": 2
+  },
+  "terminalVerification": {
+    "initialWindowsTextDecodeErrorRetained": true,
+    "separateExplicitUtf8ReadOnlyRecheckPassed": true,
+    "originalResultRewritten": false
+  },
+  "sourceArchive": {
+    "path": "rf312-current-default-controls-2026-10-16-source.zip",
+    "members": 13,
+    "bytes": 144991,
+    "sha256": "1ff5094622f519626c424ce63a8a45e451130b19e0928afe8704758e524c18b7",
+    "allMembersExactSourceBytesAndCrcVerified": true,
+    "localBuildPathsIncluded": true,
+    "noRawProcessSnapshotsOrLogsOrPrivateData": true
+  },
+  "evidenceSha256": {
+    "external-terminal.json": "0eed3f3fcebd93079d5cd2db7621ed55f412e36d0db9178d13cfb71c6b73dc8d",
+    "independent-audit.json": "a835e9723cc220f42cf776232ea3729cfaf128ea0cd7a8953e4bb86dbe7da75a",
+    "terminal-processes-recheck.json": "d794eb4af0a7789a43273ec3659c4cbf309ed7f42a99f713c88e6f54f14e1154",
+    "verified-cleanup.json": "113222c995effd9191391ee4fab2c851957e7c897b2fe1a82f3bb62b73887178",
+    "native-default-controls/result.json": "2495993c758a026f41426897555612b86388fdb00f76f1d0a673af9a0fdfd97f",
+    "native-default-controls/environment-ready.json": "be8fe40bc0aeffab1b93805f5fab5a052715587c7b81343bb0501984e72ab661",
+    "native-default-controls/continue-native.json": "09f4e01c2bf8831829fc08485a47ef4def3e76dd9869531c394b071af1e03035"
+  },
+  "buildEvidenceSha256": {
+    "android-release-build/input-proof.json": "058da7c1153cb3ba341ec7b284db730144716c70df9d609fe895fccff57eb3d0",
+    "android-release-build/receipt.json": "1827e7393819647a8141f64bb6422455e8095363287d43f8c92751a71aa8a75c",
+    "android-release-package/package-verification.json": "a262f5e4f5c1ed66c78bf6e43f1a4529a4b85f544146016bff5b99b5d1f9d5e4"
+  },
+  "earlierFailureCohortsPreserved": true,
+  "distributionsCombinedWithOtherCohorts": false,
+  "oldConnectionTimeoutRootCauseClaimed": false,
+  "fullMediaOrPhysicalOrMultiPlatformAccepted": false,
+  "rawProcessSnapshotsOrUiLogsOrPrivateContentsPublished": false,
+  "genericPortableEntryComplete": false
+}

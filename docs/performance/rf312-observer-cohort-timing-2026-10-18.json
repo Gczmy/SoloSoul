@@ -1,0 +1,2291 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "scope": "existing-default-six-pair-native-control-intervals",
+  "inputCohort": "rf312-sampling-cohort-input-2026-10-18.json",
+  "inputCohortSha256": "1f31588fdbda816fe6908955185119b903f1d2c3e61035f7fa2fdc1bd14ad25d",
+  "cohortBindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
+  "timingSourceSha256": {
+    "native_timing.py": "b63598ef9b46b24175a2a9a260af7dabd57b6976820d1371805114af8211521b",
+    "read-native-timing.py": "6379192a79dd8a862d9b299df5809dcbd9c2a7ca9800d48d9dc0ccbd8af30fa7",
+    "test_native_timing.py": "77221bc0feee12d304161cafcca411caeabf33d0dcfed06b78c72b7432c942b4"
+  },
+  "independentBatchReceiptSha256": "3fe139c1757dfcbf0eea714ef467116c9ab0d6dfa99747aee0cc4babda8f2cdf",
+  "plannedPairs": 6,
+  "plannedModes": 12,
+  "acceptedModes": 9,
+  "refusedModes": 3,
+  "completeCases": 18,
+  "revalidatedNativeReplies": 7154,
+  "newNativeSamples": 0,
+  "sdkCommandsExecuted": 0,
+  "inputEventsDispatched": 0,
+  "sourceGenerationsPooled": false,
+  "canonicalStateImeUiReplaysPassedForAllAcceptedModes": true,
+  "originalFailuresAndInputsPreserved": true,
+  "exactIntegerNanoseconds": true,
+  "median": "exact-rational",
+  "tail": "nearest-rank-empirical-p95",
+  "p95IsSmallSampleEmpiricalNotPopulationTail": true,
+  "failedModesAreNullNotZero": true,
+  "nativeMethodIntervalsIncludeApplicationWaits": true,
+  "pairedDifferencesAreDescriptiveNotCausal": true,
+  "nativeControlIntervalRunDistributionAccepted": true,
+  "performanceDistributionAccepted": false,
+  "exclusiveObserverOverheadAccepted": false,
+  "applicationOnlyLatencyAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "nativeFramesAccepted": false,
+  "continuousMemoryPeakAccepted": false,
+  "fullRF312Accepted": false,
+  "rows": [
+    {
+      "pair": 1,
+      "mode": "off",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "0628b9d9cf33cde904d643bbf6329379fbcf69e3fc6b7afd7d8e8dc66826d0ed",
+      "timingAccepted": true,
+      "timingReceiptSha256": "c3cca582db6fb21339b27e727ea621ce3cd73c159c55678ab53321d602a89dab",
+      "canonicalReaderReceiptSha256": {
+        "state": "1a55255b9dc3232c2aeb7892b84d8157a4f327a7428ac6610b3f2ed29c25b67e",
+        "ime": "ba6cfe765958e1448f8448cb14218585e09594edb24b951a029522aef78ef1de",
+        "ui": "6d781b69ad4bb3f5ea2fcb72f467655f4dbd3ea773e11dca37d68ee78795b0ad"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 395,
+            "nativeChannelSpanNs": 131953650103,
+            "nativeOperationDurationSumNs": 35199572945,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 109174968,
+                "minimumNs": 34104397,
+                "maximumNs": 75070571,
+                "medianNumeratorNs": 109174968,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 75070571
+              },
+              "inspect-target": {
+                "n": 116,
+                "sumNs": 503889324,
+                "minimumNs": 827758,
+                "maximumNs": 103905782,
+                "medianNumeratorNs": 4688660,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 9963234
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 30083955,
+                "minimumNs": 30083955,
+                "maximumNs": 30083955,
+                "medianNumeratorNs": 30083955,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 30083955
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 821512061,
+                "minimumNs": 821512061,
+                "maximumNs": 821512061,
+                "medianNumeratorNs": 821512061,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 821512061
+              },
+              "snapshot-metadata": {
+                "n": 218,
+                "sumNs": 18219020658,
+                "minimumNs": 758904,
+                "maximumNs": 2102818334,
+                "medianNumeratorNs": 6121805,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 574425506
+              },
+              "snapshot-with-png": {
+                "n": 21,
+                "sumNs": 6884077853,
+                "minimumNs": 90479264,
+                "maximumNs": 2894505798,
+                "medianNumeratorNs": 135305794,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 830149338
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1168858109,
+                "minimumNs": 21695517,
+                "maximumNs": 73658105,
+                "medianNumeratorNs": 35371474,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 62206127
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 7462956017,
+                "minimumNs": 408132666,
+                "maximumNs": 4432915618,
+                "medianNumeratorNs": 2621907733,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 4432915618
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -775569743,
+              -77003223,
+              -433286421,
+              89382305,
+              17031801,
+              -762092095,
+              119834423,
+              117683824,
+              -249622994,
+              269716201,
+              -14936263,
+              208522594,
+              19550367
+            ],
+            "negativePairDeltasRetained": 6,
+            "timingSha256": "9baa4df491d40c30edc2bc47914d11bbe13478f29435aa2366d43a0a55900cf0"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 386,
+            "nativeChannelSpanNs": 119244412025,
+            "nativeOperationDurationSumNs": 27795126918,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 148620312,
+                "minimumNs": 41633902,
+                "maximumNs": 106986410,
+                "medianNumeratorNs": 148620312,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 106986410
+              },
+              "inspect-target": {
+                "n": 114,
+                "sumNs": 351412620,
+                "minimumNs": 899547,
+                "maximumNs": 33098030,
+                "medianNumeratorNs": 4943148,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 5552948
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 30581926,
+                "minimumNs": 30581926,
+                "maximumNs": 30581926,
+                "medianNumeratorNs": 30581926,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 30581926
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 837908932,
+                "minimumNs": 837908932,
+                "maximumNs": 837908932,
+                "medianNumeratorNs": 837908932,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 837908932
+              },
+              "snapshot-metadata": {
+                "n": 208,
+                "sumNs": 14692345072,
+                "minimumNs": 805004,
+                "maximumNs": 2123459114,
+                "medianNumeratorNs": 5886417,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 444440917
+              },
+              "snapshot-with-png": {
+                "n": 24,
+                "sumNs": 5192291480,
+                "minimumNs": 92840052,
+                "maximumNs": 1555843116,
+                "medianNumeratorNs": 240520519,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 540057573
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1057837524,
+                "minimumNs": 20675981,
+                "maximumNs": 42836305,
+                "medianNumeratorNs": 32674854,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 41635203
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5484129052,
+                "minimumNs": 444136731,
+                "maximumNs": 2578429282,
+                "medianNumeratorNs": 2461563039,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2578429282
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              202742728,
+              93779576,
+              -373768802,
+              30176314,
+              -46928049,
+              -497164144,
+              124128412,
+              116446667,
+              -248192497,
+              240550642,
+              -285359679,
+              277435033,
+              34228510
+            ],
+            "negativePairDeltasRetained": 5,
+            "timingSha256": "1f2e60dd9c4a767c3cecc7849ac7b8a5c1d2a198149e2f4bce09e3f6d2974c72"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 1,
+      "mode": "on",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "5effc22d1fece7d6966f28f5f63b525fe5688c58e8ba6f4a3cad6fa892cef20c",
+      "timingAccepted": true,
+      "timingReceiptSha256": "2a9910d5951b948d104e5c24b0687722a48076f83f69e121871069bed01d1ba1",
+      "canonicalReaderReceiptSha256": {
+        "state": "342f71a8075a6e486f16c772411fd3e767bcb9a04e15a10393176f00126c31a3",
+        "ime": "6673f2c2d30bd7ba63c90fbd3f18e15e618ef31f92615063b3270cad3b1f9f57",
+        "ui": "7af7da11bb7b4f3f0a422969457b63d5ee6fee8303d37f483a9ecf609d242fa8"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 400,
+            "nativeChannelSpanNs": 133517461201,
+            "nativeOperationDurationSumNs": 36299395625,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 65542844,
+                "minimumNs": 29925668,
+                "maximumNs": 35617176,
+                "medianNumeratorNs": 65542844,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 35617176
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 498181880,
+                "minimumNs": 1188390,
+                "maximumNs": 45398368,
+                "medianNumeratorNs": 3329577,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 8621627
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 36145471,
+                "minimumNs": 36145471,
+                "maximumNs": 36145471,
+                "medianNumeratorNs": 36145471,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 36145471
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 733408983,
+                "minimumNs": 733408983,
+                "maximumNs": 733408983,
+                "medianNumeratorNs": 733408983,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 733408983
+              },
+              "snapshot-metadata": {
+                "n": 223,
+                "sumNs": 20874535098,
+                "minimumNs": 773176,
+                "maximumNs": 2505487205,
+                "medianNumeratorNs": 3742589,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 693010953
+              },
+              "snapshot-with-png": {
+                "n": 22,
+                "sumNs": 6565964200,
+                "minimumNs": 99520138,
+                "maximumNs": 1692434126,
+                "medianNumeratorNs": 287013116,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 1276349991
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1204750349,
+                "minimumNs": 26066299,
+                "maximumNs": 62412852,
+                "medianNumeratorNs": 34676131,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 56169240
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 6320866800,
+                "minimumNs": 402175683,
+                "maximumNs": 3181851323,
+                "medianNumeratorNs": 2736839794,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3181851323
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -1273312267,
+              -71819709,
+              -240551254,
+              -40309871,
+              -541442410,
+              139613451,
+              161840752,
+              -358213050,
+              73228925,
+              112329827,
+              -174763916,
+              55399601,
+              12324844
+            ],
+            "negativePairDeltasRetained": 7,
+            "timingSha256": "89e80bf613a562413fedca5f88ae88eda7a99dd559daa7320a9ed136d017c48f"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 392,
+            "nativeChannelSpanNs": 138580596306,
+            "nativeOperationDurationSumNs": 37500779745,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 135806597,
+                "minimumNs": 67384545,
+                "maximumNs": 68422052,
+                "medianNumeratorNs": 135806597,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 68422052
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 557349878,
+                "minimumNs": 953966,
+                "maximumNs": 74913651,
+                "medianNumeratorNs": 3417714,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 8407443
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 41118176,
+                "minimumNs": 41118176,
+                "maximumNs": 41118176,
+                "medianNumeratorNs": 41118176,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 41118176
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 803515343,
+                "minimumNs": 803515343,
+                "maximumNs": 803515343,
+                "medianNumeratorNs": 803515343,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 803515343
+              },
+              "snapshot-metadata": {
+                "n": 214,
+                "sumNs": 19279983886,
+                "minimumNs": 1075359,
+                "maximumNs": 1824719345,
+                "medianNumeratorNs": 7176102,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 631922400
+              },
+              "snapshot-with-png": {
+                "n": 23,
+                "sumNs": 7298440231,
+                "minimumNs": 98039495,
+                "maximumNs": 1641268468,
+                "medianNumeratorNs": 146666291,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 1553158577
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1214299582,
+                "minimumNs": 22894764,
+                "maximumNs": 63728714,
+                "medianNumeratorNs": 36962017,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 58043451
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 8170266052,
+                "minimumNs": 436954662,
+                "maximumNs": 4585920650,
+                "medianNumeratorNs": 3147390740,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 4585920650
+              }
+            },
+            "matchingXmlCapturePairs": 12,
+            "matchingXmlPairDeltasNs": [
+              238769369,
+              -4347074,
+              -485349487,
+              -159523532,
+              -1648684967,
+              142879968,
+              140156696,
+              -729065215,
+              60952605,
+              -135257325,
+              257363655,
+              68566721
+            ],
+            "negativePairDeltasRetained": 6,
+            "timingSha256": "a0910911af9dbca7ae8470dcfb9e3afe06829a4de89f49ccb46f57975aba233f"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "mode": "on",
+      "originalStatus": "refused",
+      "nativeParentSha256": "74db05065d218c7ad4414c79d22c9a7471fd88f437c15605cd598eeefc642a18",
+      "timingAccepted": false,
+      "refusalCategory": "preflight-refused",
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": null,
+          "originalCaseStatus": "not-reached"
+        },
+        {
+          "objectCount": 5000,
+          "timing": null,
+          "originalCaseStatus": "not-reached"
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "mode": "off",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "0a60288098b4fe82428da48da70b3769adc071b4d9cbef1e5faa8e428fe26b28",
+      "timingAccepted": true,
+      "timingReceiptSha256": "18a23e973bae126e690a259e9629b5a68ae81510335f176a22c773c3a1231a8c",
+      "canonicalReaderReceiptSha256": {
+        "state": "ff0613cd989f30e6efb3f67739b98726ceceb9f88a0e5ad97a1cd54d57b4b093",
+        "ime": "473e1b98124a9ba54400cde624f039979c29d995ea7f91b59d3ee2526135a9fe",
+        "ui": "f0b94526c051ed664c8cb3aa990ff5ac2f8a3ec30f443cef4ca4a5f74ac05c30"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 387,
+            "nativeChannelSpanNs": 125438336764,
+            "nativeOperationDurationSumNs": 34943632309,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 84071283,
+                "minimumNs": 29056842,
+                "maximumNs": 55014441,
+                "medianNumeratorNs": 84071283,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 55014441
+              },
+              "inspect-target": {
+                "n": 116,
+                "sumNs": 488856043,
+                "minimumNs": 954786,
+                "maximumNs": 82397342,
+                "medianNumeratorNs": 5442243,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 6648672
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 35983800,
+                "minimumNs": 35983800,
+                "maximumNs": 35983800,
+                "medianNumeratorNs": 35983800,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 35983800
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 777146094,
+                "minimumNs": 777146094,
+                "maximumNs": 777146094,
+                "medianNumeratorNs": 777146094,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 777146094
+              },
+              "snapshot-metadata": {
+                "n": 209,
+                "sumNs": 20098778077,
+                "minimumNs": 807557,
+                "maximumNs": 2882884824,
+                "medianNumeratorNs": 2797928,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 648361723
+              },
+              "snapshot-with-png": {
+                "n": 22,
+                "sumNs": 6501400006,
+                "minimumNs": 91292473,
+                "maximumNs": 1831684918,
+                "medianNumeratorNs": 284975289,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 1235776726
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1359413175,
+                "minimumNs": 25531727,
+                "maximumNs": 87424604,
+                "medianNumeratorNs": 39734512,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 79222579
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5597983831,
+                "minimumNs": 467547880,
+                "maximumNs": 2818456716,
+                "medianNumeratorNs": 2311979235,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2818456716
+              }
+            },
+            "matchingXmlCapturePairs": 12,
+            "matchingXmlPairDeltasNs": [
+              235726183,
+              -104040128,
+              -440106107,
+              20834902,
+              -738801180,
+              126621544,
+              145961122,
+              -279187205,
+              287783595,
+              -142854231,
+              289079556,
+              -137132247
+            ],
+            "negativePairDeltasRetained": 6,
+            "timingSha256": "c7ee4d7a8c770e02276fe509ec7081b4f031498c0486a2ecd4c62e8c144a918b"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 393,
+            "nativeChannelSpanNs": 120379161047,
+            "nativeOperationDurationSumNs": 29467156202,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 152912112,
+                "minimumNs": 42020804,
+                "maximumNs": 110891308,
+                "medianNumeratorNs": 152912112,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 110891308
+              },
+              "inspect-target": {
+                "n": 114,
+                "sumNs": 346139933,
+                "minimumNs": 856279,
+                "maximumNs": 25880143,
+                "medianNumeratorNs": 5133233,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 5803169
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 37025021,
+                "minimumNs": 37025021,
+                "maximumNs": 37025021,
+                "medianNumeratorNs": 37025021,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 37025021
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 794733864,
+                "minimumNs": 794733864,
+                "maximumNs": 794733864,
+                "medianNumeratorNs": 794733864,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 794733864
+              },
+              "snapshot-metadata": {
+                "n": 215,
+                "sumNs": 15830895473,
+                "minimumNs": 873915,
+                "maximumNs": 1527127269,
+                "medianNumeratorNs": 3041618,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 434186670
+              },
+              "snapshot-with-png": {
+                "n": 24,
+                "sumNs": 5523747068,
+                "minimumNs": 90345452,
+                "maximumNs": 1407392440,
+                "medianNumeratorNs": 260676661,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 606840726
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1126382841,
+                "minimumNs": 24826796,
+                "maximumNs": 74206310,
+                "medianNumeratorNs": 32605311,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 46290279
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5655319890,
+                "minimumNs": 416601257,
+                "maximumNs": 3001514951,
+                "medianNumeratorNs": 2237203682,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3001514951
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              268130354,
+              -159082974,
+              -374661042,
+              70331753,
+              5263522,
+              -659860013,
+              125453124,
+              127975987,
+              -181482834,
+              287073822,
+              -150578703,
+              244274169,
+              17927517
+            ],
+            "negativePairDeltasRetained": 5,
+            "timingSha256": "30a62612fe1dd7fcf28841f6ca12737d4a84afb4aca780f3d29fbbf4d6db9a10"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 3,
+      "mode": "off",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "cff6bf650a7b338e567583556f52d3b270d2af9f56c42f8edcc950c37efcb717",
+      "timingAccepted": true,
+      "timingReceiptSha256": "6f65869f2899c9345cfa2adb6b41886c7842a64657eaca58710216a19e5c207b",
+      "canonicalReaderReceiptSha256": {
+        "state": "272d931efe4b86a1fb3013b09a4a3a9354935d2a68c3bae768303c80510ef784",
+        "ime": "6ede8905d36aaa7574d1f9fc056ff431c63078b9e2ecdb706496746a5739d0f4",
+        "ui": "ccc244f6d73e26a31e8d7e9c5a1546326158fc129b72aec9c9c1b72a2fff069e"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 394,
+            "nativeChannelSpanNs": 122057244531,
+            "nativeOperationDurationSumNs": 31918740631,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 215567649,
+                "minimumNs": 37726105,
+                "maximumNs": 177841544,
+                "medianNumeratorNs": 215567649,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 177841544
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 372561476,
+                "minimumNs": 869502,
+                "maximumNs": 52118420,
+                "medianNumeratorNs": 2276917,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 5880010
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 30423779,
+                "minimumNs": 30423779,
+                "maximumNs": 30423779,
+                "medianNumeratorNs": 30423779,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 30423779
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 757517185,
+                "minimumNs": 757517185,
+                "maximumNs": 757517185,
+                "medianNumeratorNs": 757517185,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 757517185
+              },
+              "snapshot-metadata": {
+                "n": 217,
+                "sumNs": 17802859256,
+                "minimumNs": 876060,
+                "maximumNs": 2036264791,
+                "medianNumeratorNs": 2942436,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 636301907
+              },
+              "snapshot-with-png": {
+                "n": 22,
+                "sumNs": 5714539936,
+                "minimumNs": 94362294,
+                "maximumNs": 1614928088,
+                "medianNumeratorNs": 265310345,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 992678526
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1178990658,
+                "minimumNs": 24255673,
+                "maximumNs": 118463986,
+                "medianNumeratorNs": 32139783,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 44794911
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5846280692,
+                "minimumNs": 502651539,
+                "maximumNs": 2909442680,
+                "medianNumeratorNs": 2434186473,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2909442680
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -799974595,
+              68321220,
+              -358805002,
+              97259046,
+              3078582,
+              -487352518,
+              124093389,
+              118914516,
+              -178904863,
+              55156356,
+              -98403780,
+              193038449,
+              45910011
+            ],
+            "negativePairDeltasRetained": 5,
+            "timingSha256": "f09c6bda60f28e034248b72ddce25f15e1577aa7ece23ba9429a4c79d7e3809e"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 392,
+            "nativeChannelSpanNs": 120807144512,
+            "nativeOperationDurationSumNs": 30035695829,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 131285020,
+                "minimumNs": 38874080,
+                "maximumNs": 92410940,
+                "medianNumeratorNs": 131285020,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 92410940
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 396232251,
+                "minimumNs": 884844,
+                "maximumNs": 50885859,
+                "medianNumeratorNs": 2440263,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 6400138
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 22808627,
+                "minimumNs": 22808627,
+                "maximumNs": 22808627,
+                "medianNumeratorNs": 22808627,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 22808627
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 737995533,
+                "minimumNs": 737995533,
+                "maximumNs": 737995533,
+                "medianNumeratorNs": 737995533,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 737995533
+              },
+              "snapshot-metadata": {
+                "n": 216,
+                "sumNs": 15579024471,
+                "minimumNs": 836261,
+                "maximumNs": 1063937181,
+                "medianNumeratorNs": 6282050,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 423432445
+              },
+              "snapshot-with-png": {
+                "n": 21,
+                "sumNs": 6575514778,
+                "minimumNs": 90242486,
+                "maximumNs": 2081865139,
+                "medianNumeratorNs": 136984772,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 1123475470
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1062891738,
+                "minimumNs": 22737747,
+                "maximumNs": 45026729,
+                "medianNumeratorNs": 31712305,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 40451140
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5529943411,
+                "minimumNs": 453217394,
+                "maximumNs": 2581405701,
+                "medianNumeratorNs": 2495320316,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2581405701
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              187649005,
+              -157609658,
+              -728134459,
+              111477256,
+              19993298,
+              -783872961,
+              165207502,
+              118703382,
+              -175845508,
+              220569935,
+              -304059032,
+              79058452,
+              34167388
+            ],
+            "negativePairDeltasRetained": 5,
+            "timingSha256": "cbfe42e9a6b94d9a6eb31aad970ed048f9924563ed4e514934c870377af2141d"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 3,
+      "mode": "on",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "dbb765cb638d28cfdfd7acdcfde6037c2703141eaa105956b1e5e7c51edf6c2d",
+      "timingAccepted": true,
+      "timingReceiptSha256": "8bb922f53491d201e34d4cae37e783c4972b12edd2577f646a9fd25f2ac4264b",
+      "canonicalReaderReceiptSha256": {
+        "state": "c6b2d27fea15b79c89f9348a7222d20f5b1ade5f79e84a8c06a5441983d3b48a",
+        "ime": "d74cea328f709c136352d6057664bc4ea27fc1faa66b506fe08e46e356309022",
+        "ui": "172f7f2f7f77250ae685535d791bd2bdbd1fe636eeb4c47bd7dd91f4f5570f92"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 402,
+            "nativeChannelSpanNs": 134085408974,
+            "nativeOperationDurationSumNs": 36173276064,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 86444697,
+                "minimumNs": 40346049,
+                "maximumNs": 46098648,
+                "medianNumeratorNs": 86444697,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 46098648
+              },
+              "inspect-target": {
+                "n": 116,
+                "sumNs": 1108887508,
+                "minimumNs": 948210,
+                "maximumNs": 299135714,
+                "medianNumeratorNs": 5785536,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 9899629
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 25057550,
+                "minimumNs": 25057550,
+                "maximumNs": 25057550,
+                "medianNumeratorNs": 25057550,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 25057550
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 830127090,
+                "minimumNs": 830127090,
+                "maximumNs": 830127090,
+                "medianNumeratorNs": 830127090,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 830127090
+              },
+              "snapshot-metadata": {
+                "n": 224,
+                "sumNs": 19926036176,
+                "minimumNs": 815899,
+                "maximumNs": 2302997392,
+                "medianNumeratorNs": 6122599,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 575980965
+              },
+              "snapshot-with-png": {
+                "n": 22,
+                "sumNs": 6717460264,
+                "minimumNs": 96975914,
+                "maximumNs": 2088076291,
+                "medianNumeratorNs": 284550835,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 958818388
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1224624285,
+                "minimumNs": 25794366,
+                "maximumNs": 62284886,
+                "medianNumeratorNs": 37465587,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 54483418
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 6254638494,
+                "minimumNs": 424922076,
+                "maximumNs": 3286492840,
+                "medianNumeratorNs": 2543223578,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3286492840
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -1037933171,
+              40883730,
+              -522565692,
+              -3900869,
+              -57175753,
+              -719649275,
+              146822742,
+              148338040,
+              -251933880,
+              56005307,
+              76834184,
+              29319190,
+              -44048019
+            ],
+            "negativePairDeltasRetained": 7,
+            "timingSha256": "12f0f8bca8afd452a43905f9627da8ad3dacccdcd73542e514bde53159dbc165"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 393,
+            "nativeChannelSpanNs": 135545699018,
+            "nativeOperationDurationSumNs": 33848412851,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 114516023,
+                "minimumNs": 39785381,
+                "maximumNs": 74730642,
+                "medianNumeratorNs": 114516023,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 74730642
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 509124190,
+                "minimumNs": 1037257,
+                "maximumNs": 60826924,
+                "medianNumeratorNs": 3202067,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 8391902
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 38861700,
+                "minimumNs": 38861700,
+                "maximumNs": 38861700,
+                "medianNumeratorNs": 38861700,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 38861700
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 798010214,
+                "minimumNs": 798010214,
+                "maximumNs": 798010214,
+                "medianNumeratorNs": 798010214,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 798010214
+              },
+              "snapshot-metadata": {
+                "n": 214,
+                "sumNs": 15836199142,
+                "minimumNs": 821724,
+                "maximumNs": 1154414188,
+                "medianNumeratorNs": 7467926,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 482525062
+              },
+              "snapshot-with-png": {
+                "n": 24,
+                "sumNs": 7263196722,
+                "minimumNs": 101243988,
+                "maximumNs": 1936643462,
+                "medianNumeratorNs": 299320355,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 1539515580
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1186880540,
+                "minimumNs": 22847608,
+                "maximumNs": 55733422,
+                "medianNumeratorNs": 36308945,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 52247138
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 8101624320,
+                "minimumNs": 367165451,
+                "maximumNs": 3988371864,
+                "medianNumeratorNs": 3746087005,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3988371864
+              }
+            },
+            "matchingXmlCapturePairs": 12,
+            "matchingXmlPairDeltasNs": [
+              -909908842,
+              -79821672,
+              -495592923,
+              -71070402,
+              -387095360,
+              138429447,
+              140114777,
+              -133718713,
+              50911811,
+              92109745,
+              89304059,
+              -44601154
+            ],
+            "negativePairDeltasRetained": 7,
+            "timingSha256": "28543c5b968f55b56e9e8073f0aa59cc334dc3caa844e319c9be2ae7e12e2a72"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 4,
+      "mode": "on",
+      "originalStatus": "refused",
+      "nativeParentSha256": "fab75ef850b455022bef2a7cd5f95acd73eb919da674723bd7f785f88b9bbb29",
+      "timingAccepted": false,
+      "refusalCategory": "native-case-refused",
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": null,
+          "originalCaseStatus": "completed-before-refusal"
+        },
+        {
+          "objectCount": 5000,
+          "timing": null,
+          "originalCaseStatus": "refused"
+        }
+      ]
+    },
+    {
+      "pair": 4,
+      "mode": "off",
+      "originalStatus": "refused",
+      "nativeParentSha256": "a4aa276e65e798987be28b00f358993acba4a6bb07091556329d3dce1fe0727f",
+      "timingAccepted": false,
+      "refusalCategory": "native-case-refused",
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": null,
+          "originalCaseStatus": "completed-before-refusal"
+        },
+        {
+          "objectCount": 5000,
+          "timing": null,
+          "originalCaseStatus": "refused"
+        }
+      ]
+    },
+    {
+      "pair": 5,
+      "mode": "off",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "fa030c84ccd76f4c0362341cca26d69c322e15c0f361897052abae800c0e4c39",
+      "timingAccepted": true,
+      "timingReceiptSha256": "b588a236bf66905192aab93469e337d8cc6c5a1258e0581340fa66f90a9d27de",
+      "canonicalReaderReceiptSha256": {
+        "state": "c1581ae0db458e2c0d958782106d86f9660cb038c0a44bd7ee1ef57d1648ea2f",
+        "ime": "98ac415e976b915e9059e2419a87c44655874372b99138a0068ad9b043f94491",
+        "ui": "b0377c14bf3bda205e1a68e328bb9d804a29a89dc5d61f3609bd5a5196fa7f0e"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 392,
+            "nativeChannelSpanNs": 122300043355,
+            "nativeOperationDurationSumNs": 33553932951,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 119847136,
+                "minimumNs": 27974041,
+                "maximumNs": 91873095,
+                "medianNumeratorNs": 119847136,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 91873095
+              },
+              "inspect-target": {
+                "n": 117,
+                "sumNs": 432935997,
+                "minimumNs": 823568,
+                "maximumNs": 53908157,
+                "medianNumeratorNs": 2343224,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 8126727
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 33695398,
+                "minimumNs": 33695398,
+                "maximumNs": 33695398,
+                "medianNumeratorNs": 33695398,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 33695398
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 744151873,
+                "minimumNs": 744151873,
+                "maximumNs": 744151873,
+                "medianNumeratorNs": 744151873,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 744151873
+              },
+              "snapshot-metadata": {
+                "n": 213,
+                "sumNs": 19138624471,
+                "minimumNs": 878122,
+                "maximumNs": 2519517935,
+                "medianNumeratorNs": 2966531,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 616456621
+              },
+              "snapshot-with-png": {
+                "n": 22,
+                "sumNs": 5714855338,
+                "minimumNs": 87512295,
+                "maximumNs": 1539784086,
+                "medianNumeratorNs": 258212858,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 1019385568
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1208913858,
+                "minimumNs": 20412042,
+                "maximumNs": 64613578,
+                "medianNumeratorNs": 34377062,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 59736752
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 6160908880,
+                "minimumNs": 758142911,
+                "maximumNs": 2789989501,
+                "medianNumeratorNs": 2612776468,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2789989501
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -892739794,
+              -37899191,
+              -474385156,
+              75901687,
+              -36378782,
+              -666392453,
+              121082264,
+              163870919,
+              52633039,
+              269466011,
+              -288479133,
+              221440848,
+              17755499
+            ],
+            "negativePairDeltasRetained": 6,
+            "timingSha256": "58b3bd989fc67ad5be6e50f1605cee4036855f3fdde81f9a6dd09a331b0523f6"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 397,
+            "nativeChannelSpanNs": 120785076037,
+            "nativeOperationDurationSumNs": 29219052241,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 79087172,
+                "minimumNs": 34582552,
+                "maximumNs": 44504620,
+                "medianNumeratorNs": 79087172,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 44504620
+              },
+              "inspect-target": {
+                "n": 116,
+                "sumNs": 627770066,
+                "minimumNs": 867861,
+                "maximumNs": 119133274,
+                "medianNumeratorNs": 6025459,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 9569033
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 30114002,
+                "minimumNs": 30114002,
+                "maximumNs": 30114002,
+                "medianNumeratorNs": 30114002,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 30114002
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 895273887,
+                "minimumNs": 895273887,
+                "maximumNs": 895273887,
+                "medianNumeratorNs": 895273887,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 895273887
+              },
+              "snapshot-metadata": {
+                "n": 218,
+                "sumNs": 15625156389,
+                "minimumNs": 647148,
+                "maximumNs": 1219948014,
+                "medianNumeratorNs": 5947485,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 487999265
+              },
+              "snapshot-with-png": {
+                "n": 23,
+                "sumNs": 5393880713,
+                "minimumNs": 87056073,
+                "maximumNs": 1447078521,
+                "medianNumeratorNs": 122100590,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 848549143
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1127394855,
+                "minimumNs": 19962498,
+                "maximumNs": 44478807,
+                "medianNumeratorNs": 35119279,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 42835769
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5440375157,
+                "minimumNs": 323277220,
+                "maximumNs": 2726785958,
+                "medianNumeratorNs": 2390311979,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2726785958
+              }
+            },
+            "matchingXmlCapturePairs": 14,
+            "matchingXmlPairDeltasNs": [
+              -936590315,
+              -206371996,
+              -531514507,
+              -32295917,
+              43334043,
+              -486082593,
+              115060187,
+              118790127,
+              -148717894,
+              48990364,
+              172502270,
+              -114555701,
+              46589352,
+              25957170
+            ],
+            "negativePairDeltasRetained": 7,
+            "timingSha256": "dd0a8c67e49a286f8c718c0194f336dbbcd9120b9e968f60de831935fccb3700"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 5,
+      "mode": "on",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "612b027e7d113d14ffe64bb77e544938a8438e12eef9779bf5baa64ce8ab9bb9",
+      "timingAccepted": true,
+      "timingReceiptSha256": "d9c83d2e2e477f7f817c54049ae374dd4d51506907e67e564fc4589710a3d4c3",
+      "canonicalReaderReceiptSha256": {
+        "state": "d744a9e4439cf16a067577ab3eea56aef12d953a99970318f4e3b69e06a85502",
+        "ime": "4b5a7648e9c0f886573c53ed486188177873dbd226e161fe3ef8f6310191c51d",
+        "ui": "d6aa3dddcd53ee807109e77dcc5051e8c8ec908196b5a33dacf77634f729fcb0"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 396,
+            "nativeChannelSpanNs": 136736609965,
+            "nativeOperationDurationSumNs": 35321107959,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 78044303,
+                "minimumNs": 37219465,
+                "maximumNs": 40824838,
+                "medianNumeratorNs": 78044303,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 40824838
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 497598526,
+                "minimumNs": 1093401,
+                "maximumNs": 34534672,
+                "medianNumeratorNs": 3656085,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 9673193
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 33510673,
+                "minimumNs": 33510673,
+                "maximumNs": 33510673,
+                "medianNumeratorNs": 33510673,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 33510673
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 758818388,
+                "minimumNs": 758818388,
+                "maximumNs": 758818388,
+                "medianNumeratorNs": 758818388,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 758818388
+              },
+              "snapshot-metadata": {
+                "n": 218,
+                "sumNs": 19971855661,
+                "minimumNs": 721384,
+                "maximumNs": 1592860073,
+                "medianNumeratorNs": 7334944,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 730982720
+              },
+              "snapshot-with-png": {
+                "n": 23,
+                "sumNs": 6732254474,
+                "minimumNs": 102886346,
+                "maximumNs": 1768781027,
+                "medianNumeratorNs": 151470803,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 1211614708
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1226634321,
+                "minimumNs": 22037220,
+                "maximumNs": 57280292,
+                "medianNumeratorNs": 34393670,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 54973455
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 6022391613,
+                "minimumNs": 427059318,
+                "maximumNs": 2952210631,
+                "medianNumeratorNs": 2643121664,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2952210631
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -1339287823,
+              54611768,
+              -471345696,
+              35651237,
+              -48087247,
+              -536417337,
+              137686312,
+              210520551,
+              -115812654,
+              8947533,
+              -42732532,
+              206375140,
+              -92198585
+            ],
+            "negativePairDeltasRetained": 7,
+            "timingSha256": "82a7d671a26a13b78f9f88f8a84485fd954057570ace0201a726dcc747c177e5"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 394,
+            "nativeChannelSpanNs": 131298316256,
+            "nativeOperationDurationSumNs": 32351248813,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 135336741,
+                "minimumNs": 28336744,
+                "maximumNs": 106999997,
+                "medianNumeratorNs": 135336741,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 106999997
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 526758565,
+                "minimumNs": 1053874,
+                "maximumNs": 66931654,
+                "medianNumeratorNs": 2779921,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 9209317
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 40973368,
+                "minimumNs": 40973368,
+                "maximumNs": 40973368,
+                "medianNumeratorNs": 40973368,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 40973368
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 809800433,
+                "minimumNs": 809800433,
+                "maximumNs": 809800433,
+                "medianNumeratorNs": 809800433,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 809800433
+              },
+              "snapshot-metadata": {
+                "n": 215,
+                "sumNs": 17167836080,
+                "minimumNs": 868907,
+                "maximumNs": 1021424972,
+                "medianNumeratorNs": 3851161,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 571249402
+              },
+              "snapshot-with-png": {
+                "n": 24,
+                "sumNs": 6072090469,
+                "minimumNs": 94358617,
+                "maximumNs": 1624560111,
+                "medianNumeratorNs": 293444865,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 954307112
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1212107366,
+                "minimumNs": 21198522,
+                "maximumNs": 72415534,
+                "medianNumeratorNs": 34868209,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 66095321
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 6386345791,
+                "minimumNs": 391267593,
+                "maximumNs": 3219315946,
+                "medianNumeratorNs": 2775762252,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3219315946
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              221022171,
+              -7883651,
+              -333890060,
+              -215324102,
+              -820400148,
+              149361585,
+              142876380,
+              -283091528,
+              -3511673,
+              85519313,
+              -569024389,
+              347067785,
+              -76859831
+            ],
+            "negativePairDeltasRetained": 8,
+            "timingSha256": "c15d0bdc2f680176818b43632fb73733bec320a8d22e59aef0f1232c092167b4"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 6,
+      "mode": "on",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "7bd3e282f685adbb48a2128bf33491f79b113fe70fdf20975028f5cb5b46a6c7",
+      "timingAccepted": true,
+      "timingReceiptSha256": "389634404c949cbae6c3c766495cdc23bffd8dcb84e58be190c1ff03a498fa0d",
+      "canonicalReaderReceiptSha256": {
+        "state": "af5d6aa628d9f793875b9fedecfe4cb6cc5a483fe1b5daced712af4e863a5cbf",
+        "ime": "5b801c7718db23742a2ea7ab0c86d8aa6e49218ba4cc0a8cbd61167e5a9b49d7",
+        "ui": "459d893caf0009a278952cea37bf06406e4646dae907c36f5e23c373f729ea7a"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 424,
+            "nativeChannelSpanNs": 153789349100,
+            "nativeOperationDurationSumNs": 39619520600,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 140852900,
+                "minimumNs": 61818900,
+                "maximumNs": 79034000,
+                "medianNumeratorNs": 140852900,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 79034000
+              },
+              "inspect-target": {
+                "n": 117,
+                "sumNs": 662548000,
+                "minimumNs": 1367300,
+                "maximumNs": 113285900,
+                "medianNumeratorNs": 3155100,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 13844700
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 39736800,
+                "minimumNs": 39736800,
+                "maximumNs": 39736800,
+                "medianNumeratorNs": 39736800,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 39736800
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 1021426800,
+                "minimumNs": 1021426800,
+                "maximumNs": 1021426800,
+                "medianNumeratorNs": 1021426800,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 1021426800
+              },
+              "snapshot-metadata": {
+                "n": 242,
+                "sumNs": 23155505000,
+                "minimumNs": 931000,
+                "maximumNs": 2216447600,
+                "medianNumeratorNs": 8019000,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 686118700
+              },
+              "snapshot-with-png": {
+                "n": 25,
+                "sumNs": 6863798200,
+                "minimumNs": 103976100,
+                "maximumNs": 1492406400,
+                "medianNumeratorNs": 191116700,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 819660000
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1428343800,
+                "minimumNs": 27558500,
+                "maximumNs": 75966000,
+                "medianNumeratorNs": 41390800,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 73250300
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 6307309100,
+                "minimumNs": 523817900,
+                "maximumNs": 3020181400,
+                "medianNumeratorNs": 2763309800,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3020181400
+              }
+            },
+            "matchingXmlCapturePairs": 12,
+            "matchingXmlPairDeltasNs": [
+              -828674400,
+              -95105500,
+              -515080800,
+              -27593800,
+              -982392400,
+              164114200,
+              167681700,
+              -90040100,
+              97889300,
+              -192995800,
+              182740000,
+              -121353900
+            ],
+            "negativePairDeltasRetained": 8,
+            "timingSha256": "2af0040fa128a24f18c6319610e0dc74af6a60b4e568c607bdaeb675869f282e"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 422,
+            "nativeChannelSpanNs": 153586104600,
+            "nativeOperationDurationSumNs": 38413674900,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 143497100,
+                "minimumNs": 69849200,
+                "maximumNs": 73647900,
+                "medianNumeratorNs": 143497100,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 73647900
+              },
+              "inspect-target": {
+                "n": 115,
+                "sumNs": 678100300,
+                "minimumNs": 938000,
+                "maximumNs": 109986200,
+                "medianNumeratorNs": 3575300,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 9085600
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 39783400,
+                "minimumNs": 39783400,
+                "maximumNs": 39783400,
+                "medianNumeratorNs": 39783400,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 39783400
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 764616300,
+                "minimumNs": 764616300,
+                "maximumNs": 764616300,
+                "medianNumeratorNs": 764616300,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 764616300
+              },
+              "snapshot-metadata": {
+                "n": 241,
+                "sumNs": 20983930200,
+                "minimumNs": 1047700,
+                "maximumNs": 1265994500,
+                "medianNumeratorNs": 4196200,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 585779900
+              },
+              "snapshot-with-png": {
+                "n": 26,
+                "sumNs": 6704679700,
+                "minimumNs": 99582400,
+                "maximumNs": 2110386600,
+                "medianNumeratorNs": 334422200,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 404468700
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1380060300,
+                "minimumNs": 25540200,
+                "maximumNs": 57402300,
+                "medianNumeratorNs": 40790800,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 56691300
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 7719007600,
+                "minimumNs": 467952100,
+                "maximumNs": 4001577600,
+                "medianNumeratorNs": 3249477900,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 4001577600
+              }
+            },
+            "matchingXmlCapturePairs": 12,
+            "matchingXmlPairDeltasNs": [
+              271964300,
+              -122537000,
+              -523061500,
+              -69290900,
+              -1125702700,
+              164492500,
+              188952400,
+              -245134700,
+              -9885500,
+              -136116100,
+              145972600,
+              -119531200
+            ],
+            "negativePairDeltasRetained": 8,
+            "timingSha256": "503fd01302928486a08b49149d4980a96de886559dd82eef8a02fff5e9f258b7"
+          }
+        }
+      ]
+    },
+    {
+      "pair": 6,
+      "mode": "off",
+      "originalStatus": "accepted",
+      "nativeParentSha256": "578fbceaaaca11f05b239037a596527952378668dd24b244804761124796425a",
+      "timingAccepted": true,
+      "timingReceiptSha256": "7df484562122faaa6141cf969f6c0da249e6f29c44c07ddd2262c9a371fb93d3",
+      "canonicalReaderReceiptSha256": {
+        "state": "9cdd406789ac16b5f9c4654166fb80e0c3ebda1462ddd6a72bd0863203e34fc8",
+        "ime": "c6ffa139e77e6da0b740d9563c3ac898b258571a8ec501eb05b1ba5eed8235f5",
+        "ui": "c6a2b929aa79926e537adc4cf0ec0ed9ea841889b0a7cfcf4a22065b8fdb7692"
+      },
+      "cases": [
+        {
+          "objectCount": 100,
+          "timing": {
+            "requests": 400,
+            "nativeChannelSpanNs": 123129242554,
+            "nativeOperationDurationSumNs": 32043545058,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 339324012,
+                "minimumNs": 36664888,
+                "maximumNs": 302659124,
+                "medianNumeratorNs": 339324012,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 302659124
+              },
+              "inspect-target": {
+                "n": 116,
+                "sumNs": 431393002,
+                "minimumNs": 870042,
+                "maximumNs": 68459813,
+                "medianNumeratorNs": 5368140,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 6086959
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 34679543,
+                "minimumNs": 34679543,
+                "maximumNs": 34679543,
+                "medianNumeratorNs": 34679543,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 34679543
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 764349366,
+                "minimumNs": 764349366,
+                "maximumNs": 764349366,
+                "medianNumeratorNs": 764349366,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 764349366
+              },
+              "snapshot-metadata": {
+                "n": 222,
+                "sumNs": 17853779434,
+                "minimumNs": 896193,
+                "maximumNs": 3033135711,
+                "medianNumeratorNs": 5933011,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 588005702
+              },
+              "snapshot-with-png": {
+                "n": 22,
+                "sumNs": 5516653831,
+                "minimumNs": 94188958,
+                "maximumNs": 1522677617,
+                "medianNumeratorNs": 257337321,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 915331928
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1118197604,
+                "minimumNs": 23210037,
+                "maximumNs": 64100222,
+                "medianNumeratorNs": 32987665,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 48843218
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5985168266,
+                "minimumNs": 383882605,
+                "maximumNs": 3463070055,
+                "medianNumeratorNs": 2138215606,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 3463070055
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -811781925,
+              -59979356,
+              -371725789,
+              30671567,
+              -501545020,
+              117168246,
+              114857389,
+              -106724512,
+              28557274,
+              221314210,
+              -79324223,
+              119059912,
+              12539126
+            ],
+            "negativePairDeltasRetained": 6,
+            "timingSha256": "b89577026c4b78dc11f940e1ce4664912fcec040d62a97687ec9a14d21f91649"
+          }
+        },
+        {
+          "objectCount": 5000,
+          "timing": {
+            "requests": 395,
+            "nativeChannelSpanNs": 124037465859,
+            "nativeOperationDurationSumNs": 29345656947,
+            "operationPopulations": {
+              "back": {
+                "n": 2,
+                "sumNs": 151090903,
+                "minimumNs": 66487600,
+                "maximumNs": 84603303,
+                "medianNumeratorNs": 151090903,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 84603303
+              },
+              "inspect-target": {
+                "n": 114,
+                "sumNs": 506817672,
+                "minimumNs": 803010,
+                "maximumNs": 66338567,
+                "medianNumeratorNs": 5401136,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 8717341
+              },
+              "pick-public-file": {
+                "n": 1,
+                "sumNs": 42248916,
+                "minimumNs": 42248916,
+                "maximumNs": 42248916,
+                "medianNumeratorNs": 42248916,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 42248916
+              },
+              "scroll": {
+                "n": 1,
+                "sumNs": 762563142,
+                "minimumNs": 762563142,
+                "maximumNs": 762563142,
+                "medianNumeratorNs": 762563142,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 762563142
+              },
+              "snapshot-metadata": {
+                "n": 217,
+                "sumNs": 15681550233,
+                "minimumNs": 810478,
+                "maximumNs": 1006900829,
+                "medianNumeratorNs": 2919670,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 520366372
+              },
+              "snapshot-with-png": {
+                "n": 24,
+                "sumNs": 5680533277,
+                "minimumNs": 91298188,
+                "maximumNs": 1558277414,
+                "medianNumeratorNs": 258824223,
+                "medianDenominator": 2,
+                "nearestRankP95Ns": 827389036
+              },
+              "tap": {
+                "n": 33,
+                "sumNs": 1101607487,
+                "minimumNs": 22537734,
+                "maximumNs": 51548534,
+                "medianNumeratorNs": 32435869,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 42098736
+              },
+              "type-public": {
+                "n": 3,
+                "sumNs": 5419245317,
+                "minimumNs": 511398304,
+                "maximumNs": 2520379272,
+                "medianNumeratorNs": 2387467741,
+                "medianDenominator": 1,
+                "nearestRankP95Ns": 2520379272
+              }
+            },
+            "matchingXmlCapturePairs": 13,
+            "matchingXmlPairDeltasNs": [
+              -710625000,
+              -42626194,
+              -422851354,
+              -46283045,
+              25436548,
+              -756068531,
+              123482293,
+              126895594,
+              -161585503,
+              303005018,
+              66824160,
+              264575867,
+              38190677
+            ],
+            "negativePairDeltasRetained": 6,
+            "timingSha256": "94ab214b42cd9b6afaf8575d1496bb6d2a2b7821cab249f9e84e7ae784822b48"
+          }
+        }
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "mode": "off",
+      "objectCount": 100,
+      "plannedRunSamples": 6,
+      "requestsInPairOrder": [
+        395,
+        387,
+        394,
+        null,
+        392,
+        400
+      ],
+      "nativeChannelSpanNs": {
+        "valuesInPairOrder": [
+          131953650103,
+          125438336764,
+          122057244531,
+          null,
+          122300043355,
+          123129242554
+        ],
+        "acceptedRunSamples": 5,
+        "missingPlannedSamples": 1,
+        "n": 5,
+        "sumNs": 624878517307,
+        "minimumNs": 122057244531,
+        "maximumNs": 131953650103,
+        "medianNumeratorNs": 123129242554,
+        "medianDenominator": 1,
+        "nearestRankP95Ns": 131953650103
+      },
+      "nativeOperationDurationSumNs": {
+        "valuesInPairOrder": [
+          35199572945,
+          34943632309,
+          31918740631,
+          null,
+          33553932951,
+          32043545058
+        ],
+        "acceptedRunSamples": 5,
+        "missingPlannedSamples": 1,
+        "n": 5,
+        "sumNs": 167659423894,
+        "minimumNs": 31918740631,
+        "maximumNs": 35199572945,
+        "medianNumeratorNs": 33553932951,
+        "medianDenominator": 1,
+        "nearestRankP95Ns": 35199572945
+      }
+    },
+    {
+      "mode": "off",
+      "objectCount": 5000,
+      "plannedRunSamples": 6,
+      "requestsInPairOrder": [
+        386,
+        393,
+        392,
+        null,
+        397,
+        395
+      ],
+      "nativeChannelSpanNs": {
+        "valuesInPairOrder": [
+          119244412025,
+          120379161047,
+          120807144512,
+          null,
+          120785076037,
+          124037465859
+        ],
+        "acceptedRunSamples": 5,
+        "missingPlannedSamples": 1,
+        "n": 5,
+        "sumNs": 605253259480,
+        "minimumNs": 119244412025,
+        "maximumNs": 124037465859,
+        "medianNumeratorNs": 120785076037,
+        "medianDenominator": 1,
+        "nearestRankP95Ns": 124037465859
+      },
+      "nativeOperationDurationSumNs": {
+        "valuesInPairOrder": [
+          27795126918,
+          29467156202,
+          30035695829,
+          null,
+          29219052241,
+          29345656947
+        ],
+        "acceptedRunSamples": 5,
+        "missingPlannedSamples": 1,
+        "n": 5,
+        "sumNs": 145862688137,
+        "minimumNs": 27795126918,
+        "maximumNs": 30035695829,
+        "medianNumeratorNs": 29345656947,
+        "medianDenominator": 1,
+        "nearestRankP95Ns": 30035695829
+      }
+    },
+    {
+      "mode": "on",
+      "objectCount": 100,
+      "plannedRunSamples": 6,
+      "requestsInPairOrder": [
+        400,
+        null,
+        402,
+        null,
+        396,
+        424
+      ],
+      "nativeChannelSpanNs": {
+        "valuesInPairOrder": [
+          133517461201,
+          null,
+          134085408974,
+          null,
+          136736609965,
+          153789349100
+        ],
+        "acceptedRunSamples": 4,
+        "missingPlannedSamples": 2,
+        "n": 4,
+        "sumNs": 558128829240,
+        "minimumNs": 133517461201,
+        "maximumNs": 153789349100,
+        "medianNumeratorNs": 270822018939,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 153789349100
+      },
+      "nativeOperationDurationSumNs": {
+        "valuesInPairOrder": [
+          36299395625,
+          null,
+          36173276064,
+          null,
+          35321107959,
+          39619520600
+        ],
+        "acceptedRunSamples": 4,
+        "missingPlannedSamples": 2,
+        "n": 4,
+        "sumNs": 147413300248,
+        "minimumNs": 35321107959,
+        "maximumNs": 39619520600,
+        "medianNumeratorNs": 72472671689,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 39619520600
+      }
+    },
+    {
+      "mode": "on",
+      "objectCount": 5000,
+      "plannedRunSamples": 6,
+      "requestsInPairOrder": [
+        392,
+        null,
+        393,
+        null,
+        394,
+        422
+      ],
+      "nativeChannelSpanNs": {
+        "valuesInPairOrder": [
+          138580596306,
+          null,
+          135545699018,
+          null,
+          131298316256,
+          153586104600
+        ],
+        "acceptedRunSamples": 4,
+        "missingPlannedSamples": 2,
+        "n": 4,
+        "sumNs": 559010716180,
+        "minimumNs": 131298316256,
+        "maximumNs": 153586104600,
+        "medianNumeratorNs": 274126295324,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 153586104600
+      },
+      "nativeOperationDurationSumNs": {
+        "valuesInPairOrder": [
+          37500779745,
+          null,
+          33848412851,
+          null,
+          32351248813,
+          38413674900
+        ],
+        "acceptedRunSamples": 4,
+        "missingPlannedSamples": 2,
+        "n": 4,
+        "sumNs": 142114116309,
+        "minimumNs": 32351248813,
+        "maximumNs": 38413674900,
+        "medianNumeratorNs": 71349192596,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 38413674900
+      }
+    }
+  ],
+  "descriptivePairedDifferences": [
+    {
+      "objectCount": 100,
+      "nativeMethodSumOnMinusOffNs": {
+        "valuesInPairOrder": [
+          1099822680,
+          null,
+          4254535433,
+          null,
+          1767175008,
+          7575975542
+        ],
+        "acceptedRunSamples": 4,
+        "missingPlannedSamples": 2,
+        "n": 4,
+        "sumNs": 14697508663,
+        "minimumNs": 1099822680,
+        "maximumNs": 7575975542,
+        "medianNumeratorNs": 6021710441,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 7575975542
+      }
+    },
+    {
+      "objectCount": 5000,
+      "nativeMethodSumOnMinusOffNs": {
+        "valuesInPairOrder": [
+          9705652827,
+          null,
+          3812717022,
+          null,
+          3132196572,
+          9068017953
+        ],
+        "acceptedRunSamples": 4,
+        "missingPlannedSamples": 2,
+        "n": 4,
+        "sumNs": 25718584374,
+        "minimumNs": 3132196572,
+        "maximumNs": 9705652827,
+        "medianNumeratorNs": 12880734975,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 9705652827
+      }
+    }
+  ],
+  "ledger": {
+    "closed": 368,
+    "total": 377,
+    "unfinished": 9
+  }
+}

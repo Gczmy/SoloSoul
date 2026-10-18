@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-121",
+  "date": "2026-10-18",
+  "scope": "historical-branch-integration-only",
+  "integrationBase": "4e76215c0a8f859477866b34e5291f4cad1b3457",
+  "originalMatrixCommit": "9e71fdf8d50aeef3ddf1709cade43797afb34f43",
+  "originalMatrixSource": "ad93ff0d4d115229aabffae1faaf2de2be520ea7",
+  "originalAuditCommit": "0222f4430243aadfc865059380531df9a60fd02f",
+  "alreadyIntegratedAuditCommit": "5b9921d5f810e02ac3ed84af262e7743d79c4d09",
+  "auditHistoryMergeTreeUnchanged": true,
+  "originalFiles": {
+    "docs/verification/rf121-current-source-native-build-2026-10-15.json": {
+      "bytes": 4516,
+      "sha256": "958552058ec763cc59cb9c53272d538372039e2bca9127b2baf8e15b05985ebe"
+    },
+    "docs/verification/rf121-current-source-native-build-2026-10-15/.gitattributes": {
+      "bytes": 48,
+      "sha256": "7fd47de665bdbf73fa7269f9528b01e10df730156a97ec4bd5be691d97aae92e"
+    },
+    "docs/verification/rf121-current-source-native-build-2026-10-15/doc-validation.json": {
+      "bytes": 864,
+      "sha256": "0584db9c23a986114ee2fe80eb182b735b9e3813ff6d22ea98ef0db3a9f18167"
+    },
+    "docs/verification/rf121-current-source-native-build-2026-10-15/index.json": {
+      "bytes": 14307,
+      "sha256": "526d1d162f57c88fdcd6c68fdddcb78e5703dde0a29baabeb5fe0c97974c3f53"
+    },
+    "docs/verification/rf121-current-source-native-build-2026-10-15/markdown-chunk-check.log.gz": {
+      "bytes": 136,
+      "sha256": "b596c96c419cabcdb8ddcf9ffcf0b91b26b83daaccbfb9e4448b4d53fa668da6"
+    },
+    "docs/verification/rf121-current-source-native-build-2026-10-15/raw.zip": {
+      "bytes": 248279,
+      "sha256": "0e5ba0db8e2977578480b7facf4c983e6f2af38f98b426c36f4f012d9e177e87"
+    }
+  },
+  "zipMembersVerified": 56,
+  "archiveLengthsSha256AndCrcVerified": true,
+  "originalFailedAndPassedMarkdownChecksRetained": true,
+  "ledgerBeforeSha256": "b4455c464b57ee36a88e3f4323be546da0c5e44b7d3bc735ceaafbbcf7602564",
+  "originalLedgerRowCount": 378,
+  "closedRows": 369,
+  "unfinishedRows": 9,
+  "allCurrentTaskRowsUnchanged": true,
+  "historicalCountersNotAppliedToCurrentState": true,
+  "originalEvidenceBytesPreserved": true,
+  "legacyRecordCheckoutPinnedToLF": true,
+  "productionSourceChanged": false,
+  "defaultFeaturesChanged": false,
+  "newNativeRuns": 0,
+  "newInputEvents": 0,
+  "RF121Closed": false,
+  "RF112Closed": false,
+  "RF312Closed": false,
+  "RF122Through127PrerequisitesReleased": false,
+  "allSixOriginalFilesActuallyCheckedOutWithAutoCrlfTrue": true,
+  "initialCheckoutByteDifferencesRetained": 3,
+  "fixedCheckoutByteDifferences": 0
+}

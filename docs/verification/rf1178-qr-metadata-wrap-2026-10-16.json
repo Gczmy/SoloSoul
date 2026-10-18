@@ -1,0 +1,174 @@
+{
+  "task": "RF-1178",
+  "date": "2026-10-16",
+  "status": "resolved",
+  "baseCommit": "5207357b7fad0c545d2703e13243760c2f0cc9e9",
+  "scope": "Readable wrapping of QR metadata in real recovery, synchronization and scan-confirmation callers",
+  "source": {
+    "passed": true,
+    "onlyJsxStyleAttributesChanged": true,
+    "callbacksHooksAndValuesAndQrPayloadPreserved": true,
+    "rf1177ScannerPatchExcluded": true,
+    "otherFrozenSourceFilesUnchanged": 1777,
+    "defaultWorktreeDistPreserved": true,
+    "files": [
+      {
+        "file": "tauri/src/components/sync/RecoveryQrContent.tsx",
+        "originalRawSha256": "aef0f022897f20db37b080ad627d658047cfb2cba14c08528a03f68703a4b3f1",
+        "fixedRawSha256": "369869cd26a513d2468b4b60202746475b16df62417cd018ac6bc7e9f74feda6"
+      },
+      {
+        "file": "tauri/src/components/sync/SyncQrContent.tsx",
+        "originalRawSha256": "4b9eb43930c83aae202f44a7ec623f5db17603774a7e4cda5f3ab09dd8bc33b5",
+        "fixedRawSha256": "eec7d9ed8ce6eeb8e11e27b1d2a2877900850b81980c0ff5a65cf8eeec1c3112"
+      },
+      {
+        "file": "tauri/src/components/sync/RecoveryManualEntryPanel.tsx",
+        "originalRawSha256": "f43d389bb87c2afac38b421eea9ba3a310688444e3f1d39fd3c83ddd1bf27d20",
+        "fixedRawSha256": "c1143e827a0f6240d64abdacb5b5f9346012a03862399503f0a125b5e2e47c59"
+      },
+      {
+        "file": "tauri/src/components/sync/SyncScanQrDialog.tsx",
+        "originalRawSha256": "cebb77899a76b22ce28bce003644ae7c97a53b671e5798274d2652065d2a99a1",
+        "fixedRawSha256": "d0c5f278c561dab79168dd62d368987568b61745397433c845bb18d39691ab0b"
+      }
+    ]
+  },
+  "frontChecks": {
+    "types": true,
+    "lint": true,
+    "vitestPassed": 2398,
+    "vitestSkipped": 0,
+    "nodePassed": 270,
+    "nodeExistingEnvironmentSkipped": 1,
+    "independentProductionBuild": true
+  },
+  "productionBrowser": {
+    "originalFailed": 14,
+    "finalPassed": 88,
+    "skipped": 0,
+    "retries": 0,
+    "newLayoutCases": 14,
+    "geometryStages": 54,
+    "verifiedBodyFonts": [
+      {
+        "case": "android light 1x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 14,
+        "stages": 4
+      },
+      {
+        "case": "android light 2x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 28,
+        "stages": 4
+      },
+      {
+        "case": "android light 2x native-address QR metadata remains fully readable",
+        "verifiedBodyFontPx": 28,
+        "stages": 3
+      },
+      {
+        "case": "android dark 1x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 14,
+        "stages": 4
+      },
+      {
+        "case": "android dark 2x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 28,
+        "stages": 4
+      },
+      {
+        "case": "android dark 2x native-address QR metadata remains fully readable",
+        "verifiedBodyFontPx": 28,
+        "stages": 3
+      },
+      {
+        "case": "windows light 1x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 13,
+        "stages": 4
+      },
+      {
+        "case": "windows light 2x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 26,
+        "stages": 4
+      },
+      {
+        "case": "windows dark 1x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 13,
+        "stages": 4
+      },
+      {
+        "case": "windows dark 2x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 26,
+        "stages": 4
+      },
+      {
+        "case": "macos light 1x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 13,
+        "stages": 4
+      },
+      {
+        "case": "macos light 2x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 26,
+        "stages": 4
+      },
+      {
+        "case": "macos dark 1x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 13,
+        "stages": 4
+      },
+      {
+        "case": "macos dark 2x long QR metadata remains fully readable",
+        "verifiedBodyFontPx": 26,
+        "stages": 4
+      }
+    ],
+    "originalShortIpv4Failures": [
+      {
+        "case": "android light 2x native-address QR metadata remains fully readable",
+        "cardOverflowPx": 78,
+        "originalAddressFontPx": "28px"
+      },
+      {
+        "case": "android dark 2x native-address QR metadata remains fully readable",
+        "cardOverflowPx": 78,
+        "originalAddressFontPx": "28px"
+      }
+    ],
+    "fullValuesAndCharacterRangesInsideParent": true,
+    "exactCopyValuesAndRecoveryCancellation": true,
+    "realSoftwareDecoderConsumesActualQrPixels": true,
+    "videoTracksStopped": true,
+    "portraitAndLandscapeCloseHittable": true,
+    "newWorkflowFrames": 40,
+    "allPngsCrcAndRasterDecoded": 160,
+    "simulatedBrowserTextAndMockedCameraAndIpcOnly": true
+  },
+  "origin": {
+    "realAndroidRf1177QueueFullPassed": false,
+    "realAndroidCompleteCasesBeforeIndependentOverflow": 4,
+    "failedFontScale": 2.0,
+    "finalCaseUnrun": true,
+    "strictHorizontalAssertionRetained": true,
+    "allFiveCasesPrivateDataAndPermissionsRestored": true,
+    "ownedNativeProcessesAndPackagesCleaned": true,
+    "failureAuditSha256": "647d264fc9e2feb5e56e46d77e242db75c714b8ea1de3de7d63109fa1fca2adb"
+  },
+  "evidenceSha256": {
+    "registration.json": "123205e13f4ca75f07bdbda0e11227ac8e23b7872a6edb5afc8b7e3b212e3ec2",
+    "source-audit.json": "5a8963b32fc406e4ac982b59dc07d9667100f886ecc8d027a707b859322d48b9",
+    "front-check-result.json": "b161f5cc2257f49f360ff8b58e93cdcf255319aba99a40ec92e522633e3976d1",
+    "vitest.json": "b3eb58a2a5abae3e740be1b882eaa931ae2433d769b1de23c3dd35e14f985da4",
+    "node.stdout": "360dccda93fe6a524b0241115ec61e17bb94efe4b4ab4c49f4e9b215fd400a72",
+    "browser-red-final2/results.json": "5bf2ba634e7f1bac3774cde0cf4956e859b437ef548108498847a510a08999a4",
+    "browser-full/results.json": "d20fc1c24a9fb7bde16611baac8403625c8046c07eab37cdc41d72cc8af1f052",
+    "front-audit.json": "971aa51b1f0184185f8d39cb679a2545ab8a6339bfc23c293832faba04aa7187"
+  },
+  "previousFixtureFailuresPreserved": true,
+  "earlierUnscaledTwelveCasePassNotAcceptedForLargeText": true,
+  "rf1177PatchHeldSeparatelyAndNotPublishedByThisCommit": true,
+  "rf1177FullNativeQueueStillRequired": true,
+  "fullRF112Accepted": false,
+  "fullRF121Accepted": false,
+  "fullRF312Accepted": false,
+  "rawMachinePathsPidsLogsScreenshotsProgramsOrPrivateDataPublished": false
+}

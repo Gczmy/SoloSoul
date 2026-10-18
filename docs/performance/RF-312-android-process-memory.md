@@ -36,3 +36,14 @@ python android-process-memory.py --adb D:\SoloSoul\build\android-native-feasibil
 ```
 
 [结构化结果](rf312-android-process-memory-2026-10-14.json)、[1566 成员索引](rf312-android-process-memory-2026-10-14/index.json)和[原件包](rf312-android-process-memory-2026-10-14/raw.zip)包括工具来源、原失败、两档所有查询、两次完整 native 结果及三次恢复核验。全部成员长度/SHA-256 与 ZIP CRC 回读通过；不含 APK、库、签名密钥、实体 Vault、夹具 TAR 或私有备份。
+
+
+## 2026-10-16：当前摘要格式兼容（RF-1170）
+
+当前默认 Release API31 控制的第二轮在完整 renderer 摘要上被误拒绝：框架输出`TOTAL SWAP PSS`，旧解析器只识别`TOTAL SWAP (KB)`。框架根据`hasSwappedOutPss`选择这两种行，见[实际格式分支](https://android.googlesource.com/platform/frameworks/base/+/2567308affb2a60e7a78f296ebe6ab243fc17cdd/core/java/android/app/ActivityThread.java)；比例swap与普通swap的定义分别见[Debug.MemoryInfo](https://android.googlesource.com/platform/frameworks/base/+/179923a/core/java/android/os/Debug.java)。不能把比例数值直接记成普通swap。
+
+- `TOTAL SWAP (KB)`保持既有`swapBytes`字节值，旧结果结构不变。
+- `TOTAL SWAP PSS`输出`swapPssBytes`，同时`swapBytes=null`表示普通swap不可知；0只用于系统实际报告0，不用0补缺。PSS/RSS使用原始报告的数值，不将swap再次加入合计。
+- 只接受完整且唯一的单行总计；错误PID/名称、缺字段、未知swap标签、同一行重复两类swap、重复总计，或不满足PSS大于0／RSS不小于PSS的条件时仍拒绝。归属、进程出生/UID、前后集合、`--local`、超时和失败记录保护保持。
+
+七项新增回归与原读取器/Home回归共73项通过，四份本次真实完整摘要回放通过；原始比例swap误拒绝得到复现，16份变造的截断/重复/错误身份/缺失数值输出仍拒绝。[去标识验证摘要](../verification/rf1170-native-swap-summary-2026-10-16.json)绑定原始失败及恢复证据。失败控制队列只尝试2/10，首轮通过、次轮失败后停止；两轮均恢复142项内容/链接/权限及根权限，自有包/进程和系统设置收尾通过。**旧队列保持失败，不形成分布；本项是解析器修复及回放，不是新完整原生控制验收，RF-312继续待验证。**

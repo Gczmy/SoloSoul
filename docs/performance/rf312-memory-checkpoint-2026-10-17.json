@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "default-release-post-journey-memory-checkpoint",
+  "acceptedToolingAndUnitTests": true,
+  "currentDefaultNativeCheckpointAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "wholeJourneyMemoryDistributionAccepted": false,
+  "productSourceChanged": false,
+  "strictMemoryReaderChanged": false,
+  "existingUiJourneyChanged": false,
+  "previousTwoSizeFullUiAcceptancePreserved": true,
+  "originalNativeInputsReadersRestoreAndBudgetsKept": true,
+  "checkpointBudgetSeconds": 20,
+  "maximumCommandSeconds": 10,
+  "inputRetried": false,
+  "unitTests": {
+    "originalGates": 206,
+    "newCheckpoint": 11,
+    "existingStrictMemory": 26,
+    "total": 243,
+    "passed": true
+  },
+  "currentSource": {
+    "productFiles": 1797,
+    "runtimeBindings": 1881,
+    "verifiedAssets": 125,
+    "compiledSourceHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+    "apkSha256": "f7469ce3717849bf26623ea1ffdb1945c20154471247f38f419c65c272462b99"
+  },
+  "nativeAttempt": {
+    "accepted": false,
+    "api": 31,
+    "abi": "x86_64",
+    "runtimeCpu": 2,
+    "memoryMiB": 2048,
+    "applicationInstallations": 0,
+    "inputActions": 0,
+    "memorySnapshots": 0,
+    "rejectedAt": "pre-install-host-identity",
+    "unverifiedSdkHelperCommands": 1,
+    "unverifiedCommand": "shell logcat -G 2M",
+    "unknownProcessNeverAccepted": true,
+    "sourceAllowlistNotExpanded": true,
+    "preparationOverwriteRejectionPreserved": true
+  },
+  "cleanup": {
+    "ownedEmulatorAndServerExited": true,
+    "protectedAdbStateUnchanged": true,
+    "completeDropBoxEntries": 39,
+    "noAnr": true,
+    "firstHostAuditAccepted": false,
+    "firstHostAuditRetainedHelperProcesses": 3,
+    "helpersExitedNaturally": true,
+    "finalHostAuditAccepted": true,
+    "finalProcessCount": 0,
+    "finalListenerCount": 0
+  },
+  "sourceSha256": {
+    "memory_checkpoint.py": "39ee63028ec80e0858daa291e5302b9d5e7f1693a77e057b4dc38efb6f4297bd",
+    "test_memory_checkpoint.py": "8484753cb9b21419597d191c8d291b61223d33a00b4a24ba114331b33cab1e04",
+    "android-process-memory.py": "bf3004168f5ff2029c3c47789d7adc7371deaff98f6b7d8dbac7f3a7c75bdd9f"
+  },
+  "evidenceSha256": {
+    "memory-checkpoint-unit-result.json": "b78f1981e2e8a06bb17e270ac2b8c3786db9235a7aa08fc35ea5cfaf3d80e290",
+    "combined-current-host-unit-result.json": "52c080361ea2c328dbd11ed45babf1878e8c042308b04f76fa810b6bc689c5f3",
+    "memory-checkpoint-caller-audit.json": "f151ad536233513b6c5050f41b92f62f059d8918dafb4f2fccb74d5931ef68f1",
+    "preparation-rejection.json": "4c1acfb81493be316314e165e2a1f500b86225239abb8bedb351b9f40b58782a",
+    "package-independent-audit/result.json": "e15110af5e7f199722379220b439019dae529fca3b04be4e47cdcbd1e1fd5735",
+    "native-default-full-journey-r1/result.json": "d422cf3f05cea6a69e1fc9da2812b57d9b0746cba9f92c4971cdc54bb381aa56",
+    "native-default-full-journey-r1/protected-state-rejection.json": "28dd2f0a9399f46ce40f06efaa12cadfdc759042410aedf963bd3a0bee94bfb0",
+    "fresh-host-after/result.json": "acfa52daf3c2c2f79a167f9588c5b3d8ee8f1b291b41ca5a100819d11f472f2f",
+    "fresh-host-after-r2/result.json": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc"
+  }
+}

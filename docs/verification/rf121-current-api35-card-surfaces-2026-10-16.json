@@ -1,0 +1,498 @@
+{
+  "task": "RF-121",
+  "date": "2026-10-16",
+  "status": "partial-native-current-api35-default-floating-card",
+  "validatedSourceHead": "f0aecaa1d05d72303c317cee7904e228f7a9cb79",
+  "currentSourceFiles": 1795,
+  "sourceBinding": {
+    "originalPackageBuildProvenancePreserved": true,
+    "currentProductSourceBytesMatchPreviouslyVerifiedDefaultDebugBuild": true,
+    "fixtureRegeneratedAtSourceHead": "eb29608b8a3d0a3fc93ddb057bf8de9b0f3c4442",
+    "laterDocumentationOnlyCommitsVerifiedByFullCurrentSourceMap": true
+  },
+  "fixture": {
+    "currentSourceGeneratorActuallyExecuted": true,
+    "packagedAssetByteIdentical": true,
+    "sha256": "a0be2730a8c87e310e564803096ebb0e671d0c4325a9efee47f4541217f724f4",
+    "bytes": 276043,
+    "originalDebugAssetPreserved": true,
+    "productionSourcesAndApksUnchanged": true,
+    "accountOrVaultOrMainActivityLoadedByFixture": false,
+    "networkDisabled": true,
+    "productionMappingUsedThroughExistingFixtureParameterEntry": true
+  },
+  "priorAPI35": {
+    "sourceHead": "27e512a9fc2d20ada16cc6e05a4d1b5023bdcb69",
+    "fixtureSha256": "be1f784bae551e7fc08bb0a139d93dedc6601da92d4f9ed2d996488004a017d3",
+    "fixtureBytes": 275796,
+    "fixtureDiffers": true,
+    "previousResultNotRelabelledCurrent": true,
+    "unchangedNativeTestAndActivityPreservePreviousWrongSystemStateRejection": true,
+    "noNewNegativeRunCounted": true
+  },
+  "priorAdapterQueueRejected": {
+    "nativeJUnitMethodPassed": 2,
+    "completeMatrixAccepted": 0,
+    "privateAndSystemRestored": true,
+    "ownedInstancesCleaned": true,
+    "permissionDeniedAndLocalTimeoutWrapperFailuresPreserved": true,
+    "noPermissionOrReaderProtectionRelaxed": true
+  },
+  "runtime": {
+    "api": 35,
+    "android": "15",
+    "abi": "x86_64",
+    "webView": "124.0.6367.219",
+    "emulator": true,
+    "gpu": "SwiftShader"
+  },
+  "acceptance": {
+    "completeContrastModes": 2,
+    "blurModes": 2,
+    "nativeJUnitTests": 4,
+    "themesPerMode": 2,
+    "surfacesPerTheme": 2,
+    "physicalSurfacePixelSamples": 16,
+    "decodedPngs": 16,
+    "actualNativeHighTextContrast": true,
+    "normalSystemAnimationsPreserved": true,
+    "longContentAndPageOverflowAbsent": true,
+    "originalFixtureLoadEvalReportPaintAndWatchdogBudgetsUnchanged": true,
+    "currentBootAnrAbsent": true,
+    "completeTerminalDropBoxEntries": 999,
+    "allSevenFixedEvidenceNamesAbsentBeforeEachTest": true,
+    "exactOwnedEmptyMainPackageReinstalledBetweenCases": true
+  },
+  "cases": [
+    {
+      "label": "normal-supported",
+      "mode": "supported",
+      "expectedHighTextContrast": false,
+      "nativeMethod": "lightAndDarkCardsRenderWithoutOverflow",
+      "acceptedThemes": 2,
+      "acceptedSurfaceSamples": 4,
+      "originalEvidenceAbsentBeforeTest": true,
+      "privateAndLiteralSystemRestored": true,
+      "exactOwnedMainPackageCycle": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "nativeLogSha256": "f81265e4647ac8cc7992420733c36d07e8095a9134c65adce12e401cb474dd04",
+      "driverReportSha256": "c241acb46de3961cc1d36fb90c687e1045c47425c876fce54eb3d86a6ac2dd93",
+      "ownedPackageCycleManifestSha256": "9a65984d8c181043087ae5254d66b8accfac488eafa94ee212ae589df46d7608"
+    },
+    {
+      "label": "normal-fallback",
+      "mode": "fallback",
+      "expectedHighTextContrast": false,
+      "nativeMethod": "lightAndDarkCardsRenderWithoutOverflow",
+      "acceptedThemes": 2,
+      "acceptedSurfaceSamples": 4,
+      "originalEvidenceAbsentBeforeTest": true,
+      "privateAndLiteralSystemRestored": true,
+      "exactOwnedMainPackageCycle": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "nativeLogSha256": "535a5091c7e5fe95dc15d452940a95d82664d474a792820f32b3e8697965e3a5",
+      "driverReportSha256": "92100e2f289998d8f4b47669c732f6368b0efbe5090004bd3fd9aa6197975a5e",
+      "ownedPackageCycleManifestSha256": "60d9b6f91fe943649b14cfc9ef0e41b037fe21554daea2f25ad45c2c6ce7f884"
+    },
+    {
+      "label": "high-text-contrast-supported",
+      "mode": "supported",
+      "expectedHighTextContrast": true,
+      "nativeMethod": "lightAndDarkHighTextContrastCardsRenderWithoutOverflow",
+      "acceptedThemes": 2,
+      "acceptedSurfaceSamples": 4,
+      "originalEvidenceAbsentBeforeTest": true,
+      "privateAndLiteralSystemRestored": true,
+      "exactOwnedMainPackageCycle": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "nativeLogSha256": "4282985172b725c91e9c8e376b37f76644c950752dcdcc0a6a936f1215a59d84",
+      "driverReportSha256": "0e12e094c946c3b21a5d3ad2506efe6ec619f707afb361d6ad6de1562d7da2df",
+      "ownedPackageCycleManifestSha256": "4e8da1d71e556bbc705ffb93ee95558c39084ab62019024b0d221b19a7985e8d"
+    },
+    {
+      "label": "high-text-contrast-fallback",
+      "mode": "fallback",
+      "expectedHighTextContrast": true,
+      "nativeMethod": "lightAndDarkHighTextContrastCardsRenderWithoutOverflow",
+      "acceptedThemes": 2,
+      "acceptedSurfaceSamples": 4,
+      "originalEvidenceAbsentBeforeTest": true,
+      "privateAndLiteralSystemRestored": true,
+      "exactOwnedMainPackageCycle": true,
+      "actualInstalledApkSha256": {
+        "main": "a7944a9e7f1e2ec47b1e98706c1180197a461c290b02de30c68e91dd14d2e1a1",
+        "test": "09c052d6d74aa99959d2f9d421c4415b39fd7fca8b975360ea8bf9c6af5b8650"
+      },
+      "nativeLogSha256": "60efa48dbbe96b2c2f6f8bee405179b5c5d83d25bd884a535ebd0060cf91abf7",
+      "driverReportSha256": "0576c0b2d16dca49ddb01a9e7a2f59312fcb9edb781bd89387089604830c59e3",
+      "ownedPackageCycleManifestSha256": "84a090cac35973614faa55d789a8e7c41896c0295ca2df8617279e62670b7b92"
+    }
+  ],
+  "physicalSurfacePixelSamples": [
+    {
+      "case": "normal-supported",
+      "theme": "light",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        253,
+        252,
+        249
+      ],
+      "expectedRgb": [
+        253,
+        252,
+        249
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "39ee9d449ac5278cffa3b71e2951727f599ce6a56d4c0d4c850da9b9604b913a"
+    },
+    {
+      "case": "normal-supported",
+      "theme": "light",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        242,
+        240,
+        233
+      ],
+      "expectedRgb": [
+        242,
+        240,
+        233
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "39ee9d449ac5278cffa3b71e2951727f599ce6a56d4c0d4c850da9b9604b913a"
+    },
+    {
+      "case": "normal-supported",
+      "theme": "dark",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "3d7532c51d06492951d98b71b527b8f5db78a7bb19028f849ce7b5df0309eed1"
+    },
+    {
+      "case": "normal-supported",
+      "theme": "dark",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "3d7532c51d06492951d98b71b527b8f5db78a7bb19028f849ce7b5df0309eed1"
+    },
+    {
+      "case": "normal-fallback",
+      "theme": "light",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        253,
+        252,
+        249
+      ],
+      "expectedRgb": [
+        253,
+        252,
+        249
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "237837407bbe01012805ea08a355024d0f3c75f34aff6d28e071d94834db7555"
+    },
+    {
+      "case": "normal-fallback",
+      "theme": "light",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        242,
+        240,
+        233
+      ],
+      "expectedRgb": [
+        242,
+        240,
+        233
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "48d0878cfc2db7af87a591c44d4f3664318d596be6e5a7a6e0c6ed9a4cfb1171"
+    },
+    {
+      "case": "normal-fallback",
+      "theme": "dark",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "2a6403924fb7956659df3216bc7f6cd0605b4da0b3c84a32a189a545be24af63"
+    },
+    {
+      "case": "normal-fallback",
+      "theme": "dark",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": false,
+      "screenshotSha256": "2a6403924fb7956659df3216bc7f6cd0605b4da0b3c84a32a189a545be24af63"
+    },
+    {
+      "case": "high-text-contrast-supported",
+      "theme": "light",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        253,
+        252,
+        249
+      ],
+      "expectedRgb": [
+        253,
+        252,
+        249
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "34c15c9b0e51b510aa06636b5cd89130e84e2a6c7893e30b10fb330ccd207930"
+    },
+    {
+      "case": "high-text-contrast-supported",
+      "theme": "light",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        242,
+        240,
+        233
+      ],
+      "expectedRgb": [
+        242,
+        240,
+        233
+      ],
+      "textCssContrast": 16.559655711981343,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "34c15c9b0e51b510aa06636b5cd89130e84e2a6c7893e30b10fb330ccd207930"
+    },
+    {
+      "case": "high-text-contrast-supported",
+      "theme": "dark",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "aaca6d99a81e5e8543e7438c85e1173c06e3dd7fadadc3402c29f67648924c8e"
+    },
+    {
+      "case": "high-text-contrast-supported",
+      "theme": "dark",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "aaca6d99a81e5e8543e7438c85e1173c06e3dd7fadadc3402c29f67648924c8e"
+    },
+    {
+      "case": "high-text-contrast-fallback",
+      "theme": "light",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        253,
+        252,
+        249
+      ],
+      "expectedRgb": [
+        253,
+        252,
+        249
+      ],
+      "textCssContrast": 18.405230873339367,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "466d5e1c5803b850c1a7ee2acc351002565f8a78f498df630d7c9d402954cde3"
+    },
+    {
+      "case": "high-text-contrast-fallback",
+      "theme": "light",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        242,
+        240,
+        233
+      ],
+      "expectedRgb": [
+        242,
+        240,
+        233
+      ],
+      "textCssContrast": 16.559655711981343,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "09b5f63caee4e9b7c89dab80455b0bded53442f0506fa229e6e63c7bcfe79b87"
+    },
+    {
+      "case": "high-text-contrast-fallback",
+      "theme": "dark",
+      "surface": "default",
+      "pixelX": 125,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "3c034d983bf466d11f97eedce8eed07af39e6a3dc80cb92d0922690bb07b76e4"
+    },
+    {
+      "case": "high-text-contrast-fallback",
+      "theme": "dark",
+      "surface": "floating",
+      "pixelX": 595,
+      "pixelY": 94,
+      "actualRgb": [
+        42,
+        38,
+        32
+      ],
+      "expectedRgb": [
+        42,
+        38,
+        32
+      ],
+      "textCssContrast": 15.03705221746749,
+      "nativeHighTextContrast": true,
+      "screenshotSha256": "3c034d983bf466d11f97eedce8eed07af39e6a3dc80cb92d0922690bb07b76e4"
+    }
+  ],
+  "restoration": {
+    "fullPrivateContentsLinksModesAndRootModeVerified": true,
+    "originalLiteralSystemSettingsRestored": true,
+    "exactEightEmptyBackupsRemovedAfterIndependentAudit": true,
+    "ownedApksEmulatorAndPrivateAdbCleaned": true,
+    "protectedOldAdbUnchanged": true,
+    "twentySecondExitHelpersNaturallyExitedBeforeFinalAudit": true
+  },
+  "limitations": [
+    "Standalone production Card/CSS in real Android WebView; separate MainActivity reports cover theme delivery",
+    "Blur setting combinations do not claim MainActivity blur rendering in this solid standalone fixture",
+    "Text contrast values are computed CSS contrast; actual native pixels sample card backgrounds",
+    "No claim of all Card callers, macOS glass, Windows forced-colors/Mica, physical devices, API36 or performance",
+    "RF-112, RF-121, RF-312 and RF-122 through RF-127 dependencies remain incomplete"
+  ],
+  "evidenceSha256": {
+    "fixtureSourceComparison": "927caba80a1d3e56777bcccb53e88de9ec1b0457d252c691e8e134d0dbe3a26a",
+    "fixtureBuildReceipt": "7eac7e1ceb7b55a3ae6ba0847eb68564666b739d00615fcf607d0f92968c1dbd",
+    "previousAPI35SourceComparison": "95097b78aee2d63734d66e3b563b1c7491dd5d2d62d2f8c4c1bcf99dfab26ee1",
+    "currentSourceMap": "9a1de4ce4fe921c2da373bcb62c3e91de4384d0304c4e48f9c403bfd5b7ab597",
+    "sourceGuard": "d8a433ceb7b1a082f9ae047e883ac89737042f1c8612844e1c0e5ed8b115ab71",
+    "nativeToolMap": "6713dc036075e1b1f74c099b8e7afea4a4ba325f30edd6287e4d96895138aaf9",
+    "actualPackageVerification": "6e01d68ef24bd20de71955c020c62d95fb51c6de89ad1c7f102c669d81d3379e",
+    "canonicalTestSourceBinding": "d7effc6d891f750bd3cbe7034a1abba4b91c2510645a1dd83ace4c9c9b147d08",
+    "nativeQueue": "6cb1e92cf7062c6395894147b0b14f4c001450aab99bb50a9f95751064db7fa2",
+    "nativeMatrix": "95041ea1fdcb437d1973e753a05b3c1d09011bf200bbcc66f84afff5dd0eea6a",
+    "independentNativeAudit": "0884dcd4805528771b52674ebdaa76c3199c5881329632eb44d0aab1e6c86e87",
+    "hostBefore": "723eddf485f694fa598d978ca7d0f9e025aeeae0283bb8ff4a8cb236c2dcea88",
+    "hostAfter": "d889b143bf02c8f045a387eef0156c96585439126ce07afba3e0736a954f2cf5",
+    "preflight": "c0abd41f15359beccc8d464099fa8b4bcef34ac4046f04bdc0f12628d05800e3",
+    "visualReview": "1db0f5de68feb591d98d41f4915a4087267b17f40ef98b5a607eb433181190dd",
+    "exactPrivateBackupCleanup": "6f4e7c79d9c2f29c97a7d9bf1784926b0d189b40db77e215eba4ecea00c414ca",
+    "priorRejectedQueue": "28d88fc44e4a746d1f3f5fd066dceda407c5f4fb740ff70b8f8173ceeaed1b7d",
+    "immediateHostAudit": "30900c7f8128a1d20939b9380d23d6b3d0872ada4ce1d108fc89904eccda0d42",
+    "immediateHostAuditPreservation": "9f2b26e5fa66139ec8af8fe6531e9f167cfd659f22050a4d1d4d9e4339b68917"
+  }
+}

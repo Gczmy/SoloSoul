@@ -1,0 +1,172 @@
+{
+  "task": "RF-312",
+  "date": "2026-10-17",
+  "status": "passive-capture-verified-native-target-geometry-rejected",
+  "sourceHeadAtStart": "2de3c6c2188eb41a25d573cdc049fa31e8549b2c",
+  "compiledProductSourceHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+  "productSourceOrBuildConfigurationChanged": false,
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "hostKernel": "Windows 10.0.26100",
+    "adbVersion": "37.0.1-15733141",
+    "frozenDeviceProbeAdbSha256": "b4a6b455702684652cccf7b46258b29e653538904359a58fd4931cf3ef286b3f"
+  },
+  "sourceSha256": {
+    "socket_stall_watch.py": "3c612c8c4130eecd84cc5aedaac0a9ecae276b61a45dae08ee88433526081a46",
+    "test_socket_stall_watch.py": "dfa21e2d424647e2472359e5b1e5c11e0017524f2b78a26ba1df631617dc569d"
+  },
+  "controlledDiagnostics": [
+    {
+      "scope": "empty-host-service",
+      "acceptedDiagnostic": true,
+      "queries": 1500,
+      "retries": 0,
+      "sameServerIdentityRetained": true,
+      "ownedServerStopped": true,
+      "hostProcessesAndListenersAfterCleanup": 0,
+      "nativeJourneyAccepted": false,
+      "auditSha256": "52d263fed930257b6849a1d569682239a3bef157f49f58a654d7ef2d07d11bdf"
+    },
+    {
+      "scope": "fresh-observer-file-initialization-rejected",
+      "acceptedDiagnostic": false,
+      "completedRounds": 0,
+      "recordedAdbCalls": 2,
+      "reason": "Fresh observer package had no files directory",
+      "ownedObserverPackageRemoved": true,
+      "allNineSettingsExactlyUnchanged": true,
+      "hostProcessesAndListenersAfterCleanup": 0,
+      "completeTerminalDropBoxEntries": 40,
+      "nativeJourneyAccepted": false,
+      "auditSha256": "d7b1abbf06e5941ff85a6d4d38539a813f6355cb7891b6bedaad0035b2fa39f1"
+    },
+    {
+      "scope": "owned-observer-file-stat-read",
+      "acceptedDiagnostic": true,
+      "completedRounds": 1000,
+      "recordedAdbCalls": 2002,
+      "verifiedStatAndPayloadCalls": 2000,
+      "publicPayloadBytes": 3938,
+      "publicPayloadSha256": "9c0917c4c23c22f9c767afc0219647c2900d3cbf09136f277627404c507c0eab",
+      "retries": 0,
+      "soloSoulApplicationPackageInstalled": false,
+      "observerInstrumentationStarted": false,
+      "deviceInputDispatched": false,
+      "ownedObserverPackageRemoved": true,
+      "allNineSettingsExactlyUnchanged": true,
+      "hostProcessesAndListenersAfterCleanup": 0,
+      "completeTerminalDropBoxEntries": 39,
+      "noAnrEntries": true,
+      "stallCaptures": 0,
+      "nativeJourneyAccepted": false,
+      "auditSha256": "57d4987b5e0e13c2ba8b19ca41484ff4ec36ddd02534bd81b98b6b93d158d423"
+    }
+  ],
+  "originalWindows10060RootCauseProven": false,
+  "observationChange": {
+    "readOnlyWindowsProcessAndPort5057Capture": true,
+    "noAdbCommandIssuedByMonitor": true,
+    "receiptStaleThresholdSeconds": 1,
+    "minimumCaptureIntervalSeconds": 5,
+    "captureTimeoutSeconds": 10,
+    "workerSignalRestartOrRetryAllowed": false,
+    "newWorkerDeadlineAdded": false,
+    "realWaitExitCodeReturned": true,
+    "captureErrorsAdvisoryOnly": true,
+    "existingOutputNeverOverwritten": true,
+    "originalEntireCleanupAstUnchanged": true,
+    "fullTwelveStepTwoSizeChildByteIdentical": true,
+    "originalExactTargetAndContentGuardsUnchanged": true,
+    "originalNativeBudgetsKept": true,
+    "serverTrace": "sockets,transport,services",
+    "independentWaitSemanticsAuditSha256": "f0088504be25569ac6bd87032cd2b024a70642f109e208846ce2e92a76a0df56"
+  },
+  "tests": {
+    "baseHostTests": 150,
+    "newPassiveCaptureTests": 10,
+    "totalPassed": 160,
+    "failures": 0,
+    "errors": 0,
+    "unitResultSha256": "8f4674f4011727842651e908d02a92ffec0656bbb8a9f4c6f23cb95ed2820836"
+  },
+  "currentNativeAttempt": {
+    "accepted": false,
+    "objectCount": 100,
+    "completedPhases": [
+      {
+        "name": "startup",
+        "hostObservedUpperBoundMs": 7219.202600070275,
+        "imageSha256": "bf6274c682261ed30771eeb0c2f3d1741a9eca6e7892f387df86aa9b4ad44d3f"
+      },
+      {
+        "name": "password-unlock",
+        "hostObservedUpperBoundMs": 19935.509699978866,
+        "imageSha256": "9aecf9cb4347a857d16f498f60e5ab366490dcdd88bcc1b9ede6c42da95a9e35"
+      }
+    ],
+    "observerRequests": 47,
+    "refusal": "Exact native target geometry no longer matched before OCR tool tap",
+    "refusedTapInputDispatched": false,
+    "exactTargetMatchesAtRefusal": 0,
+    "requestedBounds": [
+      543,
+      1477,
+      1015,
+      1743
+    ],
+    "currentSemanticCandidateBounds": [
+      543,
+      1197,
+      1015,
+      1462
+    ],
+    "geometryChangeCauseProven": false,
+    "originalOcrCenterUnderNavigationConfirmed": true,
+    "originalOcrCenterY": 1610.0,
+    "mainNavigationTop": 1569,
+    "bodyScopedReplayCandidateCount": 0,
+    "readOnlyReplaySha256": "84ef407c0af1bbb593861dd4318c171d9c4c003e56ba6cfb63c71cf1994ac289",
+    "passiveCaptures": 11,
+    "passiveCaptureErrors": 0,
+    "sameOwnedListenerPresentInEveryCapture": true,
+    "capturedSynSentRows": 0,
+    "windows10060Observed": false,
+    "workerFailureExitCodePreserved": 1,
+    "observerNormalStopAccepted": false,
+    "originalStrictNativeAuditAccepted": false,
+    "strictNativeAuditExitCode": 1,
+    "originalStrictAuditChanged": false,
+    "strictAuditRejectionSha256": "acd988f544cb492a10e3b2dc936ec268142ee4be2b28a7c50b678f9852578913",
+    "independentStateAuditScope": "restoration-completed-prefix-and-captures-only",
+    "privateEntriesExactlyRestored": 148,
+    "originalApksUidsAndNineSettingsExactlyRestored": true,
+    "ownedObserverRemoved": true,
+    "hostProcessesAndListenersAfterCleanup": 0,
+    "completeTerminalDropBoxEntries": 94,
+    "noAnrEntries": true,
+    "sourceInputsUnchanged": true,
+    "pdfSupplementalOcrReached": false,
+    "object5000Started": false,
+    "independentStateAuditSha256": "c0839f8648b523d1d143d83955123b11a8d9f8c55b530cd23f6ea976c2d35b17"
+  },
+  "initialFreezeMissingBindingRejectionPreserved": true,
+  "historicalRejectedRunsPreserved": true,
+  "rawPathsPidsRunIdsLogsScreenshotsPrivateArchivesAndProgramsPublished": false,
+  "fullUiQueueAccepted": false,
+  "nativeHalfOcrAcceptanceProven": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "nextLocalWork": [
+    "Use the existing body-boundary and native scroll checks for the OCR tool-card caller",
+    "Keep exact native target revalidation and finish both complete default journeys with passive failure capture",
+    "Repeated distributions, strict process memory, same-source observer overhead, IPC and portable orchestration"
+  ],
+  "taskCounts": {
+    "closed": 364,
+    "total": 373,
+    "pendingParents": 3,
+    "dependencyBlocked": 6
+  }
+}

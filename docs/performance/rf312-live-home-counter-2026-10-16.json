@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "scope": "default-release-live-public-home-counter-protocol",
+  "date": "2026-10-16",
+  "compiledSourceHead": "525da2ea01aa9966726a951d0282735caa315d04",
+  "productReleaseSha256": "e16dd7cdb2e7c1084a9215f5cc1e5fda2a3d4d65687b42363727528629e7acfd",
+  "originalProductSourceFiles": 1795,
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "webView": "91.0.4472.114",
+    "vCpu": 2,
+    "memoryMiB": 2048,
+    "gpu": "SwiftShader"
+  },
+  "observation": {
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "perPhaseSeconds": 45,
+    "observerLifetimeSeconds": 240,
+    "requestLimit": 512,
+    "nativeOcrReadLimitSeconds": 10,
+    "exactNodeInputGuardKept": true,
+    "nativeInputRetriesAdded": false,
+    "preciseDigitsAndGeometryRequired": true
+  },
+  "history": [
+    {
+      "method": "initial-live-counter",
+      "twoSizeProtocolAccepted": false,
+      "cases": [
+        {
+          "objectCount": 100,
+          "protocolAccepted": false,
+          "privateEntries": 141,
+          "exactStateRestored": true,
+          "restorationViaSeparateRecovery": false,
+          "observerRequests": 15,
+          "pixelCounterAccepted": false
+        }
+      ],
+      "fullDefaultJourneyAccepted": false,
+      "performanceDistributionAccepted": false,
+      "hostCleanupPassed": true,
+      "productSourceUnchanged": true,
+      "terminalAuditSha256": "92e4cc25cbcb647db4b119c04b00e8192321866464a176b23bcd2525a806e109",
+      "hostAuditSha256": "62ccb68852d9a9ca10a75ab71a7c2525a24679b314eaaca11bcbd7facab6f992",
+      "terminalResultSha256": "71cc04fe1f14f2688b25acc3491357d1652fd16d198540783e054eb27063c7b9"
+    },
+    {
+      "method": "native-target-readiness",
+      "twoSizeProtocolAccepted": false,
+      "cases": [
+        {
+          "objectCount": 100,
+          "protocolAccepted": false,
+          "privateEntries": 190,
+          "exactStateRestored": true,
+          "restorationViaSeparateRecovery": false,
+          "observerRequests": 19,
+          "pixelCounterAccepted": false
+        }
+      ],
+      "fullDefaultJourneyAccepted": false,
+      "performanceDistributionAccepted": false,
+      "hostCleanupPassed": true,
+      "productSourceUnchanged": true,
+      "terminalAuditSha256": "f152bb4093d3169adc2b012c05cfb0cf6d0566ee0ea3ca136a4e0ff07ecaf05e",
+      "hostAuditSha256": "39e018d8a46b8012fbde9acc07bb531e049919135209678f0397deefb3aef691",
+      "terminalResultSha256": "8a637af9b3dc7d0172d3020a570125ac0cc88c382cc6f6a0b475fc6884fd56ce"
+    },
+    {
+      "method": "refusal-point-diagnostic",
+      "twoSizeProtocolAccepted": false,
+      "cases": [
+        {
+          "objectCount": 100,
+          "protocolAccepted": false,
+          "privateEntries": 137,
+          "exactStateRestored": true,
+          "restorationViaSeparateRecovery": false,
+          "observerRequests": 32,
+          "pixelCounterAccepted": false
+        }
+      ],
+      "fullDefaultJourneyAccepted": false,
+      "performanceDistributionAccepted": false,
+      "hostCleanupPassed": true,
+      "productSourceUnchanged": true,
+      "terminalAuditSha256": "5ba6b642fdd4919499ca1ed974a8a00f6fdf432cec564441b1ae7b0081c8c3b4",
+      "hostAuditSha256": "b593a005b689141a5ba1e917dca5f312c17011f991b20e1a43fb486e5525d45c",
+      "terminalResultSha256": "a950460d24b8e4d73d06fef470e1500c1c0a6f80559c45ac59edcb90b73524b4"
+    }
+  ],
+  "latest": {
+    "method": "host-ocr-portability",
+    "twoSizeProtocolAccepted": false,
+    "cases": [
+      {
+        "objectCount": 100,
+        "protocolAccepted": true,
+        "privateEntries": 139,
+        "exactStateRestored": true,
+        "restorationViaSeparateRecovery": false,
+        "observerRequests": 33,
+        "pixelCounterAccepted": true,
+        "pixelCounter": {
+          "count": 100,
+          "imageSha256": "90d2849f25eb727f7f6d35c6699c6d1d58a2159864642fcbc472b7ca488605fb",
+          "engine": "Windows.Media.Ocr",
+          "language": "en-GB",
+          "counterBounds": {
+            "x": 127,
+            "y": 1076,
+            "width": 216,
+            "height": 100
+          },
+          "titleAndFooterVerified": true,
+          "exactDigitsWithoutSubstitution": true,
+          "alignedObjectUnitVerified": true,
+          "homeContextVerified": true,
+          "accessibilityCounterUsed": false,
+          "originalPhaseBoundKept": true
+        },
+        "pixelProofSha256": "a7391cd0696a493efe1b63e9d57600cc4491f255da42a67fe8ad814dbbe3b88c"
+      },
+      {
+        "objectCount": 5000,
+        "protocolAccepted": false,
+        "privateEntries": 139,
+        "exactStateRestored": true,
+        "restorationViaSeparateRecovery": true,
+        "observerRequests": 30,
+        "pixelCounterAccepted": true,
+        "pixelCounter": {
+          "count": 5000,
+          "imageSha256": "2f3f13183e3938e2067e4437917a2175fea4851827759d83ead397c28daa0cb0",
+          "engine": "Windows.Media.Ocr",
+          "language": "en-GB",
+          "counterBounds": {
+            "x": 123,
+            "y": 1076,
+            "width": 298,
+            "height": 100
+          },
+          "titleAndFooterVerified": true,
+          "exactDigitsWithoutSubstitution": true,
+          "alignedObjectUnitVerified": true,
+          "homeContextVerified": true,
+          "accessibilityCounterUsed": false,
+          "originalPhaseBoundKept": true
+        },
+        "pixelProofSha256": "ec363f03194a44f13d32a1015e898f6e7c331a1d56b82d65dc9497400045a8aa"
+      }
+    ],
+    "fullDefaultJourneyAccepted": false,
+    "performanceDistributionAccepted": false,
+    "hostCleanupPassed": true,
+    "productSourceUnchanged": true,
+    "terminalAuditSha256": "a8bb5db72f1c2191e8680f98facfd21bb477735ee49c39ce36104fbe48725162",
+    "hostAuditSha256": "f1ca4a55738f7ba0df3c4238c25576eae0458a24bd87c1474173ec4799ff6a64",
+    "terminalResultSha256": "3a49f5d2c3523e1368953919e00bf70b92c30fedbfe5dad0aef34b7e6d3c38ba"
+  },
+  "tests": {
+    "uniqueCases": 60,
+    "passed": true,
+    "sourceSha256": {
+      "journey-observer-session.py": "1d6095da9e146a361c8d798686a67d7df8bf3a0d16214bf1a6c1bfb6b5268a83",
+      "live_pixel_counter.py": "4107e3527931ce6e84d0b3296b4af217c79a10e8348b2568b5668719d5f57dab",
+      "public_pixel_counter.py": "e597c1d9aa134b1d7383df8fee82ac12f90190b34bc38d847129923322aaf3fe",
+      "test_journey_observer_protocol.py": "a15142cbd82fb8270eb4308075aac7884dabe1c303391468f682237ac68e84b2",
+      "test_native_target_probe.py": "2e68a8f4a70d768cfb319f759d63006c3dc86f38d18b999e69ede0d010499e48",
+      "test_live_pixel_protocol.py": "c130aeb003da4861b5d0371733ce496efbbc91d86c992d2d635de46562bad8c9",
+      "read-public-counter.ps1": "8a54bb521cb1a7bacaceb905279c1b554697d55c90171848a5c7b28bcc816dab",
+      "test_ocr_host_portability.py": "9cfb52c45bcbecde6227a738d8a4c35bb9541e187c6b266ac7570828cc9cff94"
+    },
+    "resultSha256": "607419153f1cbea57f1af0813be10a236855d10b102d3a89e937a86b6c2f4990"
+  },
+  "actualHostOcrSmoke": {
+    "passed": true,
+    "positiveCases": 2,
+    "negativeCases": 2,
+    "parentEnvironmentPreserved": true,
+    "resultSha256": "623e8fc935297a2c2bbcfcea0a3b3abe7a42a0ab0f09e25b94ef4827a9294cb2"
+  },
+  "latestRecovery": {
+    "nativePixelCounterGatesPassed": 2,
+    "originalQueueRejected": true,
+    "failureStage": "second-case-private-state-restoration-entry",
+    "failureCategory": "isolated-adb-connection-failed",
+    "originalFailureFilesPreserved": true,
+    "strictRecoveryPassed": true,
+    "privateEntriesVerified": 139,
+    "systemSettingsVerified": 9,
+    "initialHostAuditPassed": false,
+    "delayedHelperLifetimeSeconds": 20,
+    "finalHostAuditPassed": true,
+    "completePreflightDropBoxEntries": 38,
+    "completeInitialTerminalDropBoxEntries": 92,
+    "completeRecoveryTerminalDropBoxEntries": 151,
+    "noAnrEntries": true,
+    "recoveryResultSha256": "ff58a740ec8a57daf084de87ad568c62161368d4f2a013d510f0b3580715ed2a"
+  },
+  "failureEvidencePreserved": true,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "parentTaskClosed": false,
+  "closedTaskCount": 363,
+  "totalTaskCount": 372,
+  "remaining": [
+    "complete-default-journey",
+    "repeated-median-and-tail",
+    "strict-all-process-memory",
+    "same-source-overhead",
+    "ipc-attribution",
+    "other-platform-coverage"
+  ],
+  "publication": {
+    "rawLogsScreenshotsPrivateTarsAndSourcesLocalOnly": true,
+    "noMachinePathsOrProcessRunIdentities": true
+  }
+}

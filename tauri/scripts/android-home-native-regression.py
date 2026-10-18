@@ -225,6 +225,118 @@ def restore_private_data(adb, read, archive, backup, before, root_mode, output, 
     report["restored"] = True
 
 
+def verify_security_warning_evidence(evidence, expected):
+    """Additional actual default-Card body proof; the original complete baseline is verified separately."""
+    rows = evidence.get('securityWarningRecords')
+    stages = [f'security-{theme}-{kind}' for theme in ('light', 'dark') for kind in ('never', 'master')]
+    if (type(expected) is not bool or evidence.get('securityWarningsRequested') is not True
+            or evidence.get('scenario') != 'baseline' or not isinstance(rows, list)
+            or [row.get('stage') for row in rows] != stages):
+        raise RuntimeError('Security warnings require four ordered observations after the complete baseline')
+    def rgb(value):
+        if not isinstance(value, list) or len(value) != 3 or any(type(v) is not int or not 0 <= v <= 255 for v in value):
+            raise RuntimeError('Missing exact native warning RGB channels')
+        return value
+    def luminance(value):
+        return sum((v/255/12.92 if v/255 <= .04045 else ((v/255+.055)/1.055)**2.4)*w
+                   for v,w in zip(rgb(value),(.2126,.7152,.0722)))
+    for row,stage in zip(rows,stages):
+        _,theme,kind = stage.split('-')
+        before = row.get('rawBefore')
+        if (type(row.get('stableObservations')) is not int or row['stableObservations'] < 2
+                or row.get('path') != '/settings/security' or row.get('platform') != 'android'
+                or row.get('theme') != theme or row.get('warning') != kind
+                or row.get('cardSurface') != 'default' or row.get('expected') is not expected
+                or row.get('nativeEnabled') is not expected or row.get('effectiveHighContrast') is not expected
+                or row.get('androidHighTextContrast') != str(expected).lower()
+                or before not in (None,'0','1') or row.get('rawAfter') != before or (before == '1') is not expected
+                or row.get('visible') is not True or row.get('backgroundImagesAbsent') is not True
+                or row.get('noAppearanceOrStyleInjected') is not True
+                or row.get('screenshot') != stage+'.png'):
+            raise RuntimeError('Native warning scope, real contrast delivery or screenshot binding changed')
+        a,b = luminance(row.get('foreground')),luminance(row.get('background'))
+        contrast=(max(a,b)+.05)/(min(a,b)+.05)
+        if (type(row.get('contrast')) not in (int,float) or not math.isfinite(row['contrast']) or abs(row['contrast']-contrast)>1e-9 or contrast<4.5):
+            raise RuntimeError('Actual warning body contrast is below 4.5:1 or summary was substituted')
+        if expected and (row.get('warningToken') != row.get('primary')
+                         or row['foreground'] != ([255,255,255] if theme=='dark' else [17,17,17])):
+            raise RuntimeError('High-contrast warning must use the actual primary foreground')
+        rect,viewport,text = row.get('rect'),row.get('cssViewport'),row.get('textRects')
+        if not isinstance(rect,dict) or not isinstance(viewport,dict) or not isinstance(text,list) or not text:
+            raise RuntimeError('Missing actual body text geometry')
+        numbers=[rect.get(k) for k in ('x','y','width','height')]+[viewport.get(k) for k in ('width','height','dpr')]
+        if any(type(v) not in (int,float) or not math.isfinite(v) for v in numbers):
+            raise RuntimeError('Non-finite native body geometry')
+        if (rect['x']<0 or rect['y']<0 or min(rect['width'],rect['height'],viewport['width'],viewport['height'],viewport['dpr'])<=0
+                or rect['x']+rect['width']>viewport['width']+.5 or rect['y']+rect['height']>viewport['height']+.5):
+            raise RuntimeError('Warning body is clipped outside the actual viewport')
+        for line in text:
+            if (not isinstance(line,dict) or any(type(line.get(k)) not in (int,float) or not math.isfinite(line[k]) for k in ('x','y','width','height'))
+                    or line['width']<=0 or line['height']<=0 or line['x']<rect['x']-.5 or line['y']<rect['y']-.5
+                    or line['x']+line['width']>rect['x']+rect['width']+.5 or line['y']+line['height']>rect['y']+rect['height']+.5):
+                raise RuntimeError('Warning text is clipped inside its body')
+    return stages
+
+
+def verify_provider_feedback_evidence(evidence, expected, endpoint):
+    """Additional actual default-Card body proof; the original complete baseline is verified separately."""
+    rows = evidence.get('providerFeedbackRecords')
+    stages = [f'feedback-{theme}-{kind}' for theme in ('light', 'dark') for kind in ('success', 'error')]
+    endpoint_match = re.fullmatch(r'http://127\.0\.0\.1:([1-9][0-9]{0,4})', endpoint) if isinstance(endpoint,str) else None
+    if not endpoint_match or not 1024 <= int(endpoint_match[1]) <= 65535:
+        raise RuntimeError('Provider feedback must use the owned loopback fixture endpoint')
+    if (type(expected) is not bool or evidence.get('providerFeedbackRequested') is not True
+            or evidence.get('scenario') != 'baseline' or not isinstance(rows, list)
+            or [row.get('stage') for row in rows] != stages):
+        raise RuntimeError('Provider feedback requires four ordered observations after the complete baseline')
+    def rgb(value):
+        if not isinstance(value, list) or len(value) != 3 or any(type(v) is not int or not 0 <= v <= 255 for v in value):
+            raise RuntimeError('Missing exact native warning RGB channels')
+        return value
+    def luminance(value):
+        return sum((v/255/12.92 if v/255 <= .04045 else ((v/255+.055)/1.055)**2.4)*w
+                   for v,w in zip(rgb(value),(.2126,.7152,.0722)))
+    for row,stage in zip(rows,stages):
+        _,theme,kind = stage.split('-')
+        before = row.get('rawBefore')
+        if (type(row.get('stableObservations')) is not int or row['stableObservations'] < 2
+                or row.get('path') != '/settings/llm' or row.get('platform') != 'android'
+                or row.get('theme') != theme or row.get('feedback') != kind
+                or row.get('cardSurface') != 'default' or row.get('expected') is not expected
+                or row.get('nativeEnabled') is not expected or row.get('effectiveHighContrast') is not expected
+                or row.get('androidHighTextContrast') != str(expected).lower()
+                or before not in (None,'0','1') or row.get('rawAfter') != before or (before == '1') is not expected
+                or row.get('visible') is not True or row.get('backgroundImagesAbsent') is not True
+                or row.get('noAppearanceOrStyleInjected') is not True
+                or row.get('screenshot') != stage+'.png'):
+            raise RuntimeError('Native warning scope, real contrast delivery or screenshot binding changed')
+        if (row.get('endpoint') != endpoint+'/'+kind+'/v1'
+                or (row.get('message') != '✓ Connected \"fixture response\"' if kind=='success' else not str(row.get('message','')).startswith('✗ Connection failed BackendCommandError: LLM_PROVIDER_UNAVAILABLE'))):
+            raise RuntimeError('Provider feedback must come from the real local success/error response')
+        a,b = luminance(row.get('foreground')),luminance(row.get('background'))
+        contrast=(max(a,b)+.05)/(min(a,b)+.05)
+        if (type(row.get('contrast')) not in (int,float) or not math.isfinite(row['contrast']) or abs(row['contrast']-contrast)>1e-9 or contrast<4.5):
+            raise RuntimeError('Actual warning body contrast is below 4.5:1 or summary was substituted')
+        if expected and (row.get('feedbackToken') != row.get('primary')
+                         or row['foreground'] != ([255,255,255] if theme=='dark' else [17,17,17])):
+            raise RuntimeError('High-contrast warning must use the actual primary foreground')
+        rect,viewport,text = row.get('rect'),row.get('cssViewport'),row.get('textRects')
+        if not isinstance(rect,dict) or not isinstance(viewport,dict) or not isinstance(text,list) or not text:
+            raise RuntimeError('Missing actual body text geometry')
+        numbers=[rect.get(k) for k in ('x','y','width','height')]+[viewport.get(k) for k in ('width','height','dpr')]
+        if any(type(v) not in (int,float) or not math.isfinite(v) for v in numbers):
+            raise RuntimeError('Non-finite native body geometry')
+        if (rect['x']<0 or rect['y']<0 or min(rect['width'],rect['height'],viewport['width'],viewport['height'],viewport['dpr'])<=0
+                or rect['x']+rect['width']>viewport['width']+.5 or rect['y']+rect['height']>viewport['height']+.5):
+            raise RuntimeError('Warning body is clipped outside the actual viewport')
+        for line in text:
+            if (not isinstance(line,dict) or any(type(line.get(k)) not in (int,float) or not math.isfinite(line[k]) for k in ('x','y','width','height'))
+                    or line['width']<=0 or line['height']<=0 or line['x']<rect['x']-.5 or line['y']<rect['y']-.5
+                    or line['x']+line['width']>rect['x']+rect['width']+.5 or line['y']+line['height']>rect['y']+rect['height']+.5):
+                raise RuntimeError('Warning text is clipped inside its body')
+    return stages
+
+
 def verify_native(text, method=METHOD):
     text = text.replace("\r\n", "\n")
     statuses = [int(n) for n in re.findall(r"^INSTRUMENTATION_STATUS_CODE:\s*(-?\d+)\s*$", text, re.M)]
@@ -243,6 +355,12 @@ def verification_passed(report, needs_notification):
                 and (report.get("scenario") != "cold" or (report.get("coldPassed") and report.get("oldProcessStopped")))
                 and (not report.get("motionPreferenceChecks") or report.get("motionPreferencePassed"))
                 and (report.get('requestedFontScale') is None or report.get('fontScaleRestored'))
+                and (not report.get("recoveryCardsRequested") or (report.get("recoveryCardsPassed") and report.get("cameraPermissionRestored") and report.get("nativeTapCount")==8))
+                and (not report.get("qrCardsRequested") or (report.get("qrCardsPassed") and report.get("cameraPermissionRestored") and report.get("qrTapCount")==8 and report.get("nearbyPermissionRestored")))
+                and (not report.get("securityWarningsRequested") or report.get("securityWarningsPassed"))
+                and (not report.get("providerFeedbackRequested") or report.get("providerFeedbackPassed"))
+                and not report.get("cameraRestoreError")
+                and not report.get("nearbyRestoreError")
                 and not any(report.get(key) for key in
                             ("error", "restoreError", "blurRestoreError", "notificationRestoreError", "nightModeRestoreError", "fontScaleRestoreError")))
 
@@ -624,15 +742,385 @@ def verify_evidence(evidence, scenario, motion=False, *, require_preview_bars=Fa
     return stages
 
 
+def camera_permission(package_dump):
+    matches = list(re.finditer(r'^\s*android\.permission\.CAMERA: granted=(true|false), flags=\[([^\]]*)\]\s*$', package_dump, re.M))
+    if len(matches) != 1:
+        raise RuntimeError('Missing exact unique current camera permission state; refusing mutation')
+    match = matches[0]
+    return {'granted': match[1] == 'true', 'flags': sorted(flag.strip() for flag in match[2].split('|') if flag.strip())}
+
+
+def restore_camera_permission(adb, read, original):
+    permission = 'android.permission.CAMERA'
+    current = camera_permission(read('shell', 'dumpsys', 'package', APP))
+    if current['granted'] != original['granted']:
+        adb('shell', 'pm', 'grant' if original['granted'] else 'revoke', APP, permission, stdout=subprocess.PIPE)
+    adb('shell', 'pm', 'clear-permission-flags', APP, permission, 'user-set', 'user-fixed', stdout=subprocess.PIPE)
+    flags = [flag.lower().replace('_', '-') for flag in original['flags'] if flag in ('USER_SET', 'USER_FIXED')]
+    if flags:
+        adb('shell', 'pm', 'set-permission-flags', APP, permission, *flags, stdout=subprocess.PIPE)
+    if camera_permission(read('shell', 'dumpsys', 'package', APP)) != original:
+        raise RuntimeError('Camera permission/flags differ from original state')
+
+
+def verify_camera_prompts(evidence):
+    prompts = evidence.get('recoveryCameraPrompts')
+    if not isinstance(prompts, list) or len(prompts) > 2:
+        raise RuntimeError('Missing bounded native camera permission evidence')
+    for index, row in enumerate(prompts):
+        deny_label = row.get('denyLabel')
+        if (row.get('controllerPackage') not in ('com.android.permissioncontroller', 'com.google.android.permissioncontroller')
+                or row.get('controllerIsSystemApp') is not True or row.get('appLabel') != 'SoloSoul' or row.get('message') != 'Allow SoloSoul to take pictures and record video?'
+                or not isinstance(deny_label, str) or deny_label.replace('\u2019', "'").casefold() != "don't allow" or row.get('permission') != 'android.permission.CAMERA'
+                or row.get('deniedByNativeUi') is not True or row.get('permissionDeniedAfter') is not True
+                or row.get('screenshot') != f'camera-permission-{index}.png' or not row.get('tree')):
+            raise RuntimeError('Camera request identity or actual native denial missing')
+    return len(prompts)
+
+def verify_recovery_evidence(evidence):
+    """Extra real-caller evidence; never substitutes the baseline verifier."""
+    if evidence.get('recoveryCardsRequested') is not True or evidence.get('scenario') != 'baseline':
+        raise RuntimeError('Recovery caller checks require an explicit complete baseline')
+    rows = evidence.get('recoveryRecords')
+    suffixes = ['portrait', 'next-portrait', 'label-0-ime', 'label-1-ime', 'label-2-ime',
+                'landscape', 'next-landscape', 'close-landscape', 'returned-home']
+    expected = [f'recovery-{theme}-{suffix}' for theme in ('light', 'dark') for suffix in suffixes]
+    if not isinstance(rows, list) or [row.get('stage') for row in rows] != expected:
+        raise RuntimeError('Missing exact complete light/dark recovery caller sequence')
+    runtime = evidence.get('runtime', {})
+    if (type(runtime.get('api')) is not int or runtime['api'] < 31
+            or not runtime.get('webViewPackage') or not runtime.get('webViewVersion')):
+        raise RuntimeError('Recovery caller native runtime identity missing')
+    def number(value):
+        return type(value) in (float, int) and math.isfinite(value)
+    for theme in ('light', 'dark'):
+        selected = [r for r in rows if r['stage'].startswith(f'recovery-{theme}-')]
+        focused_ids = []
+        for row, suffix in zip(selected, suffixes):
+            if suffix == 'returned-home':
+                if row.get('theme') != theme or row.get('nativeCloseSucceeded') is not True or row.get('unlocked') is not True:
+                    raise RuntimeError('Recovery close and real password unlock not both confirmed')
+                continue
+            ime = suffix.startswith('label-')
+            card, native = row.get('card', {}), row.get('nativeViewport', {})
+            if (row.get('theme') != theme or row.get('dark') is not (theme == 'dark')
+                    or row.get('path') != '/login' or row.get('platform') != 'android'
+                    or any(row.get(key) is not True for key in ('bounded', 'realIpc', 'screenshotStateConfirmed'))
+                    or row.get('mocked') is not False or row.get('documentOverflow') is not False
+                    or row.get('overflowY') != 'auto' or row.get('ime') is not ime
+                    or native.get('imeVisible') is not ime):
+                raise RuntimeError('Recovery caller DOM/native state differs from declared case')
+            required = [row.get('width'), row.get('height'), row.get('screenshotWidth'), row.get('screenshotHeight'),
+                        *[card.get(k) for k in ('x', 'y', 'width', 'height', 'right', 'bottom')],
+                        *[native.get(k) for k in ('webViewWidthPx', 'webViewScreenY', 'screenHeightPx', 'imeHeightPx')]]
+            if not all(number(v) for v in required) or min(row['width'], row['height'], card['width'], card['height']) <= 0:
+                raise RuntimeError('Recovery geometry must contain finite positive viewport/card dimensions')
+            if not (card['x'] >= 15 and card['y'] >= 15 and card['right'] <= row['width'] - 15
+                    and card['bottom'] <= row['height'] - 15
+                    and abs(card['right']-card['x']-card['width']) <= 1
+                    and abs(card['bottom']-card['y']-card['height']) <= 1):
+                raise RuntimeError('Recovery card exceeded actual CSS viewport')
+            bottom = native['webViewScreenY']+card['bottom']*native['webViewWidthPx']/row['width']
+            inset = native['imeHeightPx'] if ime else native.get('systemBars', {}).get('bottom')
+            if not number(inset) or inset < 0 or (ime and inset <= 0) or bottom > native['screenHeightPx']-inset+2:
+                raise RuntimeError('Recovery card obscured by native IME/system bars')
+            landscape = 'landscape' in suffix
+            bounds = native.get('windowBounds', {})
+            if not all(number(bounds.get(k)) for k in ('left', 'right', 'top', 'bottom')):
+                raise RuntimeError('Recovery rotation requires native window bounds')
+            if ((bounds['right']-bounds['left']) > (bounds['bottom']-bounds['top'])) is not landscape:
+                raise RuntimeError('Recovery rotation did not reach requested orientation')
+            if landscape and not (row.get('scrollHeight', 0) > row.get('clientHeight', 0) > 0):
+                raise RuntimeError('Shallow landscape must exercise real internal overflow')
+            targets = row.get('targets', [])
+            labels = [t for t in targets if t.get('tag') == 'LABEL']
+            inputs = [t for t in targets if t.get('tag') == 'INPUT']
+            names = ['Host Address', 'PIN', 'Host fingerprint']
+            ids = [t.get('id') for t in inputs]
+            if (len(labels) != 3 or [l.get('text') for l in labels] != names or len(inputs) != 3
+                    or any(type(v) is not str or not v for v in ids) or len(set(ids)) != 3
+                    or [l.get('htmlFor') for l in labels] != ids):
+                raise RuntimeError('Recovery input labels are missing, ambiguous or cross-associated')
+            if ime:
+                index = int(suffix.split('-')[1])
+                if row.get('activeId') != ids[index] or row.get('expectedActiveId') != ids[index]:
+                    raise RuntimeError('Actual native label tap did not focus its own input')
+                focused_ids.append(ids[index])
+            elif row.get('expectedActiveId') is not None:
+                raise RuntimeError('Unexpected keyboard focus assertion in non-IME stage')
+            name = 'Next' if suffix.startswith('next-') else 'Close' if suffix == 'close-landscape' else None
+            if name:
+                buttons = [t for t in targets if t.get('tag') == 'BUTTON' and (t.get('text') == name or t.get('aria') == name)]
+                if len(buttons) != 1 or buttons[0].get('hittable') is not True:
+                    raise RuntimeError('Recovery terminal action not actually hittable after internal scroll')
+        if len(set(focused_ids)) != 3:
+            raise RuntimeError('Native label checks did not exercise all three unique inputs')
+    return expected
+
+def verify_recovery_taps(evidence):
+    plans, events = evidence.get('recoveryTapPlans'), evidence.get('recoveryPointerEvents')
+    if not isinstance(plans, list) or not isinstance(events, list) or len(plans) != 8 or len(events) != 8:
+        raise RuntimeError('Exactly eight single native label/close touches are required')
+    states=evidence.get('recoveryRecords')
+    if not isinstance(states,list):
+        raise RuntimeError('Native touches must bind to actual recovery states')
+    captions = ['Host Address', 'PIN', 'Host fingerprint', 'Close']
+    def number(value):
+        return type(value) in (int, float) and math.isfinite(value)
+    for index, (plan, event) in enumerate(zip(plans, events)):
+        label = index % 4 != 3
+        theme = 'light' if index < 4 else 'dark'
+        geometry, native = plan.get('geometry', {}), plan.get('nativeViewport', {})
+        if (type(plan.get('index')) is not int or plan['index'] != index or plan.get('caption') != captions[index % 4] or plan.get('label') is not label
+                or plan.get('frameCommittedAndGeometryStable') is not True or type(plan.get('injectedTapCount')) is not int or plan['injectedTapCount'] != 1
+                or plan.get('injectedSource') != 4098 or plan.get('injectedToolType') != 1
+                or type(plan.get('preparationFrames')) is not int or not 1 <= plan['preparationFrames'] <= 3
+                or plan.get('beforeScreenshot') != f'native-tap-{index}-before.png'
+                or geometry.get('theme') != theme or geometry.get('hittable') is not True
+                or native.get('imeVisible') is not False or event.get('trusted') is not True
+                or event.get('pointerType') != 'touch' or event.get('inCard') is not True or event.get('theme') != theme):
+            raise RuntimeError('Missing committed stable frame or actual trusted native touch')
+        values = [plan.get('screenX'), plan.get('screenY'), plan.get('expectedRestoredHeight'),
+                  *[geometry.get(k) for k in ('x', 'y', 'width', 'viewportHeight')],
+                  *[native.get(k) for k in ('webViewWidthPx', 'webViewHeightPx', 'webViewScreenX', 'webViewScreenY')],
+                  *[event.get(k) for k in ('clientX', 'clientY', 'width', 'height')]]
+        if not all(number(v) for v in values) or min(geometry['width'], geometry['viewportHeight'], native['webViewWidthPx'],native['webViewHeightPx']) <= 0:
+            raise RuntimeError('Native touch coordinate mapping requires complete finite dimensions')
+        if not (0 <= geometry['x'] <= geometry['width'] and 0 <= geometry['y'] <= geometry['viewportHeight']):
+            raise RuntimeError('Prepared native touch must stay inside its visible CSS viewport')
+        if plan['expectedRestoredHeight'] != native['webViewHeightPx']:
+            raise RuntimeError('IME-dismissed native view height did not restore before touch')
+        scale = native['webViewWidthPx'] / geometry['width']
+        if any(abs(plan[f'screen{axis}'] - (native[f'webViewScreen{axis}']+geometry[axis.lower()]*scale)) > 1 for axis in ('X', 'Y')):
+            raise RuntimeError('Native screen coordinates differ from prepared CSS target')
+        if (abs(event['clientX']-geometry['x']) > 1 or abs(event['clientY']-geometry['y']) > 1
+                or abs(event['width']-geometry['width']) > 1 or abs(event['height']-geometry['viewportHeight']) > 1):
+            raise RuntimeError('Actual pointer hit a different viewport or coordinate')
+        if label:
+            identity = geometry.get('id')
+            if (not isinstance(identity, str) or not identity or geometry.get('associated') is not True
+                    or event.get('labelFor') != identity or plan.get('activeAfter') != identity
+                    or plan.get('cardPresentAfter') is not True):
+                raise RuntimeError('Native touch must hit its own visible label and focus its associated input')
+            matching=[r for r in states if r.get('stage')==f'recovery-{theme}-label-{index%4}-ime']
+            if len(matching)!=1 or matching[0].get('activeId')!=identity or matching[0].get('expectedActiveId')!=identity:
+                raise RuntimeError('Native touch identity differs from its actual IME/focus capture')
+        elif event.get('buttonLabel') != 'Close' or plan.get('cardPresentAfter') is not False:
+            raise RuntimeError('Native close touch did not hit and dismiss the actual card')
+    return len(plans)
+
+
+def verify_qr_evidence(evidence):
+    """Real SyncPage caller proof in addition to the untouched full baseline."""
+    suffixes = ['disabled', 'disabled-closed', 'host-portrait', 'host-cancel-portrait', 'host-landscape',
+                'host-cancel-landscape', 'host-close-landscape', 'host-closed', 'sync-portrait',
+                'sync-close-portrait', 'sync-landscape', 'sync-close-landscape', 'sync-closed',
+                'scan-portrait', 'scan-manual-portrait', 'scan-landscape', 'scan-manual-landscape',
+                'scan-close-landscape', 'scan-closed', 'returned-home']
+    expected = [f'qr-{theme}-{suffix}' for theme in ('light', 'dark') for suffix in suffixes]
+    rows = evidence.get('qrRecords')
+    if (evidence.get('qrCardsRequested') is not True or evidence.get('recoveryCardsRequested') is not False
+            or evidence.get('scenario') != 'baseline' or not isinstance(rows, list)
+            or [r.get('stage') for r in rows] != expected):
+        raise RuntimeError('QR callers require exact complete opt-in baseline sequence without mixed recovery taps')
+    readiness = evidence.get('qrEnableReadiness')
+    if not isinstance(readiness, list) or [r.get('theme') for r in readiness] != ['light', 'dark']:
+        raise RuntimeError('Both QR enable phases require actual native permission readiness')
+    for ready in readiness:
+        if (ready.get('phase') != 'qr-enable-sync' or ready.get('explicitEnablePending') is not True
+                or ready.get('path') != '/sync' or ready.get('syncEnabled') is not True or ready.get('showReady') is not True
+                or ready.get('realIpc') is not True or ready.get('mocked') is not False or ready.get('nearbyPermissionGranted') is not True):
+            raise RuntimeError('Enabled UI alone cannot prove native NSD permission readiness')
+    runtime = evidence.get('runtime', {})
+    if type(runtime.get('api')) is not int or runtime['api'] < 33 or not runtime.get('webViewVersion') or not runtime.get('webViewPackage'):
+        raise RuntimeError('QR native runtime identity missing')
+    def number(v):
+        return type(v) in (int, float) and math.isfinite(v)
+    for index, row in enumerate(rows):
+        theme = 'light' if index < len(suffixes) else 'dark'
+        suffix = suffixes[index % len(suffixes)]
+        if row.get('theme') != theme or type(row.get('exportFileCount')) is not int:
+            raise RuntimeError('QR actual theme or native export counter missing')
+        if suffix == 'returned-home':
+            if row.get('unlocked') is not True or row.get('syncDisabled') is not True or row['exportFileCount'] != 0:
+                raise RuntimeError('QR caller did not return to unlocked home with sync disabled and no live export')
+            continue
+        if suffix.endswith('-closed'):
+            disabled = suffix in ('disabled-closed', 'host-closed')
+            if (row.get('closed') is not True or row.get('path') != '/sync' or row['exportFileCount'] != 0
+                    or row.get('syncDisabled') is not disabled):
+                raise RuntimeError('Native QR close did not preserve page/sync state and remove actual export')
+            continue
+        kind = suffix.split('-')[0]
+        native, card = row.get('nativeViewport', {}), row.get('card', {})
+        if (row.get('kind') != kind or row.get('path') != '/sync' or row.get('platform') != 'android'
+                or row.get('realIpc') is not True or row.get('mocked') is not False or row.get('bounded') is not True
+                or row.get('screenshotStateConfirmed') is not True or row.get('documentOverflow') is not False
+                or row.get('overflowY') != 'auto' or native.get('imeVisible') is not False
+                or row.get('syncDisabled') is not (kind in ('disabled', 'host'))):
+            raise RuntimeError('QR caller DOM or native state differs from exact requested case')
+        dims = [row.get(k) for k in ('width', 'height', 'screenshotWidth', 'screenshotHeight')]
+        dims += [card.get(k) for k in ('x', 'y', 'width', 'height', 'right', 'bottom')]
+        dims += [native.get(k) for k in ('webViewWidthPx', 'webViewScreenY', 'screenHeightPx')]
+        bounds = native.get('windowBounds', {})
+        dims += [bounds.get(k) for k in ('left', 'right', 'top', 'bottom')]
+        inset = native.get('systemBars', {}).get('bottom')
+        if not all(number(v) for v in dims) or not number(inset) or inset < 0:
+            raise RuntimeError('QR actual CSS and native dimensions must be finite')
+        if (min(row['width'], row['height'], row['screenshotWidth'], row['screenshotHeight'], card['width'], card['height']) <= 0
+                or card['x'] < 15 or card['y'] < 15 or card['right'] > row['width'] - 15 or card['bottom'] > row['height'] - 15
+                or abs(card['right'] - card['x'] - card['width']) > 1 or abs(card['bottom'] - card['y'] - card['height']) > 1):
+            raise RuntimeError('QR card exceeded actual visible CSS viewport')
+        bottom = native['webViewScreenY'] + card['bottom'] * native['webViewWidthPx'] / row['width']
+        if bottom > native['screenHeightPx'] - inset + 2:
+            raise RuntimeError('QR card obscured by actual native system bar')
+        landscape = 'landscape' in suffix
+        if ((bounds['right'] - bounds['left']) > (bounds['bottom'] - bounds['top'])) is not landscape:
+            raise RuntimeError('QR caller did not actually rotate to requested orientation')
+        if landscape and not (row.get('scrollHeight', 0) > row.get('clientHeight', 0) > 0):
+            raise RuntimeError('Landscape QR must exercise real internal overflow')
+        if (not number(row.get('cardClientWidth')) or not number(row.get('cardScrollWidth')) or row['cardClientWidth'] <= 0
+                or row['cardScrollWidth'] > row['cardClientWidth'] + 1):
+            raise RuntimeError('QR content overflows horizontally inside its bounded card')
+        action = row.get('action')
+        wanted = ('Close', True) if suffix in ('disabled', 'host-close-landscape', 'sync-close-landscape', 'scan-close-landscape') else (
+            ('Cancel', False) if '-cancel-' in suffix else ('Close', False) if suffix == 'sync-close-portrait' else
+            ('Use discovery or manual input', False) if '-manual-' in suffix else None)
+        if wanted and (not isinstance(action, dict) or action.get('caption') != wanted[0]
+                       or action.get('aria') is not wanted[1] or action.get('hittable') is not True):
+            raise RuntimeError('QR terminal/fallback operation not actually hittable after scroll')
+        if not wanted and action is not None:
+            raise RuntimeError('Unexpected QR target assertion')
+        if type(row.get('qrCount')) is not int or row['qrCount'] != (1 if kind in ('host', 'sync') else 0):
+            raise RuntimeError('Actual expected QR drawing missing or stale')
+        if row['exportFileCount'] != (1 if kind == 'host' else 0):
+            raise RuntimeError('Actual native recovery export lifetime differs from visible caller')
+        if kind == 'disabled':
+            if row.get('disabledMessage') is not True:
+                raise RuntimeError('Disabled sync must use real backend error branch')
+        elif row.get('headings') != [{'host': 'Link New Device', 'sync': 'Sync QR Code', 'scan': 'Scan QR Code'}[kind]]:
+            raise RuntimeError('QR caller title identity missing')
+        if kind == 'host' and (row.get('manualOpen') is not True or row.get('hostPinPresent') is not True):
+            raise RuntimeError('Real recovery host must contain actual QR/PIN and expanded manual instructions')
+        if kind == 'scan' and row.get('manualAction') is not True:
+            raise RuntimeError('Real camera failure/absence must expose usable manual fallback')
+    return expected
+
+
+def verify_qr_taps(evidence):
+    plans, events = evidence.get('recoveryTapPlans'), evidence.get('recoveryPointerEvents')
+    if not isinstance(plans, list) or not isinstance(events, list) or len(plans) != 8 or len(events) != 8:
+        raise RuntimeError('Exactly eight single real QR close touches required')
+    def number(v):
+        return type(v) in (int, float) and math.isfinite(v)
+    for index, (plan, event) in enumerate(zip(plans, events)):
+        geometry, native = plan.get('geometry', {}), plan.get('nativeViewport', {})
+        theme = 'light' if index < 4 else 'dark'
+        if (type(plan.get('index')) is not int or plan['index'] != index or plan.get('caption') != 'Close' or plan.get('label') is not False
+                or plan.get('frameCommittedAndGeometryStable') is not True or type(plan.get('injectedTapCount')) is not int or plan['injectedTapCount'] != 1
+                or plan.get('injectedSource') != 4098 or plan.get('injectedToolType') != 1
+                or type(plan.get('preparationFrames')) is not int or not 1 <= plan['preparationFrames'] <= 3
+                or plan.get('beforeScreenshot') != f'native-tap-{index}-before.png' or plan.get('cardPresentAfter') is not False
+                or geometry.get('hittable') is not True or geometry.get('theme') != theme
+                or native.get('imeVisible') is not False or event.get('trusted') is not True or event.get('pointerType') != 'touch'
+                or event.get('inCard') is not True or event.get('theme') != theme or event.get('buttonLabel') != 'Close'):
+            raise RuntimeError('QR close requires one trusted native finger touch on its own committed frame')
+        values = [plan.get(k) for k in ('screenX', 'screenY', 'expectedRestoredHeight')]
+        values += [geometry.get(k) for k in ('x', 'y', 'width', 'viewportHeight')]
+        values += [native.get(k) for k in ('webViewWidthPx', 'webViewHeightPx', 'webViewScreenX', 'webViewScreenY')]
+        values += [event.get(k) for k in ('clientX', 'clientY', 'width', 'height')]
+        if not all(number(v) for v in values) or min(geometry['width'], geometry['viewportHeight'], native['webViewWidthPx'], native['webViewHeightPx']) <= 0:
+            raise RuntimeError('QR close lacks finite actual touch mapping')
+        if (not 0 <= geometry['x'] <= geometry['width'] or not 0 <= geometry['y'] <= geometry['viewportHeight']
+                or plan['expectedRestoredHeight'] != native['webViewHeightPx']):
+            raise RuntimeError('QR touch outside restored visible viewport')
+        scale = native['webViewWidthPx'] / geometry['width']
+        if any(abs(plan[f'screen{a}'] - native[f'webViewScreen{a}'] - geometry[a.lower()] * scale) > 1 for a in ('X', 'Y')):
+            raise RuntimeError('QR native coordinates differ from committed CSS target')
+        if (abs(event['clientX'] - geometry['x']) > 1 or abs(event['clientY'] - geometry['y']) > 1
+                or abs(event['width'] - geometry['width']) > 1 or abs(event['height'] - geometry['viewportHeight']) > 1):
+            raise RuntimeError('QR native event belongs to stale geometry or another hit')
+    return len(plans)
+
+
+def nearby_permission(package_dump):
+    matches = list(re.finditer(r'^\s*android\.permission\.NEARBY_WIFI_DEVICES: granted=(true|false), flags=\[([^\]]*)\]\s*$', package_dump, re.M))
+    if len(matches) != 1:
+        raise RuntimeError('Missing exact unique current nearby Wi-Fi permission state; refusing mutation')
+    match = matches[0]
+    return {'granted': match[1] == 'true', 'flags': sorted(flag.strip() for flag in match[2].split('|') if flag.strip())}
+
+
+def restore_nearby_permission(adb, read, original):
+    permission = 'android.permission.NEARBY_WIFI_DEVICES'
+    current = nearby_permission(read('shell', 'dumpsys', 'package', APP))
+    if current['granted'] != original['granted']:
+        adb('shell', 'pm', 'grant' if original['granted'] else 'revoke', APP, permission, stdout=subprocess.PIPE)
+    adb('shell', 'pm', 'clear-permission-flags', APP, permission, 'user-set', 'user-fixed', stdout=subprocess.PIPE)
+    flags = [flag.lower().replace('_', '-') for flag in original['flags'] if flag in ('USER_SET', 'USER_FIXED')]
+    if flags:
+        adb('shell', 'pm', 'set-permission-flags', APP, permission, *flags, stdout=subprocess.PIPE)
+    if nearby_permission(read('shell', 'dumpsys', 'package', APP)) != original:
+        raise RuntimeError('Nearby Wi-Fi permission/flags differ from original state')
+
+
+def verify_qr_nearby_prompts(evidence):
+    rows = evidence.get('qrNearbyPrompts')
+    if not isinstance(rows, list) or len(rows) > 2:
+        raise RuntimeError('Missing bounded native Nearby Devices evidence')
+    for index, row in enumerate(rows):
+        if (row.get('controllerPackage') not in ('com.android.permissioncontroller', 'com.google.android.permissioncontroller')
+                or row.get('controllerIsSystemApp') is not True or row.get('appLabel') != 'SoloSoul'
+                or row.get('message') != 'Allow SoloSoul to find, connect to, and determine the relative position of nearby devices?'
+                or not isinstance(row.get('allowLabel'), str) or row['allowLabel'].casefold() != 'allow'
+                or row.get('allowEnabled') is not True or row.get('allowClickable') is not True
+                or row.get('permission') != 'android.permission.NEARBY_WIFI_DEVICES'
+                or row.get('phase') != 'qr-enable-sync' or row.get('explicitEnablePending') is not True
+                or row.get('permissionGrantedBefore') is not False or row.get('permissionGrantedAfter') is not True
+                or row.get('cameraPermissionUnchanged') is not True or row.get('grantedByNativeUi') is not True
+                or type(row.get('nativeActionCount')) is not int or row['nativeActionCount'] != 1
+                or row.get('screenshot') != f'nearby-permission-{index}.png' or not row.get('tree')):
+            raise RuntimeError('Nearby Wi-Fi native grant identity, explicit phase, or unchanged camera proof missing')
+    return len(rows)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("adb", "serial", "avd", "apk", "test-apk", "output"):
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--mode", choices=("supported", "fallback"), required=True)
     parser.add_argument("--scenario", choices=("baseline", "overlays", "keyboard", "accounts", "insets", "lifecycle", "cold", "previews", "rendering"), default="baseline")
+    parser.add_argument("--qr-cards", action="store_true", help="Append real SyncPage QR host/sync/scan callers to complete baseline")
+    parser.add_argument("--recovery-cards", action="store_true", help="Append real Login recovery card native touch/IME/rotation checks to baseline")
+    parser.add_argument('--provider-feedback',action='store_true',help='Append real local HTTP provider success/error observations to the full baseline')
+    parser.add_argument('--feedback-high-text-contrast',choices=['true','false'])
+    parser.add_argument('--feedback-url',help='Owned fixture base URL, http://127.0.0.1:<port> only')
+    parser.add_argument("--security-warnings", action="store_true", help="Append real Security Settings warning body observations to the complete baseline")
+    parser.add_argument("--security-high-text-contrast", choices=("true","false"), help="Explicit actual system contrast lane for security warnings")
     parser.add_argument("--motion-preferences", action="store_true", help="Verify true/false reduced motion across account/process changes (cold only)")
     parser.add_argument('--font-scale', type=float, choices=(1.0, 1.3, 2.0), help='Actual Android system font scale; baseline only, restored afterward')
+    parser.add_argument('--expected-high-text-contrast', choices=('true','false'), help='Optional native read-only MainActivity delivery probe')
+    parser.add_argument("--high-text-contrast-live", action="store_true", help="Verify real system toggles without document reload")
     args = parser.parse_args()
+    if args.provider_feedback:
+        match=re.fullmatch(r'http://127\.0\.0\.1:([1-9][0-9]{0,4})',args.feedback_url or '')
+        if (not match or not 1024<=int(match[1])<=65535 or args.feedback_high_text_contrast is None
+                or args.scenario!='baseline' or args.qr_cards or args.recovery_cards or args.security_warnings):
+            parser.error('Provider feedback requires full baseline, an explicit contrast lane and owned loopback fixture URL')
+    elif args.feedback_high_text_contrast is not None or args.feedback_url is not None:
+        parser.error('Provider feedback options require --provider-feedback')
+    if args.security_warnings and (args.scenario != 'baseline' or args.qr_cards or args.recovery_cards or args.security_high_text_contrast is None):
+        parser.error('Security warnings require a complete standalone baseline and explicit --security-high-text-contrast')
+    if args.security_high_text_contrast is not None and not args.security_warnings:
+        parser.error('Security contrast lane requires --security-warnings')
+    if args.expected_high_text_contrast is not None and (args.scenario != 'baseline' or not args.qr_cards):
+        parser.error('High text contrast observation requires the complete baseline with --qr-cards')
+    if args.high_text_contrast_live and args.expected_high_text_contrast is None:
+        parser.error('Live contrast checks require an explicit --expected-high-text-contrast lane')
+    if args.qr_cards and (args.scenario != "baseline" or args.recovery_cards):
+        parser.error("QR callers append to baseline only and cannot mix recovery tap records")
+    if args.recovery_cards and args.scenario != "baseline":
+        parser.error("Recovery cards append to baseline only")
     if args.motion_preferences and args.scenario != "cold":
         parser.error("Reduced-motion process matrix requires --scenario cold")
     if args.font_scale is not None and args.scenario != 'baseline':
@@ -644,11 +1132,20 @@ def main():
     report = {"serial": args.serial, "avd": args.avd, "mode": args.mode, "scenario": args.scenario,
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
+    report['recoveryCardsRequested'] = args.recovery_cards
+    report['qrCardsRequested'] = args.qr_cards
+    report['securityWarningsRequested'] = args.security_warnings
+    report['providerFeedbackRequested'] = args.provider_feedback
+    report['securityHighTextContrastExpected'] = args.security_high_text_contrast
+    report['expectedHighTextContrast'] = args.expected_high_text_contrast
+    report['highTextContrastLiveRequested'] = args.high_text_contrast_live
     selected = False
     backup_valid = False
     mutation_started = False
     old_blur = None
     old_notification = None
+    old_camera = None
+    old_nearby = None
     old_night = None
     old_font_scale = None
     old_font_effective = None
@@ -699,9 +1196,17 @@ def main():
         report["abi"] = read("shell", "getprop", "ro.product.cpu.abi")
         if report["api"] < 31:
             raise RuntimeError("Requires API >=31")
+        if args.qr_cards and report["api"] < 33:
+            raise RuntimeError("QR caller tests require API33+ Nearby Wi-Fi, never location grants")
         if report["api"] >= 33:
             old_notification = notification_permission(read("shell", "dumpsys", "package", APP))
             report["notificationPermissionBefore"] = old_notification
+        if args.qr_cards:
+            old_nearby = nearby_permission(read("shell", "dumpsys", "package", APP))
+            report["nearbyPermissionBefore"] = old_nearby
+        if args.recovery_cards or args.qr_cards:
+            old_camera = camera_permission(read("shell", "dumpsys", "package", APP))
+            report["cameraPermissionBefore"] = old_camera
         report["artifacts"] = [{"path": str(Path(path).resolve()), "sha256": digest(path)}
                                for path in (args.apk, args.test_apk)]
         adb("shell", "am", "force-stop", APP, stdout=subprocess.PIPE)
@@ -722,10 +1227,18 @@ def main():
         # 输出由 JUnit 最后写入；不关闭最后一个 Activity 以免 Tauri 退出同进程 runner。
         result = adb("shell", "am", "instrument", "-w", "-r", "-e", "waitForActivitiesToComplete", "false",
                      "-e", "privateDataBackedUp", "true", "-e", "evidenceTag", tag,
+                     "-e", "qrCards", str(args.qr_cards).lower(),
+                     "-e", "securityWarnings", str(args.security_warnings).lower(),
+                     "-e", "providerFeedback", str(args.provider_feedback).lower(),
+                     *(("-e", "feedbackHighTextContrast", args.feedback_high_text_contrast, "-e", "feedbackUrl", args.feedback_url) if args.provider_feedback else ()) ,
+                     *(("-e", "securityHighTextContrast", args.security_high_text_contrast) if args.security_high_text_contrast is not None else ()),
+                     "-e", "recoveryCards", str(args.recovery_cards).lower(),
                      "-e", "scenario", "accounts" if args.scenario == "cold" else args.scenario,
                      "-e", "prepareColdRestart", "true" if args.scenario == "cold" else "false",
                      "-e", "motionPreferenceChecks", str(args.motion_preferences).lower(),
                      *(("-e", "fontScale", str(args.font_scale)) if args.font_scale is not None else ()),
+                     *(("-e", "expectedHighTextContrast", args.expected_high_text_contrast) if args.expected_high_text_contrast is not None else ()),
+                     *(("-e", "mainHighTextContrastLiveChecks", "true") if args.high_text_contrast_live else ()),
                      "-e", "class", f"com.solosoul.app.AndroidHomeInstrumentedTest#{METHOD}",
                      "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner",
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -741,6 +1254,25 @@ def main():
                                  require_typography_header=args.font_scale is not None,
                                  require_keyboard_cancel=args.scenario == 'keyboard')
         report["stages"] = stages
+        if args.provider_feedback:
+            report['providerFeedbackStages'] = verify_provider_feedback_evidence(evidence,args.feedback_high_text_contrast=='true',args.feedback_url)
+            report['providerFeedbackPassed'] = True
+        if args.security_warnings:
+            report["securityWarningStages"] = verify_security_warning_evidence(evidence, args.security_high_text_contrast == 'true')
+            report["securityWarningsPassed"] = True
+        if args.qr_cards:
+            report["qrStages"] = verify_qr_evidence(evidence)
+            report["cameraPrompts"] = verify_camera_prompts(evidence)
+            report["qrTapCount"] = verify_qr_taps(evidence)
+            report["nearbyPrompts"] = verify_qr_nearby_prompts(evidence)
+            if report["nearbyPrompts"] != (0 if old_nearby["granted"] else 1):
+                raise RuntimeError("Nearby native grant count differs from original permission state")
+            report["qrCardsPassed"] = True
+        if args.recovery_cards:
+            report["recoveryStages"] = verify_recovery_evidence(evidence)
+            report["cameraPrompts"] = verify_camera_prompts(evidence)
+            report["nativeTapCount"] = verify_recovery_taps(evidence)
+            report["recoveryCardsPassed"] = True
         if args.scenario == 'cold':
             if not evidence['records'][-1].get('startupUiPrefsConfirmed'):
                 raise RuntimeError('First phase did not confirm durable startup appearance')
@@ -822,6 +1354,18 @@ def main():
                     report["notificationPermissionRestored"] = True
                 except Exception as error:
                     report["notificationRestoreError"] = str(error)
+            if old_nearby is not None:
+                try:
+                    restore_nearby_permission(adb, read, old_nearby)
+                    report["nearbyPermissionRestored"] = True
+                except Exception as error:
+                    report["nearbyRestoreError"] = str(error)
+            if old_camera is not None:
+                try:
+                    restore_camera_permission(adb, read, old_camera)
+                    report["cameraPermissionRestored"] = True
+                except Exception as error:
+                    report["cameraRestoreError"] = str(error)
             if old_night is not None:
                 try:
                     adb('shell', 'cmd', 'uimode', 'night', old_night, stdout=subprocess.PIPE)

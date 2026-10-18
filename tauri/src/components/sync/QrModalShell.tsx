@@ -8,8 +8,6 @@ interface QrModalShellProps {
   onClose: () => void;
   /** 可选标题（渲染为 h2）。 */
   title?: string;
-  /** 内容超出视口时卡片内滚动（ShowQrDialog 需要）。 */
-  scrollable?: boolean;
   children: ReactNode;
 }
 
@@ -17,7 +15,7 @@ interface QrModalShellProps {
  * QR 对话框共享模态外壳（P042：SyncScanQrDialog 与 SyncShowQrDialog 的手写模态外壳
  * 一致——overlay + 淡入卡片 + 右上关闭按钮）。
  */
-export function QrModalShell({ onClose, title, scrollable = false, children }: QrModalShellProps) {
+export function QrModalShell({ onClose, title, children }: QrModalShellProps) {
   const { t } = useTranslation(['common']);
 
   return (
@@ -56,9 +54,8 @@ export function QrModalShell({ onClose, title, scrollable = false, children }: Q
             // 避免 flex 居中溢出导致上下内容（tab 切换/关闭/取消按钮）不可达。
             // 注意：必须用视口单位 100vh 而非百分比 100% —— 父级 motion.div 高度为 auto，
             // 百分比无法解析会使整个 min() 失效，导致 max-height 不生效、内容全高溢出。
-            ...(scrollable
-              ? { maxHeight: 'min(85vh, calc(100vh - 32px))', overflowY: 'auto' as const }
-              : {}),
+            maxHeight: 'min(85vh, calc(100vh - 32px))',
+            overflowY: 'auto',
           }}
         >
           <button

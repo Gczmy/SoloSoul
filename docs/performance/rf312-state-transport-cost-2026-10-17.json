@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "task": "RF-312",
+  "scope": "state-query-and-ui-exchange-cost-diagnosis",
+  "nativeProbeAccepted": true,
+  "candidateAdopted": false,
+  "candidateDecision": "retain-direct-SDK; candidate-slower-in-this-isolated-probe",
+  "runtimeSourceHead": "b8cdc10869b1619b129ab718bf7244cbb9681d77",
+  "runtimeSourceFiles": 92,
+  "runtimeSourceGenerationSha256": "7e68247e10bdd2e10d8cff48b5266f2ce041d10134ba41f6c7e19ddc01473a0c",
+  "runtimeSourcesSummary": "rf312-sampling-control-2026-10-17.json",
+  "runtimeSourcesUnchanged": true,
+  "original71HelpersUnchanged": true,
+  "stateParserChanged": false,
+  "readerProtectionChanged": false,
+  "previousStateCost": {
+    "validRawProofsReplayed": 1059,
+    "startedCases": 7,
+    "completeCases": 5,
+    "rejectedCases": 2,
+    "cases": [
+      {
+        "priorMode": "off",
+        "objectCount": 100,
+        "stateProofs": 169,
+        "sumSdkSeconds": 13.013000000617467,
+        "medianSdkSeconds": 0.06300000008195639,
+        "p95NearestRankSeconds": 0.10999999998603016,
+        "maxSdkSeconds": 0.2809999999590218,
+        "stdoutBytesMin": 170721,
+        "stdoutBytesMax": 192916,
+        "ledgerSha256": "ac53dd11977e3f25c27d9c83f56a269411179e6b7bd5bba3617ee2d95ba3af5d",
+        "failedStateCommands": 0
+      },
+      {
+        "priorMode": "off",
+        "objectCount": 5000,
+        "stateProofs": 169,
+        "sumSdkSeconds": 13.095000000088476,
+        "medianSdkSeconds": 0.06300000008195639,
+        "p95NearestRankSeconds": 0.10999999998603016,
+        "maxSdkSeconds": 0.23400000005494803,
+        "stdoutBytesMin": 164368,
+        "stdoutBytesMax": 181270,
+        "ledgerSha256": "566972d2a6aae1fc31a8a83485e04d577dc391480e2fb389188c526cd74e7d7b",
+        "failedStateCommands": 0
+      },
+      {
+        "priorMode": "on",
+        "objectCount": 100,
+        "stateProofs": 169,
+        "sumSdkSeconds": 13.456000000238419,
+        "medianSdkSeconds": 0.0779999999795109,
+        "p95NearestRankSeconds": 0.125,
+        "maxSdkSeconds": 0.2029999999795109,
+        "stdoutBytesMin": 168854,
+        "stdoutBytesMax": 192076,
+        "ledgerSha256": "b53762c69bbbc854a16db13e7159d0b00869b109a1c9f22a16db12cc55da4f6a",
+        "failedStateCommands": 0
+      },
+      {
+        "priorMode": "on",
+        "objectCount": 5000,
+        "stateProofs": 66,
+        "sumSdkSeconds": 5.206999999703839,
+        "medianSdkSeconds": 0.0779999999795109,
+        "p95NearestRankSeconds": 0.125,
+        "maxSdkSeconds": 0.1410000000614673,
+        "stdoutBytesMin": 163981,
+        "stdoutBytesMax": 180260,
+        "ledgerSha256": "d39925304eeceb9471c3841b709ae02f6c911561606aeeffe0f4c76c48ce61a5",
+        "failedStateCommands": 1
+      },
+      {
+        "priorMode": "repeat-r2/off",
+        "objectCount": 100,
+        "stateProofs": 169,
+        "sumSdkSeconds": 13.848000000580214,
+        "medianSdkSeconds": 0.0779999999795109,
+        "p95NearestRankSeconds": 0.125,
+        "maxSdkSeconds": 0.26599999994505197,
+        "stdoutBytesMin": 170908,
+        "stdoutBytesMax": 192996,
+        "ledgerSha256": "1e1f53325d5c6afa5c2b986fe822c295f9a807f2a90bf376e98ad3c8945992be",
+        "failedStateCommands": 0
+      },
+      {
+        "priorMode": "repeat-r2/off",
+        "objectCount": 5000,
+        "stateProofs": 168,
+        "sumSdkSeconds": 13.248000000254251,
+        "medianSdkSeconds": 0.0779999999795109,
+        "p95NearestRankSeconds": 0.125,
+        "maxSdkSeconds": 0.15700000000651926,
+        "stdoutBytesMin": 164447,
+        "stdoutBytesMax": 181247,
+        "ledgerSha256": "ef24750dbddf1b7ffc6c473bf7faae99d440f59170f9ce5f7c1c43513fc22202",
+        "failedStateCommands": 0
+      },
+      {
+        "priorMode": "repeat-r2/on",
+        "objectCount": 100,
+        "stateProofs": 149,
+        "sumSdkSeconds": 16.610999998869374,
+        "medianSdkSeconds": 0.09399999992456287,
+        "p95NearestRankSeconds": 0.14099999994505197,
+        "maxSdkSeconds": 2.437000000034459,
+        "stdoutBytesMin": 170648,
+        "stdoutBytesMax": 193320,
+        "ledgerSha256": "d510fb71b3bd4bd18a46f3a1540bc8fb390239833b13e7310a9ad137c91fdec8",
+        "failedStateCommands": 0
+      }
+    ],
+    "sdkElapsedExcludesLedgerWrite": true,
+    "notPooledIntoNewBaseline": true
+  },
+  "priorUiExchange": {
+    "source": "sampling-control:first-off:100",
+    "completeFramesReplayed": 342,
+    "rpcSeconds": 135.10800000012387,
+    "nativeObserverActionSeconds": 22.65447373,
+    "differentClockBoundaries": true,
+    "fullGapCauseProven": false,
+    "rpcByOperation": {
+      "ping": {
+        "count": 1,
+        "sumSeconds": 0.10900000005494803,
+        "medianSeconds": 0.10900000005494803,
+        "maxSeconds": 0.10900000005494803
+      },
+      "get-stable": {
+        "count": 21,
+        "sumSeconds": 12.356999999959953,
+        "medianSeconds": 0.5780000000959262,
+        "maxSeconds": 0.9529999999795109
+      },
+      "app-stop": {
+        "count": 1,
+        "sumSeconds": 0.030999999959021807,
+        "medianSeconds": 0.030999999959021807,
+        "maxSeconds": 0.030999999959021807
+      },
+      "pid": {
+        "count": 169,
+        "sumSeconds": 9.127000000094995,
+        "medianSeconds": 0.0470000000204891,
+        "maxSeconds": 0.21899999992456287
+      },
+      "app-start": {
+        "count": 1,
+        "sumSeconds": 0.625,
+        "medianSeconds": 0.625,
+        "maxSeconds": 0.625
+      },
+      "exchange": {
+        "count": 342,
+        "sumSeconds": 135.10800000012387,
+        "medianSeconds": 0.31299999996554106,
+        "maxSeconds": 3.2820000000065193
+      },
+      "focus": {
+        "count": 167,
+        "sumSeconds": 17.515999999362975,
+        "medianSeconds": 0.10899999993853271,
+        "maxSeconds": 0.1720000000204891
+      },
+      "close": {
+        "count": 1,
+        "sumSeconds": 0.015000000013969839,
+        "medianSeconds": 0.015000000013969839,
+        "maxSeconds": 0.015000000013969839
+      }
+    }
+  },
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "virtualCpu": 2,
+    "memoryMiB": 2048,
+    "gpu": "SwiftShader",
+    "freshAvd": true,
+    "applicationInstalled": false,
+    "observerInstalled": false
+  },
+  "probe": {
+    "semanticCommand": [
+      "shell",
+      "dumpsys",
+      "activity",
+      "processes"
+    ],
+    "sdkLimitSeconds": 5,
+    "pairOrder": "alternating SDK-control and control-SDK",
+    "pairs": 12,
+    "sdk": {
+      "samples": 12,
+      "sumSeconds": 1.0170000001089647,
+      "medianSeconds": 0.0779999999795109,
+      "minSeconds": 0.062000000034458935,
+      "maxSeconds": 0.2029999999795109
+    },
+    "control": {
+      "samples": 12,
+      "sumSeconds": 6.4519999999320135,
+      "medianSeconds": 0.5384999999660067,
+      "minSeconds": 0.4220000000204891,
+      "maxSeconds": 0.6720000000204891
+    },
+    "timingIncludesReceiptWriteAndCommonParse": true,
+    "allFreshFullStateDumpsParsed": true,
+    "activeInstrumentationCountEachRead": 0,
+    "launcherPresentEachRead": true,
+    "rawControlFramesReplayed": 14,
+    "noCacheOrFailureRetryOrFallback": true
+  },
+  "cleanup": {
+    "controlNormal": true,
+    "ownScratchRemoved": true,
+    "settingsUnchanged": true,
+    "normalSdkShutdown": true,
+    "strictHostAfterZero": true
+  },
+  "testResult": {
+    "existingRuntimeTests": 174,
+    "existingRuntimeSourceMatchesTests": true,
+    "privateProtocolTests": 34,
+    "privateProtocolFailures": 0
+  },
+  "evidenceSha256": {
+    "nativeOwner": "2a7c300d4986f1304286c738df3add8bbb23b59c74ea160e7226d57c4b0c280a",
+    "probe": "6794dc1bf941f147570fb8f310b5825cd104b5d0e8a440143f7569cd9fbda2b8",
+    "sdkLedger": "9dbb0dd29514799b02c730658e43bacf49eea6d7ae8e3ae97161d956976efb6b",
+    "hostAfter": "1c0ce51e0af4a3a63311a10bf9ee16e3317d9a0119f8ba35c4cf55164f888616",
+    "script": "14a69611d235a7238709cc44dee4db648cacd3de5624a6ea029078a310a615d6",
+    "privateClient": "d2be58efc1dd1f9789bb38ba834534168db1e8a6c0716fa435b3c26e8b4f4cb3",
+    "independentProbe": "9ab3c73620e60815cf6e8a81da053edbc012b057ab5a46ea9a91631e00bf3556",
+    "previousStateCost": "e436eca269e63d2dad33cdffa4231b72f067cb53ca99a12dc4025139261d0a7b",
+    "previousUiCost": "e28bff1e26d9ed9284981de0fad9f309cdfcab98e45295499349aebbd3611a41",
+    "privateTests": "b11679b8c30c97a6e66c5de771f692a281f356a9afcbb892687d13b3a961ee0d",
+    "scopeClarification": "6835f6af20162e9108517bf5e7c193f9e53682f43be6c11810947824df428b8d"
+  },
+  "inheritedOuterManifestUiFlagsAcceptedAsBehaviorProof": false,
+  "rawReceiptsRewritten": false,
+  "uiControlScriptChanged": false,
+  "defaultStateTransportChanged": false,
+  "productSourceChanged": false,
+  "completeSamplingComparisonAccepted": false,
+  "fullRF312Accepted": false,
+  "applicationOnlyLatencyAccepted": false,
+  "samplingCostAccepted": false,
+  "sameSourceObserverOverheadAccepted": false,
+  "repeatedDistributionAccepted": false,
+  "actualIpcAccepted": false,
+  "lazyLoadingOrPaginationChangeJustified": false,
+  "nextAction": "profile fixed UI exchange file guards, polling and reply reads; retain exact bytes, all guards and original deadlines before adoption"
+}

@@ -97,13 +97,19 @@ def kernel_identity(stat, status, expected):
 
 def memory_values(text, expected):
     headers = re.findall(r'^\*\* MEMINFO in pid (\d+) \[([^\]]+)\] \*\*\s*$', text, re.M)
-    totals = re.findall(r'TOTAL PSS:\s+(\d+)\s+TOTAL RSS:\s+(\d+)\s+TOTAL SWAP \(KB\):\s+(\d+)', text)
+    totals = re.findall(r'^[ \t]*TOTAL PSS:[ \t]+(\d+)[ \t]+TOTAL RSS:[ \t]+(\d+)'
+                        r'[ \t]+TOTAL (SWAP \(KB\)|SWAP PSS):[ \t]+(\d+)[ \t]*\r?$', text, re.M)
     if headers != [(str(expected['pid']), expected['name'])] or len(totals) != 1:
         raise MemoryEvidenceError('Memory summary is incomplete or belongs to another process')
-    pss, rss, swap = map(int, totals[0])
+    pss_text, rss_text, swap_label, swap_text = totals[0]
+    pss, rss, swap = map(int, (pss_text, rss_text, swap_text))
     if pss < 1 or rss < pss:
         raise MemoryEvidenceError('Memory totals are invalid')
-    return dict(pssBytes=pss * 1024, rssBytes=rss * 1024, swapBytes=swap * 1024)
+    values = dict(pssBytes=pss * 1024, rssBytes=rss * 1024,
+                  swapBytes=swap * 1024 if swap_label == 'SWAP (KB)' else None)
+    if swap_label == 'SWAP PSS':
+        values['swapPssBytes'] = swap * 1024
+    return values
 
 
 def collect_snapshot(run, package, uid, provider):
@@ -142,10 +148,14 @@ def collect_snapshot(run, package, uid, provider):
 
 
 class AdbRunner:
-    def __init__(self, executable, serial, avd, output):
+    """Bind the private ADB endpoint before checking dedicated AVD ownership."""
+
+    def __init__(self, executable, serial, avd, output, *, host='localhost', port=5049):
         if not re.fullmatch(r'emulator-\d+', serial) or not re.fullmatch(r'SoloSoul_[A-Za-z0-9_-]+', avd):
             raise MemoryEvidenceError('An explicit dedicated SoloSoul emulator is required')
-        self.prefix = [str(Path(executable).resolve(strict=True)), '-H', 'localhost', '-P', '5049', '-s', serial]
+        if host not in ('localhost', '127.0.0.1') or type(port) is not int or not 1 <= port <= 65535:
+            raise MemoryEvidenceError('An explicit loopback ADB endpoint and valid TCP port are required')
+        self.prefix = [str(Path(executable).resolve(strict=True)), '-H', host, '-P', str(port), '-s', serial]
         self.output = Path(output)
         self.output.mkdir(parents=False, exist_ok=False)
         self.commands = []
@@ -172,8 +182,12 @@ def main():
     for name in ['adb', 'serial', 'avd', 'package', 'provider', 'output']:
         parser.add_argument('--' + name, required=True)
     parser.add_argument('--uid', required=True, type=int)
+    parser.add_argument('--adb-host', choices=['localhost', '127.0.0.1'], default='localhost',
+                        help='Loopback host of the dedicated ADB server (default: localhost)')
+    parser.add_argument('--adb-port', type=int, default=5049,
+                        help='TCP port of the dedicated ADB server (default: 5049)')
     args = parser.parse_args()
-    run = AdbRunner(args.adb, args.serial, args.avd, args.output)
+    run = AdbRunner(args.adb, args.serial, args.avd, args.output, host=args.adb_host, port=args.adb_port)
     try:
         result = collect_snapshot(run, args.package, args.uid, args.provider)
     except Exception as error:

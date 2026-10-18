@@ -1,0 +1,292 @@
+{
+  "task": "RF-312",
+  "date": "2026-10-16",
+  "status": "current-default-artifact-prepared-native-protocol-rejected",
+  "sourceHead": "525da2ea01aa9966726a951d0282735caa315d04",
+  "sourceFiles": 1795,
+  "frontendFiles": 38,
+  "mobileResources": 46,
+  "androidAssets": 98,
+  "build": {
+    "defaultFeatures": [
+      "custom-protocol"
+    ],
+    "optionalPerformanceFeatures": [],
+    "profile": "release",
+    "abi": "x86_64",
+    "actualCargoBuild": true,
+    "compileReportedSeconds": 563,
+    "outerBuildAndFrozenVerificationSeconds": 601.074,
+    "actualOfflineGradleR8LintPassed": true,
+    "frontendOnlyConfigurationOverride": true,
+    "all38CurrentFrontendKeysActuallyEmbedded": true,
+    "oldWorkspaceDistDebugAndPriorReleasePreserved": true,
+    "librarySha256": "3f875064a018328e443d8d50a0d1e4addc0f59329a3fce9e2be8a7b14335f99e",
+    "libraryBytes": 59455016,
+    "apkSha256": "e16dd7cdb2e7c1084a9215f5cc1e5fda2a3d4d65687b42363727528629e7acfd",
+    "apkBytes": 78663007,
+    "applicationDebuggable": false,
+    "minSdk": 28,
+    "targetSdk": 36,
+    "internalTestSigningOnly": true,
+    "certificateSha256": "168f60830e2bc0297f0660f68f2a049c416fa5f49296b3b76b4e6d894a3f8cc6",
+    "existingJavaSource8R8AndGradleWarningsRetained": true
+  },
+  "observer": {
+    "separatePackage": true,
+    "instrumentationTargetsSelfOnly": true,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "compiledAndSignedAndManifestVerified": true,
+    "protocolUnitTests": 16,
+    "nativeFingerPairsActuallyDispatched": 2,
+    "onlyPublicFixturePasswordTyped": true,
+    "nativeNodeAndOwnershipGuardsUnchanged": true,
+    "phaseBudgetSeconds": 45,
+    "observerLifetimeSeconds": 240
+  },
+  "runtime": {
+    "api": 31,
+    "abi": "x86_64",
+    "webView": "91.0.4472.114",
+    "emulator": true,
+    "gpu": "SwiftShader",
+    "nominalRamMiB": 2048,
+    "actualOnlineCpuCount": 2,
+    "persistentAvdCpuDefault": 4,
+    "commandLineCpuOverride": 2,
+    "avdConfigUnchanged": true,
+    "actualFirstPreflightMemTotalKiB": 2015692
+  },
+  "rejections": {
+    "missingCompilePlatformPreserved": true,
+    "initialAvdConfigAssumptionRejectedBeforeNativeStart": true,
+    "initialCrLfMemoryPreflightRejectedBeforeProductInstall": true,
+    "lineEndingNormalizationOnly": true,
+    "currentMemoryRangeAndCpuAndBudgetChecksKept": true,
+    "public100ObjectProtocolRejected": true,
+    "noSuccessfulSubsetAccepted": true,
+    "acceptedCompleteProtocols": 0,
+    "acceptedPerformanceSamples": 0,
+    "observedAccessibilityOverviewPlaceholder": true,
+    "observedRecentPublicRecords": true,
+    "actualRenderedHomeStatisticsNotYetCorrelated": true,
+    "productStatisticsBugNotProven": true,
+    "nativeDeadlineRejectionNotClassifiedAsTransportFailure": true
+  },
+  "restoration": {
+    "privateEntries": 148,
+    "fullContentsLinksModesAndRootRestored": true,
+    "originalApksUidDebugFlagsRestored": true,
+    "literalSystemSettingsRestored": true,
+    "publicOcrFileAndIndexRemoved": true,
+    "observerAndOwnedPackagesAndProcessesCleaned": true,
+    "ownedPortsClosed": true,
+    "protectedOldAdbIdentityUnchanged": true,
+    "failedRawLogsAndPrivateReadbacksRetainedLocally": true
+  },
+  "sourceArchive": {
+    "file": "rf312-default-journey-preparation-2026-10-16-sources.zip",
+    "members": [
+      {
+        "name": "prepare-inputs.py",
+        "bytes": 4062,
+        "sha256": "450137212e6b166c956db256dd3fcd25192812768fbebbbb31d23bbdca6b05af"
+      },
+      {
+        "name": "build-current-release.py",
+        "bytes": 5865,
+        "sha256": "a329c68d9168897725985d6d204db1e4f970ffd031c9f5bd28a61b4f93bb3772"
+      },
+      {
+        "name": "package-current-release.py",
+        "bytes": 11181,
+        "sha256": "b76ce0df137f129fb29fd137994406724719a5bcb64bdeeaa75a3aa477147ed3"
+      },
+      {
+        "name": "audit-current-default-build.py",
+        "bytes": 5331,
+        "sha256": "eb7dc4b7b5f85ea02b4d8f885fca77476b3c54979a8b8ea6c34ba76863026844"
+      },
+      {
+        "name": "build-journey-observer.py",
+        "bytes": 5013,
+        "sha256": "7cd79b487822157a1be5fff3f79deac83530736e3ea255b632343b13b645d9e8"
+      },
+      {
+        "name": "observer-source/Observer.java",
+        "bytes": 14267,
+        "sha256": "e465fcee10cfc4f058e9bb3053665d65d3ca3a83b0ae8809904ca15d85f07407"
+      },
+      {
+        "name": "observer-source/AndroidManifest.xml",
+        "bytes": 459,
+        "sha256": "e234f90f46d761a5a8e81b072e480e5bcca05ac827fb037ec604804e8e76c9e3"
+      },
+      {
+        "name": "journey-observer-session.py",
+        "bytes": 11609,
+        "sha256": "f72408521b9776079696acb56a3189f46830a3a9fba0465a37e7a6b88042d128"
+      },
+      {
+        "name": "default-external-startup.py",
+        "bytes": 7281,
+        "sha256": "e6688fb80dbe75d5066e9e6cadc2c5446db1a1c44d3e968509c978bd5a665fd9"
+      },
+      {
+        "name": "default-external-native-driver.py",
+        "bytes": 72876,
+        "sha256": "e67c14cdfda9a8e241e8aab7c569237d66ebc57b0ac717f7f2bb020e65a975e9"
+      },
+      {
+        "name": "android-home-native-regression-fixed.py",
+        "bytes": 101156,
+        "sha256": "54af11a00a4351ff082007f4edca5ace5e9aa50f607ce931d4d552cc5a46a5d2"
+      },
+      {
+        "name": "test_journey_observer_protocol.py",
+        "bytes": 5273,
+        "sha256": "a15142cbd82fb8270eb4308075aac7884dabe1c303391468f682237ac68e84b2"
+      },
+      {
+        "name": "run-default-unlock-smoke-r2.py",
+        "bytes": 17067,
+        "sha256": "4f0a128223329abcfd07dc12832c5df2917296da85ab5f52208497c7e92c1474"
+      },
+      {
+        "name": "run-current-cohort-r2.py",
+        "bytes": 3470,
+        "sha256": "7b3cbb859f394ed14057622ce8baf400ecfa6dd8b1037d171061c644c1298d24"
+      },
+      {
+        "name": "collect-preflight-r2.py",
+        "bytes": 4846,
+        "sha256": "3e516eee85aa724978fc7e3c8d2a799299ccf4561a1dc14d8cde18f9558b1c16"
+      },
+      {
+        "name": "inputs.json",
+        "bytes": 263535,
+        "sha256": "e8b1e799865918654e2ab4259356547622df58d0a49b400e09a15b50b20a6609"
+      },
+      {
+        "name": "native-tool-inputs-r2.json",
+        "bytes": 819,
+        "sha256": "f6b24cce5792683b3698425e22de8c80b4a791b31706259f9690978d2b061349"
+      },
+      {
+        "name": "sources.json",
+        "bytes": 223917,
+        "sha256": "96cb9bfc9846d90caebb1ff06ecf7e9cb8677c3bae9b75f3fc41ed6ce0da78fd"
+      },
+      {
+        "name": "frontend.json",
+        "bytes": 4029,
+        "sha256": "03da75da3793fc4e0f973b51051ff5e4234009c9b95b4c45163a0ed3d03ee55c"
+      },
+      {
+        "name": "mobile-resources.json",
+        "bytes": 6937,
+        "sha256": "7527537a13d48112774009d3716c1d55153e74cc237ff2b2285223c4d074db46"
+      },
+      {
+        "name": "assets.json",
+        "bytes": 12298,
+        "sha256": "c96036137ae4d8b5f40df7285ad141d8555ae50f0083e886db7bd518a1ce763e"
+      },
+      {
+        "name": "tauri-config-override.json",
+        "bytes": 112,
+        "sha256": "93ed023fc162769c4ca0b94b3958c5e192694cd1da444a3927b8ce20f85981ee"
+      },
+      {
+        "name": "avd-preparation.json",
+        "bytes": 164,
+        "sha256": "7d272bde7900ea01a2fc69793b9e5eded6523957ac74b7adeed72dae0375eca2"
+      },
+      {
+        "name": "input-preparation.json",
+        "bytes": 1190,
+        "sha256": "ea053a3c9cc0fa12d4947ce9b9da346c1f06fac17e9fb85160062b965b6870a2"
+      },
+      {
+        "name": "observer-build-r3/package.json",
+        "bytes": 2036,
+        "sha256": "ab1423cd75161a70b5cf48df12a0816d67b67132f42120371e6f4760a75efa38"
+      },
+      {
+        "name": "restore-debug-packages.json",
+        "bytes": 1712,
+        "sha256": "f632c305d55d2fc94a5ed459097ad36a6b85f810ed7d8a330430e96e0e032b55"
+      },
+      {
+        "name": "android-release-build/input-proof.json",
+        "bytes": 1191,
+        "sha256": "253d0e1d63c731fa91bcd143f311dbd967275199241b92f1029b378a5510c701"
+      },
+      {
+        "name": "android-release-package/package-verification.json",
+        "bytes": 1469,
+        "sha256": "2ab53cb1f611e3aef4dc091d8b60e8461e27d1bdd9f0c9708cf98ecbdc09ed91"
+      },
+      {
+        "name": "independent-default-build-audit.json",
+        "bytes": 1046,
+        "sha256": "edb2d7b36a34de991bee2d5ce839103546177b3a2893aa8cba9b1942359da4f3"
+      },
+      {
+        "name": "protocol-unit-receipt.json",
+        "bytes": 522,
+        "sha256": "51107b6609fb203c8f4d9bc8f99f353dfbb6b8443be779878eb7fedd887d45f5"
+      },
+      {
+        "name": "rejected-native-protocol-audit.json",
+        "bytes": 1049,
+        "sha256": "0d30a74f10e51b78b5c3c004363ffac0d5e8ec80bcfc9726d22d875b9de76cab"
+      },
+      {
+        "name": "rejected-memory-preflight-preserved.json",
+        "bytes": 475,
+        "sha256": "b0398e93d6cea0ccd9cedaaf0cf67ac52684f46e8e61e2ed4b45952e327b5a17"
+      },
+      {
+        "name": "source-recipe-README.md",
+        "bytes": 2978,
+        "sha256": "f029f7a31ba3befae5c36a89a2772769ac67e22cd17941f9f65e55a21db31529"
+      }
+    ],
+    "bytes": 269141,
+    "sha256": "ec01d68a5851d46e04e644f7b09753ab1873407cb4d823103410dc2d3264fd0d",
+    "everyMemberOriginalBytesAndShaAndZipCrcReadBack": true,
+    "containsOriginalLocalBuildPaths": true,
+    "universalTurnkeyRunnerClaimed": false,
+    "containsCompiledBinariesKeysVaultPrivateTarsRawLogsOrScreenshots": false
+  },
+  "nextRequired": [
+    "Correlate actual native home pixels with fresh accessibility nodes without relaxing original count checks",
+    "Complete both dataset sizes and all default unlock/search/first OCR/preview/lock/reunlock stages before distributions",
+    "Same-source instrumentation-overhead controls, actual IPC coverage, portable replay and remaining platforms"
+  ],
+  "nativeRuntimeAccepted": false,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "RF312Closed": false,
+  "evidenceSha256": {
+    "inputPreparation": "ea053a3c9cc0fa12d4947ce9b9da346c1f06fac17e9fb85160062b965b6870a2",
+    "buildInputProof": "253d0e1d63c731fa91bcd143f311dbd967275199241b92f1029b378a5510c701",
+    "actualReleaseBuild": "a3bc64f1173ac93900b2d69926c8b1dac68b71114d134b41884e7cd853981fdf",
+    "actualPackage": "2ab53cb1f611e3aef4dc091d8b60e8461e27d1bdd9f0c9708cf98ecbdc09ed91",
+    "embeddedEntrypoints": "028bf541f87d96ebf110189700bacab8e68e68df4501c15e894af9b1884c39df",
+    "independentArtifactAudit": "edb2d7b36a34de991bee2d5ce839103546177b3a2893aa8cba9b1942359da4f3",
+    "observerBuild": "ab1423cd75161a70b5cf48df12a0816d67b67132f42120371e6f4760a75efa38",
+    "protocolUnits": "51107b6609fb203c8f4d9bc8f99f353dfbb6b8443be779878eb7fedd887d45f5",
+    "rejectedMemoryPreflight": "618b6e113cf92824e2b233a93b06ddc50dd645df0ac5a27efd7f63e1ca3b3a40",
+    "memoryPreflightPreservation": "b0398e93d6cea0ccd9cedaaf0cf67ac52684f46e8e61e2ed4b45952e327b5a17",
+    "independentNativePreflight": "1a81d1607b8c2dc12fe5a4db4b2dced853aae29f7b4e33aaca8920d90c9197f4",
+    "rejectedProtocol": "856053cd02deaaad05b80551ae618ae125cdf13e331690ae2073428dbfa53646",
+    "caseRestore": "c85d6a8ef85e23648d0cfbc4529446e2616cff07fffdc1f141a78a8180485fff",
+    "observerCleanup": "bcb3f1fd92f4aba4347a8280f2a84f28a08a48d41a7da4c3e324f97518fe2ee0",
+    "independentRejectionAudit": "0d30a74f10e51b78b5c3c004363ffac0d5e8ec80bcfc9726d22d875b9de76cab",
+    "hostBefore": "cf7560077a81217a508a19c7206f2b1c479601ba37f621fa1a008342751abee9",
+    "hostAfter": "13032d2487398f1926f43329d5fd35c285b82a98abe2a42afd8e5bbe49d7a5f3"
+  }
+}

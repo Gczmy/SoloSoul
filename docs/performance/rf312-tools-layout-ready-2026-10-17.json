@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-17",
+  "scope": "readonly-tools-layout-admission",
+  "toolsLayoutFixVerified": true,
+  "fullNativeUiQueueAccepted": true,
+  "twoSizePostUiCheckpointAccepted": true,
+  "fullDefaultJourneyAccepted": false,
+  "performanceDistributionAccepted": false,
+  "wholeJourneyMemoryDistributionAccepted": false,
+  "twoCommittedStartupFramesAccepted": false,
+  "tauriIpcAttributionAccepted": false,
+  "completePortableEntryAccepted": false,
+  "policy": {
+    "ownedUnfilteredHierarchy": true,
+    "exactCurrentToolsNavigationAndLoadedBodyRequired": true,
+    "knownVisibleBackupReminderBlocksAdmission": true,
+    "disabledVisibleReminderStillBlocks": true,
+    "originalUniqueReadinessScrollAndSingleExactTapKept": true,
+    "nativeInputRefusalStillPropagates": true,
+    "inputReplayed": false,
+    "phaseSeconds": 45,
+    "observerSeconds": 240,
+    "observerRequestCap": 512,
+    "checkpointSeconds": 20
+  },
+  "gates": {
+    "passed": true,
+    "total": 268,
+    "originalRerun": 206,
+    "newLayoutTests": 8,
+    "unchangedReceiptMemoryAndQuietTestsReused": 54,
+    "priorSourcesHashBound": true,
+    "skipped": 0
+  },
+  "source": {
+    "compiledProductHead": "6f2be8bb18fef0fe1711081546813663983a7f95",
+    "productSourceChanged": false,
+    "apkSha256": "f7469ce3717849bf26623ea1ffdb1945c20154471247f38f419c65c272462b99",
+    "productSourceFiles": 1797,
+    "runtimeBindings": 1881,
+    "originalActorsReadersControlMemoryAndRestoreUnchanged": true,
+    "sourceSha256": {
+      "body_navigation.py": "1f4ce2a66b41a709d40700938f6ce432867b7fcf5434e8cf207c72e63907218c",
+      "test_body_navigation.py": "880332bc6ef8330289666e60bb3754ced7614d0422cc928072d990ee92318ded",
+      "test_tools_layout_ready.py": "cf3193bb20cf9364a7eaa03727bdc6af01c66e8ce8d4b1fc5e84d8545753597a"
+    }
+  },
+  "environment": {
+    "api": 31,
+    "abi": "x86_64",
+    "cpuCount": 2,
+    "memoryMiB": 2048,
+    "webView": "91.0.4472.114",
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false
+  },
+  "cases": [
+    {
+      "objectCount": 100,
+      "checkpointAccepted": true,
+      "memoryCommands": 22,
+      "strictWholeCheckpointReplayed": true,
+      "originalSdkCommandOutputsBound": true,
+      "pssBytes": 265790464,
+      "checkpointElapsedMs": 1729.5569999841973,
+      "tools": [
+        {
+          "tool": "OCR",
+          "observedStates": 4,
+          "visibleReminderSnapshots": 0,
+          "notReadySnapshotsBeforeAdmission": 0,
+          "oneExactToolTap": true,
+          "noInputBeforeReadOnlyAdmission": true,
+          "hierarchyBindingsSha256": "e063ed89f98e6ac990374af1330cee99122b110d5f0b45605763aac31cb55bd0"
+        },
+        {
+          "tool": "Search",
+          "observedStates": 4,
+          "visibleReminderSnapshots": 0,
+          "notReadySnapshotsBeforeAdmission": 0,
+          "oneExactToolTap": true,
+          "noInputBeforeReadOnlyAdmission": true,
+          "hierarchyBindingsSha256": "1411327b89d7786f319ccc936792c0f4e036d99b41be04e4bb16996af4974889"
+        }
+      ],
+      "completedUiPhases": 12,
+      "physicalPdfPages": 3,
+      "privateEntriesRestored": 148,
+      "observerNormalStopAccepted": true,
+      "controlNormallyClosed": true,
+      "remoteScratchRemoved": true,
+      "rpcFrames": 3002,
+      "originalRequests": 345,
+      "savedResponseReads": 345,
+      "savedPngReads": 23,
+      "framesDigestSha256": "dc9a8060c108cf1711c0760dff2f481ce1df169269f95e147561526bc38354c7"
+    },
+    {
+      "objectCount": 5000,
+      "checkpointAccepted": true,
+      "memoryCommands": 22,
+      "strictWholeCheckpointReplayed": true,
+      "originalSdkCommandOutputsBound": true,
+      "pssBytes": 292463616,
+      "checkpointElapsedMs": 1482.6755999820307,
+      "tools": [
+        {
+          "tool": "OCR",
+          "observedStates": 9,
+          "visibleReminderSnapshots": 5,
+          "notReadySnapshotsBeforeAdmission": 5,
+          "oneExactToolTap": true,
+          "noInputBeforeReadOnlyAdmission": true,
+          "hierarchyBindingsSha256": "445c8480b207acfeb70ff07f7838ccaed31f0dfa7b484c37f7f0ef544e359a07"
+        },
+        {
+          "tool": "Search",
+          "observedStates": 4,
+          "visibleReminderSnapshots": 0,
+          "notReadySnapshotsBeforeAdmission": 0,
+          "oneExactToolTap": true,
+          "noInputBeforeReadOnlyAdmission": true,
+          "hierarchyBindingsSha256": "50c0f932b4100e73af15517684abf93e6e31ad74075ae25551091302c4b1c649"
+        }
+      ],
+      "completedUiPhases": 12,
+      "physicalPdfPages": 3,
+      "privateEntriesRestored": 148,
+      "observerNormalStopAccepted": true,
+      "controlNormallyClosed": true,
+      "remoteScratchRemoved": true,
+      "rpcFrames": 2874,
+      "originalRequests": 344,
+      "savedResponseReads": 344,
+      "savedPngReads": 22,
+      "framesDigestSha256": "60488e529fc7aa0238480e656dd878b70bbf09202b517535fa9f11b080cc15ce"
+    }
+  ],
+  "restoration": {
+    "privateEntriesPerCase": [
+      148,
+      148
+    ],
+    "allOriginalPackagesUidDebugPrivateAndNineSettingsRestored": true,
+    "allObserversNormallyStoppedAndRemoved": true,
+    "allControlsNormallyClosedAndScratchRemoved": true,
+    "completeDropBoxEntries": 106,
+    "noAnr": true,
+    "hostProcesses": 0,
+    "hostListeners": 0
+  },
+  "localPostprocessing": {
+    "firstAuditDefinitionRejected": true,
+    "reason": "Navigation label is the exact native content-description, not text",
+    "correctedAuditPassed": true,
+    "deviceCommandsDuringReplays": 0,
+    "originalNativeQueueNotRerun": true,
+    "firstFailurePreserved": true
+  },
+  "evidenceSha256": {
+    "tools-layout-caller-audit.json": "a08ab1275cd8a0e8d2aea4cc0659e94ebe9fc373b02a5919c61d2063a8ff4c64",
+    "tools-layout-unit-result.json": "5f482a68d72111f13603575396fad6801c40270a6be542f7a2ea034c004ec6e0",
+    "tools-layout-readonly-replay.json": "8040399430ddc9ccf3094cf7c0857ed818d613feb29ed6a921b3ce430166f547",
+    "combined-current-host-unit-result.json": "ce89a9f4d1431c66301ea3be70434f6f58e204a9872fa47b3e2a753d38e04aa2",
+    "receipt-replace-unit-result.json": "d3e9ae5862cbbd1310242c23bcd7fc2447b62d05d5e52b0ab375f656a1a7a495",
+    "memory-checkpoint-unit-result.json": "b78f1981e2e8a06bb17e270ac2b8c3786db9235a7aa08fc35ea5cfaf3d80e290",
+    "bootstrap-quiet-unit-result.json": "8bc738b629fda950df77fdff4324456f4a4798f40c2d592e119793d5b581477e",
+    "strict-audit-result.json": "0a073d02c6e82429f98dcc724849ae82424c0a92d60cc81b4cf81760c2071977",
+    "independent-terminal-audit.json": "66cf7b357cb06c7d63c6643ffc0e4a3ed7a1646a3540ae13b30154aefbed798f",
+    "independent-tools-frame-audit.json": "479e87ae6c9c616a7428e489172a7bf109b39b5a344dbc764b20b508c79c202d",
+    "independent-tools-memory-layout-audit.json": "947923b32cf5121825469c94c1c8908c1cffc4fa64346dd7ff7942a12e09b3d0",
+    "external-terminal-r2.json": "1aa7099906e7d64e0da6256637c3c561f922d8138c9cb3754df57d2e65e653c4",
+    "fresh-host-after/result.json": "b0f13a7e5c437db0c5a66dbdee107f357683acf2a46780c3ed415d1af682e5dc",
+    "tools-memory-layout-audit-r1-failure.json": "b187d4659bcd29cd51d0b908cd0a194b7c7f3b425e6d72f53f5a7f2a5cb91bcb"
+  }
+}

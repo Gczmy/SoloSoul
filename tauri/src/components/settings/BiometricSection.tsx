@@ -218,7 +218,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 ? '1px solid rgba(212, 133, 10, 0.25)'
                 : '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
               fontSize: 'var(--text-body-sm)',
-              color: bioAvailable.lockout ? '#D4850A' : 'var(--text-secondary)',
+              color: bioAvailable.lockout ? 'var(--text-warning)' : 'var(--text-secondary)',
               lineHeight: 1.5,
             }}
           >
@@ -346,7 +346,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     borderRadius: 8,
                     background: 'rgba(212, 133, 10, 0.10)',
                     border: '1px solid rgba(212, 133, 10, 0.25)',
-                    color: '#D4850A',
+                    color: 'var(--text-warning)',
                     fontSize: 'var(--text-caption)',
                     lineHeight: 1.4,
                   }}
