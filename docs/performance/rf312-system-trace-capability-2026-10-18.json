@@ -29,6 +29,13 @@
   "rootRequested": false,
   "activeTraceSessionsAtQuery": 0,
   "traceSessionsStartedAtQuery": 0,
+  "serviceStateFieldSemantics": {
+    "activeTraceSessionsAtQuery": "num_sessions: total sessions present in the service at query time, across states",
+    "traceSessionsStartedAtQuery": "num_sessions_started: sessions currently in the started state, not a cumulative count",
+    "zeroCountsProveNoHistoricalTrace": false,
+    "noRecordingConclusionAlsoRequiresActualCommandAudit": true,
+    "schemaSource": "https://raw.githubusercontent.com/google/perfetto/v15.0/protos/perfetto/common/tracing_service_state.proto"
+  },
   "productPackagesInstalled": false,
   "privateProductDataTouched": false,
   "traceRecordingStarted": false,

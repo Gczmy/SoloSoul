@@ -12,7 +12,7 @@
 
 `/sys/kernel/tracing/available_events` 实际返回 1434 个唯一事件，含 `kmem:rss_stat`、进程 fork／exit 和 task newtask／rename。未列出 `mm_event:mm_event_record`；不能假定所有 Android 设备提供相同事件。旧 `/sys/kernel/debug/tracing/available_events` 路径不存在，原退出 1 与 stderr 保留。`perfetto --help` 同样退出 1，但实际返回了用法；六项查询退出 0、两项退出 1，不写成八项命令全部零退出。
 
-本轮 `perfetto --query` 只供人工审查，原文明确提示不是稳定机器接口；当时运行／累计启动的追踪会话均为零。后续自动入口应使用版本绑定的 `--query-raw` 协议，不把本轮文本提取规则当作通用准入读取器。
+本轮 `perfetto --query` 只供人工审查，原文明确提示不是稳定机器接口；当时服务内总会话数、其中处于 started 状态的会话数均为零。后者不是累计启动次数，两个零值也不证明从未发生过追踪。[v15 协议定义](https://raw.githubusercontent.com/google/perfetto/v15.0/protos/perfetto/common/tracing_service_state.proto)。本轮未启动追踪的结论另由完整实际命令核验支持。后续自动入口应使用版本绑定的 `--query-raw` 协议，不把本轮文本提取规则当作通用准入读取器。
 
 ## 对下一步的影响
 
