@@ -1,0 +1,125 @@
+{
+  "passed": true,
+  "scope": "independent-read-only-platform-tracing-capabilities",
+  "sdkCommandsReplayed": 75,
+  "fixedCapabilityQueries": 8,
+  "zeroExitQueries": 6,
+  "nonzeroExitQueries": 2,
+  "queryHumanFormatManuallyReviewed": true,
+  "humanQueryIsStableMachineApi": false,
+  "registeredDataSourceRows": 17,
+  "registeredUniqueDataSources": 16,
+  "requiredDataSourcesObserved": [
+    "android.surfaceflinger.frametimeline",
+    "linux.ftrace",
+    "linux.process_stats"
+  ],
+  "tracefsEventCount": 1434,
+  "selectedEventsObserved": [
+    "kmem:rss_stat",
+    "sched:sched_process_fork",
+    "sched:sched_process_exit",
+    "task:task_newtask",
+    "task:task_rename"
+  ],
+  "mmEventRecordAdvertised": false,
+  "perfettoServiceVersion": "15.0",
+  "kernel": "5.10.136-android12-9",
+  "shellUid": 2000,
+  "rootRequested": false,
+  "activeTraceSessionsAtQuery": 0,
+  "traceSessionsStartedAtQuery": 0,
+  "productPackagesInstalled": false,
+  "privateProductDataTouched": false,
+  "traceRecordingStarted": false,
+  "settingsExactlyUnchanged": true,
+  "normalSdkShutdownPassed": true,
+  "strictHostZeroReplayed": true,
+  "terminalAnrObserved": false,
+  "preflightDropBoxEntries": 38,
+  "terminalDropBoxEntries": 38,
+  "parentReceiptSha256": "8873d1cb829e7e38251d753fe560a3c0cfd78b0ce722ceaa333f84f5880a1f8a",
+  "hostReceiptSha256": "0247d8f19d656670b3f83b9df22908bcb84707b76e7a254d71983ce690e91a73",
+  "preflightReviewSha256": "6aa6256ab8e259043ce51bf5106380f3772aaa2209138152e8d80c91b4292e01",
+  "probeSourceSha256": "c47d305c825ca21b4b9e81df747a246da9574048c720512074373a344bb35d78",
+  "auditorSourceSha256": "1f4d11b49ee597caa17392ccbe48f00fe38f32f19af846654b53f03819a3bfbb",
+  "capabilityQueries": [
+    {
+      "label": "identity",
+      "exitCode": 0,
+      "stdoutSha256": "6bd22c319e4fe9b5bc8e8427aee4201c06c97214a3823a29ce581bf1160f3b11",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 259,
+      "stderrBytes": 0
+    },
+    {
+      "label": "kernel",
+      "exitCode": 0,
+      "stdoutSha256": "7e709427d918e6582ecd1ef1ecdee2d4ee26412fd084bac64208d3b8b50ad3eb",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 52,
+      "stderrBytes": 0
+    },
+    {
+      "label": "perfetto-help",
+      "exitCode": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "7bf05c092c4bbe1f0c27e8695bf545a80d5ab3a2f02ce669d7b4f27cecb29f73",
+      "stdoutBytes": 0,
+      "stderrBytes": 2453
+    },
+    {
+      "label": "perfetto-query",
+      "exitCode": 0,
+      "stdoutSha256": "768319e10066f5e4ea97c4d4797108033675a5112e3f87165821b4151a7f0cfe",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 2141,
+      "stderrBytes": 0
+    },
+    {
+      "label": "atrace-categories",
+      "exitCode": 0,
+      "stdoutSha256": "41c55fe4d3e9a95706049c4db5b91dda2436b9a8f3c3ee13567be1fc653a600d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 1267,
+      "stderrBytes": 0
+    },
+    {
+      "label": "tracefs-events",
+      "exitCode": 0,
+      "stdoutSha256": "477129e7dba662a0893731c266c971c17594521434c1f67e40c0854a0d41e5c6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 39712,
+      "stderrBytes": 0
+    },
+    {
+      "label": "debugfs-events",
+      "exitCode": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "def4cbabba0ed6f8fe9651af13306b7d49a8fe80c5cfe6ec45e8c7993690dc42",
+      "stdoutBytes": 0,
+      "stderrBytes": 76
+    },
+    {
+      "label": "mounts",
+      "exitCode": 0,
+      "stdoutSha256": "e7fbc764a28be67e7567a17c7ea7d3a79509c72029b91fa659d2fd509ab63daf",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 8707,
+      "stderrBytes": 0
+    }
+  ],
+  "nativeFramesAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "applicationOnlyLatencyAccepted": false,
+  "defaultPerformanceSampleAccepted": false,
+  "fullRF312Accepted": false,
+  "schemaVersion": 1,
+  "sourceRevision": "d58d2a2cb8dc2d4449a447513c6f26d0726d0fde",
+  "runtimeSourcesUnchanged": 117,
+  "androidApi": 31,
+  "androidAbi": "x86_64",
+  "configuredCpuCores": 2,
+  "configuredMemoryMiB": 2048,
+  "configuredGpu": "swiftshader"
+}
