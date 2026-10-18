@@ -908,28 +908,125 @@
       "modes": [
         {
           "mode": "on",
-          "status": "awaiting-terminal-evidence",
+          "status": "refused",
           "bindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
-          "failureCategory": null,
-          "evidenceSha256": {},
+          "failureCategory": "native-case-refused",
+          "evidenceSha256": {
+            "nativeResult": "fab75ef850b455022bef2a7cd5f95acd73eb919da674723bd7f785f88b9bbb29",
+            "failure": "8ae6b8187145332adc45be07efe36b419012c1294f6a96d29f49cb9957445642",
+            "strictHostAfter": "4ee2de36fe03bda403ae0d1fe4f349543ab15d712b7e5bd1ae68e854498eaba7",
+            "prefixAudit": "eb73d309d57d295b0fdb341b6cad8358f55e72dfab57920b679b8d75911cd398",
+            "prefixContext": "ca63accc06eccaee783057cfec3e214a2270f1d88432f59a55e0a753dba9aa03"
+          },
           "cases": [
             {
               "objectCount": 100,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
-              "workloadWindowUpperBoundMs": null,
-              "postJourneyPssBytes": null,
-              "journeyMemory": null,
-              "evidenceSha256": {}
+              "status": "completed-before-refusal",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 8343.999999924563
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 16327.99999997951
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 21204.00000002701
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 5608.999999938533
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 9983.999999938533
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 4875.0
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 8063.000000081956
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 6922.000000020489
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 11437.999999965541
+                },
+                {
+                  "name": "pdf-scanned-native",
+                  "hostObservedUpperBoundMs": 8172.000000020489
+                },
+                {
+                  "name": "application-lock",
+                  "hostObservedUpperBoundMs": 2202.999999979511
+                },
+                {
+                  "name": "password-reunlock",
+                  "hostObservedUpperBoundMs": 11561.999999918044
+                }
+              ],
+              "workloadWindowUpperBoundMs": 142640.99999994505,
+              "postJourneyPssBytes": 243371008,
+              "journeyMemory": {
+                "points": 84,
+                "acceptedMemoryPoints": 82,
+                "refusedPoints": 1,
+                "missedPeriodicSlots": 1,
+                "plannedPeriodicSlots": 71,
+                "boundaryPoints": 12,
+                "refusedPeriodicCaptures": [],
+                "allPeriodicCapturesSucceeded": true,
+                "sampledMaximumSerialPssBytes": 285261824,
+                "workerStopped": true,
+                "allScheduledPeriodicSlotsAccounted": true,
+                "evidenceSha256": {
+                  "trace": "bbab1d4183dcbf81d9ce7d68ea8ac01c71260e46b2a86b1bea20869c2cc4d372",
+                  "independentMemoryReplay": "6729c714d28e90654b6fead4652ae83d808594164f8467c9212b15ee3364b398"
+                }
+              },
+              "evidenceSha256": {
+                "driver": "7b06dd7ae9282284d1cbe27b08db681023bbfcc73bb7c821f82396a9f27b0835",
+                "supportedState": "f1e3c0b548daa725cfae296fab5dd7d5b7731601eb5011355db5189f62399cee",
+                "checkpoint": "2927bf4911455f79a25dccfce1283ee4faebf1bbeb034bb40383102ae3a389c9",
+                "workloadWindow": "b45fe39fb5b604f3aeffe6616d9e94dc70367d89750e39a9c4b449b306b0841d",
+                "stateReplay": "357452a47b2144597962698582432dc80bcb584b8d32d1650f9e8b04f49bccf0",
+                "uiReplay": "54679035b08f86770caa20ec32f2e8b639661a3cf6ecc115009fd782b7f570cd",
+                "imeReplay": "207aed0904875d8ed5b646ae76aee6b4dbfe44c73018ee1f289361c4c2d8f74c"
+              }
             },
             {
               "objectCount": 5000,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
+              "status": "refused",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 5562.000000034459
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 15297.00000002049
+                }
+              ],
               "workloadWindowUpperBoundMs": null,
               "postJourneyPssBytes": null,
               "journeyMemory": null,
-              "evidenceSha256": {}
+              "evidenceSha256": {
+                "driver": "aa73e85c47f1805ae0a00c3aed8dc6916a3c9af9e26bff640f049ad3eea34c67",
+                "phaseProgress": "46a28e65b23648fa26b09c1a9287789e642da2c4cdd6d0cdc2399d61999bd05e",
+                "sdkLedger": "cd0fc4529c31cae6bde859229c30bf0fdf902cb7f223a4ef28c4a19ac8cb0c08",
+                "driverFailure": "c854ae5b93890e70ce3cfa7e12da3fd3c38bc3013fe35271c862f9e6058291d7",
+                "partialStateMemoryReplay": "478b2620cc7c8c1b8efb7eeaae800edf0701de3241a3d78fb6f4b314bc7ede8c",
+                "trace": "75d954c69fb7003b1e517ffeb70b24c31bf234baadfd430c6e38fa67f71460b0",
+                "uiReplay": "369764dcf6e17187058323734a4fca3b37145b86a9bb4d583478dfd3b6d9f9b8",
+                "imeReplay": "afc4bfcf5f8a936d4445c6f8c7f6c3ec90f86e944cdc096cea5139dd23c3c243"
+              }
             }
           ]
         },
@@ -1101,5 +1198,26 @@
     "firstLocalAuditWrapperFailureSha256": "7223cc4a410c3240ca345f6aad9537f68c3100a55ec337ee03a0097be72516e6",
     "projectionScopeAssumptionFailureRetained": true,
     "projectionScopeAssumptionFailureSha256": "ab4ff7a89314dc42548daf3b78576385183354169c07ed95314c932154220606"
+  },
+  "rejectedQueueAuditValidation": {
+    "passed": true,
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "sourceSha256": {
+      "rf312_rejected_queue.py": "64c2c9d4c41106bc4271bbcacd3a441843be17fbb1f2d1a8e78321fcf0575b71",
+      "test_rf312_rejected_queue.py": "fe97e4ece31569c36d026aa8cd437a85fbc7ecbfc88c7838ff3120cc7ea5be52"
+    },
+    "resultSha256": "fcaffc4a3e1701f956b387b1efd658efc40c00157db79d1542b851cb05e9121f",
+    "testLogSha256": "e9c984787e276d25792118355820d8af3047d94094e18e679692f92064519fa0",
+    "originalCompleteQueueGateStillClosed": true,
+    "originalCompleteQueueGateProofSha256": "db21cabde1147a69c2277089e376436a6e33525dad019836dd01bacf08fb1218",
+    "firstPrefixAuditRefusalRetained": true,
+    "firstPrefixAuditRefusalSha256": "98f5e69e6abddbe574cf5c840c745faf1d76aad2ca099bd711ef3f07f0329f2f",
+    "firstPrefixAuditSourceArchiveSha256": "d17bb03736e01d5a0d2077496ce7349919199414f6e7942d568fd019f096bd37",
+    "correctedPrefixAuditSha256": "eb73d309d57d295b0fdb341b6cad8358f55e72dfab57920b679b8d75911cd398",
+    "sdkCommandsExecuted": 0,
+    "inputEventsDispatched": 0
   }
 }
