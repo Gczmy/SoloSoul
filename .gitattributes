@@ -142,3 +142,12 @@ docs/performance/test_rf312_rejected_off_queue.py text eol=lf
 docs/performance/rf312-rejected-off-queue-2026-10-18.json text eol=lf
 docs/performance/rf312-current-ipc-2026-10-18.json text eol=lf
 docs/performance/rf312-startup-frame-diagnostics-2026-10-18.json text eol=lf
+
+# 显式启动帧诊断的源码绑定要求新检出保持原始 LF 字节。
+docs/performance/rf312-frame-runtime/*.py text eol=lf
+docs/performance/rf312-frame-runtime/*.java text eol=lf
+docs/performance/rf312-frame-runtime/*.xml text eol=lf
+docs/performance/rf312-frame-runtime/*.mjs text eol=lf
+
+# 保留已验证生成器原字节；该文件仅例外处理历史 EOF 空行。
+docs/performance/rf312-frame-runtime/frame_manifest.py whitespace=-blank-at-eof
