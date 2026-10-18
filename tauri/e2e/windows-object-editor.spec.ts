@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setupTauriMock, login } from './fixtures/auth';
+import { measureControlContrast } from './fixtures/contrast';
 
 async function setupWindowsObjects(page: Page, theme: string) {
   await setupTauriMock(page);
@@ -124,6 +125,15 @@ for (const theme of ['light', 'dark']) {
       const cancel = header.getByRole('button', { name: 'Cancel', exact: true });
       await expect(save).toBeVisible();
       await expect(cancel).toBeVisible();
+      const idle = await measureControlContrast(save, '[data-appbar]');
+      expect(idle.foregroundContrast).toBeGreaterThanOrEqual(4.5);
+      if (theme === 'light') await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await save.hover();
+      await expect
+        .poll(async () => (await measureControlContrast(save, '[data-appbar]')).foregroundContrast)
+        .toBeGreaterThanOrEqual(4.5);
+      if (theme === 'light') await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await page.screenshot({ path: testInfo.outputPath('editor-primary-actions.png') });
       await expect(
         page.locator('[data-shell-content]').getByRole('button', { name: /^(Save|Cancel)$/ }),
       ).toHaveCount(0);

@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { accentTextColor, applyAccentTextColors, customAccentHover } from './accentContrast';
+import {
+  accentTextColor,
+  applyAccentTextColors,
+  customAccentHover,
+  desktopAccentColors,
+} from './accentContrast';
 import { applyTheme } from './theme';
 import { isAndroidSync } from './platform';
 
@@ -55,6 +60,32 @@ describe('强调色上的文字对比', () => {
     expect(accentTextColor(customAccentHover('#777777')!)).toBe('#ffffff');
   });
 
+  it('桌面浅色主按钮使用同色相实色配白字，各色相与亮度保持至少 4.5 对比度', () => {
+    const levels = ['00', '40', '80', 'c0', 'ff'];
+    for (const red of levels)
+      for (const green of levels)
+        for (const blue of levels) {
+          const color = `#${red}${green}${blue}`;
+          for (const input of [color, customAccentHover(color)!]) {
+            const pair = desktopAccentColors(input, 'light')!;
+            expect(pair.foreground).toBe('#ffffff');
+            expect(contrast(pair.foreground, pair.background)).toBeGreaterThanOrEqual(4.5);
+            if (contrast('#ffffff', input) >= 4.5) expect(pair.background).toBe(input);
+          }
+        }
+  });
+
+  it.each(['#5b7c99', '#c4925c', '#5b8c6f', '#b06b7a', '#8b7aa8', '#fff', '#777'])(
+    '桌面深色保留 %s 的原始填色；浅色仅派生按钮色，不改变共享强调色',
+    (color) => {
+      const dark = desktopAccentColors(color, 'dark')!;
+      expect(dark.background).toBe(color);
+      expect(dark.foreground).toBe(accentTextColor(color));
+      const light = desktopAccentColors(color, 'light')!;
+      expect(contrast(light.foreground, light.background)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
   it('读取最终 CSS 色值，更新普通与 hover token 并清理无法解析的旧值', () => {
     const root = document.documentElement;
     root.style.setProperty('--accent-primary', '#ffffff');
@@ -62,16 +93,25 @@ describe('强调色上的文字对比', () => {
     applyAccentTextColors();
     expect(root.style.getPropertyValue('--accent-primary-text')).toBe('#000000');
     expect(root.style.getPropertyValue('--accent-hover-text')).toBe('#ffffff');
+    expect(root.style.getPropertyValue('--desktop-primary-text')).toBe('#ffffff');
+    expect(root.style.getPropertyValue('--accent-primary')).toBe('#ffffff');
+    expect(
+      contrast('#ffffff', root.style.getPropertyValue('--desktop-primary-fill')),
+    ).toBeGreaterThanOrEqual(4.5);
     root.style.setProperty('--accent-primary', '#000000');
     root.style.setProperty('--accent-hover', 'unresolved');
     applyAccentTextColors();
     expect(root.style.getPropertyValue('--accent-primary-text')).toBe('#ffffff');
     expect(root.style.getPropertyValue('--accent-hover-text')).toBe('');
+    expect(root.style.getPropertyValue('--desktop-primary-hover-fill')).toBe('');
+    expect(root.style.getPropertyValue('--desktop-primary-hover-text')).toBe('');
   });
 
   it('支持短 hex 与空格分隔 rgb，不把未解析的函数或错误 hex 当作黑色', () => {
     expect(accentTextColor('#fff')).toBe('#000000');
     expect(accentTextColor('rgb(255 255 255)')).toBe('#000000');
+    const fractional = desktopAccentColors('rgb(118.9 118.9 118.9)', 'light')!;
+    expect(contrast(fractional.foreground, fractional.background)).toBeGreaterThanOrEqual(4.5);
     for (const value of [
       '#12oops',
       'var(--accent-primary)',
@@ -80,6 +120,7 @@ describe('强调色上的文字对比', () => {
     ]) {
       expect(accentTextColor(value)).toBeNull();
       expect(customAccentHover(value)).toBeNull();
+      expect(desktopAccentColors(value, 'light')).toBeNull();
     }
   });
 
@@ -108,6 +149,8 @@ describe('强调色上的文字对比', () => {
       expect(getComputedStyle(root).getPropertyValue('--accent-primary')).toBe('#7a9ab5');
       expect(root.style.getPropertyValue('--accent-primary-text')).toBe('#000000');
       expect(root.style.getPropertyValue('--accent-hover-text')).toBe('#000000');
+      expect(root.style.getPropertyValue('--desktop-primary-fill')).toBe('#7a9ab5');
+      expect(root.style.getPropertyValue('--desktop-primary-text')).toBe('#000000');
       vi.mocked(isAndroidSync).mockReturnValue(true);
       await applyTheme({ ...config, preset: 'warm-stone-dark', accentColor: 'amber' });
       expect(root.style.getPropertyValue('--accent-primary-text')).toBe('#000000');

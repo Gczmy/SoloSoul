@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { setupTauriMock, login } from './fixtures/auth';
+import { measureControlContrast } from './fixtures/contrast';
 
 // 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
 test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
@@ -273,15 +274,19 @@ for (const platform of ['macos', 'windows'] as const) {
       const save = page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true });
       await expect(save).toHaveAttribute('data-ui-button', 'primary');
       await expect(save).toHaveAttribute('data-ui-intent', 'primary');
-      const accentText = await save.evaluate((button) => {
-        const probe = document.createElement('span');
-        probe.style.color = 'var(--accent-primary-text)';
-        button.appendChild(probe);
-        const color = getComputedStyle(probe).color;
-        probe.remove();
-        return color;
-      });
-      await expect(save).toHaveCSS('color', accentText);
+      await page
+        .getByRole('dialog')
+        .screenshot({ path: test.info().outputPath('save-dialog.png') });
+      await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      const idle = await measureControlContrast(save, '[role="dialog"]');
+      expect(idle.foregroundContrast).toBeGreaterThanOrEqual(4.5);
+      await save.hover();
+      await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect
+        .poll(
+          async () => (await measureControlContrast(save, '[role="dialog"]')).foregroundContrast,
+        )
+        .toBeGreaterThanOrEqual(4.5);
       await expect(save).toHaveCSS('backdrop-filter', 'none');
       await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
     });

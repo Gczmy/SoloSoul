@@ -17,6 +17,11 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
   --desktop-control-filter: none;
   --desktop-control-radius: 4px;
   --desktop-control-accent-opacity: 100%;
+  /* 首帧默认色；主题应用后按最终强调色派生，不改变链接、选择态及移动端色板。 */
+  --desktop-primary-fill: #5a7a97;
+  --desktop-primary-text: #ffffff;
+  --desktop-primary-hover-fill: #4f6b85;
+  --desktop-primary-hover-text: #ffffff;
 }
 
 html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])[data-theme='dark'] {
@@ -24,6 +29,10 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])[data
   --desktop-text-secondary: #f5f5f5;
   --desktop-text-tertiary: #ededed;
   --desktop-navigation-solid: color-mix(in srgb, var(--bg-base) 55%, black);
+  --desktop-primary-fill: var(--accent-primary);
+  --desktop-primary-text: var(--accent-primary-text);
+  --desktop-primary-hover-fill: var(--accent-hover);
+  --desktop-primary-hover-text: var(--accent-hover-text);
 }
 
 html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
@@ -137,12 +146,8 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-ink: var(--text-primary);
   }
   &:is([data-ui-intent='primary'], [data-desktop-control='primary']) {
-    --control-fill: color-mix(
-      in srgb,
-      var(--accent-primary) var(--desktop-control-accent-opacity),
-      transparent
-    );
-    --control-ink: var(--accent-primary-text);
+    --control-fill: var(--desktop-primary-fill);
+    --control-ink: var(--desktop-primary-text);
     --control-edge: color-mix(in srgb, var(--accent-primary) 75%, var(--desktop-control-edge));
     --control-glint: rgb(255 255 255 / 18%);
   }
@@ -273,21 +278,21 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
         &:where([data-notification-banner] button) {
           border-color: color-mix(
             in srgb,
-            var(--accent-primary-text) 50%,
-            var(--accent-primary)
+            var(--desktop-primary-text) 50%,
+            var(--desktop-primary-fill)
           ) !important;
         }
       }
       @media (hover: hover) and (pointer: fine) and (forced-colors: none) {
         &:hover:not(:disabled) {
-          background: var(--accent-hover) !important;
-          color: var(--accent-hover-text) !important;
+          background: var(--desktop-primary-hover-fill) !important;
+          color: var(--desktop-primary-hover-text) !important;
         }
       }
       @media (forced-colors: none) {
         &:active:not(:disabled) {
-          background: var(--accent-hover) !important;
-          color: var(--accent-hover-text) !important;
+          background: var(--desktop-primary-hover-fill) !important;
+          color: var(--desktop-primary-hover-text) !important;
         }
       }
     }
