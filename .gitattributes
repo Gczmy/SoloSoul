@@ -186,3 +186,4 @@ docs/performance/rf1188-native-phase-binding-2026-10-18.json text eol=lf
 
 # 历史构建记录按原摘要保全，Windows 检出保持原 LF。
 docs/verification/rf121-current-source-native-build-2026-10-15.json text eol=lf
+docs/verification/rf121-current-source-native-build-2026-10-15/** -text

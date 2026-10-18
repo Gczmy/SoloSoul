@@ -53,5 +53,8 @@
   "RF121Closed": false,
   "RF112Closed": false,
   "RF312Closed": false,
-  "RF122Through127PrerequisitesReleased": false
+  "RF122Through127PrerequisitesReleased": false,
+  "allSixOriginalFilesActuallyCheckedOutWithAutoCrlfTrue": true,
+  "initialCheckoutByteDifferencesRetained": 3,
+  "fixedCheckoutByteDifferences": 0
 }
