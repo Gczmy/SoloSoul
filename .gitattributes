@@ -170,3 +170,4 @@ docs/performance/rf312-system-trace/*.pbtxt text eol=lf
 docs/performance/rf312-system-trace/*.sql text eol=lf
 docs/performance/rf312-system-trace/*.json text eol=lf
 docs/performance/rf312-system-trace-transport-2026-10-18.json text eol=lf
+docs/performance/rf312-system-trace-completion-2026-10-18.json text eol=lf

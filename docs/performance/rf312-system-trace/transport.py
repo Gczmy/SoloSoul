@@ -70,6 +70,24 @@ def writer_config(base, output):
     return base + ('\nwrite_into_file: true\noutput_path: "' + output + '"\n').encode('ascii')
 
 
+def require_completed_trace(result):
+    """v15 may return zero for a service error; require the complete log protocol."""
+    if (type(result.returncode) is not int or result.returncode != 0
+            or result.stdout != b'' or not isinstance(result.stdout, bytes)
+            or not isinstance(result.stderr, bytes) or len(result.stderr) > 16384
+            or not result.stderr.endswith(b'\n')):
+        raise ValueError('Unproven Perfetto command completion')
+    messages = []
+    for line in result.stderr.splitlines():
+        match = re.fullmatch(rb'\[[ 0-9]+\.[0-9]+\] +perfetto_cmd\.cc:[1-9][0-9]* +(.+)', line)
+        if match is None:
+            raise ValueError('Unrecognized Perfetto completion log')
+        messages.append(match[1])
+    if messages != [b'Connected to the Perfetto traced service, TTL: 5s',
+                    b'Trace written into the output file']:
+        raise ValueError('Missing or contradictory Perfetto completion log')
+
+
 def run(call, out):
     out = Path(out)
     path = out / 'system.trace'
@@ -123,7 +141,8 @@ def run(call, out):
                 raise ValueError('Raw file-transfer readback mismatch')
         trace_attempted = True
         # v15 service output_path uses O_EXCL. --out must be omitted in this mode.
-        call('five-second-trace', ['shell', '-T', 'perfetto', '--txt', '-c', names[1]], timeout=45)
+        completed = call('five-second-trace', ['shell', '-T', 'perfetto', '--txt', '-c', names[1]], timeout=45)
+        require_completed_trace(completed)
         trace_owned = True
         owned.append(names[2])
         remote_hash = call('trace-remote-sha256', ['shell', 'sha256sum', names[2]], timeout=5)
@@ -162,6 +181,7 @@ def run(call, out):
                   remoteTraceSha256=parts[0], traceBytes=len(captured), topLevelPackets=len(envelope[1]),
                   serviceBefore=b, serviceAfter=a, rawFileRoundtripBytes=len(ROUNDTRIP),
                   rawFileRoundtripSha256=hashlib.sha256(ROUNDTRIP).hexdigest(),
+                  cliCompletionProtocolVerified=True,
                   serviceWriterExclusiveCreate=True, traceRecordingStarted=True,
                   traceRecordingCompleted=True, ownedRemoteFilesRemoved=True,
                   productPackagesInstalled=False, applicationDataAccepted=False, nativeFramesAccepted=False,

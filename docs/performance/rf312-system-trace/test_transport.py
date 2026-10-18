@@ -2,6 +2,8 @@ from pathlib import Path
 import hashlib,importlib.util,json,shutil,subprocess,tempfile,types,unittest
 spec=importlib.util.spec_from_file_location('service_transport',Path(__file__).with_name('transport.py'));m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 ROOT=Path(__file__).parent
+COMPLETE=(b'[110.455] perfetto_cmd.cc:792     Connected to the Perfetto traced service, TTL: 5s\n'
+          b'[115.641] perfetto_cmd.cc:913     Trace written into the output file\n')
 def vi(n):
     b=bytearray()
     while n>=128:b.append((n&127)|128);n>>=7
@@ -19,7 +21,7 @@ class FakeAdb:
         if fault in ['fixture-collision','config-collision','output-collision']:
             self.files[self.names[['fixture-collision','config-collision','output-collision'].index(fault)]]=b'keep-existing'
     def __call__(self,label,args,**kw):
-        self.calls.append((label,args,kw));raw=b''
+        self.calls.append((label,args,kw));raw=b'';error=b'';code=0
         if label in ['trace-state-before','trace-state-after']:raw=state(1 if self.fault==label else 0)
         elif label.endswith('-reserve'):
             target=args[-1].removeprefix('set -C; : > ')
@@ -34,9 +36,23 @@ class FakeAdb:
         elif label=='five-second-trace':
             if self.fault=='timeout':raise subprocess.TimeoutExpired(args,45,output=b'public-partial')
             if self.names[2] in self.files:raise subprocess.CalledProcessError(1,args)
+            if self.fault=='late-service-error-zero':
+                self.trace=field(1,b'foreign-owned-packet')
+                self.files[self.names[2]]=self.trace
+                return types.SimpleNamespace(returncode=0,stdout=b'',stderr=b'[110.455] perfetto_cmd.cc:862     Service error: Cannot create output file\n')
             if self.fault=='envelope':self.trace=b'bad'
             if self.fault=='empty':self.trace=b''
             self.files[self.names[2]]=self.trace
+            error=COMPLETE
+            if self.fault=='missing-completion':error=b''
+            if self.fault=='duplicate-completion':error=COMPLETE+COMPLETE.splitlines(keepends=True)[-1]
+            if self.fault=='contradictory-completion':error=COMPLETE+b'[115.642] perfetto_cmd.cc:862     Service error: Public failure\n'
+            if self.fault=='nonzero-completion':code=1
+            if self.fault=='truncated-completion':error=COMPLETE.rstrip(b'\n')
+            if self.fault=='wrong-duration-completion':error=COMPLETE.replace(b'TTL: 5s',b'TTL: 6s')
+            if self.fault=='unrecognized-completion':error=b'foreign prefix\n'+COMPLETE
+            if self.fault=='text-completion':error=COMPLETE.decode()
+            if self.fault=='stdout-completion':raw=b'unexpected'
         elif label=='trace-remote-sha256':raw=(hashlib.sha256(self.trace).hexdigest()+'  '+args[-1]+'\r\n').encode()
         elif label=='trace-file-pull':
             p=Path(args[-1]);p.write_bytes(b'changed' if self.fault=='hash' else self.trace)
@@ -45,7 +61,7 @@ class FakeAdb:
         elif label=='trace-owned-files-remove':
             if self.fault=='cleanup':raise subprocess.CalledProcessError(1,args)
             for name in args[3:]:self.files.pop(name,None)
-        return types.SimpleNamespace(returncode=0,stdout=raw,stderr=b'')
+        return types.SimpleNamespace(returncode=code,stdout=raw,stderr=error)
 
 class ServiceTransport(unittest.TestCase):
     def run_case(self,fault=None):
@@ -62,7 +78,7 @@ class ServiceTransport(unittest.TestCase):
                 if fault in ['config-tamper','base-tamper','fixture-tamper']:
                     (m.R/{'config-tamper':'trace-config.pbtxt','base-tamper':'base-config.pbtxt','fixture-tamper':'roundtrip.bin'}[fault]).write_bytes(b'changed')
                 if fault is None:
-                    result=m.run(fake,out);self.assertFalse(result['fullRF312Accepted']);self.assertTrue(result['serviceWriterExclusiveCreate'])
+                    result=m.run(fake,out);self.assertFalse(result['fullRF312Accepted']);self.assertTrue(result['serviceWriterExclusiveCreate']);self.assertTrue(result['cliCompletionProtocolVerified'])
                     self.assertEqual(result['traceSha256'],result['remoteTraceSha256']);self.assertEqual(fake.files,{})
                 else:
                     with self.assertRaises((ValueError,subprocess.SubprocessError)):m.run(fake,out)
@@ -104,5 +120,20 @@ class ServiceTransport(unittest.TestCase):
         base=(ROOT/'base-config.pbtxt').read_bytes();output=m.remote_paths('a'*32)[2]
         rendered=m.writer_config(base,output);self.assertTrue(rendered.startswith(base));self.assertEqual(rendered[len(base):],('\nwrite_into_file: true\noutput_path: "'+output+'"\n').encode())
     def test_empty_trace_rejected(self):self.run_case('empty')
+    def test_zero_exit_service_error_never_claims_foreign_output(self):
+        f,c=self.run_case('late-service-error-zero')
+        self.assertEqual(f.files,{f.names[2]:field(1,b'foreign-owned-packet')})
+        self.assertFalse(c['passed']);self.assertTrue(c['unclaimedOutputMayRemain'])
+        self.assertFalse(c['outputOwnershipProven']);self.assertEqual(len(c['exactOwnedFiles']),2)
+        self.assertNotIn('trace-remote-sha256',[x[0] for x in f.calls])
+    def test_missing_completion_keeps_output_unclaimed(self):self.assertFalse(self.run_case('missing-completion')[1]['outputOwnershipProven'])
+    def test_duplicate_completion_rejected(self):self.run_case('duplicate-completion')
+    def test_error_after_completion_rejected(self):self.run_case('contradictory-completion')
+    def test_nonzero_with_completion_rejected(self):self.run_case('nonzero-completion')
+    def test_truncated_completion_rejected(self):self.run_case('truncated-completion')
+    def test_wrong_duration_completion_rejected(self):self.run_case('wrong-duration-completion')
+    def test_unknown_log_line_rejected(self):self.run_case('unrecognized-completion')
+    def test_decoded_text_completion_rejected(self):self.run_case('text-completion')
+    def test_unexpected_stdout_rejected(self):self.run_case('stdout-completion')
 
 if __name__=='__main__':unittest.main()

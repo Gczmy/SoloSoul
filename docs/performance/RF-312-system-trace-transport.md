@@ -6,7 +6,7 @@
 
 `exec-out` 不转发 stdin；改用 Windows `shell -T` 输送全部字节又在实际往返中把 280 字节截成 49 字节，出现 `0x1a` 截断及换行变化。向 `/data/local/tmp` 同步配置虽逐字正确，Perfetto 服务仍无法读取；系统配置目录允许 shell 创建文件，却不允许创建子目录。不能通过规范化二进制、修改权限或扩大期限来改判这些失败。
 
-[采集库](rf312-system-trace/transport.py)保留已经实际验证的原型字节：对固定目录下的随机平面文件先用远端 `set -C` 独占保留，成功后才取得所有权，再通过 ADB file sync 推送。280 字节全字节夹具及完整配置都经 `exec-out cat` 逐字读回；不经 Windows 文本 stdin。服务按配置的 `output_path` 独占创建 trace，命令省略 `-o`，避免客户端截断已有文件。随后比较远端 SHA-256 与本地 pull 文件，检查 1～32 MiB 上限、非空 TracePacket 外层和追踪前后零会话；回收范围仅为本轮证明拥有的文件。
+[采集库](rf312-system-trace/transport.py)沿用已经实际验证的传输路径，并增加下述 CLI 完整结束校验：对固定目录下的随机平面文件先用远端 `set -C` 独占保留，成功后才取得所有权，再通过 ADB file sync 推送。280 字节全字节夹具及完整配置都经 `exec-out cat` 逐字读回；不经 Windows 文本 stdin。服务按配置的 `output_path` 独占创建 trace，命令省略 `-o`，避免客户端截断已有文件。随后比较远端 SHA-256 与本地 pull 文件，检查 1～32 MiB 上限、非空 TracePacket 外层和追踪前后零会话；回收范围仅为本轮证明拥有的文件。
 
 源码依据为固定 [v15 配置协议](https://raw.githubusercontent.com/google/perfetto/v15.0/protos/perfetto/config/trace_config.proto)、[CLI](https://raw.githubusercontent.com/google/perfetto/v15.0/src/perfetto_cmd/perfetto_cmd.cc)和[服务实现](https://raw.githubusercontent.com/google/perfetto/v15.0/src/tracing/core/tracing_service_impl.cc)：服务的 `output_path` 使用 `O_EXCL`，不能同时传 CLI `--out`。Android 策略参考和实际目录标签／读写结果分别留证，不以参考源码代替设备验证。
 
@@ -31,6 +31,14 @@ python -B -m unittest discover -s docs/performance/rf312-system-trace -p "test_*
 - 超时调用 [preserve_timeout](rf312-system-trace/timeout_streams.py)保存**实际可取得**的部分 bytes；不可取得为 `null`，与已观测空输出区分。保存原异常并继续抛出。录制结果不明时不擅自删除未证明拥有的 trace，清理记录必须明确可能残留。
 - owner 仍负责终态完整健康记录、九项设置前后一致、产品包状态、正常 SDK 退出和原 45 秒严格宿主归零。仅有 `trace-transport.json` 不构成完整原生或应用验收。
 
+### CLI 零退出服务错误的清理保护
+
+进一步审查发现，[v15 CLI 的 `OnTracingDisabled(error)`](https://raw.githubusercontent.com/google/perfetto/v15.0/src/perfetto_cmd/perfetto_cmd.cc)会在服务错误分支设置 `update_guardrail_state_` 后退出事件循环；[RateLimiter](https://raw.githubusercontent.com/google/perfetto/v15.0/src/perfetto_cmd/rate_limiter.cc)在该标志为真且不上传时返回成功。因此，返回 0 不能单独证明服务完成录制或输出文件归本轮所有。初版库在此处过早认领了文件。
+
+当前库在认领 trace 之前要求原始 bytes、整数零返回码、空 stdout，以及有界、完整且恰好包含“连接五秒会话→写出结束”的 v15 两行日志。缺失、截断、重复、服务错误、未知额外日志或非原始输出均拒绝；不从混合错误里提取一条成功消息。失败时仅清理已独占保留的夹具／配置，不查询、拉取或删除未经证明的 trace。新增 `cliCompletionProtocolVerified` 只表示这个 CLI 协议检查，不提升 trace 内容或应用性能验收。其他 CLI 版本或额外正常日志也会保守拒绝，需单独核验后更新合同。
+
+离线服务错误／文件碰撞模型对原提交重放，旧库错误接受并删除了模拟的非本轮文件；新库保留该文件、拒绝认领并明确记录可能残留。这是源码和离线故障回归，**不是新增实际设备错误样本**。74 项唯一测试及带空格副本相同 74 项通过，其中 10 项新增覆盖结束协议。原实际 13 条传输命令及成功原始日志仍被新库接受，原件和历史结果不改写，也不再计为一次原生采集。见[本次修复证据](rf312-system-trace-completion-2026-10-18.json)。
+
 ## 离线分析方式修订
 
 第一次可取回的完整 trace 仍被零错误／丢失门槛拒绝：DISCARD 及缺少周期 flush 两项配置风险。修正配置后，默认窗口排序又报告 8 项 `sorter_push_event_out_of_order`，该原结果同样保留拒绝。
@@ -49,7 +57,7 @@ python -B -m unittest discover -s docs/performance/rf312-system-trace -p "test_*
 
 ## 验证与后续
 
-64 项定向回归通过：原状态读取器 28 项、传输 21 项、超时保存 7 项、输入准备 8 项。异地带空格副本同样执行 64 项，不重复计数。覆盖文件碰撞时保留旧数据、逐字读回／hash／外层拒绝、大小及原期限、配置篡改、未知所有权、正常和失败清理、真实主机子进程超时、不可用输出与空输出的区别。
+首版 64 项定向回归通过：原状态读取器 28 项、传输 21 项、超时保存 7 项、输入准备 8 项；后续 CLI 保护增加 10 项，当前合计 74 项。异地带空格副本执行同组测试，不重复计数。覆盖文件碰撞时保留旧数据、逐字读回／hash／外层拒绝、大小及原期限、配置篡改、未知所有权、正常和失败清理、真实主机子进程超时、不可用输出与空输出的区别。
 
 实际本轮 80 条 SDK 命令、117 项 source 绑定、47 项冻结输入、远端所有权／本地原件、前后设置、38 条预检及 38 条终态 DropBox、完整健康记录及正常关机后宿主归零已独立回放。没有新增当前 ANR。完整排序的正例和旧配置反例逐字核验，原默认排序及所有前序失败不覆盖。程序、trace、截图和原始记录仅留本机；[公开证据](rf312-system-trace-transport-2026-10-18.json)只含通用版本、计数和摘要。
 
