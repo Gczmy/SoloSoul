@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "scope": "existing-native-control-method-intervals",
+  "productSourceRevision": "305b86020a33b5368299b07594b94542f0869e09",
+  "analysisBaseRevision": "acf8bceb94fd8f9c5acae34473d2aeb89dc0d54f",
+  "existingNativeEvidenceReference": "rf312-public-trace-entry-2026-10-18.json",
+  "newNativeSamples": 0,
+  "sdkCommandsExecuted": 0,
+  "inputEventsDispatched": 0,
+  "uniqueTests": 15,
+  "portableSameTestsPassed": true,
+  "portableSourceFiles": 232,
+  "originalProtectedSourceFiles": 229,
+  "sourceSha256": {
+    "native_timing.py": "b63598ef9b46b24175a2a9a260af7dabd57b6976820d1371805114af8211521b",
+    "read-native-timing.py": "6379192a79dd8a862d9b299df5809dcbd9c2a7ca9800d48d9dc0ccbd8af30fa7",
+    "test_native_timing.py": "77221bc0feee12d304161cafcca411caeabf33d0dcfed06b78c72b7432c942b4"
+  },
+  "observerJavaSha256": "e92c4312d2f148d9271ec3938306c2e1e7b6e481a0160ad3b29bb65509bba1e2",
+  "observerSessionSha256": "51c43ebfd7d188a1a4f007e4b052524e1da6baccdfbf3a041630e00359c761d9",
+  "canonicalReaderReceiptSha256": {
+    "state": "f83c611f77d784a7e693d986da845e137c12508676ed4cce2f4410af58a6b187",
+    "ime": "9183491d886d368da87915be6fc80cb27bd19f4015a9978eb872011b5465c401",
+    "ui": "424446d62841412e81634f3c841c00b3b9de90fbc833d980b85a7a9d131e175e"
+  },
+  "nativeParentSha256": "4fe40b461303305f99f5d98f646129a649c3ce957698c82ad48d3c50c6fdbb91",
+  "analysisReceiptSha256": "77e4ddb5a11d8fa783b8a22ef4de5409d7e0fc4f1c788766c7a84cbd4b5e68be",
+  "portableVerificationSha256": "4ef20d97b034e20587afd161028ac0873c61796534d163ec57adf22be1b4e21d",
+  "actualCanonicalStateImeUiReplaysPassed": true,
+  "originalNativeBytesChanged": false,
+  "firstUiOnlyEntryRefusalRetained": true,
+  "firstEntryRefusalSha256": "d64a558790b79bcd32a80d96316dffadff677e88c10de846af728106be15b813",
+  "invalidUnitEvidenceRefused": true,
+  "pythonOptimizedModeRefused": true,
+  "exactIntegerNanoseconds": true,
+  "median": "exact-rational",
+  "tail": "nearest-rank-p95-per-operation-population",
+  "operationPopulationsAreNotRunLevelDistributions": true,
+  "matchedPairsHaveNoRandomizedOrderControl": true,
+  "exclusiveObserverOverheadAccepted": false,
+  "applicationOnlyLatencyAccepted": false,
+  "firstInteractiveTimeProven": false,
+  "nativeFramesAccepted": false,
+  "continuousMemoryPeakAccepted": false,
+  "performanceDistributionAccepted": false,
+  "fullRF312Accepted": false,
+  "cases": [
+    {
+      "objectCount": 100,
+      "runs": 1,
+      "requests": 418,
+      "nativeChannelSpanNs": 141723817955,
+      "nativeOperationDurationSumNs": 38438495434,
+      "operationPopulations": {
+        "back": {
+          "n": 2,
+          "sumNs": 116533319,
+          "minimumNs": 22835435,
+          "maximumNs": 93697884,
+          "medianNumeratorNs": 116533319,
+          "medianDenominator": 2,
+          "nearestRankP95Ns": 93697884
+        },
+        "inspect-target": {
+          "n": 122,
+          "sumNs": 577698393,
+          "minimumNs": 1103771,
+          "maximumNs": 76433776,
+          "medianNumeratorNs": 7050909,
+          "medianDenominator": 2,
+          "nearestRankP95Ns": 7501649
+        },
+        "pick-public-file": {
+          "n": 1,
+          "sumNs": 30550661,
+          "minimumNs": 30550661,
+          "maximumNs": 30550661,
+          "medianNumeratorNs": 30550661,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 30550661
+        },
+        "scroll": {
+          "n": 1,
+          "sumNs": 854620223,
+          "minimumNs": 854620223,
+          "maximumNs": 854620223,
+          "medianNumeratorNs": 854620223,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 854620223
+        },
+        "snapshot-metadata": {
+          "n": 235,
+          "sumNs": 21240835375,
+          "minimumNs": 663856,
+          "maximumNs": 2582872309,
+          "medianNumeratorNs": 3782059,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 574311127
+        },
+        "snapshot-with-png": {
+          "n": 21,
+          "sumNs": 8629333201,
+          "minimumNs": 114697505,
+          "maximumNs": 3162194444,
+          "medianNumeratorNs": 155664299,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 1720833749
+        },
+        "tap": {
+          "n": 33,
+          "sumNs": 1184035271,
+          "minimumNs": 21945565,
+          "maximumNs": 48718723,
+          "medianNumeratorNs": 36305920,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 46909349
+        },
+        "type-public": {
+          "n": 3,
+          "sumNs": 5804888991,
+          "minimumNs": 319367859,
+          "maximumNs": 2770053091,
+          "medianNumeratorNs": 2715468041,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 2770053091
+        }
+      },
+      "nonOverlappingNativeIntervals": true,
+      "matchingXmlCapturePairs": 13,
+      "matchingXmlPairDeltaNs": {
+        "n": 13,
+        "sumNs": -638125405,
+        "minimumNs": -515387479,
+        "maximumNs": 272183570,
+        "medianNumeratorNs": 8502500,
+        "medianDenominator": 1,
+        "nearestRankP95Ns": 272183570
+      },
+      "negativePairDeltasRetained": 6,
+      "phaseObservationDurationNs": {
+        "startup": 278214700,
+        "password-unlock": 3162194444,
+        "first-ocr-user-flow": 186396439,
+        "workspace": 164708075,
+        "search-needle": 132507192,
+        "attachments-open": 146722567,
+        "image-preview": 1720833749,
+        "text-preview": 902196184,
+        "pdf-text-native": 125234743,
+        "pdf-scanned-native": 123758352,
+        "application-lock": 128975551,
+        "password-reunlock": 164080663
+      },
+      "distinctPngContentDigests": 18,
+      "timingReceiptSha256": "9feffe00b9e8991bae988efb927dc96cbc85134b5fade17b37cc8abec974c5a5"
+    },
+    {
+      "objectCount": 5000,
+      "runs": 1,
+      "requests": 401,
+      "nativeChannelSpanNs": 137781949254,
+      "nativeOperationDurationSumNs": 33254957875,
+      "operationPopulations": {
+        "back": {
+          "n": 2,
+          "sumNs": 103975109,
+          "minimumNs": 39517875,
+          "maximumNs": 64457234,
+          "medianNumeratorNs": 103975109,
+          "medianDenominator": 2,
+          "nearestRankP95Ns": 64457234
+        },
+        "inspect-target": {
+          "n": 120,
+          "sumNs": 446229050,
+          "minimumNs": 744334,
+          "maximumNs": 41610356,
+          "medianNumeratorNs": 6075198,
+          "medianDenominator": 2,
+          "nearestRankP95Ns": 7105887
+        },
+        "pick-public-file": {
+          "n": 1,
+          "sumNs": 31338283,
+          "minimumNs": 31338283,
+          "maximumNs": 31338283,
+          "medianNumeratorNs": 31338283,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 31338283
+        },
+        "scroll": {
+          "n": 1,
+          "sumNs": 759501150,
+          "minimumNs": 759501150,
+          "maximumNs": 759501150,
+          "medianNumeratorNs": 759501150,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 759501150
+        },
+        "snapshot-metadata": {
+          "n": 217,
+          "sumNs": 16812559294,
+          "minimumNs": 771069,
+          "maximumNs": 1003346209,
+          "medianNumeratorNs": 3155590,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 602501258
+        },
+        "snapshot-with-png": {
+          "n": 24,
+          "sumNs": 6889033981,
+          "minimumNs": 100006349,
+          "maximumNs": 1654002936,
+          "medianNumeratorNs": 292272737,
+          "medianDenominator": 2,
+          "nearestRankP95Ns": 1140409880
+        },
+        "tap": {
+          "n": 33,
+          "sumNs": 1114886990,
+          "minimumNs": 21520355,
+          "maximumNs": 45397298,
+          "medianNumeratorNs": 33958198,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 43088757
+        },
+        "type-public": {
+          "n": 3,
+          "sumNs": 7097434018,
+          "minimumNs": 1191749769,
+          "maximumNs": 3319701071,
+          "medianNumeratorNs": 2585983178,
+          "medianDenominator": 1,
+          "nearestRankP95Ns": 3319701071
+        }
+      },
+      "nonOverlappingNativeIntervals": true,
+      "matchingXmlCapturePairs": 12,
+      "matchingXmlPairDeltaNs": {
+        "n": 12,
+        "sumNs": -486391107,
+        "minimumNs": -670302213,
+        "maximumNs": 268925388,
+        "medianNumeratorNs": -16262934,
+        "medianDenominator": 2,
+        "nearestRankP95Ns": 268925388
+      },
+      "negativePairDeltasRetained": 7,
+      "phaseObservationDurationNs": {
+        "startup": 275934066,
+        "password-unlock": 102870623,
+        "first-ocr-user-flow": 148234683,
+        "workspace": 114405556,
+        "search-needle": 111262163,
+        "attachments-open": 142712429,
+        "image-preview": 952430552,
+        "text-preview": 115115494,
+        "pdf-text-native": 155885080,
+        "pdf-scanned-native": 107875298,
+        "application-lock": 100006349,
+        "password-reunlock": 121167654
+      },
+      "distinctPngContentDigests": 21,
+      "timingReceiptSha256": "10bd9e03413710dbd2711d9385006b2bde2d8d331c34035ce5ec3ac796503736"
+    }
+  ],
+  "ledger": {
+    "closed": 368,
+    "total": 377,
+    "unfinished": 9
+  }
+}
