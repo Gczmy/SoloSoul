@@ -68,11 +68,11 @@ export function SideNavigation() {
         flexDirection: 'column',
         borderRight:
           sidebarPosition === 'left'
-            ? '1px solid var(--navigation-divider, var(--border-subtle))'
+            ? '1px solid var(--desktop-navigation-divider, var(--navigation-divider, var(--border-subtle)))'
             : 'none',
         borderLeft:
           sidebarPosition === 'right'
-            ? '1px solid var(--navigation-divider, var(--border-subtle))'
+            ? '1px solid var(--desktop-navigation-divider, var(--navigation-divider, var(--border-subtle)))'
             : 'none',
         borderBottom: 'none',
         borderTop: 'none',

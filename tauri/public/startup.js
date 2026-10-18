@@ -5,6 +5,9 @@
   window.__SOLOSOUL_APP_START_TIME = started;
   var language = (navigator.language || 'en').startsWith('zh') ? 'zh-CN' : 'en-US';
   var mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  var desktop =
+    !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') &&
+    !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   try {
     var storedLanguage = localStorage.getItem('i18nextLng');
     if (storedLanguage === 'zh-CN' || storedLanguage === 'en-US') language = storedLanguage;
@@ -19,6 +22,19 @@
           root.style.setProperty('--startup-' + key, snapshot[key]);
         }
       });
+    }
+    // 升级前的默认色快照可能仍是暖棕；在应用模块加载前就切换桌面默认中性色。
+    // 用户明确选择的其他色板与移动端快照保持原样。
+    var selectedScheme = prefs[mode === 'dark' ? 'defaultDarkTheme' : 'defaultLightTheme'];
+    var defaultScheme = mode === 'dark' ? 'warm-stone-dark' : 'warm-stone';
+    var oldDefault = mode === 'dark' ? '#1f1c18' : '#fafaf6';
+    if (
+      desktop &&
+      (selectedScheme === defaultScheme ||
+        (!selectedScheme &&
+          (!snapshot || String(snapshot.background).toLowerCase() === oldDefault)))
+    ) {
+      root.style.setProperty('--startup-background', mode === 'dark' ? '#212121' : '#ffffff');
     }
   } catch (_) {
     /* 缓存不可用不阻断启动。 */

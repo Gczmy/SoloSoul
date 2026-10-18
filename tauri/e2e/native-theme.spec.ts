@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { getSchemeById } from '../src/lib/themeSchemes';
+import { getSchemeById, DESKTOP_NAVIGATION_COLORS } from '../src/lib/themeSchemes';
 import { login } from './fixtures/auth';
 
 async function mockTheme(
@@ -63,10 +63,13 @@ async function mockTheme(
 }
 
 async function expectThemeBackground(page: Page, schemeId: string, transparent: boolean) {
-  const hex = getSchemeById(schemeId)!.variables['--bg-base'];
+  const scheme = getSchemeById(schemeId, 'desktop')!;
+  const hex = scheme.variables['--bg-base'];
   const expected = [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
-  // 仍传入当前主题色供原生解析浅深模式，但 Mica 背景不再覆盖该颜色。
-  await expect(page.locator('html')).toHaveAttribute('data-native-theme-rgb', expected.join(','));
+  // 原生外壳与导航共用中性色，正文仍使用所选平台色板。
+  const native = DESKTOP_NAVIGATION_COLORS[scheme.mode];
+  const nativeRgb = [1, 3, 5].map((offset) => parseInt(native.slice(offset, offset + 2), 16));
+  await expect(page.locator('html')).toHaveAttribute('data-native-theme-rgb', nativeRgb.join(','));
   if (transparent) {
     for (const selector of ['html', 'body', '#root']) {
       await expect(page.locator(selector)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
@@ -111,7 +114,7 @@ for (const { systemMode, mediaMode, schemeId } of [
           .locator('html')
           .evaluate((root) => getComputedStyle(root).getPropertyValue('--bg-base').trim()),
       )
-      .toBe(getSchemeById(schemeId)!.variables['--bg-base']);
+      .toBe(getSchemeById(schemeId, 'desktop')!.variables['--bg-base']);
     await expect(page.locator('html')).toHaveAttribute('data-native-material', 'mica');
     await expectThemeBackground(page, schemeId, true);
     await expect(page.locator('html')).toHaveAttribute('data-status-bar-style', systemMode);
@@ -150,7 +153,7 @@ for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cre
   });
 }
 
-test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', async ({ page }) => {
+test('同一深色模式切换配色后，Mica 窗口的导航保持中性灰', async ({ page }) => {
   await mockTheme(page, 'warm-stone-dark');
   await login(page);
   await page
@@ -168,7 +171,7 @@ test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', asy
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(page.locator('#desktop-navigation')).toHaveCSS(
       'background-color',
-      'rgba(0, 0, 0, 0)',
+      'rgb(24, 24, 24)',
     );
     const surface = await page
       .locator('main')

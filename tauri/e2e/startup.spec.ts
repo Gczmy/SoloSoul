@@ -21,7 +21,7 @@ test('显式浅色偏好优先于系统深色，启动层无需 React 即可应�
   });
   await page.route('**/src/main.tsx', (route) => route.abort());
   await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(250, 250, 248)');
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 });
 
 test('模块缺失时限时显示重试；迟到的就绪不会撤下错误页', async ({ page }) => {
@@ -62,6 +62,32 @@ test('首帧使用上次已解析的配色，不把浏览器语言写成用户�
   await expect(page.locator('.startup-name')).toHaveCSS('color', 'rgb(17, 17, 17)');
   expect(await page.evaluate(() => localStorage.getItem('i18nextLng'))).toBeNull();
 });
+
+for (const mobile of [false, true]) {
+  test(`${mobile ? '移动端' : '桌面'} 旧默认深色快照的首帧配色`, async ({ page }) => {
+    await page.addInitScript((mobile) => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: mobile
+          ? 'Mozilla/5.0 (Linux; Android 15)'
+          : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      });
+      localStorage.setItem(
+        'solosoul_ui_prefs',
+        JSON.stringify({
+          theme: 'dark',
+          defaultDarkTheme: 'warm-stone-dark',
+          startupThemes: { dark: { background: '#1f1c18' } },
+        }),
+      );
+    }, mobile);
+    await page.route('**/src/main.tsx', (route) => route.abort());
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#startup-screen')).toHaveCSS(
+      'background-color',
+      mobile ? 'rgb(31, 28, 24)' : 'rgb(33, 33, 33)',
+    );
+  });
+}
 
 test('偏好 IPC 不返回仍进入登录页，启动层完成交接', async ({ page }) => {
   await page.addInitScript({

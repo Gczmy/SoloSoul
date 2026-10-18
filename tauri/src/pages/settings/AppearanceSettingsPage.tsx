@@ -57,10 +57,16 @@ export function AppearanceSettingsPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const lightSchemeName = t(
-    getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string,
+    getSchemeById(
+      settings.defaultLightTheme,
+      isMobilePlatform ? 'shared' : 'desktop',
+    )?.nameKey.replace('settings:', '') as string,
   );
   const darkSchemeName = t(
-    getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string,
+    getSchemeById(
+      settings.defaultDarkTheme,
+      isMobilePlatform ? 'shared' : 'desktop',
+    )?.nameKey.replace('settings:', '') as string,
   );
 
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {

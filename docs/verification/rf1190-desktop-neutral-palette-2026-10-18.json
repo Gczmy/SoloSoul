@@ -1,0 +1,433 @@
+{
+  "task": "RF-1190",
+  "date": "2026-10-18",
+  "baseCommit": "d4cbb028a3b44ef2898b28296899ee393fa95678",
+  "implementation": {
+    "dark": {
+      "navigation": "#181818",
+      "content": "#212121",
+      "card": "#292929"
+    },
+    "light": {
+      "navigation": "#f3f3f3",
+      "content": "#ffffff",
+      "card": "#f7f7f7"
+    },
+    "navigation": "Neutral selected/hover fill, mode-specific functional ink, one-pixel divider with actual alpha-composited visibility.",
+    "header": "Windows unified title area uses content color; existing caption/sidebar insets retain neutral shell color, with no new overlay or hit-test geometry.",
+    "platform": "Existing default scheme IDs resolve desktop-specific surfaces for application, previews and startup mirror. Native shell RGB uses the same neutral navigation mode. Mobile/shared palettes and explicit other surface palettes are retained.",
+    "startup": "Desktop default old snapshots resolve neutral before main module load; mobile and explicitly selected other schemes retain their snapshots."
+  },
+  "checks": {
+    "vitest": {
+      "files": 269,
+      "passed": 2409,
+      "failed": 0,
+      "runner": "Node 24.19.0 / Vitest 4.1.8, threads pool, 2 workers"
+    },
+    "node": {
+      "passed": 270,
+      "failed": 0,
+      "existingSkipped": 1
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "existingWarnings": 1,
+      "warning": "syncStore.ts unused event parameter; unchanged"
+    },
+    "productionFrontend": {
+      "exitCode": 0,
+      "existingWarnings": [
+        "ineffective dynamic imports",
+        "large chunk",
+        "plugin timing"
+      ]
+    },
+    "productionBrowser": {
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "engine": "local headless Edge",
+      "coverage": [
+        "Windows/macOS, light/dark, left/right navigation",
+        "default and explicit other palettes",
+        "selected/hover/focus and system forced colors",
+        "Windows editor save/cancel/pending at 800/1100 px",
+        "update available/error/downloaded actions",
+        "native shell RGB contracts and Android/iOS system-mode mocks"
+      ]
+    },
+    "startupBrowser": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "mode": "development server, original source-route aborts and original timeouts"
+    }
+  },
+  "navigationMeasurements": [
+    {
+      "scenario": "macos warm-stone",
+      "shell": [
+        243,
+        243,
+        243,
+        230
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "base": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "content": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "text": [
+        36,
+        36,
+        36,
+        255
+      ],
+      "divider": [
+        210,
+        210,
+        210,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "macos soft-cream",
+      "shell": [
+        243,
+        243,
+        243,
+        230
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "base": [
+        252,
+        249,
+        242,
+        255
+      ],
+      "content": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "text": [
+        36,
+        36,
+        36,
+        255
+      ],
+      "divider": [
+        210,
+        210,
+        210,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "macos warm-stone-dark",
+      "shell": [
+        24,
+        24,
+        24,
+        230
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "base": [
+        33,
+        33,
+        33,
+        255
+      ],
+      "content": [
+        33,
+        33,
+        33,
+        255
+      ],
+      "text": [
+        236,
+        236,
+        236,
+        255
+      ],
+      "divider": [
+        58,
+        58,
+        58,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "macos deep-ocean",
+      "shell": [
+        24,
+        24,
+        24,
+        230
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "base": [
+        24,
+        28,
+        36,
+        255
+      ],
+      "content": [
+        24,
+        28,
+        36,
+        255
+      ],
+      "text": [
+        236,
+        236,
+        236,
+        255
+      ],
+      "divider": [
+        58,
+        58,
+        58,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "windows warm-stone",
+      "shell": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nav": [
+        243,
+        243,
+        243,
+        255
+      ],
+      "base": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "content": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "text": [
+        36,
+        36,
+        36,
+        255
+      ],
+      "divider": [
+        210,
+        210,
+        210,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "windows soft-cream",
+      "shell": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nav": [
+        243,
+        243,
+        243,
+        255
+      ],
+      "base": [
+        252,
+        249,
+        242,
+        255
+      ],
+      "content": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "text": [
+        36,
+        36,
+        36,
+        255
+      ],
+      "divider": [
+        210,
+        210,
+        210,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "windows warm-stone-dark",
+      "shell": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nav": [
+        24,
+        24,
+        24,
+        255
+      ],
+      "base": [
+        33,
+        33,
+        33,
+        255
+      ],
+      "content": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "text": [
+        236,
+        236,
+        236,
+        255
+      ],
+      "divider": [
+        58,
+        58,
+        58,
+        255
+      ],
+      "dividerWidth": 1
+    },
+    {
+      "scenario": "windows deep-ocean",
+      "shell": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nav": [
+        24,
+        24,
+        24,
+        255
+      ],
+      "base": [
+        24,
+        28,
+        36,
+        255
+      ],
+      "content": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "text": [
+        236,
+        236,
+        236,
+        255
+      ],
+      "divider": [
+        58,
+        58,
+        58,
+        255
+      ],
+      "dividerWidth": 1
+    }
+  ],
+  "sourceSha256": {
+    "tauri/src/lib/themeSchemes.ts": "ee7c947c1a571fb5f0481f4ac5cc2e87610d56e70aedc9ff6b717b8edc59ee98",
+    "tauri/src/lib/theme.ts": "de1297b94019ff0a65b46bfd45f7ae9479761deb590af417bc5161ab855a1f32",
+    "tauri/src/stores/settingsStore.ts": "573f305824186b0ca3c928fc5843cb484b75465fa6d49bd4c07f97e82c15011b",
+    "tauri/public/startup.js": "e245d4786ea3100b760aae2f5b24f994d1874d9296d4bec11c345a44be4d0f4a",
+    "tauri/src/components/settings/ThemeSchemePanel.tsx": "8bf022c0b89f51a2dc225273caeec49398fc91a85fa680ab9afaf59dc093563a",
+    "tauri/src/pages/settings/AppearanceSettingsPage.tsx": "4b638bc0018a2d51fe981868253ea6312c7f2983dfef55eaba00f93ebdaca129",
+    "tauri/src/components/layout/SideNavigation.tsx": "2815494e5df214e569d20d2af34e4e1bed3b8753c9e7e86948f8edc42c0e9783",
+    "tauri/src/styles/desktop-controls.css": "82a35ef6c9d7d2385ea9bdf3b718cec56a1f49b11aba8beb49af64b81c34740d",
+    "tauri/src/styles/macos-glass.css": "478cd84c5ff2e7b33f06a52ee315d5fbfcbe7c9a82b56028892a9e8b3f8f0450",
+    "tauri/src/components/layout/AppBar.module.css": "5e30394bd17e51f3d28354515e244be81f9be45dd00ca3348880dd1aba6a4cdf",
+    "tauri/src/components/layout/NavButton.module.css": "8dc73139229f987e1e167d0658e0fab59001fcf6ca7099ea522109fcfe4d1cc5",
+    "tauri/src/components/layout/SideNavigation.module.css": "943cdbcabc423941bd759d2b9f9069189ee4c397b9f338bd1df0a32adfee6477",
+    "tauri/src/components/layout/TopFunctionBar.module.css": "38c53e2c92974133ff396a5f7f6492ed28f8a1ffbba13d6ac2acc669aebc0f6c",
+    "tauri/src/components/layout/WindowsTitlebar.module.css": "e9e208f343c22bb56f89aa90610374ab373ea9d7b2b6c3b29dd45b0a245ffacb",
+    "tauri/src/locales/en-US/settings.json": "e12f9b2fef9e4af6a4f362c65896383d906c5f6d95b1b61642acdb3d70d10165",
+    "tauri/src/locales/zh-CN/settings.json": "a8b96ceef4c96526e25da3d31867e834cca1a86ed0b12237d1e03413e9e8cbde"
+  },
+  "sourceHashFormat": "UTF-8, normalized LF",
+  "evidenceSha256": {
+    "vitest-full-final-r2.log": "900750a9b01649547a6a0ff7c0b50073b300b2923c7cdd19acd7c0fd44710cb0",
+    "node-tests-final.log": "74e9cd9f663b2db2eed4ebc3dede9077641e4e3e259ca0abe86fa89cd774cd50",
+    "browser-final-r4.json": "186150fc2d8e162b6555f07b99ba13d6d331c29c44ffb47052dd686351e1e86e",
+    "browser-startup-final-r2.json": "eeca2d252ab3efdcef1095cec0d78ac45a76fea4a9cd442356a4ad62e5f3e208",
+    "typecheck-final-r2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint-final-r2.log": "193344c550b8dcb82b58207594a96d01fb76479a3c0f835a5031065b0720f6f2",
+    "build-final.log": "496f0811293de8e852afa5aec37e38326f5cc4ab21300f8c0980f060b4bffcc8"
+  },
+  "reviewCorrections": [
+    "Old native RGB and transparent/brightened navigation assertions were updated to the user-requested neutral surface contract; text contrast >=4.5 and startup timeouts were retained.",
+    "The actual sidebar inline border, rather than an overridden CSS declaration, now consumes the desktop divider. Visibility is measured after alpha compositing, preventing transparent borders from passing on light surfaces.",
+    "Selected-state measurement waits for its real foreground transition to settle; no fixed delay or contrast threshold reduction was introduced.",
+    "Earlier incomplete/intermediate test runs remain local and are not counted as passed in this summary."
+  ],
+  "limits": [
+    "Browser mocks prove CSS/JS and native argument consistency, not native compositor rendering.",
+    "No native EXE/installer rebuild or new Windows/macOS physical material acceptance.",
+    "The prior nine unfinished tasks remain paused; RF-121 is not closed."
+  ]
+}

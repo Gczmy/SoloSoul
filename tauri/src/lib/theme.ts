@@ -3,7 +3,13 @@
 // on <html>, driving light/dark via [data-theme] selectors.
 
 import type { AccentPreset, ThemeConfig } from '@/types';
-import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes';
+import {
+  applyScheme,
+  resolveActiveScheme,
+  getSchemeById,
+  DESKTOP_NAVIGATION_COLORS,
+  type SchemeAppearance,
+} from './themeSchemes';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
 import { withTimeout } from './withTimeout';
@@ -40,10 +46,13 @@ function hexToRgb(hex: string): [number, number, number] | null {
 
 /** Sync the native window background color with the active scheme so the
  *  system title bar (traffic lights area) matches the app theme. */
-async function syncTitleBarColor(schemeId: string) {
+async function syncTitleBarColor(schemeId: string, appearance: SchemeAppearance) {
   try {
-    const scheme = getSchemeById(schemeId);
-    const bg = scheme?.variables['--bg-base'] || '#1c1c1e';
+    const scheme = getSchemeById(schemeId, appearance);
+    const bg =
+      scheme && appearance === 'desktop'
+        ? DESKTOP_NAVIGATION_COLORS[scheme.mode]
+        : scheme?.variables['--bg-base'] || '#1c1c1e';
     const rgb = hexToRgb(bg) || [28, 28, 30];
     await syncNativeAppearance({ red: rgb[0], green: rgb[1], blue: rgb[2] });
   } catch {
@@ -121,12 +130,13 @@ export async function applyTheme(config: ThemeConfig, isCurrent: () => boolean =
 
   root.setAttribute('data-theme', resolvedMode);
   applyAccentColor(accent, config.customAccentHex);
-  applyScheme(activeScheme);
+  const appearance = isAndroidSync() || isMobilePlatformSync() ? 'shared' : 'desktop';
+  applyScheme(activeScheme, appearance);
   applyAccentTextColors();
   if (isAndroidSync()) applyAndroidMaterial();
 
   // Sync native title bar background with the active theme (desktop only)
-  void syncTitleBarColor(activeScheme);
+  void syncTitleBarColor(activeScheme, appearance);
 
   // Sync Android status/navigation bar icon color with the active theme
   void syncStatusBarStyle(resolvedMode);

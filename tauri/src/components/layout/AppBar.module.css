@@ -237,8 +237,22 @@
     max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
     var(--windows-page-title-left, 12px);
 }
-:global(html[data-native-material='mica']) .appBar[data-windows-shell] {
-  background: transparent;
+:global(html[data-desktop-platform='windows']) .appBar[data-windows-shell][data-native-compact] {
+  /* 一体顶栏的页标题面跟随正文；导航与原生按钮占用的边缘沿用外壳色。
+     仅引用既有布局留白，不增加几何、拖拽区或额外覆盖层。 */
+  background: linear-gradient(
+    to right,
+    var(--windows-navigation-surface) 0 calc(var(--windows-page-title-left, 12px) - 12px),
+    var(--shell-content-surface, var(--bg-base)) 0
+      calc(
+        100% -
+          max(
+            var(--native-caption-inset, 0px),
+            calc(var(--windows-page-trailing-inset, 12px) - 12px)
+          )
+      ),
+    var(--windows-navigation-surface) 0
+  );
 }
 .appBar[data-windows-shell] .title {
   font-size: 16px;

@@ -8,7 +8,10 @@ import {
 import { applyTheme } from './theme';
 import { isAndroidSync } from './platform';
 
-vi.mock('./platform', () => ({ isAndroidSync: vi.fn(() => false) }));
+vi.mock('./platform', () => ({
+  isAndroidSync: vi.fn(() => false),
+  isMobilePlatformSync: vi.fn(() => false),
+}));
 vi.mock('./nativeWindow', () => ({ syncNativeAppearance: vi.fn(async () => {}) }));
 vi.mock('@/lib/ipcClient', () => ({ invokeCommand: vi.fn(async () => {}) }));
 

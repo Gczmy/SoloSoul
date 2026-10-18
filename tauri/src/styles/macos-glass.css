@@ -6,7 +6,7 @@
 html[data-desktop-platform='macos'] {
   /* 登录前后共用同一窗口底色，侧栏和顶栏不另加深色混入。 */
   --mac-shell-opacity: 90%;
-  --mac-navigation-base: var(--bg-base);
+  --mac-navigation-base: var(--desktop-navigation-solid);
   --mac-shell-fill: color-mix(
     in srgb,
     var(--mac-navigation-base) var(--mac-shell-opacity),
@@ -61,8 +61,7 @@ html[data-desktop-platform='macos'] {
 }
 
 html[data-desktop-platform='macos'][data-theme='dark'] {
-  /* 深色外壳略微提亮，登录、侧栏和顶栏共用，正文仍为原主题底色。 */
-  --mac-navigation-base: color-mix(in srgb, var(--bg-base) 88%, white);
+  /* 侧栏与顶栏共用中性玻璃底色，不再从正文主题混入白色或棕色。 */
   --mac-glass-fill: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   --mac-glass-shadow: rgb(0 0 0 / 28%);
 }

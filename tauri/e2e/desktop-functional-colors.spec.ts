@@ -57,21 +57,16 @@ for (const platform of ['macos', 'windows'] as const) {
       expect((await nav.boundingBox())!.width).toBe(186);
       await expect(nav.getByRole('img', { name: 'SoloSoul', exact: true })).toHaveCount(0);
       const home = nav.getByRole('button', { name: 'Home', exact: true });
-      const ink = scheme.mode === 'dark' ? 'rgb(245, 245, 245)' : 'rgb(32, 32, 32)';
-      await expect(home).toHaveCSS('color', ink);
+      const ink = scheme.mode === 'dark' ? 'rgb(180, 180, 180)' : 'rgb(82, 82, 82)';
+      const primaryInk = scheme.mode === 'dark' ? 'rgb(236, 236, 236)' : 'rgb(36, 36, 36)';
+      await expect(home).toHaveCSS('color', primaryInk);
       await expect(nav.getByRole('button', { name: 'Identity', exact: true })).toHaveCSS(
         'color',
         ink,
       );
-      await expect(page.locator('[data-appbar] h1')).toHaveCSS(
-        'color',
-        scheme.mode === 'dark' ? 'rgb(255, 255, 255)' : 'rgb(17, 17, 17)',
-      );
+      await expect(page.locator('[data-appbar] h1')).toHaveCSS('color', primaryInk);
       await home.hover();
-      await expect(home).toHaveCSS(
-        'color',
-        scheme.mode === 'dark' ? 'rgb(255, 255, 255)' : 'rgb(17, 17, 17)',
-      );
+      await expect(home).toHaveCSS('color', primaryInk);
       await page.mouse.move(600, 700);
       const sample = await nav.evaluate((element) => {
         const canvas = document.createElement('canvas');
@@ -92,6 +87,8 @@ for (const platform of ['macos', 'windows'] as const) {
             getComputedStyle(document.querySelector('[data-shell-surface]')!).backgroundColor,
           ),
           text: rgba(getComputedStyle(element.querySelector('button[aria-current="page"]')!).color),
+          divider: rgba(getComputedStyle(element).borderRightColor),
+          dividerWidth: parseFloat(getComputedStyle(element).borderRightWidth),
         };
       });
       const luma = (rgb: number[]) =>
@@ -106,15 +103,23 @@ for (const platform of ['macos', 'windows'] as const) {
         (Math.max(luma(a), luma(b)) + 0.05) / (Math.min(luma(a), luma(b)) + 0.05);
       const composite = (paint: number[], base: number[]) =>
         paint.slice(0, 3).map((v, i) => (v * paint[3]) / 255 + base[i] * (1 - paint[3] / 255));
+      await test.info().attach('navigation-palette-measurement', {
+        body: JSON.stringify(sample),
+        contentType: 'application/json',
+      });
       if (platform === 'macos') {
         expect(sample.content).toEqual(
           scheme.mode === 'light' ? [255, 255, 255, 255] : sample.base,
         );
         if (scheme.mode === 'dark') {
-          // 即便原生玻璃后方全黑，外壳仍比正文亮，保持分区。
-          composite(sample.shell, [0, 0, 0]).forEach((channel, index) => {
-            expect(channel - sample.base[index]).toBeGreaterThan(12);
-          });
+          // 新设计采用较暗的中性侧栏，保留与正文的可见明度层次。
+          const paintedShell = composite(sample.shell, [0, 0, 0]);
+          expect(
+            paintedShell.reduce(
+              (sum, channel, index) => sum + Math.abs(channel - sample.base[index]),
+              0,
+            ),
+          ).toBeGreaterThan(20);
         }
         // WebKit/Chromium对90% alpha的8位像素取整分别可能为229/230。
         expect(Math.abs(sample.shell[3] - 230)).toBeLessThanOrEqual(1);
@@ -129,9 +134,12 @@ for (const platform of ['macos', 'windows'] as const) {
       } else {
         const painted = composite(sample.nav, sample.base);
         expect(contrast(sample.text, painted)).toBeGreaterThanOrEqual(4.5);
-        expect(
-          painted.reduce((sum, v, i) => sum + Math.abs(v - sample.base[i]), 0),
-        ).toBeGreaterThan(20);
+        const separation = painted.reduce((sum, v, i) => sum + Math.abs(v - sample.base[i]), 0);
+        // 自选色板可接近固定中性色；此时必须有真实的一像素分隔线，不能只放宽明度阈值。
+        if (separation <= 20) {
+          expect(sample.dividerWidth).toBeGreaterThanOrEqual(1);
+          expect(contrast(composite(sample.divider, painted), painted)).toBeGreaterThanOrEqual(1.3);
+        } else expect(separation).toBeGreaterThan(20);
       }
       await page.screenshot({ path: test.info().outputPath('desktop-functional-colors.png') });
       await page.locator('html').evaluate((root) => {
@@ -144,7 +152,7 @@ for (const platform of ['macos', 'windows'] as const) {
               .evaluate((el) => getComputedStyle(el, '::before').backgroundColor)
           : await nav.evaluate((el) => getComputedStyle(el).backgroundColor);
       expect(fallback).not.toContain('rgba');
-      await expect(home).toHaveCSS('color', ink);
+      await expect(home).toHaveCSS('color', primaryInk);
       await page.emulateMedia({ forcedColors: 'active' });
       await expect(home).toBeVisible();
       await expect(home).not.toHaveCSS('color', 'rgba(0, 0, 0, 0)');

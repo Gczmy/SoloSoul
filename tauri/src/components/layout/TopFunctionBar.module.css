@@ -23,10 +23,10 @@
   background: var(--windows-navigation-surface, var(--bg-base));
 }
 :global(html[data-desktop-platform='windows'][data-native-material='mica']) .functionBar {
-  background: transparent;
+  background: var(--windows-navigation-surface);
 }
 :global(html[data-windows-frame='true'][data-native-material='mica']) .functionBar {
-  background: transparent;
+  background: var(--windows-navigation-surface);
 }
 :global(
     html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])

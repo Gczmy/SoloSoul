@@ -5,10 +5,15 @@
    导航卡片、对象卡片、菜单项和输入框内的小工具保持各自的结构。 */
 html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
   /* 功能文字只随明暗模式切换，不受暖石等色板的偏色或淡灰影响。 */
-  --desktop-text-primary: #111111;
-  --desktop-text-secondary: #202020;
-  --desktop-text-tertiary: #303030;
-  --desktop-navigation-solid: color-mix(in srgb, var(--bg-base) 92%, black);
+  --desktop-text-primary: #242424;
+  --desktop-text-secondary: #525252;
+  --desktop-text-tertiary: #626262;
+  --desktop-navigation-solid: #f3f3f3;
+  --desktop-navigation-divider: color-mix(
+    in srgb,
+    var(--desktop-text-primary) 16%,
+    var(--desktop-navigation-solid)
+  );
   --desktop-control-fill: var(--bg-elevated);
   --desktop-control-edge: var(--border-default);
   --desktop-control-glint: rgb(255 255 255 / 16%);
@@ -25,10 +30,10 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
 }
 
 html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])[data-theme='dark'] {
-  --desktop-text-primary: #ffffff;
-  --desktop-text-secondary: #f5f5f5;
-  --desktop-text-tertiary: #ededed;
-  --desktop-navigation-solid: color-mix(in srgb, var(--bg-base) 55%, black);
+  --desktop-text-primary: #ececec;
+  --desktop-text-secondary: #b4b4b4;
+  --desktop-text-tertiary: #929292;
+  --desktop-navigation-solid: #181818;
   --desktop-primary-fill: var(--accent-primary);
   --desktop-primary-text: var(--accent-primary-text);
   --desktop-primary-hover-fill: var(--accent-hover);
@@ -438,5 +443,6 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']):is(
     --desktop-text-secondary: CanvasText;
     --desktop-text-tertiary: CanvasText;
     --desktop-navigation-solid: Canvas;
+    --desktop-navigation-divider: CanvasText;
   }
 }

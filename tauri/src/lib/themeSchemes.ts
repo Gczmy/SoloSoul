@@ -8,6 +8,9 @@
 
 import type { ThemePreset } from '@/types';
 
+export type SchemeAppearance = 'shared' | 'desktop';
+export const DESKTOP_NAVIGATION_COLORS = { light: '#f3f3f3', dark: '#181818' } as const;
+
 export interface ThemeScheme {
   id: string;
   nameKey: string;
@@ -427,16 +430,62 @@ export const THEME_SCHEMES: ThemeScheme[] = [...LIGHT_SCHEMES, ...DARK_SCHEMES].
   variables: { ...scheme.variables, ...NEUTRAL_TEXT[scheme.mode] },
 }));
 
-export function getSchemeById(id: string | null): ThemeScheme | undefined {
-  return THEME_SCHEMES.find((s) => s.id === id);
+// 保留既有 ID 和移动端色板；桌面默认主题采用中性层次，显式选择的其他色板不改写。
+const DESKTOP_DEFAULT_SURFACES: Record<string, Record<SurfaceToken, string>> = {
+  'warm-stone': {
+    '--bg-base': '#ffffff',
+    '--bg-elevated': '#f7f7f7',
+    '--bg-toolbar': '#ffffff',
+    '--bg-elevated-hover': '#efefef',
+    '--bg-inset': '#ededed',
+    '--bg-hover': '#eaeaea',
+    '--bg-active': '#e1e1e1',
+    '--border-subtle': '#e5e5e5',
+    '--border-default': '#d4d4d4',
+    '--border-strong': '#b8b8b8',
+  },
+  'warm-stone-dark': {
+    '--bg-base': '#212121',
+    '--bg-elevated': '#292929',
+    '--bg-toolbar': '#212121',
+    '--bg-elevated-hover': '#303030',
+    '--bg-inset': '#1a1a1a',
+    '--bg-hover': '#303030',
+    '--bg-active': '#383838',
+    '--border-subtle': '#353535',
+    '--border-default': '#444444',
+    '--border-strong': '#595959',
+  },
+};
+
+export function getSchemeById(
+  id: string | null,
+  appearance: SchemeAppearance = 'shared',
+): ThemeScheme | undefined {
+  const scheme = THEME_SCHEMES.find((s) => s.id === id);
+  if (!scheme || appearance !== 'desktop' || !DESKTOP_DEFAULT_SURFACES[scheme.id]) return scheme;
+  const surfaces = DESKTOP_DEFAULT_SURFACES[scheme.id];
+  return {
+    ...scheme,
+    nameKey: `settings:scheme_desktop_neutral_${scheme.mode}`,
+    preview: {
+      ...scheme.preview,
+      bg: surfaces['--bg-base'],
+      elevated: surfaces['--bg-elevated'],
+    },
+    variables: { ...scheme.variables, ...surfaces },
+  };
 }
 
-export function getSchemesByMode(mode: 'light' | 'dark'): ThemeScheme[] {
-  return THEME_SCHEMES.filter((s) => s.mode === mode);
+export function getSchemesByMode(
+  mode: 'light' | 'dark',
+  appearance: SchemeAppearance = 'shared',
+): ThemeScheme[] {
+  return THEME_SCHEMES.filter((s) => s.mode === mode).map((s) => getSchemeById(s.id, appearance)!);
 }
 
 /** Apply a scheme's CSS variables to the document root. */
-export function applyScheme(id: string | null) {
+export function applyScheme(id: string | null, appearance: SchemeAppearance = 'shared') {
   const root = document.documentElement;
   // 清理旧版色板遗留的行内装饰文字色；强调色仍由独立选择器管理。
   root.style.removeProperty('--text-accent');
@@ -445,7 +494,7 @@ export function applyScheme(id: string | null) {
     clearScheme();
     return;
   }
-  const scheme = getSchemeById(id);
+  const scheme = getSchemeById(id, appearance);
   if (!scheme) {
     clearScheme();
     return;

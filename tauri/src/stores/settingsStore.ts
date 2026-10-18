@@ -2,6 +2,7 @@ import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequ
 import { toJsonObject, toObjectSummaryView } from '@/lib/objectViewModel';
 import { withTimeout } from '@/lib/withTimeout';
 import { getSchemeById } from '@/lib/themeSchemes';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { backendErrorLogDetails } from '@/lib/backendErrorWire';
@@ -230,7 +231,9 @@ const CACHE_PREF_KEYS = new Set<string>([
 function writeUiPrefsCache(settings: AppSettings): void {
   try {
     const startupColors = (schemeId: string, fallback: string) => {
-      const variables = (getSchemeById(schemeId) ?? getSchemeById(fallback))!.variables;
+      const appearance = isMobilePlatformSync() ? 'shared' : 'desktop';
+      const variables = (getSchemeById(schemeId, appearance) ??
+        getSchemeById(fallback, appearance))!.variables;
       return {
         background: variables['--bg-base'],
         foreground: variables['--text-primary'],

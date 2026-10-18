@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ThemeConfig } from '@/types';
-import { getSchemeById } from './themeSchemes';
+import { getSchemeById, DESKTOP_NAVIGATION_COLORS } from './themeSchemes';
 import sharedThemes from '../styles/themes.css?raw';
 
 const { invoke, syncNativeAppearance, platform, listen } = vi.hoisted(() => ({
@@ -70,9 +70,11 @@ function expectStatus(mode: 'light' | 'dark') {
 
 function expectDesktopMode(mode: 'light' | 'dark') {
   const root = document.documentElement;
-  const scheme = getSchemeById(mode === 'dark' ? DARK_SCHEME : LIGHT_SCHEME)!;
+  const scheme = getSchemeById(mode === 'dark' ? DARK_SCHEME : LIGHT_SCHEME, 'desktop')!;
   const background = scheme.variables['--bg-base'];
-  const rgb = [1, 3, 5].map((offset) => Number.parseInt(background.slice(offset, offset + 2), 16));
+  const rgb = [1, 3, 5].map((offset) =>
+    Number.parseInt(DESKTOP_NAVIGATION_COLORS[mode].slice(offset, offset + 2), 16),
+  );
   expect.soft(root.dataset.theme).toBe(mode);
   expect.soft(root.style.getPropertyValue('--bg-base')).toBe(background);
   expect.soft(syncNativeAppearance).toHaveBeenCalledExactlyOnceWith({
