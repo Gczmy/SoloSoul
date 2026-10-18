@@ -120,3 +120,7 @@ docs/performance/test_rf312_owned_ui.py text eol=lf
 docs/performance/rf312-owned-ui/*.py text eol=lf
 docs/performance/rf312-owned-ui/*.java text eol=lf
 docs/performance/rf1186-windows-source-checkout-2026-10-18.json text eol=lf
+
+# 公开原生队列单独绑定源码字节，保持新检出与验证来源一致。
+docs/performance/rf312-native-queue/*.py text eol=lf
+docs/performance/rf312-public-native-queue-2026-10-18.json text eol=lf
