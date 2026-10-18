@@ -135,3 +135,8 @@ docs/performance/rf312-sampling-cohort-summary-2026-10-18.json text eol=lf
 docs/performance/rf312_rejected_queue.py text eol=lf
 docs/performance/test_rf312_rejected_queue.py text eol=lf
 docs/performance/rf312-rejected-queue-2026-10-18.json text eol=lf
+
+# 关闭采集的拒绝前缀独立绑定，不改动先前审计入口。
+docs/performance/rf312_rejected_off_queue.py text eol=lf
+docs/performance/test_rf312_rejected_off_queue.py text eol=lf
+docs/performance/rf312-rejected-off-queue-2026-10-18.json text eol=lf

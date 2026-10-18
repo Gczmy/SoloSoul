@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "inputProjectionSha256": "6d9a895c3b8c99f83967ec07c46441d5791d0b9a3b871758009084f6c299ad0a",
+  "inputProjectionSha256": "6059a6b65c13dc66c5a43092159d4bb14f9925dbd4185c124d9c9b848bf0edde",
   "bindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
   "plannedPairs": 6,
   "plannedModeRuns": 12,
   "modeOutcomeCounts": {
     "accepted": 5,
-    "refused": 2,
-    "awaiting-terminal-evidence": 5
+    "refused": 3,
+    "awaiting-terminal-evidence": 4
   },
   "allPlannedModeOutcomesTerminal": false,
   "completeAcceptedPairs": 2,
@@ -18,10 +18,10 @@
       "plannedSamples": 6,
       "caseOutcomeCounts": {
         "accepted": 3,
-        "completed-before-refusal": 0,
+        "completed-before-refusal": 1,
         "refused": 0,
         "not-reached": 0,
-        "awaiting-terminal-evidence": 3
+        "awaiting-terminal-evidence": 2
       },
       "workloadWindowUpperBoundMs": {
         "valuesInPairOrder": [
@@ -241,9 +241,9 @@
       "caseOutcomeCounts": {
         "accepted": 3,
         "completed-before-refusal": 0,
-        "refused": 0,
+        "refused": 1,
         "not-reached": 0,
-        "awaiting-terminal-evidence": 3
+        "awaiting-terminal-evidence": 2
       },
       "workloadWindowUpperBoundMs": {
         "valuesInPairOrder": [
@@ -2071,28 +2071,136 @@
         },
         {
           "mode": "off",
-          "status": "awaiting-terminal-evidence",
+          "status": "refused",
           "bindingSha256": "9a3276a5127a51990e0323211d17aa58c69e21e2a354b9335c592ee2b6f96833",
-          "failureCategory": null,
-          "evidenceSha256": {},
+          "failureCategory": "native-case-refused",
+          "evidenceSha256": {
+            "nativeResult": "a4aa276e65e798987be28b00f358993acba4a6bb07091556329d3dce1fe0727f",
+            "failure": "8ae6b8187145332adc45be07efe36b419012c1294f6a96d29f49cb9957445642",
+            "strictHostAfter": "41a91c3c2b960bf6902e140aba6df71bf3fededfac5f6c37a04753f4ab53baf7",
+            "prefixAudit": "55aaa4acef7808bd7903e386bd52bf4445d9a68bf54faa38646073fb7425b0fc",
+            "prefixContext": "3d754b6d09c34abcebeef81cc4e56b80cdbf71e3c68527ec602c3740c0b745b2"
+          },
           "cases": [
             {
               "objectCount": 100,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
-              "workloadWindowUpperBoundMs": null,
-              "postJourneyPssBytes": null,
+              "status": "completed-before-refusal",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 6844.000000040978
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 16562.00000003446
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 19344.00000004098
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 5312.999999965541
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 7905.999999959022
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 3952.999999979511
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 6375.0
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 6577.999999979511
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 9969.000000040978
+                },
+                {
+                  "name": "pdf-scanned-native",
+                  "hostObservedUpperBoundMs": 7359.99999998603
+                },
+                {
+                  "name": "application-lock",
+                  "hostObservedUpperBoundMs": 2140.00000001397
+                },
+                {
+                  "name": "password-reunlock",
+                  "hostObservedUpperBoundMs": 9671.999999904074
+                }
+              ],
+              "workloadWindowUpperBoundMs": 124734.99999998603,
+              "postJourneyPssBytes": 260634624,
               "journeyMemory": null,
-              "evidenceSha256": {}
+              "evidenceSha256": {
+                "driver": "4c83570cfa7b08f65d610feced7c830a908430043917fdbcdde91eae3c9db794",
+                "supportedState": "ae825ae960a9342726fd5f0dba8ca2bc121248bc24af0f7aa3eba36c7d9689e4",
+                "checkpoint": "c71ee029055ee7511689339142f7cefc9260e76840e46646980cf7b9d585ebd5",
+                "workloadWindow": "26c0e12b82e38fde4864828954eb54d65b8634dbc57867f006668c8bf01aee62",
+                "stateReplay": "01b572abd5b5c6fe2006109c6236d367f42489de7ee0e55848604dfa8d07e4f4",
+                "uiReplay": "d12542547ea92997bf0c11822d1b999d0a34fd25aadbc2f8899771f16dc653c9",
+                "imeReplay": "ab30dda19491dd8fd3321bd65c550b6f18022154ef09b0e55d2f318cb43bd62a"
+              }
             },
             {
               "objectCount": 5000,
-              "status": "awaiting-terminal-evidence",
-              "completedPhases": [],
+              "status": "refused",
+              "completedPhases": [
+                {
+                  "name": "startup",
+                  "hostObservedUpperBoundMs": 4562.999999965541
+                },
+                {
+                  "name": "password-unlock",
+                  "hostObservedUpperBoundMs": 14469.000000040978
+                },
+                {
+                  "name": "first-ocr-user-flow",
+                  "hostObservedUpperBoundMs": 17217.99999999348
+                },
+                {
+                  "name": "workspace",
+                  "hostObservedUpperBoundMs": 4936.999999918044
+                },
+                {
+                  "name": "search-needle",
+                  "hostObservedUpperBoundMs": 8827.99999997951
+                },
+                {
+                  "name": "attachments-open",
+                  "hostObservedUpperBoundMs": 4109.99999998603
+                },
+                {
+                  "name": "image-preview",
+                  "hostObservedUpperBoundMs": 6250.0
+                },
+                {
+                  "name": "text-preview",
+                  "hostObservedUpperBoundMs": 6108.999999938533
+                },
+                {
+                  "name": "pdf-text-native",
+                  "hostObservedUpperBoundMs": 10125.0
+                }
+              ],
               "workloadWindowUpperBoundMs": null,
               "postJourneyPssBytes": null,
               "journeyMemory": null,
-              "evidenceSha256": {}
+              "evidenceSha256": {
+                "driver": "d6c76d630381e916aa27964bf70eeaf6449704464da276ee073d9d5b57176ef4",
+                "phaseProgress": "307d55b4a1b78d39defb8ba94b7f4ab91d5bbd5459f5bf3d04c22143b26fb603",
+                "sdkLedger": "7ee30a19d397a1373cee16a78b7dcbfac3a603c796fcd5d855ac3eee0e54842c",
+                "driverFailure": "e9d88c2eb183f259203047435a8bf3853e80eb210e6003919f674cffdc2465ae",
+                "partialStateReplay": "843f3ffc73480dea33a74d89c6f88c02b448c0319b2350ad92722e8116b3c1b0",
+                "uiReplay": "97597adde1b82aa4e89a22c352586d29a45e7d99ddfa064050bbeaeda6f88047",
+                "imeReplay": "92f137e4708b76c5f9b8fae42636226438346d47124fd50815ccc8f95e4451da"
+              }
             }
           ]
         }
@@ -2229,7 +2337,7 @@
   "twoCommittedFramesProven": false,
   "performanceDistributionAccepted": false,
   "fullRF312Accepted": false,
-  "inputFileSha256": "5bb230b7444e363722a3df19f6bbb6d666e7723e0a506b46dfd693ff4b45e21f",
+  "inputFileSha256": "ecc482f5c2318330588be6c9eca1e3cb127c1f4a8294ec51bf980f60217d4c8f",
   "analysisSourceSha256": {
     "rf312_sampling_cohort.py": "cc3d800da51b5e76f5bdf0791f48f45e2ec799f353e17da50e5d510a7a233fc3",
     "rf312_repeat_summary.py": "eb3ec12c330b96a05d5d4681dd579e68fad3e61c1d4733dffb0afc8b38c620b1"
