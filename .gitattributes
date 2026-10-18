@@ -160,3 +160,7 @@ docs/performance/rf312-milestone-cohort-input-2026-10-18.json text eol=lf
 docs/performance/rf312-milestone-cohort-summary-2026-10-18.json text eol=lf
 docs/performance/rf312-milestone-cohort-2026-10-18.validation.json text eol=lf
 docs/performance/rf312-system-trace-capability-2026-10-18.json text eol=lf
+
+# 固定系统追踪协议读取器与证据摘要的检出字节。
+docs/performance/rf312-system-trace/*.py text eol=lf
+docs/performance/rf312-system-trace-protocol-2026-10-18.json text eol=lf
