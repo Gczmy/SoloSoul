@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "scope": "whole-default-journey-system-trace-integration-component",
+  "productSource": "305b86020a33b5368299b07594b94542f0869e09",
+  "publicBase": "128091123a602019567fd3d6ca9a2a34a30a8400",
+  "nativeCapture": {
+    "originalFrozenInputs": 78,
+    "originalSourceBindings": 97,
+    "privateAdapterSources": 12,
+    "outerRawSdkCommands": 130,
+    "originalUiStages": 24,
+    "uiStateChecks": 358,
+    "originalUnitTests": 206,
+    "nativeRunsAddedByOfflineReplay": 0,
+    "targetInstrumentationInjected": false,
+    "javaScriptInjected": false,
+    "allOriginalStateRestored": true,
+    "strictOriginalNormalHostExitPassed": true,
+    "hostExitBudgetSeconds": 45,
+    "nativeParentSha256": "f6becfc6ed4adf8d64b1ea7ba9f8a80d09be47d0b1bd006c757a5acb7dc95ccc",
+    "originalIndependentReplaySha256": "c029c1af2fd69046856a2f65c8c2ad18681b5adacfaac7d7043eea559cee13c4",
+    "addedIndependentAuditSha256": "c7b56904603d754239b449e9f0590298fb7459c98e61cac86f0c31991917cafa",
+    "nativeHealth": {
+      "preflightDropBoxEntries": 38,
+      "terminalDropBoxEntries": 107,
+      "completeTextsActuallyReviewed": true,
+      "anrOrCrashTagsObserved": false,
+      "fullDropBoxSha256": "347302f59749f2677c4ea6b0969f8db240b851bf691ae94816659f431c357cb8"
+    }
+  },
+  "publicExport": {
+    "uniqueTests": 116,
+    "portableCopySameTests": 116,
+    "publicBoundPythonModules": 19,
+    "fixedCaseInputSizes": [
+      100,
+      5000
+    ],
+    "testStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "testStderrSha256": "27059c8dfdaf18f45444531a97ced1098de65549b36842e4d46d72c86f33aef4",
+    "portableTestStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "portableTestStderrSha256": "bca17a90940b91fd067f481cea6756ebee9cffa2b255248a0f092560bf310c7b",
+    "initialTestFixtureNameErrorRetained": true,
+    "sourceProjection": [
+      {
+        "file": "trace_journey.py",
+        "privateSha256": "baefd312cd099d7d189dd45e378efd8356f19612c77b766c9e06d5122603242b",
+        "publicSha256": "b50d020aa52fdba7116683f1396848710534350068499ea27fc45d8cbdc6b387",
+        "onlyDeclaredPathOrDocstringDifference": true
+      },
+      {
+        "file": "trace_driver.py",
+        "privateSha256": "4ab1ee9fa9bdde592a427b8a83ba093a769fa691c79851c7f6e313c3f52b9102",
+        "publicSha256": "47cb635d27a7e6a1a0dc004ef34e31987f3f5506bf151af23e97fc8da80472b6",
+        "onlyDeclaredPathOrDocstringDifference": true
+      },
+      {
+        "file": "trace_native_owner.py",
+        "privateSha256": "f61e0389b5bc72c0d340a8074c96fd711b075f4a2d98a9c5fd5802455c1740c9",
+        "publicSha256": "094e71f678945a05fb726d4557a4ba9206f7e76786df137037fb08ee57282283",
+        "onlyDeclaredPathOrDocstringDifference": true
+      },
+      {
+        "file": "trace_session.py",
+        "privateSha256": "fe3aaf47aaae08c4dfe626c5cbbd136ceb6bbcef908c989a2dbd7ebed573a8f7",
+        "publicSha256": "9e114908fd4fdd076d7a88f4c42caa5fa8527ccbb95007f177279487a4b9a0e4",
+        "onlyDeclaredPathOrDocstringDifference": true
+      }
+    ],
+    "transportAndTimeoutSourcesByteIdenticalToPublishedBase": true,
+    "exactExecutedBindingPathsStrengthened": true,
+    "originalRestoreTailAndNormalHostShutdownBlockByteIdentical": true,
+    "historicalAndSourceBlobsUnchangedAtPublication": 212,
+    "originalLedgerPrefixPreserved": true,
+    "publicNativeTranscriptOfflineReplaySha256": "b52db685762fdbe0760493a68b664d1905d919ecc1384d1ed61e1b28e1b4460e",
+    "actualDeclaredInputPreparationPassed": true,
+    "consumedAvdRefusedBeforeSdkStart": true,
+    "freshUnbootedAvdFullArgumentsPassed": true,
+    "freshArgumentsFrozenInputs": 85,
+    "positiveEntryReceiptSha256": "1c52bcaab147e59c58677867a5f194842e2fce856cfe38235b3c7d09c160cf75",
+    "avdmanagerMetadataPreparations": 1,
+    "freshAvdEmulatorStarted": false,
+    "freshAvdAdbCommands": 0,
+    "publicEntryFullNativeRerunCompleted": false
+  },
+  "traceAnalysis": {
+    "methodRevision": "offline-full-sort-r2",
+    "processorVersion": "v58.2",
+    "processorSha256": "adfa6bad3d72be3ba9b83fa2b17b69fa13b3ab1cad0f42e52b86188bd5f0f997",
+    "originalQualitySqlSha256": "43ab8ef931c2b3196397728a74843cb3d20fd12a6d04f077accbf35c0be4e462",
+    "originalRawTracesUnchanged": true,
+    "originalZeroErrorAndDataLossGateUnchanged": true,
+    "rawWarningReviewSha256": "621f3366cdc63a31d9b71217c2263b1d11ac4779c2aa06289c63d5c7041b237d",
+    "fixedPrimarySources": [
+      {
+        "url": "https://raw.githubusercontent.com/google/perfetto/v58.2/src/trace_processor/importers/ftrace/rss_stat_tracker.cc",
+        "sha256": "123f7744c5f82c7301e1e790d3f6a9c5e9b8d26bad1a78f6cec6f3e89f6f18ce"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/perfetto/v58.2/protos/third_party/android/frameworks/native/tracing/frameworks_native_trace_packet.proto",
+        "sha256": "c601da704818c29623d7f3306356d274e1f8c5a1663d4c3974b609710ad5121e"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/perfetto/v58.2/protos/perfetto/trace/ftrace/kmem.proto",
+        "sha256": "e20f97c765583267b8617fc14ce930ac0ca8eddbf122f748963aac3b9c0df9fd"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/perfetto/v58.2/protos/perfetto/trace/ftrace/ftrace_event.proto",
+        "sha256": "a5703da9a8328ee14db9893ee6aab5ceb4f292d32b5b50e90eb7530b5b076b6d"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/perfetto/v58.2/protos/perfetto/trace/ftrace/ftrace_event_bundle.proto",
+        "sha256": "c8d9c8d13ae811821b22db92d49ad08acafd00a97896777ec9eef9473d5e39e1"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/perfetto/v58.2/protos/perfetto/common/trace_stats.proto",
+        "sha256": "d8632f0afe4f10e48ccf0dae7a274a1b716ef4fbc16e6c74592ef8f9037ea3fd"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "objectCount": 100,
+      "uiStages": 12,
+      "mainIdentityChecks": 13,
+      "extraTraceSdkCommands": 69,
+      "nativeSessionCommandsOfflineReplayedByPublicLibrary": 16,
+      "nativeKernelIdentityCommandsReplayed": 52,
+      "nativeClockTicksPerSecond": 100,
+      "boottimeBirthQuantisationVerified": true,
+      "rawTraceBytes": 11817142,
+      "rawTracePackets": 14629,
+      "rawTraceSha256": "07541724196e8386b383e183610f86f1330f606fddff18c3262162fd8f682999",
+      "baseZeroErrorAndDataLossSeverityPassed": true,
+      "ftraceEvents": 251986,
+      "rssStatEvents": 210950,
+      "memoryCounterSamples": 494961,
+      "clockSnapshotRows": 1830,
+      "frameTimelineParserErrors": 2,
+      "invalidFrameEventsRawReviewed": true,
+      "invalidFrameEventsProcess": "system_server",
+      "mainProcessActualFrameRows": 569,
+      "mainProcessUnfinishedFrameRows": 1,
+      "rssNegativeSize": 29,
+      "rssUnknownMmThread": 512,
+      "serviceChunksDiscarded": 0,
+      "serviceChunkImpactScopeProven": false,
+      "memoryPoints": 87,
+      "acceptedMemoryPoints": 84,
+      "refusedPoints": 2,
+      "missedPeriodicSlots": 1,
+      "plannedPeriodicSlots": 74,
+      "refusedPeriodicCaptures": 1,
+      "allPeriodicCapturesSucceeded": false,
+      "sampledMaximumSerialPssBytes": 316201984,
+      "allScheduledSlotsAccounted": true,
+      "memoryBoundaryPointsReplayed": 12,
+      "exactContinuousPeakAccepted": false,
+      "frameCompletenessAccepted": false,
+      "memoryCompletenessAccepted": false,
+      "applicationOnlyLatencyAccepted": false
+    },
+    {
+      "objectCount": 5000,
+      "uiStages": 12,
+      "mainIdentityChecks": 13,
+      "extraTraceSdkCommands": 69,
+      "nativeSessionCommandsOfflineReplayedByPublicLibrary": 16,
+      "nativeKernelIdentityCommandsReplayed": 52,
+      "nativeClockTicksPerSecond": 100,
+      "boottimeBirthQuantisationVerified": true,
+      "rawTraceBytes": 11969562,
+      "rawTracePackets": 14280,
+      "rawTraceSha256": "3eaa46ae68b1714e5d17d69fc58da340fde8b89fb1f2e2f01e19603482691d22",
+      "baseZeroErrorAndDataLossSeverityPassed": true,
+      "ftraceEvents": 250988,
+      "rssStatEvents": 210105,
+      "memoryCounterSamples": 491030,
+      "clockSnapshotRows": 1848,
+      "frameTimelineParserErrors": 2,
+      "invalidFrameEventsRawReviewed": true,
+      "invalidFrameEventsProcess": "system_server",
+      "mainProcessActualFrameRows": 526,
+      "mainProcessUnfinishedFrameRows": 0,
+      "rssNegativeSize": 3,
+      "rssUnknownMmThread": 1824,
+      "serviceChunksDiscarded": 1,
+      "serviceChunkImpactScopeProven": false,
+      "memoryPoints": 88,
+      "acceptedMemoryPoints": 85,
+      "refusedPoints": 2,
+      "missedPeriodicSlots": 2,
+      "plannedPeriodicSlots": 75,
+      "refusedPeriodicCaptures": 0,
+      "allPeriodicCapturesSucceeded": true,
+      "sampledMaximumSerialPssBytes": 306184192,
+      "allScheduledSlotsAccounted": true,
+      "memoryBoundaryPointsReplayed": 12,
+      "exactContinuousPeakAccepted": false,
+      "frameCompletenessAccepted": false,
+      "memoryCompletenessAccepted": false,
+      "applicationOnlyLatencyAccepted": false
+    }
+  ],
+  "priorFailureRetention": {
+    "preSdkEntryRefusals": 2,
+    "priorWholeJourneyNativeStillRejected": true,
+    "priorSingleTerminatorAssumptionBytes": 99,
+    "actualTrailingNulBytes": 83,
+    "priorTerminalFullDropBoxGapRetained": true,
+    "originalSevenJavaFrameRefusalsRetained": true,
+    "previousMethodsNotPooled": true
+  },
+  "firstInteractiveTimeProven": false,
+  "frameCompletenessAccepted": false,
+  "wholeJourneyMemoryPeakAccepted": false,
+  "applicationPerformanceAccepted": false,
+  "performanceDistributionAccepted": false,
+  "fullRF312Accepted": false,
+  "closureCounts": {
+    "closed": 368,
+    "total": 377,
+    "unfinished": 9
+  },
+  "goalStatus": "active"
+}
