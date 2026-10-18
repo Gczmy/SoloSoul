@@ -69,6 +69,7 @@ def main():
     parser.add_argument('--diagnostic-inputs',type=Path,required=True)
     parser.add_argument('--powershell',type=Path,required=True)
     parser.add_argument('--powershell-sha256',required=True)
+    parser.add_argument('--window-frame-trace',action='store_true',help='Optional passive window metrics; never native commit evidence')
     args=parser.parse_args()
     diagnostic=diagnostic_binding.load(args.diagnostic_inputs)
     runtime_file=Path(diagnostic['config']['runtimeInputs'])
@@ -120,6 +121,7 @@ def main():
         ANDROID_ADB_SERVER_PORT='5057',ADB_SERVER_SOCKET='tcp:127.0.0.1:5057',TEMP=str(out),TMP=str(out),PYTHONDONTWRITEBYTECODE='1',PYTHONPATH=os.pathsep.join([str(ROOT),str(HELPER),str(diagnostic_binding.LEGACY),str(PUBLIC)]))
     record=dict(passed=False,scope='explicit-default-apk-two-size-native-startup-frame-commits',kind=args.kind,
         targetInstrumentationInjected=True,metadataJavaScriptEvaluation=True,physicalPublicUiDispatched=False,
+        optionalWindowFrameTraceRequested=args.window_frame_trace,
         actualIpcAccepted=False,fullJourneyAccepted=False,performanceSampleAccepted=False,fullRF312Accepted=False,
         frozenInputs=frozen,defaultReadersChanged=False,commands=[])
     save(out/'intent.json',record);save(out/'fresh-avd-inventory.json',fresh_inventory)
@@ -252,6 +254,7 @@ def main():
                 '--restore-apk',runtime['originalDebug']['copy'],'--test-apk',runtime['runtimeTest']['path'],
                 '--fixture',runtime['fixedFixtures'][str(count)]['root'],'--inputs',str(runtime_file),
                 '--diagnostic-inputs',str(args.diagnostic_inputs),'--object-count',str(count),'--mode','supported','--output',str(child_out)]
+            if args.window_frame_trace:command+=['--window-frame-trace']
             started=time.monotonic()
             with (out/('journey-'+str(count)+'.stdout')).open('xb') as stdout,(out/('journey-'+str(count)+'.stderr')).open('xb') as stderr:
                 child=subprocess.Popen(command,cwd=WORK,env=env,stdin=subprocess.DEVNULL,stdout=stdout,stderr=stderr,creationflags=subprocess.CREATE_NO_WINDOW)
@@ -277,6 +280,9 @@ def main():
             assert evidence['nativeInstrumentationStateChecks']>3
             assert evidence['metadataJavaScriptEvaluation'] is True and contract['frameCommitContractAccepted'] is True
             assert contract['committedFrames']==2 and contract['nativeRuntimeAccepted'] is False
+            if args.window_frame_trace:
+                window_contract=load(child_out/'target-instrumentation/window-trace-contract.json')
+                assert window_contract['observationHooksAndCleanupComplete'] is True and window_contract['nativeFramesAccepted'] is False
             assert contract['physicalDisplayPresentationProven'] is False and contract['applicationOnlyLatencyAccepted'] is False
             for folder in ['target-instrumentation','independent-observer','persistent-control']:
                 assert load(child_out/folder/'cleanup.json')['accepted'] is True

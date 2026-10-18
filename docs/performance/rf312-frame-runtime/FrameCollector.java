@@ -56,6 +56,7 @@ public final class FrameCollector extends Instrumentation {
       + "timeOriginMs:performance.timeOrigin,atMs:performance.now()});})()";
 
   private Bundle arguments;
+  private WindowFrameTrace windowTrace;
   private File root;
   private String run;
   private JSONObject process;
@@ -129,7 +130,8 @@ public final class FrameCollector extends Instrumentation {
   }
 
   private void write(String name, JSONObject value) throws Exception {
-    require(name.equals("ready.json") || name.equals("frames.json") || name.equals("failure.json"));
+    require(name.equals("ready.json") || name.equals("frames.json") || name.equals("failure.json")
+        || (windowTrace != null && name.equals("window-trace.json")));
     File file = new File(root, name); require(file.createNewFile());
     byte[] raw = (value.toString() + "\n").getBytes(StandardCharsets.UTF_8);
     try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(raw); stream.getFD().sync(); }
@@ -272,7 +274,8 @@ public final class FrameCollector extends Instrumentation {
         view.postVisualStateCallback(fenceRequest, new Fence(request -> {
           try {
             require(!closed && request == fenceRequest && System.nanoTime() < deadline); boundView();
-            fenceCompleteNs = System.nanoTime(); frameSequence = new FrameCommitSequence(fenceCompleteNs, deadline);
+            fenceCompleteNs = windowTrace == null ? System.nanoTime() : windowTrace.fenceCompleted(view);
+            frameSequence = new FrameCommitSequence(fenceCompleteNs, deadline);
             nativeStatus = "native-draw-listener-armed";
           } catch (Throwable error) { failure.compareAndSet(null, "visual-fence-rejected"); }
         }));
@@ -284,7 +287,9 @@ public final class FrameCollector extends Instrumentation {
   }
 
   private boolean detach(boolean verifyBoundWindow) {
+    long stopBegin = System.nanoTime(), stopDeadline = stopBegin + READ_NS;
     closed = true;
+    if (windowTrace != null) windowTrace.beginClose(stopBegin);
     CountDownLatch done = new CountDownLatch(1);
     AtomicBoolean clean = new AtomicBoolean();
     main.post(() -> {
@@ -295,12 +300,16 @@ public final class FrameCollector extends Instrumentation {
           if (preDrawListener != null) tree.removeOnPreDrawListener(preDrawListener);
           if (pendingCallback != null) tree.unregisterFrameCommitCallback(pendingCallback);
         }
+        if (windowTrace != null) windowTrace.removeOnMain();
         clean.set(true);
       } catch (Throwable error) { failure.compareAndSet(null, "frame-listener-cleanup-rejected"); }
       finally { done.countDown(); }
     });
-    try { return done.await(3, TimeUnit.SECONDS) && clean.get(); }
-    catch (InterruptedException error) { Thread.currentThread().interrupt(); return false; }
+    try {
+      long left = stopDeadline - System.nanoTime();
+      boolean base = left > 0 && done.await(left, TimeUnit.NANOSECONDS) && clean.get();
+      return windowTrace == null ? base : windowTrace.finishClose(stopDeadline) && base;
+    } catch (InterruptedException error) { Thread.currentThread().interrupt(); return false; }
   }
 
   @Override public void onCreate(Bundle args) { super.onCreate(args); arguments = args; start(); }
@@ -309,6 +318,8 @@ public final class FrameCollector extends Instrumentation {
     Bundle terminal = new Bundle(); JSONObject before = null; long deadline = 0;
     try {
       require(Build.VERSION.SDK_INT >= 29 && arguments != null);
+      String traceOption = arguments.getString("windowFrameTrace");
+      require(traceOption == null || "true".equals(traceOption));
       run = arguments.getString("runId"); String expected = arguments.getString("targetApkSha256");
       require(run != null && run.matches("[a-f0-9]{32}") && expected != null && expected.matches("[a-f0-9]{64}"));
       require("true".equals(arguments.getString("privateDataBackedUp")) && APP.equals(getTargetContext().getPackageName()));
@@ -318,9 +329,15 @@ public final class FrameCollector extends Instrumentation {
       root = new File(parent, "rf312-frames-" + run); require(!root.exists() && root.mkdir());
       monitor = addMonitor("com.solosoul.app.MainActivity", null, false);
       traceStartedNs = System.nanoTime(); deadline = traceStartedNs + STAGE_NS;
+      String collectorIdentity = fileSha(new File(getContext().getApplicationInfo().sourceDir));
+      if (traceOption != null) {
+        step = "window-trace-hooks";
+        windowTrace = new WindowFrameTrace(run, process, expected, collectorIdentity, traceStartedNs, deadline, main);
+        windowTrace.start(getTargetContext().getApplicationContext());
+      }
       write("ready.json", new JSONObject().put("schemaVersion", 1).put("scope", "native-login-frame-commit-probe")
           .put("runId", run).put("process", process).put("targetApkSha256", expected)
-          .put("collectorApkSha256", fileSha(new File(getContext().getApplicationInfo().sourceDir)))
+          .put("collectorApkSha256", collectorIdentity)
           .put("startedNs", traceStartedNs).put("deadlineNs", deadline));
       step = "usable-login-document";
       while (System.nanoTime() < deadline && before == null) { before = state(deadline); if (before == null) SystemClock.sleep(25); }
@@ -347,6 +364,7 @@ public final class FrameCollector extends Instrumentation {
           .put("forcedInvalidation", false).put("inputDispatched", false).put("businessIpcDispatched", false)
           .put("documentBefore", before).put("documentAfter", after).put("frames", new JSONArray(captured))
           .put("callbacksDetached", true).put("physicalDisplayPresentationProven", false).put("applicationOnlyLatencyAccepted", false);
+      if (windowTrace != null) write("window-trace.json", windowTrace.snapshot());
       write("frames.json", result);
       // Keep the instrumented window alive for external native screenshots.
       // The acknowledgement consumes the SAME original stage budget.
@@ -359,6 +377,9 @@ public final class FrameCollector extends Instrumentation {
       finish(Activity.RESULT_OK, terminal);
     } catch (Throwable error) {
       boolean detached = detach(false);
+      try {
+        if (root != null && windowTrace != null) write("window-trace.json", windowTrace.snapshot());
+      } catch (Throwable ignored) { terminal.putBoolean("windowTraceUnavailable", true); }
       try {
         if (root != null) write("failure.json", new JSONObject().put("schemaVersion", 2).put("runId", run)
             .put("scope", "native-login-frame-commit-refusal").put("step", step)

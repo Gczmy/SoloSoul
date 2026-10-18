@@ -12,7 +12,7 @@ from diagnostic_exchange import binding as bind_transport
 APP=original.APP;S=original.S
 sha=original.sha;save=original.save;labels=original.labels
 
-def observe(adb,read,output,count,uid,public_image_name,inputs,binding):
+def observe(adb,read,output,count,uid,public_image_name,inputs,binding,*,window_frame_trace=False):
     for name,key in [('observer_session.py','journeyObserverSessionSha256'),('process_identity.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
         if sha(S/name)!=inputs[key]:raise RuntimeError('Frozen native startup dependencies changed')
     original_adb,original_read=adb,read
@@ -30,7 +30,7 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,binding):
                 expected_executable_sha256=host['adbSha256'],script=frame_binding.LEGACY/'exchange_control.sh',shell_crlf=True) as (adb,read):
             adb('shell','am','force-stop',APP,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             if reader.read_process_ids(read,APP):raise RuntimeError('Startup requires a stopped target')
-            with native.session(original_adb,original_read,output,observer,uid,binding,gate) as collector:
+            with native.session(original_adb,original_read,output,observer,uid,binding,gate,window_frame_trace=window_frame_trace) as collector:
                 stage_deadline=collector.deadline
                 j=original.Journey(observer,focused,output,inputs)
                 began=time.monotonic();framework=read('shell','am','start','-W','-n',APP+'/.MainActivity')

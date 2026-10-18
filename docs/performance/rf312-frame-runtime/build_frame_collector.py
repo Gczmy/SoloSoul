@@ -14,7 +14,7 @@ sha=frame_binding.sha
 FIELDS={'schemaVersion','runtimeInputs','runtimeInputsSha256','defaultPackageConfig',
         'defaultPackageConfigSha256','nodeExecutable','toolSha256','sourceSha256'}
 TOOLS={'java','javac','jvm','androidJar','aapt2','apksigner','d8','zipalign','node'}
-LOCAL=('FrameCollector.java','AndroidManifest.xml','readiness.node.test.mjs','frame_manifest.py','build_frame_collector.py','FrameCommitSequence.java','FrameCommitSequenceTest.java')
+LOCAL=('FrameCollector.java','AndroidManifest.xml','readiness.node.test.mjs','frame_manifest.py','build_frame_collector.py','FrameCommitSequence.java','FrameCommitSequenceTest.java','WindowFrameTrace.java')
 
 def source_hashes():
     return {**{'runtime/'+name:value for name,value in frame_binding.sources().items()},
@@ -66,6 +66,7 @@ def main(argv=None):
     source=producer.ordinary(ROOT/'FrameCollector.java');manifest=producer.ordinary(ROOT/'AndroidManifest.xml')
     tests=producer.ordinary(ROOT/'readiness.node.test.mjs')
     sequence=producer.ordinary(ROOT/'FrameCommitSequence.java');sequence_test=producer.ordinary(ROOT/'FrameCommitSequenceTest.java')
+    window_source=producer.ordinary(ROOT/'WindowFrameTrace.java')
     tree=ET.fromstring(manifest.read_bytes())
     expected={'uses-sdk':{'minSdkVersion':'29','targetSdkVersion':'35'},
         'application':{'debuggable':'false','allowBackup':'false','hasCode':'true'},
@@ -80,7 +81,7 @@ def main(argv=None):
     out.mkdir(exist_ok=False)
     for name in ['temp','java-user','classes','test-classes','dex']:(out/name).mkdir()
     inputs={str(p):sha(p) for p in [config_file,Path(config['runtimeInputs']),Path(config['defaultPackageConfig']),key]}
-    sources={str(p):sha(p) for p in [source,manifest,tests,ROOT/'frame_manifest.py',Path(__file__),sequence,sequence_test]}
+    sources={str(p):sha(p) for p in [source,manifest,tests,ROOT/'frame_manifest.py',Path(__file__),sequence,sequence_test,window_source]}
     env=dict(os.environ,TEMP=str(out/'temp'),TMP=str(out/'temp'),TMPDIR=str(out/'temp'),
         JAVA_OPTS='',_JAVA_OPTIONS='',JDK_JAVA_OPTIONS='',
         JAVA_TOOL_OPTIONS='-Duser.home="'+(out/'java-user').as_posix()+'" -Djava.io.tmpdir="'+(out/'temp').as_posix()+'"')
@@ -104,10 +105,11 @@ def main(argv=None):
     try:
         producer.package.check_certificate(run('baseline-signature',[tools['java'],'-jar',tools['apksigner'],
             'verify','--verbose','--print-certs',runtime['release']['apk']['path']]).decode(),signer['certificateSha256'])
-        run('javac',[tools['javac'],'--release','11','-encoding','UTF-8','-cp',tools['androidJar'],'-d',out/'classes',source,sequence])
+        run('javac',[tools['javac'],'--release','11','-encoding','UTF-8','-cp',tools['androidJar'],'-d',out/'classes',source,sequence,window_source])
         classes={p.relative_to(out/'classes').as_posix():dict(bytes=p.stat().st_size,sha256=sha(p)) for p in sorted((out/'classes').rglob('*.class'))}
         if set(classes)!={'org/solosoul/rf312frames/FrameCollector.class','org/solosoul/rf312frames/FrameCollector$Fence.class',
-                'org/solosoul/rf312frames/FrameCommitSequence.class','org/solosoul/rf312frames/FrameCommitSequence$Ticket.class'}:
+                'org/solosoul/rf312frames/FrameCommitSequence.class','org/solosoul/rf312frames/FrameCommitSequence$Ticket.class',
+                'org/solosoul/rf312frames/WindowFrameTrace.class','org/solosoul/rf312frames/WindowFrameTrace$TraceThread.class'}:
             raise ValueError('Exact compiled frame actor classes required')
         run('sequence-test-compile',[tools['javac'],'--release','11','-encoding','UTF-8',
             '-cp',out/'classes','-d',out/'test-classes',sequence_test])

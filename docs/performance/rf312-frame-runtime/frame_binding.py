@@ -18,7 +18,7 @@ producer=inherited.producer
 require_assertions=inherited.require_assertions
 sha=inherited.sha
 LOCAL=('frame_binding.py','frame_owner.py','frame_driver.py','frame_ui_session.py',
-       'frame_session.py','frame_journey.py','frame_receipt.py','test_frame_receipt.py','test_frame_runtime.py')
+       'frame_session.py','frame_journey.py','frame_receipt.py','test_frame_receipt.py','test_frame_runtime.py','window_trace.py','test_window_trace.py')
 FIELDS={'schemaVersion','scope','sharedPublic','runtimeInputs','runtimeInputsSha256',
         'collectorPackageReceipt','collectorPackageReceiptSha256','avd','sourceSha256'}
 

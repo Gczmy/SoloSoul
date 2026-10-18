@@ -25,6 +25,7 @@ def main():
     parser.add_argument('--fixture',required=True)
     parser.add_argument("--inputs", required=True, type=Path)
     parser.add_argument("--diagnostic-inputs",required=True,type=Path)
+    parser.add_argument('--window-frame-trace',action='store_true')
     args = parser.parse_args()
     if args.scenario != 'baseline' or args.motion_preferences or args.font_scale is not None:
         parser.error('Fixed-Vault driver accepts baseline only; original restoration guards stay unchanged')
@@ -59,6 +60,7 @@ def main():
     report = {"serial": args.serial, "avd": args.avd, "mode": args.mode, "scenario": args.scenario,
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
+    report['optionalWindowFrameTraceRequested']=args.window_frame_trace
     report['runtimeInputsSha256']=hashlib.sha256(input_bytes).hexdigest()
     report['runtimeSourcesSha256']=frozen_inputs['fullJourneyFiles']
     selected = False
@@ -243,7 +245,7 @@ def main():
         external_spec = importlib.util.spec_from_file_location('default_external', external_path)
         external = importlib.util.module_from_spec(external_spec)
         external_spec.loader.exec_module(external)
-        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs, binding_record)
+        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs, binding_record,window_frame_trace=args.window_frame_trace)
         report['diagnosticExternalEvidence'] = evidence
         report['stages'] = evidence['stageNames']
         report['nativePassed'] = evidence['success'] is True and evidence['metadataContractAccepted'] is True

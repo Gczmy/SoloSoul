@@ -35,7 +35,7 @@ python -B -m unittest discover -s $frameSource -p 'test_*.py' -v
 python -B "$frameSource/build_frame_collector.py" --config $builderConfig --output $newCollectorOutput
 ```
 
-构建执行十二个真实工具步骤，包括编译、11 项纯 Java 顺序回归、9 项从实际 Java 字面量提取的就绪检查、DEX／资源打包、内部签名、签名／对齐及编译清单校验。四个业务类进入 APK，测试类不打包。纯 Java 回归模拟已核对的参考框架事件顺序，本身不是原生渲染证据。
+构建执行十二个真实工具步骤，包括编译、11 项纯 Java 顺序回归、9 项从实际 Java 字面量提取的就绪检查、DEX／资源打包、内部签名、签名／对齐及编译清单校验。六个诊断类进入 APK，测试类不打包。纯 Java 回归模拟已核对的参考框架事件顺序，本身不是原生渲染证据。
 
 运行配置字段精确为 `schemaVersion`（整数 1）、`scope`（`explicit-default-apk-native-frame-commits`）、`sharedPublic`（本仓库 `docs/performance` 的绝对路径）、`runtimeInputs`、`runtimeInputsSha256`、`collectorPackageReceipt`（新采集器 `package.json`）、`collectorPackageReceiptSha256`、`avd`（本次专用设备名）和 `sourceSha256`。最后一项由 `frame_binding.sources()` 生成；各回执及输入必须实际存在且内容匹配。源码目录保持仓库布局时自动定位共享目录；移动整个诊断目录时，另设 `RF312_FRAME_SHARED_PUBLIC` 为明确的共享目录，且须与配置一致。
 
@@ -60,10 +60,20 @@ python -B "$frameSource/frame_owner.py" --kind native-frames `
 
 放行后只使用固定公开夹具，按 100→5000 运行；第一档拒绝时不会启动第二档。全过程保留原私有数据／APK／UID／设置备份和恢复、原生插桩身份、物理 UI／命中检查及正常 SDK 关闭／严格宿主后验。原 45 秒阶段、3 秒 JavaScript、5 秒状态 SDK、240 秒／512 请求观察器及 45 秒宿主退出期限不变。
 
+## 可选被动窗口追踪
+
+仅在上述运行命令末尾显式添加 `--window-frame-trace` 才启用；默认关闭，不启动追踪线程、不挂接这些附加监听器、不生成追踪文件。启用后在 Activity 创建完成时观察已有 Window／Decor，不主动创建 Decor、安排绘制、请求焦点或输入。`OnPreDraw` 始终返回 true。
+
+它分别记录早期预绘制／绘制计数，以及最多 64 条连续的窗口指标前缀；总回调、原生报告丢失、截断和到期后回调另记。指标对象在回调内复制，保留不可用值 `-1`；投递时间与绘制时间不同，原始 VSYNC 时钟不转换、不与视觉栅栏比较。窗口指标不能计为两次原生提交，也不声称覆盖了所有帧。[窗口指标回调](https://developer.android.com/reference/android/view/Window.OnFrameMetricsAvailableListener)、[FrameMetrics](https://developer.android.com/reference/android/view/FrameMetrics)。
+
+新增 `target-instrumentation/window-trace.json`、原 SHA 标记及读取结果 `window-trace-contract.json`。追踪是独立的 52 字段 schema 1，绑定原进程／APK／就绪回执和原 45 秒期限；同一把锁划分栅栏与实际停止采集时刻，原三秒拆除预算从拆除尝试开始计算。附加监听器和 worker 均须清理。失败时只在采集器真正结束后收回完整文件，旧失败原件与原两帧读取器保持。
+
 ## 读取结果与当前边界
 
 查看父级 `result.json`、子级 `report.json`、`target-instrumentation/terminal-failure.json` 及其 SHA 标记、各清理回执和严格宿主后验。失败终态必须在实际采集器结束后收回，再由对应来源版本的 `refusal_contract` 校验；保存原始失败和不完整尾部，不混入成功样本。
 
-当前六轮均未收到两次原生提交；第六轮采用本目录相同源码及同一字节的 APK，仍在 100 档拒绝，5000 档未启动。监听已安装，但未观察到后续有效预绘制／绘制或提交记录。注册顺序缺陷与缺少后续绘制不能混为同一根因。正向原生两帧、完整两档入口与性能样本均未验收；API、编译、CLI、回归测试或恢复通过不能替代这些结果。
+当前七轮均未通过两次原生提交。第七轮采用本目录相同的 19 份源码及同字节 APK，附加追踪在 100 档记录到 32 次预绘制、32 次绘制和 31 次窗口指标回调，WebView 与 Decor 的视图树一致。视觉栅栏后未观察到新的 Java 绘制，收到一条指标投递；该投递不证明发生了新的栅栏后绘制。两帧阶段仍拒绝，5000 档未启动，不能把早期绘制和指标投递补成成功样本。
 
-原始 APK／构建产物、截图、系统回复、备份和本机标识只留本地。公开[六轮去标识证据](rf312-startup-frame-diagnostics-2026-10-18.json)及[诊断记录](RF-312-startup-frame-diagnostics.md)保留每一轮拒绝、首轮缺口和原统计。RF-312 仍未完成。
+52 项 Python、11 项纯 Java、9 项就绪回归及公开目录十二步实际构建通过；公开 APK 与原生测试包逐字一致，绑定 115 份运行、123 份构建来源。正常 CLI、优化模式拒绝和异地路径帮助已验证。正向原生两帧、完整两档入口、应用本体时延和默认性能样本仍未验收。下一步先审查原报告的启动终点及当前“栅栏之后再发生两次新绘制”条件，不盲目重复运行，也不静默放宽或改判旧失败。
+
+原始 APK／构建产物、截图、系统回复、备份和本机标识只留本地。公开[七轮去标识证据](rf312-startup-frame-diagnostics-2026-10-18.json)及[诊断记录](RF-312-startup-frame-diagnostics.md)保留每一轮拒绝、首轮缺口和原统计。RF-312 仍未完成。

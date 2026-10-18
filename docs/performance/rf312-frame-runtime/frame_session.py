@@ -2,6 +2,7 @@
 from contextlib import contextmanager
 import hashlib,json,re,subprocess,time,uuid
 import frame_receipt as receipt_reader
+import window_trace as window_reader
 
 APP='com.solosoul.app';PKG='org.solosoul.rf312frames'
 COMPONENT=PKG+'/'+PKG+'.FrameCollector'
@@ -73,7 +74,8 @@ def refusal_contract(body,marker,token):
     return value
 
 @contextmanager
-def session(adb,read,output,observer,uid,binding,gate):
+def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False):
+    if type(window_frame_trace) is not bool:raise ValueError("Explicit optional trace boolean required")
     package=binding['collector'];app=binding['package'];token=uuid.uuid4().hex
     folder=output/'target-instrumentation';folder.mkdir(exist_ok=False)
     remote='/sdcard/Android/data/'+APP+'/files/rf312-frames-'+token
@@ -101,7 +103,7 @@ def session(adb,read,output,observer,uid,binding,gate):
         if read('shell','sha256sum',base.removeprefix('package:')).split()!=[package['sha256'],base.removeprefix('package:')]:
             raise RuntimeError('Installed frame collector changed')
     def document(name):
-        if name not in ['ready.json','frames.json']:raise ValueError('Exact native frame metadata name required')
+        if name not in (['ready.json','frames.json','window-trace.json'] if window_frame_trace else ['ready.json','frames.json']):raise ValueError('Exact native frame metadata name required')
         while call(['shell','test','-f',remote+'/'+name+'.sha256'],missing=True) is None:
             if process.poll() is not None:raise RuntimeError('Frame collector ended before expected metadata')
             time.sleep(min(.025,remaining()))
@@ -122,6 +124,11 @@ def session(adb,read,output,observer,uid,binding,gate):
             raw=document('frames.json')
             self.metadata=receipt_reader.validate(ready,receipt_reader.decode(raw),run_id=token,
                 expected_process=self.process,target_apk_sha256=app['sha256'],collector_apk_sha256=package['sha256'],expected_api=31)
+            if window_frame_trace:
+                window_raw=document('window-trace.json')
+                window_proof=window_reader.validate(window_raw,(folder/'window-trace.json.sha256').read_bytes(),ready)
+                save(folder/'window-trace-contract.json',window_proof)
+                if not window_proof['observationHooksAndCleanupComplete']:raise RuntimeError('Optional window trace cleanup incomplete')
             focus=call(['shell','dumpsys','window','displays']).decode()
             if not re.search(r'mCurrentFocus=.*'+re.escape(APP)+'/',focus):
                 raise RuntimeError('Actual foreground application window required before acknowledgement')
@@ -138,7 +145,7 @@ def session(adb,read,output,observer,uid,binding,gate):
             terminal((folder/'instrumentation.stdout').read_text(encoding='utf-8'))
             save(folder/'metadata-contract.json',self.metadata)
             names=call(['shell','ls','-A',remote]).decode().splitlines()
-            if len(names)!=5 or set(names)!=set(files):raise RuntimeError('Exact five owned frame metadata files required')
+            if len(names)!=(7 if window_frame_trace else 5) or set(names)!=set(files):raise RuntimeError('Exact owned frame metadata file set required')
             if call(['shell','find',remote,'-type','l']):raise RuntimeError('Frame metadata symlinks rejected')
             rows=call(['shell','sha256sum',*[remote+'/'+name for name in sorted(names)]]).decode().splitlines()
             observed={}
@@ -161,6 +168,7 @@ def session(adb,read,output,observer,uid,binding,gate):
         command=[binding['host']['adbExecutable'],'-H','127.0.0.1','-P','5057','-s',binding['host']['serial'],
             'shell','am','instrument','-w','-r','-e','runId',token,'-e','targetApkSha256',app['sha256'],
             '-e','privateDataBackedUp','true',COMPONENT]
+        if window_frame_trace:command[-1:-1]=['-e','windowFrameTrace','true']
         process=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=stdout,stderr=stderr,creationflags=subprocess.CREATE_NO_WINDOW)
         save(folder/'live.json',dict(pid=process.pid,command=command,originalHostPhaseDeadline=deadline))
         ready=ready_contract(document('ready.json'),token,app['sha256'],package['sha256'],uid)
@@ -174,7 +182,7 @@ def session(adb,read,output,observer,uid,binding,gate):
     except BaseException as error:
         original_error=error;proof['originalErrorType']=type(error).__name__
         # Preserve all bounded known files, including refusals. Never manufacture a pass.
-        for name in ['ready.json','ready.json.sha256','frames.json','frames.json.sha256','failure.json','failure.json.sha256']:
+        for name in ['ready.json','ready.json.sha256','frames.json','frames.json.sha256','failure.json','failure.json.sha256']+(['window-trace.json','window-trace.json.sha256'] if window_frame_trace else []):
             if not (folder/name).exists():
                 try:
                     value=adb('exec-out','cat',remote+'/'+name,timeout=5,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
@@ -203,6 +211,16 @@ def session(adb,read,output,observer,uid,binding,gate):
                 (folder/'terminal-failure.json.sha256').write_bytes(marker)
                 proof['completeTerminalRefusalPreserved']=True
             except Exception as capture:proof['terminalRefusalCaptureErrorType']=type(capture).__name__
+        if window_frame_trace and original_error is not None and ready is not None and process is not None and process.poll() is not None:
+            try:
+                body=adb('exec-out','cat',remote+'/window-trace.json',timeout=5,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
+                marker=adb('exec-out','cat',remote+'/window-trace.json.sha256',timeout=5,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
+                if not 0<len(body)<=32768 or not re.fullmatch(b'[a-f0-9]{64}\n',marker) or sha(body)!=marker.decode().strip():
+                    raise ValueError('Complete bounded window trace required')
+                (folder/'window-trace.json').write_bytes(body);(folder/'window-trace.json.sha256').write_bytes(marker)
+                window_proof=window_reader.validate(body,marker,ready)
+                save(folder/'window-trace-contract.json',window_proof);proof['completeWindowTracePreserved']=True
+            except Exception as capture:proof['windowTraceCaptureErrorType']=type(capture).__name__
         for handle in [stdout,stderr]:
             if handle is not None:handle.close()
         if installed:
