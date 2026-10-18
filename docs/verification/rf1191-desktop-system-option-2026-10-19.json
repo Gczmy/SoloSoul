@@ -1,0 +1,51 @@
+{
+  "task": "RF-1191",
+  "date": "2026-10-19",
+  "change": "Desktop system mode first in settings and directly selectable in the palette panel; preserve selected light/dark schemes and mobile ordering.",
+  "sources": {
+    "tauri/src/pages/settings/AppearanceSettingsPage.tsx": "f015c3c9115890e13a79153a92641b9ad849b942bad1d9e1591fe2144c4b9ed1",
+    "tauri/src/components/settings/ThemeSchemePanel.tsx": "fcdf86159cde90da69f088502169f53599667642fc0cb5ff75a4b7bb9ecb59b1",
+    "tauri/e2e/appearance-layout.spec.ts": "485824a660da8f490d64525473fce144067c721cb7c64b8aeed2b56c713f3b9b"
+  },
+  "static": {
+    "build": 0,
+    "lint": 0,
+    "typecheck": 0
+  },
+  "targeted": {
+    "files": 3,
+    "passed": 44,
+    "exit": 0
+  },
+  "vitest": {
+    "filesPassed": 269,
+    "exit": 0,
+    "caseCount": "Custom progress reporter records files, not individual cases."
+  },
+  "browser": {
+    "passed": 4,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "project": "Edge headless; Windows/macOS mock; production bundle"
+  },
+  "node": {
+    "passed": 270,
+    "failed": 0,
+    "skipped": 1
+  },
+  "logs": {
+    "targeted.log": "912a4435643e1498d2e0ce14f7e1782e89d05667d21d5e4e3b5a76f1ffc2c157",
+    "static.json": "89843abe919407054de5ea2006099c8907a8ae769a62f120203473c871ffed1f",
+    "vitest-full.log": "3b5019524a09d1db9deda0eb694d69813a25808126b7a999b9d272a175726951",
+    "node-tests.log": "e581904233a43d3e94f373c2f0e11ac27132760294aba5f8f72ed57a2e161d1f",
+    "node-tests-unsandboxed.log": "35d1052eeaa01d82775649f7656f211136371e7bb3c80493e111f9d13ec58169",
+    "browser-final.json": "39fb2c497e2376111f2b98770139d53c89f656057914be7814efb26b97a02d1d"
+  },
+  "limitations": [
+    "Initial Node run hit sandbox symlink EPERM; unchanged suite passed outside the sandbox.",
+    "Initial browser run did not start its preview server and was stopped; final run passed using the bundled runtime outside the sandbox.",
+    "This task changes selection UI only; native event and startup synchronization are separate tasks.",
+    "Existing syncStore.ts unused event warning remains."
+  ]
+}

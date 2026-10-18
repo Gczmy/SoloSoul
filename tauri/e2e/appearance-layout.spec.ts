@@ -20,11 +20,18 @@ for (const platform of ['windows', 'macos']) {
       await page.getByRole('button', { name: 'Settings', exact: true }).click();
       await page.getByText('Theme & Appearance', { exact: true }).click();
       await expect(page).toHaveURL(/\/settings\/appearance$/);
+      const firstMode = page.getByRole('radio').first();
+      await expect(firstMode).toHaveAccessibleName('System');
       const more = page.getByRole('button', { name: 'More Appearances' });
       const before = (await more.boundingBox())!;
       await more.click();
       const panel = page.getByRole('region', { name: 'Theme Schemes' });
       await expect(panel).toBeVisible();
+      const systemChoice = panel.getByRole('button', { name: 'System', exact: true });
+      await expect(panel.getByRole('button').nth(1)).toHaveAccessibleName('System');
+      await systemChoice.click();
+      await expect(systemChoice).toHaveAttribute('aria-pressed', 'true');
+      await expect(firstMode).toBeChecked();
       const bounds = (await panel.boundingBox())!;
       expect(bounds.y).toBeGreaterThanOrEqual(48);
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(720);

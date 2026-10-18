@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { Monitor, X } from 'lucide-react';
 import { getSchemesByMode, type ThemeScheme } from '@/lib/themeSchemes';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
@@ -12,6 +12,7 @@ interface ThemeSchemePanelProps {
   defaultDarkTheme: string;
   currentThemeMode: 'light' | 'dark' | 'system';
   onSelectScheme: (scheme: ThemeScheme) => void;
+  onSelectSystem: () => void;
 }
 
 export function ThemeSchemePanel({
@@ -21,6 +22,7 @@ export function ThemeSchemePanel({
   defaultDarkTheme,
   currentThemeMode,
   onSelectScheme,
+  onSelectSystem,
 }: ThemeSchemePanelProps) {
   const { t } = useTranslation(['settings', 'common']);
   // Initialize panel mode from the currently effective theme mode
@@ -91,6 +93,30 @@ export function ThemeSchemePanel({
           <X size={ICON_SIZE.lg} />
         </button>
       </div>
+
+      {!isMobilePlatformSync() && (
+        <button
+          onClick={onSelectSystem}
+          aria-pressed={currentThemeMode === 'system'}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            margin: '12px 16px 4px',
+            padding: '8px 10px',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 8,
+            background: currentThemeMode === 'system' ? 'var(--state-selected)' : 'var(--bg-base)',
+            color: 'var(--text-primary)',
+            font: 'inherit',
+            fontSize: 'var(--text-body-sm)',
+            cursor: 'pointer',
+          }}
+        >
+          <Monitor size={ICON_SIZE.md} aria-hidden="true" />
+          {t('common:theme.system')}
+        </button>
+      )}
 
       {/* Mode tabs */}
       <div style={{ padding: '8px 16px', display: 'flex', gap: 8 }}>

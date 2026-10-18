@@ -109,6 +109,7 @@ export function AppearanceSettingsPage() {
           defaultDarkTheme={settings.defaultDarkTheme}
           currentThemeMode={settings.theme}
           onSelectScheme={handleSelectScheme}
+          onSelectSystem={() => handlePresetChange('system')}
         />
 
         <div className={styles.settings}>
@@ -119,7 +120,10 @@ export function AppearanceSettingsPage() {
                 {t('settings:groups.appearance')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(['light', 'dark', 'system'] as const).map((preset) => (
+                {(isMobilePlatform
+                  ? (['light', 'dark', 'system'] as const)
+                  : (['system', 'light', 'dark'] as const)
+                ).map((preset) => (
                   <label
                     key={preset}
                     style={{
