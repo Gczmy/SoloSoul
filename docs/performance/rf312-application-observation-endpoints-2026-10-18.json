@@ -1,0 +1,581 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-18",
+  "scope": "operational-login-and-first-public-input-observations-after-system-intent",
+  "sourceRevision": "452594635561baadf8dbf713749e0092c034d292",
+  "productRevision": "305b86020a33b5368299b07594b94542f0869e09",
+  "platform": {
+    "api": 31,
+    "architecture": "x86_64",
+    "device": "isolated emulator",
+    "traceProfile": "startup-am",
+    "periodicMemorySampling": true
+  },
+  "reusedCompletedNativeCohort": true,
+  "newNativeRuns": 0,
+  "newSdkCalls": 0,
+  "newInputEvents": 0,
+  "samplesPerSize": 1,
+  "originalCanonicalStateImeUiReplayed": true,
+  "replyCounts": [
+    415,
+    401
+  ],
+  "canonicalPhaseRecordsBound": 24,
+  "originalFourReaderEvidenceSha256": "bc3990ff27ec836ea37be84a3fc46238e6f2ddc946651bbbc55c7de8c08384cd",
+  "canonicalResultSha256": "fe19fd7f623a47398fbffda4c566933561f2e15c637f53dc5409af94cef7b3a7",
+  "canonicalSourceSha256": {
+    "native_timing.py": "2e5f6852683b359ed01c1598ec90487a84c0db3b97d8f6f5b684001ba37835e0",
+    "read-native-timing.py": "811b65b42fafe159bfa7a4eb9162d978729a6fab60e453fc57a622a56d6c6c69",
+    "test_native_timing.py": "79434ee4e8035344d2927bda9cbbea6f176425c79b1625e0436d312b7ada4395"
+  },
+  "functionalDerivationSha256": "abdceeb1d724ff03cf270f028546bd88bfdc2b093d612c8c922823d871eba8f4",
+  "cases": [
+    {
+      "objectCount": 100,
+      "systemColdStartupWindowNs": 414148520,
+      "firstMatchingMetadataIntervalAfterIntentNs": {
+        "start": 6499681387,
+        "end": 7789095109
+      },
+      "previousNonmatchingMetadataIntervalAfterIntentNs": {
+        "start": 6312541048,
+        "end": 6314673017
+      },
+      "loginScreenshotIntervalAfterIntentNs": {
+        "start": 8131965535,
+        "end": 8426250499
+      },
+      "loginScreenshotSha256": "b0c0778c4ea21a0bb8872f170701b3554dd3818d4afc4d14ca701eeb7ca5b8d8",
+      "loginScreenshotActuallyViewed": true,
+      "savedHostReadinessContractMatched": true,
+      "originalHost350MsStablePredicateInherited": true,
+      "roleGroups": [
+        {
+          "role": "password",
+          "intent": "tap",
+          "observations": 3,
+          "notReadyObservations": 0,
+          "lastThreeReadyOrdinals": [
+            14,
+            16,
+            18
+          ],
+          "lastThreeNativeSpanNs": 756323968,
+          "lastReadyEndAfterIntentNs": 9940098595,
+          "rawResponseSha256": [
+            "1b83d5939333fe4c299d353221b09b8454412dd1ab0b6f387086aa6eafd2ca38",
+            "d313178204a43247e63c2e71c32ec70c350e45167e25055c9b095d68d269e24b",
+            "e35ceadbcd8df011f12347155279019cf785332a0f7ce377d44886dbdd7a4325"
+          ]
+        },
+        {
+          "role": "unlock",
+          "intent": "tap",
+          "observations": 3,
+          "notReadyObservations": 0,
+          "lastThreeReadyOrdinals": [
+            20,
+            22,
+            24
+          ],
+          "lastThreeNativeSpanNs": 869016497,
+          "lastReadyEndAfterIntentNs": 11236910770,
+          "rawResponseSha256": [
+            "89516b15c01b5f59a87c121461cf72ee6eca2cf2f6927eec4a3f259b51ca2b6f",
+            "507c1374b01f6d25e5d4bab4c06d471ede2cb8cf2552d7d75d65c4db1e7fd816",
+            "c148e136079d77f42dcd5725fe880f9e6f666526377c52d26513219d2208f07a"
+          ]
+        },
+        {
+          "role": "password",
+          "intent": "tap",
+          "observations": 3,
+          "notReadyObservations": 0,
+          "lastThreeReadyOrdinals": [
+            26,
+            28,
+            30
+          ],
+          "lastThreeNativeSpanNs": 1074953637,
+          "lastReadyEndAfterIntentNs": 12888579430,
+          "rawResponseSha256": [
+            "caf73b21a9dbcad20ee7a194c41cafe37f5e2e5f9fe56836c535c2f16472921b",
+            "b7981cc27cd118b7dbf2f9eaad38c069847a5305494648222ec620aea13ebe9c",
+            "11dd2e8d0955dcc1f9d44e6cfb51d644c216d7d20b13a46494b5035cc6c68a25"
+          ]
+        },
+        {
+          "role": "password",
+          "intent": "type-public",
+          "observations": 6,
+          "notReadyObservations": 3,
+          "lastThreeReadyOrdinals": [
+            39,
+            41,
+            43
+          ],
+          "lastThreeNativeSpanNs": 892044532,
+          "lastReadyEndAfterIntentNs": 16468385803,
+          "rawResponseSha256": [
+            "491b311da5233a81f0352439a889d5b684d8a34cb7e4f7e3b6e79f1ae4762ca2",
+            "df24499f9cdb50cb8285b113c5a5e4a96d37e046cd84ba004c1ac6bef803de0e",
+            "edb086caa7bf8ba2284b347088a437050f1d5658c6f28f67b4d578e375ef0c89",
+            "2c35bb35cf77be215abc62796443dde167dc3bee4cdf01599e1e60efcd3c7c10",
+            "f50bba2691924f8663db3e7d79190ce9e7d1a8be57b57825f496135a10176d8b",
+            "2dd7651dee4e9a8600a914f6c7832ec68abb98c7351add519130da55d1ca239f"
+          ]
+        }
+      ],
+      "samePasswordControlAcrossImeVerified": true,
+      "eachInputStageExactNativeTargetVerified": true,
+      "passwordBoundsChangedAfterIme": true,
+      "stableLoginTapChecksCompleteAfterIntentNs": 11236910770,
+      "firstFocusTapCompleteAfterIntentNs": 13039455645,
+      "imeNotReadyObservations": [
+        {
+          "ordinal": 33,
+          "targetFocused": true,
+          "imeVisible": false,
+          "imeWindowCount": 0
+        },
+        {
+          "ordinal": 35,
+          "targetFocused": true,
+          "imeVisible": false,
+          "imeWindowCount": 0
+        },
+        {
+          "ordinal": 37,
+          "targetFocused": false,
+          "imeVisible": true,
+          "imeWindowCount": 1
+        }
+      ],
+      "stableEditableImeChecksCompleteAfterIntentNs": 16468385803,
+      "publicPasswordTypeMethod": {
+        "startAfterIntentNs": 16521799946,
+        "endAfterIntentNs": 19199395044,
+        "keyEvents": 54
+      },
+      "firstFullPublicPasswordLengthObservation": {
+        "responseOrdinal": 45,
+        "endAfterIntentNs": 19313457734,
+        "responseSha256": "7892867bc2ffdb9d6d3e977577d81207f090a6afa67c07f4a426d605f6540531"
+      },
+      "homeCounterObservationAfterIntentNs": 26182216860,
+      "unlockMethodStartToVerifiedCounterSnapshotEndNs": 5319867261,
+      "precedingControlIntervals": {
+        "n": 24,
+        "sumElapsedNs": 5636704889,
+        "exclusiveOverheadAccepted": false
+      },
+      "canonicalTimingSha256": "371752a4080c22135b4e48107748c25f90aa296d9395d76d0cc0fb31002c45e8",
+      "startupReplySha256": "f2f45ad9b630190010d325d481484f939bed74e2c72ab9e0006cc83111d6daa7",
+      "supportedStateSha256": "9d1428761d5e41f8c78aed333ee4613a07fb263c6ccae67dd646ef484b024bfa",
+      "exactFirstInteractiveTimeProven": false,
+      "firstTwoActualFrameContentsProven": false,
+      "applicationOnlyLatencyAccepted": false,
+      "phaseObservations": [
+        {
+          "name": "startup",
+          "responseOrdinal": 12,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 8131965535,
+            "end": 8426250499
+          },
+          "originalHostObservedPhaseUpperBoundMs": 11297.00000002049,
+          "imageSha256": "b0c0778c4ea21a0bb8872f170701b3554dd3818d4afc4d14ca701eeb7ca5b8d8"
+        },
+        {
+          "name": "password-unlock",
+          "responseOrdinal": 55,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 26067858421,
+            "end": 26182216860
+          },
+          "originalHostObservedPhaseUpperBoundMs": 16359.000000054948,
+          "imageSha256": "6a4b654cb9ad0bb94dac6cb8d964905bb74ecb416fdf4deb03337c903c1c4737"
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "responseOrdinal": 133,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 46748593676,
+            "end": 46900234713
+          },
+          "originalHostObservedPhaseUpperBoundMs": 21905.99999995902,
+          "imageSha256": "dcf70e67063e6798585344d28e658beac60fdfc3b772439bc53c7d6a3ddf2a32"
+        },
+        {
+          "name": "workspace",
+          "responseOrdinal": 164,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 56963179356,
+            "end": 57063829384
+          },
+          "originalHostObservedPhaseUpperBoundMs": 5593.999999924563,
+          "imageSha256": "9e34c819fdf534e6285b818037b93bf4a1fa82709df6a039186e60238b928fbf"
+        },
+        {
+          "name": "search-needle",
+          "responseOrdinal": 200,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 65855461448,
+            "end": 65981368599
+          },
+          "originalHostObservedPhaseUpperBoundMs": 8984.99999998603,
+          "imageSha256": "f8a3ca9034e521cedadcc8191c697e70cb8ab3b44f60a153cbf4b159c4e14074"
+        },
+        {
+          "name": "attachments-open",
+          "responseOrdinal": 248,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 78019379040,
+            "end": 78195937677
+          },
+          "originalHostObservedPhaseUpperBoundMs": 4952.999999979511,
+          "imageSha256": "c075c48eeeb441416ad85498b6cc67e144c32995397c0af30b5c4b1fda0ea8c1"
+        },
+        {
+          "name": "image-preview",
+          "responseOrdinal": 264,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 84220424048,
+            "end": 84430076153
+          },
+          "originalHostObservedPhaseUpperBoundMs": 8515.999999945052,
+          "imageSha256": "6b0172fe7f5d4651454ae73b8991794d09ab319f5c79645e38f1a60c7ad917cc"
+        },
+        {
+          "name": "text-preview",
+          "responseOrdinal": 291,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 93625180907,
+            "end": 94425506846
+          },
+          "originalHostObservedPhaseUpperBoundMs": 6812.999999965541,
+          "imageSha256": "433cb4f59c77ade42f3f9d2ab55ac0abc8d70ff35b4a532f1279b24717784924"
+        },
+        {
+          "name": "pdf-text-native",
+          "responseOrdinal": 329,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 109883121186,
+            "end": 110068318126
+          },
+          "originalHostObservedPhaseUpperBoundMs": 12312.999999965541,
+          "imageSha256": "ac03c622f7319ec2cf0d8ec3ef42134854a6cd8b60d8877f59008ebafa633006"
+        },
+        {
+          "name": "pdf-scanned-native",
+          "responseOrdinal": 359,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 121124784475,
+            "end": 121221410446
+          },
+          "originalHostObservedPhaseUpperBoundMs": 8000.0,
+          "imageSha256": "562c3491fcb2badf9ed2427e0d734b24dfcb508dea0773f87af0bf4ceb5f9684"
+        },
+        {
+          "name": "application-lock",
+          "responseOrdinal": 391,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 133430634869,
+            "end": 133543726579
+          },
+          "originalHostObservedPhaseUpperBoundMs": 3000.0,
+          "imageSha256": "8cf30283bf7dc3dba6d7ebfd8af7785e600fe6e738a5053a64b819ab9faca29b"
+        },
+        {
+          "name": "password-reunlock",
+          "responseOrdinal": 415,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 143293101739,
+            "end": 143403603661
+          },
+          "originalHostObservedPhaseUpperBoundMs": 11016.000000061467,
+          "imageSha256": "ea9259f3133d98bca695feb981dff7beb7716c358334a430609fed588e0757ab"
+        }
+      ]
+    },
+    {
+      "objectCount": 5000,
+      "systemColdStartupWindowNs": 549114365,
+      "firstMatchingMetadataIntervalAfterIntentNs": {
+        "start": 2960019380,
+        "end": 4305431463
+      },
+      "previousNonmatchingMetadataIntervalAfterIntentNs": {
+        "start": 2786809872,
+        "end": 2794813855
+      },
+      "loginScreenshotIntervalAfterIntentNs": {
+        "start": 4674867808,
+        "end": 4897958758
+      },
+      "loginScreenshotSha256": "cfad05ecedc8e1412741247297b12139f0dea5aea9189b58be84ad2cab11f1f7",
+      "loginScreenshotActuallyViewed": true,
+      "savedHostReadinessContractMatched": true,
+      "originalHost350MsStablePredicateInherited": true,
+      "roleGroups": [
+        {
+          "role": "password",
+          "intent": "tap",
+          "observations": 3,
+          "notReadyObservations": 0,
+          "lastThreeReadyOrdinals": [
+            9,
+            11,
+            13
+          ],
+          "lastThreeNativeSpanNs": 826148513,
+          "lastReadyEndAfterIntentNs": 6426880717,
+          "rawResponseSha256": [
+            "caaa9cc7f42933c6bd4c36a4fe964cb157f2f43e9f6f89834e8c4f6948f97649",
+            "923f24c3c541770c3826f2a0615b678b9a29584d908fafc25f620188a44198af",
+            "5a2340ab198aee53e423469f8cb6bd451086990ee2d31675fae60ba72164d5a7"
+          ]
+        },
+        {
+          "role": "unlock",
+          "intent": "tap",
+          "observations": 3,
+          "notReadyObservations": 0,
+          "lastThreeReadyOrdinals": [
+            15,
+            17,
+            19
+          ],
+          "lastThreeNativeSpanNs": 690429526,
+          "lastReadyEndAfterIntentNs": 7517224507,
+          "rawResponseSha256": [
+            "bc83c981f2f666436dd6502ad22eeb514063f04574e95e74ea17da0e205113c7",
+            "daab5bdf0380b02656714fbd03a834367789bf47ff3c7fc48ad3b50076428808",
+            "cff60ba6f644762acc34949ccd2861e199ebc028bd21bb8c0ff5258fe9a324fd"
+          ]
+        },
+        {
+          "role": "password",
+          "intent": "tap",
+          "observations": 3,
+          "notReadyObservations": 0,
+          "lastThreeReadyOrdinals": [
+            21,
+            23,
+            25
+          ],
+          "lastThreeNativeSpanNs": 864783390,
+          "lastReadyEndAfterIntentNs": 8832982174,
+          "rawResponseSha256": [
+            "87ccb26f56d5ee313bdda14a9e31cac9a453035143b9fb19a0f2ff470790083e",
+            "5ef71b7bd60eb446f2872ef47608ec810aa7eee4a07a2b2f5df5555b9c8ac996",
+            "9f3a6c9e9836eb6245407dd4a9065af229c04535deb148a012016fe77ab471b2"
+          ]
+        },
+        {
+          "role": "password",
+          "intent": "type-public",
+          "observations": 4,
+          "notReadyObservations": 1,
+          "lastThreeReadyOrdinals": [
+            30,
+            32,
+            34
+          ],
+          "lastThreeNativeSpanNs": 796318887,
+          "lastReadyEndAfterIntentNs": 10970197408,
+          "rawResponseSha256": [
+            "b755a72c0ed3d174ed8fc22ad84a540a9f2b26e8acd1c1d33ef7f5888280a2f7",
+            "9010ddf2dac5e0d58185c68103f1cd5491470a88dda91b8d9d6552207e976b4d",
+            "6ca1980384b7de586a5c48eb8070f8636bb34312d0ad1685c48d268dc0ec2662",
+            "a1474a1e258f9bb77b0a5e469c06ee0d9fcad0a3bb7a2a455794541618cfa2ed"
+          ]
+        }
+      ],
+      "samePasswordControlAcrossImeVerified": true,
+      "eachInputStageExactNativeTargetVerified": true,
+      "passwordBoundsChangedAfterIme": true,
+      "stableLoginTapChecksCompleteAfterIntentNs": 7517224507,
+      "firstFocusTapCompleteAfterIntentNs": 8931949428,
+      "imeNotReadyObservations": [
+        {
+          "ordinal": 28,
+          "targetFocused": false,
+          "imeVisible": true,
+          "imeWindowCount": 1
+        }
+      ],
+      "stableEditableImeChecksCompleteAfterIntentNs": 10970197408,
+      "publicPasswordTypeMethod": {
+        "startAfterIntentNs": 11050084569,
+        "endAfterIntentNs": 13875501901,
+        "keyEvents": 54
+      },
+      "firstFullPublicPasswordLengthObservation": {
+        "responseOrdinal": 36,
+        "endAfterIntentNs": 14102501539,
+        "responseSha256": "eaac1615e7ced2c1842343f938751828f43fcbe4fe980514e880734521914af8"
+      },
+      "homeCounterObservationAfterIntentNs": 20736578039,
+      "unlockMethodStartToVerifiedCounterSnapshotEndNs": 5006712509,
+      "precedingControlIntervals": {
+        "n": 19,
+        "sumElapsedNs": 2607570644,
+        "exclusiveOverheadAccepted": false
+      },
+      "canonicalTimingSha256": "a013149d8735d435ab3fd141b1e992cecc886df93c2c85d50b70a5d8140a72ea",
+      "startupReplySha256": "81fe88e413e1b0f15743846a29b5b3621bb3f6fb9b5037876671f793077fdcdf",
+      "supportedStateSha256": "f179df68b25c23e3793fd2ca66fa0a8101d1c1cce9f2f3d72bdab810e49f8c98",
+      "exactFirstInteractiveTimeProven": false,
+      "firstTwoActualFrameContentsProven": false,
+      "applicationOnlyLatencyAccepted": false,
+      "phaseObservations": [
+        {
+          "name": "startup",
+          "responseOrdinal": 7,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 4674867808,
+            "end": 4897958758
+          },
+          "originalHostObservedPhaseUpperBoundMs": 7577.999999979511,
+          "imageSha256": "cfad05ecedc8e1412741247297b12139f0dea5aea9189b58be84ad2cab11f1f7"
+        },
+        {
+          "name": "password-unlock",
+          "responseOrdinal": 46,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 20605013598,
+            "end": 20736578039
+          },
+          "originalHostObservedPhaseUpperBoundMs": 14827.99999997951,
+          "imageSha256": "e9fedc3848aa425d65a490b176b6f55a4dc70ce6f0ebbb897b8e13cd68115e9f"
+        },
+        {
+          "name": "first-ocr-user-flow",
+          "responseOrdinal": 113,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 38639642402,
+            "end": 38842863326
+          },
+          "originalHostObservedPhaseUpperBoundMs": 19109.99999998603,
+          "imageSha256": "8e611a769d522b2471112e46caf179e33d2f8ad0a1f0de2f2a8d598d96d69329"
+        },
+        {
+          "name": "workspace",
+          "responseOrdinal": 145,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 49159093587,
+            "end": 49282109586
+          },
+          "originalHostObservedPhaseUpperBoundMs": 5907.000000006519,
+          "imageSha256": "4e4332a8ee285ed31c8d8acec34880c9ab7da0684bf31ea2a65c0de6013b369a"
+        },
+        {
+          "name": "search-needle",
+          "responseOrdinal": 183,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 59443397571,
+            "end": 59543027325
+          },
+          "originalHostObservedPhaseUpperBoundMs": 10265.999999945052,
+          "imageSha256": "b00e2b2bffe1683d0f8c04a9d9c0ebc49f361f3593fe96008712de83f03d8a53"
+        },
+        {
+          "name": "attachments-open",
+          "responseOrdinal": 231,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 71536371520,
+            "end": 71699656880
+          },
+          "originalHostObservedPhaseUpperBoundMs": 5030.999999959022,
+          "imageSha256": "b62f4ff2308ffd432a6968cd675fccc3b61582dac5845ed2533b92afb2e2c4e0"
+        },
+        {
+          "name": "image-preview",
+          "responseOrdinal": 247,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 77739911391,
+            "end": 77937327901
+          },
+          "originalHostObservedPhaseUpperBoundMs": 8609.99999998603,
+          "imageSha256": "20e6c9b4119176966545a6db013f5f36a83d65fab436527f71a41a3c84a71565"
+        },
+        {
+          "name": "text-preview",
+          "responseOrdinal": 274,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 88403919263,
+            "end": 89027738298
+          },
+          "originalHostObservedPhaseUpperBoundMs": 7358.999999938533,
+          "imageSha256": "acc07756af2e32a5c3ba9bf6790e43c1007fa88d288feb3aa5283c46d0f5e59b"
+        },
+        {
+          "name": "pdf-text-native",
+          "responseOrdinal": 312,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 103558552779,
+            "end": 103695670467
+          },
+          "originalHostObservedPhaseUpperBoundMs": 11359.99999998603,
+          "imageSha256": "4f23f1c04a1ebc8500e06a18145643d171e6ed6c620f481776f8fa77e0b953be"
+        },
+        {
+          "name": "pdf-scanned-native",
+          "responseOrdinal": 342,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 115753361714,
+            "end": 115874823629
+          },
+          "originalHostObservedPhaseUpperBoundMs": 8952.99999997951,
+          "imageSha256": "bfd8f6c69ec0cb4f1f7f7bd6d3e80fffda5e12b11281c8b2bc0bd0a69390a0c4"
+        },
+        {
+          "name": "application-lock",
+          "responseOrdinal": 374,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 127973884345,
+            "end": 128117409946
+          },
+          "originalHostObservedPhaseUpperBoundMs": 2875.0,
+          "imageSha256": "7feae5426f947f52bb790a78ce82e8ec1464519cabc5a00fa54df7ad556fad3a"
+        },
+        {
+          "name": "password-reunlock",
+          "responseOrdinal": 401,
+          "screenshotObservationIntervalAfterIntentNs": {
+            "start": 139519565310,
+            "end": 139647812712
+          },
+          "originalHostObservedPhaseUpperBoundMs": 12687.999999965541,
+          "imageSha256": "9ad8fb6a43adaccfb8e5d40eae3d0a4a875872e87dc4e2613a5ad8ee92b19ea8"
+        }
+      ]
+    }
+  ],
+  "earlierBeforeAfterImeCoordinateEqualityAssumptionRefused": true,
+  "currentBindingUsesSameControlIdentityAndExactTargetAtEachStage": true,
+  "originalSourcesAndReadersUnchanged": true,
+  "originalBudgetsAndFailuresUnchanged": true,
+  "observedAbsenceDoesNotProveApplicationUnready": true,
+  "windowsDesktopCheckpoint": {
+    "connectionState": "Disconnected",
+    "inputDesktopAvailable": false,
+    "inputDesktopError": 5,
+    "systemSettingsChanged": false,
+    "inputEventsSent": 0
+  },
+  "loadingAndPaginationDecision": "retain current strategy; these instrumented single samples do not establish an attributable loading or list bottleneck",
+  "exactFirstInteractiveTimeProven": false,
+  "firstTwoActualFrameContentsProven": false,
+  "applicationOnlyLatencyAccepted": false,
+  "exclusiveObserverOverheadAccepted": false,
+  "performanceDistributionAccepted": false,
+  "fullRF312Accepted": false,
+  "ledger": {
+    "closed": 369,
+    "total": 378,
+    "unfinished": 9
+  }
+}
