@@ -63,7 +63,7 @@ def package_identity(payload,info):
 def main():
     diagnostic_binding.require_assertions()
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--kind',choices=['native-frames'],required=True)
+    parser.add_argument('--kind',choices=['native-frames','startup-milestones'],required=True)
     parser.add_argument('--preparation',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--diagnostic-inputs',type=Path,required=True)
@@ -71,7 +71,10 @@ def main():
     parser.add_argument('--powershell-sha256',required=True)
     parser.add_argument('--window-frame-trace',action='store_true',help='Optional passive window metrics; never native commit evidence')
     args=parser.parse_args()
+    if args.kind=='startup-milestones' and args.window_frame_trace:parser.error('Milestone mode cannot enable the frame trace')
     diagnostic=diagnostic_binding.load(args.diagnostic_inputs)
+    expected_scope='explicit-default-apk-startup-milestones' if args.kind=='startup-milestones' else 'explicit-default-apk-native-frame-commits'
+    if diagnostic['config']['scope']!=expected_scope:raise ValueError('Explicit diagnostic mode/config scope must match')
     runtime_file=Path(diagnostic['config']['runtimeInputs'])
     runtime=load_inputs(runtime_file)
     collector_file=Path(diagnostic['config']['collectorPackageReceipt']);collector=load(collector_file)
@@ -119,7 +122,7 @@ def main():
     env=dict(os.environ,ANDROID_HOME=str(sdk),ANDROID_SDK_ROOT=str(sdk),ANDROID_AVD_HOME=str(preparation_file.parent/'avd'),
         ANDROID_USER_HOME=str(preparation_file.parent/'android-user'),ANDROID_EMULATOR_HOME=str(preparation_file.parent/'android-user'),
         ANDROID_ADB_SERVER_PORT='5057',ADB_SERVER_SOCKET='tcp:127.0.0.1:5057',TEMP=str(out),TMP=str(out),PYTHONDONTWRITEBYTECODE='1',PYTHONPATH=os.pathsep.join([str(ROOT),str(HELPER),str(diagnostic_binding.LEGACY),str(PUBLIC)]))
-    record=dict(passed=False,scope='explicit-default-apk-two-size-native-startup-frame-commits',kind=args.kind,
+    record=dict(passed=False,scope='explicit-default-apk-two-size-startup-milestones' if args.kind=='startup-milestones' else 'explicit-default-apk-two-size-native-startup-frame-commits',kind=args.kind,
         targetInstrumentationInjected=True,metadataJavaScriptEvaluation=True,physicalPublicUiDispatched=False,
         optionalWindowFrameTraceRequested=args.window_frame_trace,
         actualIpcAccepted=False,fullJourneyAccepted=False,performanceSampleAccepted=False,fullRF312Accepted=False,
@@ -255,6 +258,7 @@ def main():
                 '--fixture',runtime['fixedFixtures'][str(count)]['root'],'--inputs',str(runtime_file),
                 '--diagnostic-inputs',str(args.diagnostic_inputs),'--object-count',str(count),'--mode','supported','--output',str(child_out)]
             if args.window_frame_trace:command+=['--window-frame-trace']
+            if args.kind=='startup-milestones':command+=['--startup-milestones']
             started=time.monotonic()
             with (out/('journey-'+str(count)+'.stdout')).open('xb') as stdout,(out/('journey-'+str(count)+'.stderr')).open('xb') as stderr:
                 child=subprocess.Popen(command,cwd=WORK,env=env,stdin=subprocess.DEVNULL,stdout=stdout,stderr=stderr,creationflags=subprocess.CREATE_NO_WINDOW)
@@ -270,7 +274,8 @@ def main():
             assert report.get('originalApksRestored') is True and report.get('blurRestored') is True
             assert report.get('ownedProbeRemoved') is True and report.get('ownedPublicOcrInputRemoved') is True
             assert report.get('frozenInputsUnchanged') is True and not report.get('restoreError')
-            assert code==0 and report['passed'] is True and report['nativeFramesAccepted'] is True
+            assert code==0 and report['passed'] is True and report['nativeFramesAccepted'] is (args.kind=='native-frames')
+            if args.kind=='startup-milestones':assert report['startupMilestonesObserved'] is True
             assert report['fullRF312Accepted'] is False and report['defaultPerformanceSampleAccepted'] is False
             evidence=load(child_out/'default-external/evidence.json')
             contract=load(child_out/'target-instrumentation/metadata-contract.json')
@@ -278,8 +283,14 @@ def main():
             assert evidence['fullUiJourneyAccepted'] is False and evidence['targetInstrumentationInjected'] is True
             assert evidence['supportedNativeInstrumentationStateVerified'] is True
             assert evidence['nativeInstrumentationStateChecks']>3
-            assert evidence['metadataJavaScriptEvaluation'] is True and contract['frameCommitContractAccepted'] is True
-            assert contract['committedFrames']==2 and contract['nativeRuntimeAccepted'] is False
+            assert evidence['metadataJavaScriptEvaluation'] is True
+            if args.kind=='startup-milestones':
+                assert contract['startupMilestoneMetadataAccepted'] is True and contract['requiredMilestonesAvailable'] is True
+                assert contract['nativeFramesAccepted'] is False and contract['firstInteractiveTimeProven'] is False
+                assert contract['observerOverheadRemoved'] is False and evidence['committedFrames']==0
+            else:
+                assert contract['frameCommitContractAccepted'] is True
+                assert contract['committedFrames']==2 and contract['nativeRuntimeAccepted'] is False
             if args.window_frame_trace:
                 window_contract=load(child_out/'target-instrumentation/window-trace-contract.json')
                 assert window_contract['observationHooksAndCleanupComplete'] is True and window_contract['nativeFramesAccepted'] is False
@@ -289,11 +300,12 @@ def main():
             assert settings()==settings_before
             assert installed_identity(APP)==original
             assert installed_identity(APP+'.test')['sha256']==runtime['originalTest']['sha256']
-            row.update(passed=True,privateEntries=len(before_child),committedFrames=2,
-                       startupUiAndNativeFrameMetadataAccepted=True,originalStateRestored=True)
+            row.update(passed=True,privateEntries=len(before_child),committedFrames=0 if args.kind=='startup-milestones' else 2,
+                       startupUiAndNativeFrameMetadataAccepted=args.kind=='native-frames',
+                       startupMilestoneMetadataAccepted=args.kind=='startup-milestones',originalStateRestored=True)
             record['outcomes'].append(row)
             save(out/('journey-'+str(count)+'-audit.json'),row)
-            print(json.dumps(dict(objectCount=count,passed=True,committedFrames=2)),flush=True)
+            print(json.dumps(dict(objectCount=count,passed=True,committedFrames=0 if args.kind=='startup-milestones' else 2)),flush=True)
         call('terminal-full-dropbox',['shell','dumpsys','dropbox'],timeout=45)
         record['functionalStepPassed']=len(record['outcomes'])==2
         record['fullJourneyAccepted']=False
@@ -398,7 +410,8 @@ def main():
         record['passed']=bool(record.get('functionalStepPassed') and restored and record.get('allFrozenInputsPreserved')
             and all(cleanup.get(key) is True for key in ['ownedPackagesRemoved','settingsExactlyUnchanged','normalShutdownRequested',
                                                        'launcherExited','serverExited','freshHostAfterPassed']))
-        record['nativeFramesAccepted']=record['passed']
+        record['nativeFramesAccepted']=record['passed'] and args.kind=='native-frames'
+        record['startupMilestonesObserved']=record['passed'] and args.kind=='startup-milestones'
         record['actualIpcAccepted']=False
         record['performanceSampleAccepted']=False
         record['fullRF312Accepted']=False

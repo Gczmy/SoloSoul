@@ -1,6 +1,6 @@
 # RF-312：显式 Android 启动帧诊断入口
 
-此入口用于复跑启动帧诊断及严格拒绝，当前两档原生验收仍未通过。它向默认 APK 的目标进程注入采集器并执行只读 JavaScript，不能作为默认性能样本、应用本体耗时或物理显示呈现证明。没有登录、输入密码、主动请求焦点、强制重绘或业务 IPC。
+此入口提供原生帧诊断及独立的[文档启动标记模式](RF-312-startup-milestones.md)。原生两帧尚未通过；标记模式已完成两档采集及恢复，验收口径分别记录。它向默认 APK 的目标进程注入采集器并执行只读 JavaScript，不能作为默认性能样本、应用本体耗时或物理显示呈现证明。没有登录、输入密码、主动请求焦点、强制重绘或业务 IPC。
 
 ## 注册顺序与计数
 
@@ -35,9 +35,9 @@ python -B -m unittest discover -s $frameSource -p 'test_*.py' -v
 python -B "$frameSource/build_frame_collector.py" --config $builderConfig --output $newCollectorOutput
 ```
 
-构建执行十二个真实工具步骤，包括编译、11 项纯 Java 顺序回归、9 项从实际 Java 字面量提取的就绪检查、DEX／资源打包、内部签名、签名／对齐及编译清单校验。六个诊断类进入 APK，测试类不打包。纯 Java 回归模拟已核对的参考框架事件顺序，本身不是原生渲染证据。
+构建执行十三个真实工具步骤，包括编译、11 项纯 Java 顺序回归、9 项就绪与 10 项启动标记检查（均从实际 Java 字面量提取）、DEX／资源打包、内部签名、签名／对齐及编译清单校验。六个诊断类进入 APK，测试类不打包。纯 Java 回归模拟已核对的参考框架事件顺序，本身不是原生渲染证据。
 
-运行配置字段精确为 `schemaVersion`（整数 1）、`scope`（`explicit-default-apk-native-frame-commits`）、`sharedPublic`（本仓库 `docs/performance` 的绝对路径）、`runtimeInputs`、`runtimeInputsSha256`、`collectorPackageReceipt`（新采集器 `package.json`）、`collectorPackageReceiptSha256`、`avd`（本次专用设备名）和 `sourceSha256`。最后一项由 `frame_binding.sources()` 生成；各回执及输入必须实际存在且内容匹配。源码目录保持仓库布局时自动定位共享目录；移动整个诊断目录时，另设 `RF312_FRAME_SHARED_PUBLIC` 为明确的共享目录，且须与配置一致。
+运行配置字段精确为 `schemaVersion`（整数 1）、`scope`（两帧模式为 `explicit-default-apk-native-frame-commits`，标记模式为 `explicit-default-apk-startup-milestones`）、`sharedPublic`（本仓库 `docs/performance` 的绝对路径）、`runtimeInputs`、`runtimeInputsSha256`、`collectorPackageReceipt`（新采集器 `package.json`）、`collectorPackageReceiptSha256`、`avd`（本次专用设备名）和 `sourceSha256`。最后一项由 `frame_binding.sources()` 生成；各回执及输入必须实际存在且内容匹配。源码目录保持仓库布局时自动定位共享目录；移动整个诊断目录时，另设 `RF312_FRAME_SHARED_PUBLIC` 为明确的共享目录，且须与配置一致。
 
 ## 运行与人工预检
 
@@ -72,8 +72,10 @@ python -B "$frameSource/frame_owner.py" --kind native-frames `
 
 查看父级 `result.json`、子级 `report.json`、`target-instrumentation/terminal-failure.json` 及其 SHA 标记、各清理回执和严格宿主后验。失败终态必须在实际采集器结束后收回，再由对应来源版本的 `refusal_contract` 校验；保存原始失败和不完整尾部，不混入成功样本。
 
-当前七轮均未通过两次原生提交。第七轮采用本目录相同的 19 份源码及同字节 APK，附加追踪在 100 档记录到 32 次预绘制、32 次绘制和 31 次窗口指标回调，WebView 与 Decor 的视图树一致。视觉栅栏后未观察到新的 Java 绘制，收到一条指标投递；该投递不证明发生了新的栅栏后绘制。两帧阶段仍拒绝，5000 档未启动，不能把早期绘制和指标投递补成成功样本。
+七轮帧候选及最近一轮 19 份来源冻结在 `92d13ad4f`，原始证据和旧 APK 保留。最后一轮记录到 32 次预绘制、32 次绘制和 31 次窗口指标回调，但栅栏后没有新的 Java 绘制；一次指标投递不证明新帧。两帧阶段仍拒绝，5000 档未启动。
 
-52 项 Python、11 项纯 Java、9 项就绪回归及公开目录十二步实际构建通过；公开 APK 与原生测试包逐字一致，绑定 115 份运行、123 份构建来源。正常 CLI、优化模式拒绝和异地路径帮助已验证。正向原生两帧、完整两档入口、应用本体时延和默认性能样本仍未验收。下一步先审查原报告的启动终点及当前“栅栏之后再发生两次新绘制”条件，不盲目重复运行，也不静默放宽或改判旧失败。
+当前目录为 22 份来源，新增独立 `--kind startup-milestones`，不能与 `--window-frame-trace` 同用。新模式不经过两帧成功分支，ready／结果／终态／拒绝使用独立命名空间，旧帧读取器拒绝这些记录；原正向读取器、回调顺序和恢复块原字节保持。新包没有重新验收原生两帧，不能继承旧包的原生证据。
+
+当前 68 项 Python、11 项纯 Java、9 项就绪与 10 项标记回归通过；公开十三步构建的 APK 与标记模式实测包逐字一致，绑定 117 份运行、126 份构建来源。三个正常 CLI、十二项优化模式拒绝及三个异地路径帮助通过。原生两帧、首次可交互、应用本体、重复分布与默认无插桩性能继续待验，详见[标记模式及复跑](RF-312-startup-milestones.md)。
 
 原始 APK／构建产物、截图、系统回复、备份和本机标识只留本地。公开[七轮去标识证据](rf312-startup-frame-diagnostics-2026-10-18.json)及[诊断记录](RF-312-startup-frame-diagnostics.md)保留每一轮拒绝、首轮缺口和原统计。RF-312 仍未完成。

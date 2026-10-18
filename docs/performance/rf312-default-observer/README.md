@@ -231,3 +231,8 @@ python -B -m unittest test_body_navigation test_tools_layout_ready -v
 ## 启动帧隔离诊断（仍未通过）
 
 七次显式目标插桩均未通过两次提交；最新可选早期窗口追踪观察到 32 次绘制和 31 次窗口指标投递，栅栏后无新 Java 绘制，一次指标投递不证明新帧；5000 档均未启动。[公开显式诊断入口](../RF-312-frame-runtime.md)提供来源、配置和拒绝复跑，独立于默认性能入口；CLI、生产者及顺序回归通过不能替代原生两帧。首轮终态 JSON 缺失、公开 OCR 清理未确认及控制拒绝尾部保持，七份原期限内宿主归零回放通过。见[实际拒绝](../RF-312-startup-frame-diagnostics.md)。
+
+
+## 独立文档启动标记
+
+同一显式诊断生产者新增 `--kind startup-milestones`，配置须明确 `scope=explicit-default-apk-startup-milestones`。只读默认 APK 已有标记及可用的浏览器首绘／导航数值，不生成或清除标记；与原两帧口径分开。100／5000 各一次采集、完整恢复和严格宿主归零已独立复核，68 项 Python、11 项 Java、9＋10 项 Node 及公开十三步构建通过。未证明首次可交互、应用本体、无观察开销性能或原生两帧；默认读取器和原样本不变。见[复跑及边界](../RF-312-startup-milestones.md)。

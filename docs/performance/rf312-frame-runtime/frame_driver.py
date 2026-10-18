@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--inputs", required=True, type=Path)
     parser.add_argument("--diagnostic-inputs",required=True,type=Path)
     parser.add_argument('--window-frame-trace',action='store_true')
+    parser.add_argument('--startup-milestones',action='store_true')
     args = parser.parse_args()
     if args.scenario != 'baseline' or args.motion_preferences or args.font_scale is not None:
         parser.error('Fixed-Vault driver accepts baseline only; original restoration guards stay unchanged')
@@ -33,6 +34,8 @@ def main():
     input_bytes=args.inputs.read_bytes()
     frozen_inputs=load_inputs(args.inputs)
     binding_record=diagnostic_binding.load(args.diagnostic_inputs)
+    expected_scope='explicit-default-apk-startup-milestones' if args.startup_milestones else 'explicit-default-apk-native-frame-commits'
+    if binding_record['config']['scope']!=expected_scope or (args.startup_milestones and args.window_frame_trace):raise ValueError('Explicit isolated diagnostic mode required')
     assert binding_record['runtime']==frozen_inputs
     diagnostic_bytes=args.diagnostic_inputs.read_bytes()
     diagnostic_sources=diagnostic_binding.sources()
@@ -61,6 +64,7 @@ def main():
               "motionPreferenceChecks": args.motion_preferences, "startedAt": time.time(), "passed": False, "restored": False}
     report['requestedFontScale'] = args.font_scale
     report['optionalWindowFrameTraceRequested']=args.window_frame_trace
+    report['startupMilestoneMode']=args.startup_milestones
     report['runtimeInputsSha256']=hashlib.sha256(input_bytes).hexdigest()
     report['runtimeSourcesSha256']=frozen_inputs['fullJourneyFiles']
     selected = False
@@ -245,7 +249,7 @@ def main():
         external_spec = importlib.util.spec_from_file_location('default_external', external_path)
         external = importlib.util.module_from_spec(external_spec)
         external_spec.loader.exec_module(external)
-        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs, binding_record,window_frame_trace=args.window_frame_trace)
+        evidence = external.observe(adb, read, output, args.object_count, original_packages['main']['uid'], report['publicOcrInput']['fileName'], frozen_inputs, binding_record,window_frame_trace=args.window_frame_trace,startup_milestones=args.startup_milestones)
         report['diagnosticExternalEvidence'] = evidence
         report['stages'] = evidence['stageNames']
         report['nativePassed'] = evidence['success'] is True and evidence['metadataContractAccepted'] is True
@@ -378,7 +382,8 @@ def main():
                                 and not report.get('sourceRestoreError')
                                 and report.get('ownedPublicOcrInputRemoved'))
         report['passed'] = report['passed'] and report.get('targetInstrumentationInjected') is True and report.get('metadataJavaScriptEvaluation') is True and report.get('nativeCollectorCleanupAccepted') is True
-        report['nativeFramesAccepted'] = report['passed']
+        report['nativeFramesAccepted'] = report['passed'] and not args.startup_milestones
+        report['startupMilestonesObserved'] = report['passed'] and args.startup_milestones
         report['actualIpcAccepted'] = False
         report['fullRF312Accepted'] = False
         report['defaultPerformanceSampleAccepted'] = False

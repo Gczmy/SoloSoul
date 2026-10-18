@@ -55,7 +55,47 @@ public final class FrameCollector extends Instrumentation {
       + "hitPassword:hit(p[0]),hitSubmit:hit(b[0]),documentFocused:document.hasFocus(),documentVisible:document.visibilityState==='visible',"
       + "timeOriginMs:performance.timeOrigin,atMs:performance.now()});})()";
 
+  private static final String MILESTONE_SCRIPT = "(() => {\n"
+      + "  const p = performance;\n"
+      + "  const query = typeof p.getEntriesByName === 'function' && typeof p.getEntriesByType === 'function';\n"
+      + "  const supported = typeof PerformanceObserver !== 'undefined' && Array.isArray(PerformanceObserver.supportedEntryTypes);\n"
+      + "  const supports = name => supported && PerformanceObserver.supportedEntryTypes.includes(name);\n"
+      + "  const times = (name, type) => {\n"
+      + "    const entries = query ? p.getEntriesByName(name, type) : [];\n"
+      + "    return {count: entries.length, entries: entries.slice(0, 4).map(entry => entry.startTime)};\n"
+      + "  };\n"
+      + "  const nav = query ? p.getEntriesByType('navigation') : [];\n"
+      + "  return JSON.stringify({\n"
+      + "    schemaVersion: 1,\n"
+      + "    scope: 'document-startup-milestones',\n"
+      + "    mainFrame: top === window,\n"
+      + "    childFrames: document.querySelectorAll('iframe,frame').length,\n"
+      + "    localOrigin: location.hostname === 'tauri.localhost' && ['http:', 'https:'].includes(location.protocol),\n"
+      + "    loginRoute: location.pathname === '/login',\n"
+      + "    documentVisible: document.visibilityState === 'visible',\n"
+      + "    timeOriginMs: p.timeOrigin,\n"
+      + "    entryQueryAvailable: query,\n"
+      + "    supportedEntryTypesAvailable: supported,\n"
+      + "    markEntrySupported: supports('mark'),\n"
+      + "    paintEntrySupported: supports('paint'),\n"
+      + "    navigationEntrySupported: supports('navigation'),\n"
+      + "    reactMount: times('solosoul:react-mount', 'mark'),\n"
+      + "    startupDismissed: times('solosoul:startup-dismissed', 'mark'),\n"
+      + "    firstPaint: times('first-paint', 'paint'),\n"
+      + "    firstContentfulPaint: times('first-contentful-paint', 'paint'),\n"
+      + "    navigation: {count: nav.length, entries: nav.slice(0, 4).map(entry => ({\n"
+      + "      startTimeMs: entry.startTime,\n"
+      + "      durationMs: entry.duration,\n"
+      + "      domInteractiveMs: entry.domInteractive,\n"
+      + "      domContentLoadedEndMs: entry.domContentLoadedEventEnd,\n"
+      + "      loadEventEndMs: entry.loadEventEnd\n"
+      + "    }))},\n"
+      + "    observedAtMs: p.now()\n"
+      + "  });\n"
+      + "})()\n";
+
   private Bundle arguments;
+  private boolean startupMilestones;
   private WindowFrameTrace windowTrace;
   private File root;
   private String run;
@@ -131,7 +171,8 @@ public final class FrameCollector extends Instrumentation {
 
   private void write(String name, JSONObject value) throws Exception {
     require(name.equals("ready.json") || name.equals("frames.json") || name.equals("failure.json")
-        || (windowTrace != null && name.equals("window-trace.json")));
+        || (windowTrace != null && name.equals("window-trace.json"))
+        || (startupMilestones && name.equals("startup-milestones.json")));
     File file = new File(root, name); require(file.createNewFile());
     byte[] raw = (value.toString() + "\n").getBytes(StandardCharsets.UTF_8);
     try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(raw); stream.getFD().sync(); }
@@ -286,6 +327,53 @@ public final class FrameCollector extends Instrumentation {
     require(left > 0 && installed.await(left, TimeUnit.NANOSECONDS) && failure.get() == null);
   }
 
+  private JSONObject milestoneQuery(long deadline) throws Exception {
+    AtomicReference<JSONObject> result = new AtomicReference<>(); CountDownLatch done = new CountDownLatch(1);
+    main.post(() -> {
+      try {
+        boundView(); view.evaluateJavascript(MILESTONE_SCRIPT, raw -> {
+          try {
+            require(!closed && raw != null && raw.length() <= 16384 && System.nanoTime() < deadline);
+            Object parsed = new JSONArray("[" + raw + "]").get(0); require(parsed instanceof String);
+            JSONObject value = new JSONObject((String) parsed); boundView(); result.set(value);
+          } catch (Throwable error) { failure.compareAndSet(null, "milestone-query-rejected"); }
+          finally { done.countDown(); }
+        });
+      } catch (Throwable error) { failure.compareAndSet(null, "milestone-query-rejected"); done.countDown(); }
+    });
+    long left = Math.min(READ_NS, deadline - System.nanoTime());
+    require(left > 0 && done.await(left, TimeUnit.NANOSECONDS) && System.nanoTime() < deadline);
+    require(failure.get() == null && result.get() != null); return result.get();
+  }
+
+  private void collectMilestones(JSONObject before, String expected, String collectorIdentity,
+      long deadline, Bundle terminal) throws Exception {
+    step = "startup-milestone-query"; JSONObject metrics = milestoneQuery(deadline);
+    step = "final-document-identity"; JSONObject after = state(deadline); require(after != null && ready(after));
+    require(before.getDouble("timeOriginMs") == metrics.getDouble("timeOriginMs")
+        && metrics.getDouble("timeOriginMs") == after.getDouble("timeOriginMs")
+        && before.getDouble("atMs") <= metrics.getDouble("observedAtMs")
+        && metrics.getDouble("observedAtMs") <= after.getDouble("atMs"));
+    require(detach(true)); long completed = System.nanoTime(); require(completed < deadline);
+    JSONObject result = new JSONObject().put("schemaVersion", 1).put("scope", "native-login-startup-milestone-observation")
+        .put("runId", run).put("process", process).put("targetApkSha256", expected).put("collectorApkSha256", collectorIdentity)
+        .put("api", Build.VERSION.SDK_INT).put("startedNs", traceStartedNs).put("deadlineNs", deadline).put("completedNs", completed)
+        .put("nativeClock", "System.nanoTime; same target process; not converted to document clock")
+        .put("documentClock", "performance.timeOrigin and performance.now; no cross-clock conversion")
+        .put("hardwareAccelerated", true).put("nativeWindowFocused", true).put("width", width).put("height", height)
+        .put("documentBefore", before).put("documentAfter", after).put("milestones", metrics).put("callbacksDetached", true)
+        .put("explicitDrawRequestsDispatched", false).put("forcedInvalidation", false).put("inputDispatched", false)
+        .put("businessIpcDispatched", false).put("nativeFramesAccepted", false).put("applicationOnlyLatencyAccepted", false)
+        .put("physicalDisplayPresentationProven", false).put("defaultPerformanceSampleAccepted", false).put("fullRF312Accepted", false);
+    write("startup-milestones.json", result);
+    step = "external-startup-milestone-acknowledgement"; File accept = new File(root, "accept");
+    while (System.nanoTime() < deadline && !accept.isFile()) SystemClock.sleep(5);
+    require(System.nanoTime() < deadline && accept.isFile() && accept.length() == 0
+        && accept.getCanonicalFile().equals(accept.getAbsoluteFile()) && identity().toString().equals(process.toString()));
+    terminal.putBoolean("startupMilestoneProbeCompleted", true); terminal.putInt("committedFrames", 0);
+    finish(Activity.RESULT_OK, terminal);
+  }
+
   private boolean detach(boolean verifyBoundWindow) {
     long stopBegin = System.nanoTime(), stopDeadline = stopBegin + READ_NS;
     closed = true;
@@ -320,6 +408,9 @@ public final class FrameCollector extends Instrumentation {
       require(Build.VERSION.SDK_INT >= 29 && arguments != null);
       String traceOption = arguments.getString("windowFrameTrace");
       require(traceOption == null || "true".equals(traceOption));
+      String milestoneOption = arguments.getString("startupMilestones");
+      require(milestoneOption == null || "true".equals(milestoneOption));
+      startupMilestones = milestoneOption != null; require(!startupMilestones || traceOption == null);
       run = arguments.getString("runId"); String expected = arguments.getString("targetApkSha256");
       require(run != null && run.matches("[a-f0-9]{32}") && expected != null && expected.matches("[a-f0-9]{64}"));
       require("true".equals(arguments.getString("privateDataBackedUp")) && APP.equals(getTargetContext().getPackageName()));
@@ -335,13 +426,14 @@ public final class FrameCollector extends Instrumentation {
         windowTrace = new WindowFrameTrace(run, process, expected, collectorIdentity, traceStartedNs, deadline, main);
         windowTrace.start(getTargetContext().getApplicationContext());
       }
-      write("ready.json", new JSONObject().put("schemaVersion", 1).put("scope", "native-login-frame-commit-probe")
+      write("ready.json", new JSONObject().put("schemaVersion", 1).put("scope", startupMilestones ? "native-login-startup-milestone-probe" : "native-login-frame-commit-probe")
           .put("runId", run).put("process", process).put("targetApkSha256", expected)
           .put("collectorApkSha256", collectorIdentity)
           .put("startedNs", traceStartedNs).put("deadlineNs", deadline));
       step = "usable-login-document";
       while (System.nanoTime() < deadline && before == null) { before = state(deadline); if (before == null) SystemClock.sleep(25); }
       require(before != null && ready(before));
+      if (startupMilestones) { collectMilestones(before, expected, collectorIdentity, deadline, terminal); return; }
       step = "two-native-commits"; arm(deadline);
       while (System.nanoTime() < deadline && commitCount.get() < 2 && failure.get() == null) SystemClock.sleep(5);
       require(failure.get() == null && commitCount.get() == 2 && frames.size() == 2);
@@ -382,13 +474,13 @@ public final class FrameCollector extends Instrumentation {
       } catch (Throwable ignored) { terminal.putBoolean("windowTraceUnavailable", true); }
       try {
         if (root != null) write("failure.json", new JSONObject().put("schemaVersion", 2).put("runId", run)
-            .put("scope", "native-login-frame-commit-refusal").put("step", step)
+            .put("scope", startupMilestones ? "native-login-startup-milestone-refusal" : "native-login-frame-commit-refusal").put("step", step)
             .put("errorClass", error.getClass().getName()).put("reason", failure.get() == null ? "frame-contract-rejected" : failure.get())
             .put("nativeStatus", nativeStatus).put("lastDocument", lastDocument == null ? JSONObject.NULL : lastDocument)
             .put("frames", new JSONArray(new ArrayList<>(frames))).put("callbacksDetached", detached)
             .put("nativeFramesAccepted", false).put("performanceSampleAccepted", false));
       } catch (Throwable ignored) { terminal.putBoolean("failureReceiptUnavailable", true); }
-      terminal.putBoolean("frameProbePassed", false); terminal.putString("failedStep", step);
+      terminal.putBoolean(startupMilestones ? "startupMilestoneProbeCompleted" : "frameProbePassed", false); terminal.putString("failedStep", step);
       terminal.putInt("committedFrames", commitCount.get()); finish(Activity.RESULT_CANCELED, terminal);
     } finally {
       if (!closed) detach(false);

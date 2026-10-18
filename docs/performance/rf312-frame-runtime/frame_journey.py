@@ -12,7 +12,7 @@ from diagnostic_exchange import binding as bind_transport
 APP=original.APP;S=original.S
 sha=original.sha;save=original.save;labels=original.labels
 
-def observe(adb,read,output,count,uid,public_image_name,inputs,binding,*,window_frame_trace=False):
+def observe(adb,read,output,count,uid,public_image_name,inputs,binding,*,window_frame_trace=False,startup_milestones=False):
     for name,key in [('observer_session.py','journeyObserverSessionSha256'),('process_identity.py','processReaderSha256'),('live_pixel_counter.py','livePixelCounterSha256')]:
         if sha(S/name)!=inputs[key]:raise RuntimeError('Frozen native startup dependencies changed')
     original_adb,original_read=adb,read
@@ -30,7 +30,7 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,binding,*,window_
                 expected_executable_sha256=host['adbSha256'],script=frame_binding.LEGACY/'exchange_control.sh',shell_crlf=True) as (adb,read):
             adb('shell','am','force-stop',APP,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             if reader.read_process_ids(read,APP):raise RuntimeError('Startup requires a stopped target')
-            with native.session(original_adb,original_read,output,observer,uid,binding,gate,window_frame_trace=window_frame_trace) as collector:
+            with native.session(original_adb,original_read,output,observer,uid,binding,gate,window_frame_trace=window_frame_trace,startup_milestones=startup_milestones) as collector:
                 stage_deadline=collector.deadline
                 j=original.Journey(observer,focused,output,inputs)
                 began=time.monotonic();framework=read('shell','am','start','-W','-n',APP+'/.MainActivity')
@@ -47,9 +47,10 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,binding,*,window_
                 focused(APP)
                 j.finish('startup',began,row,twoCommittedFramesProven=False,nativeFrameContractPending=True)
                 metadata=collector.finish()
-                summary=dict(success=True,scope='default-apk-target-instrumented-native-startup-frame-evidence',objectCount=count,
-                    stageNames=['startup'],stages=j.phases,metadataContractAccepted=metadata['frameCommitContractAccepted'],
-                    committedFrames=metadata['committedFrames'],targetInstrumentationInjected=True,metadataJavaScriptEvaluation=True,
+                summary=dict(success=True,scope='default-apk-target-instrumented-startup-milestone-evidence' if startup_milestones else 'default-apk-target-instrumented-native-startup-frame-evidence',objectCount=count,
+                    stageNames=['startup'],stages=j.phases,metadataContractAccepted=metadata['startupMilestoneMetadataAccepted'] if startup_milestones else metadata['frameCommitContractAccepted'],
+                    committedFrames=0 if startup_milestones else metadata['committedFrames'],
+                    startupMilestonesObserved=metadata['requiredMilestonesAvailable'] if startup_milestones else False,targetInstrumentationInjected=True,metadataJavaScriptEvaluation=True,
                     defaultReleaseNonDebuggable=True,physicalStartupScreenshot=True,independentPasswordAndButtonHitChecks=True,
                     physicalDisplayPresentationProven=False,applicationOnlyLatencyAccepted=False,defaultPerformanceSampleAccepted=False,
                     fullUiJourneyAccepted=False,fullRF312Accepted=False,actualIpcAccepted=False,
@@ -60,4 +61,5 @@ def observe(adb,read,output,count,uid,public_image_name,inputs,binding,*,window_
             raise RuntimeError('Complete native startup cleanup required')
     summary['nativeInstrumentationStateChecks']=len(gate.proof)
     save(output/'default-external/evidence.json',summary)
+    if startup_milestones and not summary['startupMilestonesObserved']:raise RuntimeError('Required startup milestones unavailable; original buffer metadata retained')
     return summary

@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import hashlib,json,re,subprocess,time,uuid
 import frame_receipt as receipt_reader
 import window_trace as window_reader
+import startup_milestones as milestone_reader
 
 APP='com.solosoul.app';PKG='org.solosoul.rf312frames'
 COMPONENT=PKG+'/'+PKG+'.FrameCollector'
@@ -74,8 +75,14 @@ def refusal_contract(body,marker,token):
     return value
 
 @contextmanager
-def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False):
+def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False,startup_milestones=False):
     if type(window_frame_trace) is not bool:raise ValueError("Explicit optional trace boolean required")
+    if type(startup_milestones) is not bool or (startup_milestones and window_frame_trace):raise ValueError('Separate explicit milestone mode required')
+    metadata_name='startup-milestones.json' if startup_milestones else 'frames.json'
+    ready_reader=milestone_reader.ready_contract if startup_milestones else ready_contract
+    terminal_reader=milestone_reader.terminal if startup_milestones else terminal
+    failure_reader=milestone_reader.refusal_contract if startup_milestones else refusal_contract
+    positive_reader=milestone_reader if startup_milestones else receipt_reader
     package=binding['collector'];app=binding['package'];token=uuid.uuid4().hex
     folder=output/'target-instrumentation';folder.mkdir(exist_ok=False)
     remote='/sdcard/Android/data/'+APP+'/files/rf312-frames-'+token
@@ -103,7 +110,7 @@ def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False
         if read('shell','sha256sum',base.removeprefix('package:')).split()!=[package['sha256'],base.removeprefix('package:')]:
             raise RuntimeError('Installed frame collector changed')
     def document(name):
-        if name not in (['ready.json','frames.json','window-trace.json'] if window_frame_trace else ['ready.json','frames.json']):raise ValueError('Exact native frame metadata name required')
+        if name not in (['ready.json',metadata_name,'window-trace.json'] if window_frame_trace else ['ready.json',metadata_name]):raise ValueError('Exact native frame metadata name required')
         while call(['shell','test','-f',remote+'/'+name+'.sha256'],missing=True) is None:
             if process.poll() is not None:raise RuntimeError('Frame collector ended before expected metadata')
             time.sleep(min(.025,remaining()))
@@ -121,8 +128,8 @@ def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False
         def finish(self):
             nonlocal accepted
             if self.metadata is not None:raise RuntimeError('Frame evidence cannot be acknowledged twice')
-            raw=document('frames.json')
-            self.metadata=receipt_reader.validate(ready,receipt_reader.decode(raw),run_id=token,
+            raw=document(metadata_name)
+            self.metadata=positive_reader.validate(ready,receipt_reader.decode(raw),run_id=token,
                 expected_process=self.process,target_apk_sha256=app['sha256'],collector_apk_sha256=package['sha256'],expected_api=31)
             if window_frame_trace:
                 window_raw=document('window-trace.json')
@@ -142,7 +149,7 @@ def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False
             process.wait(timeout=remaining());remaining()
             stdout.close();stderr.close()
             if process.returncode!=0 or (folder/'instrumentation.stderr').read_bytes():raise RuntimeError('Frame command failed')
-            terminal((folder/'instrumentation.stdout').read_text(encoding='utf-8'))
+            terminal_reader((folder/'instrumentation.stdout').read_text(encoding='utf-8'))
             save(folder/'metadata-contract.json',self.metadata)
             names=call(['shell','ls','-A',remote]).decode().splitlines()
             if len(names)!=(7 if window_frame_trace else 5) or set(names)!=set(files):raise RuntimeError('Exact owned frame metadata file set required')
@@ -169,9 +176,10 @@ def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False
             'shell','am','instrument','-w','-r','-e','runId',token,'-e','targetApkSha256',app['sha256'],
             '-e','privateDataBackedUp','true',COMPONENT]
         if window_frame_trace:command[-1:-1]=['-e','windowFrameTrace','true']
+        if startup_milestones:command[-1:-1]=['-e','startupMilestones','true']
         process=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=stdout,stderr=stderr,creationflags=subprocess.CREATE_NO_WINDOW)
         save(folder/'live.json',dict(pid=process.pid,command=command,originalHostPhaseDeadline=deadline))
-        ready=ready_contract(document('ready.json'),token,app['sha256'],package['sha256'],uid)
+        ready=ready_reader(document('ready.json'),token,app['sha256'],package['sha256'],uid)
         identity=ready['process'];pid=identity['processId']
         if call(['shell','pidof',APP]).decode().strip()!=str(pid):raise RuntimeError('Original target process required')
         stat=call(['exec-out','cat','/proc/'+str(pid)+'/stat']).decode()
@@ -182,7 +190,7 @@ def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False
     except BaseException as error:
         original_error=error;proof['originalErrorType']=type(error).__name__
         # Preserve all bounded known files, including refusals. Never manufacture a pass.
-        for name in ['ready.json','ready.json.sha256','frames.json','frames.json.sha256','failure.json','failure.json.sha256']+(['window-trace.json','window-trace.json.sha256'] if window_frame_trace else []):
+        for name in ['ready.json','ready.json.sha256',metadata_name,metadata_name+'.sha256','failure.json','failure.json.sha256']+(['window-trace.json','window-trace.json.sha256'] if window_frame_trace else []):
             if not (folder/name).exists():
                 try:
                     value=adb('exec-out','cat',remote+'/'+name,timeout=5,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
@@ -206,7 +214,7 @@ def session(adb,read,output,observer,uid,binding,gate,*,window_frame_trace=False
             try:
                 body=adb('exec-out','cat',remote+'/failure.json',timeout=5,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
                 marker=adb('exec-out','cat',remote+'/failure.json.sha256',timeout=5,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
-                value=refusal_contract(body,marker,token)
+                value=failure_reader(body,marker,token)
                 (folder/'terminal-failure.json').write_bytes(body)
                 (folder/'terminal-failure.json.sha256').write_bytes(marker)
                 proof['completeTerminalRefusalPreserved']=True

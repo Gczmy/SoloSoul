@@ -14,7 +14,7 @@ sha=frame_binding.sha
 FIELDS={'schemaVersion','runtimeInputs','runtimeInputsSha256','defaultPackageConfig',
         'defaultPackageConfigSha256','nodeExecutable','toolSha256','sourceSha256'}
 TOOLS={'java','javac','jvm','androidJar','aapt2','apksigner','d8','zipalign','node'}
-LOCAL=('FrameCollector.java','AndroidManifest.xml','readiness.node.test.mjs','frame_manifest.py','build_frame_collector.py','FrameCommitSequence.java','FrameCommitSequenceTest.java','WindowFrameTrace.java')
+LOCAL=('FrameCollector.java','AndroidManifest.xml','readiness.node.test.mjs','frame_manifest.py','build_frame_collector.py','FrameCommitSequence.java','FrameCommitSequenceTest.java','WindowFrameTrace.java','milestones.node.test.mjs')
 
 def source_hashes():
     return {**{'runtime/'+name:value for name,value in frame_binding.sources().items()},
@@ -81,7 +81,7 @@ def main(argv=None):
     out.mkdir(exist_ok=False)
     for name in ['temp','java-user','classes','test-classes','dex']:(out/name).mkdir()
     inputs={str(p):sha(p) for p in [config_file,Path(config['runtimeInputs']),Path(config['defaultPackageConfig']),key]}
-    sources={str(p):sha(p) for p in [source,manifest,tests,ROOT/'frame_manifest.py',Path(__file__),sequence,sequence_test,window_source]}
+    sources={str(p):sha(p) for p in [source,manifest,tests,ROOT/'frame_manifest.py',Path(__file__),sequence,sequence_test,window_source,ROOT/'milestones.node.test.mjs']}
     env=dict(os.environ,TEMP=str(out/'temp'),TMP=str(out/'temp'),TMPDIR=str(out/'temp'),
         JAVA_OPTS='',_JAVA_OPTIONS='',JDK_JAVA_OPTIONS='',
         JAVA_TOOL_OPTIONS='-Duser.home="'+(out/'java-user').as_posix()+'" -Djava.io.tmpdir="'+(out/'temp').as_posix()+'"')
@@ -127,6 +127,17 @@ def main(argv=None):
         counters={k.decode():int(v) for k,v in re.findall(rb'^# (tests|pass|fail|cancelled|skipped|todo) ([0-9]+)\s*$',stdout,re.M)}
         if (out/'readiness-tests.stderr').read_bytes() or counters!={'tests':9,'pass':9,'fail':0,'cancelled':0,'skipped':0,'todo':0}:
             raise ValueError('All compiled readiness tests must pass without skips')
+        expression=re.search(r'private static final String MILESTONE_SCRIPT = (.*?);\n\n',source.read_text(encoding='utf-8'),re.S).group(1)
+        strings=re.findall(r'"(?:[^"\\]|\\.)*"',expression)
+        if re.fullmatch(r'[\s+]*',re.sub(r'"(?:[^"\\]|\\.)*"','',expression)) is None:
+            raise ValueError('Literal compiled milestone script required')
+        milestone_script=out/'startup-milestones.js'
+        with milestone_script.open('x',encoding='utf-8',newline='\n') as stream:stream.write(''.join(json.loads(s) for s in strings))
+        stdout=run('milestone-tests',[tools['node'],'--test','--test-reporter=tap',ROOT/'milestones.node.test.mjs'],timeout=30,
+            environment=dict(env,RF312_STARTUP_MILESTONE_SCRIPT=str(milestone_script)))
+        counters={k.decode():int(v) for k,v in re.findall(rb'^# (tests|pass|fail|cancelled|skipped|todo) ([0-9]+)\s*$',stdout,re.M)}
+        if (out/'milestone-tests.stderr').read_bytes() or counters!={'tests':10,'pass':10,'fail':0,'cancelled':0,'skipped':0,'todo':0}:
+            raise ValueError('All compiled milestone script tests required without skips')
         jar=out/'frame-classes.jar'
         with zipfile.ZipFile(jar,'x') as archive:
             for relative in classes:
@@ -164,6 +175,7 @@ def main(argv=None):
         record.update(passed=True,apk=str(apk),bytes=apk.stat().st_size,sha256=sha(apk),payloadSha256=payload,
             certificateSha256=signer['certificateSha256'],sourceSha256=sources,toolSha256=config['toolSha256'],
             compiledClasses=classes,readinessScriptSha256=sha(script),readinessTests=9,frameSequenceTests=11,
+            milestoneScriptSha256=sha(milestone_script),milestoneScriptTests=10,
             compiledManifestIdentity=identity,minSdk=29,targetSdk=35,compileSdk=36,originalDefaultObserverReaderRejected=True,
             defaultTargetApkSha256=runtime['release']['apk']['sha256'],sourceAndToolsPreserved=True)
         record['builderConfigSha256']=sha(config_file)
