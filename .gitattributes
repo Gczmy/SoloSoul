@@ -164,3 +164,9 @@ docs/performance/rf312-system-trace-capability-2026-10-18.json text eol=lf
 # 固定系统追踪协议读取器与证据摘要的检出字节。
 docs/performance/rf312-system-trace/*.py text eol=lf
 docs/performance/rf312-system-trace-protocol-2026-10-18.json text eol=lf
+
+# 系统追踪传输的配置、SQL 和分析合同均按摘要绑定。
+docs/performance/rf312-system-trace/*.pbtxt text eol=lf
+docs/performance/rf312-system-trace/*.sql text eol=lf
+docs/performance/rf312-system-trace/*.json text eol=lf
+docs/performance/rf312-system-trace-transport-2026-10-18.json text eol=lf
