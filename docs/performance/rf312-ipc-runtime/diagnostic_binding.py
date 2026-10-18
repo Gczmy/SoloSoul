@@ -19,6 +19,11 @@ LOCAL=('ipc_receipt.py','native_collector.py','diagnostic_ui_session.py','diagno
 sha=lambda path:hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def require_assertions():
+    if not __debug__ or sys.flags.optimize:
+        raise ValueError('This diagnostic validation entry requires Python assertions enabled')
+
+
 def sources():
     return {**{'collector/'+name:value for name,value in producer.sources().items()},
             **{name:sha(producer.HERE/name) for name in ['rf312_instrumentation_state.py','test_rf312_instrumentation_state.py','rf312_state_gate.py','test_rf312_state_gate.py','rf312_launch_identity.py','test_rf312_launch_identity.py']},
@@ -43,6 +48,7 @@ def config_shape(config):
 
 
 def load(path):
+    require_assertions()
     path=producer.ordinary(path)
     raw=path.read_bytes();config=producer.package.producer.decode(raw);config_shape(config)
     if config['sourceSha256']!=sources():raise ValueError('Diagnostic runtime source changed')
@@ -59,6 +65,7 @@ def load(path):
 
 
 def verify(value):
+    require_assertions()
     config=value['config'];config_shape(config)
     if config['sourceSha256']!=sources():raise ValueError('Diagnostic runtime source changed')
     runtime=value['runtime'];package=value['package'];collector=value['collector']

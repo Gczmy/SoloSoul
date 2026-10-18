@@ -11,6 +11,7 @@ shared_restore=None
 
 
 def main():
+    diagnostic_binding.require_assertions()
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("adb", "serial", "avd", "apk", "test-apk", "output"):
         parser.add_argument(f"--{name}", required=True)

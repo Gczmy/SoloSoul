@@ -20,6 +20,24 @@ class BindingTests(unittest.TestCase):
     def test_explicit_diagnostic_config_keeps_default_input_separate(self):
         binding.config_shape(self.config)
 
+    def test_optimized_interpreter_cannot_disable_validation_assertions(self):
+        for optimize in [1, 2]:
+            with self.subTest(optimize=optimize), patch.object(binding.sys, 'flags', SimpleNamespace(optimize=optimize)):
+                with self.assertRaisesRegex(ValueError, 'Python assertions enabled'):
+                    binding.require_assertions()
+
+    def test_optimized_load_refuses_before_reading_receipts(self):
+        with patch.object(binding.sys, 'flags', SimpleNamespace(optimize=1)), patch.object(binding.producer, 'ordinary') as read:
+            with self.assertRaisesRegex(ValueError, 'Python assertions enabled'):
+                binding.load(Path(self.temp.name) / 'unread-receipt.json')
+            read.assert_not_called()
+
+    def test_optimized_verify_refuses_before_validating_configuration(self):
+        with patch.object(binding.sys, 'flags', SimpleNamespace(optimize=2)), patch.object(binding, 'config_shape') as validate:
+            with self.assertRaisesRegex(ValueError, 'Python assertions enabled'):
+                binding.verify({'config': self.config})
+            validate.assert_not_called()
+
     def test_missing_extra_and_boolean_schema_rejected(self):
         for update in [dict(schemaVersion=True),dict(schemaVersion=2),dict(release={'apk':'relabelled'})]:
             value=copy.deepcopy(self.config);value.update(update)

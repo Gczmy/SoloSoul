@@ -86,6 +86,7 @@ def package_identity(payload,info):
 
 
 def main():
+    diagnostic_binding.require_assertions()
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--kind',choices=['diagnostic-full'],required=True)
     parser.add_argument('--preparation',type=Path,required=True)
