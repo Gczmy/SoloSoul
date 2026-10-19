@@ -66,7 +66,7 @@ async function setup(
           user_data_get_preferences: () => prefs,
           set_titlebar_color: () => ({
             ...layout,
-            material: platform === 'macos' ? 'liquid-glass' : 'mica',
+            material: platform === 'macos' ? 'liquid-glass' : theme === 'dark' ? 'solid' : 'mica',
             reduceMotion: false,
             highContrast: false,
           }),
@@ -317,7 +317,7 @@ for (const platform of ['macos', 'windows'] as const) {
           if (platform === 'windows') {
             await expect(navigation).toHaveCSS(
               'background-color',
-              theme === 'dark' ? 'rgb(24, 24, 24)' : 'rgb(243, 243, 243)',
+              theme === 'dark' ? 'rgb(24, 24, 24)' : 'rgba(0, 0, 0, 0)',
             );
           } else {
             await expect(navigation).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
@@ -356,6 +356,12 @@ for (const platform of ['macos', 'windows'] as const) {
             '--desktop-navigation-solid',
             theme === 'dark' ? '#181818' : '#f3f3f3',
           );
+          if (platform === 'windows') {
+            await expect(navigation).toHaveCSS(
+              'background-color',
+              theme === 'dark' ? 'rgb(24, 24, 24)' : 'rgb(243, 243, 243)',
+            );
+          }
         });
       }
       test(`${theme} material, selection and accessible fallback`, async ({ page }) => {
