@@ -1,5 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub(crate) mod system_events;
+
+/// 安装与窗口手动外观独立的系统通知；也供无账户原生回归例程使用。
+/// 必须在主窗口建立后的 UI 线程调用，重复安装保持幂等。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub fn observe_system_appearance(app: &tauri::AppHandle) -> Result<(), String> {
+    system_events::install(app)
+}
+
 #[cfg(target_os = "windows")]
 #[path = "window/backdrop_raster.rs"]
 mod backdrop_raster;

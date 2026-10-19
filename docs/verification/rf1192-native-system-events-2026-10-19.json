@@ -1,0 +1,80 @@
+{
+  "task": "RF-1192",
+  "date": "2026-10-19",
+  "status": "Implementation and Windows native checks complete; actual macOS native switching pending by user decision.",
+  "change": "Replace desktop one-second theme/accessibility polling with independent native notifications, retaining the existing system-theme-changed payload and explicit window appearance.",
+  "commands": {
+    "fmt": "cargo fmt --all -- --check",
+    "clippy": "cargo clippy -p solo_soul --all-targets --offline -- -D warnings",
+    "tests": "cargo test -p solo_soul --lib --offline --no-fail-fast -- --test-threads=2",
+    "native": "cargo run -p solo_soul --example system_appearance_events --offline -- <fresh absolute output directory>"
+  },
+  "sources": {
+    "tauri/src-tauri/Cargo.toml": "996d0922aeb8d61ad0b0ec4ebf33ba553c95b736b9fa7e60c4ecb26c7467e5d5",
+    "tauri/src-tauri/src/setup/mod.rs": "9008da07a07b71fee6ca70ded6f50ef845bcaba6639bbafbea005a32d565f2fe",
+    "tauri/src-tauri/src/commands/window.rs": "127a5e3293ba8fb8071f16d0031f62643cd56dbce984c76f841713640409906a",
+    "tauri/src-tauri/src/commands/window/windows.rs": "8930c6a6b9c9032c6bf638de20bac89004b75b7b3c2243139aa20e06acf261fd",
+    "tauri/src-tauri/src/commands/window/macos.rs": "5a9d3be3b794fe72e7a80ea70d0cad2f420594bdeffb75e06f6c3f0c76348208",
+    "tauri/src-tauri/src/commands/window/system_events.rs": "da071ad24fc3caef3869acaed01551e25883b00c68e4a04910d9c73be3d3fd35",
+    "tauri/src-tauri/src/commands/window/system_events/windows.rs": "eb1f7745c57984805f5c50b3a07b654ba0071b56f4bc9df58df1d49be641db42",
+    "tauri/src-tauri/src/commands/window/system_events/macos.rs": "401125efaf7e556034e2a0417b9e723756ff74ed1b96a2112e6705fd10b65116",
+    "tauri/src-tauri/examples/system_appearance_events.rs": "d82852ffd1ec4cac7163a63267532e41278b0c1aaa7c30fa1d1e9c48bc259f78"
+  },
+  "windows": {
+    "changes": 2,
+    "duplicatesSuppressed": 6,
+    "error": null,
+    "explicitWindowTheme": true,
+    "idempotentInstall": true,
+    "limitations": [
+      "Synthetic native messages with process-local registry fixtures; no Windows settings UI or visual assertion."
+    ],
+    "messages": 8,
+    "native": "real HWND subclass, registry reads, Tauri event bus and DWM readback",
+    "nativeAppearanceUpdates": 2,
+    "passed": true,
+    "task": "RF-1192",
+    "userThemeRestored": true,
+    "exit": 0,
+    "scope": "Separate hidden real Tauri/WebView window with process-local HKCU fixtures; real HWND dispatch, Tauri event delivery, Window theme and DWM dark-mode readback."
+  },
+  "macos": {
+    "bindingCheck": {
+      "target": "x86_64-apple-darwin",
+      "exit": 0,
+      "scope": "Actual observer source with exact cached objc2 API bindings and minimal AppHandle/notify stand-ins; not a full Tauri macOS application build."
+    },
+    "native": "Pending: user has no macOS test machine."
+  },
+  "rust": {
+    "fmtExit": 0,
+    "clippy": {
+      "scope": "solo_soul all-targets offline, warnings denied",
+      "exit": 0
+    },
+    "libTests": {
+      "passed": 804,
+      "failed": 0,
+      "ignored": 0,
+      "exit": 0
+    }
+  },
+  "logs": {
+    "fmt-frozen.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clippy-frozen.log": "06f584ee81ef9a80f023b24bbe9dcdcd1958473a918aff465e59937dca17a1e5",
+    "rust-tests.log": "cdda2803243e5b47a72217413346d7909831a425b17ba40510547f46c900dcf8",
+    "native-run-r1.log": "e1aad9e4e4196c4f065acce8d93be7b74480e0c549be2c5e8e91b71141d14667",
+    "native-messages-r1/result.json": "1a7d30d88f989f90461cd4a80a5b1af3db2fcf921a6f301251fb85ef0ef87de9",
+    "macos-bindings-frozen.log": "250bd07c3fbc0e6801a65c19ab526f81b84fba0d8be78d62e06a7992769083ae"
+  },
+  "limitations": [
+    "Native Windows messages are targeted synthetic messages, with short process-local registry redirection; no user system-theme key is modified and no global setting notification is broadcast.",
+    "No Windows Settings UI toggle or compositor visual screenshot is claimed.",
+    "WebView emitted a Chrome_WidgetWin_0 unregister diagnostic (1412) at shutdown; retained verbatim in the private log. The process exited zero and the saved native assertions passed.",
+    "Actual macOS KVO delivery, accessibility notifications and lifecycle behavior need a macOS machine; binding type-check cannot substitute for them.",
+    "Initial Rust API compile errors were fixed before final strict checks; earlier failed logs are retained privately.",
+    "Expected RF-017 synthetic ZipWriter write/seek failure diagnostics remain in the passing library test log.",
+    "Frontend static startup and controller handoff is independently tracked under RF-1193.",
+    "Other original unfinished tasks remain paused."
+  ]
+}

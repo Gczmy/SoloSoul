@@ -3,8 +3,6 @@
 
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use tauri::Emitter;
 use tauri::Manager;
 
 use crate::commands;
@@ -321,24 +319,6 @@ fn setup_detect_locale() {
         locale_flag
     );
 }
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-fn setup_spawn_theme_polling(app: &tauri::AppHandle) {
-    let app_handle = app.clone();
-    tauri::async_runtime::spawn(async move {
-        use std::time::Duration;
-        let mut last_theme = String::new();
-        loop {
-            tokio::time::sleep(Duration::from_secs(1)).await;
-            commands::window::poll_accessibility(&app_handle);
-            if let Ok(theme) = commands::system::get_system_theme() {
-                if theme != last_theme {
-                    last_theme = theme.clone();
-                    let _ = app_handle.emit("system-theme-changed", theme);
-                }
-            }
-        }
-    });
-}
 pub(crate) fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // ════════════════════════════════════════════════════════
     // 启动前检查：ERROR/WARN 记录问题，正常路径不输出噪音
@@ -387,9 +367,9 @@ pub(crate) fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
     // 8. 检测系统 locale（前端通过 IPC get_system_locale + navigator.language 获取）
     setup_detect_locale();
 
-    // 9. 启动系统主题轮询任务 — 桌面端先行，移动端使用前端 CSS media query
+    // 9. 桌面订阅系统外观通知；移动端继续使用 WebView 的媒体查询。
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    setup_spawn_theme_polling(app.handle());
+    commands::window::observe_system_appearance(app.handle())?;
 
     Ok(())
 }

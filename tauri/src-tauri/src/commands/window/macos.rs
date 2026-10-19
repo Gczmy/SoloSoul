@@ -136,7 +136,7 @@ pub fn apply(
         }
     };
     let appearance = NSAppearance::appearanceNamed(appearance_name);
-    // 启动后的系统偏好轮询可能重复请求同一外观，避免无变化时触发材质重新合成。
+    // 系统通知可能重复请求同一外观，避免无变化时触发材质重新合成。
     if ns_window.appearance().as_deref() != appearance.as_deref() {
         ns_window.setAppearance(appearance.as_deref());
     }
