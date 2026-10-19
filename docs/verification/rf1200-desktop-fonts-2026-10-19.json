@@ -1,0 +1,91 @@
+{
+  "task": "RF-1200",
+  "date": "2026-10-19",
+  "baseCommit": "db9ad40a8",
+  "finding": "Windows navigation used a private Segoe UI Variable Text stack; ordinary text used the shared font stack and unstyled controls could use browser Arial.",
+  "fix": "Move the existing navigation stack to the Windows root; let desktop controls inherit their context font; startup text reuses the same token and platform fallback. Preserve explicit monospace fonts, existing sizes and weights, and mobile form rules.",
+  "checks": {
+    "productionBuild": 0,
+    "fixtureBuild": 0,
+    "prettier": 0,
+    "browserFontAudit": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "pageStates": 36,
+      "normalFontMismatches": 0,
+      "ordinaryTextSamples": 3762,
+      "monospaceSamples": 4,
+      "routes": [
+        "/",
+        "/workspace",
+        "/editor",
+        "/settings",
+        "/settings/appearance",
+        "/settings/export-import",
+        "/help",
+        "/debug-log",
+        "/settings/account"
+      ],
+      "platforms": [
+        "windows",
+        "macos"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    "existingProductionRegression": {
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "native": {
+      "visual": "Current public Windows WebView2 fixture checked in dark and light; sidebar, body, buttons and input typography agree.",
+      "nativeClose": true,
+      "nativeDestroyed": true
+    }
+  },
+  "fixtureSourceBinding": {
+    "files": 115,
+    "manifestSha256": "acd1ea1ea6ca5d35eabf0ce8e507c58268ac1f7a88e8dea459ac64a8d4346d1a",
+    "sha256": "9d1e5e6320cc0fddd1d2e453097a924fb8099e5cacc75c53951709270c4496df"
+  },
+  "sourceAudit": "Reviewed font-family/fontFamily and font shorthand declarations. Remaining explicit alternate fonts are code, logs, MRZ, PIN, recovery/pairing codes, identifiers and structured field values.",
+  "retainedAttempts": [
+    "Restricted browser audit was interrupted without a result.",
+    "Initial private audit reloaded the route and lost its in-memory mocked login; changed only the audit to the existing SPA navigation method.",
+    "Old production bundle reproduced normal-text and browser Arial mismatches.",
+    "Initial Prettier check failed; formatted only the three changed CSS files and rechecked."
+  ],
+  "boundaries": [
+    "Browser macOS layout is simulated on Windows; no new macOS native acceptance claimed.",
+    "No Android/iOS device run; their font selection and control rules are outside the new desktop selectors.",
+    "CSS-only product change: full TypeScript, lint, Vitest and Node baseline remains PR #13; those unchanged-code checks were not rerun here.",
+    "Other ten unfinished tasks remain paused."
+  ],
+  "evidenceSha256": {
+    "before-current.json": "9681783accfe0f1d9c39d256b001574427a01e58031f856a37100ae887ba4672",
+    "before-fonts.json": "c9889626e4f9b97fa1d4754f20d08a3ab077e5abda95c6f4330be82e5883648a",
+    "after-fonts.json": "44491be08a2f01261b0418fa5e6c3510fd4054530a066fa297ece613bd30405e",
+    "regression.json": "9e09692aff419c84d54d1d4861b52b2be777c78f9481fd124a2a660bac14ac12",
+    "build.log": "3906d2a779555e03bd06e8f7276de5e00b2df851d8128f7ad53a1bb58dc228db",
+    "fixture-build.log": "f6093ebef5d12e8b2376a92fb64df1ed60482cd6810393059bdeb82687f70eeb",
+    "format-fixed.log": "2d6dfd41394e0bfc6ae3d5c5634d65d816ee85604030a0aa537d8c4db7bb751a"
+  },
+  "nativeReportSha256": {
+    "report-000.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-001.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-002.json": "fd6de603707321bc500598a88b6e081c1bf44008d3027fb226e9256cc3070a35",
+    "report-003.json": "be50e8c1d281e728856fed43de992e2593d7ed0e8b0fd4fcb3be447829ecb67f",
+    "report-004.json": "7196d8cfcdf4e6690e4ed79800a853491e5a60c03066375389c8e4f6c6c949c2",
+    "report-005.json": "240a86353997dac1f8f72ceeeb4383776d3bcdaf554efe2b6e76ece2ce32d899",
+    "report-006.json": "7196d8cfcdf4e6690e4ed79800a853491e5a60c03066375389c8e4f6c6c949c2",
+    "report-007.json": "240a86353997dac1f8f72ceeeb4383776d3bcdaf554efe2b6e76ece2ce32d899",
+    "report-008.json": "2219fe0c8b72d6346d1eb798be6d9b8d8cb41d8d263a58364a26d4cd2f5fd54f",
+    "report-009.json": "aa0ad77d55e0ef3f6d9cba5b6fa4992bf0365b1c25cd05808a9785199fd39908"
+  }
+}

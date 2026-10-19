@@ -240,6 +240,26 @@
   --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
+/* Windows 全界面沿用侧栏的系统 UI 字体，包括独立弹窗与正文区域。 */
+:root:is([data-platform='windows'], [data-desktop-platform='windows']) {
+  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+  --font-display: var(--font-sans);
+}
+
+/* 浏览器表单控件不会默认继承字体。零特异性补全桌面默认值，
+   组件显式声明的等宽字体和字号、字重继续按原样生效。 */
+:where(
+    :root:is(
+      [data-platform='windows'],
+      [data-platform='macos'],
+      [data-desktop-platform='windows'],
+      [data-desktop-platform='macos']
+    )
+  )
+  :where(button, input, select, textarea) {
+  font-family: inherit;
+}
+
 /* iOS WKWebView 的系统字体别名在部分运行时无法正确回退中文。
    原生对照已确认 PingFang 可绘制；让中文字体先匹配，桌面/Android 字体栈不变。 */
 :root[data-platform='ios'] {
