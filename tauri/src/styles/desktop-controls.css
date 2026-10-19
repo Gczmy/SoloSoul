@@ -9,6 +9,8 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
   --desktop-text-secondary: #525252;
   --desktop-text-tertiary: #626262;
   --desktop-navigation-solid: #f3f3f3;
+  --desktop-content-edge: #dedede;
+  --desktop-content-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 14px rgb(0 0 0 / 6%);
   --desktop-control-fill: var(--bg-elevated);
   --desktop-control-edge: var(--border-default);
   --desktop-control-glint: rgb(255 255 255 / 16%);
@@ -29,6 +31,8 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])[data
   --desktop-text-secondary: #b4b4b4;
   --desktop-text-tertiary: #929292;
   --desktop-navigation-solid: #181818;
+  --desktop-content-edge: #343434;
+  --desktop-content-shadow: 0 1px 2px rgb(0 0 0 / 16%), 0 4px 14px rgb(0 0 0 / 20%);
   --desktop-primary-fill: var(--accent-primary);
   --desktop-primary-text: var(--accent-primary-text);
   --desktop-primary-hover-fill: var(--accent-hover);
@@ -438,5 +442,15 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']):is(
     --desktop-text-secondary: CanvasText;
     --desktop-text-tertiary: CanvasText;
     --desktop-navigation-solid: Canvas;
+    --desktop-content-edge: CanvasText;
+    --desktop-content-shadow: none;
   }
+}
+
+html:is(
+    [data-desktop-platform='macos'],
+    [data-desktop-platform='windows']
+  )[data-high-contrast='true'] {
+  --desktop-content-edge: var(--text-primary);
+  --desktop-content-shadow: none;
 }

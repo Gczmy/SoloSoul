@@ -144,6 +144,14 @@ for (const platform of ['macos', 'windows'] as const) {
         }
         expect(sample.leftBorder).toBe(0);
         expect(sample.rightBorder).toBe(0);
+        const frame = platform === 'macos' ? page.locator('[data-shell-surface]') : main;
+        await expect(frame).toHaveCSS('border-top-width', '1px');
+        await expect(frame).toHaveCSS('border-top-style', 'solid');
+        await expect(frame).toHaveCSS(
+          'border-top-color',
+          scheme.mode === 'light' ? 'rgb(222, 222, 222)' : 'rgb(52, 52, 52)',
+        );
+        await expect(frame).not.toHaveCSS('box-shadow', 'none');
         await page.screenshot({
           path: test.info().outputPath('desktop-functional-colors.png'),
           animations: 'disabled',
@@ -170,6 +178,9 @@ for (const platform of ['macos', 'windows'] as const) {
         expect(fallback).not.toContain('rgba');
         await expect(home).toHaveCSS('color', primaryInk);
         await page.emulateMedia({ forcedColors: 'active' });
+        await expect(frame).toHaveCSS('box-shadow', 'none');
+        await expect(frame).toHaveCSS('border-top-style', 'solid');
+        await expect(frame).not.toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
         await expect(home).toBeVisible();
         await expect(home).not.toHaveCSS('color', 'rgba(0, 0, 0, 0)');
         await expect(nav).toHaveCSS('border-left-width', '0px');

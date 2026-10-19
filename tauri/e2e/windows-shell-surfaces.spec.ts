@@ -75,6 +75,18 @@ for (const mode of ['light', 'dark'] as const) {
       }
       await expect(header).toHaveCSS('background-color', shellColor);
       await expect(header).toHaveCSS('background-image', 'none');
+      const frame = page.locator('[data-shell-surface]');
+      await expect(frame).toHaveCSS('border-top-width', '1px');
+      await expect(frame).toHaveCSS('border-top-style', 'solid');
+      await expect(frame).toHaveCSS(
+        'border-top-color',
+        mode === 'light' ? 'rgb(222, 222, 222)' : 'rgb(52, 52, 52)',
+      );
+      await expect(frame).not.toHaveCSS('box-shadow', 'none');
+      await expect(page.locator('[data-shell-main]')).toHaveCSS('overflow', 'visible');
+      expect((await page.getByRole('main').boundingBox())!.x).toBe(
+        (await frame.boundingBox())!.x + 1,
+      );
       await page.screenshot({
         path: test.info().outputPath('mica-shell.png'),
         animations: 'disabled',
@@ -105,7 +117,17 @@ for (const mode of ['light', 'dark'] as const) {
         'background-color',
         contentColor,
       );
+      await root.evaluate((el) => {
+        el.dataset.highContrast = 'true';
+      });
+      await expect(frame).toHaveCSS('box-shadow', 'none');
+      await expect(frame).toHaveCSS('border-top-width', '1px');
+      await root.evaluate((el) => {
+        el.dataset.highContrast = 'false';
+      });
       await page.emulateMedia({ forcedColors: 'active' });
+      await expect(frame).toHaveCSS('box-shadow', 'none');
+      await expect(frame).toHaveCSS('border-top-style', 'solid');
       const forcedBackground = await root.evaluate((el) => getComputedStyle(el).backgroundColor);
       await expect(nav).toHaveCSS('background-color', forcedBackground);
       await expect(nav.getByRole('button', { name: 'Home', exact: true })).toBeVisible();

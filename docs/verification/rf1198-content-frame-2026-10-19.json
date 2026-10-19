@@ -1,0 +1,105 @@
+{
+  "task": "RF-1198",
+  "date": "2026-10-19",
+  "baseCommit": "7aad1a8fe",
+  "change": "Desktop content-only 1px solid neutral border and subtle shadow; preserve scrolling, full-width shell titlebar and sidebar spacing.",
+  "colors": {
+    "lightBorder": "#dedede",
+    "darkBorder": "#343434",
+    "lightShadow": "0 1px 2px rgb(0 0 0 / 4%), 0 4px 14px rgb(0 0 0 / 6%)",
+    "darkShadow": "0 1px 2px rgb(0 0 0 / 16%), 0 4px 14px rgb(0 0 0 / 20%)",
+    "highContrast": "Visible solid border; no shadow. Forced colors use system colors."
+  },
+  "checks": {
+    "productionBuild": 0,
+    "fixtureBuild": {
+      "exitCode": 0,
+      "sourceModules": 115
+    },
+    "targetedLint": 0,
+    "format": 0,
+    "productionBrowser": {
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "coverage": [
+        "Windows integrated and fallback frames, left/right sidebar, light/dark and content palettes",
+        "macOS mock layout; Android topbar unchanged",
+        "High contrast and forced-colors border/shadow fallback",
+        "Rapid sidebar toggles, native caption reservation, details backdrop and system-theme transitions"
+      ]
+    },
+    "native": {
+      "host": "Reuse unchanged RF-1197 exact-current-window-source host; only CSS changed.",
+      "hostSha256": "593cfbcc1019033130f637ef01468022ead8026ae697cafa0404d03fe3f0b0d3",
+      "samples": [
+        {
+          "theme": "dark",
+          "material": "solid",
+          "contentRects": [
+            {
+              "x": 186,
+              "y": 60,
+              "width": 706,
+              "height": 563
+            },
+            {
+              "x": 187,
+              "y": 61,
+              "width": 704,
+              "height": 561
+            }
+          ],
+          "headerPaint": "none"
+        },
+        {
+          "theme": "light",
+          "material": "mica",
+          "contentRects": [
+            {
+              "x": 186,
+              "y": 60,
+              "width": 706,
+              "height": 563
+            },
+            {
+              "x": 187,
+              "y": 61,
+              "width": 704,
+              "height": 561
+            }
+          ],
+          "headerPaint": "none"
+        }
+      ],
+      "visualInspection": "Full dark and light native public fixture windows inspected. Thin border and soft shadow visible without titlebar content-color block.",
+      "closeEvent": true,
+      "processExitCode": 0
+    }
+  },
+  "boundaries": [
+    "CSS-only product change; unchanged type/Vitest/Node baseline from RF-1194 retained, not rerun.",
+    "Browser native IPC is mocked; macOS native machine unavailable and prior pending acceptance unchanged.",
+    "Other tasks remain paused."
+  ],
+  "evidenceSha256": {
+    "browser.json": "812b17dd3b41ffeca5d3c63ecb8ae62e03161dc94acfc74cca59e9064f1962e7",
+    "build.log": "e4dedbbedad468e0ccd35d4a2cdefc733dcf094afd69509d804e3d8eb3508a68",
+    "fixture-build.log": "529a5a9a1b691d6211010a52ada03249a3ac9f0896b0e9d70c17bcd14ffd0c9c",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "format.log": "06faf9ae6061b3d09a4af7a2e51c5d5350f24c36ebe034c593cfe45299e32b15",
+    "current.html.sources.json": "13d21fd09aaee3d905b38676792d4f527860b40ce117fb8a35bb98f5ae2fa15d",
+    "native-verified-exit-code.txt": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+  },
+  "nativeReportsSha256": {
+    "report-000.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-001.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-002.json": "0b5beab8f1e4aef23b3c410e3bdc18ad7b90666de6e5efa601f025b1b942b5b9",
+    "report-003.json": "8606cc91c3eb87c534243c40a9fc4b6f38dd532534bb630eea43295f515b3161",
+    "report-004.json": "292cf097361672a16f86d1ffff7f39fcc2b204127cb8634a9efcfdf6dd160f6f",
+    "report-005.json": "fe9839cc032a75f4f8bd9c5b8408c986b4f2acdab0742e2314607769267cae72",
+    "report-006.json": "2219fe0c8b72d6346d1eb798be6d9b8d8cb41d8d263a58364a26d4cd2f5fd54f",
+    "report-007.json": "aa0ad77d55e0ef3f6d9cba5b6fa4992bf0365b1c25cd05808a9785199fd39908"
+  }
+}
