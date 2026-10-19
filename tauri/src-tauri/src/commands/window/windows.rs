@@ -94,11 +94,11 @@ pub fn apply(
     if !mica {
         let _ = window_vibrancy::clear_mica(window);
     }
-    // WebView2 的背景必须也透明，CSS 才能透出 DWM 材质；旧系统与禁用透明度使用实色。
-    // Tao's WM_ERASEBKGND uses RGB and ignores alpha. A light RGB brush would
-    // paint over the extended DWM caption even with alpha=0. Glass uses black
-    // pixels as transparent frame backing; keep legacy windows unchanged.
-    let background = if mica && super::windows_frame::enabled(hwnd) {
+    // Extended DWM frames need zero RGB/alpha backing in both solid and Mica modes.
+    // Tao's WM_ERASEBKGND ignores alpha: painting the theme RGB here corrupts the
+    // compositor's caption surface, including the top resize strip and buttons.
+    // DWM supplies their caption color; CSS supplies the WebView's shell surface.
+    let background = if super::windows_frame::enabled(hwnd) {
         tauri::window::Color(0, 0, 0, 0)
     } else {
         tauri::window::Color(
