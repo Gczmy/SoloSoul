@@ -64,6 +64,8 @@ html[data-desktop-platform='windows'][data-native-material] {
 }
 
 html[data-desktop-platform='windows'][data-theme='dark'] {
+  /* 深色采用固定中性底色；即使原生外观响应尚未到达，也不透出旧 Mica 染色。 */
+  --windows-navigation-surface: var(--desktop-navigation-solid);
   --windows-navigation-tint: rgb(0 0 0 / 45%);
 }
 

@@ -86,7 +86,9 @@ pub fn apply(
         }))
         .map_err(|e| e.to_string())?;
     let hwnd = window.hwnd().map_err(|e| e.to_string())?;
-    let mica = !reduce_transparency
+    // 深色外壳固定为中性底色，避免 Mica 的壁纸染色。
+    let mica = !dark
+        && !reduce_transparency
         && !high_contrast
         && window_vibrancy::apply_mica(window, Some(dark)).is_ok();
     if !mica {

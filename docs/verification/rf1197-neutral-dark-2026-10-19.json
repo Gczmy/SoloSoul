@@ -1,0 +1,124 @@
+{
+  "task": "RF-1197",
+  "date": "2026-10-19",
+  "baseCommit": "9905aa832",
+  "change": "Neutral solid Windows dark shell; retain light Mica, native accessibility fallback and user content palettes.",
+  "checks": {
+    "productionBrowser": {
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "windowModuleRust": {
+      "passed": 25,
+      "failed": 0,
+      "ignored": 0
+    },
+    "productionAndFixtureBuild": 0,
+    "targetedLint": 0,
+    "rustWorkspaceFormat": 0,
+    "isolatedHostStrictClippy": 0,
+    "native": {
+      "samples": [
+        {
+          "theme": "dark",
+          "material": "solid",
+          "surfaces": {
+            "#desktop-navigation": "rgb(24, 24, 24)",
+            "[data-appbar]": "rgb(24, 24, 24)",
+            "[data-shell-surface]": "rgb(33, 33, 33)",
+            "body": "rgb(24, 24, 24)",
+            "html": "rgb(24, 24, 24)"
+          },
+          "headerPaint": "none",
+          "nativeTheme": "Dark",
+          "backdrop": {
+            "value": 1
+          },
+          "darkMode": {
+            "value": 1
+          },
+          "captionGetter": {
+            "error": -2147024809
+          }
+        },
+        {
+          "theme": "light",
+          "material": "mica",
+          "surfaces": {
+            "#desktop-navigation": "rgba(0, 0, 0, 0)",
+            "[data-appbar]": "rgba(0, 0, 0, 0)",
+            "[data-shell-surface]": "rgb(255, 255, 255)",
+            "body": "rgba(0, 0, 0, 0)",
+            "html": "rgba(0, 0, 0, 0)"
+          },
+          "headerPaint": "none",
+          "nativeTheme": "Light",
+          "backdrop": {
+            "value": 2
+          },
+          "darkMode": {
+            "value": 0
+          },
+          "captionGetter": {
+            "error": -2147024809
+          }
+        }
+      ],
+      "visualInspection": "Full dark and light native windows inspected, including caption controls and full-width titlebar.",
+      "closeEvent": true,
+      "processExitCode": 0
+    }
+  },
+  "nativeSourceBinding": {
+    "fileCount": 11,
+    "lfSha256": {
+      "window.rs": "127a5e3293ba8fb8071f16d0031f62643cd56dbce984c76f841713640409906a",
+      "window/backdrop_raster.rs": "4f702b3385eceee0f59fd09d7c7fa80df351bc56beaabe4b41767b324a1ce786",
+      "window/caption_backdrop.rs": "58a3097d1035f1703dee0dd77764fe835bf438a446539d10a280bcfbefa25249",
+      "window/ios.rs": "b6f139e7d5206fc3f090e05d5b5fc1d7cf3a2872c6fa94d3ee12ab0650258e7b",
+      "window/macos.rs": "5a9d3be3b794fe72e7a80ea70d0cad2f420594bdeffb75e06f6c3f0c76348208",
+      "window/macos_titlebar.rs": "ad7b308f30b2c06fac5c909ff6e7ffa83173bfc63d0a797b5921ef8f96ad7be2",
+      "window/system_events/macos.rs": "401125efaf7e556034e2a0417b9e723756ff74ed1b96a2112e6705fd10b65116",
+      "window/system_events/windows.rs": "eb1f7745c57984805f5c50b3a07b654ba0071b56f4bc9df58df1d49be641db42",
+      "window/system_events.rs": "da071ad24fc3caef3869acaed01551e25883b00c68e4a04910d9c73be3d3fd35",
+      "window/windows.rs": "8e51be247ec0466210cbba311830850182e3e4671ec59c32cfda1171842ec7f6",
+      "window/windows_frame.rs": "5f23d4cf1ae4ebbad357aa4526feff553a7cfb12b5f542dd45f8d0037ec391e1"
+    },
+    "host": "Exact current window modules and existing example with crate import rebound; actual system-theme reader copied. No business library or Vault loaded."
+  },
+  "retainedAttempts": [
+    "rustup auto-check failure",
+    "private host doc/dependency compile errors",
+    "private host missing Common Controls v6 manifest load error",
+    "unsupported caption getter aborted earlier report; now per-attribute errors retained",
+    "old isolated process held EXE during rebuild"
+  ],
+  "boundaries": [
+    "Caption-color getter returned E_INVALIDARG (-2147024809); no successful caption RGB readback claimed.",
+    "Not a whole application or full workspace Rust validation; other tasks remain paused, macOS native acceptance pending."
+  ],
+  "evidenceSha256": {
+    "browser.json": "b308fcddb33c25fe88e1ad422ce0c646479808a450ceca698a27ae516a10b95a",
+    "build.log": "852e39f9a50ba62c0bc6e0755495effe2d592ee2c5795bdc8128f49f335f2eef",
+    "fixture-build.log": "b0b13951abfc86d5df93d205973d1a533a086c5b4ba3431024c976a7df9291d9",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rust-format-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-window-tests-fixed.log": "a21d5667befc9a87cc140c36cf2e5da5a85f5342112c03b05838fad0f6a1af5f",
+    "native-build-attribute-final.log": "4f5a387ebfdf06525c1e1f721e4a8eb647517430c68768a43397182e9f4471a4",
+    "native-clippy-attribute-final.log": "01f414d77452c1c61eece93ae51ea03a34263a83a47f464e5bc6498fb877c65d",
+    "native-source-bindings.json": "e35129f40ba110f263234bcf29e2d3b4e337ee1aa5fe2a16d43e00f911f49d52",
+    "native-verified-exit-code.txt": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+  },
+  "nativeReportsSha256": {
+    "report-000.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-001.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-002.json": "3f67baa7aeb44b27852bcd004430125d3208c0cf1e75534f21c5c3d38afde84a",
+    "report-003.json": "5d2a0d757ddec2c7c0ae18011fad0a84cca558668a985e7b25f011d9b465372b",
+    "report-004.json": "6f45eb32dd28fd527e98faf67dec0c254e6ab27f842d6fdb1efcd7c24842f01c",
+    "report-005.json": "9e6567928713d1689ddd7384ed6a1104ae6f52c91fe4fe66c7264ae54f822ad1",
+    "report-006.json": "2219fe0c8b72d6346d1eb798be6d9b8d8cb41d8d263a58364a26d4cd2f5fd54f",
+    "report-007.json": "aa0ad77d55e0ef3f6d9cba5b6fa4992bf0365b1c25cd05808a9785199fd39908"
+  }
+}

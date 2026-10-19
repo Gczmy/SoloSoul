@@ -45,7 +45,10 @@ for (const motion of ['normal', 'native', 'system'] as const) {
       const header = page.locator('[data-appbar]');
       await expect(header).toHaveCSS('height', '52px');
       expect((await header.boundingBox())!.x).toBe(0);
-      await expect(header).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      const shellColor = await page
+        .locator('html')
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+      await expect(header).toHaveCSS('background-color', shellColor);
       const controls = header.locator('[data-titlebar-control]');
       const bounds = await controls.evaluateAll((items) =>
         items.map((item) => {
@@ -139,10 +142,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
         ).toEqual([]);
         const after = await nav.getByRole('button', { name: 'Expand sidebar' }).boundingBox();
         expect(after).toEqual(before);
-        await expect(page.locator('#desktop-navigation')).toHaveCSS(
-          'background-color',
-          'rgba(0, 0, 0, 0)',
-        );
+        await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', shellColor);
         for (let i = 0; i < 8; i++) {
           await nav
             .getByRole('button', { name: i % 2 === 0 ? 'Expand sidebar' : 'Collapse sidebar' })

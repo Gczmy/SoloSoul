@@ -29,7 +29,7 @@ for (const mode of ['light', 'dark'] as const) {
               sync_list_conflicts: () => [],
               set_titlebar_color: () => ({
                 platform: 'windows',
-                material: 'mica',
+                material: mode === 'dark' ? 'solid' : 'mica',
                 highContrast: false,
                 reduceMotion: false,
               }),
@@ -52,10 +52,14 @@ for (const mode of ['light', 'dark'] as const) {
       await page.goto('/login');
       const root = page.locator('html');
       const transparent = 'rgba(0, 0, 0, 0)';
-      await expect(root).toHaveAttribute('data-native-material', 'mica');
+      const shellColor = mode === 'dark' ? 'rgb(24, 24, 24)' : transparent;
+      await expect(root).toHaveAttribute(
+        'data-native-material',
+        mode === 'dark' ? 'solid' : 'mica',
+      );
       await expect(page.locator('[data-windows-titlebar]')).toHaveCSS(
         'background-color',
-        transparent,
+        shellColor,
       );
       await login(page);
       const nav = page.locator('#desktop-navigation');
@@ -67,9 +71,9 @@ for (const mode of ['light', 'dark'] as const) {
         contentColor,
       );
       for (const surface of [root, page.locator('body'), page.locator('#root'), shell, nav]) {
-        await expect(surface).toHaveCSS('background-color', transparent);
+        await expect(surface).toHaveCSS('background-color', shellColor);
       }
-      await expect(header).toHaveCSS('background-color', transparent);
+      await expect(header).toHaveCSS('background-color', shellColor);
       await expect(header).toHaveCSS('background-image', 'none');
       await page.screenshot({
         path: test.info().outputPath('mica-shell.png'),

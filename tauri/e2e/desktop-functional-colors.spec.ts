@@ -32,7 +32,8 @@ for (const platform of ['macos', 'windows'] as const) {
                 sync_list_conflicts: () => [],
                 set_titlebar_color: () => ({
                   platform,
-                  material: platform === 'macos' ? 'liquid-glass' : 'mica',
+                  material:
+                    platform === 'macos' ? 'liquid-glass' : mode === 'dark' ? 'solid' : 'mica',
                   highContrast: false,
                   reduceMotion: false,
                   titlebarHeight: 52,
@@ -137,7 +138,7 @@ for (const platform of ['macos', 'windows'] as const) {
           }
         } else {
           await expect(page.locator('[data-appbar]')).toHaveCSS('background-image', 'none');
-          expect(sample.nav).toEqual([0, 0, 0, 0]);
+          expect(sample.nav).toEqual(scheme.mode === 'dark' ? [24, 24, 24, 255] : [0, 0, 0, 0]);
           const painted = composite(sample.nav, sample.base);
           expect(contrast(sample.text, painted)).toBeGreaterThanOrEqual(4.5);
         }
