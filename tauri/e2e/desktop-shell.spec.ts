@@ -61,13 +61,17 @@ for (const position of ['left', 'right'] as const) {
     for (const name of ['Home', 'Settings', 'Add Page', 'Tools']) {
       const button = sidebar.getByRole('button', { name, exact: true });
       const label = button.locator('span').last();
-      await expect(label).toBeVisible();
+      await expect(label).toBeHidden();
       const iconBounds = (await button.locator('svg').boundingBox())!;
-      const labelBounds = (await label.boundingBox())!;
-      expect(labelBounds.y).toBeGreaterThanOrEqual(iconBounds.y + iconBounds.height);
-      expect(labelBounds.x + labelBounds.width).toBeLessThanOrEqual(
-        (await button.boundingBox())!.x + (await button.boundingBox())!.width,
-      );
+      const buttonBounds = (await button.boundingBox())!;
+      expect(buttonBounds.width).toBeGreaterThanOrEqual(44);
+      expect(buttonBounds.height).toBeGreaterThanOrEqual(44);
+      expect(
+        Math.abs(iconBounds.x + iconBounds.width / 2 - buttonBounds.x - buttonBounds.width / 2),
+      ).toBeLessThan(1);
+      expect(
+        Math.abs(iconBounds.y + iconBounds.height / 2 - buttonBounds.y - buttonBounds.height / 2),
+      ).toBeLessThan(1);
     }
     await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();
     await expect(page).toHaveURL(/\/settings$/);
@@ -201,7 +205,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   await expect(sidebar).toHaveCSS('width', '96px');
   await expect(
     sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
-  ).toBeVisible();
+  ).toBeHidden();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(800);
   await page.screenshot({ path: 'test-results/desktop-minimum-dark.png' });
 });

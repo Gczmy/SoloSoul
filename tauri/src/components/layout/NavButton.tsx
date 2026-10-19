@@ -66,7 +66,7 @@ export function NavButton({
   return (
     <div
       ref={wrapperRef}
-      className={`${styles.navItemWrapper} ${sidebarExpanded ? styles.expanded : !isHorizontal ? styles.compactLabels : ''}`}
+      className={`${styles.navItemWrapper} ${sidebarExpanded ? styles.expanded : ''}`}
       style={isHorizontal ? { width: 40, height: 40 } : {}}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

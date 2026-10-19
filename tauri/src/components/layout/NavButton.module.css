@@ -147,26 +147,7 @@
   animation: none;
 }
 
-/* 宽轨道以图标和短标签占满视觉重心，按钮仍保持稳定的 72×48。 */
-.compactLabels {
-  width: 72px;
-  height: 48px;
-}
-.compactLabels .navButton {
-  width: 72px;
-  height: 48px;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 10px;
-}
-.compactLabels .label {
-  display: block;
-  max-width: 100%;
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-}
+/* 收起侧栏只显示图标，名称由悬停提示和 aria-label 提供。 */
 .expanded .label {
   display: block;
 }
@@ -194,10 +175,6 @@
   display: inline-block;
   width: max-content;
   white-space: nowrap;
-}
-.compactLabels .labelTrack {
-  display: inline;
-  width: auto;
 }
 .scrollingLabel[data-overflow='true'] {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);

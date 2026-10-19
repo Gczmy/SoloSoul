@@ -690,7 +690,7 @@
   align-items: stretch;
 }
 .sideNav[data-expanded='false'] .foldableArea {
-  /* 窄轨道保留紧凑图文按钮，两侧留出玻璃轮廓，不越过原生材质区域。 */
+  /* 图标菜单两侧留出轮廓，不越过侧栏表面。 */
   left: 4px;
   width: calc(100% - 8px);
 }
@@ -703,6 +703,7 @@
   border-radius: 8px;
 }
 .sideNav[data-expanded='true'] .compactActionLabel {
+  display: block;
   font-size: 13px;
   font-weight: 500;
 }
@@ -734,16 +735,14 @@
   padding: 4px 0;
 }
 
-/* 工具开关沿用普通导航的折叠图文尺寸。 */
+/* 工具开关与普通导航共用 44px 图标命中区。 */
 .sideNav[data-expanded='false'] .arrowToggle {
-  width: 72px;
-  height: 48px;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
 }
 .compactActionLabel {
+  display: none;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

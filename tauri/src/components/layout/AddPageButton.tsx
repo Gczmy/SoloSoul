@@ -235,7 +235,7 @@ export function AddPageButton({
         ref={wrapperRef}
         className={
           useNavStyle
-            ? `${navStyles.navItemWrapper} ${sidebarExpanded ? navStyles.expanded : !isHorizontal ? navStyles.compactLabels : ''}`
+            ? `${navStyles.navItemWrapper} ${sidebarExpanded ? navStyles.expanded : ''}`
             : undefined
         }
         onMouseEnter={handleMouseEnter}
