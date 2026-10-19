@@ -171,8 +171,12 @@ test('application reduced motion keeps the whole name in the hover card', async 
 });
 
 for (const position of ['top', 'bottom']) {
-  test(`${position}: horizontal navigation retains its complete-name tooltip`, async ({ page }) => {
+  test(`${position}: legacy placement uses the collapsed left sidebar tooltip`, async ({
+    page,
+  }) => {
     await prepare(page, 'macos', position);
+    await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+    await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
     const button = page
       .getByRole('navigation')
       .getByRole('button', { name: longName, exact: true });

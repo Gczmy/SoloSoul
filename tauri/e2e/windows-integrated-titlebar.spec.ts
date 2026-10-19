@@ -65,7 +65,8 @@ for (const motion of ['normal', 'native', 'system'] as const) {
       await expect(surface).toHaveCSS('border-radius', '12px');
       const content = page.locator('[data-shell-content]');
       await expect(content).toHaveCSS('border-radius', '0px');
-      if (position === 'left' || position === 'right') {
+      await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+      {
         const nav = page.locator('#desktop-navigation');
         // Record production geometry reads during the switch, before a later RAF can hide a stale width.
         await nav.evaluate((navigation) => {

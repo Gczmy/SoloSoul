@@ -327,9 +327,8 @@ for (const platform of ['macos', 'windows'] as const) {
             );
           }
           const bounds = (await navigation.boundingBox())!;
-          expect(
-            position === 'left' ? bounds.x : 1280 - bounds.x - bounds.width,
-          ).toBeLessThanOrEqual(1);
+          await expect(navigation).toHaveAttribute('data-position', 'left');
+          expect(bounds.x).toBeLessThanOrEqual(1);
           const selected = navigation.getByRole('button', { name: 'Settings', exact: true });
           await expect(selected).toHaveAttribute('aria-current', 'page');
           await expect(selected).toHaveCSS(

@@ -62,7 +62,7 @@ async function expectNativeControl(control: Locator) {
 }
 
 for (const position of ['left', 'right', 'top', 'bottom']) {
-  test(`macOS ${position} 导航背景铺至顶部，控件避开交通灯`, async ({ page }) => {
+  test(`macOS 旧 ${position} 配置统一左侧栏，控件避开交通灯`, async ({ page }) => {
     await mockMacOS(page, position);
     await login(page);
     await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', '52px');
@@ -77,22 +77,18 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     expect(title.x).toBeGreaterThanOrEqual(91);
     await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
     const mainBox = (await page.locator('main').boundingBox())!;
-    expect(mainBox.y).toBe(position === 'top' ? 109 : 61);
+    expect(mainBox.y).toBe(61);
     await expect(page.locator('main')).toHaveCSS('padding-top', '24px');
     // 顶栏高度不变；内容面有 8px 外沿留白和 1px 细边框。
-    expect(mainBox.y + 24).toBe(position === 'top' ? 133 : 85);
+    expect(mainBox.y + 24).toBe(85);
     expect(headerBox.x).toBe(0);
     expect(headerBox.width).toBe(1280);
     await expect(page.locator('[data-shell-surface]')).toHaveCSS('border-radius', '16px');
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
     await expect(guide).toHaveCSS('font-size', '14px');
     await expectNativeControl(guide);
-    if (position === 'top' || position === 'bottom') {
-      const navigationBar = page.locator('header:not([data-appbar])');
-      await expect(navigationBar).toHaveAttribute('data-tauri-drag-region', 'false');
-      if (position === 'top') expect((await navigationBar.boundingBox())!.y).toBe(52);
-    }
-    if (position === 'left' || position === 'right') {
+    await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+    {
       // 同一背景面横跨原生标题栏和正文，侧栏顶部仍透明。
       const surfaces = await header.evaluate((element) => ({
         top: getComputedStyle(
@@ -121,11 +117,11 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       expect(await expandedToggle.boundingBox()).toEqual(toggleBefore);
       await expectNativeControl(expandedToggle);
       await expect(sidebar.getByRole('button', { name: 'Expand sidebar' })).toHaveCount(0);
-      await expect(sidebar).toHaveCSS('width', position === 'left' ? '95px' : '64px');
+      await expect(sidebar).toHaveCSS('width', '95px');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
       // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
       const collapsed = (await sidebar.boundingBox())!;
-      if (position === 'left') {
+      {
         expect(collapsed.x + collapsed.width).toBeGreaterThanOrEqual(79 + 16);
         expect((await header.boundingBox())!.x).toBe(0);
         expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 9);
@@ -141,8 +137,7 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       await expect(panel).toBeVisible();
       const bounds = (await panel.boundingBox())!;
       expect(bounds.y).toBeGreaterThanOrEqual(60);
-      if (position === 'left') expect(bounds.x).toBeGreaterThanOrEqual(collapsed.width);
-      else expect(bounds.x + bounds.width).toBeLessThanOrEqual(collapsed.x);
+      expect(bounds.x).toBeGreaterThanOrEqual(collapsed.width);
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(720);
       await page.keyboard.press('Escape');
     }

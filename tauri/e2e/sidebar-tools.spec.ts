@@ -178,8 +178,7 @@ for (const position of ['left', 'right'] as const) {
     const chat = page.locator('[data-ai-quick-chat="open"]');
     await expect(chat).toBeInViewport();
     const chatBounds = (await chat.boundingBox())!;
-    if (position === 'left') expect(chatBounds.x).toBeGreaterThanOrEqual(navBounds.width);
-    else expect(chatBounds.x + chatBounds.width).toBeLessThanOrEqual(800 - navBounds.width);
+    expect(chatBounds.x).toBeGreaterThanOrEqual(navBounds.width);
     await chat.hover();
     await expect(tools).toHaveAttribute('aria-expanded', 'true');
     await chat.getByRole('button', { name: 'Close', exact: true }).click();
@@ -638,19 +637,19 @@ for (const platform of ['macos', 'windows']) {
 
 for (const platform of ['macos', 'windows']) {
   for (const position of ['top', 'bottom'] as const) {
-    test(`${platform} ${position} 横向工具区展开和收起全程淡入淡出`, async ({ page }) => {
+    test(`${platform} 旧 ${position} 配置的左侧工具区全程淡入淡出`, async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       await setupSidebar(page, position, platform);
       const tools = page.getByRole('button', { name: 'Tools', exact: true });
-      const menu = page.locator('[class*="horizontalButtonArea"]').first();
-      await armMenuSweep(menu, 'max-width');
+      const menu = page.locator('[data-sidebar-tools]');
+      await armMenuSweep(menu);
       await tools.hover();
-      const opening = await sampleMenuSweep(menu, 'max-width');
+      const opening = await sampleMenuSweep(menu);
       await expect(menu).toHaveCSS('opacity', '1');
-      await armMenuSweep(menu, 'max-width');
+      await armMenuSweep(menu);
       await page.mouse.move(640, 400);
       await expect(menu).toHaveJSProperty('inert', true);
-      const closing = await sampleMenuSweep(menu, 'max-width');
+      const closing = await sampleMenuSweep(menu);
       for (const sample of [...opening, ...closing]) {
         expect(sample.fadeDuration).toBe(sample.duration);
         expect(sample.opacity).toBeGreaterThan(0);
@@ -661,7 +660,7 @@ for (const platform of ['macos', 'windows']) {
       expect(closing[0].opacity).toBeGreaterThan(closing[1].opacity);
       expect(closing[1].opacity).toBeGreaterThan(closing[2].opacity);
       await expect(menu).toHaveCSS('opacity', '0');
-      await expect(menu).toHaveCSS('max-width', '0px');
+      await expect(menu).toBeHidden();
       await tools.hover();
       await page.mouse.move(640, 400);
       await tools.hover();
@@ -675,9 +674,7 @@ for (const position of ['left', 'top', 'bottom'] as const) {
   test(`${position} 系统和应用减少动态效果时，工具菜单立即展开/收起`, async ({ page }) => {
     await setupSidebar(page, position);
     const tools = page.getByRole('button', { name: 'Tools', exact: true });
-    const menu = page
-      .locator(position === 'left' ? '[data-sidebar-tools]' : '[class*="horizontalButtonArea"]')
-      .first();
+    const menu = page.locator('[data-sidebar-tools]');
     for (const source of ['media', 'native', 'app']) {
       await page.emulateMedia({ reducedMotion: source === 'media' ? 'reduce' : 'no-preference' });
       await page.locator('html').evaluate((root, source) => {
@@ -689,29 +686,23 @@ for (const position of ['left', 'top', 'bottom'] as const) {
       expect(
         await menu.evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration)),
       ).toBeLessThan(0.001);
-      if (position === 'left')
-        await expect(menu).toHaveCSS('clip-path', /^inset\(0px -24px(?: 0px)?\)$/);
-      else await expect(menu).toHaveCSS('opacity', '1');
+      await expect(menu).toHaveCSS('clip-path', /^inset\(0px -24px(?: 0px)?\)$/);
       await page.mouse.move(640, 400);
-      if (position === 'left') await expect(menu).toBeHidden();
-      else {
-        await expect(menu).toHaveCSS('opacity', '0');
-        await expect(menu).toHaveCSS('max-width', '0px');
-      }
+      await expect(menu).toBeHidden();
     }
   });
 }
 
 for (const position of ['top', 'bottom'] as const) {
-  test(`RF1088 ${position} 工具栏离开窗口安全收起`, async ({ page }) => {
+  test(`RF1088 旧 ${position} 配置的左侧工具栏离开窗口安全收起`, async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await setupSidebar(page, position);
     const tools = page.getByRole('button', { name: 'Tools', exact: true });
     await tools.hover();
     await expect(tools).toHaveAttribute('aria-expanded', 'true');
-    await tools.evaluate((element) => {
-      element.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: window }));
+    await page.evaluate(() => {
+      document.documentElement.dispatchEvent(new MouseEvent('mouseleave'));
     });
     await expect(tools).toHaveAttribute('aria-expanded', 'false');
     expect(errors).toEqual([]);

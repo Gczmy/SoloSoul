@@ -47,7 +47,8 @@ for (const side of ['left', 'right'] as const) {
     });
     await login(page);
     const sidebar = page.locator('#desktop-navigation');
-    await expect(sidebar).toHaveCSS('width', '232px');
+    await expect(sidebar).toHaveAttribute('data-position', 'left');
+    await expect(sidebar).toHaveCSS('width', '186px');
 
     for (const card of [
       {
@@ -80,7 +81,7 @@ for (const side of ['left', 'right'] as const) {
               const { x, y, width, height } = el.getBoundingClientRect();
               state.frames.push({
                 top: parseFloat(style.top),
-                inset: parseFloat(style[side]),
+                inset: parseFloat(style.left),
                 rect: state.settled ? { x, y, width, height } : undefined,
               });
             }
@@ -96,10 +97,9 @@ for (const side of ['left', 'right'] as const) {
         const loading = page.getByTestId('quick-chat-loading');
         await expect(loading).toBeVisible();
         const loadingBounds = (await loading.boundingBox())!;
-        const inset =
-          side === 'left' ? loadingBounds.x : 1280 - loadingBounds.x - loadingBounds.width;
+        const inset = loadingBounds.x;
         // 首次 chunk 延迟时，占位也必须位于展开侧栏外侧。
-        expect(inset).toBeGreaterThanOrEqual(232);
+        expect(inset).toBeGreaterThanOrEqual(186);
         // 等首次入场结束，再加载正文；记录正文替换期间的每帧边界，捕获动画重播。
         await page.locator('[data-ai-quick-chat]').evaluate(async (el) => {
           await Promise.all(el.getAnimations().map((animation) => animation.finished));
@@ -126,9 +126,9 @@ for (const side of ['left', 'right'] as const) {
       expect(frames.length).toBeGreaterThan(0);
       for (const frame of frames) {
         expect(frame.top).toBeCloseTo(expectedTop, 0);
-        expect(frame.inset).toBe(236);
+        expect(frame.inset).toBe(190);
         if (frame.rect) {
-          expect(frame.rect.x).toBeCloseTo(side === 'left' ? 236 : 1280 - 236 - 380, 1);
+          expect(frame.rect.x).toBeCloseTo(190, 1);
           expect(frame.rect.y).toBeCloseTo(expectedTop, 1);
           expect(frame.rect.width).toBeCloseTo(380, 1);
           expect(frame.rect.height).toBeCloseTo(520, 1);
@@ -140,15 +140,15 @@ for (const side of ['left', 'right'] as const) {
 
     // 关闭后改变窗口尺寸并折叠侧栏，重新打开不能沿用上次的纵向坐标。
     await page.setViewportSize({ width: 1000, height: 900 });
-    await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
     await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
     const aiButton = sidebar.locator('[data-ai-button] button');
     await aiButton.scrollIntoViewIfNeeded();
     await aiButton.click();
     const chat = page.locator('[data-ai-quick-chat]');
-    // macOS 折叠侧栏为交通灯保留 96px；浮层在侧栏外再留 4px。
-    await expect(sidebar).toHaveCSS('width', '96px');
-    await expect(chat).toHaveCSS(side, '100px');
+    // 公开夹具没有原生交通灯，折叠侧栏为64px；浮层在侧栏外再留4px。
+    await expect(sidebar).toHaveCSS('width', '64px');
+    await expect(chat).toHaveCSS('left', '68px');
     const anchor = (await aiButton.boundingBox())!;
     await expect(chat).toHaveCSS('top', `${Math.min(Math.max(anchor.y, 8), 372)}px`);
     await page.setViewportSize({ width: 1000, height: 600 });
@@ -160,7 +160,7 @@ for (const side of ['left', 'right'] as const) {
 }
 
 for (const side of ['top', 'bottom'] as const) {
-  test(`${side} 横向导航的快捷卡片位于按钮内侧`, async ({ page }) => {
+  test(`旧 ${side} 配置的快捷卡片位于左侧栏外侧`, async ({ page }) => {
     await page.addInitScript({
       content:
         readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -179,17 +179,15 @@ for (const side of ['top', 'bottom'] as const) {
       `,
     });
     await login(page);
-    await page.locator('[class*="horizontalArrowToggle"]').hover();
+    await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+    await page.getByRole('button', { name: 'Tools', exact: true }).hover();
     const button = page.locator('[data-ai-button] button');
     await button.scrollIntoViewIfNeeded();
     await button.click();
     const chat = page.locator('[data-ai-quick-chat]');
     const anchor = (await button.boundingBox())!;
-    await expect(chat).toHaveCSS(
-      'top',
-      `${side === 'top' ? anchor.y + anchor.height + 8 : anchor.y - 520 - 8}px`,
-    );
-    await expect(chat).toHaveCSS('right', '12px');
+    await expect(chat).toHaveCSS('top', `${Math.min(Math.max(anchor.y, 8), 720 - 520 - 8)}px`);
+    await expect(chat).toHaveCSS('left', '190px');
     await expect(chat).toBeInViewport();
   });
 }

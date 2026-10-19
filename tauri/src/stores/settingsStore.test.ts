@@ -161,6 +161,16 @@ describe('settingsStore', () => {
   });
 
   describe('loadSettings', () => {
+    it.each(['left', 'right', 'top', 'bottom'] as const)(
+      '旧侧栏位置 %s 统一使用左侧，并保留其他账户偏好',
+      async (sidebarPosition) => {
+        vi.mocked(invoke).mockResolvedValue({ sidebarPosition, accentColor: 'rose' });
+        await useSettingsStore.getState().loadSettings('acc-1');
+        expect(useSettingsStore.getState().settings.sidebarPosition).toBe('left');
+        expect(useSettingsStore.getState().settings.accentColor).toBe('rose');
+      },
+    );
+
     it('账户切换后更新启动缓存，冷启动首帧不沿用上一账户的外观', async () => {
       localStorageData['solosoul_ui_prefs'] = JSON.stringify({
         theme: 'light',
@@ -277,6 +287,28 @@ describe('settingsStore', () => {
   });
 
   describe('updateSetting', () => {
+    it.each(['right', 'top', 'bottom'] as const)(
+      '旧入口尝试保存 %s 时，乐观值和持久化值均使用左侧',
+      async (position) => {
+        let finish!: () => void;
+        vi.mocked(invoke).mockReturnValueOnce(
+          new Promise<void>((resolve) => {
+            finish = resolve;
+          }),
+        );
+        const writing = useSettingsStore
+          .getState()
+          .updateSetting('acc-1', 'sidebarPosition', position);
+        expect(useSettingsStore.getState().settings.sidebarPosition).toBe('left');
+        expect(invoke).toHaveBeenCalledWith('user_data_update_preference', {
+          payload: { accountId: 'acc-1', preferences: { sidebarPosition: 'left' } },
+        });
+        finish();
+        await expect(writing).resolves.toMatchObject({ status: 'saved' });
+        expect(useSettingsStore.getState().getConfirmedSettings().sidebarPosition).toBe('left');
+      },
+    );
+
     it('减少动态效果保留布尔账户偏好，但登录前镜像按 Rust 字符串契约传输', async () => {
       vi.mocked(invoke).mockResolvedValue(undefined);
       for (const reduced of [true, false]) {

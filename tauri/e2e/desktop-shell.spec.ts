@@ -18,8 +18,10 @@ async function expectMobileNavigation(page: Page) {
   expect(bounds!.width).toBe(page.viewportSize()!.width);
 }
 
-for (const position of ['left', 'right'] as const) {
-  test(`${position} 侧栏展开、折叠、切页及快捷卡片位置`, async ({ page }, testInfo) => {
+for (const position of ['left', 'right', 'top', 'bottom'] as const) {
+  test(`旧 ${position} 配置统一左侧栏，展开、折叠、切页及快捷卡片位置正常`, async ({
+    page,
+  }, testInfo) => {
     await page.addInitScript({
       content:
         readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -54,6 +56,7 @@ for (const position of ['left', 'right'] as const) {
       await expect(page).toHaveURL(/\/settings$/);
       return;
     }
+    await expect(sidebar).toHaveAttribute('data-position', 'left');
     await expect(sidebar).toHaveAttribute('data-expanded', 'true');
     await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
     await expect(
@@ -88,18 +91,22 @@ for (const position of ['left', 'right'] as const) {
     const headerBounds = await page.locator('header').first().boundingBox();
     expect(navBounds).not.toBeNull();
     expect(headerBounds).not.toBeNull();
-    if (position === 'left')
-      expect(headerBounds!.x).toBeGreaterThanOrEqual(navBounds!.x + navBounds!.width);
-    else expect(headerBounds!.x + headerBounds!.width).toBeLessThanOrEqual(navBounds!.x + 1);
+    expect(navBounds!.x).toBe(0);
+    expect(headerBounds!.x).toBeGreaterThanOrEqual(navBounds!.x + navBounds!.width);
     await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
     await sidebar.getByRole('button', { name: 'Plugins', exact: true }).click();
     const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
     await expect(panel).toBeVisible();
     const panelBounds = await panel.boundingBox();
-    if (position === 'left') expect(panelBounds!.x).toBeGreaterThanOrEqual(navBounds!.width);
-    else expect(panelBounds!.x + panelBounds!.width).toBeLessThanOrEqual(navBounds!.x);
+    expect(panelBounds!.x).toBeGreaterThanOrEqual(navBounds!.width);
     await page.keyboard.press('Escape');
     await expect(panel).toHaveCount(0);
+    await page.getByText('Theme & Appearance', { exact: true }).click();
+    await expect(page).toHaveURL(/\/settings\/appearance$/);
+    await expect(page.getByRole('heading', { name: 'Sidebar Position', exact: true })).toHaveCount(
+      0,
+    );
+    await expect(sidebar).toHaveAttribute('data-position', 'left');
     await page.screenshot({ path: `test-results/desktop-${position}.png` });
   });
 }
@@ -114,46 +121,6 @@ test('窄视口继续使用底部导航，桌面展开状态不挤占内容', as
   );
   expect(overflow).toBe(false);
 });
-
-for (const position of ['top', 'bottom'] as const) {
-  test(`${position} 导航保持横向布局`, async ({ page }, testInfo) => {
-    await page.addInitScript({
-      content:
-        readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
-        `
-      window.__E2E_MOCKS__ = {
-        vault_check_directory: () => true,
-        ocr_get_model_status: () => ({ installed: true, bundled: true }),
-        sync_list_conflicts: () => [],
-      };
-      const originalInvoke = window.__TAURI_INTERNALS__.invoke;
-      window.__TAURI_INTERNALS__.invoke = async (cmd, args) => {
-        const result = await originalInvoke(cmd, args);
-        if (cmd === 'user_data_get_preferences') result.sidebarPosition = '${position}';
-        return result;
-      };
-    `,
-    });
-    await login(page);
-    if (testInfo.project.name === 'mobile') {
-      await expectMobileNavigation(page);
-      await expect(page.locator('header')).toHaveCount(1);
-      return;
-    }
-    await expect(page.locator('#desktop-navigation')).toHaveCount(0);
-    await expect(page.locator('header')).toHaveCount(2);
-    const rectangles = await page.locator('header').evaluateAll((elements) =>
-      elements.map((el) => {
-        const r = el.getBoundingClientRect();
-        return { top: r.top, bottom: r.bottom, left: r.left, width: r.width };
-      }),
-    );
-    expect(rectangles.every((r) => r.left === 0 && r.width === 1280)).toBe(true);
-    expect(
-      rectangles[0].bottom <= rectangles[1].top || rectangles[1].bottom <= rectangles[0].top,
-    ).toBe(true);
-  });
-}
 
 test('深色主题和减少动态效果在最小桌面窗口保持可用', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 600 });
