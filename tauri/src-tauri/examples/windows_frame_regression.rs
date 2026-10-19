@@ -147,7 +147,20 @@ mod regression {
                             "rgb":rgba&0xffffff,"rendering":"singlePerPixelSurface","exStyle":GetWindowLongPtrW(layer,GWL_EXSTYLE)})
                     }
                 };
-                Ok(json!({"style":unsafe{GetWindowLongPtrW(hwnd,GWL_STYLE)},"window":[outer.left,outer.top,outer.right,outer.bottom],"client":[origin.x,origin.y,client.right,client.bottom],"hits":hits,"captionBackdrop":backdrop}))
+                use windows::Win32::Graphics::Dwm::*;
+                let read_attribute = |attribute| {
+                    let mut value = 0u32;
+                    // SAFETY: Only this owned HWND is read, with a correctly sized DWORD output.
+                    match unsafe { DwmGetWindowAttribute(hwnd, attribute, (&mut value as *mut u32).cast(), 4) } {
+                        Ok(()) => json!({"value":value}),
+                        Err(error) => json!({"error":error.code().0}),
+                    }
+                };
+                let caption_color = read_attribute(DWMWA_CAPTION_COLOR);
+                let backdrop_type = read_attribute(DWMWA_SYSTEMBACKDROP_TYPE);
+                let dark_mode = read_attribute(DWMWA_USE_IMMERSIVE_DARK_MODE);
+                let native_theme = format!("{:?}", target.theme().map_err(|error|error.to_string())?);
+                Ok(json!({"captionColor":caption_color,"systemBackdropType":backdrop_type,"immersiveDarkMode":dark_mode,"nativeTheme":native_theme,"style":unsafe{GetWindowLongPtrW(hwnd,GWL_STYLE)},"window":[outer.left,outer.top,outer.right,outer.bottom],"client":[origin.x,origin.y,client.right,client.bottom],"hits":hits,"captionBackdrop":backdrop}))
             })();let _=tx.send(result);
         }).map_err(|e|e.to_string())?;
         let native = rx.await.map_err(|e| e.to_string())??;

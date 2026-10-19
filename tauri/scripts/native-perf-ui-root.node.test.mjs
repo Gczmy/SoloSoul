@@ -208,6 +208,8 @@ function startupHarness() {
   const timers = new Map();
   let next = 0;
   const window = {
+    addEventListener() {},
+    removeEventListener() {},
     dispatchEvent(event) {
       events.push(event.type);
     },
@@ -215,13 +217,13 @@ function startupHarness() {
   runInNewContext(readFileSync(new URL('../public/startup.js', import.meta.url), 'utf8'), {
     window,
     document: {
-      documentElement: { dataset: {}, style: { setProperty() {} } },
+      documentElement: { dataset: {}, style: { setProperty() {}, removeProperty() {} } },
       getElementById: () => null,
       addEventListener() {},
     },
     navigator: { language: 'en-US' },
     localStorage: { getItem: () => null },
-    matchMedia: () => ({ matches: false }),
+    matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
     performance: { now: () => 1 },
     setTimeout(callback) {
       timers.set(++next, callback);

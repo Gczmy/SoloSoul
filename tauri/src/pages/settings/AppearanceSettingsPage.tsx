@@ -57,10 +57,16 @@ export function AppearanceSettingsPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const lightSchemeName = t(
-    getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string,
+    getSchemeById(
+      settings.defaultLightTheme,
+      isMobilePlatform ? 'shared' : 'desktop',
+    )?.nameKey.replace('settings:', '') as string,
   );
   const darkSchemeName = t(
-    getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string,
+    getSchemeById(
+      settings.defaultDarkTheme,
+      isMobilePlatform ? 'shared' : 'desktop',
+    )?.nameKey.replace('settings:', '') as string,
   );
 
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
@@ -103,6 +109,7 @@ export function AppearanceSettingsPage() {
           defaultDarkTheme={settings.defaultDarkTheme}
           currentThemeMode={settings.theme}
           onSelectScheme={handleSelectScheme}
+          onSelectSystem={() => handlePresetChange('system')}
         />
 
         <div className={styles.settings}>
@@ -113,7 +120,10 @@ export function AppearanceSettingsPage() {
                 {t('settings:groups.appearance')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(['light', 'dark', 'system'] as const).map((preset) => (
+                {(isMobilePlatform
+                  ? (['light', 'dark', 'system'] as const)
+                  : (['system', 'light', 'dark'] as const)
+                ).map((preset) => (
                   <label
                     key={preset}
                     style={{

@@ -3,7 +3,13 @@
 // on <html>, driving light/dark via [data-theme] selectors.
 
 import type { AccentPreset, ThemeConfig } from '@/types';
-import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes';
+import {
+  applyScheme,
+  resolveActiveScheme,
+  getSchemeById,
+  DESKTOP_NAVIGATION_COLORS,
+  type SchemeAppearance,
+} from './themeSchemes';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
 import { withTimeout } from './withTimeout';
@@ -40,10 +46,13 @@ function hexToRgb(hex: string): [number, number, number] | null {
 
 /** Sync the native window background color with the active scheme so the
  *  system title bar (traffic lights area) matches the app theme. */
-async function syncTitleBarColor(schemeId: string) {
+async function syncTitleBarColor(schemeId: string, appearance: SchemeAppearance) {
   try {
-    const scheme = getSchemeById(schemeId);
-    const bg = scheme?.variables['--bg-base'] || '#1c1c1e';
+    const scheme = getSchemeById(schemeId, appearance);
+    const bg =
+      scheme && appearance === 'desktop'
+        ? DESKTOP_NAVIGATION_COLORS[scheme.mode]
+        : scheme?.variables['--bg-base'] || '#1c1c1e';
     const rgb = hexToRgb(bg) || [28, 28, 30];
     await syncNativeAppearance({ red: rgb[0], green: rgb[1], blue: rgb[2] });
   } catch {
@@ -120,16 +129,29 @@ export async function applyTheme(config: ThemeConfig, isCurrent: () => boolean =
   const accent = config.accentColor;
 
   root.setAttribute('data-theme', resolvedMode);
+  root.style.colorScheme = resolvedMode;
   applyAccentColor(accent, config.customAccentHex);
-  applyScheme(activeScheme);
+  const appearance = isAndroidSync() || isMobilePlatformSync() ? 'shared' : 'desktop';
+  applyScheme(activeScheme, appearance);
   applyAccentTextColors();
+  const scheme = getSchemeById(activeScheme, appearance);
+  if (scheme) {
+    for (const [name, token] of [
+      ['background', '--bg-base'],
+      ['foreground', '--text-primary'],
+      ['secondary', '--text-secondary'],
+    ]) {
+      root.style.setProperty(`--startup-${name}`, scheme.variables[token]);
+    }
+  }
+  // 静态启动层将主题所有权交给唯一控制器，不再用旧缓存覆盖本次解析。
+  window.dispatchEvent(new Event('solosoul:theme-applied'));
   if (isAndroidSync()) applyAndroidMaterial();
 
   // Sync native title bar background with the active theme (desktop only)
-  void syncTitleBarColor(activeScheme);
-
-  // Sync Android status/navigation bar icon color with the active theme
+  const nativeUpdate = syncTitleBarColor(activeScheme, appearance);
   void syncStatusBarStyle(resolvedMode);
+  if (appearance === 'desktop') await nativeUpdate;
 }
 
 /** 同一媒体查询同时负责移动端切色和桌面 IPC 不可用时的回退。 */
@@ -140,7 +162,7 @@ function listenForMediaTheme(onThemeChange: (mode: 'light' | 'dark') => void): (
   return () => mq.removeEventListener('change', listener);
 }
 
-/** 移动端只监听 WebView；桌面优先监听原生轮询事件。
+/** 移动端只监听 WebView；桌面优先监听独立原生系统通知。
  * 调用者仅在跟随系统时应用事件，卸载时释放返回的监听。 */
 export async function listenForSystemTheme(
   onThemeChange: (mode: 'light' | 'dark') => void,
@@ -149,11 +171,31 @@ export async function listenForSystemTheme(
   if (isMobilePlatformSync()) return listenForMediaTheme(onThemeChange);
   try {
     const { listen } = await import('@tauri-apps/api/event');
+    let active = true;
+    let revision = 0;
     const unlisten = await listen<string>('system-theme-changed', (event) => {
-      const mode = event.payload === 'dark' ? 'dark' : 'light';
-      onThemeChange(mode);
+      if (active && (event.payload === 'light' || event.payload === 'dark')) {
+        revision += 1;
+        onThemeChange(event.payload);
+      }
     });
-    return unlisten;
+    // 恢复/重新激活时补读，覆盖休眠期间未交付的通知；不启动周期任务。
+    const refresh = () => {
+      if (!active || document.visibilityState === 'hidden') return;
+      const current = ++revision;
+      void getSystemTheme().then((mode) => {
+        if (active && current === revision) onThemeChange(mode);
+      });
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      active = false;
+      revision += 1;
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+      unlisten();
+    };
   } catch {
     // Fallback for non-Tauri environments (browser, Storybook, tests)
     return listenForMediaTheme(onThemeChange);

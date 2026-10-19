@@ -1,0 +1,45 @@
+{
+  "pullRequest": 13,
+  "task": "RF-1190",
+  "date": "2026-10-19",
+  "baseCommit": "f579265d53ebd452dd24baafa5d81200407b8280",
+  "finding": "Recovery, security-warning and status-body production tests compared desktop default surfaces to the shared/mobile palettes. Live CI showed the warm-stone Windows cases waiting on this outdated equality check.",
+  "fix": "Select expected palette with getSchemeById(id, desktop/shared) for each existing platform case. No product or workflow changes; retain all contrast, semantic-color, camera-error and recovery assertions.",
+  "before": {
+    "failed": 1,
+    "reason": "Windows warm-stone --bg-elevated: expected shared #fdfcf9, actual approved desktop #f7f7f7."
+  },
+  "checks": {
+    "changedPaletteBranches": {
+      "passed": 120,
+      "failed": 0,
+      "retries": 0,
+      "skipped": 0,
+      "coverage": "Both default palettes x Android/Windows/macOS x ordinary/high contrast, across all three affected suites."
+    },
+    "fullProductionCaseList": {
+      "before": 1299,
+      "after": 1299,
+      "files": 13
+    },
+    "format": 0,
+    "targetedLint": {
+      "exitCode": 0,
+      "existingWarnings": 1,
+      "warning": "Unused qrFailure destructuring in the pre-existing recovery fixture."
+    }
+  },
+  "boundaries": [
+    "Real production bundle with mocked native IPC; not native material acceptance.",
+    "Other 18 explicitly selected palettes are unchanged by the resolver; final PR CI reruns the whole 1299-case suite.",
+    "RF-1192 macOS native acceptance and other paused tasks remain unchanged."
+  ],
+  "evidenceSha256": {
+    "appearance-before.json": "418d267aade2b7d13a046dc58e8e043652feafe9d3ae33fb2b1d7dd39641b8b2",
+    "palette-after.json": "4cb4c3319fc6670ce084d807faaf3ba8c4f53eae6e90a0bc3a0420ba9c4af06f",
+    "palette-test-format.log": "909805d0bd310d5427a77204404332572be696ed4c5239acf26e7248847458a2",
+    "palette-test-lint.log": "d75ff8df7267dab8623d4adc535751d57a51c6bf79c6f478a5431c0f032e67d5",
+    "production-case-list.txt": "ac7e2723a0cedf7954eb556e614ada2e847fb8f7c9b3c8be183216fa4e224595",
+    "palette-case-list-after.txt": "35b99d95618f703d20757886be8df325402891aeb91383cdffb9e2ff0f084533"
+  }
+}

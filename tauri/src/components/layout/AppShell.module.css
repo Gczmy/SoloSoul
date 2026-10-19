@@ -8,12 +8,6 @@
   touch-action: manipulation;
 }
 
-@media (min-width: 768px) and (forced-colors: active) {
-  :global(html[data-desktop-platform='windows']) .content {
-    outline: 1px solid CanvasText;
-    outline-offset: -1px;
-  }
-}
 .main {
   flex: 1;
   display: flex;
@@ -94,7 +88,8 @@
   }
 
   :global(html[data-desktop-platform='windows']) .appShell {
-    /* 单一内容面：AppBar 与正文同色；外侧留出少量 Mica，不叠加描边。 */
+    /* 顶栏与侧栏共用外壳底色，正文保留独立内容面。 */
+    background: var(--windows-navigation-surface, var(--bg-base));
     --shell-content-surface: var(--bg-base);
     --windows-content-inset-left: 8px;
     --windows-content-inset-right: 8px;
@@ -108,19 +103,13 @@
   :global(html[data-desktop-platform='windows']) .appShell .main {
     background: transparent;
     margin: 0 var(--windows-content-inset-right) 8px var(--windows-content-inset-left);
+    /* 内容面负责裁剪正文；外层保留阴影在间距内的绘制空间。 */
+    overflow: visible;
   }
   :global(html[data-desktop-platform='windows']) .content {
-    /* 保持独立滚动边界，水平导航由 main 的内边距避让；顶部圆角由 AppBar 承接。 */
+    /* 未启用一体窗框时，滚动容器自身承载完整内容面。 */
     background: var(--shell-content-surface);
-    border-radius: 0 0 12px 12px;
-  }
-  :global(html[data-desktop-platform='windows']) .appShell[data-navigation='top'] .content {
-    /* 横向导航分隔两层表面，正文独立保留圆角。 */
     border-radius: 12px;
-  }
-  :global(html[data-desktop-platform='windows'][data-high-contrast='true']) .content {
-    outline: 1px solid var(--text-primary);
-    outline-offset: -1px;
   }
 }
 
@@ -137,6 +126,7 @@
   }
   :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .main {
     background: transparent;
+    overflow: visible;
   }
   :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .contentSurface {
     display: flex;
@@ -150,15 +140,13 @@
     /* 仅裁剪内容面；Portal 仍挂在外部，不加入 filter/transform 定位祖先。 */
     overflow: hidden;
   }
-  :global(html[data-desktop-platform='macos'][data-high-contrast='true']) .contentSurface {
-    outline: 1px solid var(--text-primary);
-    outline-offset: -1px;
-  }
 }
 
-@media (min-width: 768px) and (forced-colors: active) {
-  .appShell[data-macos-shell] .contentSurface {
-    outline: 1px solid CanvasText;
-    outline-offset: -1px;
+@media (min-width: 768px) {
+  :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface,
+  :global(html[data-desktop-platform='windows']) .appShell:not([data-windows-shell]) .content,
+  :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .contentSurface {
+    border: 1px solid var(--desktop-content-edge);
+    box-shadow: var(--desktop-content-shadow);
   }
 }

@@ -1,0 +1,52 @@
+{
+  "pullRequest": 13,
+  "date": "2026-10-19",
+  "productHead": "d1ac368f028fdeb3f2104b12ae2191cc1111afe4",
+  "review": "Review of all 10 original commits: native notification lifetime/cleanup, asynchronous startup handoff, color derivation, shell layers, fallback and documented validation boundaries.",
+  "finding": "Two older E2E suites still asserted transparent dark Mica, content-colored titlebars or an outline instead of the newly approved content border.",
+  "fix": "Synchronize mock materials and exact expected colors/borders, retain foreground/native-RGB/theme/explicit-mode/mobile checks, and add stale-dark-Mica neutral-shell coverage. No product, workflow or assertion budgets changed.",
+  "checks": {
+    "before": {
+      "failed": 1,
+      "reason": "Current product paints dark shell rgb(24,24,24); old test required transparent."
+    },
+    "production": {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "defaultProductionDesktop": {
+      "passed": 87,
+      "failed": 2,
+      "reason": "Both cloud-sync route cases redirect by design in non-debug production builds."
+    },
+    "debugDesktop": {
+      "passed": 89,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "formatAndTargetedLint": 0
+  },
+  "retainedAttempts": [
+    "First negative test launched from repository root failed to locate the relative E2E fixture; rerun from tauri reproduced the real obsolete assertion.",
+    "Default production full-route run retained both expected cloud-sync redirect failures; complete suite rerun in debug mode without changing, skipping or relaxing route assertions."
+  ],
+  "boundaries": [
+    "Production tests use a real bundle and mocked native IPC. Existing Windows native evidence remains unchanged.",
+    "RF-1192 actual macOS acceptance remains pending by user decision. Other tasks remain paused."
+  ],
+  "evidenceSha256": {
+    "before.json": "ddcfe58f467a9c7fa769b536139bc5bf7a0fa6cb74699d5baa1ca7ad412b8e50",
+    "before-current.json": "89645ceb5a613391e001b6691d8c596291f2a6288f98ef3ee780b2b03aa7ee28",
+    "production.json": "63734300eca0e71aa1a24eea2044c801f757cb6f97676edf8a83985e6c33f192",
+    "desktop.json": "6fb8f38ab38a4728fc5f925bcef500b4f20d50e44e1d920f1842ca6da18a5e47",
+    "desktop-debug.json": "d36a2ab224faf19da2c6a3a1fff891ba3bb565300dbc2baef700bd78b4707376",
+    "debug-build.log": "ecc1697bc6e291bd49848f736e84d231d95b3439eea23364abb3774b747e89e2",
+    "theme-test-format.log": "94affd4bf106d3a1f6b5615472648ab7227ef1a8578ec2ff0a5aabab6ba6a219",
+    "theme-test-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "controls-test-format.log": "1c758f93e78794fd5dcc3941fd811912da84327a009af3b7736f7f59fb2bb97e",
+    "controls-test-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

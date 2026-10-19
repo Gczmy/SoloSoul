@@ -1,0 +1,575 @@
+{
+  "task": "RF-1189",
+  "date": "2026-10-18",
+  "baseMain": "15ac55be55c987aad08f6dcd3c96b74bf5069266",
+  "scope": "Desktop filled primary actions: light theme white text with contrast-safe accent fill and distinct hover; dark theme and Android retain existing accent semantics.",
+  "sourceSha256": {
+    "tauri/src/lib/accentContrast.ts": "fd60ab33e14a761ac3b1a340c430be20fffca081ec7e775a69f5d7b9f8248127",
+    "tauri/src/styles/desktop-controls.css": "9b16b30525865f55a8ee567d915b92fc1c12a341ed9c5d2e70801b42beb8997f"
+  },
+  "sourceHashFormat": "UTF-8, LF normalized",
+  "checks": {
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "existingWarnings": 1,
+      "warning": "syncStore.ts: unused event argument, outside this change"
+    },
+    "vitest": {
+      "files": 269,
+      "passed": 2408,
+      "failed": 0,
+      "runner": "Node 24.19.0, Vitest 4.1.8, threads pool, 2 workers, original 269-file collection"
+    },
+    "node": {
+      "passed": 270,
+      "failed": 0,
+      "existingSkipped": 1,
+      "runner": "Node 24.16.0"
+    },
+    "themeFocused": {
+      "files": 3,
+      "passed": 48,
+      "failed": 0
+    },
+    "productionBuild": {
+      "exitCode": 0,
+      "kind": "Vite production frontend only",
+      "existingWarnings": [
+        "ineffective dynamic imports",
+        "chunk size",
+        "plugin timings"
+      ]
+    },
+    "productionBrowser": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "engine": "installed Edge, headless",
+      "platforms": [
+        "Windows mock",
+        "macOS mock",
+        "Android mock"
+      ],
+      "states": [
+        "light/dark",
+        "idle/hover",
+        "save pending/disabled and cancel",
+        "notification available/error/downloaded",
+        "custom white/gray/dark green",
+        "solid/high-contrast/forced-colors fallback"
+      ]
+    }
+  },
+  "browserMeasurements": [
+    {
+      "scenario": "android light ocean",
+      "samples": 3,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            0,
+            0,
+            0
+          ],
+          "background": [
+            91,
+            124,
+            153
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 4.787871492243063,
+          "iconContrast": 4.787871492243063,
+          "surfaceContrast": 4.275094151144132,
+          "borderContrast": 10.728949019764453,
+          "backgroundImage": "none",
+          "width": 48,
+          "height": 48,
+          "borderRadius": 24
+        }
+      ]
+    },
+    {
+      "scenario": "android dark ocean",
+      "samples": 3,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            0,
+            0,
+            0
+          ],
+          "background": [
+            122,
+            154,
+            181
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 7.116994665690191,
+          "iconContrast": 7.116994665690191,
+          "surfaceContrast": 5.09612478187719,
+          "borderContrast": 1.7264233215269151,
+          "backgroundImage": "none",
+          "width": 48,
+          "height": 48,
+          "borderRadius": 24
+        }
+      ]
+    },
+    {
+      "scenario": "macos light ocean",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            90,
+            122,
+            151
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 4.501203988207433,
+          "iconContrast": 4.501203988207433,
+          "surfaceContrast": 4.387302395850238,
+          "borderContrast": 1.8747153222235267,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 8
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            79,
+            107,
+            133
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 5.564060651875519,
+          "iconContrast": 5.564060651875519,
+          "surfaceContrast": 5.4232637962162356,
+          "borderContrast": 1.8747153222235267,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 8
+        }
+      ]
+    },
+    {
+      "scenario": "macos dark ocean",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            0,
+            0,
+            0
+          ],
+          "background": [
+            122,
+            154,
+            181
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 7.116994665690191,
+          "iconContrast": 7.116994665690191,
+          "surfaceContrast": 5.09612478187719,
+          "borderContrast": 1.7264233215269151,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 8
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            0,
+            0,
+            0
+          ],
+          "background": [
+            142,
+            175,
+            200
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 9.11617162693329,
+          "iconContrast": 9.11617162693329,
+          "surfaceContrast": 6.527635656075783,
+          "borderContrast": 1.7264233215269151,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 8
+        }
+      ]
+    },
+    {
+      "scenario": "windows light ocean",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            90,
+            122,
+            151
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 4.501203988207433,
+          "iconContrast": 4.501203988207433,
+          "surfaceContrast": 4.387302395850238,
+          "borderContrast": 1.8747153222235267,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            79,
+            107,
+            133
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 5.564060651875519,
+          "iconContrast": 5.564060651875519,
+          "surfaceContrast": 5.4232637962162356,
+          "borderContrast": 1.8747153222235267,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        }
+      ]
+    },
+    {
+      "scenario": "windows dark ocean",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            0,
+            0,
+            0
+          ],
+          "background": [
+            122,
+            154,
+            181
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 7.116994665690191,
+          "iconContrast": 7.116994665690191,
+          "surfaceContrast": 5.09612478187719,
+          "borderContrast": 1.7264233215269151,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            0,
+            0,
+            0
+          ],
+          "background": [
+            142,
+            175,
+            200
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 9.11617162693329,
+          "iconContrast": 9.11617162693329,
+          "surfaceContrast": 6.527635656075783,
+          "borderContrast": 1.7264233215269151,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        }
+      ]
+    },
+    {
+      "scenario": "windows light #ffffff",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            117,
+            117,
+            117
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 4.607518093747377,
+          "iconContrast": 4.607518093747377,
+          "surfaceContrast": 4.490926255415381,
+          "borderContrast": 1.8916647499514045,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            103,
+            103,
+            103
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 5.656311837697813,
+          "iconContrast": 5.656311837697813,
+          "surfaceContrast": 5.513180593952692,
+          "borderContrast": 1.8916647499514045,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        }
+      ]
+    },
+    {
+      "scenario": "windows dark #17382A",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            23,
+            56,
+            42
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 12.839839363280896,
+          "iconContrast": 12.839839363280896,
+          "surfaceContrast": 1.171124637312063,
+          "borderContrast": 5.217975629802782,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            20,
+            49,
+            37
+          ],
+          "surrounding": [
+            42,
+            38,
+            32
+          ],
+          "foregroundContrast": 14.039461170840148,
+          "iconContrast": 14.039461170840148,
+          "surfaceContrast": 1.071056220355474,
+          "borderContrast": 5.217975629802782,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        }
+      ]
+    },
+    {
+      "scenario": "windows light #777777",
+      "samples": 6,
+      "states": [
+        {
+          "kind": "available",
+          "state": "idle",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            117,
+            117,
+            117
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 4.607518093747377,
+          "iconContrast": 4.607518093747377,
+          "surfaceContrast": 4.490926255415381,
+          "borderContrast": 1.8916647499514045,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        },
+        {
+          "kind": "available",
+          "state": "hover",
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            103,
+            103,
+            103
+          ],
+          "surrounding": [
+            253,
+            252,
+            249
+          ],
+          "foregroundContrast": 5.656311837697813,
+          "iconContrast": 5.656311837697813,
+          "surfaceContrast": 5.513180593952692,
+          "borderContrast": 1.8916647499514045,
+          "backgroundImage": "none",
+          "width": 107.5625,
+          "height": 32,
+          "borderRadius": 4
+        }
+      ]
+    }
+  ],
+  "earlierObservations": [
+    "Before the fix the actual Windows Save dialog rendered rgb(0,0,0) text; its new white-text assertion failed as expected.",
+    "The first baseline macOS case and two optional development-server accessibility cases timed out before login. An unchanged serial development rerun passed 4/4; final production rerun passed all 19 without retries.",
+    "Several ordinary Vitest invocations were interrupted while silent. No result from those incomplete runs is claimed as passed; the complete run used an extra progress reporter with the original assertions and collection.",
+    "An initial sandbox attempt could not create a temporary cache outside the workspace. Subsequent temporary directories and verification outputs used the task build directory on D; existing toolchain caches retained their configured locations."
+  ],
+  "evidenceSha256": {
+    "browser-production-final.json": "cac99d85583672c1d371eda45560129b6412ad1f1da3ec64916829dba21d20ea",
+    "production-build-final.log": "52699b2ca792989f248fb7f35b1b9191601266e5718f513a7dd51d8f59942b6c",
+    "vitest-full-final.log": "e9396f9ad9bbd68a8a7eb2dcf993e6604898b3377c67d4ee18993e061bb03b9f",
+    "frontend-tests.log": "46d279c6e6103c3be1cce1b2f9b8957e7db882bc11abb6b6ada99ddb3f958186",
+    "theme-focused.log": "d526f0a6bb2fb78563dbad36420c789db4693719af7f83471daf59ce499d0434",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint.log": "193344c550b8dcb82b58207594a96d01fb76479a3c0f835a5031065b0720f6f2"
+  },
+  "verificationLimits": [
+    "Browser mocks validate rendered controls and CSS, not native material composition.",
+    "No Rust/native window change or installer/EXE rebuild.",
+    "The previous nine unfinished tasks remain paused."
+  ]
+}

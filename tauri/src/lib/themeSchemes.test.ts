@@ -197,7 +197,12 @@ describe('主题边界与文字可读性', () => {
           return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
         })
         .reduce((sum, value, i) => sum + value * [0.2126, 0.7152, 0.0722][i], 0);
-    for (const scheme of THEME_SCHEMES) {
+    const { getSchemeById } = await import('./themeSchemes');
+    for (const scheme of [
+      ...THEME_SCHEMES,
+      getSchemeById('warm-stone', 'desktop')!,
+      getSchemeById('warm-stone-dark', 'desktop')!,
+    ]) {
       for (const text of ['--text-primary', '--text-secondary', '--text-tertiary']) {
         const hex = scheme.variables[text];
         expect(hex.slice(1, 3), scheme.id).toBe(hex.slice(3, 5));
@@ -219,6 +224,33 @@ describe('主题边界与文字可读性', () => {
       }
       expect(scheme.variables).not.toHaveProperty('--text-accent');
       expect(scheme.variables).not.toHaveProperty('--text-error');
+    }
+  });
+
+  it('桌面默认预览与应用使用同一色板，移动端及主动选择的彩色主题保持原值', async () => {
+    const { applyScheme, getSchemeById, getSchemesByMode } = await import('./themeSchemes');
+    const root = document.documentElement;
+    const previous = root.getAttribute('style');
+    try {
+      for (const id of ['warm-stone', 'warm-stone-dark']) {
+        const shared = getSchemeById(id)!;
+        const desktop = getSchemeById(id, 'desktop')!;
+        expect(getSchemesByMode(desktop.mode, 'desktop').find((s) => s.id === id)).toEqual(desktop);
+        expect(desktop.preview.bg).toBe(desktop.variables['--bg-base']);
+        expect(desktop.variables['--bg-base']).not.toBe(shared.variables['--bg-base']);
+        applyScheme(id, 'desktop');
+        expect(root.style.getPropertyValue('--bg-base')).toBe(desktop.preview.bg);
+        applyScheme(id);
+        expect(root.style.getPropertyValue('--bg-base')).toBe(shared.preview.bg);
+      }
+      for (const id of ['deep-ocean', 'forest-night', 'dusk-purple', 'soft-cream']) {
+        expect(getSchemeById(id, 'desktop')).toEqual(getSchemeById(id));
+      }
+      applyScheme(null, 'desktop');
+      expect(root.style.getPropertyValue('--bg-base')).toBe('');
+    } finally {
+      if (previous === null) root.removeAttribute('style');
+      else root.setAttribute('style', previous);
     }
   });
 

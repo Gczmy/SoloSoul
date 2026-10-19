@@ -14,16 +14,39 @@ function parseColor(value: string): Rgb | null {
   return channels.every(Number.isFinite) ? (channels as Rgb) : null;
 }
 
-/** 在不透明强调色上选对比度更高的黑/白前景，普通与 hover 分别计算。 */
-export function accentTextColor(background: string): '#000000' | '#ffffff' | null {
-  const rgb = parseColor(background);
-  if (!rgb) return null;
+function luminance(rgb: Rgb): number {
   const linear = rgb.map((channel) => {
     const value = channel / 255;
     return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   });
-  const luminance = linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
-  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? '#000000' : '#ffffff';
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+}
+
+/** 在不透明强调色上选对比度更高的黑/白前景，普通与 hover 分别计算。 */
+export function accentTextColor(background: string): '#000000' | '#ffffff' | null {
+  const rgb = parseColor(background);
+  if (!rgb) return null;
+  const light = luminance(rgb);
+  return (light + 0.05) / 0.05 >= 1.05 / (light + 0.05) ? '#000000' : '#ffffff';
+}
+
+/** 桌面浅色填色主按钮统一白字，仅在需要时等比例压低主题色亮度。
+ * 共享强调色保持原值，深色模式保留较亮填色及其可读前景。 */
+export function desktopAccentColors(background: string, theme: 'light' | 'dark') {
+  const rgb = parseColor(background);
+  if (!rgb) return null;
+  if (theme === 'dark') return { background, foreground: accentTextColor(background)! };
+  for (let percent = 100; percent >= 0; percent--) {
+    const fill =
+      percent === 100 ? rgb : (rgb.map((channel) => Math.floor((channel * percent) / 100)) as Rgb);
+    if (1.05 / (luminance(fill) + 0.05) >= 4.5) {
+      return {
+        background: percent === 100 ? background : `rgb(${fill.join(', ')})`,
+        foreground: '#ffffff',
+      };
+    }
+  }
+  return null;
 }
 
 /** 等价于原有的 sRGB + 12% black，但返回具体颜色，前景不依赖 color-mix 的解析时机。 */
@@ -35,9 +58,26 @@ export function customAccentHover(primary: string): string | null {
 export function applyAccentTextColors() {
   const root = document.documentElement;
   const computed = getComputedStyle(root);
+  const theme = root.dataset.theme === 'dark' ? 'dark' : 'light';
+  const desktopPrimary = desktopAccentColors(computed.getPropertyValue('--accent-primary'), theme);
   for (const state of ['primary', 'hover']) {
-    const foreground = accentTextColor(computed.getPropertyValue(`--accent-${state}`));
+    const background = computed.getPropertyValue(`--accent-${state}`);
+    const foreground = accentTextColor(background);
     if (foreground) root.style.setProperty(`--accent-${state}-text`, foreground);
     else root.style.removeProperty(`--accent-${state}-text`);
+    // 浅色 hover 从已派生的按钮底色压低一级，避免亮色自定义主题两态都压到同一阈值。
+    const desktopBackground =
+      state === 'hover' && theme === 'light' && foreground && desktopPrimary
+        ? customAccentHover(desktopPrimary.background)!
+        : background;
+    const pair = desktopAccentColors(desktopBackground, theme);
+    const prefix = state === 'primary' ? '--desktop-primary' : '--desktop-primary-hover';
+    for (const [suffix, color] of [
+      ['fill', pair?.background],
+      ['text', pair?.foreground],
+    ]) {
+      if (color) root.style.setProperty(`${prefix}-${suffix}`, color);
+      else root.style.removeProperty(`${prefix}-${suffix}`);
+    }
   }
 }

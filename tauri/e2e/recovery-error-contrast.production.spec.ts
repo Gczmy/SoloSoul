@@ -1,12 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { THEME_SCHEMES } from '../src/lib/themeSchemes';
+import { THEME_SCHEMES, getSchemeById } from '../src/lib/themeSchemes';
 import { login, setupTauriMock } from './fixtures/auth';
 import { measureControlContrast } from './fixtures/contrast';
 
 const qrFailure = 'Synchronization is disabled. Enable it first.';
 
 for (const platform of ['android', 'windows', 'macos'] as const) {
-  for (const scheme of THEME_SCHEMES) {
+  for (const scheme of THEME_SCHEMES.map(
+    (s) => getSchemeById(s.id, platform === 'android' ? 'shared' : 'desktop')!,
+  )) {
     for (const contrast of ['no-preference', 'more'] as const) {
       test(`${platform} ${scheme.id} ${contrast} recovery errors stay readable`, async ({
         page,

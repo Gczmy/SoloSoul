@@ -45,6 +45,55 @@ afterEach(() => {
 });
 
 describe('原生窗口启动', () => {
+  it('RF-1193 原生首帧先完成系统主题读取，再显示窗口', async () => {
+    Reflect.set(window, '__TAURI_OS_PLUGIN_INTERNALS__', { platform: 'macos' });
+    const originalStartup = window.__SOLOSOUL_STARTUP__;
+    Reflect.set(window, '__SOLOSOUL_STARTUP__', {
+      systemTheme: (mode: string) => {
+        document.documentElement.style.setProperty(
+          '--startup-background',
+          mode === 'dark' ? '#212121' : '#ffffff',
+        );
+        return true;
+      },
+    });
+    let complete!: (mode: string) => void;
+    invoke.mockImplementation((command: string) =>
+      command === 'get_system_theme'
+        ? new Promise<string>((resolve) => {
+            complete = resolve;
+          })
+        : Promise.resolve({ material: 'solid', platform: 'macos' }),
+    );
+    try {
+      const { prepareStartupWindow } = await import('./nativeWindow');
+      const pending = prepareStartupWindow();
+      await vi.waitFor(() => expect(invoke).toHaveBeenCalledWith('get_system_theme'));
+      expect(invoke.mock.calls.some(([command]) => command === 'set_titlebar_color')).toBe(false);
+      complete('dark');
+      await pending;
+      expect(invoke).toHaveBeenCalledWith('set_titlebar_color', {
+        color: { red: 33, green: 33, blue: 33 },
+      });
+    } finally {
+      window.dispatchEvent(new Event('solosoul:theme-applied'));
+      Reflect.set(window, '__SOLOSOUL_STARTUP__', originalStartup);
+      Reflect.deleteProperty(window, '__TAURI_OS_PLUGIN_INTERNALS__');
+    }
+  });
+
+  it('RF-1193 辅助功能刷新及迟到启动请求保留最近解析的原生颜色', async () => {
+    const { syncNativeAppearance, refreshNativeAppearance } = await import('./nativeWindow');
+    const color = { red: 24, green: 24, blue: 24 };
+    await syncNativeAppearance(color);
+    document.documentElement.style.setProperty('--bg-base', '#212121');
+    document.documentElement.style.setProperty('--startup-background', '#ffffff');
+    await refreshNativeAppearance();
+    expect(invoke).toHaveBeenLastCalledWith('set_titlebar_color', { color });
+    await refreshNativeAppearance(true);
+    expect(invoke).toHaveBeenLastCalledWith('set_titlebar_color', { color });
+  });
+
   it('接受 Windows Mica，并在系统关闭透明效果后切回实色', async () => {
     const { syncNativeAppearance } = await import('./nativeWindow');
     for (const material of ['mica', 'solid']) {

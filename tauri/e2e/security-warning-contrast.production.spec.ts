@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { THEME_SCHEMES, type ThemeScheme } from '../src/lib/themeSchemes';
+import { THEME_SCHEMES, getSchemeById, type ThemeScheme } from '../src/lib/themeSchemes';
 import { login, setupTauriMock } from './fixtures/auth';
 import { measureControlContrast } from './fixtures/contrast';
 
@@ -112,7 +112,9 @@ async function security(page: Page, platform: Platform) {
 }
 
 for (const platform of ['android', 'windows', 'macos'] as const) {
-  for (const scheme of THEME_SCHEMES) {
+  for (const scheme of THEME_SCHEMES.map(
+    (s) => getSchemeById(s.id, platform === 'android' ? 'shared' : 'desktop')!,
+  )) {
     for (const contrast of ['no-preference', 'more'] as const) {
       test(`${platform} ${scheme.id} ${contrast} security warning bodies follow readable semantics`, async ({
         page,

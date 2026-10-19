@@ -1,18 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { getSchemeById } from '../src/lib/themeSchemes';
+import { getSchemeById, DESKTOP_NAVIGATION_COLORS } from '../src/lib/themeSchemes';
 import { login } from './fixtures/auth';
 
 async function mockTheme(
   page: Page,
   schemeId: string,
-  material = 'mica',
+  material = 'auto',
   systemMode?: 'light' | 'dark',
   platform: 'windows' | 'android' | 'ios' = 'windows',
 ) {
   // 仅Windows材质场景使用桌面视口，保留Android/iOS项目环境。
   if (platform === 'windows') await page.setViewportSize({ width: 1280, height: 720 });
-  const scheme = getSchemeById(schemeId)!;
+  const scheme = getSchemeById(schemeId, platform === 'windows' ? 'desktop' : 'shared')!;
   await page.addInitScript({
     content:
       readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -39,7 +39,8 @@ async function mockTheme(
       sync_list_conflicts: () => [],
       set_titlebar_color: ({ color }) => {
         document.documentElement.dataset.nativeThemeRgb = [color.red, color.green, color.blue].join(',');
-        return { material: '${material}', platform: 'windows', reduceMotion: false, highContrast: false };
+        const material = '${material}' === 'auto' ? (color.red < 128 ? 'solid' : 'mica') : '${material}';
+        return { material, platform: 'windows', reduceMotion: false, highContrast: false };
       },
     };
     const systemMode = ${JSON.stringify(systemMode ?? null)};
@@ -62,31 +63,24 @@ async function mockTheme(
   });
 }
 
-async function expectThemeBackground(page: Page, schemeId: string, transparent: boolean) {
-  const hex = getSchemeById(schemeId)!.variables['--bg-base'];
-  const expected = [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
-  // 仍传入当前主题色供原生解析浅深模式，但 Mica 背景不再覆盖该颜色。
-  await expect(page.locator('html')).toHaveAttribute('data-native-theme-rgb', expected.join(','));
-  if (transparent) {
-    for (const selector of ['html', 'body', '#root']) {
-      await expect(page.locator(selector)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-      await expect(page.locator(selector)).toHaveCSS('background-image', 'none');
-    }
-    return;
+async function expectThemeBackground(page: Page, schemeId: string) {
+  const scheme = getSchemeById(schemeId, 'desktop')!;
+  // 原生外壳与导航共用中性色，正文仍使用所选平台色板。
+  const native = DESKTOP_NAVIGATION_COLORS[scheme.mode];
+  const nativeRgb = [1, 3, 5].map((offset) => parseInt(native.slice(offset, offset + 2), 16));
+  const root = page.locator('html');
+  await expect(root).toHaveAttribute('data-theme', scheme.mode);
+  await expect(page.locator('html')).toHaveAttribute('data-native-theme-rgb', nativeRgb.join(','));
+  const transparent =
+    scheme.mode === 'light' && (await root.getAttribute('data-native-material')) === 'mica';
+  const shellColor = transparent ? 'rgba(0, 0, 0, 0)' : `rgb(${nativeRgb.join(', ')})`;
+  for (const selector of ['html', 'body', '#root']) {
+    await expect(page.locator(selector)).toHaveCSS('background-color', shellColor);
+    await expect(page.locator(selector)).toHaveCSS('background-image', 'none');
   }
-  // 通过浏览器实际解析后的颜色比较，兼容 rgb()/color(srgb) 的不同序列化形式。
-  const actual = await page.locator('html').evaluate((root) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 1;
-    const context = canvas.getContext('2d')!;
-    context.fillStyle = getComputedStyle(root).backgroundColor;
-    context.fillRect(0, 0, 1, 1);
-    return Array.from(context.getImageData(0, 0, 1, 1).data);
-  });
-  expected.forEach((component, index) =>
-    expect(Math.abs(actual[index] - component)).toBeLessThanOrEqual(1),
-  );
-  expect(actual[3]).toBe(255);
+  await expect
+    .poll(() => root.evaluate((el) => getComputedStyle(el).getPropertyValue('--bg-base').trim()))
+    .toBe(scheme.variables['--bg-base']);
 }
 
 // 只验证浏览器 CSS 与模拟 IPC 参数一致，不代表真实 Windows/Android 材质验收。
@@ -98,7 +92,7 @@ for (const { systemMode, mediaMode, schemeId } of [
     page,
   }) => {
     await page.emulateMedia({ colorScheme: mediaMode });
-    await mockTheme(page, schemeId, 'mica', systemMode);
+    await mockTheme(page, schemeId, 'auto', systemMode);
     await page.goto('/login');
     await expect(page.locator('#startup-screen')).toHaveCount(0);
     expect(
@@ -111,9 +105,12 @@ for (const { systemMode, mediaMode, schemeId } of [
           .locator('html')
           .evaluate((root) => getComputedStyle(root).getPropertyValue('--bg-base').trim()),
       )
-      .toBe(getSchemeById(schemeId)!.variables['--bg-base']);
-    await expect(page.locator('html')).toHaveAttribute('data-native-material', 'mica');
-    await expectThemeBackground(page, schemeId, true);
+      .toBe(getSchemeById(schemeId, 'desktop')!.variables['--bg-base']);
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-native-material',
+      systemMode === 'dark' ? 'solid' : 'mica',
+    );
+    await expectThemeBackground(page, schemeId);
     await expect(page.locator('html')).toHaveAttribute('data-status-bar-style', systemMode);
     await expect(page.locator('[class*="loginWrapper"]')).toHaveCSS(
       'background-color',
@@ -126,12 +123,15 @@ for (const { systemMode, mediaMode, schemeId } of [
 }
 
 for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cream']) {
-  test(`Windows Mica ${scheme} 登录背景不叠加主题色`, async ({ page }) => {
+  test(`Windows ${scheme} 登录外壳按模式选择材质并保持中性`, async ({ page }) => {
     await mockTheme(page, scheme);
     await page.goto('/login');
     await expect(page.locator('#startup-screen')).toHaveCount(0);
-    await expect(page.locator('html')).toHaveAttribute('data-native-material', 'mica');
-    await expectThemeBackground(page, scheme, true);
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-native-material',
+      getSchemeById(scheme)!.mode === 'dark' ? 'solid' : 'mica',
+    );
+    await expectThemeBackground(page, scheme);
     await expect(page.locator('[class*="loginWrapper"]')).toHaveCSS(
       'background-color',
       'rgba(0, 0, 0, 0)',
@@ -146,11 +146,15 @@ for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cre
       .locator('main')
       .evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(surface).not.toBe('rgba(0, 0, 0, 0)');
-    await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', surface);
+    await expect(page.locator('[data-appbar]')).toHaveCSS(
+      'background-color',
+      await page.locator('html').evaluate((el) => getComputedStyle(el).backgroundColor),
+    );
+    await expect(page.locator('[data-appbar]')).toHaveCSS('background-image', 'none');
   });
 }
 
-test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', async ({ page }) => {
+test('同一深色模式切换配色后，实色外壳保持中性灰，正文保留所选色板', async ({ page }) => {
   await mockTheme(page, 'warm-stone-dark');
   await login(page);
   await page
@@ -164,21 +168,22 @@ test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', asy
     ['Forest Night', 'forest-night'],
   ]) {
     await page.getByRole('button', { name, exact: true }).click();
-    await expectThemeBackground(page, scheme, true);
+    await expectThemeBackground(page, scheme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(page.locator('#desktop-navigation')).toHaveCSS(
       'background-color',
-      'rgba(0, 0, 0, 0)',
+      'rgb(24, 24, 24)',
     );
     const surface = await page
       .locator('main')
       .evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(surface).not.toBe('rgba(0, 0, 0, 0)');
-    await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', surface);
+    await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', 'rgb(24, 24, 24)');
+    await expect(page.locator('[data-appbar]')).toHaveCSS('background-image', 'none');
   }
 });
 
-test('无 Mica 时采用当前主题实色，不受首帧缓存颜色锁定', async ({ page }) => {
+test('无 Mica 时采用中性外壳，正文配色不受首帧缓存锁定', async ({ page }) => {
   await mockTheme(page, 'warm-stone-dark', 'solid');
   await login(page);
   await page
@@ -188,7 +193,7 @@ test('无 Mica 时采用当前主题实色，不受首帧缓存颜色锁定', as
   await page.getByText('Theme & Appearance', { exact: true }).click();
   await page.getByRole('button', { name: 'More Appearances', exact: true }).click();
   await page.getByRole('button', { name: 'Deep Ocean', exact: true }).click();
-  await expectThemeBackground(page, 'deep-ocean', false);
+  await expectThemeBackground(page, 'deep-ocean');
 });
 
 test('Windows 实色回退仍能区分外壳和正文', async ({ page }) => {
@@ -196,10 +201,10 @@ test('Windows 实色回退仍能区分外壳和正文', async ({ page }) => {
   await login(page);
   const header = page.locator('[data-appbar]');
   const surface = await header.evaluate((el) => getComputedStyle(el).backgroundColor);
-  await expect(page.locator('#desktop-navigation')).not.toHaveCSS('background-color', surface);
+  await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', surface);
   expect(surface).not.toBe('rgba(0, 0, 0, 0)');
-  await expect(page.locator('main')).toHaveCSS('background-color', surface);
-  await expectThemeBackground(page, 'warm-stone-dark', false);
+  await expect(page.locator('main')).not.toHaveCSS('background-color', surface);
+  await expectThemeBackground(page, 'warm-stone-dark');
 });
 
 test('Windows 强制颜色模式关闭透明背景并保留正文边界', async ({ page }) => {
@@ -209,8 +214,17 @@ test('Windows 强制颜色模式关闭透明背景并保留正文边界', async 
   for (const selector of ['html', 'body', '#root', 'main', '[data-appbar]']) {
     await expect(page.locator(selector)).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   }
-  await expect(page.locator('main')).toHaveCSS('outline-style', 'solid');
-  await expect(page.locator('main')).toHaveCSS('outline-width', '1px');
+  await expect(page.locator('main')).toHaveCSS('border-top-style', 'solid');
+  await expect(page.locator('main')).toHaveCSS('border-top-width', '1px');
+  await expect(page.locator('main')).toHaveCSS('box-shadow', 'none');
+});
+
+test('深色切换期间即使旧原生材质仍为 Mica，外壳也保持中性底色', async ({ page }) => {
+  await mockTheme(page, 'warm-stone-dark', 'mica');
+  await login(page);
+  await expect(page.locator('html')).toHaveAttribute('data-native-material', 'mica');
+  await expectThemeBackground(page, 'warm-stone-dark');
+  await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', 'rgb(24, 24, 24)');
 });
 
 // RF-201：验证真实页面订阅 media 事件；模拟 IPC 故意给出相反主题，不能成为移动端来源。

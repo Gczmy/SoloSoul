@@ -4,6 +4,7 @@ import { useNativeWindowStore, type WindowsFrameLayout } from '@/stores/nativeWi
 import { listen } from '@tauri-apps/api/event';
 import { trackAsyncListener } from './asyncListener';
 import { observeNativeCaptionBackdrops } from './nativeTitlebarControls';
+import { getPlatform } from './platform';
 
 interface WindowLayout {
   platform: 'macos' | 'windows' | 'other';
@@ -21,6 +22,7 @@ interface WindowAppearance extends WindowLayout {
 let appearanceRevision = 0;
 let layoutRevision = 0;
 let appearanceQueue: Promise<void> = Promise.resolve();
+let resolvedColor: { red: number; green: number; blue: number } | undefined;
 
 function validWindowsFrame(frame: WindowsFrameLayout | undefined) {
   if (
@@ -77,6 +79,11 @@ function applyWindowLayout(appearance: WindowLayout, appearanceOnly = false) {
 
 /** 外观请求串行执行；连续切换时跳过尚未执行的旧主题，迟到响应不回写布局。 */
 export function syncNativeAppearance(color: { red: number; green: number; blue: number }) {
+  resolvedColor = { ...color };
+  return enqueueNativeAppearance(color);
+}
+
+function enqueueNativeAppearance(color: { red: number; green: number; blue: number }) {
   const revision = ++appearanceRevision;
   const geometryRevision = ++layoutRevision;
   const next = appearanceQueue
@@ -156,6 +163,50 @@ export function observeNativeWindowLayout() {
 
 /** 图标解码后显示原生窗口；隐藏 WebView 不保证调度 RAF，因此设置有界绘制等待。 */
 export async function prepareStartupWindow(): Promise<void> {
+  const desktop = await getPlatform().then(
+    (platform) => platform === 'windows' || platform === 'macos',
+    () => false,
+  );
+  if (desktop && window.__SOLOSOUL_STARTUP__?.systemTheme) {
+    let retired = false;
+    let changes = 0;
+    const update = () => {
+      if (!retired) {
+        changes += 1;
+        void refreshNativeAppearance(true);
+      }
+    };
+    const subscription = listen<string>('system-theme-changed', ({ payload }) => {
+      if (!retired && (payload === 'light' || payload === 'dark')) {
+        changes += 1;
+        window.__SOLOSOUL_STARTUP__?.systemTheme?.(payload);
+      }
+    });
+    const stop = trackAsyncListener(subscription);
+    const release = () => {
+      retired = true;
+      stop();
+      window.removeEventListener('solosoul:startup-theme-changed', update);
+      window.removeEventListener('solosoul:theme-applied', release);
+      window.removeEventListener('pagehide', release);
+    };
+    window.addEventListener('solosoul:startup-theme-changed', update);
+    window.addEventListener('solosoul:theme-applied', release);
+    window.addEventListener('pagehide', release);
+    // 订阅后再读一次，补齐创建 WebView 到注册监听之间的系统变化。
+    const initialTheme = subscription.then(
+      async () => {
+        if (retired) return;
+        const revision = changes;
+        const mode = await withTimeout(invoke<string>('get_system_theme'), 600).catch(() => null);
+        if (!retired && revision === changes && (mode === 'light' || mode === 'dark'))
+          window.__SOLOSOUL_STARTUP__?.systemTheme?.(mode);
+      },
+      () => {},
+    );
+    // 显示窗口前先完成有界的系统读取，避免旧缓存色先露出再切换。
+    await withTimeout(initialTheme, 650).catch(() => {});
+  }
   await refreshNativeAppearance(true).catch(() => {});
   if (useNativeWindowStore.getState().isWindows) await initializeWindowsFrame();
   const logo = document.querySelector<HTMLImageElement>('.startup-logo');
@@ -210,12 +261,17 @@ async function initializeWindowsFrame() {
 }
 
 export async function refreshNativeAppearance(startup = false): Promise<void> {
+  // 辅助功能或迟到启动刷新只重用最近的主题结果，不能重新从正文/旧启动缓存选色。
+  if (resolvedColor) {
+    await enqueueNativeAppearance(resolvedColor).catch(() => {});
+    return;
+  }
   const root = document.documentElement;
   const hex = getComputedStyle(root)
     .getPropertyValue(startup ? '--startup-background' : '--bg-base')
     .trim();
   const value = /^#[\da-f]{6}$/i.test(hex) ? Number.parseInt(hex.slice(1), 16) : 0x1c1c1e;
-  await syncNativeAppearance({
+  await enqueueNativeAppearance({
     red: value >> 16,
     green: (value >> 8) & 255,
     blue: value & 255,

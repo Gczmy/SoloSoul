@@ -140,7 +140,22 @@ for (const scenario of scenarios) {
         const expected = [1, 3, 5].map((offset) =>
           parseInt(customAccent.slice(offset, offset + 2), 16),
         );
-        expect(idle.background, '必须实际验证自定义强调色，而非默认色回退').toEqual(expected);
+        expect(
+          await page
+            .locator('html')
+            .evaluate((root) =>
+              getComputedStyle(root).getPropertyValue('--accent-primary').trim().toLowerCase(),
+            ),
+          '派生按钮色不能改写用户选择的强调色',
+        ).toBe(customAccent.toLowerCase());
+        if (platform !== 'android' && theme === 'light') {
+          expect(idle.foreground).toEqual([255, 255, 255]);
+          // 当前浅色自定义用例是白与中灰，派生填色应保留中性，不能回退成默认蓝。
+          expect(idle.background[0]).toBe(idle.background[1]);
+          expect(idle.background[1]).toBe(idle.background[2]);
+        } else {
+          expect(idle.background, '深色和 Android 继续使用原始自定义填色').toEqual(expected);
+        }
       }
       if (platform === 'android') {
         expect(idle.width).toBeGreaterThanOrEqual(48);
@@ -161,6 +176,7 @@ for (const scenario of scenarios) {
         measurements.push({ kind, state: 'hover', ...hover });
         expect(hover.foregroundContrast, `${kind} hover文字对比`).toBeGreaterThanOrEqual(4.5);
         expect(hover.iconContrast, `${kind} hover图标对比`).toBeGreaterThanOrEqual(4.5);
+        expect(hover.background, `${kind} hover 仍有可见填色反馈`).not.toEqual(idle.background);
         expect(
           Math.max(hover.surfaceContrast, hover.borderContrast),
           `${kind} hover边界可区分`,

@@ -73,6 +73,8 @@
   "dark_themes": "深色主题",
   "default_theme_badge": "默认",
   "scheme_warm_stone": "暖石",
+  "scheme_desktop_neutral_light": "中性浅色",
+  "scheme_desktop_neutral_dark": "石墨深色",
   "scheme_clean_slate": "素灰",
   "scheme_soft_cream": "柔奶",
   "scheme_fresh_mint": "薄荷",

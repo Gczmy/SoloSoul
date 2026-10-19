@@ -1,5 +1,6 @@
 import type { ThemeConfig } from '@/types';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from './theme';
+import { withTimeout } from './withTimeout';
 
 type Mode = 'light' | 'dark';
 type Dispose = () => void;
@@ -32,6 +33,9 @@ export class ThemeController {
   private lastKey: string | undefined;
   private disposeSource: Dispose | undefined;
   private disposeSystem: Dispose | undefined;
+  private listening = false;
+  private systemReady: Promise<void> | undefined;
+  private startup: { config: ThemeConfig; isCurrent: () => boolean } | undefined;
 
   constructor(private readonly sources: ThemeControllerSources) {}
 
@@ -39,12 +43,76 @@ export class ThemeController {
     this.sources.onError?.(error);
   }
 
+  private listenToSystem(): Promise<void> {
+    if (this.systemReady) return this.systemReady;
+    this.listening = true;
+    const lifetime = ++this.lifetime;
+    let notifications = 0;
+    try {
+      const listening = (this.sources.listenSystem ?? listenForSystemTheme)((mode) => {
+        if (!this.listening || this.lifetime !== lifetime) return;
+        notifications += 1;
+        if (!this.connected) {
+          const startup = this.startup;
+          if (startup?.config.preset === 'system' && startup.isCurrent()) {
+            void this.applyStartup(
+              { ...startup.config, resolvedSystemTheme: mode },
+              startup.isCurrent,
+            );
+          }
+        } else if (this.active && this.owners && this.sources.read().config.preset === 'system') {
+          void this.refresh(mode);
+        }
+      });
+      this.systemReady = listening.then(
+        (dispose) => {
+          if (!this.listening || this.lifetime !== lifetime) {
+            dispose();
+            return;
+          }
+          this.disposeSystem = dispose;
+          // 注册前的一次查询可能已过时。已收到通知时以该通知为准，避免旧查询回跳。
+          if (
+            this.active &&
+            this.owners &&
+            !notifications &&
+            this.sources.read().config.preset === 'system'
+          ) {
+            void this.refresh(undefined, true);
+          }
+        },
+        (error) => {
+          if (this.lifetime === lifetime) {
+            this.listening = false;
+            this.systemReady = undefined;
+            this.report(error);
+          }
+        },
+      );
+    } catch (error) {
+      this.listening = false;
+      this.report(error);
+      return Promise.resolve();
+    }
+    return this.systemReady;
+  }
+
   /** React 前的缓存首帧使用同一通道；第一次交接后不再允许启动任务回填。 */
   async applyStartup(config: ThemeConfig, isCurrent: () => boolean = () => true) {
     if (this.connected) return;
+    this.startup = { config, isCurrent };
     const generation = ++this.generation;
     const guard = () => !this.connected && generation === this.generation && isCurrent();
     try {
+      const ready = this.listenToSystem();
+      await withTimeout(ready, 600).catch(() => {
+        // 原生监听迟到不能永久阻塞启动；交接前完成则补读，交接后由 refresh 补读。
+        void ready.then(() => {
+          if (guard())
+            void this.applyStartup({ ...config, resolvedSystemTheme: undefined }, isCurrent);
+        });
+      });
+      if (!guard()) return;
       await (this.sources.apply ?? applyTheme)(config, guard);
     } catch (error) {
       if (guard()) this.report(error);
@@ -56,28 +124,12 @@ export class ThemeController {
     this.owners += 1;
     this.stopRevision += 1;
     this.connected = true;
+    this.startup = undefined;
     if (!this.active) {
       this.active = true;
-      const lifetime = ++this.lifetime;
       this.lastKey = undefined;
       this.disposeSource = this.sources.subscribe(() => void this.refresh());
-      try {
-        const listening = (this.sources.listenSystem ?? listenForSystemTheme)((mode) => {
-          if (!this.active || !this.owners || this.lifetime !== lifetime) return;
-          if (this.sources.read().config.preset === 'system') void this.refresh(mode);
-        });
-        void listening.then(
-          (dispose) => {
-            if (!this.active || this.lifetime !== lifetime) dispose();
-            else this.disposeSystem = dispose;
-          },
-          (error) => {
-            if (this.active && this.lifetime === lifetime) this.report(error);
-          },
-        );
-      } catch (error) {
-        this.report(error);
-      }
+      void this.listenToSystem();
     }
     void this.refresh(undefined, wasIdle);
     let released = false;
@@ -97,6 +149,8 @@ export class ThemeController {
         this.disposeSystem?.();
         this.disposeSource = undefined;
         this.disposeSystem = undefined;
+        this.listening = false;
+        this.systemReady = undefined;
         this.lastKey = undefined;
       });
     };

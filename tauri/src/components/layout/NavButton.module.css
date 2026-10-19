@@ -80,6 +80,11 @@
   color: var(--desktop-text-secondary);
 }
 
+:global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])) .activeButton {
+  color: var(--desktop-text-primary);
+  background: color-mix(in srgb, var(--desktop-text-primary) 12%, var(--desktop-navigation-solid));
+}
+
 @media (hover: hover) and (pointer: fine) {
   .activeButton:hover {
     background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
@@ -91,6 +96,15 @@
   :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']))
     .navButton:hover {
     color: var(--desktop-text-primary);
+    background: color-mix(in srgb, var(--desktop-text-primary) 7%, var(--desktop-navigation-solid));
+  }
+  :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']))
+    .activeButton:hover {
+    background: color-mix(
+      in srgb,
+      var(--desktop-text-primary) 16%,
+      var(--desktop-navigation-solid)
+    );
   }
 }
 
@@ -204,6 +218,14 @@
   mask-image: none;
 }
 @media (forced-colors: active) {
+  :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']))
+    .activeButton,
+  :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']))
+    .activeButton:hover {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
   .scrollingLabel {
     mask-image: none !important;
   }

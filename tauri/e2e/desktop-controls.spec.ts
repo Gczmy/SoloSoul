@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { setupTauriMock, login } from './fixtures/auth';
+import { measureControlContrast } from './fixtures/contrast';
 
 // 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
 test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
@@ -36,16 +37,22 @@ const routes = [
   '/debug-log',
 ];
 
-async function setup(page: Page, platform: 'macos' | 'windows', theme = 'light') {
+async function setup(
+  page: Page,
+  platform: 'macos' | 'windows',
+  theme = 'light',
+  sidebarPosition = 'left',
+) {
   await setupTauriMock(page);
   await page.addInitScript(
-    ({ platform, theme }) => {
+    ({ platform, theme, sidebarPosition }) => {
       const prefs = {
         theme,
         language: 'en-US',
         hasSeenOnboarding: true,
         autoLockTimeoutMinutes: 0,
         lastBackupAt: new Date().toISOString(),
+        sidebarPosition,
       };
       const layout = {
         platform,
@@ -59,7 +66,7 @@ async function setup(page: Page, platform: 'macos' | 'windows', theme = 'light')
           user_data_get_preferences: () => prefs,
           set_titlebar_color: () => ({
             ...layout,
-            material: platform === 'macos' ? 'liquid-glass' : 'mica',
+            material: platform === 'macos' ? 'liquid-glass' : theme === 'dark' ? 'solid' : 'mica',
             reduceMotion: false,
             highContrast: false,
           }),
@@ -104,7 +111,7 @@ async function setup(page: Page, platform: 'macos' | 'windows', theme = 'light')
       });
       localStorage.setItem('i18nextLng', 'en-US');
     },
-    { platform, theme },
+    { platform, theme, sidebarPosition },
   );
   await login(page);
   await expect(page.locator('html')).toHaveAttribute('data-desktop-platform', platform);
@@ -273,20 +280,90 @@ for (const platform of ['macos', 'windows'] as const) {
       const save = page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true });
       await expect(save).toHaveAttribute('data-ui-button', 'primary');
       await expect(save).toHaveAttribute('data-ui-intent', 'primary');
-      const accentText = await save.evaluate((button) => {
-        const probe = document.createElement('span');
-        probe.style.color = 'var(--accent-primary-text)';
-        button.appendChild(probe);
-        const color = getComputedStyle(probe).color;
-        probe.remove();
-        return color;
-      });
-      await expect(save).toHaveCSS('color', accentText);
+      await page
+        .getByRole('dialog')
+        .screenshot({ path: test.info().outputPath('save-dialog.png') });
+      await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      const idle = await measureControlContrast(save, '[role="dialog"]');
+      expect(idle.foregroundContrast).toBeGreaterThanOrEqual(4.5);
+      await save.hover();
+      await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect
+        .poll(
+          async () => (await measureControlContrast(save, '[role="dialog"]')).foregroundContrast,
+        )
+        .toBeGreaterThanOrEqual(4.5);
       await expect(save).toHaveCSS('backdrop-filter', 'none');
       await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
     });
 
     for (const theme of ['light', 'dark']) {
+      for (const position of ['left', 'right']) {
+        test(`${theme} ${position} neutral desktop shell`, async ({ page }) => {
+          await setup(page, platform, theme, position);
+          await navigate(page, '/settings/data');
+          const navigation = page.locator('#desktop-navigation');
+          await expect(navigation).toHaveCSS(
+            '--desktop-navigation-solid',
+            theme === 'dark' ? '#181818' : '#f3f3f3',
+          );
+          const paintedSurface = page.locator(
+            platform === 'windows' ? '[data-shell-content]' : '[data-shell-surface]',
+          );
+          await expect(paintedSurface).toHaveCSS(
+            'background-color',
+            theme === 'dark' ? 'rgb(33, 33, 33)' : 'rgb(255, 255, 255)',
+          );
+          if (platform === 'windows') {
+            await expect(navigation).toHaveCSS(
+              'background-color',
+              theme === 'dark' ? 'rgb(24, 24, 24)' : 'rgba(0, 0, 0, 0)',
+            );
+          } else {
+            await expect(navigation).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+            await expect(page.locator('html')).toHaveCSS(
+              '--mac-navigation-base',
+              theme === 'dark' ? '#181818' : '#f3f3f3',
+            );
+          }
+          const bounds = (await navigation.boundingBox())!;
+          expect(
+            position === 'left' ? bounds.x : 1280 - bounds.x - bounds.width,
+          ).toBeLessThanOrEqual(1);
+          const selected = navigation.getByRole('button', { name: 'Settings', exact: true });
+          await expect(selected).toHaveAttribute('aria-current', 'page');
+          await expect(selected).toHaveCSS(
+            'color',
+            theme === 'dark' ? 'rgb(236, 236, 236)' : 'rgb(36, 36, 36)',
+          );
+          const selectedColor = await measureControlContrast(selected, '#desktop-navigation');
+          expect(selectedColor.foregroundContrast).toBeGreaterThanOrEqual(4.5);
+          expect(selectedColor.background[0]).toBe(selectedColor.background[1]);
+          expect(selectedColor.background[1]).toBe(selectedColor.background[2]);
+          await selected.hover();
+          await expect
+            .poll(
+              async () =>
+                (await measureControlContrast(selected, '#desktop-navigation')).foregroundContrast,
+            )
+            .toBeGreaterThanOrEqual(4.5);
+          await page.mouse.move(0, 0);
+          await page.screenshot({ path: test.info().outputPath('neutral-shell.png') });
+          await page
+            .locator('html')
+            .evaluate((root) => root.setAttribute('data-native-material', 'solid'));
+          await expect(navigation).toHaveCSS(
+            '--desktop-navigation-solid',
+            theme === 'dark' ? '#181818' : '#f3f3f3',
+          );
+          if (platform === 'windows') {
+            await expect(navigation).toHaveCSS(
+              'background-color',
+              theme === 'dark' ? 'rgb(24, 24, 24)' : 'rgb(243, 243, 243)',
+            );
+          }
+        });
+      }
       test(`${theme} material, selection and accessible fallback`, async ({ page }) => {
         await setup(page, platform, theme);
         await page.setViewportSize({ width: 1100, height: 800 });

@@ -13,15 +13,12 @@ import { PreviewWindow } from '@/components/attachment/PreviewWindow';
 import { PreviewTitlebar } from '@/components/attachment/PreviewTitlebar';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
-import {
-  prepareStartupWindow,
-  observeNativeWindowLayout,
-  refreshNativeAppearance,
-} from '@/lib/nativeWindow';
+import { prepareStartupWindow, observeNativeWindowLayout } from '@/lib/nativeWindow';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { useUiStore } from '@/stores/uiStore';
 import { invokeCommand } from './bridge';
 import { useSettingsStore } from './stores';
+import { applyTheme } from '@/lib/theme';
 import '@/styles/tokens.css';
 import '@/styles/global.css';
 import '@/styles/themes.css';
@@ -54,6 +51,9 @@ async function capture() {
   const frontend = {
     theme: document.documentElement.dataset.theme,
     material: document.documentElement.dataset.nativeMaterial,
+    headerPaint: document.querySelector('[data-appbar]')
+      ? getComputedStyle(document.querySelector('[data-appbar]')!).backgroundImage
+      : null,
     highContrast: document.documentElement.dataset.highContrast,
     surfaces: Object.fromEntries(
       ['html', 'body', '[data-appbar]', '#desktop-navigation', '[data-shell-surface]'].map(
@@ -105,9 +105,8 @@ function Fixture() {
     };
   }, [location.key, clicks, preview, detail]);
   const theme = async () => {
-    document.documentElement.dataset.theme =
-      document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    await refreshNativeAppearance();
+    const dark = document.documentElement.dataset.theme !== 'dark';
+    await applyTheme({ preset: dark ? 'warm-stone-dark' : 'warm-stone', accentColor: 'ocean' });
     await capture();
   };
   const primary = (
@@ -221,6 +220,7 @@ function Fixture() {
 }
 async function bootstrap() {
   document.documentElement.dataset.theme = 'dark';
+  await applyTheme({ preset: 'warm-stone-dark', accentColor: 'ocean' });
   document.documentElement.dataset.platform = 'windows';
   await i18next.init({
     lng: 'en-US',

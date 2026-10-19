@@ -1,0 +1,124 @@
+{
+  "task": "RF-1195",
+  "date": "2026-10-19",
+  "baseCommit": "31b48676a6f520276ca8576959c19a4b090e313c",
+  "behavior": "Windows large surfaces use one shared shell background plus the content surface. Mica shell surfaces are transparent; solid/reduced-transparency/forced-color fallback is shared across root, sidebar and titlebar edges. Light default content remains white; dark default remains #212121.",
+  "checks": {
+    "productionBuild": {
+      "exitCode": 0,
+      "initialAttempt": "Wrong working directory, exit 1; corrected build passed."
+    },
+    "format": {
+      "exitCode": 0
+    },
+    "fixtureAndE2eLint": {
+      "exitCode": 0
+    },
+    "regressionBeforeFix": {
+      "exitCode": 1,
+      "failed": 1,
+      "actualNavigationRgba": [
+        243,
+        243,
+        243,
+        255
+      ],
+      "expectedRgba": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "productionBrowser": {
+      "exitCode": 0,
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "captionMaskBrowser": {
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "reusedCommonBaseline": {
+      "task": "RF-1194",
+      "vitestFiles": 269,
+      "vitestPassed": 2416,
+      "nodePassed": 270,
+      "existingNodeSkipped": 1,
+      "typecheckExitCode": 0,
+      "sourceLintExitCode": 0,
+      "reason": "Product changes in RF-1195 are CSS only. These unchanged-source checks were not rerun; the updated isolated fixture and E2E were built/linted separately."
+    }
+  },
+  "nativeCssSmoke": {
+    "host": "Existing RF-1154 isolated native frame host; no account/Vault or production application setup",
+    "hostSha256": "c4884838cbc09aeb76ff0902318310396e078367d1d8543e9ffe25c4d42c0b47",
+    "currentFrontend": true,
+    "fixtureSourceModules": 112,
+    "states": [
+      {
+        "mode": "dark",
+        "material": "mica",
+        "navigation": "rgba(0, 0, 0, 0)",
+        "content": "rgb(33, 33, 33)",
+        "headerPaint": "linear-gradient(to right, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 186px, rgb(33, 33, 33) 0px, rgb(33, 33, 33) calc(100% - 145px), rgba(0, 0, 0, 0) 0px)"
+      },
+      {
+        "mode": "light",
+        "material": "mica",
+        "navigation": "rgba(0, 0, 0, 0)",
+        "content": "rgb(255, 255, 255)",
+        "headerPaint": "linear-gradient(to right, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 186px, rgb(255, 255, 255) 0px, rgb(255, 255, 255) calc(100% - 145px), rgba(0, 0, 0, 0) 0px)"
+      }
+    ],
+    "observed": "Activated window inspected in both modes: Mica visible across sidebar and titlebar outer areas, no separate fixed gray navigation block. No native pixel contrast/performance matrix is claimed.",
+    "windowClosedConfirmed": true,
+    "processExitCode": null,
+    "reportSha256": {
+      "report-000.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+      "report-001.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+      "report-002.json": "260e92da8d3c640f988d998872dc8e419e530ea637c9104266fc8159d91bc8b8",
+      "report-003.json": "82167ec3ecb24966ad59db4ae7c1eabd37ae7c665f7f30c004c52125aabcbf06",
+      "report-004.json": "b9d9913bb4fc459aac432170c5a4ab92a4883e533a92962d6978fc3aab563359",
+      "report-005.json": "9873b3975923db24bde1833e1350fdfe7e94d375f8b787ef75c7baa5b4e97f38",
+      "report-006.json": "2219fe0c8b72d6346d1eb798be6d9b8d8cb41d8d263a58364a26d4cd2f5fd54f",
+      "report-007.json": "aa0ad77d55e0ef3f6d9cba5b6fa4992bf0365b1c25cd05808a9785199fd39908"
+    }
+  },
+  "currentRustHostBuild": {
+    "status": "not completed",
+    "attempts": "Two optional rebuild attempts were cancelled; no successful current Rust build or run is claimed. Product Rust source was unchanged. Existing development app remained running."
+  },
+  "boundaries": [
+    "Native smoke uses current frontend source in a prebuilt host, not a freshly rebuilt full application.",
+    "macOS coverage is mocked browser regression only; pending native macOS task remains unchanged.",
+    "Other tasks remain paused."
+  ],
+  "sourceSha256Lf": {
+    "tauri/src/styles/windows-material.css": "0d596d61b3f3833781508e9918692d885d1548a003754686a2a2064533fd66b8",
+    "tauri/src/components/layout/AppShell.module.css": "11d6b355c46620600e23b72acdc2f1d1bdbcd07209b6d7178838068e1f09a96b",
+    "tauri/native-regression/windows-shell/main.tsx": "68b8eb3cd97d712568d696cc33ffd9bd55a073291e905490b9c65367b3dd8e09",
+    "tauri/e2e/windows-shell-surfaces.spec.ts": "aeb60856cb1c383ae736be1b96819b8a96230702ca15f4fdbada4ef33ea4118b",
+    "tauri/e2e/desktop-functional-colors.spec.ts": "9e6cfe3eb05226becd0fb04e49e7ae9daa8d579f84a4016438e3b22858e6aa2f"
+  },
+  "fixtureSha256": "828de0a7a2b9bbfd1c4ab661c309a1b998cd23d1eee71753d3eedc985d31d36f",
+  "fixtureManifestSha256": "a946e368534daa467ee9c07658d4b6355517b40746b94801a4c439e210bec186",
+  "evidenceSha256": {
+    "browser-before.json": "f0d1690508d0ae2a31c915421e2f720dae444ef1ee94635dc60ba1a926abdf58",
+    "browser.json": "dff564fde4a093f57ab7b92d4134a0f0483e6ca3ea8771cca06f72776eea89a2",
+    "modal-browser.json": "31fb6842be3c28221fc9f49d0aa94154ea9f4c5d6a136bd0f6f24f47fa96df53",
+    "format-final.log": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+    "fixture-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.log": "e3f021593cfe2f9e513446d4080ab72bc4ff754a21840eebb400eaec18459953",
+    "build-retry.log": "6f3e870c24db599fda117f4918b15d46d629529b6a102eb24e1985d033514d31",
+    "native-build.log": "6120f2af5788edc54539b56e001406a72953b55f31993ee8f2e7c3d1bc421a0b",
+    "native-build-retry.log": "8cfe6344d5ad8b3a2d24739a01e3ee993a1542de8bed66c0a3677b7fd304e777",
+    "native-build-cancelled.json": "869c2616bf166ff4ff70322951d5736b962f07bb6b2ba1fb0a9630744739fe18",
+    "native-build-retry-cancelled.json": "3b52a644cfef6727e821ce5ff0e6500bbe7b626d92fc013606a5d8ff8af80348"
+  }
+}

@@ -77,7 +77,7 @@ pub fn apply(
     let dark = calculate_luminance(&color) < 128.0;
     // 同步 Tauri 保存的窗口主题，不能只改 DWM 属性：否则窗口仍跟随系统主题，
     // Windows 设置变更时 tao 会将 Mica/标题栏重新写回系统的浅深色。
-    // 应用的 system 模式由现有主题轮询解析后传入，此处始终使用已解析的颜色。
+    // 应用的 system 模式由独立系统通知解析后传入，此处始终使用已解析的颜色。
     window
         .set_theme(Some(if dark {
             tauri::Theme::Dark
@@ -86,7 +86,9 @@ pub fn apply(
         }))
         .map_err(|e| e.to_string())?;
     let hwnd = window.hwnd().map_err(|e| e.to_string())?;
-    let mica = !reduce_transparency
+    // 深色外壳固定为中性底色，避免 Mica 的壁纸染色。
+    let mica = !dark
+        && !reduce_transparency
         && !high_contrast
         && window_vibrancy::apply_mica(window, Some(dark)).is_ok();
     if !mica {

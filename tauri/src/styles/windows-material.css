@@ -45,7 +45,27 @@ html[data-desktop-platform='windows'] {
   }
 }
 
+/* 外壳只保留一个背景：Mica 直接透出，侧栏和顶栏不另铺灰色块。
+   实色回退使用同一背景色，正文仍由自己的内容表面承载。 */
+html[data-desktop-platform='windows']:where(
+    [data-native-material='mica']:not([data-high-contrast='true'])
+  ) {
+  --windows-navigation-surface: transparent;
+}
+
+html[data-desktop-platform='windows'],
+html[data-desktop-platform='windows'][data-native-material] {
+  &,
+  body,
+  #root,
+  #startup-screen {
+    background: var(--windows-navigation-surface);
+  }
+}
+
 html[data-desktop-platform='windows'][data-theme='dark'] {
+  /* 深色采用固定中性底色；即使原生外观响应尚未到达，也不透出旧 Mica 染色。 */
+  --windows-navigation-surface: var(--desktop-navigation-solid);
   --windows-navigation-tint: rgb(0 0 0 / 45%);
 }
 
@@ -73,7 +93,8 @@ html[data-desktop-platform='windows'][data-high-contrast='true'] {
 }
 
 @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
-  html[data-desktop-platform='windows'] {
+  html[data-desktop-platform='windows'][data-native-material] {
+    --windows-navigation-surface: var(--desktop-navigation-solid);
     --windows-navigation-tint: var(--windows-navigation-surface);
   }
   html[data-desktop-platform='windows'][data-native-material]
