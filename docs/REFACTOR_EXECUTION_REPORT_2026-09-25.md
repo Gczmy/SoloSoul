@@ -10086,3 +10086,9 @@ git commit -m "<任务卡的提交标题>"
 
 - 索引已新增 RF-1189～1198 共 10 项 P2，但任务总数一行仍停留在 378／P2 314；现同步为 388／P2 324。逐行回读确认 P1 63、P2 324、P3 1，已关闭 378、待验证 4、待执行 6，合计与 388 行索引一致；没有新增、关闭或恢复其他任务。
 - 顶部工作分支改为本轮来源标识，避免合并清理后误作当前检出分支。本提交仅修正文档，不重复运行产品检查。
+
+### PR #13 审查：RF-1192 插件配置类型补正（2026-10-19）
+
+- 最终候选 `4700c9cdc` 的完整 Apple CI 两个 iOS 目标及格式通过，但 macOS Clippy 在 `system_events.rs` 的插件注册处报 E0283：Builder 的配置类型 C 无法推断，后续 Rust 测试未执行。此前独立检查只覆盖 observer 的 Apple 绑定，未覆盖这层实际 Tauri 插件注册，不能替代完整构建；首次失败保留于 [CI run 39243908266](https://github.com/Gczmy/SoloSoul/actions/runs/39243908266/job/118031061032)。
+- 单独补正为 `Builder::<tauri::Wry, ()>`，显式声明现有运行时与无配置类型；监听、注销、事件、依赖及工作流不改。实际 Tauri 2.11.2 的 AppHandle／Builder 在本机最小注册入口同样复现 E0283／exit101；修正后 cargo check、严格 Clippy 与工作区格式均 exit0，不启动 GUI。该检查不冒称完整 macOS 构建或原生运行，完整 Apple 结果以本 PR 最终 CI 为准。
+- 本补正归属 RF-1192，原 macOS 原生待验状态保留，任务总数与暂停范围不变。见[编译补正摘要](verification/pr13-macos-plugin-config-2026-10-19.json)。

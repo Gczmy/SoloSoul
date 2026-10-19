@@ -1,0 +1,42 @@
+{
+  "pullRequest": 13,
+  "task": "RF-1192",
+  "date": "2026-10-19",
+  "failedCI": {
+    "head": "4700c9cdc18270f0851a1bb34fc473a3dbb29494",
+    "runId": 39243908266,
+    "jobId": 118031061032,
+    "iosTargets": "both succeeded",
+    "format": 0,
+    "macosClippy": {
+      "exitCode": 101,
+      "error": "E0283: cannot infer plugin Builder configuration type C"
+    },
+    "laterMacTests": "not run after compilation failure"
+  },
+  "fix": "Explicit Builder<tauri::Wry, ()> for the existing no-config appearance plugin. Observer and exit cleanup unchanged; no dependency or CI changes.",
+  "localChecks": {
+    "tauri": "2.11.2",
+    "rust": "1.99.0",
+    "before": {
+      "exitCode": 101,
+      "error": "E0283 with actual Tauri AppHandle/Builder"
+    },
+    "afterCheck": 0,
+    "strictClippy": 0,
+    "workspaceFormat": 0
+  },
+  "boundaries": [
+    "Minimal actual Tauri registration entry point compiled on Windows; cleanup body is a no-op and no GUI runs. This is not a macOS build or runtime check.",
+    "Earlier Apple binding-only probe did not include this plugin registration; full Apple validation is gated by the final PR CI.",
+    "RF-1192 actual macOS acceptance remains pending; other tasks remain paused."
+  ],
+  "sourceLfSha256": "b1f701d353269d6d7e05b534c858e614c5d09d7341345265b6aa73cb041ff0e2",
+  "probeSha256": "329ce54865cc5acefcfd89c8060d5da7048bb131bb063f4fa222e74f9ba4fa3f",
+  "evidenceSha256": {
+    "plugin-config-before.log": "ad29de9e324ef7eead02b4085fb7bd2f24d3c4c3d9986f1a005667d632f733e2",
+    "plugin-config-after.log": "d27a85d22a566edf2aacdfbc5e336287d5fae5bdfcc38951897bf2b2609b6a94",
+    "plugin-config-clippy.log": "66da2e83326c82b09a3f406d3bc96c897da51383909e8e35e926ed84d9c4ad4d",
+    "plugin-config-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

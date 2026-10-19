@@ -28,7 +28,7 @@ pub(crate) fn install(app: &tauri::AppHandle) -> Result<(), String> {
     {
         macos::install(app)?;
         app.plugin(
-            tauri::plugin::Builder::new("system-appearance")
+            tauri::plugin::Builder::<tauri::Wry, ()>::new("system-appearance")
                 .on_event(|_, event| {
                     if matches!(event, tauri::RunEvent::Exit) {
                         macos::uninstall();
