@@ -1,0 +1,74 @@
+{
+  "task": "RF-1194",
+  "date": "2026-10-19",
+  "baseCommit": "01ce4ec14c9fd2242414eca7f35a60115a00c4ec",
+  "change": "Remove vertical navigation borders and unused divider tokens. Preserve horizontal separators and sidebar geometry.",
+  "checks": {
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "existingWarnings": 1
+    },
+    "format": {
+      "exitCode": 0
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "vitest": {
+      "exitCode": 0,
+      "files": 269,
+      "passed": 2416,
+      "failed": 0,
+      "skipped": 0,
+      "pool": "forks",
+      "workers": 2
+    },
+    "node": {
+      "exitCode": 0,
+      "passed": 270,
+      "failed": 0,
+      "existingSkipped": 1,
+      "initialAttempt": "Sandbox symlink EPERM, exit 1; rerun with normal host permissions passed."
+    },
+    "productionBrowser": {
+      "exitCode": 0,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "engine": "Microsoft Edge",
+      "coverage": [
+        "Windows/macOS mocked IPC, left/right, four palettes, expanded/collapsed",
+        "zero left/right navigation border widths; 186/96 widths and edge alignment",
+        "solid fallback and forced colors; functional text contrast",
+        "system notifications across login/home and explicit theme overrides",
+        "Android top-bar controls retained"
+      ],
+      "screenshotsReviewed": 2
+    }
+  },
+  "boundaries": [
+    "Browser platform mocks do not certify native macOS material or native Windows compositor output.",
+    "No Rust code changed. Existing native fixture used only to locate separate topbar color issue.",
+    "Prior pending tasks remain paused."
+  ],
+  "evidenceSha256": {
+    "vitest.json": "f012ee4ff544c066602474844a8ceb197a623aa06fe85d88ae2dc1d3e615adb1",
+    "node-tests.log": "c5ce2b8ac5d732c210869a7330a71f6e9c8ff2150447dea727615fa273d217a0",
+    "node-tests-retry.log": "f28bcda8c0cd80282bbed26734b02be3ea1e333e1c7d8ba7e04b09512cf3fd57",
+    "browser.json": "075c7e0a910d0add0f15b8954537964594ab4c2c1e1c02a8a9dd6df8e58c890f",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint.log": "193344c550b8dcb82b58207594a96d01fb76479a3c0f835a5031065b0720f6f2",
+    "format.log": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+    "build.log": "6bc9c137696d70eb6076be6f03d477be4f861e377c7ee1e701b0ad23b8dbb46e"
+  },
+  "sourceSha256Lf": {
+    "tauri/src/components/layout/SideNavigation.tsx": "7f96e714b87bbed8dcae3b02e3c4c02d9efca83cecc2a2b35d1b44311f0db6bf",
+    "tauri/src/components/layout/SideNavigation.module.css": "0f819e265d717a0c890cbc4c67a3ba1eef09a2a54447844a2a25b5a970a5c581",
+    "tauri/src/styles/desktop-controls.css": "437e51c90e2b28cabbd4dfe5eb420ca16ec9d5cb0a7bf36d768d8ab51000e9f2",
+    "tauri/e2e/desktop-functional-colors.spec.ts": "bd35f60df2a8e1f22275aa3928cdf18b8debb17e6253db7e6a9e75deec688d86"
+  }
+}

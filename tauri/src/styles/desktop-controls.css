@@ -9,11 +9,6 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) {
   --desktop-text-secondary: #525252;
   --desktop-text-tertiary: #626262;
   --desktop-navigation-solid: #f3f3f3;
-  --desktop-navigation-divider: color-mix(
-    in srgb,
-    var(--desktop-text-primary) 16%,
-    var(--desktop-navigation-solid)
-  );
   --desktop-control-fill: var(--bg-elevated);
   --desktop-control-edge: var(--border-default);
   --desktop-control-glint: rgb(255 255 255 / 16%);
@@ -443,6 +438,5 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows']):is(
     --desktop-text-secondary: CanvasText;
     --desktop-text-tertiary: CanvasText;
     --desktop-navigation-solid: Canvas;
-    --desktop-navigation-divider: CanvasText;
   }
 }

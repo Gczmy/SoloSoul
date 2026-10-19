@@ -66,14 +66,8 @@ export function SideNavigation() {
         width: `var(--sidebar-width, ${expanded ? DESKTOP_SIDEBAR_EXPANDED_WIDTH : 96}px)`,
         height: '100vh',
         flexDirection: 'column',
-        borderRight:
-          sidebarPosition === 'left'
-            ? '1px solid var(--desktop-navigation-divider, var(--navigation-divider, var(--border-subtle)))'
-            : 'none',
-        borderLeft:
-          sidebarPosition === 'right'
-            ? '1px solid var(--desktop-navigation-divider, var(--navigation-divider, var(--border-subtle)))'
-            : 'none',
+        borderRight: 'none',
+        borderLeft: 'none',
         borderBottom: 'none',
         borderTop: 'none',
         paddingInline: expanded ? 10 : 0,
