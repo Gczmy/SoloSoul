@@ -173,8 +173,8 @@
   }
 
   :global(html[data-desktop-platform='windows']) .appBar {
-    background: var(--shell-content-surface, var(--bg-elevated));
-    border-radius: 12px 12px 0 0;
+    background: var(--windows-navigation-surface, var(--bg-base));
+    border-radius: 0;
     border-bottom-color: var(--navigation-divider, transparent);
     left: calc(var(--sidebar-width, 48px) + var(--windows-content-inset-left, 0px));
     right: var(--windows-content-inset-right, 8px);
@@ -225,7 +225,7 @@
   padding: 0
     max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
     var(--windows-page-title-left, 12px);
-  background: var(--bg-base);
+  background: var(--windows-navigation-surface, var(--bg-base));
 }
 
 :global(html[data-desktop-platform='windows']) .appBar[data-windows-shell] {
@@ -233,26 +233,11 @@
   right: 0;
   border-radius: 0;
   border-bottom: 0;
+  /* 顶栏全部属于外壳，不再沿正文宽度铺内容色块。 */
+  background: var(--windows-navigation-surface, var(--bg-base));
   padding: 0
     max(calc(var(--native-caption-inset, 0px) + 12px), var(--windows-page-trailing-inset, 12px)) 0
     var(--windows-page-title-left, 12px);
-}
-:global(html[data-desktop-platform='windows']) .appBar[data-windows-shell][data-native-compact] {
-  /* 一体顶栏的页标题面跟随正文；导航与原生按钮占用的边缘沿用外壳色。
-     仅引用既有布局留白，不增加几何、拖拽区或额外覆盖层。 */
-  background: linear-gradient(
-    to right,
-    var(--windows-navigation-surface) 0 calc(var(--windows-page-title-left, 12px) - 12px),
-    var(--shell-content-surface, var(--bg-base)) 0
-      calc(
-        100% -
-          max(
-            var(--native-caption-inset, 0px),
-            calc(var(--windows-page-trailing-inset, 12px) - 12px)
-          )
-      ),
-    var(--windows-navigation-surface) 0
-  );
 }
 .appBar[data-windows-shell] .title {
   font-size: 16px;

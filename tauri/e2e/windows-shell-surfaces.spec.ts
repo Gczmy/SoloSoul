@@ -70,10 +70,7 @@ for (const mode of ['light', 'dark'] as const) {
         await expect(surface).toHaveCSS('background-color', transparent);
       }
       await expect(header).toHaveCSS('background-color', transparent);
-      const headerPaint = await header.evaluate((el) => getComputedStyle(el).backgroundImage);
-      expect(headerPaint).toContain(contentColor);
-      expect(headerPaint).toContain(transparent);
-      expect(headerPaint).not.toContain(mode === 'light' ? '243, 243, 243' : '24, 24, 24');
+      await expect(header).toHaveCSS('background-image', 'none');
       await page.screenshot({
         path: test.info().outputPath('mica-shell.png'),
         animations: 'disabled',

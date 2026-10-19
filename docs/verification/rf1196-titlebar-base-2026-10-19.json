@@ -1,0 +1,41 @@
+{
+  "task": "RF-1196",
+  "date": "2026-10-19",
+  "baseCommit": "4ca11e97b85d0aa62ecf2e32ba0dacc6040b867d",
+  "change": "Remove content-colored titlebar gradient; full Windows titlebar follows the shell background in integrated and fallback layouts. Geometry and native hit regions unchanged.",
+  "checks": {
+    "before": {
+      "failed": 1,
+      "reason": "Header still painted a content-colored linear gradient."
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "format": {
+      "exitCode": 0
+    },
+    "productionBrowser": {
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "coverage": [
+        "left/right sidebar, light/dark, horizontal navigation",
+        "caption reservation and reduced-motion sidebar layout",
+        "system theme transitions and caption backdrop release",
+        "macOS/Android mock regressions"
+      ]
+    },
+    "unchangedSourceBaseline": "Product changes are CSS only; RF-1194 type/Lint and 269-file/2416-test baseline retained, not rerun."
+  },
+  "boundaries": [
+    "Browser uses real production bundle and mocked native IPC. Final native source/theme smoke belongs to following neutral-shell fix.",
+    "Other tasks remain paused."
+  ],
+  "evidenceSha256": {
+    "before.json": "e4a4fea889f9d74f6878c1222eb9bb1ef7c518071f8899c7c4c50c4f41725b4c",
+    "browser.json": "9847dd209742070772d6aa18d781e53ff3da64f6fce2189cbe433c886fbba25b",
+    "build.log": "35babb9a85c15bc33b233c98f64991c41d3000a34a2abf51d9bdb4367c470e31",
+    "format.log": "e1298ed6b3e8db101867d4b95e03ac0cd29feaa0b693e527c21ce5c1ea2186c5"
+  }
+}
