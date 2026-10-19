@@ -1,5 +1,5 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
-import { THEME_SCHEMES } from '../src/lib/themeSchemes';
+import { THEME_SCHEMES, getSchemeById } from '../src/lib/themeSchemes';
 import { readFileSync } from 'node:fs';
 import { setupTauriMock, login } from './fixtures/auth';
 import { measureControlContrast } from './fixtures/contrast';
@@ -15,7 +15,9 @@ async function navigate(page: Page, destination: string) {
   await expect(page).toHaveURL(destination);
 }
 for (const platform of ['android', 'windows', 'macos'] as const)
-  for (const scheme of THEME_SCHEMES)
+  for (const scheme of THEME_SCHEMES.map(
+    (s) => getSchemeById(s.id, platform === 'android' ? 'shared' : 'desktop')!,
+  ))
     for (const contrast of ['no-preference', 'more'] as const) {
       const mode = scheme.mode;
       for (const scenario of [

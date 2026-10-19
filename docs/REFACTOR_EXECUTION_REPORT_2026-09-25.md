@@ -10092,3 +10092,9 @@ git commit -m "<任务卡的提交标题>"
 - 最终候选 `4700c9cdc` 的完整 Apple CI 两个 iOS 目标及格式通过，但 macOS Clippy 在 `system_events.rs` 的插件注册处报 E0283：Builder 的配置类型 C 无法推断，后续 Rust 测试未执行。此前独立检查只覆盖 observer 的 Apple 绑定，未覆盖这层实际 Tauri 插件注册，不能替代完整构建；首次失败保留于 [CI run 39243908266](https://github.com/Gczmy/SoloSoul/actions/runs/39243908266/job/118031061032)。
 - 单独补正为 `Builder::<tauri::Wry, ()>`，显式声明现有运行时与无配置类型；监听、注销、事件、依赖及工作流不改。实际 Tauri 2.11.2 的 AppHandle／Builder 在本机最小注册入口同样复现 E0283／exit101；修正后 cargo check、严格 Clippy 与工作区格式均 exit0，不启动 GUI。该检查不冒称完整 macOS 构建或原生运行，完整 Apple 结果以本 PR 最终 CI 为准。
 - 本补正归属 RF-1192，原 macOS 原生待验状态保留，任务总数与暂停范围不变。见[编译补正摘要](verification/pr13-macos-plugin-config-2026-10-19.json)。
+
+### PR #13 审查：RF-1190 生产对比度色板契约（2026-10-19）
+
+- 在线日志显示恢复错误用例仍在默认桌面色板等待失败；本地复现 Windows warm-stone 将共享色板 #fdfcf9 当作 --bg-elevated 预期，而已确认的桌面结果为 #f7f7f7。完整检索确认恢复错误、安全警告及状态正文三个生产套件都有同类断言。
+- 三个套件按实际平台通过 getSchemeById 明确选择 desktop／shared 预期，仍逐一遍历原 20 个方案；保留 4.5 对比阈值、语义红色／高对比前景、相机权限错误及恢复交互断言。没有修改产品、工作流或超时／重试。
+- 两套默认色板 × 三端 × 两种对比偏好共 120 项通过，0 失败／重试／跳过；生产清单前后均为 13 文件／1299 项。格式与定向 Lint exit0，保留 1 条既有 qrFailure 未使用参数 warning。原失败和首次在线检查不改判为通过；最终 CI 仍完整运行。见[验证摘要](verification/pr13-platform-palette-tests-2026-10-19.json)。任务统计与暂停范围不变。
