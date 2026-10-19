@@ -1,0 +1,86 @@
+{
+  "task": "RF-1199",
+  "date": "2026-10-19",
+  "baseCommit": "fe766154bbcfdb64d88dad3ded5f30fd83e3ddf6",
+  "finding": "The extended native resize strip and caption buttons differed from the dark CSS shell. Nonzero RGB window backing was used in solid mode.",
+  "fix": "Use zero RGB/alpha backing for every installed extended DWM frame; preserve legacy background handling, DWM theme color, native controls, light Mica and accessibility fallbacks.",
+  "checks": {
+    "nativeModuleTests": {
+      "passed": 25,
+      "failed": 0,
+      "ignored": 0
+    },
+    "strictIsolatedHostClippy": 0,
+    "workspaceRustFormat": 0,
+    "nativeBuild": 0,
+    "nativeVisual": [
+      "dark restored window: full-width shell, top strip and caption buttons",
+      "light Mica and return to dark",
+      "dark detail mask, maximized and restored states",
+      "minimized window reactivated",
+      "native close and destroyed events"
+    ],
+    "reports": 24,
+    "nativeClose": true,
+    "nativeDestroyed": true
+  },
+  "sourceBinding": {
+    "files": 11,
+    "lfSha256": {
+      "window.rs": "127a5e3293ba8fb8071f16d0031f62643cd56dbce984c76f841713640409906a",
+      "window/backdrop_raster.rs": "4f702b3385eceee0f59fd09d7c7fa80df351bc56beaabe4b41767b324a1ce786",
+      "window/caption_backdrop.rs": "58a3097d1035f1703dee0dd77764fe835bf438a446539d10a280bcfbefa25249",
+      "window/ios.rs": "b6f139e7d5206fc3f090e05d5b5fc1d7cf3a2872c6fa94d3ee12ab0650258e7b",
+      "window/macos.rs": "5a9d3be3b794fe72e7a80ea70d0cad2f420594bdeffb75e06f6c3f0c76348208",
+      "window/macos_titlebar.rs": "ad7b308f30b2c06fac5c909ff6e7ffa83173bfc63d0a797b5921ef8f96ad7be2",
+      "window/system_events/macos.rs": "401125efaf7e556034e2a0417b9e723756ff74ed1b96a2112e6705fd10b65116",
+      "window/system_events/windows.rs": "eb1f7745c57984805f5c50b3a07b654ba0071b56f4bc9df58df1d49be641db42",
+      "window/system_events.rs": "b1f701d353269d6d7e05b534c858e614c5d09d7341345265b6aa73cb041ff0e2",
+      "window/windows.rs": "9eac1af036cd5f50def8d0ecab148decf87105a46e98e84292222bc30567db8b",
+      "window/windows_frame.rs": "5f23d4cf1ae4ebbad357aa4526feff553a7cfb12b5f542dd45f8d0037ec391e1"
+    }
+  },
+  "retainedAttempts": [
+    "Initial restricted-background launch did not expose a target window; repeated in the interactive session.",
+    "Initial helper compilation used file copies after hard-link cache warning.",
+    "Tests waited for the existing development build directory lock; that build was not terminated.",
+    "A restore action returned a minimized window; explicitly reactivated and reobserved it before further actions."
+  ],
+  "boundaries": [
+    "No full application or Rust workspace test run claimed; this host compiles the exact current window modules and loads a public frontend fixture without account or Vault setup.",
+    "Native caption getter remains unsupported on this host; visual inspection is not an exact RGB pixel measurement.",
+    "Windows 10 and native macOS acceptance were not run. Other tasks remain paused."
+  ],
+  "evidenceSha256": {
+    "black-backing-build.log": "fe6bc19f279c5f64a7435fa1e16751129f9221fca0974a572ebf66ee4dc3256a",
+    "window-tests.log": "af1c98d13f453b9b2a8300dc93a2e7cca1b3f11e2db61811e9a8915a83599c85",
+    "clippy.log": "76f6d9174a13c593a8e1192e3165aa4641164d990df4bb274652d320f89d181a",
+    "format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "reportSha256": {
+    "report-000.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-001.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-002.json": "65266eacc4de9d983f96f616ec626829d87ada5e83254841935f6b6d74ee6880",
+    "report-003.json": "a5f67a36c9076a5a7261fcf926d6e2347053e05bb60baa800ab5f07b5d36a0b5",
+    "report-004.json": "5422862cbbd2b09575ed41981dc30249d329b8a7cef36d8cd1de882a86d8422d",
+    "report-005.json": "e7d5ef87aa2bce3657de3f0f235520fba3559ff1e2fe6cfbb4ce9934bd290a9f",
+    "report-006.json": "65266eacc4de9d983f96f616ec626829d87ada5e83254841935f6b6d74ee6880",
+    "report-007.json": "a5f67a36c9076a5a7261fcf926d6e2347053e05bb60baa800ab5f07b5d36a0b5",
+    "report-008.json": "f27770951ff367ecbf7f360533b9f07bbbe5b3e45bae07371789c2637a53a40f",
+    "report-009.json": "f8e02350ae53ef8cc7e38a038a35def73f343620a881ed27829175489c230ea8",
+    "report-010.json": "a3f5367a61b9494261ec323353e3e81e20edb27196bef504a76bc9967e8bc2cb",
+    "report-011.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-012.json": "415409cff4dd3026d6be5f1fb6443ee81062a0d81fad726b0144fc20f34e7c46",
+    "report-013.json": "aa3ceeaa94cedccc1cd4adcd315eacd2fac540cd1c1b00afa2a1daf13960f33a",
+    "report-014.json": "a3f5367a61b9494261ec323353e3e81e20edb27196bef504a76bc9967e8bc2cb",
+    "report-015.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-016.json": "a3f5367a61b9494261ec323353e3e81e20edb27196bef504a76bc9967e8bc2cb",
+    "report-017.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-018.json": "a3f5367a61b9494261ec323353e3e81e20edb27196bef504a76bc9967e8bc2cb",
+    "report-019.json": "43385d38efa6d0bd8fdc8f6381bd27b94596d23b32c0d5daaeb491e9426bd5fc",
+    "report-020.json": "f5d518b8bf4f8a6ce95ec92b99dfc012490d3153ac823b471cd6b5b56db7abdd",
+    "report-021.json": "790184ae1a836228661ccedae96e6b9b018b16822c5e8dd3bead30ff1d9b0650",
+    "report-022.json": "2219fe0c8b72d6346d1eb798be6d9b8d8cb41d8d263a58364a26d4cd2f5fd54f",
+    "report-023.json": "aa0ad77d55e0ef3f6d9cba5b6fa4992bf0365b1c25cd05808a9785199fd39908"
+  }
+}

@@ -45,11 +45,17 @@ body {
   box-sizing: border-box;
   background: var(--bg-base, var(--startup-background));
   color: var(--text-primary, var(--startup-foreground));
-  font:
-    14px -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font: 14px
+    var(
+      --font-sans,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI Variable Text',
+      'Segoe UI',
+      'Microsoft YaHei UI',
+      system-ui,
+      sans-serif
+    );
   transition: opacity 180ms ease;
 }
 

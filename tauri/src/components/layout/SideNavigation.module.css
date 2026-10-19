@@ -16,7 +16,6 @@
 }
 
 :global(html[data-desktop-platform='windows']) .sideNav {
-  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
   font-family: var(--font-sans);
 }
 :global(html[data-desktop-platform='windows']) .sideNav .arrowToggle {
