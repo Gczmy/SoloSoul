@@ -4,15 +4,23 @@
   var started = performance.now();
   window.__SOLOSOUL_APP_START_TIME = started;
   var language = (navigator.language || 'en').startsWith('zh') ? 'zh-CN' : 'en-US';
-  var mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  var media = matchMedia('(prefers-color-scheme: dark)');
+  var mode = media.matches ? 'dark' : 'light';
+  var prefs = {};
+  var ownsTheme = true;
   var desktop =
     !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') &&
     !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   try {
     var storedLanguage = localStorage.getItem('i18nextLng');
     if (storedLanguage === 'zh-CN' || storedLanguage === 'en-US') language = storedLanguage;
-    var prefs = JSON.parse(localStorage.getItem('solosoul_ui_prefs') || '{}');
+    prefs = JSON.parse(localStorage.getItem('solosoul_ui_prefs') || '{}') || {};
     if (prefs.theme === 'light' || prefs.theme === 'dark') mode = prefs.theme;
+  } catch (_) {
+    /* 缓存不可用不阻断启动。 */
+  }
+  function applyStartupTheme(mode) {
+    root.style.removeProperty('--startup-background');
     var snapshot = prefs.startupThemes && prefs.startupThemes[mode];
     if (!snapshot && prefs.startupTheme && prefs.startupTheme.mode === mode)
       snapshot = prefs.startupTheme;
@@ -36,13 +44,38 @@
     ) {
       root.style.setProperty('--startup-background', mode === 'dark' ? '#212121' : '#ffffff');
     }
-  } catch (_) {
-    /* 缓存不可用不阻断启动。 */
+    // 首帧也遵守文字边界，不沿用旧主题缓存的暖色/低对比前景。
+    root.style.setProperty('--startup-foreground', mode === 'dark' ? '#ffffff' : '#111111');
+    root.style.setProperty('--startup-secondary', mode === 'dark' ? '#f5f5f5' : '#202020');
+    root.dataset.theme = mode;
+    root.style.colorScheme = mode;
   }
-  // 首帧也遵守文字边界，不沿用旧主题缓存的暖色/低对比前景。
-  root.style.setProperty('--startup-foreground', mode === 'dark' ? '#ffffff' : '#111111');
-  root.style.setProperty('--startup-secondary', mode === 'dark' ? '#f5f5f5' : '#202020');
-  root.dataset.theme = mode;
+  function systemTheme(mode) {
+    if (
+      !ownsTheme ||
+      (mode !== 'dark' && mode !== 'light') ||
+      prefs.theme === 'light' ||
+      prefs.theme === 'dark'
+    )
+      return false;
+    if (root.dataset.theme === mode) return false;
+    applyStartupTheme(mode);
+    window.dispatchEvent(new Event('solosoul:startup-theme-changed'));
+    return true;
+  }
+  function mediaChanged(event) {
+    systemTheme(event.matches ? 'dark' : 'light');
+  }
+  function releaseTheme() {
+    ownsTheme = false;
+    media.removeEventListener('change', mediaChanged);
+    window.removeEventListener('solosoul:theme-applied', releaseTheme);
+    window.removeEventListener('pagehide', releaseTheme);
+  }
+  applyStartupTheme(mode);
+  media.addEventListener('change', mediaChanged);
+  window.addEventListener('solosoul:theme-applied', releaseTheme);
+  window.addEventListener('pagehide', releaseTheme);
   root.lang = language;
   var zh = language === 'zh-CN';
   var state = 'loading';
@@ -93,6 +126,7 @@
     window.dispatchEvent(new Event('solosoul:startup-state'));
   }
   window.__SOLOSOUL_STARTUP__ = {
+    systemTheme: desktop ? systemTheme : undefined,
     phase: function (next) {
       if (state === 'loading') phase = next;
     },

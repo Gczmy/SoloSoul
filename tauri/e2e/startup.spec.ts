@@ -22,6 +22,27 @@ test('显式浅色偏好优先于系统深色，启动层无需 React 即可应�
   await page.route('**/src/main.tsx', (route) => route.abort());
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  expect(await page.evaluate(() => window.__SOLOSOUL_STARTUP__?.systemTheme?.('dark'))).toBe(false);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+});
+
+test('RF-1193 静态启动层跟随系统通知，交接后停止修改主题', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.addInitScript(() => {
+    localStorage.setItem('solosoul_ui_prefs', JSON.stringify({ theme: 'system' }));
+  });
+  await page.route('**/src/main.tsx', (route) => route.abort());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(33, 33, 33)');
+  expect(await page.evaluate(() => window.__SOLOSOUL_STARTUP__?.systemTheme?.('light'))).toBe(true);
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await page.evaluate(() => window.dispatchEvent(new Event('solosoul:theme-applied')));
+  expect(await page.evaluate(() => window.__SOLOSOUL_STARTUP__?.systemTheme?.('dark'))).toBe(false);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
 test('模块缺失时限时显示重试；迟到的就绪不会撤下错误页', async ({ page }) => {

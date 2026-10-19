@@ -1,0 +1,157 @@
+{
+  "task": "RF-1193",
+  "date": "2026-10-19",
+  "change": "Share resolved desktop system mode across static startup, login, home, color-scheme and native appearance; close startup subscription gaps and prevent stale native repaint.",
+  "sources": {
+    "tauri/public/startup.js": "948364e6fbbb97716178986b43bb274ae36c22e73328bd1c66e497934195efd0",
+    "tauri/src/lib/nativeWindow.ts": "fc472344c98729d31d57a4deebd1c40459d2f8cc60af0ddc5dae48a623c022d4",
+    "tauri/src/lib/startupScreen.ts": "42fa1f267da5956b0dfde29a5c2b664fe22ec98c487dfc5c14e0745b501c0b58",
+    "tauri/src/lib/theme.ts": "04b1ac027fa5e68992eaecf7f383435247532450a1544253fdea1286c67b6635",
+    "tauri/src/lib/themeController.ts": "909aac369f0d7116ee806697efbca03ade16516303e346c73c1ba8ee6c23fa51",
+    "tauri/src/lib/nativeWindow.test.ts": "0235e4eb17b33fa12f003a7aa29306595247efa42febe29c133e7c3097cb5323",
+    "tauri/src/lib/theme.test.ts": "26520e178cb4fe5d25ca1fc6dda713c9e006cf2d50cee78a2591ff18add600fa",
+    "tauri/src/lib/themeController.test.ts": "172f9d5e24055411a5700b9d4aa766c8fc04dacba9eeb890b70a899a446b1233",
+    "tauri/scripts/native-perf-ui-root.node.test.mjs": "c2d4aae771401d9ff9240160a33a809a9957ac6db0f7e1b7140840ca11ed79e8",
+    "tauri/e2e/startup.spec.ts": "8fac658ddf0aed595af3c347a2ac5f4f9c354053760a647d410b7bcbff121aee",
+    "tauri/e2e/desktop-system-theme.production.spec.ts": "b34487391cba4a3cb072ef585835c3c0827304b51aa68133fc5591122cafa6cc"
+  },
+  "static": {
+    "build": 0,
+    "typecheck": 0,
+    "lint": 0
+  },
+  "targeted": {
+    "finalSource": {
+      "files": 5,
+      "passed": 79,
+      "exit": 0,
+      "runs": [
+        {
+          "files": 3,
+          "passed": 50
+        },
+        {
+          "files": 2,
+          "passed": 29
+        }
+      ]
+    },
+    "earlierSource": {
+      "files": 5,
+      "passed": 66,
+      "exit": 0
+    }
+  },
+  "vitest": {
+    "initialFullRun": {
+      "filesPassed": 268,
+      "testsPassed": 2405,
+      "exit": 1,
+      "reason": "One worker handshake timed out before loginMethodCache.test.ts executed; no assertion failures."
+    },
+    "unchangedSourceFollowup": {
+      "filesPassed": 1,
+      "testsPassed": 10,
+      "exit": 0
+    },
+    "aggregate": {
+      "filesPassed": 269,
+      "testsPassed": 2415
+    },
+    "note": "Aggregate combines the completed full-run files and the previously unexecuted file; the initial run is not relabeled successful. This full-suite snapshot predates the final desktop status-wait correction; all 79 relevant assertions were rerun on the final source."
+  },
+  "node": {
+    "passed": 270,
+    "failed": 0,
+    "skipped": 1,
+    "exit": 0
+  },
+  "browser": {
+    "production": {
+      "passed": 25,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0
+    },
+    "staticStartup": {
+      "passed": 11,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0
+    },
+    "engine": "Installed Edge headless",
+    "scope": "Actual production bundle and development static startup; mocked Tauri IPC, not native OS rendering."
+  },
+  "screenshotFollowup": {
+    "passed": 2,
+    "failed": 0,
+    "reason": "Finish CSS transitions before capture; no extra unique scenario count claimed."
+  },
+  "developerServerPreparation": {
+    "elapsed": 3592,
+    "startup": {
+      "schemaVersion": 1,
+      "state": "ready",
+      "phase": "accounts",
+      "reason": "none"
+    },
+    "bootstrap": [
+      {
+        "start": 269,
+        "end": 289.59999990463257
+      }
+    ],
+    "scope": "Private development-module warmup before unchanged startup checks; no product deadline changes."
+  },
+  "regressionEvidence": {
+    "oldSource": "Four initial handoff regressions failed; the later first-paint ordering regression also failed on the unfixed source.",
+    "fixed": "All 79 final targeted checks passed, including first native paint awaiting the bounded system query and desktop completion independent of a pending mobile status-bar command.",
+    "finalReview": "The newly added status-bar wait regression failed on the earlier implementation, then passed after awaiting only the desktop window update."
+  },
+  "logs": {
+    "before.log": "4ffe135d52bab9e863e7a89406f3a7146050fc4d5db2cdb2652b1010d0424d89",
+    "first-frame-before.log": "b594c4512d18e0eb314ad4cfb08402642de8b065662c7a2bea5f92174baffed9",
+    "first-frame-before-r2.log": "9435ec78fd619a9c1f5c3f664b3279c8b4eb4493eab9c2ae04b13a3b07e2133d",
+    "targeted-final.log": "02c40c880218111d931258221c2d048887ecc0b3f3ec5b6cb37dece595694559",
+    "targeted-status-final.log": "6b9c1833341b7284c4b712b7c85ece977645855b8325cce476a40e72711c2307",
+    "targeted-status-extra.log": "63ea2dc3b85f4f94a0a3ef3a894ffa4af0ef5250b82da0cd27ffabfddfdd2a38",
+    "status-wait-before.log": "5d245547a0e942f74bf179f1ab527017a5f13f1ba66aac7057e2c496b66ecbd8",
+    "status-wait-before-r2.log": "41dbcec1e72bc18bda4d5f409a68df4c5e53bddd18d10fb564297ba3e7292266",
+    "static-frozen.json": "5c0d9c12dfe0a45d21c2b165a618bed1fc84600ff6b7191888168e53180325b5",
+    "typecheck-status-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint-status-final.log": "41f7c5ada3d8ebc1b347ed7299de0c2c10ff8e1c7f48fa17fd2b2b935377d3ae",
+    "build-status-final.log": "7f661c4471d24e0ff87598535e88e25d86d5246852e307a45908024500b62dbc",
+    "prettier-frozen.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "prettier-status.log": "b0984a9899c46318dc35d2d26371b6e2fd3b3a4017b218b6b303bfecd6636605",
+    "vitest-frozen.log": "c8a732776cd61eeb8bf65f8e51c0d5ffcb1b994ab73ec4aa016fa01d00a801fe",
+    "vitest-frozen.json": "3b31c42f20aac83546777b78b191b49ca08ebcfe12b9c3baa44829b2537ec3ba",
+    "vitest-worker-retry.log": "2fec5c6ab69525448998d51a2d944be711b93cbbe23ee27348363fd4394ebe44",
+    "vitest-worker-retry.json": "8159a06b7021c6ab598bf214456979c45265cd6e8512a4489216e1a3b00fc8ce",
+    "node-tests.log": "6d764a0fd7af3082c5b03f674ab39515d8c50bf03a1b998ee41e986bfd4fba1b",
+    "node-frozen.log": "2a93a72946b3d0b719f402f3cc07870dda99f66184d45482a39dc2c5afe89591",
+    "browser-production-r1.json": "6de6af25daf35813d074328ba2c76c5096df69d7fe1c9431cf6327bb80c25e5c",
+    "browser-production-final.json": "a6d017799be295816c5b4cfb641aba55c3fc1f83f56d84e55c29c49b447f3c00",
+    "browser-production-status-final.json": "da2e5f17a9451f86a2a50194bd0566c4724f07af97e8e35ed1f069af7186fee8",
+    "browser-startup-r1.json": "c40f635f29c229b1e00f17142fb3e91b65efffb0a09cff56a655f00d677b694b",
+    "browser-startup-final.json": "4d7a37b1c8d451ebe5ccfb6c198ee8f11f6e9d5da028a9fd5184169e279f8876",
+    "browser-startup-retry.json": "57de4b5f7771c9c80f655b5b047d86ef29c6902204d92b3fdb7556561c57d213",
+    "browser-startup-retry-edge.json": "6b3e3273e6aac9a5738f04957ddb314b09bcb917ef6f2fef69fe394a079f1462",
+    "browser-startup-status-final.json": "98ae41bf0c42fd0a43fa25586f08894b8ce89b7e178ce4e703a981eab4c28cb7",
+    "browser-startup-status-warm.json": "8cc6fba5523a639a238f6253c69234dab77b04b2a2a23e696fa32357439010e4",
+    "startup-warmup.json": "89d4f8e12ccd9e01c83534007e761f3e0c4398aaebe8f19aa7d2699e93b7b244",
+    "browser-final-screenshots.json": "59f0bd6535c2d92e957a6eb546b2dd7af7364d2167d26eaca71760261704228c",
+    "targeted-status-extra-forks.log": "3b7887f80bd2b5774787cd62e041387f703e66b9cd80613c09e16ffc0a7f34a2",
+    "prettier-status-final.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+  },
+  "limitations": [
+    "Actual macOS native switching remains explicitly pending at the user's request; this item verifies frontend handoff only.",
+    "Windows native notification and DWM readback evidence is recorded separately under RF-1192; these browser checks cannot replace it.",
+    "Initial full browser run caught unwanted desktop startup IPC on Android/iOS; the bridge was restricted using the actual platform and the final 25-case run passed.",
+    "Initial Node startup mocks lacked the new standard DOM APIs; only the mocks were adapted, retaining original reader and budget assertions.",
+    "Initial development server timeout and cold-module startup timeouts were retained; the unchanged 11-case suite passed on a warmed independent cache.",
+    "One retry omitted the Edge channel and could not launch the absent bundled Chromium; all 11 checks passed after using installed Edge.",
+    "The final extra 29 assertions passed with exit zero but the threads pool reported termination timeouts; retained separately from assertion results.",
+    "Existing syncStore.ts lint warning, Vite bundle warnings and one Node platform permission skip remain.",
+    "No original paused task is resumed or marked complete by this verification."
+  ]
+}

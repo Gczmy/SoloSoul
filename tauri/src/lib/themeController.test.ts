@@ -62,6 +62,36 @@ function fixture(preset: ThemeConfig['preset'] = 'system') {
 }
 
 describe('RF-112 唯一主题通道', () => {
+  it('RF-1193 React 挂载前已监听系统变化，交接后复用同一监听', async () => {
+    const f = fixture();
+    await f.controller.applyStartup(f.config());
+    expect(f.listenSystem).toHaveBeenCalledOnce();
+    f.mode('dark');
+    await flush();
+    expect(f.apply.mock.calls.at(-1)?.[0].resolvedSystemTheme).toBe('dark');
+    const stop = f.controller.acquire();
+    expect(f.listenSystem).toHaveBeenCalledOnce();
+    stop();
+    await flush();
+  });
+
+  it('RF-1193 监听注册完成后补读系统，覆盖首次查询与注册之间的切换', async () => {
+    const f = fixture();
+    const registration = deferred<typeof f.disposeSystem>();
+    f.listenSystem.mockReturnValueOnce(registration.promise);
+    f.resolveSystem.mockResolvedValue('light');
+    const stop = f.controller.acquire();
+    await flush();
+    expect(f.apply.mock.calls.at(-1)?.[0].resolvedSystemTheme).toBe('light');
+    f.resolveSystem.mockResolvedValue('dark');
+    registration.resolve(f.disposeSystem);
+    await flush();
+    await flush();
+    expect(f.apply.mock.calls.at(-1)?.[0].resolvedSystemTheme).toBe('dark');
+    stop();
+    await flush();
+  });
+
   it('旧系统解析不能覆盖新显式主题', async () => {
     const f = fixture();
     const stop = f.controller.acquire();

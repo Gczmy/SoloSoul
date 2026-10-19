@@ -1,6 +1,7 @@
 declare global {
   interface Window {
     __SOLOSOUL_STARTUP__?: {
+      systemTheme?(mode: 'light' | 'dark'): boolean;
       phase(
         next: 'application' | 'i18n' | 'platform' | 'capabilities' | 'preferences' | 'accounts',
       ): void;

@@ -347,6 +347,73 @@ describe('RF110 applyTheme 单次解析与各外观输出一致性', () => {
 });
 
 describe('RF-112 最后交付边界', () => {
+  it('RF-1193 恢复时补读系统，较新通知撤销迟到查询，释放后不再交付', async () => {
+    const theme = await import('./theme');
+    const changed = vi.fn();
+    listen.mockResolvedValueOnce(vi.fn());
+    const stop = await theme.listenForSystemTheme(changed);
+    let complete!: (mode: string) => void;
+    systemTheme(
+      () =>
+        new Promise<string>((resolve) => {
+          complete = resolve;
+        }),
+    );
+    window.dispatchEvent(new Event('focus'));
+    const callback = listen.mock.calls.at(-1)![1];
+    callback({ payload: 'dark' });
+    complete('light');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(changed.mock.calls).toEqual([['dark']]);
+    stop();
+    callback({ payload: 'light' });
+    window.dispatchEvent(new Event('focus'));
+    expect(changed.mock.calls).toEqual([['dark']]);
+  });
+
+  it('RF-1193 启动层使用本次解析色板，主题应用等待原生提交完成', async () => {
+    const root = document.documentElement;
+    root.style.setProperty('--startup-background', '#ffffff');
+    let finish!: () => void;
+    syncNativeAppearance.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+    );
+    let done = false;
+    const applying = applyTheme(config({ resolvedSystemTheme: 'dark' })).then(() => {
+      done = true;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(root.style.getPropertyValue('--startup-background')).toBe(
+      getSchemeById(DARK_SCHEME, 'desktop')!.variables['--bg-base'],
+    );
+    expect(done).toBe(false);
+    finish();
+    await applying;
+    expect(done).toBe(true);
+  });
+
+  it('RF-1193 桌面窗框完成后不等待无关的移动状态栏接口', async () => {
+    vi.useFakeTimers();
+    let finishStatus!: () => void;
+    const status = new Promise<void>((resolve) => (finishStatus = resolve));
+    invoke.mockImplementation((command: string) => {
+      if (command === 'set_status_bar_style') return status;
+      return Promise.reject(new Error('Unexpected theme command'));
+    });
+    const completed = vi.fn();
+    const applying = applyTheme(config({ resolvedSystemTheme: 'dark' })).then(completed);
+    await vi.advanceTimersByTimeAsync(0);
+    const finishedBeforeStatus = completed.mock.calls.length;
+    finishStatus();
+    await applying;
+    expect(finishedBeforeStatus).toBe(1);
+    expectDesktopMode('dark');
+  });
+
   it('系统查询期间撤销请求，不修改 DOM 或提交原生主题', async () => {
     let resolve!: (mode: string) => void;
     systemTheme(
