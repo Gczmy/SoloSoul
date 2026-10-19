@@ -22,6 +22,7 @@ import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { useUiStore } from '@/stores/uiStore';
 import { invokeCommand } from './bridge';
 import { useSettingsStore } from './stores';
+import { applyScheme } from '@/lib/themeSchemes';
 import '@/styles/tokens.css';
 import '@/styles/global.css';
 import '@/styles/themes.css';
@@ -54,6 +55,9 @@ async function capture() {
   const frontend = {
     theme: document.documentElement.dataset.theme,
     material: document.documentElement.dataset.nativeMaterial,
+    headerPaint: document.querySelector('[data-appbar]')
+      ? getComputedStyle(document.querySelector('[data-appbar]')!).backgroundImage
+      : null,
     highContrast: document.documentElement.dataset.highContrast,
     surfaces: Object.fromEntries(
       ['html', 'body', '[data-appbar]', '#desktop-navigation', '[data-shell-surface]'].map(
@@ -107,6 +111,10 @@ function Fixture() {
   const theme = async () => {
     document.documentElement.dataset.theme =
       document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyScheme(
+      document.documentElement.dataset.theme === 'dark' ? 'warm-stone-dark' : 'warm-stone',
+      'desktop',
+    );
     await refreshNativeAppearance();
     await capture();
   };
@@ -221,6 +229,7 @@ function Fixture() {
 }
 async function bootstrap() {
   document.documentElement.dataset.theme = 'dark';
+  applyScheme('warm-stone-dark', 'desktop');
   document.documentElement.dataset.platform = 'windows';
   await i18next.init({
     lng: 'en-US',

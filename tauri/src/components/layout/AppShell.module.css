@@ -95,6 +95,7 @@
 
   :global(html[data-desktop-platform='windows']) .appShell {
     /* 单一内容面：AppBar 与正文同色；外侧留出少量 Mica，不叠加描边。 */
+    background: var(--windows-navigation-surface, var(--bg-base));
     --shell-content-surface: var(--bg-base);
     --windows-content-inset-left: 8px;
     --windows-content-inset-right: 8px;

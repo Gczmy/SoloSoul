@@ -136,6 +136,7 @@ for (const platform of ['macos', 'windows'] as const) {
             );
           }
         } else {
+          expect(sample.nav).toEqual([0, 0, 0, 0]);
           const painted = composite(sample.nav, sample.base);
           expect(contrast(sample.text, painted)).toBeGreaterThanOrEqual(4.5);
         }
