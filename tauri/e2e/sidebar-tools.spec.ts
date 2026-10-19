@@ -178,8 +178,8 @@ for (const position of ['left', 'right'] as const) {
     const chat = page.locator('[data-ai-quick-chat="open"]');
     await expect(chat).toBeInViewport();
     const chatBounds = (await chat.boundingBox())!;
-    if (position === 'left') expect(chatBounds.x).toBeGreaterThanOrEqual(96);
-    else expect(chatBounds.x + chatBounds.width).toBeLessThanOrEqual(800 - 96);
+    if (position === 'left') expect(chatBounds.x).toBeGreaterThanOrEqual(navBounds.width);
+    else expect(chatBounds.x + chatBounds.width).toBeLessThanOrEqual(800 - navBounds.width);
     await chat.hover();
     await expect(tools).toHaveAttribute('aria-expanded', 'true');
     await chat.getByRole('button', { name: 'Close', exact: true }).click();

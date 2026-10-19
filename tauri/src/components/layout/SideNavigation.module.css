@@ -2,8 +2,8 @@
 .sideNav {
   --tools-reveal-duration: 420ms;
   --tools-reveal-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
-  width: var(--sidebar-width, 96px);
-  min-width: var(--sidebar-width, 96px);
+  width: var(--sidebar-width, 64px);
+  min-width: var(--sidebar-width, 64px);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -588,6 +588,10 @@
 .sideNav[data-windows-shell='true'][data-position='right'] .brandHeader {
   flex-direction: row-reverse;
 }
+.sideNav[data-expanded='false'] .brandHeader {
+  justify-content: center;
+  padding-inline: 0;
+}
 .brandName {
   flex: 1;
   font-size: 15px;
@@ -693,6 +697,10 @@
   /* 图标菜单两侧留出轮廓，不越过侧栏表面。 */
   left: 4px;
   width: calc(100% - 8px);
+}
+.sideNav[data-expanded='false'] .foldableContent {
+  /* 留出滚动条后仍容纳完整的 44px 图标命中区。 */
+  padding: 2px;
 }
 .sideNav[data-expanded='true'] .arrowToggle {
   width: 100%;

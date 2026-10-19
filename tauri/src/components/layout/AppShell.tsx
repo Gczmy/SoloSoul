@@ -18,7 +18,7 @@ import { isAndroidSync } from '@/lib/platform';
 import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
+import { DESKTOP_SIDEBAR_EXPANDED_WIDTH, DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
 const SHELL_LAYOUT_KEYS = [
@@ -79,9 +79,9 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       : sidebarPosition;
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
-  // 桌面折叠栏统一为 96px 图文轨道；macOS 左侧按交通灯实际宽度继续扩展。
+  // 图标侧栏共用紧凑宽度；macOS 左侧仍按交通灯实际宽度继续扩展。
   const collapsedWidth = Math.max(
-    96,
+    DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
     isMacOS && effectivePosition === 'left' ? Math.ceil(trafficLightsRight + 16) : 0,
   );
   const sidebarWidth = isAndroid

@@ -77,7 +77,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
             if (this === navigation || navigation.contains(this)) {
               const expanded = navigation.getAttribute('data-expanded');
               const width = original.call(navigation).width;
-              const expected = expanded === 'true' ? 186 : 96;
+              const expected = expanded === 'true' ? 186 : 64;
               if (Math.abs(width - expected) > 0.5) mismatches.push({ expanded, width });
             }
             return rect;
@@ -132,7 +132,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
           .elementHandle();
         const stableSurface = await surface.elementHandle();
         await toggle.click();
-        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '96px');
+        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
         expect(
           await page.evaluate(
             () =>
@@ -141,7 +141,8 @@ for (const motion of ['normal', 'native', 'system'] as const) {
           ),
         ).toEqual([]);
         const after = await nav.getByRole('button', { name: 'Expand sidebar' }).boundingBox();
-        expect(after).toEqual(before);
+        expect(after!.y).toBe(before!.y);
+        expect(after!.x + after!.width / 2).toBe(navBounds.x + 32);
         await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', shellColor);
         for (let i = 0; i < 8; i++) {
           await nav
@@ -149,7 +150,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
             .click();
           await expect(page.locator('#desktop-navigation')).toHaveCSS(
             'width',
-            i % 2 === 0 ? '186px' : '96px',
+            i % 2 === 0 ? '186px' : '64px',
           );
           expect(await track!.evaluate((element) => element.isConnected)).toBe(true);
           expect(await stableSurface!.evaluate((element) => element.isConnected)).toBe(true);

@@ -1,6 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '../src/lib/constants';
+import {
+  DESKTOP_SIDEBAR_EXPANDED_WIDTH,
+  DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
+} from '../src/lib/constants';
 import { login } from './fixtures/auth';
 
 async function expectMobileNavigation(page: Page) {
@@ -57,7 +60,7 @@ for (const position of ['left', 'right'] as const) {
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-    await expect(sidebar).toHaveCSS('width', '96px');
+    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px`);
     for (const name of ['Home', 'Settings', 'Add Page', 'Tools']) {
       const button = sidebar.getByRole('button', { name, exact: true });
       const label = button.locator('span').last();
@@ -202,7 +205,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   expect(contentBounds!.x).toBeGreaterThanOrEqual(navBounds!.x + navBounds!.width);
   expect(contentBounds!.width).toBeGreaterThan(500);
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-  await expect(sidebar).toHaveCSS('width', '96px');
+  await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px`);
   await expect(
     sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
   ).toBeHidden();

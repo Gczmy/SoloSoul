@@ -77,10 +77,10 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     expect(title.x).toBeGreaterThanOrEqual(91);
     await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
     const mainBox = (await page.locator('main').boundingBox())!;
-    expect(mainBox.y).toBe(position === 'top' ? 108 : 60);
+    expect(mainBox.y).toBe(position === 'top' ? 109 : 61);
     await expect(page.locator('main')).toHaveCSS('padding-top', '24px');
-    // 顶栏高度不变；新内容面只增加 8px 外沿留白。
-    expect(mainBox.y + 24).toBe(position === 'top' ? 132 : 84);
+    // 顶栏高度不变；内容面有 8px 外沿留白和 1px 细边框。
+    expect(mainBox.y + 24).toBe(position === 'top' ? 133 : 85);
     expect(headerBox.x).toBe(0);
     expect(headerBox.width).toBe(1280);
     await expect(page.locator('[data-shell-surface]')).toHaveCSS('border-radius', '16px');
@@ -121,14 +121,14 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       expect(await expandedToggle.boundingBox()).toEqual(toggleBefore);
       await expectNativeControl(expandedToggle);
       await expect(sidebar.getByRole('button', { name: 'Expand sidebar' })).toHaveCount(0);
-      await expect(sidebar).toHaveCSS('width', '96px');
+      await expect(sidebar).toHaveCSS('width', position === 'left' ? '95px' : '64px');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
       // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
       const collapsed = (await sidebar.boundingBox())!;
       if (position === 'left') {
         expect(collapsed.x + collapsed.width).toBeGreaterThanOrEqual(79 + 16);
         expect((await header.boundingBox())!.x).toBe(0);
-        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 8);
+        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 9);
       }
       expect((await header.locator('h1').boundingBox())!.x).toBeGreaterThanOrEqual(91);
       await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
@@ -161,7 +161,7 @@ test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ pa
   await expectNativeControl(back);
   await expectNativeControl(create);
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-  await expect(sidebar).toHaveCSS('width', '96px');
+  await expect(sidebar).toHaveCSS('width', '95px');
   await expectNativeControl(back);
   expect((await back.boundingBox())!.x).toBeGreaterThanOrEqual(91);
   await page.setViewportSize({ width: 800, height: 600 });
@@ -190,10 +190,10 @@ test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ p
       window.dispatchEvent(new Event('resize'));
     }, height);
     await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', `${height}px`);
-    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(60);
+    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(61);
     expect((await page.locator('header').boundingBox())!.height).toBe(52);
     expect((await page.locator('header').boundingBox())!.y).toBe(0);
-    await expect(sidebar).toHaveCSS('width', '96px');
+    await expect(sidebar).toHaveCSS('width', height ? '95px' : '64px');
   }
 });
 
@@ -204,7 +204,7 @@ test('macOS 交通灯范围变宽时折叠侧栏和正文同步避让', async ({
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(sidebar).toHaveCSS('width', '122px');
   expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(0);
-  expect((await page.locator('main').boundingBox())!.x).toBe(130);
+  expect((await page.locator('main').boundingBox())!.x).toBe(131);
   const toggle = page.getByRole('button', { name: 'Expand sidebar' });
   expect((await toggle.boundingBox())!.x).toBe(118);
   await expectNativeControl(toggle);

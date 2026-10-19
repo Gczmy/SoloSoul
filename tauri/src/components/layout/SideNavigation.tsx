@@ -12,7 +12,7 @@ import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
+import { DESKTOP_SIDEBAR_EXPANDED_WIDTH, DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
 
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
@@ -63,7 +63,7 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: `var(--sidebar-width, ${expanded ? DESKTOP_SIDEBAR_EXPANDED_WIDTH : 96}px)`,
+        width: `var(--sidebar-width, ${expanded ? DESKTOP_SIDEBAR_EXPANDED_WIDTH : DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px)`,
         height: '100vh',
         flexDirection: 'column',
         borderRight: 'none',

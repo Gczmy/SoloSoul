@@ -93,3 +93,6 @@ export const SAFE_AREA_BOTTOM_OFFSET = 'env(safe-area-inset-bottom, 0px)';
 
 /** 展开导航宽度约为原232px的80%，由布局和导航共用，原生交通灯仍保留下限。 */
 export const DESKTOP_SIDEBAR_EXPANDED_WIDTH = 186;
+
+/** 折叠侧栏容纳 44px 图标按钮和两侧留白；macOS 另按交通灯几何避让。 */
+export const DESKTOP_SIDEBAR_COLLAPSED_WIDTH = 64;
