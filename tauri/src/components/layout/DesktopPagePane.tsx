@@ -10,6 +10,7 @@ import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { AddPageButton } from './AddPageButton';
 import { PagePaneRow } from './PagePaneRow';
+import { PagePaneObjectPreview, PagePanePagePreview } from './PagePanePreview';
 import styles from './DesktopPagePane.module.css';
 
 export function DesktopPagePane({
@@ -30,9 +31,11 @@ export function DesktopPagePane({
   const customPages = useSettingsStore((state) => state.settings.customPages);
   const creationRequest = useUiStore((state) => state.desktopPageCreationRequest);
   const [query, setQuery] = useState('');
+  const [activePreview, setActivePreview] = useState<string | null>(null);
   const [searchCollapsed, setSearchCollapsed] = useState(() => new Set<string>());
   const [expanded, setExpanded] = useState(() => new Set<string>(['identity']));
   const selectedId = editorMatch?.params.objectId;
+  useEffect(() => setActivePreview(null), [accountId, authenticated]);
 
   useEffect(() => {
     if (!accountId || !authenticated) return;
@@ -48,6 +51,7 @@ export function DesktopPagePane({
           id: page.id,
           name: page.name,
           Icon: resolveCustomIcon(page.iconId),
+          description: page.description,
         })),
     ],
     [customPages, t],
@@ -103,6 +107,7 @@ export function DesktopPagePane({
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
+              setActivePreview(null);
               setSearchCollapsed(new Set());
             }}
             aria-label={t('page_pane_search')}
@@ -142,7 +147,8 @@ export function DesktopPagePane({
           </p>
         )}
         <ul className={styles.list}>
-          {visible.map(({ id, name, Icon, count, children }) => {
+          {visible.map((page) => {
+            const { id, name, Icon, count, children } = page;
             const isExpanded = search ? !searchCollapsed.has(id) : expanded.has(id);
             const listId = `page-pane-children-${id}`;
             return (
@@ -154,6 +160,25 @@ export function DesktopPagePane({
                   aria-expanded={isExpanded}
                   aria-controls={listId}
                   data-page-id={id}
+                  previewKey={`page:${id}`}
+                  activePreview={activePreview}
+                  onPreviewChange={setActivePreview}
+                  previewLabel={t('page_pane_page_preview')}
+                  preview={
+                    <PagePanePagePreview
+                      name={name}
+                      description={'description' in page ? page.description : undefined}
+                      count={count}
+                      onNavigate={() => {
+                        setActivePreview(null);
+                        navigate(
+                          SYSTEM_PAGE_KEYS.some((key) => key === id)
+                            ? `/workspace?section=${encodeURIComponent(id)}`
+                            : `/workspace/custom/${encodeURIComponent(id)}`,
+                        );
+                      }}
+                    />
+                  }
                   onClick={() => {
                     const update = (previous: Set<string>) => {
                       const next = new Set(previous);
@@ -182,7 +207,7 @@ export function DesktopPagePane({
                   }
                 />
                 <ul id={listId} className={styles.list} hidden={!isExpanded}>
-                  {children.map((object) => (
+                  {children.map((object, index) => (
                     <li key={object.id}>
                       <PagePaneRow
                         className={styles.objectRow}
@@ -190,6 +215,22 @@ export function DesktopPagePane({
                         enabled={open && !animating && isExpanded}
                         aria-current={selectedId === object.id ? 'page' : undefined}
                         data-object-id={object.id}
+                        previewKey={`object:${object.id}`}
+                        activePreview={activePreview}
+                        onPreviewChange={setActivePreview}
+                        previewLabel={t('page_pane_object_preview')}
+                        preview={
+                          <PagePaneObjectPreview
+                            objectId={object.id}
+                            collectionLabel={name}
+                            index={index}
+                            total={children.length}
+                            onNavigate={() => {
+                              setActivePreview(null);
+                              navigate(`/editor/${encodeURIComponent(object.id)}`);
+                            }}
+                          />
+                        }
                         onClick={() => navigate(`/editor/${encodeURIComponent(object.id)}`)}
                         leading={<FileText size={15} aria-hidden="true" />}
                       />

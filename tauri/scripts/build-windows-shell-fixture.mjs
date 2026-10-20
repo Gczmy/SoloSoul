@@ -85,6 +85,8 @@ for (const file of [
   'components/layout/AddPageButton.tsx',
   'components/layout/DesktopPagePane.tsx',
   'components/layout/PagePaneRow.tsx',
+  'components/layout/PagePanePreview.tsx',
+  'components/workspace/ObjectRulerPreview.tsx',
   'components/layout/usePagePaneResize.ts',
   'components/layout/usePagePaneMotion.ts',
   'components/layout/AuthLayout.tsx',

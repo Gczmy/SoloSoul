@@ -1,6 +1,12 @@
 {
   "home": "首页",
   "page_pane_title": "页面与对象",
+  "page_pane_page_preview": "页面详情",
+  "page_pane_object_preview": "对象详情",
+  "page_pane_object_count": "{{count}} 个对象",
+  "page_pane_open_page": "打开页面",
+  "page_pane_edit_object": "编辑对象",
+  "page_pane_preview_unavailable": "暂时无法读取对象详情",
   "page_pane_resize": "调整页面与对象区域宽度",
   "page_pane_search": "搜索页面与对象",
   "page_pane_collapse": "收起页面与对象",

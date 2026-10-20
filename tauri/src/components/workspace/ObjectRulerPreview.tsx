@@ -17,6 +17,7 @@ interface ObjectRulerPreviewProps {
   total: number;
   attachmentCount?: number;
   onNavigate: () => void;
+  navigateLabel?: string;
 }
 
 function sensitivity(value: string | undefined): SensitivityLevel {
@@ -31,6 +32,7 @@ export function ObjectRulerPreview({
   total,
   attachmentCount,
   onNavigate,
+  navigateLabel,
 }: ObjectRulerPreviewProps) {
   const { t } = useTranslation('common');
   const { maskValue } = useRevealState();
@@ -92,7 +94,7 @@ export function ObjectRulerPreview({
       )}
       <button type="button" className={styles.jumpButton} onClick={onNavigate}>
         <ArrowDownToLine size={14} />
-        {t('object_ruler_jump')}
+        {navigateLabel ?? t('object_ruler_jump')}
       </button>
     </>
   );

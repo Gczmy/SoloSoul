@@ -218,6 +218,10 @@ test('label remeasures font/container changes and falls back when animation is u
     Object.defineProperty(element, 'animate', { value: undefined, configurable: true });
   });
   await button.hover();
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Page details', exact: true })
+      .getByRole('heading', { name: longName, exact: true }),
+  ).toBeVisible();
   await expect(button.locator('[data-label-track]')).toHaveCSS('transform', 'none');
 });

@@ -27,7 +27,10 @@ test.beforeEach(async ({ page }, info) => {
     window.__E2E_MOCKS__ = {
       vault_check_directory: () => true,
       object_list: ({ filter } = {}) => filter?.typeId === 'page' ? objects.filter(o => o.typeId === 'page') : objects,
-      object_get: ({ objectId }) => objects.find(o => o.id === objectId),
+      object_get: ({ objectId, accountId }) => {
+        const object = objects.find(o => o.id === objectId);
+        return object ? { ...object, accountId, properties: { publicField: 'Public preview body', privateField: 'MUST-NOT-SHOW-PREVIEW' }, propertyLabels: { publicField: 'public', privateField: 'sensitive' } } : null;
+      },
       object_create: ({ input }) => { const obj = { ...objects[0], ...input }; objects.push(obj); return obj; },
       ocr_get_model_status: () => ({ installed: true, bundled: true }),
       sync_list_conflicts: () => [],
@@ -264,4 +267,75 @@ test('filtered page rows still expand and collapse without changing the editor r
   await identity.click();
   await expect(object).toBeVisible();
   await expect(page).toHaveURL('/');
+});
+
+test('page and object hover cards reuse ruler appearance, mask fields and navigate to the editor', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  await pane.locator('[data-page-id="identity"]').hover();
+  const pageCard = page.getByRole('region', { name: 'Page details', exact: true });
+  await expect(pageCard.getByRole('heading', { name: 'Identity', exact: true })).toBeVisible();
+  await expect(pageCard).toContainText('40 objects');
+  await expect(pageCard).toHaveCSS('border-radius', '14px');
+  await pageCard.hover();
+  await page.waitForTimeout(200);
+  await expect(pageCard).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(pageCard).toHaveCount(0);
+  await pane.locator('[data-object-id="pane-object-0"]').hover();
+  const objectCard = page.getByRole('region', { name: 'Object details', exact: true });
+  await expect(objectCard.getByRole('heading', { name: 'Passport for navigation' })).toBeVisible();
+  await expect(objectCard).toContainText('Public preview body');
+  await expect(objectCard).not.toContainText('MUST-NOT-SHOW-PREVIEW');
+  await expect(objectCard).toContainText('••••••••');
+  await objectCard.getByRole('button', { name: 'Edit object', exact: true }).click();
+  await expect(pane.locator('[data-object-id="pane-object-0"]')).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(objectCard).toHaveCount(0);
+});
+
+test('hover cards stay inside the window and close on scrolling or folding', async ({ page }) => {
+  const pane = page.locator('#desktop-page-pane');
+  const row = pane.locator('[data-object-id="pane-object-39"]');
+  await row.hover();
+  const card = page.getByRole('region', { name: 'Object details', exact: true });
+  await expect(card.getByRole('heading', { name: 'Identity record 39' })).toBeVisible();
+  const rect = (await card.boundingBox())!;
+  expect(rect.x).toBeGreaterThanOrEqual(0);
+  expect(rect.y).toBeGreaterThanOrEqual(52);
+  expect(rect.x + rect.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(rect.y + rect.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+  await pane.locator('[data-page-pane-scroll]').evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  await expect(card).toHaveCount(0);
+  await pane.locator('[data-object-id="pane-object-0"]').hover();
+  await expect(card).toBeVisible();
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(card).toHaveCount(0);
+});
+
+test('keyboard focus opens one preview, Escape returns focus and offscreen focus keeps the card visible', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  const identity = pane.locator('[data-page-id="identity"]');
+  await page.keyboard.press('Tab');
+  await identity.focus();
+  const pageCard = page.getByRole('region', { name: 'Page details', exact: true });
+  await expect(pageCard).toBeVisible();
+  await pageCard.getByRole('button', { name: 'Open page', exact: true }).focus();
+  await page.keyboard.press('Escape');
+  await expect(pageCard).toHaveCount(0);
+  await expect(identity).toBeFocused();
+  const lastObject = pane.locator('[data-object-id="pane-object-39"]');
+  await lastObject.focus();
+  const objectCard = page.getByRole('region', { name: 'Object details', exact: true });
+  await expect(objectCard.getByRole('heading', { name: 'Identity record 39' })).toBeVisible();
+  await expect(page.locator('[data-page-pane-preview]')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(objectCard).toHaveCount(0);
 });
