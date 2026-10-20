@@ -45,6 +45,18 @@ for (const motion of ['normal', 'native', 'system'] as const) {
       const header = page.locator('[data-appbar]');
       await expect(header).toHaveCSS('height', '52px');
       expect((await header.boundingBox())!.x).toBe(0);
+      const toggleBounds = (await header
+        .getByRole('button', { name: 'Hide pages and objects' })
+        .boundingBox())!;
+      expect(toggleBounds).toMatchObject({ x: 8, y: 8, width: 36, height: 36 });
+      const headerButtons = await header.locator('button:visible').evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const r = button.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, height: r.height };
+        }),
+      );
+      expect(headerButtons.length).toBeGreaterThan(0);
+      expect(headerButtons.every((button) => button.top === 8 && button.bottom === 44)).toBe(true);
       const shellColor = await page
         .locator('html')
         .evaluate((el) => getComputedStyle(el).backgroundColor);

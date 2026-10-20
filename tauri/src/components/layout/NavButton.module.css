@@ -45,6 +45,13 @@
 .navButton > svg {
   flex-shrink: 0;
 }
+
+/* Windows 紧凑功能栏与顶栏共享按钮尺寸；44px 行高保留相邻按钮的 8px 间隔。 */
+:global(html[data-desktop-platform='windows']) :global([data-desktop-rail]) .navButton {
+  width: var(--desktop-chrome-control-size);
+  height: var(--desktop-chrome-control-size);
+  border-radius: var(--desktop-chrome-control-radius);
+}
 .label {
   display: none;
   min-width: 0;

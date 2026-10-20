@@ -1,0 +1,85 @@
+{
+  "task": "DP-08 Windows chrome control alignment",
+  "validation": {
+    "browserDistinctCasesPassed": 58,
+    "browserMethod": "18 control cases plus 40 final regression cases; editor fixture now targets the content card",
+    "finishingBrowserCasesPassed": 8,
+    "relatedUnitFiles": 3,
+    "relatedUnitPassed": 14,
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "isolatedFixtureBuild": "passed",
+    "matchedFrontendSources": 134,
+    "sourceManifestSha256": "dbdbd6f8b41a7f8198cb719ec39a742082f2f419090a2c44b59247c9bdca34c2",
+    "matchedNativeSources": 11,
+    "windowsNativeSamples": [
+      {
+        "theme": "dark",
+        "paneOpen": true,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "applicationControlHeight": 36,
+        "iconButtonWidth": 36,
+        "iconSize": 20,
+        "headerVerticalInset": 8,
+        "railHorizontalInset": 8,
+        "railEndInsets": [8, 8],
+        "nativeCaptionHeight": 30,
+        "evidenceSha256": "ce1b509fcf03dfaf7c66243938354fb5e8beb20cb740565335fd7296975f8d86"
+      },
+      {
+        "theme": "dark",
+        "paneOpen": true,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "applicationControlHeight": 36,
+        "iconButtonWidth": 36,
+        "iconSize": 20,
+        "headerVerticalInset": 8,
+        "railHorizontalInset": 8,
+        "railEndInsets": [8, 8],
+        "nativeCaptionHeight": 30,
+        "evidenceSha256": "ce1b509fcf03dfaf7c66243938354fb5e8beb20cb740565335fd7296975f8d86"
+      },
+      {
+        "theme": "light",
+        "paneOpen": true,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "applicationControlHeight": 36,
+        "iconButtonWidth": 36,
+        "iconSize": 20,
+        "headerVerticalInset": 8,
+        "railHorizontalInset": 8,
+        "railEndInsets": [8, 8],
+        "nativeCaptionHeight": 30,
+        "evidenceSha256": "84689bcbd568134b0cb16ed27f8e683efae4872789743c6187d08b02194c906e"
+      },
+      {
+        "theme": "light",
+        "paneOpen": false,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "applicationControlHeight": 36,
+        "iconButtonWidth": 36,
+        "iconSize": 20,
+        "headerVerticalInset": 8,
+        "railHorizontalInset": 8,
+        "railEndInsets": [8, 8],
+        "nativeCaptionHeight": 30,
+        "evidenceSha256": "8e1cc8ca2c0c302015804f6ed389f1426e81b43ef63354cd2c0df0e11882a610"
+      }
+    ],
+    "windowsVisualChecks": [
+      "36px application buttons and 20px icons",
+      "8px cross-axis and end insets",
+      "inset keyboard focus ring is fully visible",
+      "click at y=9 folds the pane successfully",
+      "native caption remains system drawn"
+    ],
+    "nativeCaptionBehavior": "unchanged; no native frame sources modified",
+    "manualVisualAcceptance": "awaiting user",
+    "otherTasks": "paused"
+  },
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths, process IDs and account data remain local"
+}

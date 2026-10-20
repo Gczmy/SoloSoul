@@ -765,3 +765,44 @@
   line-height: 16px;
   text-align: center;
 }
+
+/* 与顶栏共用按钮、图标及留白，不改变移动端与 macOS 的导航尺寸。 */
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail] {
+  padding-bottom: 4px;
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail][data-expanded='false'] {
+  padding-top: calc(var(--appbar-height, 52px) + 4px);
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail]
+  :is(.navPrimary, .foldableContent) {
+  gap: 0;
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail] .fixedActions {
+  padding-top: 0;
+  border-top: 0;
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail][data-expanded='false']
+  .arrowToggle {
+  width: var(--desktop-chrome-control-size);
+  height: var(--desktop-chrome-control-size);
+  margin: 4px 0;
+  border-radius: var(--desktop-chrome-control-radius);
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail] .arrowToggle > svg {
+  width: var(--desktop-chrome-icon-size);
+  height: var(--desktop-chrome-icon-size);
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail][data-expanded='false']
+  .foldableArea {
+  left: 0;
+  width: 100%;
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail][data-expanded='false']
+  .foldableContent {
+  padding: 0;
+  scrollbar-gutter: stable both-edges;
+}

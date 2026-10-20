@@ -69,6 +69,9 @@ html[data-desktop-platform='macos'] {
   }
 }
 html[data-desktop-platform='windows'] {
+  --desktop-chrome-control-size: 36px;
+  --desktop-chrome-icon-size: 20px;
+  --desktop-chrome-control-radius: 8px;
   /* Mica 只用于窗口底层；普通按钮用填色和状态反馈，不逐个绘制反光边框。 */
   --desktop-control-fill: color-mix(in srgb, var(--text-primary) 6%, var(--bg-elevated));
   --desktop-control-edge: transparent;

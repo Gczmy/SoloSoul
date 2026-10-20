@@ -108,6 +108,7 @@ for (const theme of ['light', 'dark']) {
       await setupWindowsObjects(page, theme);
       const openEditor = async () => {
         await page
+          .locator('[data-shell-content]')
           .getByRole('button', { name: /^Public chrome object/ })
           .first()
           .click();
@@ -143,6 +144,8 @@ for (const theme of ['light', 'dark']) {
       });
       for (const button of [save, cancel]) {
         const rect = (await button.boundingBox())!;
+        expect(rect.height).toBe(36);
+        expect(rect.y).toBe(8);
         expect(rect.y).toBeGreaterThanOrEqual(0);
         expect(rect.y + rect.height).toBeLessThanOrEqual(52);
         expect(rect.x + rect.width).toBeLessThanOrEqual(width - 146);

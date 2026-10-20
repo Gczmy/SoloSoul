@@ -67,8 +67,11 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
       await expect(label).toBeHidden();
       const iconBounds = (await button.locator('svg').boundingBox())!;
       const buttonBounds = (await button.boundingBox())!;
-      expect(buttonBounds.width).toBeGreaterThanOrEqual(44);
-      expect(buttonBounds.height).toBeGreaterThanOrEqual(44);
+      expect(buttonBounds.width).toBe(36);
+      expect(buttonBounds.height).toBe(36);
+      expect(buttonBounds.x - (await sidebar.boundingBox())!.x).toBe(8);
+      expect(iconBounds.width).toBe(20);
+      expect(iconBounds.height).toBe(20);
       expect(
         Math.abs(iconBounds.x + iconBounds.width / 2 - buttonBounds.x - buttonBounds.width / 2),
       ).toBeLessThan(1);

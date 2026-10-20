@@ -63,7 +63,6 @@ export function SideNavigation({ pagePane = false }: { pagePane?: boolean }) {
         borderBottom: 'none',
         borderTop: 'none',
         paddingInline: expanded ? 10 : 0,
-        paddingBottom: 12,
       };
 
   return (

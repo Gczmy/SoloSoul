@@ -88,6 +88,8 @@ async function capture() {
     ),
     content: bounds('[data-shell-surface], [data-shell-content], [data-auth-content]'),
     navigation: bounds('#desktop-navigation'),
+    navigationControls: bounds('#desktop-navigation button'),
+    navigationIcons: bounds('#desktop-navigation button > svg'),
     pagePane: bounds('[data-page-pane], [data-page-pane-scroll]'),
     pagePaneWidth: useUiStore.getState().desktopPagePaneWidth,
     pagePaneOpen: useUiStore.getState().desktopPagePaneOpen,

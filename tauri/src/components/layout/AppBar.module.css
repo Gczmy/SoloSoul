@@ -34,10 +34,10 @@
   }
   .appBar[data-page-pane-toggle] .sidebarToggle {
     position: absolute;
-    left: calc((var(--sidebar-width, 64px) - 32px) / 2);
-    top: calc((var(--appbar-height, 52px) - 32px) / 2);
-    width: 32px;
-    height: 32px;
+    left: calc((var(--sidebar-width, 64px) - var(--appbar-control-size, 32px)) / 2);
+    top: calc((var(--appbar-height, 52px) - var(--appbar-control-size, 32px)) / 2);
+    width: var(--appbar-control-size, 32px);
+    height: var(--appbar-control-size, 32px);
     padding: 0;
     display: flex;
     align-items: center;
@@ -271,9 +271,44 @@
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appBar[data-page-pane-toggle] {
+    /* 36px 控件在 52px 顶栏中上下各留 8px，避开原生顶部缩放条。 */
+    --appbar-control-size: var(--desktop-chrome-control-size);
+    --appbar-button-padding: 0 12px;
+    --desktop-control-radius: var(--desktop-chrome-control-radius);
     --page-pane-shell-inset: calc(var(--windows-content-inset-left, 0px) + 1px);
     left: 0;
     padding-left: var(--page-pane-title-left);
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    :is([data-ui-icon-button], [data-desktop-control='icon']) {
+    --icon-hit-size: var(--appbar-control-size);
+    --icon-symbol-size: var(--desktop-chrome-icon-size);
+    height: var(--appbar-control-size);
+    min-width: var(--appbar-control-size);
+    min-height: var(--appbar-control-size);
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    [data-desktop-control='icon'] {
+    width: var(--appbar-control-size);
+    padding: 0;
+  }
+  :global(html[data-desktop-platform='windows']) .appBar[data-page-pane-toggle] button {
+    min-height: var(--appbar-control-size);
+    padding-block: 0;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    button:focus-visible {
+    outline-offset: -2px;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    :is([data-ui-icon-button], [data-desktop-control='icon'])
+    > svg {
+    width: var(--desktop-chrome-icon-size);
+    height: var(--desktop-chrome-icon-size);
   }
   .appBar[data-page-pane-toggle] .sidebarToggle:active {
     background: var(--state-pressed);
