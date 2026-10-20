@@ -91,6 +91,7 @@ describe('desktop page index', () => {
     await vi.waitFor(() => expect(index.getState().loading).toBe(false));
     vi.mocked(invoke).mockClear();
     notifyVaultCommand('object_list');
+    notifyVaultCommand('object_update', undefined, () => false);
     notifyVaultCommand('object_sync_with_template', { dryRun: true });
     expect(invoke).not.toHaveBeenCalled();
     notifyVaultCommand('object_update');

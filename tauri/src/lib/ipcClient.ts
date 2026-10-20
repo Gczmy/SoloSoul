@@ -210,7 +210,7 @@ export async function invokeCommand<T>(
     // args 缺省时不再传第二参：既有测试断言 `toHaveBeenCalledWith('cmd')`
     // （单参精确匹配），多传 undefined 会破坏这些断言。
     const result = args === undefined ? await invoke<T>(cmd) : await invoke<T>(cmd, args);
-    if (!opts?.requestIsCurrent || opts.requestIsCurrent()) notifyVaultCommand(cmd, args);
+    notifyVaultCommand(cmd, args, opts?.requestIsCurrent);
     return result;
   } catch (err) {
     devWarn(`[ipc] command '${cmd}' failed:`, backendErrorLogDetails(err));

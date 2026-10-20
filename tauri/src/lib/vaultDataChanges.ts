@@ -32,8 +32,15 @@ export function notifyVaultDataChange() {
   }
 }
 
-export function notifyVaultCommand(cmd: string, args?: Record<string, unknown>) {
-  if (writes.has(cmd) || (cmd === 'object_sync_with_template' && args?.dryRun === false)) {
+export function notifyVaultCommand(
+  cmd: string,
+  args?: Record<string, unknown>,
+  requestIsCurrent?: () => boolean,
+) {
+  if (
+    (writes.has(cmd) || (cmd === 'object_sync_with_template' && args?.dryRun === false)) &&
+    (!requestIsCurrent || requestIsCurrent())
+  ) {
     notifyVaultDataChange();
   }
 }
