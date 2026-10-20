@@ -7,6 +7,7 @@ import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
 import { DesktopPagePane } from './DesktopPagePane';
 import { PAGE_PANE_MIN, usePagePaneResize } from './usePagePaneResize';
+import { usePagePaneMotion } from './usePagePaneMotion';
 import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
@@ -84,6 +85,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const desktopPane = !isMobilePlatformSync() && !isNarrowViewport && !isHorizontal;
   const bodyRef = useRef<HTMLDivElement>(null);
   const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen);
+  const paneAnimating = usePagePaneMotion(bodyRef, desktopPane, paneOpen);
   // 图标侧栏共用紧凑宽度；macOS 左侧仍按交通灯实际宽度继续扩展。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
@@ -265,11 +267,12 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             data-page-pane-body={desktopPane || undefined}
             data-pane-open={paneOpen}
             data-pane-resizing={paneResize.resizing || undefined}
+            data-pane-animating={paneAnimating || undefined}
             style={{ '--page-pane-width': `${paneResize.width}px` } as CSSProperties}
           >
             {desktopPane && (
               <div className={styles.paneSlot}>
-                <DesktopPagePane open={paneOpen} />
+                <DesktopPagePane open={paneOpen} animating={paneAnimating} />
               </div>
             )}
             <main ref={contentRef} className={styles.content} data-shell-content>
@@ -285,7 +288,8 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
                 aria-valuemin={PAGE_PANE_MIN}
                 aria-valuemax={paneResize.max}
                 aria-valuenow={paneResize.width}
-                tabIndex={paneOpen ? 0 : -1}
+                tabIndex={paneOpen && !paneAnimating ? 0 : -1}
+                aria-disabled={paneAnimating || undefined}
                 aria-hidden={!paneOpen}
                 {...paneResize.separatorProps}
               />

@@ -10,7 +10,13 @@ import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { AddPageButton } from './AddPageButton';
 import styles from './DesktopPagePane.module.css';
 
-export function DesktopPagePane({ open }: { open: boolean }) {
+export function DesktopPagePane({
+  open,
+  animating = false,
+}: {
+  open: boolean;
+  animating?: boolean;
+}) {
   const { t } = useTranslation('navigation');
   const navigate = useNavigate();
   const editorMatch = useMatch('/editor/:objectId');
@@ -97,7 +103,7 @@ export function DesktopPagePane({ open }: { open: boolean }) {
           />
         </label>
         <AddPageButton
-          enabled={open}
+          enabled={open && !animating}
           className={styles.addPage}
           buttonClassName={styles.addPageButton}
           showLabel

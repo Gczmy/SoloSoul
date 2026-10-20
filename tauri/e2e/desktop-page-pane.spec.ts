@@ -137,3 +137,56 @@ test('resizer supports pointer capture, bounds, keyboard, reset and persistence'
   await expect(pane).toHaveCSS('width', '264px');
   await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
 });
+
+test('pane and editor move together, rapid reversal preserves DOM, reduced motion settles immediately', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const body = page.locator('[data-page-pane-body]');
+  const content = page.locator('[data-shell-content]');
+  await content.evaluate((el) => {
+    el.dataset.motionSentinel = 'retained';
+  });
+  const frames = await page.evaluate(async () => {
+    const toggle = document.querySelector<HTMLButtonElement>(
+      '[data-appbar] button[aria-controls="desktop-page-pane"]',
+    )!;
+    const pane = document.querySelector<HTMLElement>('#desktop-page-pane')!;
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    const rail = document.querySelector<HTMLElement>('#desktop-navigation')!;
+    const values = [];
+    toggle.click();
+    for (let i = 0; i < 14; i++) {
+      await new Promise(requestAnimationFrame);
+      const r = content.getBoundingClientRect();
+      values.push({
+        x: r.x,
+        right: r.right,
+        paneWidth: pane.getBoundingClientRect().width,
+        railWidth: rail.getBoundingClientRect().width,
+      });
+    }
+    toggle.click();
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    toggle.click();
+    return values;
+  });
+  expect(new Set(frames.map((frame) => Math.round(frame.x))).size).toBeGreaterThan(3);
+  expect(
+    frames.every(
+      (frame) =>
+        Math.abs(frame.right - frames[0].right) < 1 &&
+        frame.paneWidth === 264 &&
+        frame.railWidth === 64,
+    ),
+  ).toBe(true);
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await expect(content).toHaveAttribute('data-motion-sentinel', 'retained');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  const x = (await content.boundingBox())!.x;
+  await page.waitForTimeout(80);
+  expect((await content.boundingBox())!.x).toBe(x);
+});

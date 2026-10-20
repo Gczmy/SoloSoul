@@ -61,7 +61,8 @@ export function usePagePaneResize(
     resizing: draft !== null,
     separatorProps: {
       onPointerDown: (event: PointerEvent<HTMLDivElement>) => {
-        if (event.button !== 0 || !open || !enabled) return;
+        if (event.button !== 0 || !open || !enabled || bodyRef.current?.dataset.paneAnimating)
+          return;
         event.preventDefault();
         event.currentTarget.focus();
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -79,6 +80,7 @@ export function usePagePaneResize(
       onLostPointerCapture: finish,
       onDoubleClick: () => setPreferred(PAGE_PANE_DEFAULT),
       onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
+        if (bodyRef.current?.dataset.paneAnimating) return;
         const step = event.shiftKey ? 32 : 8;
         const target =
           event.key === 'Home'
