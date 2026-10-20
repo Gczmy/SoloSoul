@@ -75,7 +75,8 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     expect(title.y).toBeGreaterThanOrEqual(0);
     expect(title.y + title.height).toBeLessThanOrEqual(52);
     expect(title.x).toBeGreaterThanOrEqual(91);
-    await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
+    await expect(header.locator('h1')).toHaveCSS('font-size', '15px');
+    await expect(header.locator('h1')).toHaveCSS('font-weight', '400');
     const mainBox = (await page.locator('main').boundingBox())!;
     expect(mainBox.y).toBe(61);
     await expect(page.locator('main')).toHaveCSS('padding-top', '24px');
@@ -85,7 +86,8 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     expect(headerBox.width).toBe(1280);
     await expect(page.locator('[data-shell-surface]')).toHaveCSS('border-radius', '16px');
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
-    await expect(guide).toHaveCSS('font-size', '14px');
+    await expect(guide).toHaveCSS('font-size', '13px');
+    await expect(guide).toHaveCSS('font-weight', '400');
     await expectNativeControl(guide);
     await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
     {

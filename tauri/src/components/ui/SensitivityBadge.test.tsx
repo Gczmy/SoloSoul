@@ -25,7 +25,8 @@ describe('SensitivityBadge', () => {
     expect(badge).toHaveStyle({
       display: 'inline-flex',
       fontSize: 'var(--text-badge)',
-      fontWeight: '600',
+      // 对象界面继承普通字重，其他位置保留 600 的默认值。
+      fontWeight: 'var(--object-ui-font-weight, 600)',
     });
   });
 

@@ -130,6 +130,9 @@ for (const theme of ['light', 'dark']) {
           .first()
           .click();
         const detail = page.getByTestId('object-detail-modal');
+        const sensitivity = detail.getByText('Public', { exact: true }).first();
+        await expect(sensitivity).toHaveCSS('font-weight', '400');
+        await expect(sensitivity).toHaveCSS('font-size', '12px');
         await expect(detail.getByRole('heading', { name: 'Public chrome object' })).toHaveCSS(
           'font-weight',
           '400',
