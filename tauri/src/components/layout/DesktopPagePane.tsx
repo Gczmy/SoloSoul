@@ -8,6 +8,7 @@ import { observeDesktopPageIndex, useDesktopPageIndexStore } from '@/stores/desk
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { AddPageButton } from './AddPageButton';
+import { PagePaneRow } from './PagePaneRow';
 import styles from './DesktopPagePane.module.css';
 
 export function DesktopPagePane({
@@ -138,11 +139,10 @@ export function DesktopPagePane({
             const listId = `page-pane-children-${id}`;
             return (
               <li key={id}>
-                <button
-                  type="button"
+                <PagePaneRow
                   className={styles.pageRow}
-                  aria-label={name}
-                  title={name}
+                  name={name}
+                  enabled={open && !animating}
                   aria-expanded={isExpanded}
                   aria-controls={listId}
                   data-page-id={id}
@@ -154,34 +154,35 @@ export function DesktopPagePane({
                       return next;
                     })
                   }
-                >
-                  <ChevronRight
-                    size={14}
-                    className={styles.chevron}
-                    data-open={isExpanded}
-                    aria-hidden="true"
-                  />
-                  <Icon size={17} aria-hidden="true" />
-                  <span className={styles.name}>{name}</span>
-                  <span className={styles.count} aria-hidden="true">
-                    {count}
-                  </span>
-                </button>
+                  leading={
+                    <>
+                      <ChevronRight
+                        size={14}
+                        className={styles.chevron}
+                        data-open={isExpanded}
+                        aria-hidden="true"
+                      />
+                      <Icon size={17} aria-hidden="true" />
+                    </>
+                  }
+                  trailing={
+                    <span className={styles.count} aria-hidden="true">
+                      {count}
+                    </span>
+                  }
+                />
                 <ul id={listId} className={styles.list} hidden={!isExpanded}>
                   {children.map((object) => (
                     <li key={object.id}>
-                      <button
-                        type="button"
+                      <PagePaneRow
                         className={styles.objectRow}
-                        aria-label={object.name}
-                        title={object.name}
+                        name={object.name}
+                        enabled={open && !animating && isExpanded}
                         aria-current={selectedId === object.id ? 'page' : undefined}
                         data-object-id={object.id}
                         onClick={() => navigate(`/editor/${encodeURIComponent(object.id)}`)}
-                      >
-                        <FileText size={15} aria-hidden="true" />
-                        <span className={styles.name}>{object.name}</span>
-                      </button>
+                        leading={<FileText size={15} aria-hidden="true" />}
+                      />
                     </li>
                   ))}
                   {!children.length && <li className={styles.empty}>{t('page_pane_empty')}</li>}

@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }, info) => {
     window.__MOCK_PLATFORM__ = 'windows';
     localStorage.setItem('i18nextLng', 'en-US');
     const objects = Array.from({ length: 40 }, (_, i) => ({
-      id: 'pane-object-' + i, name: i === 0 ? 'Passport for navigation' : 'Identity record ' + i,
+      id: 'pane-object-' + i, name: i === 0 ? 'Passport for navigation' : i === 1 ? 'Object with a long descriptive name here' : 'Identity record ' + i,
       typeId: 'identity', sectionType: 'identity', iconName: 'id-card',
       sensitivityLevel: 'public', createdAt: '2026-10-20', updatedAt: '2026-10-20',
       isDeleted: false, templateId: null, templateType: null, tags: [], hasAttachments: false, properties: {}
@@ -189,4 +189,26 @@ test('pane and editor move together, rapid reversal preserves DOM, reduced motio
   const x = (await content.boundingBox())!.x;
   await page.waitForTimeout(80);
   expect((await content.boundingBox())!.x).toBe(x);
+});
+
+test('long object names scroll alone and remeasure after pane resizing', async ({ page }) => {
+  const row = page.locator('#desktop-page-pane [data-object-id="pane-object-1"]');
+  const label = row.locator('[data-nav-label]');
+  const track = row.locator('[data-label-track]');
+  await expect(label).toHaveAttribute('data-overflow', 'true');
+  const icon = await row.locator('svg').boundingBox();
+  const rowBox = await row.boundingBox();
+  await row.hover();
+  await expect(label).toHaveAttribute('data-scroll-state', 'forward');
+  await expect(label).toHaveAttribute('data-scroll-state', 'tail', { timeout: 10000 });
+  await expect(label).toHaveAttribute('data-fade', 'left');
+  const clip = (await label.boundingBox())!;
+  const text = (await track.boundingBox())!;
+  expect(Math.abs(clip.x + clip.width - text.x - text.width)).toBeLessThan(1);
+  expect(await row.locator('svg').boundingBox()).toEqual(icon);
+  expect(await row.boundingBox()).toEqual(rowBox);
+  await page.getByRole('separator', { name: 'Resize pages and objects' }).focus();
+  await page.keyboard.press('End');
+  await expect(label).toHaveAttribute('data-overflow', 'false');
+  await expect(track).toHaveCSS('transform', 'none');
 });

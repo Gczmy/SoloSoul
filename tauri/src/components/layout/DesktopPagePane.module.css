@@ -145,8 +145,31 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   white-space: nowrap;
+}
+.labelTrack {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+}
+.name[data-overflow='true'] {
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+}
+.name[data-overflow='true'][data-fade='left'] {
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 100%);
+}
+.name[data-overflow='true'][data-fade='both'] {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 10px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+:global(html[data-high-contrast='true']) .name {
+  mask-image: none;
 }
 .objectRow[aria-current='page'] {
   background: var(--state-selected, var(--state-hover));
@@ -183,6 +206,9 @@
   }
 }
 @media (forced-colors: active) {
+  .name {
+    mask-image: none !important;
+  }
   .objectRow[aria-current='page'] {
     background: Highlight;
     color: HighlightText;

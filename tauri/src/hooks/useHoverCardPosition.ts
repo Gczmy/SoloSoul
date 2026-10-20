@@ -16,7 +16,7 @@ interface UseHoverCardPositionOptions {
  * 一律不触发卡片。
  */
 export function useHoverCardPosition(
-  wrapperRef: RefObject<HTMLDivElement | null>,
+  wrapperRef: RefObject<HTMLElement | null>,
   { isHorizontal, isBottom, isRight }: UseHoverCardPositionOptions,
 ) {
   const [cardStyle, setCardStyle] = useState<CSSProperties | null>(null);
