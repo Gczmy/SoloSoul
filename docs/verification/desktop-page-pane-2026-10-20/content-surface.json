@@ -1,0 +1,5 @@
+{
+  "change": "Unified content edge for the directory and editor in Windows fallback frames",
+  "checks": { "playwright": "17 color/layout checks passed: 16 Windows/macOS light/dark palette combinations and Android top-bar controls" },
+  "behavior": "The outer content surface owns border, shadow and corner clipping; the editor does not add a second rounded border around itself. The directory uses the content background."
+}

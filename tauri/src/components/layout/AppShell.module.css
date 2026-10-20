@@ -238,9 +238,25 @@
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface,
+  :global(html[data-desktop-platform='windows']) .appShell .contentSurface[data-page-pane-layout],
   :global(html[data-desktop-platform='windows']) .appShell:not([data-windows-shell]) .content,
   :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .contentSurface {
     border: 1px solid var(--desktop-content-edge);
     box-shadow: var(--desktop-content-shadow);
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appShell:not([data-windows-shell])
+    .contentSurface[data-page-pane-layout] {
+    margin-top: 8px;
+    border-radius: 12px;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appShell:not([data-windows-shell])
+    .contentBody[data-page-pane-body]
+    .content {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
