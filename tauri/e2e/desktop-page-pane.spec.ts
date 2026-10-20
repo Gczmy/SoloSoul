@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
 async function expectTitleOverContent(page: Page) {
@@ -265,7 +265,7 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
   await expect(body).toHaveAttribute('data-pane-animating', 'true');
-  await expect(body).toHaveCSS('transition-duration', '0.32s');
+  await expect(body).toHaveCSS('transition-duration', '0.3s');
   await expect(body).not.toHaveAttribute('data-pane-animating');
   const x = (await content.boundingBox())!.x;
   await page.waitForTimeout(80);
@@ -292,6 +292,83 @@ test('long object names scroll alone and remeasure after pane resizing', async (
   await page.keyboard.press('End');
   await expect(label).toHaveAttribute('data-overflow', 'false');
   await expect(track).toHaveCSS('transform', 'none');
+});
+
+test('pane motion preserves label measurements and reveals a stable opaque surface', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  await expect(pane.locator('[data-object-id]')).toHaveCount(40);
+  await expect(pane.locator('[data-object-id="pane-object-1"] [data-nav-label]')).toHaveAttribute(
+    'data-overflow',
+    'true',
+  );
+  const result = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const pane = document.querySelector<HTMLElement>('#desktop-page-pane')!;
+    const body = document.querySelector<HTMLElement>('[data-page-pane-body]')!;
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    const toggle = document.querySelector<HTMLButtonElement>(
+      '[data-appbar] button[aria-controls="desktop-page-pane"]',
+    )!;
+    const label = pane.querySelector<HTMLElement>(
+      '[data-object-id="pane-object-1"] [data-nav-label]',
+    )!;
+    const original = Element.prototype.getBoundingClientRect;
+    let labelReads = 0;
+    Element.prototype.getBoundingClientRect = function () {
+      if (pane.contains(this) && this.matches('[data-nav-label], [data-label-track]')) {
+        labelReads++;
+      }
+      return original.call(this);
+    };
+    const captures: Array<{
+      open: boolean;
+      samples: Array<{ time: number; x: number; opacity: string; overflow: string | undefined }>;
+    }> = [];
+    try {
+      for (const open of [false, true]) {
+        toggle.click();
+        const start = performance.now();
+        const samples = [];
+        let running = false;
+        for (let i = 0; i < 90; i++) {
+          await new Promise(requestAnimationFrame);
+          samples.push({
+            time: performance.now() - start,
+            x: content.getBoundingClientRect().x,
+            opacity: getComputedStyle(pane).opacity,
+            overflow: label.dataset.overflow,
+          });
+          running ||= Boolean(body.dataset.paneAnimating);
+          if (running && !body.dataset.paneAnimating) break;
+        }
+        captures.push({ open, samples });
+      }
+      return { labelReads, captures };
+    } finally {
+      Element.prototype.getBoundingClientRect = original;
+    }
+  });
+  const capturePath = test.info().outputPath('pane-motion.json');
+  writeFileSync(capturePath, JSON.stringify(result));
+  await test.info().attach('pane-motion-measurement', {
+    path: capturePath,
+    contentType: 'application/json',
+  });
+  expect(result.labelReads).toBe(0);
+  for (const capture of result.captures) {
+    expect(capture.samples.length).toBeGreaterThan(3);
+    expect(capture.samples.every((sample) => sample.opacity === '1')).toBe(true);
+    expect(capture.samples.every((sample) => sample.overflow === 'true')).toBe(true);
+    const positions = capture.samples.map((sample) => sample.x);
+    for (let i = 1; i < positions.length; i++) {
+      const delta = positions[i] - positions[i - 1];
+      expect(capture.open ? delta : -delta).toBeGreaterThanOrEqual(-0.1);
+    }
+  }
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+  await expectTitleOverContent(page);
 });
 
 test('rail Add Page opens the pane then one floating card; folding cancels pending creation', async ({

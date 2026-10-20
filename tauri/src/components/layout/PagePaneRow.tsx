@@ -72,7 +72,8 @@ export function PagePaneRow({
   });
   const { viewportRef, textRef, isOverflowing, staticMode } = useScrollingNavLabel(
     name,
-    enabled,
+    // 面板滑动时实际行宽不变；保留测量和观察器，仅暂停悬停滚动与卡片。
+    true,
     enabled && (hover.isHovered || focused),
   );
   const { handleMouseLeave } = hover;

@@ -1,5 +1,5 @@
 .appShell {
-  --page-pane-motion: 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  --page-pane-motion: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   height: 100vh;
   height: var(--viewport-height, 100vh);
@@ -50,6 +50,8 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  /* 名称与卡片弹层均 Portal 到外部；仅隔离页面树自身的布局和绘制。 */
+  contain: layout paint;
 }
 .contentBody[data-pane-animating] {
   transition: grid-template-columns var(--page-pane-motion);
@@ -61,13 +63,10 @@
   transition: left var(--page-pane-motion);
 }
 .contentBody[data-pane-animating] [data-page-pane] {
-  transition:
-    transform var(--page-pane-motion),
-    opacity var(--page-pane-motion);
+  transition: transform var(--page-pane-motion);
 }
 .contentBody[data-pane-open='false'] [data-page-pane] {
-  transform: translateX(-100%);
-  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
   visibility: hidden;
 }
 .contentBody[data-pane-open='false'][data-pane-animating] [data-page-pane] {

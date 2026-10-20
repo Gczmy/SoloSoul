@@ -8,6 +8,9 @@
   background: var(--shell-content-surface, var(--bg-base));
   font-family: var(--font-sans);
   font-size: 13px;
+  /* 固定宽度的面板只滑动、不淡出；提前保留合成层，避免点击首帧重新栅格化。 */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 .header {
   flex: none;

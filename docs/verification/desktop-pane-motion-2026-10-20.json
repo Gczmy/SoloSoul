@@ -1,0 +1,102 @@
+{
+  "task": "DP-11 Smooth desktop page pane motion",
+  "behavior": {
+    "durationMs": 300,
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "surface": "opaque sliding surface",
+    "paneOnlyContainment": "layout paint",
+    "sharedMotion": [
+      "page pane",
+      "main content boundary",
+      "titlebar title",
+      "titlebar divider",
+      "lower divider"
+    ],
+    "mainContentTransform": "unchanged; none added",
+    "measurement": "retain fixed-width label measurements while pausing interactions",
+    "reducedMotion": "existing application and platform policy preserved"
+  },
+  "measurement": {
+    "publicObjects": 40,
+    "publicPages": 5,
+    "labelGeometryReadsBefore": 180,
+    "labelGeometryReadsAfter": 0,
+    "baseline": "new regression failed on the original code with 180 reads",
+    "parallelBrowserSample": [
+      {
+        "open": false,
+        "samples": 13,
+        "observedDurationMs": 448.7,
+        "medianFrameIntervalMs": 31.25,
+        "maximumFrameIntervalMs": 65.9,
+        "opaqueEveryFrame": true,
+        "labelOverflowPreserved": true
+      },
+      {
+        "open": true,
+        "samples": 9,
+        "observedDurationMs": 308.5,
+        "medianFrameIntervalMs": 31.0,
+        "maximumFrameIntervalMs": 32.6,
+        "opaqueEveryFrame": true,
+        "labelOverflowPreserved": true
+      }
+    ],
+    "isolatedBrowserSample": [
+      {
+        "open": false,
+        "samples": 13,
+        "observedDurationMs": 468.5,
+        "medianFrameIntervalMs": 31.25,
+        "maximumFrameIntervalMs": 105.9,
+        "opaqueEveryFrame": true,
+        "labelOverflowPreserved": true
+      },
+      {
+        "open": true,
+        "samples": 9,
+        "observedDurationMs": 271.6,
+        "medianFrameIntervalMs": 31.4,
+        "maximumFrameIntervalMs": 34.8,
+        "opaqueEveryFrame": true,
+        "labelOverflowPreserved": true
+      }
+    ],
+    "interpretation": "frame samples are diagnostics under local scheduling, not a fixed frame-rate guarantee"
+  },
+  "validation": {
+    "browserDistinctCasesPassed": 29,
+    "browserIsolatedRepeatPassed": 1,
+    "unitFilesPassed": 2,
+    "unitCasesPassed": 12,
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "diffWhitespace": "passed",
+    "fixtureBuild": "passed",
+    "matchedFrontendSources": 134,
+    "matchedNativeSources": 11,
+    "fixtureSha256": "a17c209d2a4d2149d7eda4a0cbde798cb310c96520f838e9319b096d7e3385c8",
+    "checks": [
+      "monotonic pane motion with preserved label overflow",
+      "opaque pane during transitions",
+      "resize and rapid reversal",
+      "title/divider/content alignment",
+      "hover previews and sensitive masking",
+      "Windows native hit regions and editor save/cancel"
+    ],
+    "windowsNative": "public window clicked closed and open; final states observed",
+    "manualVisualAcceptance": "awaiting user",
+    "macosNativeAcceptance": "awaiting device",
+    "otherTasks": "paused",
+    "evidenceSha256": {
+      "baseline": "0d2d1761a4d23e61156c162f97e6c9b292db0d82e1ec238c9b8a58075fb11a1f",
+      "e2e": "072f9b8e14ea1dfb2c3105873c272eeddf4cfbcea0bbdf64ebc70e50ce3e8a83",
+      "isolated-motion": "821fda2fee9f9199fa50d80796874e1f71b8c2d1906c5ec730ea896b8a73f6e9",
+      "unit": "5d7c7f1054be1265f9daa6c38a27fd659d828572dd6cf484682a640f8a659584",
+      "types": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fixture-build": "ec50be4918a4db2da948e71307573c1dde63b1c792debcbf21489551d1cae4f4"
+    }
+  },
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths, process IDs and account data remain local"
+}
