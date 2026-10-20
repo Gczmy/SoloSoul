@@ -68,6 +68,8 @@ for (const platform of ['macos', 'windows'] as const) {
           ink,
         );
         await expect(page.locator('[data-appbar] h1')).toHaveCSS('color', primaryInk);
+        await expect(page.locator('[data-appbar] h1')).toHaveCSS('font-weight', '400');
+        await expect(page.locator('[data-appbar] h1')).toHaveCSS('font-size', '15px');
         await home.hover();
         await expect(home).toHaveCSS('color', primaryInk);
         await page.mouse.move(600, 700);

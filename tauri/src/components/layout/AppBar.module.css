@@ -320,3 +320,20 @@
     color: var(--text-primary);
   }
 }
+
+/* 桌面标题通过字号区分层次，不使用粗体；保留移动端原有排版。 */
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .appBar {
+  --appbar-button-font-size: 13px;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos']))
+  .appBar
+  .title {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos']))
+  .appBar
+  button {
+  font-weight: 400;
+}

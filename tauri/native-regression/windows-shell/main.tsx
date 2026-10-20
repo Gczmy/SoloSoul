@@ -198,7 +198,9 @@ function Fixture() {
               actions={actions}
               onBack={location.pathname === '/' ? undefined : () => navigate('/')}
             >
-              <h2>{selectedObject?.name ?? '最新桌面布局 · Windows 原生验收'}</h2>
+              <h2 style={{ fontSize: 16, lineHeight: '24px', fontWeight: 400 }}>
+                {selectedObject?.name ?? '最新桌面布局 · Windows 原生验收'}
+              </h2>
               <p id="fixture-motion-status" role="status">
                 {systemLimited
                   ? '系统正在减少动态效果。请先在 Windows 中启用动画效果，再使用顶栏开关验收；本窗口遵循系统设置。'

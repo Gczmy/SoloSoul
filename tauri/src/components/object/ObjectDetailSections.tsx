@@ -42,8 +42,8 @@ export function ObjectDetailHeader({
         <div>
           <h2
             style={{
-              fontSize: 'var(--text-md)',
-              fontWeight: 700,
+              fontSize: 'var(--object-ui-title-size, var(--text-md))',
+              fontWeight: 'var(--object-ui-font-weight, 700)',
               margin: 0,
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
@@ -140,7 +140,7 @@ export function ObjectDetailTemplateSyncBanner({
             background: 'var(--accent-primary)',
             color: '#fff',
             fontSize: 'var(--text-caption)',
-            fontWeight: 600,
+            fontWeight: 'var(--object-ui-font-weight, 600)',
             cursor: 'pointer',
           }}
         >
@@ -155,7 +155,7 @@ export function ObjectDetailTemplateSyncBanner({
             background: 'var(--bg-elevated)',
             color: 'var(--text-secondary)',
             fontSize: 'var(--text-caption)',
-            fontWeight: 500,
+            fontWeight: 'var(--object-ui-font-weight, 500)',
             cursor: 'pointer',
           }}
         >

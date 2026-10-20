@@ -7,7 +7,7 @@
 
 .label {
   font-size: var(--text-body-sm);
-  font-weight: 500;
+  font-weight: var(--object-ui-font-weight, 500);
   color: var(--text-secondary, #666);
 }
 
@@ -19,7 +19,7 @@
 
 .labelText {
   font-size: var(--text-body-sm);
-  font-weight: 500;
+  font-weight: var(--object-ui-font-weight, 500);
   color: var(--text-secondary, #666);
 }
 

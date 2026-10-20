@@ -41,7 +41,13 @@ export function ObjectTemplateSelector({
   if (isNew) {
     return (
       <Card>
-        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
+        <h3
+          style={{
+            fontSize: 'var(--object-ui-title-size, var(--text-body))',
+            fontWeight: 'var(--object-ui-font-weight, 600)',
+            marginBottom: 12,
+          }}
+        >
           {t('common:object_type')}
         </h3>
         {typeId && (
@@ -162,7 +168,7 @@ export function ObjectTemplateSelector({
         <span
           style={{
             fontSize: 'var(--text-caption)',
-            fontWeight: 500,
+            fontWeight: 'var(--object-ui-font-weight, 500)',
             padding: '2px 8px',
             borderRadius: 4,
             background: 'rgba(91,124,153,0.08)',

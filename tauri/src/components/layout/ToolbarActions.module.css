@@ -9,7 +9,7 @@
 .toolbar {
   position: relative;
   --button-padding: var(--appbar-button-padding, 6px 12px);
-  --button-font-size: 14px;
+  --button-font-size: var(--appbar-button-font-size, 14px);
   --button-min-height: var(--appbar-control-size, 32px);
 }
 .toggle {

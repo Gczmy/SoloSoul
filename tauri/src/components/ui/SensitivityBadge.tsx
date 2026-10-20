@@ -55,7 +55,7 @@ export const SensitivityBadge = memo(function SensitivityBadge({
         alignItems: 'center',
         gap: 3,
         fontSize: 'var(--text-badge)',
-        fontWeight: 600,
+        fontWeight: 'var(--object-ui-font-weight, 600)',
         padding: showText ? '2px 6px' : '2px 4px',
         borderRadius: 4,
         background: s.bg,

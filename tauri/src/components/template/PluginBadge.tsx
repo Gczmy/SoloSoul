@@ -77,8 +77,8 @@ export function PluginBadge({ contractTypeId, size = 'sm', variant = 'full' }: P
         borderRadius: 4,
         background: bgColor,
         color: fgColor,
-        fontSize: isSmall ? 10 : 12,
-        fontWeight: 500,
+        fontSize: isSmall ? 'var(--object-ui-caption-size, 10px)' : 12,
+        fontWeight: 'var(--object-ui-font-weight, 500)',
         lineHeight: 1.4,
         whiteSpace: 'nowrap',
       }}

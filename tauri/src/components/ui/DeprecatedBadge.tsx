@@ -9,7 +9,7 @@ export function DeprecatedBadge() {
         alignItems: 'center',
         gap: 3,
         fontSize: 'var(--text-badge)',
-        fontWeight: 600,
+        fontWeight: 'var(--object-ui-font-weight, 600)',
         padding: '2px 6px',
         borderRadius: 4,
         background: 'rgba(128,128,128,0.10)',

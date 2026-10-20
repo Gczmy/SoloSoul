@@ -322,6 +322,8 @@ test('page and object hover cards reuse ruler appearance, mask fields and naviga
   await pane.locator('[data-page-id="identity"]').hover();
   const pageCard = page.getByRole('region', { name: 'Page details', exact: true });
   await expect(pageCard.getByRole('heading', { name: 'Identity', exact: true })).toBeVisible();
+  await expect(pageCard.getByRole('heading')).toHaveCSS('font-weight', '400');
+  await expect(pageCard.getByRole('heading')).toHaveCSS('font-size', '15px');
   await expect(pageCard).toContainText('40 objects');
   await expect(pageCard).toHaveCSS('border-radius', '14px');
   await pageCard.hover();
@@ -332,6 +334,9 @@ test('page and object hover cards reuse ruler appearance, mask fields and naviga
   await pane.locator('[data-object-id="pane-object-0"]').hover();
   const objectCard = page.getByRole('region', { name: 'Object details', exact: true });
   await expect(objectCard.getByRole('heading', { name: 'Passport for navigation' })).toBeVisible();
+  await expect(objectCard.getByRole('heading')).toHaveCSS('font-weight', '400');
+  await expect(objectCard.locator('dt').first()).toHaveCSS('font-size', '12px');
+  await expect(objectCard.locator('dd').first()).toHaveCSS('font-size', '13px');
   await expect(objectCard).toContainText('Public preview body');
   await expect(objectCard).not.toContainText('MUST-NOT-SHOW-PREVIEW');
   await expect(objectCard).toContainText('••••••••');
