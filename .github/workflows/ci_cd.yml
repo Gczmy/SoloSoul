@@ -62,7 +62,8 @@ jobs:
   frontend-check:
     name: ${{ github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks' }}
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    # Keep browser checks on a runner supported by the locked Playwright version.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tauri
@@ -419,7 +420,8 @@ jobs:
   # ============================================================
   mobile-e2e-smoke:
     name: Mobile E2E Smoke Tests
-    runs-on: ubuntu-latest
+    # Use the same supported Playwright runner as the production frontend smoke.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tauri
