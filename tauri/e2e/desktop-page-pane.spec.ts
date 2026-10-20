@@ -1,6 +1,22 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
+
+async function expectTitleOverContent(page: Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+        const title = document.querySelector<HTMLElement>('[data-appbar] h1')!;
+        return Math.abs(
+          title.getBoundingClientRect().x -
+            content.getBoundingClientRect().x -
+            parseFloat(getComputedStyle(content).paddingLeft),
+        );
+      }),
+    )
+    .toBeLessThan(1);
+}
 
 test.beforeEach(async ({ page }, info) => {
   page.on('pageerror', (error) => console.error('Page error:', error.message));
@@ -111,26 +127,31 @@ test('resizer supports pointer capture, bounds, keyboard, reset and persistence'
   const pane = page.locator('#desktop-page-pane');
   const divider = page.locator('[role="separator"][aria-controls="desktop-page-pane"]');
   await expect(pane).toHaveCSS('width', '264px');
+  await expectTitleOverContent(page);
   let box = (await divider.boundingBox())!;
   await page.mouse.move(box.x + 4, box.y + box.height / 2);
   await page.mouse.down();
   await page.mouse.move(box.x + 800, box.y + box.height / 2, { steps: 8 });
-  await page.mouse.up();
   await expect(pane).toHaveCSS('width', '400px');
+  await expectTitleOverContent(page);
+  await page.mouse.up();
   await divider.focus();
   await page.keyboard.press('Home');
   await expect(pane).toHaveCSS('width', '200px');
+  await expectTitleOverContent(page);
   await page.keyboard.press('Shift+ArrowRight');
   await expect(pane).toHaveCSS('width', '232px');
   await page.keyboard.press('ArrowRight');
   await expect(divider).toHaveAttribute('aria-valuenow', '240');
   await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
   await expect(divider).toHaveAttribute('tabindex', '-1');
+  await expectTitleOverContent(page);
   await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
   await expect(pane).toHaveCSS('width', '240px');
   await page.reload();
   await login(page);
   await expect(pane).toHaveCSS('width', '240px');
+  await expectTitleOverContent(page);
   box = (await divider.boundingBox())!;
   await page.mouse.move(box.x + 4, box.y + box.height / 2);
   await page.mouse.down();
@@ -139,6 +160,9 @@ test('resizer supports pointer capture, bounds, keyboard, reset and persistence'
   await expect(pane).toHaveCSS('width', '200px');
   await divider.dblclick();
   await expect(pane).toHaveCSS('width', '264px');
+  await expectTitleOverContent(page);
+  await page.setViewportSize({ width: 800, height: 600 });
+  await expectTitleOverContent(page);
   await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
 });
 
@@ -151,13 +175,24 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
   await content.evaluate((el) => {
     el.dataset.motionSentinel = 'retained';
   });
-  const frames = await page.evaluate(async () => {
+  const { frames, titleOffsets } = await page.evaluate(async () => {
     const toggle = document.querySelector<HTMLButtonElement>(
       '[data-appbar] button[aria-controls="desktop-page-pane"]',
     )!;
     const pane = document.querySelector<HTMLElement>('#desktop-page-pane')!;
     const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
     const rail = document.querySelector<HTMLElement>('#desktop-navigation')!;
+    const title = document.querySelector<HTMLElement>('[data-appbar] h1')!;
+    const titleOffsets: number[] = [];
+    // ResizeObserver runs before paint, after the shell publishes the current content boundary.
+    const observer = new ResizeObserver(() => {
+      titleOffsets.push(
+        title.getBoundingClientRect().x -
+          content.getBoundingClientRect().x -
+          parseFloat(getComputedStyle(content).paddingLeft),
+      );
+    });
+    observer.observe(content);
     const values = [];
     toggle.click();
     for (let i = 0; i < 14; i++) {
@@ -174,7 +209,9 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
     await new Promise(requestAnimationFrame);
     await new Promise(requestAnimationFrame);
     toggle.click();
-    return values;
+    await new Promise(requestAnimationFrame);
+    observer.disconnect();
+    return { frames: values, titleOffsets };
   });
   expect(new Set(frames.map((frame) => Math.round(frame.x))).size).toBeGreaterThan(3);
   expect(
@@ -185,8 +222,11 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
         frame.railWidth === 64,
     ),
   ).toBe(true);
+  expect(titleOffsets.length).toBeGreaterThan(3);
+  expect(titleOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);
   await expect(body).not.toHaveAttribute('data-pane-animating');
   await expect(content).toHaveAttribute('data-motion-sentinel', 'retained');
+  await expectTitleOverContent(page);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
   await expect(body).toHaveAttribute('data-pane-animating', 'true');

@@ -220,11 +220,13 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       data-macos-shell={(isMacOS && !isNarrowViewport && !isAndroid) || undefined}
       data-windows-shell={windowsShell || undefined}
       data-navigation={effectivePosition}
+      data-page-pane-animating={(desktopPane && paneAnimating) || undefined}
       style={
         {
           '--appbar-height': `${appbarHeight}px`,
           // 与图文布局同次提交；子组件测量时不能继承上一状态的全局宽度。
           '--sidebar-width': `${sidebarWidth}px`,
+          '--page-pane-width': `${paneResize.width}px`,
           flexDirection: isHorizontal
             ? effectivePosition === 'top'
               ? 'column'
@@ -273,7 +275,6 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             data-pane-open={paneOpen}
             data-pane-resizing={paneResize.resizing || undefined}
             data-pane-animating={paneAnimating || undefined}
-            style={{ '--page-pane-width': `${paneResize.width}px` } as CSSProperties}
           >
             {desktopPane && (
               <div className={styles.paneSlot}>

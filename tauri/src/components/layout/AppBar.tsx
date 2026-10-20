@@ -114,6 +114,8 @@ export function AppBar({
           '--windows-page-title-left': `calc(${contentLeft} + 12px)`,
           '--windows-page-trailing-inset':
             sidebarPosition === 'right' ? 'calc(var(--sidebar-width) + 12px)' : '12px',
+          '--page-pane-title-offset':
+            pagePane && paneOpen ? 'var(--page-pane-width, 264px)' : '0px',
         } as CSSProperties
       }
       className={[

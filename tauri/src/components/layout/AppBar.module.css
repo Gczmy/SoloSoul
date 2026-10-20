@@ -25,7 +25,12 @@
 @media (min-width: 768px) {
   .appBar[data-page-pane-toggle] {
     left: 0;
-    padding-left: calc(var(--sidebar-width, 64px) + 12px);
+    /* 与正文使用同一页面树宽度和过渡参数，避免尺寸监听反向修改顶栏。 */
+    --page-pane-title-left: calc(
+      var(--sidebar-width, 64px) + var(--page-pane-title-offset, 0px) +
+        var(--page-pane-shell-inset, 0px) + var(--shell-page-padding, 24px)
+    );
+    padding-left: var(--page-pane-title-left);
   }
   .appBar[data-page-pane-toggle] .sidebarToggle {
     position: absolute;
@@ -44,9 +49,10 @@
     cursor: pointer;
   }
   .appBar[data-macos-shell][data-native-compact='true'] {
+    --page-pane-shell-inset: calc(var(--mac-content-inset, 8px) + 1px);
     left: 0;
     right: 0;
-    padding-left: calc(var(--mac-page-title-left) + 12px);
+    padding-left: max(calc(var(--mac-page-title-left) + 12px), var(--page-pane-title-left, 0px));
     border-bottom: 0;
     background: transparent;
   }
@@ -265,8 +271,9 @@
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appBar[data-page-pane-toggle] {
+    --page-pane-shell-inset: calc(var(--windows-content-inset-left, 0px) + 1px);
     left: 0;
-    padding-left: calc(var(--sidebar-width, 64px) + 12px);
+    padding-left: var(--page-pane-title-left);
   }
   .appBar[data-page-pane-toggle] .sidebarToggle:active {
     background: var(--state-pressed);
