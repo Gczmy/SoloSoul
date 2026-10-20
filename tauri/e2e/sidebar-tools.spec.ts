@@ -84,7 +84,7 @@ for (const position of ['left', 'right'] as const) {
     const identity = nav.getByRole('button', { name: 'Identity', exact: true });
     expect(await buttonAppearance(addPage)).toEqual(await buttonAppearance(identity));
     await addPage.hover();
-    await expect(page.locator('[role="tooltip"]')).toHaveCount(0);
+    await expect(page.locator('[role="tooltip"]')).toHaveText('Add Page');
     const addPageBounds = await addPage.boundingBox();
     const identityBounds = await nav
       .getByRole('button', { name: 'Identity', exact: true })
@@ -140,7 +140,8 @@ for (const position of ['left', 'right'] as const) {
   test(`${position} 折叠侧栏使用向上玻璃菜单，缩放和操作卡片不挤动导航`, async ({ page }) => {
     await setupSidebar(page, position);
     const nav = page.locator('#desktop-navigation');
-    await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+    await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+    await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
     const tools = nav.getByRole('button', { name: 'Tools', exact: true });
     const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
     const menu = nav.locator('[data-sidebar-tools]');
@@ -194,7 +195,8 @@ test('添加页面在折叠侧栏复用导航的提示卡片，展开后不重�
   const nav = page.locator('#desktop-navigation');
   const addPage = nav.getByRole('button', { name: 'Add Page', exact: true });
   const identity = nav.getByRole('button', { name: 'Identity', exact: true });
-  await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+  await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   expect(await buttonAppearance(addPage)).toEqual(await buttonAppearance(identity));
   await identity.hover();
   const tooltip = page.locator('[role="tooltip"]');
@@ -203,9 +205,10 @@ test('添加页面在折叠侧栏复用导航的提示卡片，展开后不重�
   await addPage.hover();
   await expect(tooltip).toHaveText('Add Page');
   await expect(tooltip).toHaveAttribute('class', tooltipClass!);
-  await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
+  await page.getByRole('button', { name: 'Show pages and objects', exact: true }).click();
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   await addPage.hover();
-  await expect(tooltip).toHaveCount(0);
+  await expect(tooltip).toHaveText('Add Page');
 });
 
 for (const position of ['left', 'right'] as const) {
@@ -217,7 +220,10 @@ for (const position of ['left', 'right'] as const) {
       await setupSidebar(page, position);
       const nav = page.locator('#desktop-navigation');
       if (collapsed)
-        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+      await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+        'data-pane-animating',
+      );
       const trigger = nav.getByRole('button', { name: 'Add Page', exact: true });
       const triggerBounds = (await trigger.boundingBox())!;
       await trigger.click();
@@ -276,7 +282,9 @@ for (const position of ['top', 'bottom'] as const) {
     await page.setViewportSize({ width: 1000, height: 600 });
     await setupSidebar(page, position);
     const tools = page.getByRole('button', { name: 'Tools', exact: true });
-    const trigger = page.getByRole('button', { name: 'Add Page', exact: true });
+    const trigger = page
+      .locator('#desktop-navigation')
+      .getByRole('button', { name: 'Add Page', exact: true });
     await tools.hover();
     await expect(tools).toHaveAttribute('aria-expanded', 'true');
     await trigger.click();
@@ -292,7 +300,7 @@ for (const position of ['top', 'bottom'] as const) {
     });
     const openingBounds = (await card.boundingBox())!;
 
-    // 真实悬停离开工具区后，添加按钮随菜单收起向右移动；已打开的卡片不能跟随。
+    // 旧上下导航配置已归一为图标栏，工具收起不能移动入口和已打开的目录卡片。
     // 经过按钮与卡片的间隙，避免 hover 瞬移到 React Portal 后仍被视为组件内部移动。
     await page.mouse.move(
       openingTriggerBounds.x + openingTriggerBounds.width / 2,
@@ -305,12 +313,12 @@ for (const position of ['top', 'bottom'] as const) {
     await tools.evaluate(async (element) => {
       await Promise.all(
         element
-          .closest('header')!
+          .closest('nav')!
           .getAnimations({ subtree: true })
           .map((animation) => animation.finished),
       );
     });
-    expect((await trigger.boundingBox())!.x - openingTriggerBounds.x).toBeGreaterThan(100);
+    expect(await trigger.boundingBox()).toEqual(openingTriggerBounds);
     expect(await card.boundingBox()).toEqual(openingBounds);
     await page.mouse.wheel(0, 300);
     await expect.poll(() => icons.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
@@ -326,15 +334,14 @@ for (const position of ['top', 'bottom'] as const) {
     await card.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(card).toHaveCount(0);
 
-    // 关闭重开应取新锚点；底栏卡片沿用居中布局，上栏卡片靠近当前添加按钮。
+    // 关闭重开沿用目录按钮锚点，旧偏好不能恢复已经关闭的横向导航。
     await trigger.click();
     await card.evaluate(async (element) => {
       await Promise.all(element.getAnimations().map((animation) => animation.finished));
     });
     await expect(tools).toHaveAttribute('aria-expanded', 'false');
     const reopenedBounds = (await card.boundingBox())!;
-    if (position === 'top') expect(reopenedBounds.x).toBeGreaterThan(openingBounds.x + 100);
-    else expect(reopenedBounds).toEqual(openingBounds);
+    expect(reopenedBounds).toEqual(openingBounds);
 
     // 固定打开锚点不应阻止窗口缩小时避让视口边缘。
     await page.setViewportSize({ width: 800, height: 480 });
@@ -360,7 +367,10 @@ for (const position of ['left', 'right'] as const) {
       await setupSidebar(page, position);
       const nav = page.locator('#desktop-navigation');
       if (collapsed)
-        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+      await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+        'data-pane-animating',
+      );
       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
       const search = nav.getByRole('button', { name: 'Search', exact: true });
       const input = page.getByPlaceholder('Search objects, profiles...');
@@ -431,7 +441,11 @@ test('小窗口工具列表利用剩余高度，卡片打开期间保持菜单�
   await tools.hover();
   const bounds = (await list.boundingBox())!;
   expect(bounds.height).toBeGreaterThan(300);
-  expect(bounds.y).toBeGreaterThanOrEqual(100);
+  const navigationStart = await nav.evaluate(
+    (element) =>
+      element.getBoundingClientRect().top + parseFloat(getComputedStyle(element).paddingTop),
+  );
+  expect(bounds.y).toBeGreaterThanOrEqual(navigationStart + 8);
   expect(bounds.y + bounds.height).toBeLessThanOrEqual((await tools.boundingBox())!.y);
   await list.getByRole('button', { name: 'AI Chat', exact: true }).scrollIntoViewIfNeeded();
   await list.getByRole('button', { name: 'AI Chat', exact: true }).click();
@@ -590,7 +604,10 @@ for (const platform of ['macos', 'windows']) {
         await setupSidebar(page, position, platform);
         const nav = page.locator('#desktop-navigation');
         if (collapsed)
-          await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+          await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+        await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+          'data-pane-animating',
+        );
         const tools = nav.getByRole('button', { name: 'Tools', exact: true });
         const menu = nav.locator('[data-sidebar-tools]');
         const toggleBounds = await tools.boundingBox();

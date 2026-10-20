@@ -13,6 +13,7 @@ import { useShellConfigStore } from './shellConfigStore';
 vi.mock('./SideNavigation', () => ({ SideNavigation: () => <nav /> }));
 vi.mock('./TopFunctionBar', () => ({ TopFunctionBar: () => <nav /> }));
 vi.mock('./MobileBottomNav', () => ({ MobileBottomNav: () => <nav /> }));
+vi.mock('./DesktopPagePane', () => ({ DesktopPagePane: () => null }));
 vi.mock('@/components/android/AndroidNavigation', () => ({
   AndroidNavigation: () => <nav />,
 }));
@@ -74,7 +75,12 @@ function expectEmptyConfig() {
 function expectEmptyHeader() {
   expectEmptyConfig();
   expect(screen.getByRole('heading', { level: 1 })).toBeEmptyDOMElement();
-  expect(document.querySelector('[data-appbar] button')).toBeNull();
+  expect(
+    document.querySelector('[data-appbar] button:not([aria-controls="desktop-page-pane"])'),
+  ).toBeNull();
+  expect(
+    document.querySelector('[data-appbar] button[aria-controls="desktop-page-pane"]'),
+  ).toBeInTheDocument();
 }
 
 function clickPageActions(page: ReturnType<typeof configuredPage>) {

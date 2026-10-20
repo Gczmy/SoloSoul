@@ -151,7 +151,7 @@ export function AddPageButton({
     onError,
   });
   // 解构出子 hook 的稳定函数，供本组件 useCallback 依赖使用（避免每次渲染新建对象）
-  const { handleCancel: resetForm, handleConfirm: confirmForm } = form;
+  const { handleCancel: resetForm, handleConfirm: confirmForm, setSelectedIconId } = form;
 
   // 关闭弹层并重置表单
   const handleCancel = useCallback(() => {
@@ -178,8 +178,8 @@ export function AddPageButton({
     });
     setViewport(readViewport());
     setIsCreating(true);
-    form.setSelectedIconId(DEFAULT_CUSTOM_ICON);
-  }, [isCreating, enabled, onOpenRequest, form.setSelectedIconId]);
+    setSelectedIconId(DEFAULT_CUSTOM_ICON);
+  }, [isCreating, enabled, onOpenRequest, setSelectedIconId]);
   useEffect(() => {
     if (openRequest == null || openRequest === lastOpenRequest.current || !enabled) return;
     lastOpenRequest.current = openRequest;

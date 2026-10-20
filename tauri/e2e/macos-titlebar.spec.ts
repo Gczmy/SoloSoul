@@ -109,14 +109,17 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       expect(surfaces.sidebar).toBe('rgba(0, 0, 0, 0)');
       const sidebar = page.locator('#desktop-navigation');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
-      const toggle = header.getByRole('button', { name: 'Collapse sidebar' });
+      const toggle = header.getByRole('button', { name: 'Hide pages and objects' });
       await expectNativeControl(toggle);
       const toggleBefore = await toggle.boundingBox();
       await toggle.click();
-      const expandedToggle = header.getByRole('button', { name: 'Expand sidebar' });
+      await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+        'data-pane-animating',
+      );
+      const expandedToggle = header.getByRole('button', { name: 'Show pages and objects' });
       expect(await expandedToggle.boundingBox()).toEqual(toggleBefore);
       await expectNativeControl(expandedToggle);
-      await expect(sidebar.getByRole('button', { name: 'Expand sidebar' })).toHaveCount(0);
+      await expect(sidebar.getByRole('button', { name: 'Show pages and objects' })).toHaveCount(0);
       await expect(sidebar).toHaveCSS('width', '95px');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
       // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
@@ -155,7 +158,8 @@ test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ pa
   const create = header.getByRole('button', { name: '+ New', exact: true });
   await expectNativeControl(back);
   await expectNativeControl(create);
-  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await page.getByRole('button', { name: 'Hide pages and objects' }).click();
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   await expect(sidebar).toHaveCSS('width', '95px');
   await expectNativeControl(back);
   expect((await back.boundingBox())!.x).toBeGreaterThanOrEqual(91);
@@ -178,7 +182,8 @@ test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ p
   await mockMacOS(page);
   await login(page);
   const sidebar = page.locator('#desktop-navigation');
-  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await page.getByRole('button', { name: 'Hide pages and objects' }).click();
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   for (const height of [0, 52]) {
     await page.evaluate((value) => {
       Object.assign(window, { __NATIVE_TITLEBAR_HEIGHT__: value });
@@ -196,11 +201,12 @@ test('macOS 交通灯范围变宽时折叠侧栏和正文同步避让', async ({
   await mockMacOS(page, 'left', 106);
   await login(page);
   const sidebar = page.locator('#desktop-navigation');
-  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await page.getByRole('button', { name: 'Hide pages and objects' }).click();
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   await expect(sidebar).toHaveCSS('width', '122px');
   expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(0);
   expect((await page.locator('main').boundingBox())!.x).toBe(131);
-  const toggle = page.getByRole('button', { name: 'Expand sidebar' });
+  const toggle = page.getByRole('button', { name: 'Show pages and objects' });
   expect((await toggle.boundingBox())!.x).toBe(118);
   await expectNativeControl(toggle);
 });

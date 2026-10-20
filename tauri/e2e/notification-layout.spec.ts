@@ -138,7 +138,8 @@ async function expectUnobscuredContent(page: Page) {
           rect.height > 120 &&
           Math.abs(top - rect.top) < 1 &&
           Math.abs(height - rect.height) < 1 &&
-          slot.parentElement === content.parentElement &&
+          (slot.parentElement === content.parentElement ||
+            slot.nextElementSibling === content.parentElement) &&
           !['fixed', 'absolute'].includes(getComputedStyle(slot).position) &&
           !!hit &&
           content.contains(hit) &&
