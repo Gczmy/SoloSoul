@@ -83,6 +83,16 @@ async function expectThemeBackground(page: Page, schemeId: string) {
     .toBe(scheme.variables['--bg-base']);
 }
 
+async function expectWindowsContentSurface(page: Page, schemeId: string) {
+  // 页面树与正文共用外层内容面；main 只负责滚动，不能用它判断实际绘制颜色。
+  const surface = page.locator('[data-shell-surface][data-page-pane-layout]');
+  const color = getSchemeById(schemeId, 'desktop')!.variables['--bg-base'];
+  const channels = [1, 3, 5].map((offset) => parseInt(color.slice(offset, offset + 2), 16));
+  await expect(surface).toHaveCSS('background-color', `rgb(${channels.join(', ')})`);
+  await expect(surface).toHaveCSS('border-top-style', 'solid');
+  await expect(surface).toHaveCSS('border-top-width', '1px');
+}
+
 // 只验证浏览器 CSS 与模拟 IPC 参数一致，不代表真实 Windows/Android 材质验收。
 for (const { systemMode, mediaMode, schemeId } of [
   { systemMode: 'dark', mediaMode: 'light', schemeId: 'deep-ocean' },
@@ -142,10 +152,7 @@ for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cre
     );
     await page.screenshot({ path: `test-results/login-${scheme}.png` });
     await login(page);
-    const surface = await page
-      .locator('main')
-      .evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(surface).not.toBe('rgba(0, 0, 0, 0)');
+    await expectWindowsContentSurface(page, scheme);
     await expect(page.locator('[data-appbar]')).toHaveCSS(
       'background-color',
       await page.locator('html').evaluate((el) => getComputedStyle(el).backgroundColor),
@@ -174,10 +181,7 @@ test('同一深色模式切换配色后，实色外壳保持中性灰，正文�
       'background-color',
       'rgb(24, 24, 24)',
     );
-    const surface = await page
-      .locator('main')
-      .evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(surface).not.toBe('rgba(0, 0, 0, 0)');
+    await expectWindowsContentSurface(page, scheme);
     await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', 'rgb(24, 24, 24)');
     await expect(page.locator('[data-appbar]')).toHaveCSS('background-image', 'none');
   }
@@ -203,7 +207,8 @@ test('Windows 实色回退仍能区分外壳和正文', async ({ page }) => {
   const surface = await header.evaluate((el) => getComputedStyle(el).backgroundColor);
   await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', surface);
   expect(surface).not.toBe('rgba(0, 0, 0, 0)');
-  await expect(page.locator('main')).not.toHaveCSS('background-color', surface);
+  await expectWindowsContentSurface(page, 'warm-stone-dark');
+  await expect(page.locator('[data-shell-surface]')).not.toHaveCSS('background-color', surface);
   await expectThemeBackground(page, 'warm-stone-dark');
 });
 
@@ -211,12 +216,13 @@ test('Windows 强制颜色模式关闭透明背景并保留正文边界', async 
   await mockTheme(page, 'warm-stone-dark');
   await login(page);
   await page.emulateMedia({ forcedColors: 'active' });
-  for (const selector of ['html', 'body', '#root', 'main', '[data-appbar]']) {
+  for (const selector of ['html', 'body', '#root', 'main', '[data-shell-surface]', '[data-appbar]']) {
     await expect(page.locator(selector)).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   }
-  await expect(page.locator('main')).toHaveCSS('border-top-style', 'solid');
-  await expect(page.locator('main')).toHaveCSS('border-top-width', '1px');
-  await expect(page.locator('main')).toHaveCSS('box-shadow', 'none');
+  const surface = page.locator('[data-shell-surface]');
+  await expect(surface).toHaveCSS('border-top-style', 'solid');
+  await expect(surface).toHaveCSS('border-top-width', '1px');
+  await expect(surface).toHaveCSS('box-shadow', 'none');
 });
 
 test('深色切换期间即使旧原生材质仍为 Mica，外壳也保持中性底色', async ({ page }) => {

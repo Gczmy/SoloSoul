@@ -1,0 +1,36 @@
+{
+  "task": "DP-13 Production theme regression surface targeting",
+  "pullRequest": "https://github.com/Gczmy/SoloSoul/pull/15",
+  "reviewedBaseHead": "a621003a64e54060a7bf64c185aa87985e0e5f33",
+  "rootCause": "The page pane shares the outer shell content surface with the scrollable main; old production theme assertions still targeted main for fill and border",
+  "productionChanges": false,
+  "ciFailure": {
+    "workflowRun": 39460060918,
+    "job": 118756883873,
+    "productionBrowserPassed": 1293,
+    "oldSurfaceAssertionsFailed": 6
+  },
+  "validation": {
+    "productionNativeThemeCasesPassed": 23,
+    "productionNativeThemeCasesFailed": 0,
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "interruptedAttempt": "Local loopback access blocked by the sandbox; owned test processes cleaned up; not counted as a pass",
+    "strictChecksRetained": [
+      "exact desktop content surface theme color",
+      "1px solid content boundary",
+      "neutral native shell and appbar color",
+      "solid fallback shell/content distinction",
+      "opaque forced-colors surfaces and no shadow",
+      "Android and iOS theme source isolation"
+    ],
+    "latestCommitCI": "all checks required before merge; tracked in PR",
+    "otherTasks": "paused",
+    "evidenceSha256": {
+      "production-native-theme": "fede06d40a8ee70e230d2fa6c2976d3f0e9e841abd579b24447c21707c66c7a5",
+      "typescript": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths, process IDs and account data remain local"
+}
