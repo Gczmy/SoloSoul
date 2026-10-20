@@ -56,6 +56,9 @@ export function AddPageButton({
   showLabel,
   showDescription,
   enabled = true,
+  onOpenRequest,
+  openRequest,
+  placement = 'sidebar',
 }: {
   onCreate: (page: CustomPage) => void;
   position?: import('./NavButton').NavPosition;
@@ -64,6 +67,9 @@ export function AddPageButton({
   showLabel?: boolean;
   showDescription?: boolean;
   enabled?: boolean;
+  onOpenRequest?: () => void;
+  openRequest?: number | null;
+  placement?: 'sidebar' | 'below';
 }) {
   const isHorizontal = position === 'top' || position === 'bottom';
   const sidebarExpanded = useContext(DesktopSidebarContext) && !isHorizontal;
@@ -83,6 +89,7 @@ export function AddPageButton({
     bottomInset: number;
   } | null>(null);
   const buttonRect = openingAnchor?.rect;
+  const lastOpenRequest = useRef(openRequest);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -97,9 +104,20 @@ export function AddPageButton({
     if (isHorizontal) return Math.max(buttonRect.bottom + 8, topReserved);
     return Math.max(
       topReserved,
-      Math.min(buttonRect.top, viewportHeight - POPOVER_BOTTOM_MARGIN - sidebarPopoverHeight),
+      Math.min(
+        placement === 'below' ? buttonRect.bottom + 8 : buttonRect.top,
+        viewportHeight - POPOVER_BOTTOM_MARGIN - sidebarPopoverHeight,
+      ),
     );
-  }, [buttonRect, isHorizontal, isBottom, topReserved, viewportHeight, sidebarPopoverHeight]);
+  }, [
+    buttonRect,
+    isHorizontal,
+    isBottom,
+    topReserved,
+    viewportHeight,
+    sidebarPopoverHeight,
+    placement,
+  ]);
 
   // Compute max height for icon picker scroll area based on available viewport space
   const scrollMaxHeight = useMemo(() => {
@@ -144,6 +162,29 @@ export function AddPageButton({
   useEffect(() => {
     if (!enabled) handleCancel();
   }, [enabled, handleCancel]);
+
+  const handleOpen = useCallback(() => {
+    if (isCreating || !enabled) return;
+    if (onOpenRequest) {
+      onOpenRequest();
+      return;
+    }
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setOpeningAnchor({
+      rect,
+      rightInset: window.innerWidth - rect.left + 8,
+      bottomInset: window.innerHeight - rect.top + 8,
+    });
+    setViewport(readViewport());
+    setIsCreating(true);
+    form.setSelectedIconId(DEFAULT_CUSTOM_ICON);
+  }, [isCreating, enabled, onOpenRequest, form.setSelectedIconId]);
+  useEffect(() => {
+    if (openRequest == null || openRequest === lastOpenRequest.current || !enabled) return;
+    lastOpenRequest.current = openRequest;
+    handleOpen();
+  }, [openRequest, enabled, handleOpen]);
 
   // 提交后保留弹层与草稿，只有创建成功或隐式空名称取消才关闭。
   const handleConfirm = useCallback(
@@ -262,18 +303,8 @@ export function AddPageButton({
                 : {}
           }
           onClick={() => {
-            if (isCreating) return;
-            const rect = buttonRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            setOpeningAnchor({
-              rect,
-              rightInset: window.innerWidth - rect.left + 8,
-              bottomInset: window.innerHeight - rect.top + 8,
-            });
-            setViewport(readViewport());
-            setIsCreating(true);
-            form.setSelectedIconId(DEFAULT_CUSTOM_ICON);
-            setTimeout(() => inputRef.current?.focus(), 100);
+            handleMouseLeave();
+            handleOpen();
           }}
           aria-label={t('add_page')}
           disabled={!enabled}
@@ -301,7 +332,9 @@ export function AddPageButton({
                   : isRight
                     ? 'auto'
                     : buttonRect
-                      ? buttonRect.right + 8
+                      ? placement === 'below'
+                        ? Math.max(12, Math.min(buttonRect.left, viewportWidth - 288))
+                        : buttonRect.right + 8
                       : 56,
               right: isBottom ? 0 : isRight ? (openingAnchor?.rightInset ?? 56) : 'auto',
               margin: isBottom ? '0 auto' : undefined,
@@ -322,6 +355,7 @@ export function AddPageButton({
               border: '1px solid var(--border-subtle)',
               transformOrigin: 'top',
               maxWidth: 'calc(100vw - 32px)',
+              width: placement === 'below' ? 276 : undefined,
               height: isHorizontal ? undefined : sidebarPopoverHeight,
               // 最大高度锚定卡片顶部：100vh - top - 16px 底部边距，保证
               // 卡片底部始终位于窗口底部之上（修复：侧边栏靠下时卡片底部超屏）

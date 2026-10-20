@@ -245,7 +245,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       ) : isHorizontal ? (
         <TopFunctionBar sidebarPosition={effectivePosition} />
       ) : (
-        <SideNavigation />
+        <SideNavigation pagePane={desktopPane} />
       )}
       <div
         className={styles.main}

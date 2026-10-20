@@ -4,6 +4,7 @@ import { useMatch, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useUiStore } from '@/stores/uiStore';
 import { observeDesktopPageIndex, useDesktopPageIndexStore } from '@/stores/desktopPageIndexStore';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
@@ -27,6 +28,7 @@ export function DesktopPagePane({
   const loading = useDesktopPageIndexStore((state) => state.loading);
   const failed = useDesktopPageIndexStore((state) => state.failed);
   const customPages = useSettingsStore((state) => state.settings.customPages);
+  const creationRequest = useUiStore((state) => state.desktopPageCreationRequest);
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(() => new Set<string>(['identity']));
   const selectedId = editorMatch?.params.objectId;
@@ -105,6 +107,8 @@ export function DesktopPagePane({
         </label>
         <AddPageButton
           enabled={open && !animating}
+          openRequest={creationRequest}
+          placement="below"
           className={styles.addPage}
           buttonClassName={styles.addPageButton}
           showLabel

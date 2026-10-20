@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { DesktopSidebarContext } from './DesktopSidebarContext';
+import { useUiStore } from '@/stores/uiStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
@@ -19,7 +20,7 @@ export { AddPageButton } from './AddPageButton';
 // SideNavigation — main sidebar component
 // =============================================================================
 
-export function SideNavigation() {
+export function SideNavigation({ pagePane = false }: { pagePane?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
@@ -28,6 +29,7 @@ export function SideNavigation() {
   const expanded = false;
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const vaultLock = useAuthStore((s) => s.lock);
+  const requestPageCreation = useUiStore((s) => s.requestDesktopPageCreation);
 
   const handleLock = useCallback(() => vaultLock(), [vaultLock]);
 
@@ -77,7 +79,11 @@ export function SideNavigation() {
           <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal />
         ) : (
           <div className={styles.primaryZone}>
-            <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={false} />
+            <PrimaryNavZone
+              sidebarPosition={sidebarPosition}
+              isHorizontal={false}
+              onAddPage={pagePane ? requestPageCreation : undefined}
+            />
           </div>
         )}
 

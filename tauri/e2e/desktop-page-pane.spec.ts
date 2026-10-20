@@ -88,6 +88,7 @@ test('fixed rail, persistent pane, object edit routing and floating page creatio
   await expect(search).toHaveValue('Passport');
   await expect(content).toHaveAttribute('data-mount-sentinel', 'preserved');
   await search.fill('');
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   const paneBefore = await pane.boundingBox();
   await pane.getByRole('button', { name: 'Add Page', exact: true }).click();
   const input = page.getByPlaceholder('Page name', { exact: true });
@@ -211,4 +212,37 @@ test('long object names scroll alone and remeasure after pane resizing', async (
   await page.keyboard.press('End');
   await expect(label).toHaveAttribute('data-overflow', 'false');
   await expect(track).toHaveCSS('transform', 'none');
+});
+
+test('rail Add Page opens the pane then one floating card; folding cancels pending creation', async ({
+  page,
+}) => {
+  const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
+  const body = page.locator('[data-page-pane-body]');
+  const pane = page.locator('#desktop-page-pane');
+  await toggle.click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await page
+    .locator('#desktop-navigation')
+    .getByRole('button', { name: 'Add Page', exact: true })
+    .click();
+  const card = page.locator('[data-add-page-popover]');
+  await expect(card).toBeVisible();
+  await expect(card).toHaveCount(1);
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await expect(card.locator('input').first()).toBeFocused();
+  const rect = (await card.boundingBox())!;
+  expect(rect.x).toBeGreaterThanOrEqual((await pane.boundingBox())!.x);
+  expect(rect.x + rect.width).toBeLessThanOrEqual(page.viewportSize()!.width - 12);
+  await toggle.click();
+  await expect(card).toHaveCount(0);
+  await page
+    .locator('#desktop-navigation')
+    .getByRole('button', { name: 'Add Page', exact: true })
+    .click();
+  await toggle.click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await toggle.click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await expect(card).toHaveCount(0);
 });
