@@ -81,6 +81,9 @@
   width: 16px;
   height: 16px;
 }
+.addPage .addPageButton > span {
+  font: inherit;
+}
 .scroller {
   flex: 1;
   min-height: 0;
