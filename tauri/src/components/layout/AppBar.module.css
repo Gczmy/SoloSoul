@@ -23,6 +23,26 @@
 }
 
 @media (min-width: 768px) {
+  .appBar[data-page-pane-toggle] {
+    left: 0;
+    padding-left: calc(var(--sidebar-width, 64px) + 12px);
+  }
+  .appBar[data-page-pane-toggle] .sidebarToggle {
+    position: absolute;
+    left: calc((var(--sidebar-width, 64px) - 32px) / 2);
+    top: calc((var(--appbar-height, 52px) - 32px) / 2);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
   .appBar[data-macos-shell][data-native-compact='true'] {
     left: 0;
     right: 0;
@@ -241,4 +261,20 @@
 }
 .appBar[data-windows-shell] .title {
   font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  :global(html[data-desktop-platform='windows']) .appBar[data-page-pane-toggle] {
+    left: 0;
+    padding-left: calc(var(--sidebar-width, 64px) + 12px);
+  }
+  .appBar[data-page-pane-toggle] .sidebarToggle:active {
+    background: var(--state-pressed);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .appBar[data-page-pane-toggle] .sidebarToggle:hover {
+    background: var(--state-hover);
+    color: var(--text-primary);
+  }
 }

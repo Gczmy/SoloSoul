@@ -55,6 +55,7 @@ export function AddPageButton({
   buttonClassName,
   showLabel,
   showDescription,
+  enabled = true,
 }: {
   onCreate: (page: CustomPage) => void;
   position?: import('./NavButton').NavPosition;
@@ -62,6 +63,7 @@ export function AddPageButton({
   buttonClassName?: string;
   showLabel?: boolean;
   showDescription?: boolean;
+  enabled?: boolean;
 }) {
   const isHorizontal = position === 'top' || position === 'bottom';
   const sidebarExpanded = useContext(DesktopSidebarContext) && !isHorizontal;
@@ -139,6 +141,10 @@ export function AddPageButton({
     resetForm();
   }, [resetForm]);
 
+  useEffect(() => {
+    if (!enabled) handleCancel();
+  }, [enabled, handleCancel]);
+
   // 提交后保留弹层与草稿，只有创建成功或隐式空名称取消才关闭。
   const handleConfirm = useCallback(
     (isExplicit = false) => {
@@ -208,7 +214,7 @@ export function AddPageButton({
   }, [isCreating]);
 
   const nameCard =
-    isHovered && !isCreating && !sidebarExpanded ? (
+    isHovered && !isCreating && !sidebarExpanded && useNavStyle ? (
       <div
         className={isHorizontal ? navStyles.nameCardPortalHorizontal : navStyles.nameCardPortal}
         style={{
@@ -270,6 +276,7 @@ export function AddPageButton({
             setTimeout(() => inputRef.current?.focus(), 100);
           }}
           aria-label={t('add_page')}
+          disabled={!enabled}
           data-tauri-drag-region="false"
         >
           <Plus size={useNavStyle ? 20 : ICON_SIZE.xl} />

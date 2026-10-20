@@ -22,6 +22,34 @@
 .contentSurface {
   display: contents;
 }
+.contentBody {
+  display: contents;
+}
+.contentSurface[data-page-pane-layout] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--shell-content-surface, var(--bg-base));
+  overflow: hidden;
+}
+.contentBody[data-page-pane-body] {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--page-pane-width, 264px) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.contentBody[data-page-pane-body][data-pane-open='false'] {
+  grid-template-columns: 0px minmax(0, 1fr);
+}
+.paneSlot {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface {

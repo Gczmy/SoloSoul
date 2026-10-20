@@ -23,6 +23,7 @@ interface AppBarProps {
   primaryActions?: React.ReactNode;
   onBack?: () => void;
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
+  pagePane?: boolean;
 }
 
 export function AppBar({
@@ -31,24 +32,25 @@ export function AppBar({
   primaryActions,
   onBack,
   sidebarPosition = 'left',
+  pagePane = false,
 }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
   const { t: navT } = useTranslation('navigation');
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
   const isNarrowViewport = useIsNarrowViewport();
-  const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
-  const toggleSidebarExpanded = useUiStore((s) => s.toggleSidebarExpanded);
+  const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const togglePane = useUiStore((s) => s.toggleDesktopPagePane);
   const macShell = isMacOS && !isNarrowViewport && !isAndroidSync();
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const windowsHeaderHeight = useNativeWindowStore((s) => s.windowsFrame?.headerHeight);
-  const hasSidebarToggle = macShell && !isHorizontal;
+  const hasSidebarToggle = pagePane && !isHorizontal;
   const ToggleIcon =
     sidebarPosition === 'right'
-      ? sidebarExpanded
+      ? paneOpen
         ? PanelRightClose
         : PanelRightOpen
-      : sidebarExpanded
+      : paneOpen
         ? PanelLeftClose
         : PanelLeftOpen;
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
@@ -77,6 +79,7 @@ export function AppBar({
       data-native-compact={isMacOS || windowsShell || undefined}
       data-macos-shell={macShell || undefined}
       data-windows-shell={windowsShell || undefined}
+      data-page-pane-toggle={hasSidebarToggle || undefined}
       data-tauri-drag-region={isMacOS || windowsHeaderHeight === 0 ? 'false' : 'deep'}
       style={
         {
@@ -104,10 +107,10 @@ export function AppBar({
           data-titlebar-control
           data-desktop-control="icon"
           data-tauri-drag-region="false"
-          aria-label={navT(sidebarExpanded ? 'sidebar_collapse' : 'sidebar_expand')}
-          aria-expanded={sidebarExpanded}
-          aria-controls="desktop-navigation"
-          onClick={toggleSidebarExpanded}
+          aria-label={navT(paneOpen ? 'page_pane_collapse' : 'page_pane_expand')}
+          aria-expanded={paneOpen}
+          aria-controls="desktop-page-pane"
+          onClick={togglePane}
         >
           <ToggleIcon size={20} />
         </button>

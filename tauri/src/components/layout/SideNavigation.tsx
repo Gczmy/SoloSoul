@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { DesktopSidebarContext } from './DesktopSidebarContext';
-import { useUiStore } from '@/stores/uiStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
@@ -10,9 +9,8 @@ import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH, DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
+import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
 
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
@@ -27,19 +25,8 @@ export function SideNavigation() {
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
-  const expanded = useUiStore((s) => s.sidebarExpanded) && !isHorizontal;
-  const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
-  const isMacOS = useNativeWindowStore((s) => s.isMacOS);
+  const expanded = false;
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
-  const ToggleIcon =
-    sidebarPosition === 'right'
-      ? expanded
-        ? PanelRightClose
-        : PanelRightOpen
-      : expanded
-        ? PanelLeftClose
-        : PanelLeftOpen;
-  const toggleLabel = t(expanded ? 'sidebar_collapse' : 'sidebar_expand');
   const vaultLock = useAuthStore((s) => s.lock);
 
   const handleLock = useCallback(() => vaultLock(), [vaultLock]);
@@ -63,14 +50,14 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: `var(--sidebar-width, ${expanded ? DESKTOP_SIDEBAR_EXPANDED_WIDTH : DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px)`,
+        width: `var(--sidebar-width, ${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px)`,
         height: '100vh',
         flexDirection: 'column',
         borderRight: 'none',
         borderLeft: 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        paddingInline: expanded ? 10 : 0,
+        paddingInline: 0,
         paddingBottom: 12,
       };
 
@@ -84,28 +71,8 @@ export function SideNavigation() {
         data-expanded={expanded}
         data-position={sidebarPosition}
         data-windows-shell={windowsShell || undefined}
+        data-desktop-rail
       >
-        {!isHorizontal && (expanded || !isMacOS) && (
-          <div className={styles.brandHeader}>
-            {expanded && !windowsShell && <span className={styles.brandName}>SoloSoul</span>}
-            {!isMacOS && (
-              <button
-                type="button"
-                className={styles.sidebarToggle}
-                onClick={toggleExpanded}
-                aria-label={toggleLabel}
-                title={toggleLabel}
-                aria-expanded={expanded}
-                aria-controls="desktop-navigation"
-                data-tauri-drag-region="false"
-              >
-                <ToggleIcon size={20} />
-              </button>
-            )}
-            {expanded && windowsShell && <span className={styles.brandName}>SoloSoul</span>}
-          </div>
-        )}
-
         {isHorizontal ? (
           <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal />
         ) : (

@@ -15,6 +15,10 @@
   z-index: 101;
 }
 
+.sideNav[data-desktop-rail][data-expanded='false'] {
+  padding-top: calc(var(--appbar-height, 52px) + 8px);
+}
+
 :global(html[data-desktop-platform='windows']) .sideNav {
   font-family: var(--font-sans);
 }

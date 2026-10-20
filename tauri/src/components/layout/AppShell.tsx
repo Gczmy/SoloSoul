@@ -5,6 +5,7 @@ import { trackAsyncListener } from '@/lib/asyncListener';
 import { useLocation } from 'react-router-dom';
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
+import { DesktopPagePane } from './DesktopPagePane';
 import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
@@ -14,11 +15,11 @@ import { useUiStore } from '@/stores/uiStore';
 import { useSyncStore } from '@/stores/syncStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
-import { isAndroidSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH, DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
+import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
 const SHELL_LAYOUT_KEYS = [
@@ -60,7 +61,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             ? titlebarHeight || 40
             : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
-  const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
+  const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
   // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
   // （从长页面中部进入导出/同步等页面时表现为「页面从下方开始」）。
@@ -79,16 +80,13 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       : sidebarPosition;
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
+  const desktopPane = !isMobilePlatformSync() && !isNarrowViewport && !isHorizontal;
   // 图标侧栏共用紧凑宽度；macOS 左侧仍按交通灯实际宽度继续扩展。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
     isMacOS && effectivePosition === 'left' ? Math.ceil(trafficLightsRight + 16) : 0,
   );
-  const sidebarWidth = isAndroid
-    ? 88
-    : sidebarExpanded
-      ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
-      : collapsedWidth;
+  const sidebarWidth = isAndroid ? 88 : collapsedWidth;
 
   // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
   useLayoutEffect(() => {
@@ -233,6 +231,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
         actions={actions}
         onBack={onBack}
         sidebarPosition={effectivePosition}
+        pagePane={desktopPane}
       />
       {isAndroid ? (
         <AndroidNavigation />
@@ -251,11 +250,26 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
           paddingBottom: 'var(--shell-navigation-bottom)',
         }}
       >
-        <div className={styles.contentSurface} data-shell-surface>
+        <div
+          className={styles.contentSurface}
+          data-shell-surface
+          data-page-pane-layout={desktopPane || undefined}
+        >
           <ShellNotificationSlot />
-          <main ref={contentRef} className={styles.content} data-shell-content>
-            {children}
-          </main>
+          <div
+            className={styles.contentBody}
+            data-page-pane-body={desktopPane || undefined}
+            data-pane-open={paneOpen}
+          >
+            {desktopPane && (
+              <div className={styles.paneSlot}>
+                <DesktopPagePane open={paneOpen} />
+              </div>
+            )}
+            <main ref={contentRef} className={styles.content} data-shell-content>
+              {children}
+            </main>
+          </div>
         </div>
       </div>
       {/* B 侧入站配对请求全局对话框（任意页面可弹出） */}
