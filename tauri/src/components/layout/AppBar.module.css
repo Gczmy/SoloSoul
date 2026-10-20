@@ -32,6 +32,26 @@
     );
     padding-left: var(--page-pane-title-left);
   }
+  .titleBoundary {
+    position: absolute;
+    inset: 0;
+    left: var(--page-pane-marker-clip-left, 0px);
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .titleDivider {
+    position: absolute;
+    /* 下方分隔线画在内容左边缘的前 1px；两处共用宽度与过渡参数。 */
+    left: calc(
+      var(--page-pane-title-left) - var(--shell-page-padding, 24px) - 1px -
+        var(--page-pane-marker-clip-left, 0px)
+    );
+    top: calc(50% - 10px);
+    width: 1px;
+    height: 20px;
+    background: var(--border-subtle);
+    pointer-events: none;
+  }
   .appBar[data-page-pane-toggle] .sidebarToggle {
     position: absolute;
     left: calc((var(--sidebar-width, 64px) - var(--appbar-control-size, 32px)) / 2);
@@ -50,6 +70,8 @@
   }
   .appBar[data-macos-shell][data-native-compact='true'] {
     --page-pane-shell-inset: calc(var(--mac-content-inset, 8px) + 1px);
+    /* 收起或动画经过交通灯与侧栏开关时，只裁去重叠部分。 */
+    --page-pane-marker-clip-left: calc(var(--mac-sidebar-control-left) + 44px);
     left: 0;
     right: 0;
     padding-left: max(calc(var(--mac-page-title-left) + 12px), var(--page-pane-title-left, 0px));

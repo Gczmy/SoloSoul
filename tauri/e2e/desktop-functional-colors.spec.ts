@@ -70,6 +70,23 @@ for (const platform of ['macos', 'windows'] as const) {
         await expect(page.locator('[data-appbar] h1')).toHaveCSS('color', primaryInk);
         await expect(page.locator('[data-appbar] h1')).toHaveCSS('font-weight', '400');
         await expect(page.locator('[data-appbar] h1')).toHaveCSS('font-size', '15px');
+        const marker = page.locator('[data-page-pane-title-divider]');
+        const separator = page.locator('[role="separator"][aria-controls="desktop-page-pane"]');
+        await expect(marker).toHaveCSS('pointer-events', 'none');
+        const markerBounds = (await marker.boundingBox())!;
+        expect(markerBounds.width).toBe(1);
+        expect(markerBounds.height).toBe(20);
+        expect(markerBounds.y).toBeGreaterThanOrEqual(8);
+        expect(markerBounds.y + markerBounds.height).toBeLessThanOrEqual(52);
+        const lowerLine = await separator.evaluate((element) => {
+          const line = getComputedStyle(element, '::after');
+          return {
+            x: element.getBoundingClientRect().x + parseFloat(line.left),
+            color: line.backgroundColor,
+          };
+        });
+        expect(Math.abs(markerBounds.x - lowerLine.x)).toBeLessThan(1);
+        await expect(marker).toHaveCSS('background-color', lowerLine.color);
         await home.hover();
         await expect(home).toHaveCSS('color', primaryInk);
         await page.mouse.move(600, 700);

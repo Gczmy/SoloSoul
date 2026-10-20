@@ -57,6 +57,9 @@
 .appShell[data-page-pane-animating] [data-appbar] {
   transition: padding-left var(--page-pane-motion);
 }
+.appShell[data-page-pane-animating] [data-page-pane-title-divider] {
+  transition: left var(--page-pane-motion);
+}
 .contentBody[data-pane-animating] [data-page-pane] {
   transition:
     transform var(--page-pane-motion),

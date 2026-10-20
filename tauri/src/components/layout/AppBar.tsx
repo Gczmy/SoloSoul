@@ -128,6 +128,11 @@ export function AppBar({
         .join(' ')}
     >
       {hasSidebarToggle && (
+        <span className={styles.titleBoundary} aria-hidden="true">
+          <span className={styles.titleDivider} data-page-pane-title-divider />
+        </span>
+      )}
+      {hasSidebarToggle && (
         <button
           ref={toggleRef}
           type="button"

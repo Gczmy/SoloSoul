@@ -1,0 +1,53 @@
+{
+  "task": "DP-10 Desktop titlebar content boundary marker",
+  "geometry": {
+    "widthPx": 1,
+    "heightPx": 20,
+    "verticalAlignment": "centered in titlebar",
+    "horizontalAlignment": "lower page pane separator paint edge",
+    "color": "same border-subtle token as lower separator",
+    "alignmentTolerancePx": 1
+  },
+  "behavior": {
+    "widthResize": "immediate shared width",
+    "paneToggle": "shared 320ms transition including reversal",
+    "pointerEvents": "none",
+    "accessibility": "decorative, aria-hidden",
+    "macosControls": "clip marker inside traffic-light and sidebar-toggle reservation",
+    "mobile": "not rendered"
+  },
+  "validation": {
+    "browserDistinctCasesPassed": 28,
+    "browserInitialPassed": 26,
+    "browserLoginPreparationTimeouts": 2,
+    "browserIndependentRetriesPassed": 2,
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "diffWhitespace": "passed",
+    "isolatedFixtureBuild": "passed",
+    "matchedFrontendSources": 134,
+    "matchedNativeSources": 11,
+    "fixtureSha256": "955131efefc3d324d04310f6700e48cc3a2c57ce3312a50c99345858f55c83d8",
+    "checks": [
+      "pane resize bounds and keyboard controls",
+      "frame-by-frame marker/separator alignment",
+      "rapid reversal",
+      "small desktop viewport",
+      "macOS light/dark geometry and paint",
+      "Windows native hit regions",
+      "editor save/cancel and primary button contrast"
+    ],
+    "manualVisualAcceptance": "awaiting user",
+    "macosNativeAcceptance": "awaiting device",
+    "otherTasks": "paused",
+    "evidenceSha256": {
+      "types": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "e2e": "1cb97cf4157de4ec98ef8b1ba2e63fa4a20461e40abb7b8e39ed4ec5a93400f0",
+      "e2e-retry": "958b64767f30cb1abd9d6c966d6e1fa561519b4610024de19e47ebdef645373d",
+      "fixture-build": "c79e8b49562daf95a5f77c5be9951cf3f8329bcb8b44e21937c6d82c142ec2e1"
+    },
+    "windowsNativeVisual": "latest public window observed; short marker aligns with lower separator in default expanded state; user acceptance pending"
+  },
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths, process IDs and account data remain local"
+}

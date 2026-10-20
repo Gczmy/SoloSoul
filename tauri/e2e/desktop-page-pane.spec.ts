@@ -16,6 +16,24 @@ async function expectTitleOverContent(page: Page) {
       }),
     )
     .toBeLessThan(1);
+  const marker = page.locator('[data-page-pane-title-divider]');
+  await expect(marker).toHaveCSS('width', '1px');
+  await expect(marker).toHaveCSS('height', '20px');
+  await expect(marker).toHaveCSS('pointer-events', 'none');
+  await expect
+    .poll(() =>
+      marker.evaluate((element) => {
+        const separator = document.querySelector<HTMLElement>(
+          '[role="separator"][aria-controls="desktop-page-pane"]',
+        )!;
+        return Math.abs(
+          element.getBoundingClientRect().x -
+            separator.getBoundingClientRect().x -
+            parseFloat(getComputedStyle(separator, '::after').left),
+        );
+      }),
+    )
+    .toBeLessThan(1);
 }
 
 test.beforeEach(async ({ page }, info) => {
@@ -181,7 +199,7 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
   await content.evaluate((el) => {
     el.dataset.motionSentinel = 'retained';
   });
-  const { frames, titleOffsets } = await page.evaluate(async () => {
+  const { frames, titleOffsets, markerOffsets } = await page.evaluate(async () => {
     const toggle = document.querySelector<HTMLButtonElement>(
       '[data-appbar] button[aria-controls="desktop-page-pane"]',
     )!;
@@ -189,13 +207,23 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
     const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
     const rail = document.querySelector<HTMLElement>('#desktop-navigation')!;
     const title = document.querySelector<HTMLElement>('[data-appbar] h1')!;
+    const marker = document.querySelector<HTMLElement>('[data-page-pane-title-divider]')!;
+    const separator = document.querySelector<HTMLElement>(
+      '[role="separator"][aria-controls="desktop-page-pane"]',
+    )!;
     const titleOffsets: number[] = [];
+    const markerOffsets: number[] = [];
     // ResizeObserver runs before paint, after the shell publishes the current content boundary.
     const observer = new ResizeObserver(() => {
       titleOffsets.push(
         title.getBoundingClientRect().x -
           content.getBoundingClientRect().x -
           parseFloat(getComputedStyle(content).paddingLeft),
+      );
+      markerOffsets.push(
+        marker.getBoundingClientRect().x -
+          separator.getBoundingClientRect().x -
+          parseFloat(getComputedStyle(separator, '::after').left),
       );
     });
     observer.observe(content);
@@ -217,7 +245,7 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
     toggle.click();
     await new Promise(requestAnimationFrame);
     observer.disconnect();
-    return { frames: values, titleOffsets };
+    return { frames: values, titleOffsets, markerOffsets };
   });
   expect(new Set(frames.map((frame) => Math.round(frame.x))).size).toBeGreaterThan(3);
   expect(
@@ -230,6 +258,7 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
   ).toBe(true);
   expect(titleOffsets.length).toBeGreaterThan(3);
   expect(titleOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);
+  expect(markerOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);
   await expect(body).not.toHaveAttribute('data-pane-animating');
   await expect(content).toHaveAttribute('data-motion-sentinel', 'retained');
   await expectTitleOverContent(page);
