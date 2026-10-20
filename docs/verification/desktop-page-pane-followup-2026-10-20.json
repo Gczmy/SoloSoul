@@ -1,0 +1,34 @@
+{
+  "task": "Desktop page-pane native-acceptance follow-ups",
+  "items": [
+    "DP-01 desktop animation independent of system settings",
+    "DP-02 ruler-style page/object hover previews",
+    "DP-03 current-action titlebar tooltip"
+  ],
+  "validation": {
+    "frontendUnitFiles": 271,
+    "frontendUnitPassed": 2439,
+    "frontendUnitFailed": 0,
+    "relatedBrowserCases": 19,
+    "browserMethod": "17-case regression plus keyboard-preview and titlebar-tooltip targeted runs",
+    "nodePassed": 270,
+    "nodeSkipped": 1,
+    "typescript": "passed",
+    "lint": "passed; existing syncStore unused-event warning",
+    "productionFrontendBuild": "passed",
+    "isolatedFixtureBuild": "passed",
+    "matchedBundledSourceModules": 134,
+    "sourceManifestSha256": "294d2ba1e38b40f69dd705043b6efbb6a4dd951f26a95c4ebbba4086855b25f7",
+    "windowsNative": [
+      "system animation disabled while application animation remains enabled",
+      "intermediate and settled pane frames observed",
+      "light/dark page and masked object previews via keyboard focus",
+      "Escape closes preview",
+      "titlebar action tooltip"
+    ],
+    "windowsAnimationRestored": "On; saved state visually verified",
+    "manualOverallLayoutAcceptance": "awaiting user",
+    "otherTasks": "paused"
+  },
+  "publication": "Source and sanitized summary only; no raw logs, screenshots, executables, process IDs, machine paths or account data"
+}
