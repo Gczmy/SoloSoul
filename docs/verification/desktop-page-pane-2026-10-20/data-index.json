@@ -1,0 +1,10 @@
+{
+  "change": "Independent desktop page/object navigation index",
+  "checks": {
+    "vitest": "78 passed: page index, IPC guards, sync store",
+    "privacy": "Only id, name, sectionId and iconName retained; cleared on lock/session change",
+    "races": "Older list responses cannot overwrite newer reads or rehydrate a locked session",
+    "invalidation": "Successful object/page/import/restore/sync writes and inbound sync refresh mounted consumers"
+  },
+  "scope": "Frontend data foundation; desktop layout integration follows separately"
+}
