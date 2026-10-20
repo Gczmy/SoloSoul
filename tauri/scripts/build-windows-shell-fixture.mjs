@@ -11,7 +11,7 @@ const destination = process.argv[2];
 if (!destination || process.argv.length !== 3)
   throw new Error('Expected a new fixture HTML destination');
 const aliases = [
-  ...['authStore', 'settingsStore', 'syncStore'].map((name) => ({
+  ...['authStore', 'settingsStore', 'syncStore', 'desktopPageIndexStore'].map((name) => ({
     find: `@/stores/${name}`,
     replacement: resolve(fixture, 'stores.ts'),
   })),
@@ -83,6 +83,10 @@ for (const file of [
   'components/layout/PrimaryNavZone.tsx',
   'components/layout/SecondaryActionBar.tsx',
   'components/layout/AddPageButton.tsx',
+  'components/layout/DesktopPagePane.tsx',
+  'components/layout/PagePaneRow.tsx',
+  'components/layout/usePagePaneResize.ts',
+  'components/layout/usePagePaneMotion.ts',
   'components/layout/AuthLayout.tsx',
   'components/attachment/PreviewTitlebar.tsx',
 ])
