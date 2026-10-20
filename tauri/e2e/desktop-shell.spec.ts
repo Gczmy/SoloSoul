@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '../src/lib/constants';
 import { login } from './fixtures/auth';
 
 async function expectMobileNavigation(page: Page) {
@@ -55,13 +54,13 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
     }
     await expect(sidebar).toHaveAttribute('data-position', 'left');
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
-    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px`);
+    await expect(sidebar).toHaveCSS('width', '52px');
     await expect(
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
     ).toBeHidden();
     await page.getByRole('button', { name: 'Hide pages and objects' }).click();
     await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px`);
+    await expect(sidebar).toHaveCSS('width', '52px');
     for (const name of ['Home', 'Settings', 'Add Page', 'Tools']) {
       const button = sidebar.getByRole('button', { name, exact: true });
       const label = button.locator('span').last();
@@ -82,7 +81,7 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
     await page.getByRole('button', { name: 'Show pages and objects' }).click();
     await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px`);
+    await expect(sidebar).toHaveCSS('width', '52px');
     expect(await page.evaluate(() => localStorage.getItem('solosoul_page_pane_open'))).toBe('true');
     const navBounds = await sidebar.boundingBox();
     const headerBounds = await page.locator('header').first().boundingBox();
@@ -160,7 +159,9 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   const sidebar = page.locator('#desktop-navigation');
   await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(root).toHaveAttribute('data-theme', 'dark');
-  await expect(root).toHaveAttribute('data-reduce-motion', 'true');
+  await expect(root).toHaveAttribute('data-system-reduce-motion', 'true');
+  await expect(root).toHaveAttribute('data-reduce-motion', 'false');
+  await expect(root).toHaveAttribute('data-motion-policy', 'application');
   await expect(page.getByRole('button', { name: 'Hide pages and objects' })).toBeInViewport();
   await expect(sidebar.getByRole('button', { name: 'Settings', exact: true })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(800);
@@ -170,7 +171,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   expect(contentBounds!.width).toBeGreaterThan(400);
   await page.getByRole('button', { name: 'Hide pages and objects' }).click();
   await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-  await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_COLLAPSED_WIDTH}px`);
+  await expect(sidebar).toHaveCSS('width', '52px');
   await expect(
     sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
   ).toBeHidden();

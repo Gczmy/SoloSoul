@@ -1,0 +1,67 @@
+{
+  "task": "Desktop page-pane alignment follow-ups",
+  "items": [
+    "DP-04 title aligned with resizable content",
+    "DP-05 stable sidebar toggle tooltip",
+    "DP-06 right arrow for preview navigation",
+    "DP-07 equal visible titlebar and function-rail dimensions"
+  ],
+  "validation": {
+    "browserDistinctCasesPassed": 61,
+    "browserMethod": "58 passed in final suite; three login preparation timeouts rerun independently and passed without changing timeout or assertions",
+    "relatedUnitFiles": 5,
+    "relatedUnitPassed": 24,
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "isolatedFixtureBuild": "passed",
+    "matchedFrontendSources": 134,
+    "sourceManifestSha256": "ee29eaa048429aaa4c7a0bb3ea208304e3e0bac5e3ee7b3cc46448505a87c30c",
+    "matchedNativeSources": 11,
+    "windowsNativeNumericSamples": [
+      {
+        "theme": "dark",
+        "paneWidth": 264,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "surfaceOrigin": [52, 52],
+        "evidenceSha256": "efb4eec963032e4c643b11804a79515ed51596b0b4f0d0a38bc379c0aefac373"
+      },
+      {
+        "theme": "dark",
+        "paneWidth": 264,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "surfaceOrigin": [52, 52],
+        "evidenceSha256": "efb4eec963032e4c643b11804a79515ed51596b0b4f0d0a38bc379c0aefac373"
+      },
+      {
+        "theme": "dark",
+        "paneWidth": 344,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "surfaceOrigin": [52, 52],
+        "evidenceSha256": "b797ceaa040a53b2eef2d457d730697f494dfbef2407012cb965e1a51d16ce18"
+      },
+      {
+        "theme": "light",
+        "paneWidth": 264,
+        "headerHeight": 52,
+        "railWidth": 52,
+        "surfaceOrigin": [52, 52],
+        "evidenceSha256": "8c3d60b7c5a264a1cdeeec86b6e67b294ae11d6cbdde04857220b9b12c52d4c9"
+      }
+    ],
+    "windowsVisualChecks": [
+      "fixed Chinese toggle hint",
+      "same right arrow in page and object previews",
+      "sensitive fields masked",
+      "fold/open title follows content",
+      "dragging divider shifts title and body together",
+      "light/dark visible shell edges equal"
+    ],
+    "macOSNative": "pending device; browser regression passed",
+    "manualOverallLayoutAcceptance": "awaiting user",
+    "otherTasks": "paused"
+  },
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths and account data remain local"
+}

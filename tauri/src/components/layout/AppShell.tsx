@@ -60,7 +60,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
           ? // 全屏切换中的原生32pt临时几何不能压缩网页顶部栏。
             Math.max(52, titlebarHeight)
           : isWindows
-            ? titlebarHeight || 40
+            ? Math.max(52, titlebarHeight)
             : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
@@ -87,16 +87,18 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const bodyRef = useRef<HTMLDivElement>(null);
   const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen);
   const paneAnimating = usePagePaneMotion(bodyRef, desktopPane, paneOpen);
-  // 图标侧栏共用紧凑宽度；macOS 左侧仍按交通灯实际宽度继续扩展。
+  // 旧导航保留交通灯避让；页面树布局的功能图标栏与顶栏等宽。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
     isMacOS && effectivePosition === 'left' ? Math.ceil(trafficLightsRight + 16) : 0,
   );
   const sidebarWidth = isAndroid
     ? 88
-    : !desktopPane && legacySidebarExpanded
-      ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
-      : collapsedWidth;
+    : desktopPane
+      ? appbarHeight
+      : legacySidebarExpanded
+        ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
+        : collapsedWidth;
 
   // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
   useLayoutEffect(() => {

@@ -130,7 +130,7 @@
     flex: 1;
     min-height: 0;
     min-width: 0;
-    margin-top: 8px;
+    margin-top: 0;
     background: var(--shell-content-surface, var(--bg-base));
     border-radius: 12px;
     overflow: hidden;
@@ -253,7 +253,7 @@
   :global(html[data-desktop-platform='windows'])
     .appShell:not([data-windows-shell])
     .contentSurface[data-page-pane-layout] {
-    margin-top: 8px;
+    margin-top: 0;
     border-radius: 12px;
   }
   :global(html[data-desktop-platform='windows'])

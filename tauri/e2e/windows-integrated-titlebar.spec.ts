@@ -78,7 +78,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
             if (this === navigation || navigation.contains(this)) {
               const expanded = navigation.getAttribute('data-expanded');
               const width = original.call(navigation).width;
-              const expected = 64;
+              const expected = 52;
               if (Math.abs(width - expected) > 0.5) mismatches.push({ expanded, width });
             }
             return rect;
@@ -136,7 +136,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
           .elementHandle();
         const stableSurface = await surface.elementHandle();
         await toggle.click();
-        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
+        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
         expect(
           await page.evaluate(
             () =>
@@ -148,7 +148,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
           .getByRole('button', { name: 'Show pages and objects' })
           .boundingBox();
         expect(after!.y).toBe(before!.y);
-        expect(after!.x + after!.width / 2).toBe(navBounds.x + 32);
+        expect(after!.x + after!.width / 2).toBe(navBounds.x + navBounds.width / 2);
         await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', shellColor);
         for (let i = 0; i < 8; i++) {
           await header
@@ -156,7 +156,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
               name: i % 2 === 0 ? 'Show pages and objects' : 'Hide pages and objects',
             })
             .click();
-          await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
+          await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
           expect(await track!.evaluate((element) => element.isConnected)).toBe(true);
           expect(await stableSurface!.evaluate((element) => element.isConnected)).toBe(true);
           expect(

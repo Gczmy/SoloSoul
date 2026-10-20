@@ -68,7 +68,13 @@ test('fixed rail, persistent pane, object edit routing and floating page creatio
   const rail = page.locator('#desktop-navigation');
   const pane = page.locator('#desktop-page-pane');
   const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
-  await expect(rail).toHaveCSS('width', '64px');
+  await expect(rail).toHaveCSS('width', '52px');
+  expect((await rail.boundingBox())!.width).toBe(
+    (await page.locator('[data-appbar]').boundingBox())!.height,
+  );
+  const surface = (await page.locator('[data-shell-surface]').boundingBox())!;
+  expect(surface.x).toBe(surface.y);
+  expect(surface.y).toBe((await page.locator('[data-appbar]').boundingBox())!.height);
   await expect(rail).toHaveAttribute('data-expanded', 'false');
   await expect(rail.locator('button[aria-controls="desktop-navigation"]')).toHaveCount(0);
   expect(
@@ -102,7 +108,7 @@ test('fixed rail, persistent pane, object edit routing and floating page creatio
   });
   await toggle.click();
   await expect(pane).toHaveAttribute('inert', '');
-  await expect(rail).toHaveCSS('width', '64px');
+  await expect(rail).toHaveCSS('width', '52px');
   await toggle.click();
   await expect(search).toHaveValue('Passport');
   await expect(content).toHaveAttribute('data-mount-sentinel', 'preserved');
@@ -163,7 +169,7 @@ test('resizer supports pointer capture, bounds, keyboard, reset and persistence'
   await expectTitleOverContent(page);
   await page.setViewportSize({ width: 800, height: 600 });
   await expectTitleOverContent(page);
-  await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
+  await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
 });
 
 test('pane and editor move together, rapid reversal preserves DOM, desktop ignores system motion reduction', async ({
@@ -219,7 +225,7 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
       (frame) =>
         Math.abs(frame.right - frames[0].right) < 1 &&
         frame.paneWidth === 264 &&
-        frame.railWidth === 64,
+        frame.railWidth === 52,
     ),
   ).toBe(true);
   expect(titleOffsets.length).toBeGreaterThan(3);
