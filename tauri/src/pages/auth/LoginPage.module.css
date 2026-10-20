@@ -238,12 +238,12 @@
   }
 }
 
-/* macOS 登录使用普通内容面板，宽度按原360/392px的80%收窄。 */
-:global(html[data-desktop-platform='macos']) .loginCard {
+/* Windows 与 macOS 共用既有 macOS 卡片尺寸，移动平台保留原有宽度。 */
+:global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])) .loginCard {
   max-width: 288px;
 }
 @media (min-width: 768px) {
-  :global(html[data-desktop-platform='macos']) .loginCard {
+  :global(html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])) .loginCard {
     /* 收窄后生物识别长文案可能两行，保留三种方式等高。 */
     --login-method-min-height: 132px;
     max-width: 313.6px;

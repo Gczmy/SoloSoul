@@ -55,7 +55,8 @@ jobs:
 
   frontend-check:
     name: Frontend TypeScript & Lint
-    runs-on: ubuntu-latest
+    # Playwright 1.60 supports Ubuntu 24.04; ubuntu-latest now also selects 26.04.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tauri

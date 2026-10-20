@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
@@ -120,17 +120,19 @@ export function TemplateListSection({
           return (
             <Card key={tpl.id} interactive onClick={() => onOpenDetail(tpl)}>
               <div
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 12 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
                   <TemplateIcon size={ICON_SIZE.xl} style={{ flexShrink: 0 }} />
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div
                       style={{
                         fontSize: 'var(--text-sm)',
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        overflowWrap: 'anywhere',
                         gap: 6,
                       }}
                     >
@@ -172,17 +174,18 @@ export function TemplateListSection({
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    variant="tertiary"
-                    size="sm"
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <BadgeIconButton
+                    Icon={Pencil}
+                    title={t('common:edit')}
                     onClick={() => {
                       const ut = templates.find((u) => u.id === tpl.id);
                       if (ut) onOpenEdit(ut);
                     }}
-                  >
-                    <Pencil size={ICON_SIZE.md} style={{ color: 'var(--text-primary)' }} />
-                  </Button>
+                  />
                   <DeleteButton
                     onClick={() => onDelete(tpl.id, tpl.name)}
                     title={t('common:delete')}

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { FileText, Info, Folder, LayoutTemplate, RotateCcw } from 'lucide-react';
@@ -81,40 +81,30 @@ export const TrashItemCard = memo(function TrashItemCard({
 
   const actions = (
     <>
-      <Button
-        size="sm"
-        variant="tertiary"
+      <BadgeIconButton
+        Icon={RotateCcw}
         onClick={(e) => {
           e.stopPropagation();
           onRestore(item.id);
         }}
         title={t('common:restore')}
-      >
-        <RotateCcw size={ICON_SIZE.sm} />
-      </Button>
+      />
       <DeleteButton
+        iconOnly
         onClick={(e) => {
           e.stopPropagation();
           onDelete(item.id);
         }}
         title={t('common:delete_permanently')}
       />
-      <button
+      <BadgeIconButton
+        Icon={Info}
         onClick={(e) => {
           e.stopPropagation();
           onOpenDetail(item.id);
         }}
-        className="interactive-accent"
-        style={{
-          border: 'none',
-          cursor: 'pointer',
-          padding: 4,
-          borderRadius: 4,
-        }}
         title={t('common:details')}
-      >
-        <Info size={ICON_SIZE.lg} />
-      </button>
+      />
     </>
   );
 
@@ -155,7 +145,9 @@ export const TrashItemCard = memo(function TrashItemCard({
             />
             {meta}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>{actions}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+            {actions}
+          </div>
         </div>
       ) : (
         <div data-trash-item-header style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -176,7 +168,9 @@ export const TrashItemCard = memo(function TrashItemCard({
             />
             {meta}
           </div>
-          {actions}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            {actions}
+          </div>
         </div>
       )}
     </Card>
