@@ -69,7 +69,9 @@
     cursor: pointer;
   }
   .appBar[data-macos-shell][data-native-compact='true'] {
-    --page-pane-shell-inset: calc(var(--mac-content-inset, 8px) + 1px);
+    --page-pane-shell-inset: calc(
+      var(--mac-content-leading-inset, var(--mac-content-inset, 8px)) + 1px
+    );
     /* 收起或动画经过交通灯与侧栏开关时，只裁去重叠部分。 */
     --page-pane-marker-clip-left: calc(var(--mac-sidebar-control-left) + 44px);
     left: 0;

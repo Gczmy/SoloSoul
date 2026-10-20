@@ -5,7 +5,7 @@ import { login } from './fixtures/auth';
 // 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
 test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
 
-async function mockMacOS(page: Page, position = 'left', trafficLightsRight = 79) {
+async function mockMacOS(page: Page, position = 'left', trafficLightsRight = 79, theme = 'light') {
   await page.addInitScript({
     content:
       readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -27,6 +27,7 @@ async function mockMacOS(page: Page, position = 'left', trafficLightsRight = 79)
     const originalInvoke = window.__TAURI_INTERNALS__.invoke;
     window.__TAURI_INTERNALS__.invoke = async (cmd, args) => {
       const result = await originalInvoke(cmd, args);
+      if (cmd === 'ui_get_preferences' || cmd === 'user_data_get_preferences') result.theme = '${theme}';
       if (cmd === 'user_data_get_preferences') result.sidebarPosition = '${position}';
       return result;
     };
@@ -59,6 +60,51 @@ async function expectNativeControl(control: Locator) {
       }),
     )
     .toBe(true);
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`macOS ${theme} 图标与可见侧栏居中，页面树开关不改变中心`, async ({ page }) => {
+    await mockMacOS(page, 'left', 79, theme);
+    await login(page);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    const rail = page.locator('#desktop-navigation');
+    const tools = rail.getByRole('button', { name: 'Tools', exact: true });
+    const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
+    for (const viewport of [
+      { width: 1280, height: 720 },
+      { width: 800, height: 600 },
+    ]) {
+      await page.setViewportSize(viewport);
+      for (let state = 0; state < 2; state += 1) {
+        await tools.hover();
+        await expect(tools).toHaveAttribute('aria-expanded', 'true');
+        await expect
+          .poll(() =>
+            rail.evaluate((element) => {
+              const bounds = element.getBoundingClientRect();
+              const content = document
+                .querySelector('[data-shell-surface]')!
+                .getBoundingClientRect();
+              const center = (bounds.left + content.left) / 2;
+              const offsets = [...element.querySelectorAll('button > svg')].map((icon) => {
+                const r = icon.getBoundingClientRect();
+                return Math.abs(r.left + r.width / 2 - center);
+              });
+              return {
+                visibleWidth: content.left - bounds.left,
+                railWidth: bounds.width,
+                maxIconOffset: Math.max(...offsets),
+              };
+            }),
+          )
+          .toEqual({ visibleWidth: 52, railWidth: 52, maxIconOffset: 0 });
+        await toggle.click();
+        await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+          'data-pane-animating',
+        );
+      }
+    }
+  });
 }
 
 for (const position of ['left', 'right', 'top', 'bottom']) {
@@ -129,7 +175,7 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       {
         expect(collapsed.width).toBe((await header.boundingBox())!.height);
         expect((await header.boundingBox())!.x).toBe(0);
-        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 9);
+        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 1);
       }
       expect((await header.locator('h1').boundingBox())!.x).toBeGreaterThanOrEqual(91);
       await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
@@ -207,7 +253,7 @@ test('macOS 交通灯范围变宽时顶栏控件避让，图标栏仍与顶栏�
   await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
   await expect(sidebar).toHaveCSS('width', '52px');
   expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(0);
-  expect((await page.locator('main').boundingBox())!.x).toBe(61);
+  expect((await page.locator('main').boundingBox())!.x).toBe(53);
   const toggle = page.getByRole('button', { name: 'Show pages and objects' });
   expect((await toggle.boundingBox())!.x).toBe(118);
   await expectNativeControl(toggle);

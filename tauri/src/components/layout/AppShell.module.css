@@ -221,6 +221,11 @@
     background: transparent;
     --navigation-divider: var(--mac-navigation-divider);
     --shell-content-surface: var(--bg-base);
+    --mac-content-leading-inset: var(--mac-content-inset);
+  }
+  :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell][data-navigation='left'] {
+    /* 图标按功能栏居中；正文左侧不再加宽同一条可见玻璃表面。 */
+    --mac-content-leading-inset: 0px;
   }
   :global(html[data-desktop-platform='macos'][data-theme='light']) .appShell[data-macos-shell] {
     /* 浅色正文使用纯白，与沿用登录底色的导航外壳分开。 */
@@ -237,6 +242,7 @@
     min-width: 0;
     min-height: 0;
     margin: var(--mac-content-inset);
+    margin-left: var(--mac-content-leading-inset);
     background: var(--shell-content-surface);
     border-radius: var(--mac-content-radius);
     /* 仅裁剪内容面；Portal 仍挂在外部，不加入 filter/transform 定位祖先。 */
