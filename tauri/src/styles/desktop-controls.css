@@ -400,7 +400,9 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    transition: none;
+    &:where(html:not([data-motion-policy='application']) *) {
+      transition: none;
+    }
   }
   &:where(:is([data-user-reduce-motion='true'], [data-reduce-motion='true']) button) {
     transition: none;

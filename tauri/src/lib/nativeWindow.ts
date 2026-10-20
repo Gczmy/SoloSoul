@@ -5,6 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { trackAsyncListener } from './asyncListener';
 import { observeNativeCaptionBackdrops } from './nativeTitlebarControls';
 import { getPlatform } from './platform';
+import { applyNativeMotionPreference, applyMotionPlatform } from './motionPolicy';
 
 interface WindowLayout {
   platform: 'macos' | 'windows' | 'other';
@@ -102,7 +103,7 @@ function enqueueNativeAppearance(color: { red: number; green: number; blue: numb
         return;
       const root = document.documentElement;
       root.dataset.nativeMaterial = appearance.material;
-      root.dataset.reduceMotion = String(appearance.reduceMotion);
+      applyNativeMotionPreference(appearance.platform, appearance.reduceMotion);
       root.dataset.highContrast = String(appearance.highContrast);
       if (geometryRevision === layoutRevision) applyWindowLayout(appearance, true);
     });
@@ -164,7 +165,10 @@ export function observeNativeWindowLayout() {
 /** 图标解码后显示原生窗口；隐藏 WebView 不保证调度 RAF，因此设置有界绘制等待。 */
 export async function prepareStartupWindow(): Promise<void> {
   const desktop = await getPlatform().then(
-    (platform) => platform === 'windows' || platform === 'macos',
+    (platform) => {
+      applyMotionPlatform(platform);
+      return platform === 'windows' || platform === 'macos';
+    },
     () => false,
   );
   if (desktop && window.__SOLOSOUL_STARTUP__?.systemTheme) {

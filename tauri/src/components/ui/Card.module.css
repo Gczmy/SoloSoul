@@ -56,7 +56,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  :global(html[data-desktop-platform='windows']) .card {
+  :global(html:not([data-motion-policy='application'])[data-desktop-platform='windows']) .card {
     transition: none;
   }
 }

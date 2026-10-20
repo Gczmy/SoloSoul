@@ -19,6 +19,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { invokeCommand } from './bridge';
 import { publicObjects, useSettingsStore } from './stores';
 import { useMediaPreference } from '@/hooks/useMediaPreference';
+import { followsSystemMotion } from '@/lib/motionPolicy';
 import { applyTheme } from '@/lib/theme';
 import '@/styles/tokens.css';
 import '@/styles/global.css';
@@ -51,7 +52,7 @@ function subscribeNativeMotion(notify: () => void) {
   const observer = new MutationObserver(notify);
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-reduce-motion'],
+    attributeFilter: ['data-reduce-motion', 'data-motion-policy'],
   });
   return () => observer.disconnect();
 }
@@ -66,8 +67,9 @@ async function capture() {
     highContrast: document.documentElement.dataset.highContrast,
     motion: {
       userReduced: useSettingsStore.getState().settings.reduceMotion,
-      nativeReduced: document.documentElement.dataset.reduceMotion === 'true',
+      nativeReduced: document.documentElement.dataset.systemReduceMotion === 'true',
       systemReduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      policy: document.documentElement.dataset.motionPolicy,
     },
     surfaces: Object.fromEntries(
       ['html', 'body', '[data-appbar]', '#desktop-navigation', '[data-shell-surface]'].map(
@@ -114,7 +116,7 @@ function Fixture() {
     () => document.documentElement.dataset.reduceMotion === 'true',
     () => false,
   );
-  const systemLimited = systemReduced || nativeReduced;
+  const systemLimited = followsSystemMotion() && (systemReduced || nativeReduced);
   const motionEnabled = !userReduced && !systemLimited;
   const navigate = useNavigate();
   const location = useLocation();
@@ -199,7 +201,7 @@ function Fixture() {
                 {systemLimited
                   ? '系统正在减少动态效果。请先在 Windows 中启用动画效果，再使用顶栏开关验收；本窗口遵循系统设置。'
                   : motionEnabled
-                    ? '动态效果已开启：顶栏开关可关闭动画；页面树展开、收起及长名称悬停滚动均使用正式实现。'
+                    ? '动态效果已开启：桌面动画独立于系统设置，顶栏开关可关闭动画；页面树展开、收起及长名称悬停滚动均使用正式实现。'
                     : '动态效果已关闭：点击顶栏“动态效果：关闭”开启动画，仅影响本次隔离验收。'}
               </p>
               <p>使用当前源码的正式窗框、顶栏、图标侧栏与页面树；业务内容为公开示例。</p>

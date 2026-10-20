@@ -51,7 +51,7 @@
   right: max(16px, var(--safe-area-right));
 }
 @media (prefers-reduced-motion: reduce) {
-  .toast {
+  :global(html:not([data-motion-policy='application'])) .toast {
     animation: none;
   }
 }

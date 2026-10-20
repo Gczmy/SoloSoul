@@ -139,7 +139,7 @@ test('resizer supports pointer capture, bounds, keyboard, reset and persistence'
   await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
 });
 
-test('pane and editor move together, rapid reversal preserves DOM, reduced motion settles immediately', async ({
+test('pane and editor move together, rapid reversal preserves DOM, desktop ignores system motion reduction', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -186,6 +186,8 @@ test('pane and editor move together, rapid reversal preserves DOM, reduced motio
   await expect(content).toHaveAttribute('data-motion-sentinel', 'retained');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(body).toHaveAttribute('data-pane-animating', 'true');
+  await expect(body).toHaveCSS('transition-duration', '0.32s');
   await expect(body).not.toHaveAttribute('data-pane-animating');
   const x = (await content.boundingBox())!.x;
   await page.waitForTimeout(80);

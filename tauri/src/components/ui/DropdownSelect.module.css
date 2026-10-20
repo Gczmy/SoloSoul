@@ -78,7 +78,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .popover {
+  :global(html:not([data-motion-policy='application'])) .popover {
     animation: none;
   }
 }

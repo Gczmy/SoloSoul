@@ -1098,9 +1098,9 @@
    直接禁用 transition，避免宽度/内边距/字号先保留旧值、下一帧再跳到新值。
    keyframe 保留极短时长，延续原有动画完成行为。 */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :root:not([data-motion-policy='application']) *,
+  :root:not([data-motion-policy='application']) *::before,
+  :root:not([data-motion-policy='application']) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition: none !important;
@@ -1109,9 +1109,9 @@
 }
 
 /* 原生可访问性设置可能先于 WebView 媒体查询更新。 */
-:root[data-reduce-motion='true'] *,
-:root[data-reduce-motion='true'] *::before,
-:root[data-reduce-motion='true'] *::after {
+:root:is([data-reduce-motion='true'], [data-user-reduce-motion='true']) *,
+:root:is([data-reduce-motion='true'], [data-user-reduce-motion='true']) *::before,
+:root:is([data-reduce-motion='true'], [data-user-reduce-motion='true']) *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition: none !important;

@@ -132,7 +132,7 @@ for (const platform of ['macos', 'windows']) {
   }
 }
 
-test('keyboard focus scrolls; system and native reduced motion cancel and show complete name', async ({
+test('desktop labels ignore system motion reduction; forced colors still use static labels', async ({
   page,
   browserName,
 }) => {
@@ -147,21 +147,15 @@ test('keyboard focus scrolls; system and native reduced motion cancel and show c
   await expect(button).toBeFocused();
   await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(track).toHaveCSS('transform', 'none');
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toBeVisible();
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toHaveCSS(
-    'animation-name',
-    'none',
-  );
+  await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.locator('html').evaluate((root) => {
-    root.dataset.reduceMotion = 'true';
+    root.dataset.systemReduceMotion = 'true';
   });
-  await expect(track).toHaveCSS('transform', 'none');
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toBeVisible();
+  await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.locator('html').evaluate((root) => {
-    delete root.dataset.reduceMotion;
+    delete root.dataset.systemReduceMotion;
   });
   await page.emulateMedia({ forcedColors: 'active' });
   await expect(viewport).toHaveCSS('mask-image', 'none');

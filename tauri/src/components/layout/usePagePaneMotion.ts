@@ -1,12 +1,13 @@
 import { useLayoutEffect, useState, useSyncExternalStore, type RefObject } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useMediaPreference } from '@/hooks/useMediaPreference';
+import { followsSystemMotion } from '@/lib/motionPolicy';
 
 function subscribeNativeMotion(notify: () => void) {
   const observer = new MutationObserver(notify);
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-reduce-motion'],
+    attributeFilter: ['data-reduce-motion', 'data-motion-policy'],
   });
   return () => observer.disconnect();
 }
@@ -21,10 +22,10 @@ export function usePagePaneMotion(
   const systemReduced = useMediaPreference('(prefers-reduced-motion: reduce)');
   const nativeReduced = useSyncExternalStore(
     subscribeNativeMotion,
-    () => document.documentElement.dataset.reduceMotion === 'true',
+    () => followsSystemMotion() && document.documentElement.dataset.reduceMotion === 'true',
     () => false,
   );
-  const reduced = userReduced || systemReduced || nativeReduced;
+  const reduced = userReduced || (followsSystemMotion() && systemReduced) || nativeReduced;
   const [previous, setPrevious] = useState({ enabled, open, reduced });
   const [animating, setAnimating] = useState(false);
   if (previous.enabled !== enabled || previous.open !== open || previous.reduced !== reduced) {

@@ -527,7 +527,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .addPagePopover {
+  :global(html:not([data-motion-policy='application'])) .addPagePopover {
     animation: none;
   }
 }
@@ -720,7 +720,9 @@
   font-weight: 500;
 }
 @media (prefers-reduced-motion: reduce) {
-  .sideNav :is(.foldableArea, .primaryZone, .arrowIcon) {
+  :global(html:not([data-motion-policy='application']))
+    .sideNav
+    :is(.foldableArea, .primaryZone, .arrowIcon) {
     transition: none;
   }
 }

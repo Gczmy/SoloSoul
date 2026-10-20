@@ -64,8 +64,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .track,
-  .thumb {
+  :global(html:not([data-motion-policy='application'])) .track,
+  :global(html:not([data-motion-policy='application'])) .thumb {
     transition: none;
   }
 }

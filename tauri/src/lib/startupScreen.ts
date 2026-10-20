@@ -13,6 +13,8 @@ declare global {
   }
 }
 
+import { prefersReducedMotion } from './motionPolicy';
+
 /** 仅操作静态启动层，不引入 React、Store 或 IPC，避免启动依赖闭环。 */
 export function dismissStartupScreen(): () => void {
   const screen = document.getElementById('startup-screen');
@@ -28,9 +30,7 @@ export function dismissStartupScreen(): () => void {
       performance.mark('solosoul:startup-dismissed');
       // RF312：仅通知已有的提交后双帧交接，不把createRoot调用当作UI就绪。
       window.dispatchEvent(new Event('solosoul:startup-handoff'));
-      const reducedMotion =
-        matchMedia('(prefers-reduced-motion: reduce)').matches ||
-        document.documentElement.dataset.reduceMotion === 'true';
+      const reducedMotion = prefersReducedMotion();
       removeTimer = setTimeout(() => screen.remove(), reducedMotion ? 0 : 180);
     });
   });

@@ -135,7 +135,7 @@ html[data-native-material]:not([data-native-material='solid']) #startup-screen {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #startup-screen {
+  :root:not([data-motion-policy='application']) #startup-screen {
     transition: none;
   }
 }

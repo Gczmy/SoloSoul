@@ -32,7 +32,7 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
   customAccentHex: string;
-  /** 安卓动效偏好，系统减少动态效果仍优先生效。 */
+  /** 应用动效偏好；桌面独立于系统，移动端同时遵循系统减少动态效果。 */
   reduceMotion: boolean;
   /** Android 材质偏好，系统能力不足时独立降级。 */
   androidGlass: AndroidGlassMode;
@@ -818,3 +818,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 }));
 
 onRequestSessionChange(() => useSettingsStore.getState().clearOnVaultLock());
+useSettingsStore.subscribe((state, previous) => {
+  if (state.settings.reduceMotion !== previous.settings.reduceMotion)
+    document.documentElement.dataset.userReduceMotion = String(state.settings.reduceMotion);
+});

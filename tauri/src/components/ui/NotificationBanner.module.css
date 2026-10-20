@@ -295,12 +295,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .button,
-  .progressFill {
+  :global(html:not([data-motion-policy='application'])) .button,
+  :global(html:not([data-motion-policy='application'])) .progressFill {
     transition: none;
   }
 
-  .spinner {
+  :global(html:not([data-motion-policy='application'])) .spinner {
     animation: none;
   }
 }

@@ -174,7 +174,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .functionBar :is(.horizontalButtonArea, .horizontalArrowIcon) {
+  :global(html:not([data-motion-policy='application']))
+    .functionBar
+    :is(.horizontalButtonArea, .horizontalArrowIcon) {
     transition: none;
   }
 }
