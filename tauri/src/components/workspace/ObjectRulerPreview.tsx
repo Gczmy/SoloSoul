@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownToLine, Paperclip } from 'lucide-react';
+import { ArrowRight, Paperclip } from 'lucide-react';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useRevealState } from '@/hooks/useRevealState';
 import { flattenPropertyEntries } from '@/lib/propertyFlatten';
@@ -93,7 +93,7 @@ export function ObjectRulerPreview({
         </dl>
       )}
       <button type="button" className={styles.jumpButton} onClick={onNavigate}>
-        <ArrowDownToLine size={14} />
+        <ArrowRight size={14} />
         {navigateLabel ?? t('object_ruler_jump')}
       </button>
     </>
