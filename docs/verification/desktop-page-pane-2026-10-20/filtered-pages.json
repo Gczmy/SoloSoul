@@ -1,0 +1,5 @@
+{
+  "change": "Keep filtered page rows collapsible",
+  "checks": { "playwright": "Filtered-page regression passed: matching objects start visible, page click collapses/reopens them, route stays unchanged" },
+  "behavior": "Search expands matching groups initially, while explicit page clicks remain effective. A new query resets only the temporary search-collapse choices."
+}

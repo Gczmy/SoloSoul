@@ -30,6 +30,7 @@ export function DesktopPagePane({
   const customPages = useSettingsStore((state) => state.settings.customPages);
   const creationRequest = useUiStore((state) => state.desktopPageCreationRequest);
   const [query, setQuery] = useState('');
+  const [searchCollapsed, setSearchCollapsed] = useState(() => new Set<string>());
   const [expanded, setExpanded] = useState(() => new Set<string>(['identity']));
   const selectedId = editorMatch?.params.objectId;
 
@@ -100,7 +101,10 @@ export function DesktopPagePane({
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setSearchCollapsed(new Set());
+            }}
             aria-label={t('page_pane_search')}
             placeholder={t('page_pane_search')}
           />
@@ -139,7 +143,7 @@ export function DesktopPagePane({
         )}
         <ul className={styles.list}>
           {visible.map(({ id, name, Icon, count, children }) => {
-            const isExpanded = !!search || expanded.has(id);
+            const isExpanded = search ? !searchCollapsed.has(id) : expanded.has(id);
             const listId = `page-pane-children-${id}`;
             return (
               <li key={id}>
@@ -150,14 +154,16 @@ export function DesktopPagePane({
                   aria-expanded={isExpanded}
                   aria-controls={listId}
                   data-page-id={id}
-                  onClick={() =>
-                    setExpanded((previous) => {
+                  onClick={() => {
+                    const update = (previous: Set<string>) => {
                       const next = new Set(previous);
                       if (next.has(id)) next.delete(id);
                       else next.add(id);
                       return next;
-                    })
-                  }
+                    };
+                    if (search) setSearchCollapsed(update);
+                    else setExpanded(update);
+                  }}
                   leading={
                     <>
                       <ChevronRight

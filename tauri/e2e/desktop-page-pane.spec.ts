@@ -246,3 +246,20 @@ test('rail Add Page opens the pane then one floating card; folding cancels pendi
   await expect(body).not.toHaveAttribute('data-pane-animating');
   await expect(card).toHaveCount(0);
 });
+
+test('filtered page rows still expand and collapse without changing the editor route', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  const search = pane.getByRole('searchbox');
+  await search.fill('Identity record');
+  const identity = pane.locator('[data-page-id="identity"]');
+  const object = pane.locator('[data-object-id="pane-object-2"]');
+  await expect(object).toBeVisible();
+  await identity.click();
+  await expect(identity).toHaveAttribute('aria-expanded', 'false');
+  await expect(object).toBeHidden();
+  await identity.click();
+  await expect(object).toBeVisible();
+  await expect(page).toHaveURL('/');
+});
