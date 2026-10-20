@@ -21,7 +21,7 @@ import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
-import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH } from '@/lib/constants';
+import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH, DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
 const SHELL_LAYOUT_KEYS = [
@@ -64,6 +64,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const legacySidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
   // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
   // （从长页面中部进入导出/同步等页面时表现为「页面从下方开始」）。
@@ -91,7 +92,11 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
     isMacOS && effectivePosition === 'left' ? Math.ceil(trafficLightsRight + 16) : 0,
   );
-  const sidebarWidth = isAndroid ? 88 : collapsedWidth;
+  const sidebarWidth = isAndroid
+    ? 88
+    : !desktopPane && legacySidebarExpanded
+      ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
+      : collapsedWidth;
 
   // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
   useLayoutEffect(() => {
