@@ -170,7 +170,7 @@ export function AppBar({
               zIndex: 200,
             }}
           >
-            {toggleName}
+            {navT('page_pane_toggle')}
           </div>,
           document.body,
         )}

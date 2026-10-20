@@ -11,6 +11,7 @@
   "page_pane_search": "Search pages and objects",
   "page_pane_collapse": "Hide pages and objects",
   "page_pane_expand": "Show pages and objects",
+  "page_pane_toggle": "Show/hide sidebar",
   "page_pane_empty": "No objects yet",
   "page_pane_no_results": "No matching pages or objects",
   "page_pane_load_failed": "Couldn't load objects",

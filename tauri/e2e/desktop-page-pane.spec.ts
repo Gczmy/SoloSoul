@@ -380,22 +380,24 @@ test('keyboard focus opens one preview, Escape returns focus and offscreen focus
   await expect(objectCard).toHaveCount(0);
 });
 
-test('titlebar toggle shows its current action on hover and keyboard focus', async ({ page }) => {
+test('titlebar toggle keeps its sidebar hint on hover and keyboard focus in both states', async ({
+  page,
+}) => {
   const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
   const hint = page.locator('[data-page-pane-toggle-tooltip]');
   await toggle.hover();
-  await expect(hint).toHaveText('Hide pages and objects');
+  await expect(hint).toHaveText('Show/hide sidebar');
   const bounds = (await hint.boundingBox())!;
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   await toggle.click();
-  await expect(hint).toHaveText('Show pages and objects');
+  await expect(hint).toHaveText('Show/hide sidebar');
   await page.keyboard.press('Escape');
   await expect(hint).toHaveCount(0);
   await page.mouse.move(700, 600);
   await page.keyboard.press('Tab');
   await toggle.focus();
-  await expect(hint).toHaveText('Show pages and objects');
+  await expect(hint).toHaveText('Show/hide sidebar');
   await page.keyboard.press('Tab');
   await expect(hint).toHaveCount(0);
 });

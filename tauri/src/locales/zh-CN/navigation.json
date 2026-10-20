@@ -11,6 +11,7 @@
   "page_pane_search": "搜索页面与对象",
   "page_pane_collapse": "收起页面与对象",
   "page_pane_expand": "展开页面与对象",
+  "page_pane_toggle": "显示/隐藏侧边栏",
   "page_pane_empty": "暂无对象",
   "page_pane_no_results": "没有匹配的页面或对象",
   "page_pane_load_failed": "对象加载失败",
