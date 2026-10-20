@@ -22,6 +22,8 @@ export interface SafSyncProgress {
 
 interface UiState {
   desktopPagePaneOpen: boolean;
+  desktopPagePaneWidth: number;
+  setDesktopPagePaneWidth: (width: number) => void;
   toggleDesktopPagePane: () => void;
   sidebarExpanded: boolean;
   toggleSidebarExpanded: () => void;
@@ -66,6 +68,24 @@ function readSidebarExpanded(): boolean {
 }
 
 export const useUiStore = create<UiState>((set) => ({
+  desktopPagePaneWidth: (() => {
+    try {
+      const value = Number(localStorage.getItem('solosoul_page_pane_width'));
+      return Number.isFinite(value) && value >= 200 ? Math.min(400, value) : 264;
+    } catch {
+      return 264;
+    }
+  })(),
+  setDesktopPagePaneWidth: (width) => {
+    if (!Number.isFinite(width)) return;
+    const desktopPagePaneWidth = Math.max(200, Math.min(400, Math.round(width)));
+    try {
+      localStorage.setItem('solosoul_page_pane_width', String(desktopPagePaneWidth));
+    } catch {
+      /* Optional UI cache. */
+    }
+    set({ desktopPagePaneWidth });
+  },
   desktopPagePaneOpen: (() => {
     try {
       return localStorage.getItem('solosoul_page_pane_open') !== 'false';

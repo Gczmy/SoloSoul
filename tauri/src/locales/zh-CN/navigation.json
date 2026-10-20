@@ -1,6 +1,7 @@
 {
   "home": "首页",
   "page_pane_title": "页面与对象",
+  "page_pane_resize": "调整页面与对象区域宽度",
   "page_pane_search": "搜索页面与对象",
   "page_pane_collapse": "收起页面与对象",
   "page_pane_expand": "展开页面与对象",

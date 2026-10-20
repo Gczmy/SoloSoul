@@ -1,6 +1,7 @@
 {
   "home": "Home",
   "page_pane_title": "Pages and objects",
+  "page_pane_resize": "Resize pages and objects",
   "page_pane_search": "Search pages and objects",
   "page_pane_collapse": "Hide pages and objects",
   "page_pane_expand": "Show pages and objects",

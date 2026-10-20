@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
 import { DesktopPagePane } from './DesktopPagePane';
+import { PAGE_PANE_MIN, usePagePaneResize } from './usePagePaneResize';
 import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
@@ -81,6 +82,8 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
   const desktopPane = !isMobilePlatformSync() && !isNarrowViewport && !isHorizontal;
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen);
   // 图标侧栏共用紧凑宽度；macOS 左侧仍按交通灯实际宽度继续扩展。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
@@ -257,9 +260,12 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
         >
           <ShellNotificationSlot />
           <div
+            ref={bodyRef}
             className={styles.contentBody}
             data-page-pane-body={desktopPane || undefined}
             data-pane-open={paneOpen}
+            data-pane-resizing={paneResize.resizing || undefined}
+            style={{ '--page-pane-width': `${paneResize.width}px` } as CSSProperties}
           >
             {desktopPane && (
               <div className={styles.paneSlot}>
@@ -269,6 +275,21 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             <main ref={contentRef} className={styles.content} data-shell-content>
               {children}
             </main>
+            {desktopPane && (
+              <div
+                className={styles.paneSeparator}
+                role="separator"
+                aria-label={t('navigation:page_pane_resize')}
+                aria-orientation="vertical"
+                aria-controls="desktop-page-pane"
+                aria-valuemin={PAGE_PANE_MIN}
+                aria-valuemax={paneResize.max}
+                aria-valuenow={paneResize.width}
+                tabIndex={paneOpen ? 0 : -1}
+                aria-hidden={!paneOpen}
+                {...paneResize.separatorProps}
+              />
+            )}
           </div>
         </div>
       </div>

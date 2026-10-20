@@ -50,6 +50,43 @@
   min-height: 0;
   overflow: hidden;
 }
+.paneSeparator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--page-pane-width, 264px) - 4px);
+  width: 8px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+.paneSeparator::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-subtle);
+}
+.paneSeparator:hover::after,
+.paneSeparator:focus-visible::after,
+[data-pane-resizing='true'] .paneSeparator::after {
+  background: var(--accent-primary);
+}
+.paneSeparator:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+.contentBody[data-pane-open='false'] .paneSeparator {
+  visibility: hidden;
+  pointer-events: none;
+}
+.contentBody[data-pane-resizing='true'],
+.contentBody[data-pane-resizing='true'] * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface {

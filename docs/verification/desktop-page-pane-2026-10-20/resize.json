@@ -1,0 +1,10 @@
+{
+  "change": "Resizable desktop page/object pane",
+  "checks": {
+    "playwright": "2 integration tests passed; pointer capture, 200/400px bounds, arrow/shift/Home keys, double-click reset, reload persistence and folding checked",
+    "typescript": "passed",
+    "eslint": "resize hook, shell and UI store passed"
+  },
+  "geometry": { "default": 264, "minimum": 200, "maximum": 400, "reservedEditorMinimum": 280 },
+  "behavior": "Viewport constraints clamp the effective width without overwriting the saved preferred width. Dragging updates immediately."
+}

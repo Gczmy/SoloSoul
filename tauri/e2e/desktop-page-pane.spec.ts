@@ -100,3 +100,40 @@ test('fixed rail, persistent pane, object edit routing and floating page creatio
   await expect(page).toHaveURL(/\/workspace\/custom\//);
   await expect(pane.getByRole('button', { name: 'Created from pane', exact: true })).toBeVisible();
 });
+
+test('resizer supports pointer capture, bounds, keyboard, reset and persistence', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  const divider = page.locator('[role="separator"][aria-controls="desktop-page-pane"]');
+  await expect(pane).toHaveCSS('width', '264px');
+  let box = (await divider.boundingBox())!;
+  await page.mouse.move(box.x + 4, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 800, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(pane).toHaveCSS('width', '400px');
+  await divider.focus();
+  await page.keyboard.press('Home');
+  await expect(pane).toHaveCSS('width', '200px');
+  await page.keyboard.press('Shift+ArrowRight');
+  await expect(pane).toHaveCSS('width', '232px');
+  await page.keyboard.press('ArrowRight');
+  await expect(divider).toHaveAttribute('aria-valuenow', '240');
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(divider).toHaveAttribute('tabindex', '-1');
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(pane).toHaveCSS('width', '240px');
+  await page.reload();
+  await login(page);
+  await expect(pane).toHaveCSS('width', '240px');
+  box = (await divider.boundingBox())!;
+  await page.mouse.move(box.x + 4, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 500, box.y + box.height / 2, { steps: 6 });
+  await page.mouse.up();
+  await expect(pane).toHaveCSS('width', '200px');
+  await divider.dblclick();
+  await expect(pane).toHaveCSS('width', '264px');
+  await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '64px');
+});
