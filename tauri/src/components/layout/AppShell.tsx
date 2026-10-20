@@ -5,6 +5,9 @@ import { trackAsyncListener } from '@/lib/asyncListener';
 import { useLocation } from 'react-router-dom';
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
+import { DesktopPagePane } from './DesktopPagePane';
+import { PAGE_PANE_MIN, usePagePaneResize } from './usePagePaneResize';
+import { usePagePaneMotion } from './usePagePaneMotion';
 import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
@@ -14,11 +17,11 @@ import { useUiStore } from '@/stores/uiStore';
 import { useSyncStore } from '@/stores/syncStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
-import { isAndroidSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
+import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH, DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
 const SHELL_LAYOUT_KEYS = [
@@ -57,10 +60,11 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
           ? // 全屏切换中的原生32pt临时几何不能压缩网页顶部栏。
             Math.max(52, titlebarHeight)
           : isWindows
-            ? titlebarHeight || 40
+            ? Math.max(52, titlebarHeight)
             : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
-  const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
+  const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const legacySidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
   // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
   // （从长页面中部进入导出/同步等页面时表现为「页面从下方开始」）。
@@ -79,16 +83,22 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       : sidebarPosition;
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
-  // 桌面折叠栏统一为 96px 图文轨道；macOS 左侧按交通灯实际宽度继续扩展。
+  const desktopPane = !isMobilePlatformSync() && !isNarrowViewport && !isHorizontal;
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen);
+  const paneAnimating = usePagePaneMotion(bodyRef, desktopPane, paneOpen);
+  // 旧导航保留交通灯避让；页面树布局的功能图标栏与顶栏等宽。
   const collapsedWidth = Math.max(
-    96,
+    DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
     isMacOS && effectivePosition === 'left' ? Math.ceil(trafficLightsRight + 16) : 0,
   );
   const sidebarWidth = isAndroid
     ? 88
-    : sidebarExpanded
-      ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
-      : collapsedWidth;
+    : desktopPane
+      ? appbarHeight
+      : legacySidebarExpanded
+        ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
+        : collapsedWidth;
 
   // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
   useLayoutEffect(() => {
@@ -212,11 +222,13 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       data-macos-shell={(isMacOS && !isNarrowViewport && !isAndroid) || undefined}
       data-windows-shell={windowsShell || undefined}
       data-navigation={effectivePosition}
+      data-page-pane-animating={(desktopPane && paneAnimating) || undefined}
       style={
         {
           '--appbar-height': `${appbarHeight}px`,
           // 与图文布局同次提交；子组件测量时不能继承上一状态的全局宽度。
           '--sidebar-width': `${sidebarWidth}px`,
+          '--page-pane-width': `${paneResize.width}px`,
           flexDirection: isHorizontal
             ? effectivePosition === 'top'
               ? 'column'
@@ -233,6 +245,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
         actions={actions}
         onBack={onBack}
         sidebarPosition={effectivePosition}
+        pagePane={desktopPane}
       />
       {isAndroid ? (
         <AndroidNavigation />
@@ -241,7 +254,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       ) : isHorizontal ? (
         <TopFunctionBar sidebarPosition={effectivePosition} />
       ) : (
-        <SideNavigation />
+        <SideNavigation pagePane={desktopPane} />
       )}
       <div
         className={styles.main}
@@ -251,11 +264,45 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
           paddingBottom: 'var(--shell-navigation-bottom)',
         }}
       >
-        <div className={styles.contentSurface} data-shell-surface>
+        <div
+          className={styles.contentSurface}
+          data-shell-surface
+          data-page-pane-layout={desktopPane || undefined}
+        >
           <ShellNotificationSlot />
-          <main ref={contentRef} className={styles.content} data-shell-content>
-            {children}
-          </main>
+          <div
+            ref={bodyRef}
+            className={styles.contentBody}
+            data-page-pane-body={desktopPane || undefined}
+            data-pane-open={paneOpen}
+            data-pane-resizing={paneResize.resizing || undefined}
+            data-pane-animating={paneAnimating || undefined}
+          >
+            {desktopPane && (
+              <div className={styles.paneSlot}>
+                <DesktopPagePane open={paneOpen} animating={paneAnimating} />
+              </div>
+            )}
+            <main ref={contentRef} className={styles.content} data-shell-content>
+              {children}
+            </main>
+            {desktopPane && (
+              <div
+                className={styles.paneSeparator}
+                role="separator"
+                aria-label={t('navigation:page_pane_resize')}
+                aria-orientation="vertical"
+                aria-controls="desktop-page-pane"
+                aria-valuemin={PAGE_PANE_MIN}
+                aria-valuemax={paneResize.max}
+                aria-valuenow={paneResize.width}
+                tabIndex={paneOpen && !paneAnimating ? 0 : -1}
+                aria-disabled={paneAnimating || undefined}
+                aria-hidden={!paneOpen}
+                {...paneResize.separatorProps}
+              />
+            )}
+          </div>
         </div>
       </div>
       {/* B 侧入站配对请求全局对话框（任意页面可弹出） */}

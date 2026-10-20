@@ -19,6 +19,8 @@
   } catch (_) {
     /* 缓存不可用不阻断启动。 */
   }
+  root.dataset.motionPolicy = desktop ? 'application' : 'system';
+  root.dataset.userReduceMotion = String(prefs.reduceMotion === true);
   function applyStartupTheme(mode) {
     root.style.removeProperty('--startup-background');
     var snapshot = prefs.startupThemes && prefs.startupThemes[mode];

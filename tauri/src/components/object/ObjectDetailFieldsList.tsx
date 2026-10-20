@@ -200,7 +200,7 @@ export function ObjectDetailFieldsList(props: Props) {
                       <span
                         style={{
                           fontSize: 'var(--text-caption)',
-                          fontWeight: 600,
+                          fontWeight: 'var(--object-ui-font-weight, 600)',
                           color: 'var(--text-secondary)',
                           textDecoration: deprecated ? 'line-through' : 'none',
                         }}
@@ -253,7 +253,7 @@ export function ObjectDetailFieldsList(props: Props) {
                         <span
                           style={{
                             fontSize: 'var(--text-caption)',
-                            fontWeight: 500,
+                            fontWeight: 'var(--object-ui-font-weight, 500)',
                             color: 'var(--text-secondary)',
                           }}
                         >

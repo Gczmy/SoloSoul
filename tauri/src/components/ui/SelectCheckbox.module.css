@@ -104,7 +104,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .visual {
+  :global(html:not([data-motion-policy='application'])) .visual {
     transition: none;
   }
 }

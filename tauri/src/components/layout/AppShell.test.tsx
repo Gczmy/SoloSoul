@@ -45,6 +45,9 @@ vi.mock('./MobileBottomNav', () => ({
 vi.mock('./AppBar', () => ({
   AppBar: () => <div data-testid="app-bar" />,
 }));
+vi.mock('./DesktopPagePane', () => ({
+  DesktopPagePane: ({ open }: { open: boolean }) => <aside data-testid="page-pane" inert={!open} />,
+}));
 vi.mock('@/components/sync/PairingDialog', () => ({
   PairingDialog: ({ isOpen, onTrust }: { isOpen: boolean; onTrust: () => void }) =>
     isOpen ? <button onClick={onTrust}>Trust incoming peer</button> : null,
@@ -67,7 +70,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     syncStub.trustPeer.mockReset();
     syncStub.loadStatus.mockReset();
     syncStub.clearIncomingPairingRequest.mockReset();
-    useUiStore.setState({ toasts: [], sidebarExpanded: true });
+    useUiStore.setState({ toasts: [], desktopPagePaneOpen: true });
     useNativeWindowStore.setState({ isMacOS: false, titlebarHeight: 0, trafficLightsRight: 0 });
   });
 
@@ -95,7 +98,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
   });
 
   it('侧栏展开状态变化不重建正文或丢失草稿、焦点和滚动位置', () => {
-    useUiStore.setState({ sidebarExpanded: true });
+    useUiStore.setState({ desktopPagePaneOpen: true });
     const { unmount } = render(
       <MemoryRouter>
         <AppShell title="首页">
@@ -109,16 +112,16 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     input.focus();
     content.scrollTop = 500;
     const release = vi.spyOn(document.documentElement.style, 'removeProperty');
-    act(() => useUiStore.setState({ sidebarExpanded: false }));
+    act(() => useUiStore.setState({ desktopPagePaneOpen: false }));
     expect(document.querySelector('[data-shell-content]')).toBe(content);
     expect(input).toHaveValue('未保存草稿');
     expect(input).toHaveFocus();
     expect(content.scrollTop).toBe(500);
-    act(() => useUiStore.setState({ sidebarExpanded: true }));
+    act(() => useUiStore.setState({ desktopPagePaneOpen: true }));
     expect(document.querySelector('[data-shell-content]')).toBe(content);
     expect(content.scrollTop).toBe(500);
     for (let i = 0; i < 12; i++) {
-      act(() => useUiStore.setState({ sidebarExpanded: i % 2 === 0 }));
+      act(() => useUiStore.setState({ desktopPagePaneOpen: i % 2 === 0 }));
       expect(document.querySelector('[data-shell-content]')).toBe(content);
       expect(input).toHaveValue('未保存草稿');
       expect(input).toHaveFocus();
@@ -166,10 +169,12 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     input.focus();
     content.scrollTop = 500;
     rerender(layout(<button>取消下载</button>));
-    expect(content.previousElementSibling).toBe(
+    expect(content.parentElement?.previousElementSibling).toBe(
       document.querySelector('[data-shell-notifications]'),
     );
-    expect(content.previousElementSibling).toContainElement(screen.getByText('取消下载'));
+    expect(content.parentElement?.previousElementSibling).toContainElement(
+      screen.getByText('取消下载'),
+    );
     expect(document.querySelector('[data-shell-content]')).toBe(content);
     expect(content.scrollTop).toBe(500);
     expect(input).toHaveValue('保留草稿');

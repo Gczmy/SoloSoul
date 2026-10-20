@@ -1,0 +1,5 @@
+{
+  "change": "Preserve readonly IPC guard semantics while notifying directory writes",
+  "checks": { "vitest": "58 passed: typed transport, IPC guards, page index and session isolation" },
+  "behavior": "Readonly commands keep their original request-check count. Successful mutations check session validity before notifying; expired writes do not refresh the index."
+}

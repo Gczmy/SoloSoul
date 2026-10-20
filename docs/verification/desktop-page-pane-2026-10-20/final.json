@@ -1,0 +1,46 @@
+{
+  "task": "Integrate the confirmed HTML directory layout into the desktop frontend",
+  "branch": "codex/compact-left-sidebar",
+  "implemented": [
+    "Fixed icon rail and top-bar directory toggle",
+    "Searchable system/custom pages with indented objects and direct editor navigation",
+    "One floating page-creation card, outside the independent list scroller",
+    "200–400px resizing, keyboard support, reset and preferred-width persistence",
+    "Synchronized 320ms motion, rapid reversal, persistent editor DOM and reduced-motion support",
+    "Hover/focus scrolling for long page/object names with static full-name fallback",
+    "Content-surface border/shadow/corners and mobile platform isolation"
+  ],
+  "validation": {
+    "browser": {
+      "uniquePassedCases": 132,
+      "desktopShellRegression": 109,
+      "longNames": 9,
+      "directoryIntegration": 6,
+      "wideMobilePlatformGate": 2,
+      "mobileViewportRegression": 6,
+      "method": "Broad run followed by targeted corrected-assertion reruns; all listed cases ultimately passed. Public synthetic fixtures and native geometry mocks only."
+    },
+    "vitest": {
+      "fullRunTotal": 2427,
+      "fullRunInitialPassed": 2422,
+      "fullRunInitialFailed": 5,
+      "resolved": [
+        "Four persistent-shell tests expected no header controls; now preserve the global directory toggle while still checking page-owned actions are cleared. Seven ownership tests passed on rerun.",
+        "One typed IPC test exposed an extra readonly request check. Product notification logic was restricted to mutations; 58 transport/index/session tests passed on rerun."
+      ],
+      "pageCreationAndOwnershipRerun": "11 passed",
+      "remainingKnownFailures": 0,
+      "singleCleanFullRerun": false
+    },
+    "node": { "passed": 270, "skipped": 1, "failed": 0 },
+    "typescript": "passed",
+    "changedFileFormatting": "passed",
+    "changedLayoutLint": "passed",
+    "productionFrontendBuild": "passed"
+  },
+  "limits": [
+    "No new Windows/macOS native executable acceptance was performed in this task; browser native-frame mocks are not OS acceptance.",
+    "Some early development-server runs stopped at startup before login; later single-worker reruns passed. No request guards, assertions or retry policy were weakened to bypass this.",
+    "Existing unrelated tasks remain paused. No PR or merge was performed."
+  ]
+}

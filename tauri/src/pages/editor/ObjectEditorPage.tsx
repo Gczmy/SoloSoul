@@ -86,7 +86,7 @@ function ObjectEditorForm() {
       onBack={handleBack}
       primaryActions={isWindows && showForm ? formActions : undefined}
     >
-      <PageContainer variant="xs" gap="default">
+      <PageContainer variant="xs" gap="default" className={styles.editor}>
         <ObjectTemplateSelector
           isNew={isNew}
           visibleTemplates={visibleTemplates}

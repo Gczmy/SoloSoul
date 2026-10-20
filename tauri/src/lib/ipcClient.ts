@@ -23,6 +23,7 @@
  * i18n 依赖构成循环）——失败日志内联 dev 守卫，仅依赖 core。
  */
 import { invoke } from '@tauri-apps/api/core';
+import { notifyVaultCommand } from './vaultDataChanges';
 import {
   BackendCommandError,
   backendErrorLogDetails,
@@ -208,10 +209,9 @@ export async function invokeCommand<T>(
   try {
     // args 缺省时不再传第二参：既有测试断言 `toHaveBeenCalledWith('cmd')`
     // （单参精确匹配），多传 undefined 会破坏这些断言。
-    if (args === undefined) {
-      return await invoke<T>(cmd);
-    }
-    return await invoke<T>(cmd, args);
+    const result = args === undefined ? await invoke<T>(cmd) : await invoke<T>(cmd, args);
+    notifyVaultCommand(cmd, args, opts?.requestIsCurrent);
+    return result;
   } catch (err) {
     devWarn(`[ipc] command '${cmd}' failed:`, backendErrorLogDetails(err));
     if (isPluginErrorCommand(cmd))

@@ -1,3 +1,16 @@
+.editor {
+  min-width: 0;
+}
+
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .editor {
+  --object-ui-font-weight: 400;
+  --object-ui-title-size: 15px;
+  --object-ui-caption-size: 12px;
+  --text-badge: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
 .formActions {
   display: flex;
   gap: 8px;

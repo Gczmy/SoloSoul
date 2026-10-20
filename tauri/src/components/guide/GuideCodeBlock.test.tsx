@@ -12,7 +12,7 @@ describe('GuideCodeBlock sensitivity badge rendering', () => {
       border: '1px solid #C0392B',
       borderRadius: '4px',
       display: 'inline-flex',
-      fontWeight: '600',
+      fontWeight: 'var(--object-ui-font-weight, 600)',
     });
     expect(badgeSpan).toHaveAttribute('title', expect.stringContaining('critical'));
   });
@@ -23,10 +23,13 @@ describe('GuideCodeBlock sensitivity badge rendering', () => {
       const { unmount } = render(<GuideCodeBlock>{level}</GuideCodeBlock>);
       const label = screen.getByText(level);
       const badgeSpan = label.closest('span');
-      expect(badgeSpan).toHaveStyle({ display: 'inline-flex', fontWeight: '600' });
+      expect(badgeSpan).toHaveStyle({
+        display: 'inline-flex',
+        fontWeight: 'var(--object-ui-font-weight, 600)',
+      });
       expect(badgeSpan?.style.border).toMatch(/^1px solid /);
       unmount();
-    }
+    },
   );
 
   it('renders plain inline code for non-level tokens', () => {

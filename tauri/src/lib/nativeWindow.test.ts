@@ -143,7 +143,9 @@ describe('原生窗口启动', () => {
     expect(document.documentElement.dataset).toMatchObject({
       nativeMaterial: 'solid',
       highContrast: 'true',
-      reduceMotion: 'true',
+      reduceMotion: 'false',
+      systemReduceMotion: 'true',
+      motionPolicy: 'application',
     });
   });
 

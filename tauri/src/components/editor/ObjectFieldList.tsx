@@ -128,7 +128,13 @@ export function ObjectFieldList({
 
   return (
     <Card>
-      <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
+      <h3
+        style={{
+          fontSize: 'var(--object-ui-title-size, var(--text-body))',
+          fontWeight: 'var(--object-ui-font-weight, 600)',
+          marginBottom: 12,
+        }}
+      >
         {t('common:properties')}
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

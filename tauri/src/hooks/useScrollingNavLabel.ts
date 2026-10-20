@@ -1,19 +1,23 @@
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useMediaPreference } from './useMediaPreference';
+import { followsSystemMotion } from '@/lib/motionPolicy';
 
 function subscribeNativePreference(notify: () => void) {
   const observer = new MutationObserver(notify);
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-reduce-motion', 'data-high-contrast'],
+    attributeFilter: ['data-reduce-motion', 'data-high-contrast', 'data-motion-policy'],
   });
   return () => observer.disconnect();
 }
 
 function nativeStaticLabel() {
   const root = document.documentElement;
-  return root.dataset.reduceMotion === 'true' || root.dataset.highContrast === 'true';
+  return (
+    (followsSystemMotion() && root.dataset.reduceMotion === 'true') ||
+    root.dataset.highContrast === 'true'
+  );
 }
 
 /** 仅滚动文字层。尺寸/字体/名称变化重新测量，离开、折叠和卸载取消整段动画。 */
@@ -31,7 +35,11 @@ export function useScrollingNavLabel(label: string, enabled: boolean, active: bo
     () => false,
   );
   const staticMode =
-    userReduced || systemReduced || forcedColors || nativeReduced || animationUnavailable;
+    userReduced ||
+    (followsSystemMotion() && systemReduced) ||
+    forcedColors ||
+    nativeReduced ||
+    animationUnavailable;
 
   useLayoutEffect(() => {
     const viewport = viewportRef.current;

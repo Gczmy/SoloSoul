@@ -8,9 +8,9 @@
 }
 .toolbar {
   position: relative;
-  --button-padding: 6px 12px;
-  --button-font-size: 14px;
-  --button-min-height: 32px;
+  --button-padding: var(--appbar-button-padding, 6px 12px);
+  --button-font-size: var(--appbar-button-font-size, 14px);
+  --button-min-height: var(--appbar-control-size, 32px);
 }
 .toggle {
   display: inline-flex;
@@ -78,8 +78,8 @@
 }
 @media (max-width: 767px), (pointer: coarse) {
   .toolbar {
-    --button-min-height: 44px;
-    --button-padding: 8px 12px;
+    --button-min-height: var(--appbar-control-size, 44px);
+    --button-padding: var(--appbar-button-padding, 8px 12px);
   }
   .toggle {
     min-width: var(--icon-hit-size);

@@ -21,6 +21,12 @@ export interface SafSyncProgress {
 }
 
 interface UiState {
+  desktopPagePaneOpen: boolean;
+  desktopPageCreationRequest: number | null;
+  requestDesktopPageCreation: () => void;
+  desktopPagePaneWidth: number;
+  setDesktopPagePaneWidth: (width: number) => void;
+  toggleDesktopPagePane: () => void;
   sidebarExpanded: boolean;
   toggleSidebarExpanded: () => void;
   toasts: Toast[];
@@ -53,6 +59,7 @@ interface UiState {
 }
 
 let toastCounter = 0;
+let pageCreationCounter = 0;
 
 const SIDEBAR_EXPANDED_KEY = 'solosoul_sidebar_expanded';
 function readSidebarExpanded(): boolean {
@@ -64,6 +71,53 @@ function readSidebarExpanded(): boolean {
 }
 
 export const useUiStore = create<UiState>((set) => ({
+  desktopPageCreationRequest: null,
+  requestDesktopPageCreation: () => {
+    try {
+      localStorage.setItem('solosoul_page_pane_open', 'true');
+    } catch {
+      /* Optional UI cache. */
+    }
+    set({ desktopPagePaneOpen: true, desktopPageCreationRequest: ++pageCreationCounter });
+  },
+  desktopPagePaneWidth: (() => {
+    try {
+      const value = Number(localStorage.getItem('solosoul_page_pane_width'));
+      return Number.isFinite(value) && value >= 200 ? Math.min(400, value) : 264;
+    } catch {
+      return 264;
+    }
+  })(),
+  setDesktopPagePaneWidth: (width) => {
+    if (!Number.isFinite(width)) return;
+    const desktopPagePaneWidth = Math.max(200, Math.min(400, Math.round(width)));
+    try {
+      localStorage.setItem('solosoul_page_pane_width', String(desktopPagePaneWidth));
+    } catch {
+      /* Optional UI cache. */
+    }
+    set({ desktopPagePaneWidth });
+  },
+  desktopPagePaneOpen: (() => {
+    try {
+      return localStorage.getItem('solosoul_page_pane_open') !== 'false';
+    } catch {
+      return true;
+    }
+  })(),
+  toggleDesktopPagePane: () =>
+    set((state) => {
+      const desktopPagePaneOpen = !state.desktopPagePaneOpen;
+      try {
+        localStorage.setItem('solosoul_page_pane_open', String(desktopPagePaneOpen));
+      } catch {
+        /* Optional UI cache. */
+      }
+      return {
+        desktopPagePaneOpen,
+        ...(!desktopPagePaneOpen ? { desktopPageCreationRequest: null } : {}),
+      };
+    }),
   sidebarExpanded: readSidebarExpanded(),
   toggleSidebarExpanded: () =>
     set((s) => {

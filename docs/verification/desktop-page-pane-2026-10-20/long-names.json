@@ -1,0 +1,10 @@
+{
+  "change": "Scrolling page/object names in the desktop directory",
+  "checks": {
+    "playwrightPages": "9 tests passed across Windows/macOS geometry: tail reveal, reverse, hover reset, keyboard focus, rename, resize/font remeasurement and unavailable-animation fallback",
+    "playwrightObjects": "Object-name integration passed: only text moves, final character remains visible, expanding pane cancels overflow animation",
+    "accessibility": "Application, system and native reduced-motion plus forced colors stop scrolling and expose the full-name tooltip",
+    "typescriptAndLint": "passed"
+  },
+  "implementation": "Reuses useScrollingNavLabel; icon, chevron, count and input hit areas remain fixed."
+}

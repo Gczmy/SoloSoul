@@ -1,0 +1,68 @@
+{
+  "task": "DP-09 Desktop object interface typography",
+  "scope": [
+    "Windows and macOS titlebar",
+    "workspace object cards",
+    "object detail modal",
+    "object editor cards and field labels",
+    "page pane headings and hover previews"
+  ],
+  "typography": {
+    "weight": 400,
+    "titlebarTitlePx": 15,
+    "titlebarActionPx": 13,
+    "workspaceAndEditorTitlePx": 15,
+    "detailTitlePx": 16,
+    "bodyPx": 14,
+    "captionAndBadgePx": 12,
+    "previewFieldValuePx": 13
+  },
+  "validation": {
+    "browserDistinctCasesPassed": 31,
+    "browserInitialPassed": 29,
+    "browserLoginPreparationTimeouts": 2,
+    "browserIndependentRetriesPassed": 2,
+    "relatedUnitFiles": 7,
+    "relatedUnitDistinctPassed": 56,
+    "unitInitialForkStartup": "7 worker startup errors; no test cases ran",
+    "unitSingleWorker": "56 passed",
+    "unitThreadsConfirmation": "same 56 passed; not added to distinct count",
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "diffWhitespace": "passed",
+    "isolatedFixtureBuild": "passed",
+    "matchedFrontendSources": 134,
+    "matchedNativeSources": 11,
+    "fixtureSha256": "4c44491788489d84828550c605e21aca54297057dd8a95a823164e423832fc4a",
+    "browserChecks": [
+      "regular font weight and readable sizes",
+      "light and dark themes",
+      "800px and 1100px editor layouts",
+      "save/cancel and native hit regions",
+      "sensitive preview masking",
+      "pane resizing, animation and hover cards"
+    ],
+    "visualInspection": "light and dark production editor browser screenshots inspected",
+    "nativeCaptionBehavior": "unchanged; no native frame sources modified",
+    "manualVisualAcceptance": "awaiting user",
+    "macosNativeAcceptance": "awaiting macOS device",
+    "otherTasks": "paused",
+    "evidenceSha256": {
+      "types": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "e2e": "7f654933f4e8dd09ffa039d0ba7fefb08d95614e90a575815d786ae85d5fb135",
+      "e2e-retry": "50c295b2bf87b771ea4539026a28bc19e17e43d272e193e07ba5e30e93964895",
+      "unit": "11e923a0090c0eed33d3a970eb120e5e5b030636b1ee8db87175543f80617d7c",
+      "unit-retry": "fc378db6fc4341165347c2286de0afa8231e1557c5d04fb334d82591ed078b6f",
+      "unit-threads": "4c132939f6765433333bb6c5b97fc90ec64b3f3cf4609225acd35e95dc1e7681",
+      "fixture-build": "e9b22d9b9ca0a0ac53d74c2664f5c000231e1e9e68cb8bd99d9f5a3d695a4231"
+    },
+    "nativePublicWindow": "latest fixture window observed; overall user visual acceptance remains pending"
+  },
+  "preserved": [
+    "mobile typography defaults",
+    "user-authored rich text formatting",
+    "field reveal and masking rules"
+  ],
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths, process IDs and account data remain local"
+}

@@ -184,7 +184,7 @@ export function FieldSuggestions({
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
-                      fontWeight: 600,
+                      fontWeight: 'var(--object-ui-font-weight, 600)',
                       color: 'var(--text-secondary)',
                     }}
                   >
@@ -255,7 +255,7 @@ export function FieldSuggestions({
                     background: 'var(--bg-elevated)',
                     color: 'var(--text-secondary)',
                     fontSize: 'var(--text-badge)',
-                    fontWeight: 600,
+                    fontWeight: 'var(--object-ui-font-weight, 600)',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                   }}
@@ -281,7 +281,7 @@ export function FieldSuggestions({
                 background: 'transparent',
                 color: 'var(--text-secondary)',
                 fontSize: 'var(--text-badge)',
-                fontWeight: 600,
+                fontWeight: 'var(--object-ui-font-weight, 600)',
                 cursor: 'pointer',
                 alignSelf: 'flex-start',
               }}

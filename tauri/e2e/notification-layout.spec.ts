@@ -138,7 +138,8 @@ async function expectUnobscuredContent(page: Page) {
           rect.height > 120 &&
           Math.abs(top - rect.top) < 1 &&
           Math.abs(height - rect.height) < 1 &&
-          slot.parentElement === content.parentElement &&
+          (slot.parentElement === content.parentElement ||
+            slot.nextElementSibling === content.parentElement) &&
           !['fixed', 'absolute'].includes(getComputedStyle(slot).position) &&
           !!hit &&
           content.contains(hit) &&
@@ -162,12 +163,11 @@ for (const platform of ['macos', 'windows'] as const) {
       const slot = page.locator('[data-shell-notifications]');
       const slotBefore = (await slot.boundingBox())!;
       const contentBefore = (await page.locator('[data-shell-content]').boundingBox())!;
-      const surfaceTopInset = await page
-        .locator('[data-shell-surface]')
-        .evaluate((surface) => parseFloat(getComputedStyle(surface).marginTop));
-      expect(slotBefore.y).toBe(
-        barBefore.y + barBefore.height + surfaceTopInset + (navigation === 'top' ? 48 : 0),
-      );
+      const surfaceTopInset = await page.locator('[data-shell-surface]').evaluate((surface) => {
+        const style = getComputedStyle(surface);
+        return parseFloat(style.marginTop) + parseFloat(style.borderTopWidth);
+      });
+      expect(slotBefore.y).toBe(barBefore.y + barBefore.height + surfaceTopInset);
       const nav = page.locator('#desktop-navigation, header:not([data-appbar])');
       const navBefore = await nav.boundingBox();
       await slot.getByRole('button', { name: 'Close', exact: true }).click();

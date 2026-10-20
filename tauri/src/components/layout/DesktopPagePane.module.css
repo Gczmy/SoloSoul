@@ -1,0 +1,223 @@
+.pane {
+  width: var(--page-pane-width, 264px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  color: var(--text-primary);
+  background: var(--shell-content-surface, var(--bg-base));
+  font-family: var(--font-sans);
+  font-size: 13px;
+  /* 固定宽度的面板只滑动、不淡出；提前保留合成层，避免点击首帧重新栅格化。 */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+.header {
+  flex: none;
+  padding: 16px 12px 10px;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 4px 14px;
+}
+.heading strong {
+  font-size: 14px;
+  font-weight: 400;
+}
+.heading > span,
+.count {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  color: var(--text-tertiary);
+}
+.search:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+.search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+}
+.search input::placeholder {
+  color: var(--text-tertiary);
+}
+.addPage {
+  margin-top: 8px;
+  width: 100%;
+}
+.addPage > div {
+  width: 100%;
+}
+.addPage .addPageButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  height: 34px;
+  padding: 0 9px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  border: 1px solid var(--border-subtle);
+}
+.addPageButton svg {
+  width: 16px;
+  height: 16px;
+}
+.addPage .addPageButton > span {
+  font: inherit;
+}
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 8px 12px;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--text-tertiary) transparent;
+  overscroll-behavior: contain;
+}
+.scroller::-webkit-scrollbar {
+  width: 6px;
+}
+.scroller::-webkit-scrollbar-thumb {
+  background: var(--border-default, var(--text-tertiary));
+  border-radius: 6px;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.list[hidden] {
+  display: none;
+}
+.pageRow,
+.objectRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pageRow {
+  color: var(--text-primary);
+}
+.objectRow {
+  padding-left: 36px;
+}
+.pageRow svg,
+.objectRow svg,
+.count {
+  flex: none;
+}
+.chevron {
+  transform: rotate(0deg);
+}
+.chevron[data-open='true'] {
+  transform: rotate(90deg);
+}
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.labelTrack {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+}
+.name[data-overflow='true'] {
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);
+}
+.name[data-overflow='true'][data-fade='left'] {
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 100%);
+}
+.name[data-overflow='true'][data-fade='both'] {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 10px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+:global(html[data-high-contrast='true']) .name {
+  mask-image: none;
+}
+.objectRow[aria-current='page'] {
+  background: var(--state-selected, var(--state-hover));
+  color: var(--text-primary);
+}
+.pageRow:focus-visible,
+.objectRow:focus-visible,
+.addPageButton:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+.empty {
+  padding: 8px 8px 8px 36px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+.message {
+  margin: 0;
+  padding: 12px 8px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+.message button {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pageRow:hover,
+  .objectRow:hover,
+  .addPage .addPageButton:hover {
+    background: var(--state-hover);
+    color: var(--text-primary);
+  }
+}
+@media (forced-colors: active) {
+  .name {
+    mask-image: none !important;
+  }
+  .objectRow[aria-current='page'] {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+}

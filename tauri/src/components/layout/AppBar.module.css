@@ -23,10 +23,58 @@
 }
 
 @media (min-width: 768px) {
+  .appBar[data-page-pane-toggle] {
+    left: 0;
+    /* 与正文使用同一页面树宽度和过渡参数，避免尺寸监听反向修改顶栏。 */
+    --page-pane-title-left: calc(
+      var(--sidebar-width, 64px) + var(--page-pane-title-offset, 0px) +
+        var(--page-pane-shell-inset, 0px) + var(--shell-page-padding, 24px)
+    );
+    padding-left: var(--page-pane-title-left);
+  }
+  .titleBoundary {
+    position: absolute;
+    inset: 0;
+    left: var(--page-pane-marker-clip-left, 0px);
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .titleDivider {
+    position: absolute;
+    /* 下方分隔线画在内容左边缘的前 1px；两处共用宽度与过渡参数。 */
+    left: calc(
+      var(--page-pane-title-left) - var(--shell-page-padding, 24px) - 1px -
+        var(--page-pane-marker-clip-left, 0px)
+    );
+    top: calc(50% - 10px);
+    width: 1px;
+    height: 20px;
+    background: var(--border-subtle);
+    pointer-events: none;
+  }
+  .appBar[data-page-pane-toggle] .sidebarToggle {
+    position: absolute;
+    left: calc((var(--sidebar-width, 64px) - var(--appbar-control-size, 32px)) / 2);
+    top: calc((var(--appbar-height, 52px) - var(--appbar-control-size, 32px)) / 2);
+    width: var(--appbar-control-size, 32px);
+    height: var(--appbar-control-size, 32px);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
   .appBar[data-macos-shell][data-native-compact='true'] {
+    --page-pane-shell-inset: calc(var(--mac-content-inset, 8px) + 1px);
+    /* 收起或动画经过交通灯与侧栏开关时，只裁去重叠部分。 */
+    --page-pane-marker-clip-left: calc(var(--mac-sidebar-control-left) + 44px);
     left: 0;
     right: 0;
-    padding-left: calc(var(--mac-page-title-left) + 12px);
+    padding-left: max(calc(var(--mac-page-title-left) + 12px), var(--page-pane-title-left, 0px));
     border-bottom: 0;
     background: transparent;
   }
@@ -241,4 +289,73 @@
 }
 .appBar[data-windows-shell] .title {
   font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  :global(html[data-desktop-platform='windows']) .appBar[data-page-pane-toggle] {
+    /* 36px 控件在 52px 顶栏中上下各留 8px，避开原生顶部缩放条。 */
+    --appbar-control-size: var(--desktop-chrome-control-size);
+    --appbar-button-padding: 0 12px;
+    --desktop-control-radius: var(--desktop-chrome-control-radius);
+    --page-pane-shell-inset: calc(var(--windows-content-inset-left, 0px) + 1px);
+    left: 0;
+    padding-left: var(--page-pane-title-left);
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    :is([data-ui-icon-button], [data-desktop-control='icon']) {
+    --icon-hit-size: var(--appbar-control-size);
+    --icon-symbol-size: var(--desktop-chrome-icon-size);
+    height: var(--appbar-control-size);
+    min-width: var(--appbar-control-size);
+    min-height: var(--appbar-control-size);
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    [data-desktop-control='icon'] {
+    width: var(--appbar-control-size);
+    padding: 0;
+  }
+  :global(html[data-desktop-platform='windows']) .appBar[data-page-pane-toggle] button {
+    min-height: var(--appbar-control-size);
+    padding-block: 0;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    button:focus-visible {
+    outline-offset: -2px;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appBar[data-page-pane-toggle]
+    :is([data-ui-icon-button], [data-desktop-control='icon'])
+    > svg {
+    width: var(--desktop-chrome-icon-size);
+    height: var(--desktop-chrome-icon-size);
+  }
+  .appBar[data-page-pane-toggle] .sidebarToggle:active {
+    background: var(--state-pressed);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .appBar[data-page-pane-toggle] .sidebarToggle:hover {
+    background: var(--state-hover);
+    color: var(--text-primary);
+  }
+}
+
+/* 桌面标题通过字号区分层次，不使用粗体；保留移动端原有排版。 */
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .appBar {
+  --appbar-button-font-size: 13px;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos']))
+  .appBar
+  .title {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos']))
+  .appBar
+  button {
+  font-weight: 400;
 }

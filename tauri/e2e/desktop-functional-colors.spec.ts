@@ -57,7 +57,7 @@ for (const platform of ['macos', 'windows'] as const) {
         );
         const nav = page.locator('#desktop-navigation');
         await expect(nav).toBeVisible();
-        expect((await nav.boundingBox())!.width).toBe(186);
+        expect((await nav.boundingBox())!.width).toBe(52);
         await expect(nav.getByRole('img', { name: 'SoloSoul', exact: true })).toHaveCount(0);
         const home = nav.getByRole('button', { name: 'Home', exact: true });
         const ink = scheme.mode === 'dark' ? 'rgb(180, 180, 180)' : 'rgb(82, 82, 82)';
@@ -68,6 +68,25 @@ for (const platform of ['macos', 'windows'] as const) {
           ink,
         );
         await expect(page.locator('[data-appbar] h1')).toHaveCSS('color', primaryInk);
+        await expect(page.locator('[data-appbar] h1')).toHaveCSS('font-weight', '400');
+        await expect(page.locator('[data-appbar] h1')).toHaveCSS('font-size', '15px');
+        const marker = page.locator('[data-page-pane-title-divider]');
+        const separator = page.locator('[role="separator"][aria-controls="desktop-page-pane"]');
+        await expect(marker).toHaveCSS('pointer-events', 'none');
+        const markerBounds = (await marker.boundingBox())!;
+        expect(markerBounds.width).toBe(1);
+        expect(markerBounds.height).toBe(20);
+        expect(markerBounds.y).toBeGreaterThanOrEqual(8);
+        expect(markerBounds.y + markerBounds.height).toBeLessThanOrEqual(52);
+        const lowerLine = await separator.evaluate((element) => {
+          const line = getComputedStyle(element, '::after');
+          return {
+            x: element.getBoundingClientRect().x + parseFloat(line.left),
+            color: line.backgroundColor,
+          };
+        });
+        expect(Math.abs(markerBounds.x - lowerLine.x)).toBeLessThan(1);
+        await expect(marker).toHaveCSS('background-color', lowerLine.color);
         await home.hover();
         await expect(home).toHaveCSS('color', primaryInk);
         await page.mouse.move(600, 700);
@@ -144,7 +163,7 @@ for (const platform of ['macos', 'windows'] as const) {
         }
         expect(sample.leftBorder).toBe(0);
         expect(sample.rightBorder).toBe(0);
-        const frame = platform === 'macos' ? page.locator('[data-shell-surface]') : main;
+        const frame = page.locator('[data-shell-surface]');
         await expect(frame).toHaveCSS('border-top-width', '1px');
         await expect(frame).toHaveCSS('border-top-style', 'solid');
         await expect(frame).toHaveCSS(
@@ -156,16 +175,20 @@ for (const platform of ['macos', 'windows'] as const) {
           path: test.info().outputPath('desktop-functional-colors.png'),
           animations: 'disabled',
         });
-        await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
-        await expect(nav).toHaveCSS('width', '96px');
+        await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+        await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+          'data-pane-animating',
+        );
+        await expect(nav).toHaveCSS('width', '52px');
         await expect(nav).toHaveCSS('border-left-width', '0px');
         await expect(nav).toHaveCSS('border-right-width', '0px');
         const collapsedBox = (await nav.boundingBox())!;
-        expect(position === 'left' ? collapsedBox.x : collapsedBox.x + collapsedBox.width).toBe(
-          position === 'left' ? 0 : 1200,
+        expect(collapsedBox.x).toBe(0);
+        await page.getByRole('button', { name: 'Show pages and objects', exact: true }).click();
+        await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
+          'data-pane-animating',
         );
-        await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
-        await expect(nav).toHaveCSS('width', '186px');
+        await expect(nav).toHaveCSS('width', '52px');
         await page.locator('html').evaluate((root) => {
           root.dataset.nativeMaterial = 'solid';
         });

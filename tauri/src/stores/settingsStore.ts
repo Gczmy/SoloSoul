@@ -32,7 +32,7 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
   customAccentHex: string;
-  /** 安卓动效偏好，系统减少动态效果仍优先生效。 */
+  /** 应用动效偏好；桌面独立于系统，移动端同时遵循系统减少动态效果。 */
   reduceMotion: boolean;
   /** Android 材质偏好，系统能力不足时独立降级。 */
   androidGlass: AndroidGlassMode;
@@ -505,7 +505,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.biometricEnabled === 'boolean')
         parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
-      if (prefs.sidebarPosition) parsed.sidebarPosition = prefs.sidebarPosition;
+      // 暂时只开放左侧栏；保留旧枚举的读取兼容，避免旧位置重新激活其他布局。
+      parsed.sidebarPosition = 'left';
       // sidebarButtonModes is stored in preferences; load it if present
       const storedModes = (raw as Record<string, unknown>)?.sidebarButtonModes;
       if (storedModes && typeof storedModes === 'object') {
@@ -639,6 +640,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   updateSetting: async (accountId, key, value): Promise<SettingWriteResult> => {
+    // 兼容旧入口/调用方，侧栏位置统一保存为当前支持的左侧。
+    const nextValue = key === 'sidebarPosition' ? 'left' : value;
     // 无 key 的 ticket 只约束原会话，允许旧同键写的成功推进确认基线。
     const session = requests.begin(undefined, accountId);
     if (!session.isCurrent()) return { status: 'stale' };
@@ -659,12 +662,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     });
     lane.pending += 1;
     try {
-      setCurrent((s) => ({ settings: { ...s.settings, [key]: value } }));
+      setCurrent((s) => ({ settings: { ...s.settings, [key]: nextValue } }));
       if (previous) await previous;
       if (!session.isCurrent()) return { status: 'stale' };
       try {
         await session.invoke('user_data_update_preference', {
-          payload: { accountId, preferences: { [key]: value } },
+          payload: { accountId, preferences: { [key]: nextValue } },
         });
       } catch (e) {
         if (!request.isCurrent()) return { status: 'stale' };
@@ -673,7 +676,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         return { status: 'failed', isCurrent: request.isCurrent };
       }
       if (!session.isCurrent()) return { status: 'stale' };
-      lane.confirmed = value;
+      lane.confirmed = nextValue;
       // 确认基线与乐观值分离：成功写入也须通知应用级主题订阅者。
       if (session.isCurrent()) set({});
       // 真实提交的旧写也要镜像；同键镜像在队列内有序执行，不能夹带新乐观值。
@@ -681,13 +684,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         writeUiPrefsCache(confirmedSettings(get().settings));
       }
       if (PLAINTEXT_PREF_KEYS.has(key)) {
-        await syncSettingPlaintextPref(key, value, session.isCurrent);
+        await syncSettingPlaintextPref(key, nextValue, session.isCurrent);
       }
       if (!session.isCurrent()) return { status: 'stale' };
-      if (key === 'language' && typeof value === 'string') {
+      if (key === 'language' && typeof nextValue === 'string') {
         // 应用语言失败不改变数据库已保存的事实，也不能回滚确认基线。
         try {
-          await i18next.changeLanguage(value);
+          await i18next.changeLanguage(nextValue);
         } catch (e) {
           if (session.isCurrent()) {
             logger.warn('[settingsStore] Failed to apply saved language:', e);
@@ -695,7 +698,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         }
         if (!session.isCurrent()) return { status: 'stale' };
         try {
-          localStorage.setItem('i18nextLng', value);
+          localStorage.setItem('i18nextLng', nextValue);
         } catch (e) {
           logger.warn('[settingsStore] Failed to cache language:', e);
         }
@@ -815,3 +818,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 }));
 
 onRequestSessionChange(() => useSettingsStore.getState().clearOnVaultLock());
+useSettingsStore.subscribe((state, previous) => {
+  if (state.settings.reduceMotion !== previous.settings.reduceMotion)
+    document.documentElement.dataset.userReduceMotion = String(state.settings.reduceMotion);
+});

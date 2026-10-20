@@ -1,4 +1,5 @@
 .appShell {
+  --page-pane-motion: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   height: 100vh;
   height: var(--viewport-height, 100vh);
@@ -22,6 +23,107 @@
 .contentSurface {
   display: contents;
 }
+.contentBody {
+  display: contents;
+}
+.contentSurface[data-page-pane-layout] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--shell-content-surface, var(--bg-base));
+  overflow: hidden;
+}
+.contentBody[data-page-pane-body] {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--page-pane-width, 264px) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.contentBody[data-page-pane-body][data-pane-open='false'] {
+  grid-template-columns: 0px minmax(0, 1fr);
+}
+.paneSlot {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  /* 名称与卡片弹层均 Portal 到外部；仅隔离页面树自身的布局和绘制。 */
+  contain: layout paint;
+}
+.contentBody[data-pane-animating] {
+  transition: grid-template-columns var(--page-pane-motion);
+}
+.appShell[data-page-pane-animating] [data-appbar] {
+  transition: padding-left var(--page-pane-motion);
+}
+.appShell[data-page-pane-animating] [data-page-pane-title-divider] {
+  transition: left var(--page-pane-motion);
+}
+.contentBody[data-pane-animating] [data-page-pane] {
+  transition: transform var(--page-pane-motion);
+}
+.contentBody[data-pane-open='false'] [data-page-pane] {
+  transform: translate3d(-100%, 0, 0);
+  visibility: hidden;
+}
+.contentBody[data-pane-open='false'][data-pane-animating] [data-page-pane] {
+  visibility: visible;
+}
+.contentBody[data-pane-animating] .paneSeparator {
+  pointer-events: none;
+  transition: left var(--page-pane-motion);
+}
+.contentBody[data-pane-open='false'] .paneSeparator {
+  left: -4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :global(html:not([data-motion-policy='application'])) .contentBody[data-pane-animating],
+  :global(html:not([data-motion-policy='application']))
+    .contentBody[data-pane-animating]
+    [data-page-pane] {
+    transition: none;
+  }
+}
+.paneSeparator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--page-pane-width, 264px) - 4px);
+  width: 8px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+.paneSeparator::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-subtle);
+}
+.paneSeparator:hover::after,
+.paneSeparator:focus-visible::after,
+[data-pane-resizing='true'] .paneSeparator::after {
+  background: var(--accent-primary);
+}
+.paneSeparator:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+.contentBody[data-pane-open='false'] .paneSeparator {
+  visibility: hidden;
+  pointer-events: none;
+}
+.contentBody[data-pane-resizing='true'],
+.contentBody[data-pane-resizing='true'] * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface {
@@ -30,7 +132,7 @@
     flex: 1;
     min-height: 0;
     min-width: 0;
-    margin-top: 8px;
+    margin-top: 0;
     background: var(--shell-content-surface, var(--bg-base));
     border-radius: 12px;
     overflow: hidden;
@@ -144,9 +246,25 @@
 
 @media (min-width: 768px) {
   :global(html[data-desktop-platform='windows']) .appShell[data-windows-shell] .contentSurface,
+  :global(html[data-desktop-platform='windows']) .appShell .contentSurface[data-page-pane-layout],
   :global(html[data-desktop-platform='windows']) .appShell:not([data-windows-shell]) .content,
   :global(html[data-desktop-platform='macos']) .appShell[data-macos-shell] .contentSurface {
     border: 1px solid var(--desktop-content-edge);
     box-shadow: var(--desktop-content-shadow);
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appShell:not([data-windows-shell])
+    .contentSurface[data-page-pane-layout] {
+    margin-top: 0;
+    border-radius: 12px;
+  }
+  :global(html[data-desktop-platform='windows'])
+    .appShell:not([data-windows-shell])
+    .contentBody[data-page-pane-body]
+    .content {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }

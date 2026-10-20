@@ -27,9 +27,9 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     `,
     });
     await login(page);
-    if (position === 'left' || position === 'right') {
-      await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
-    }
+    await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+    await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+    await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
     await page.mouse.move(700, 400);
     const toggle = page.getByRole('button', { name: 'Tools', exact: true });
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');

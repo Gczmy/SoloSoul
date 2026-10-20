@@ -1,0 +1,39 @@
+{
+  "task": "DP-12 Typography regression alignment during PR review",
+  "pullRequest": "https://github.com/Gczmy/SoloSoul/pull/15",
+  "reviewedBaseHead": "e955448604902b17aac140bdf7eba798262e1fd4",
+  "rootCause": "DP-09 typography changes left unit and macOS browser expectations on the old weight/size contract",
+  "productionChanges": false,
+  "validation": {
+    "initialUnitPassed": 2433,
+    "initialUnitFailedOldAssertions": 6,
+    "initialPlatformBrowserPassed": 39,
+    "initialPlatformBrowserFailedOldAssertions": 4,
+    "targetedUnitPassed": 13,
+    "macosTitlebarCasesPassed": 4,
+    "windowsEditorCasesPassed": 4,
+    "enhancedBadgeProbe": "relocated from a list card without badges to actual detail field badges; all four cases then passed",
+    "typescript": "passed",
+    "changedSourceLint": "passed",
+    "strictChecksRetained": [
+      "sensitivity badge colors and borders",
+      "600 default weight fallback outside object scope",
+      "400 desktop title/action/badge weight",
+      "15px title, 13px action and 12px badge sizes",
+      "traffic light clearance and native control regions",
+      "save/cancel behavior and contrast"
+    ],
+    "finalCoverageAndCI": "required before merge; tracked in PR",
+    "otherTasks": "paused",
+    "evidenceSha256": {
+      "vitest-full": "b68e058cb9e0db26aa32aaa5062bfb53dfba0afeb1a083f7b7281c725af1f54b",
+      "platform-browser": "2ca250003a79eeee194d856fc42961c4a47c570b647bec626a29e440d6bdb28e",
+      "dp12-unit": "ac34603127fc42b02a22f642a09a77dfb9e287047b22e733f8269aff0386dee2",
+      "dp12-browser": "11cbd72469371477734643c5e4244fbd4ea4bdec343ddb22ed2e123866e064d8",
+      "dp12-windows-browser": "5db8109f3723eb688ed8b7e68f81c76c983875b2076c16aede23dfad0e19c9c0",
+      "dp12-types": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "dp12-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "publication": "Source and sanitized summary only; raw logs, screenshots, executables, machine paths, process IDs and account data remain local"
+}

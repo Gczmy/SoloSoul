@@ -122,6 +122,25 @@
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
+
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .preview {
+  --object-ui-font-weight: 400;
+  --object-ui-caption-size: 12px;
+  --text-badge: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .previewTitle {
+  font-weight: 400;
+  line-height: 22px;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos']))
+  :is(.previewMeta, .attachments, .field dt) {
+  font-size: 12px;
+}
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .field dd {
+  font-size: 13px;
+}
 .badges {
   display: flex;
   align-items: center;

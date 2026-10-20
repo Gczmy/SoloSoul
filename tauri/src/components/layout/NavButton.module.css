@@ -45,6 +45,13 @@
 .navButton > svg {
   flex-shrink: 0;
 }
+
+/* Windows 紧凑功能栏与顶栏共享按钮尺寸；44px 行高保留相邻按钮的 8px 间隔。 */
+:global(html[data-desktop-platform='windows']) :global([data-desktop-rail]) .navButton {
+  width: var(--desktop-chrome-control-size);
+  height: var(--desktop-chrome-control-size);
+  border-radius: var(--desktop-chrome-control-radius);
+}
 .label {
   display: none;
   min-width: 0;
@@ -147,26 +154,7 @@
   animation: none;
 }
 
-/* 宽轨道以图标和短标签占满视觉重心，按钮仍保持稳定的 72×48。 */
-.compactLabels {
-  width: 72px;
-  height: 48px;
-}
-.compactLabels .navButton {
-  width: 72px;
-  height: 48px;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 10px;
-}
-.compactLabels .label {
-  display: block;
-  max-width: 100%;
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-}
+/* 收起侧栏只显示图标，名称由悬停提示和 aria-label 提供。 */
 .expanded .label {
   display: block;
 }
@@ -194,10 +182,6 @@
   display: inline-block;
   width: max-content;
   white-space: nowrap;
-}
-.compactLabels .labelTrack {
-  display: inline;
-  width: auto;
 }
 .scrollingLabel[data-overflow='true'] {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent 100%);

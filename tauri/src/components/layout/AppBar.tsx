@@ -9,7 +9,10 @@ import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
 import { ToolbarActions } from './ToolbarActions';
 import { ICON_SIZE } from '@/lib/constants';
-import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
+import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
+import navStyles from './NavButton.module.css';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
 import { isAndroidSync } from '@/lib/platform';
@@ -23,6 +26,7 @@ interface AppBarProps {
   primaryActions?: React.ReactNode;
   onBack?: () => void;
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
+  pagePane?: boolean;
 }
 
 export function AppBar({
@@ -31,24 +35,47 @@ export function AppBar({
   primaryActions,
   onBack,
   sidebarPosition = 'left',
+  pagePane = false,
 }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
   const { t: navT } = useTranslation('navigation');
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
   const isNarrowViewport = useIsNarrowViewport();
-  const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
-  const toggleSidebarExpanded = useUiStore((s) => s.toggleSidebarExpanded);
+  const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const togglePane = useUiStore((s) => s.toggleDesktopPagePane);
   const macShell = isMacOS && !isNarrowViewport && !isAndroidSync();
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const windowsHeaderHeight = useNativeWindowStore((s) => s.windowsFrame?.headerHeight);
-  const hasSidebarToggle = macShell && !isHorizontal;
+  const hasSidebarToggle = pagePane && !isHorizontal;
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const toggleHintId = useId();
+  const [toggleFocused, setToggleFocused] = useState(false);
+  const toggleHint = useHoverCardPosition(toggleRef, {
+    isHorizontal: true,
+    isBottom: false,
+    isRight: false,
+  });
+  const toggleName = navT(paneOpen ? 'page_pane_collapse' : 'page_pane_expand');
+  const showToggleHint = hasSidebarToggle && (toggleHint.isHovered || toggleFocused);
+  const hideToggleHint = toggleHint.handleMouseLeave;
+  useEffect(() => {
+    if (!showToggleHint) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setToggleFocused(false);
+        hideToggleHint();
+      }
+    };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [showToggleHint, hideToggleHint]);
   const ToggleIcon =
     sidebarPosition === 'right'
-      ? sidebarExpanded
+      ? paneOpen
         ? PanelRightClose
         : PanelRightOpen
-      : sidebarExpanded
+      : paneOpen
         ? PanelLeftClose
         : PanelLeftOpen;
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
@@ -77,6 +104,7 @@ export function AppBar({
       data-native-compact={isMacOS || windowsShell || undefined}
       data-macos-shell={macShell || undefined}
       data-windows-shell={windowsShell || undefined}
+      data-page-pane-toggle={hasSidebarToggle || undefined}
       data-tauri-drag-region={isMacOS || windowsHeaderHeight === 0 ? 'false' : 'deep'}
       style={
         {
@@ -86,6 +114,8 @@ export function AppBar({
           '--windows-page-title-left': `calc(${contentLeft} + 12px)`,
           '--windows-page-trailing-inset':
             sidebarPosition === 'right' ? 'calc(var(--sidebar-width) + 12px)' : '12px',
+          '--page-pane-title-offset':
+            pagePane && paneOpen ? 'var(--page-pane-width, 264px)' : '0px',
         } as CSSProperties
       }
       className={[
@@ -98,20 +128,57 @@ export function AppBar({
         .join(' ')}
     >
       {hasSidebarToggle && (
+        <span className={styles.titleBoundary} aria-hidden="true">
+          <span className={styles.titleDivider} data-page-pane-title-divider />
+        </span>
+      )}
+      {hasSidebarToggle && (
         <button
+          ref={toggleRef}
           type="button"
           className={styles.sidebarToggle}
           data-titlebar-control
           data-desktop-control="icon"
           data-tauri-drag-region="false"
-          aria-label={navT(sidebarExpanded ? 'sidebar_collapse' : 'sidebar_expand')}
-          aria-expanded={sidebarExpanded}
-          aria-controls="desktop-navigation"
-          onClick={toggleSidebarExpanded}
+          aria-label={toggleName}
+          aria-describedby={showToggleHint ? toggleHintId : undefined}
+          aria-expanded={paneOpen}
+          aria-controls="desktop-page-pane"
+          onClick={togglePane}
+          onMouseEnter={toggleHint.handleMouseEnter}
+          onMouseLeave={hideToggleHint}
+          onFocus={(event) => {
+            if (event.currentTarget.matches(':focus-visible')) {
+              setToggleFocused(true);
+              toggleHint.updateCardPosition();
+            }
+          }}
+          onBlur={() => setToggleFocused(false)}
         >
           <ToggleIcon size={20} />
         </button>
       )}
+      {showToggleHint &&
+        toggleHint.cardStyle &&
+        createPortal(
+          <div
+            id={toggleHintId}
+            role="tooltip"
+            data-page-pane-toggle-tooltip
+            data-macos-glass="tooltip"
+            className={navStyles.nameCardPortalHorizontal}
+            style={{
+              position: 'fixed',
+              ...toggleHint.cardStyle,
+              left: Math.max(8, Number(toggleHint.cardStyle.left) - 20),
+              transform: 'none',
+              zIndex: 200,
+            }}
+          >
+            {navT('page_pane_toggle')}
+          </div>,
+          document.body,
+        )}
       <div className={styles.left}>
         {onBack && (
           <button

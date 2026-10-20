@@ -211,7 +211,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                   background: 'var(--accent-primary)',
                   color: '#fff',
                   fontSize: 'var(--text-caption)',
-                  fontWeight: 600,
+                  fontWeight: 'var(--object-ui-font-weight, 600)',
                   cursor: 'pointer',
                 }}
               >
@@ -226,7 +226,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                   background: 'var(--bg-elevated)',
                   color: 'var(--text-secondary)',
                   fontSize: 'var(--text-caption)',
-                  fontWeight: 500,
+                  fontWeight: 'var(--object-ui-font-weight, 500)',
                   cursor: 'pointer',
                 }}
               >
@@ -355,7 +355,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                 >
                   <span
                     style={{
-                      fontWeight: 600,
+                      fontWeight: 'var(--object-ui-font-weight, 600)',
                       textDecoration: deprecated ? 'line-through' : 'none',
                     }}
                   >
@@ -400,7 +400,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                   fontSize: 'var(--text-badge)',
                   background: 'rgba(91,124,153,0.08)',
                   color: 'var(--accent-primary)',
-                  fontWeight: 500,
+                  fontWeight: 'var(--object-ui-font-weight, 500)',
                 }}
               >
                 {tag}

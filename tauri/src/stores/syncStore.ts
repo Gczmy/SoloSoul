@@ -13,6 +13,7 @@ import type {
 import { useUiStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
+import { notifyVaultDataChange } from '@/lib/vaultDataChanges';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useTrashStore } from '@/stores/trashStore';
 import { useProfileStore } from '@/stores/profileStore';
@@ -61,6 +62,7 @@ function loadSyncHistory(): SyncResult[] {
  * 只刷 objectStore 会让模板/回收站/设置页数据陈旧到下次主动加载。
  */
 function refreshDataStores(accountId: string): void {
+  notifyVaultDataChange();
   useObjectStore
     .getState()
     .loadObjects(accountId, undefined)

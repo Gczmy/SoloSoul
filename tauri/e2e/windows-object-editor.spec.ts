@@ -106,11 +106,45 @@ for (const theme of ['light', 'dark']) {
       test.skip(testInfo.project.name !== 'chromium', 'Windows desktop layout');
       await page.setViewportSize({ width, height: 800 });
       await setupWindowsObjects(page, theme);
+      const card = page.getByTestId('workspace-object-card').first();
+      await expect(card.getByText('Public chrome object', { exact: true })).toHaveCSS(
+        'font-weight',
+        '400',
+      );
+      await expect(card.getByText('Public chrome object', { exact: true })).toHaveCSS(
+        'font-size',
+        '15px',
+      );
+      await expect(card.getByText('Public field 0', { exact: true })).toHaveCSS(
+        'font-weight',
+        '400',
+      );
+      await expect(card.getByText('Public field 0', { exact: true })).toHaveCSS(
+        'font-size',
+        '12px',
+      );
       const openEditor = async () => {
         await page
+          .locator('[data-shell-content]')
           .getByRole('button', { name: /^Public chrome object/ })
           .first()
           .click();
+        const detail = page.getByTestId('object-detail-modal');
+        const sensitivity = detail.getByText('Public', { exact: true }).first();
+        await expect(sensitivity).toHaveCSS('font-weight', '400');
+        await expect(sensitivity).toHaveCSS('font-size', '12px');
+        await expect(detail.getByRole('heading', { name: 'Public chrome object' })).toHaveCSS(
+          'font-weight',
+          '400',
+        );
+        await expect(detail.getByRole('heading', { name: 'Public chrome object' })).toHaveCSS(
+          'font-size',
+          '16px',
+        );
+        await expect(detail.getByText('Public field 0', { exact: true })).toHaveCSS(
+          'font-weight',
+          '400',
+        );
         await page
           .getByTestId('object-detail-modal')
           .getByRole('button', { name: 'Edit', exact: true })
@@ -118,6 +152,12 @@ for (const theme of ['light', 'dark']) {
         await expect(page.getByLabel('Object Name', { exact: true })).toHaveValue(
           'Public chrome object',
         );
+        const properties = page.locator('[data-shell-content]').getByRole('heading', {
+          name: 'Properties',
+          exact: true,
+        });
+        await expect(properties).toHaveCSS('font-weight', '400');
+        await expect(properties).toHaveCSS('font-size', '15px');
       };
       await openEditor();
       const header = page.locator('[data-appbar]');
@@ -125,6 +165,8 @@ for (const theme of ['light', 'dark']) {
       const cancel = header.getByRole('button', { name: 'Cancel', exact: true });
       await expect(save).toBeVisible();
       await expect(cancel).toBeVisible();
+      await expect(save).toHaveCSS('font-weight', '400');
+      await expect(save).toHaveCSS('font-size', '13px');
       const idle = await measureControlContrast(save, '[data-appbar]');
       expect(idle.foregroundContrast).toBeGreaterThanOrEqual(4.5);
       if (theme === 'light') await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
@@ -143,6 +185,8 @@ for (const theme of ['light', 'dark']) {
       });
       for (const button of [save, cancel]) {
         const rect = (await button.boundingBox())!;
+        expect(rect.height).toBe(36);
+        expect(rect.y).toBe(8);
         expect(rect.y).toBeGreaterThanOrEqual(0);
         expect(rect.y + rect.height).toBeLessThanOrEqual(52);
         expect(rect.x + rect.width).toBeLessThanOrEqual(width - 146);

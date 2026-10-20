@@ -1,0 +1,11 @@
+{
+  "change": "Fixed compact desktop rail and searchable page/object pane",
+  "checks": {
+    "vitest": "12 passed: persistent shell, notification flow, page creation failure behavior",
+    "playwright": "Desktop integration passed: 64px rail, header toggle, independent scroller, search, direct editor route, persistent DOM, floating page creation",
+    "typescript": "passed",
+    "eslint": "changed layout files passed"
+  },
+  "behavior": "The header toggle controls the directory pane; page rows expand objects, object rows open the existing editor. Search and Add Page remain outside the list scroller.",
+  "scope": "Browser integration using public synthetic fixtures and native frame geometry mocks; not a new native OS acceptance result. Resizing, motion and long names follow separately."
+}

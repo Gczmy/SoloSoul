@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '../src/lib/constants';
 import { login } from './fixtures/auth';
 
 async function expectMobileNavigation(page: Page) {
@@ -15,8 +14,10 @@ async function expectMobileNavigation(page: Page) {
   expect(bounds!.width).toBe(page.viewportSize()!.width);
 }
 
-for (const position of ['left', 'right'] as const) {
-  test(`${position} 侧栏展开、折叠、切页及快捷卡片位置`, async ({ page }, testInfo) => {
+for (const position of ['left', 'right', 'top', 'bottom'] as const) {
+  test(`旧 ${position} 配置统一左侧栏，展开、折叠、切页及快捷卡片位置正常`, async ({
+    page,
+  }, testInfo) => {
     await page.addInitScript({
       content:
         readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -51,48 +52,60 @@ for (const position of ['left', 'right'] as const) {
       await expect(page).toHaveURL(/\/settings$/);
       return;
     }
-    await expect(sidebar).toHaveAttribute('data-expanded', 'true');
-    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
+    await expect(sidebar).toHaveAttribute('data-position', 'left');
+    await expect(sidebar).toHaveAttribute('data-expanded', 'false');
+    await expect(sidebar).toHaveCSS('width', '52px');
     await expect(
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-    await expect(sidebar).toHaveCSS('width', '96px');
+    ).toBeHidden();
+    await page.getByRole('button', { name: 'Hide pages and objects' }).click();
+    await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+    await expect(sidebar).toHaveCSS('width', '52px');
     for (const name of ['Home', 'Settings', 'Add Page', 'Tools']) {
       const button = sidebar.getByRole('button', { name, exact: true });
       const label = button.locator('span').last();
-      await expect(label).toBeVisible();
+      await expect(label).toBeHidden();
       const iconBounds = (await button.locator('svg').boundingBox())!;
-      const labelBounds = (await label.boundingBox())!;
-      expect(labelBounds.y).toBeGreaterThanOrEqual(iconBounds.y + iconBounds.height);
-      expect(labelBounds.x + labelBounds.width).toBeLessThanOrEqual(
-        (await button.boundingBox())!.x + (await button.boundingBox())!.width,
-      );
+      const buttonBounds = (await button.boundingBox())!;
+      expect(buttonBounds.width).toBe(36);
+      expect(buttonBounds.height).toBe(36);
+      expect(buttonBounds.x - (await sidebar.boundingBox())!.x).toBe(8);
+      expect(iconBounds.width).toBe(20);
+      expect(iconBounds.height).toBe(20);
+      expect(
+        Math.abs(iconBounds.x + iconBounds.width / 2 - buttonBounds.x - buttonBounds.width / 2),
+      ).toBeLessThan(1);
+      expect(
+        Math.abs(iconBounds.y + iconBounds.height / 2 - buttonBounds.y - buttonBounds.height / 2),
+      ).toBeLessThan(1);
     }
     await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();
     await expect(page).toHaveURL(/\/settings$/);
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
-    await page.getByRole('button', { name: 'Expand sidebar' }).click();
-    await expect(sidebar).toHaveCSS('width', `${DESKTOP_SIDEBAR_EXPANDED_WIDTH}px`);
-    expect(await page.evaluate(() => localStorage.getItem('solosoul_sidebar_expanded'))).toBe(
-      'true',
-    );
+    await page.getByRole('button', { name: 'Show pages and objects' }).click();
+    await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+    await expect(sidebar).toHaveCSS('width', '52px');
+    expect(await page.evaluate(() => localStorage.getItem('solosoul_page_pane_open'))).toBe('true');
     const navBounds = await sidebar.boundingBox();
     const headerBounds = await page.locator('header').first().boundingBox();
     expect(navBounds).not.toBeNull();
     expect(headerBounds).not.toBeNull();
-    if (position === 'left')
-      expect(headerBounds!.x).toBeGreaterThanOrEqual(navBounds!.x + navBounds!.width);
-    else expect(headerBounds!.x + headerBounds!.width).toBeLessThanOrEqual(navBounds!.x + 1);
+    expect(navBounds!.x).toBe(0);
+    expect(headerBounds!.x).toBe(0);
     await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
     await sidebar.getByRole('button', { name: 'Plugins', exact: true }).click();
     const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
     await expect(panel).toBeVisible();
     const panelBounds = await panel.boundingBox();
-    if (position === 'left') expect(panelBounds!.x).toBeGreaterThanOrEqual(navBounds!.width);
-    else expect(panelBounds!.x + panelBounds!.width).toBeLessThanOrEqual(navBounds!.x);
+    expect(panelBounds!.x).toBeGreaterThanOrEqual(navBounds!.width);
     await page.keyboard.press('Escape');
     await expect(panel).toHaveCount(0);
+    await page.getByText('Theme & Appearance', { exact: true }).click();
+    await expect(page).toHaveURL(/\/settings\/appearance$/);
+    await expect(page.getByRole('heading', { name: 'Sidebar Position', exact: true })).toHaveCount(
+      0,
+    );
+    await expect(sidebar).toHaveAttribute('data-position', 'left');
     await page.screenshot({ path: `test-results/desktop-${position}.png` });
   });
 }
@@ -107,46 +120,6 @@ test('窄视口继续使用底部导航，桌面展开状态不挤占内容', as
   );
   expect(overflow).toBe(false);
 });
-
-for (const position of ['top', 'bottom'] as const) {
-  test(`${position} 导航保持横向布局`, async ({ page }, testInfo) => {
-    await page.addInitScript({
-      content:
-        readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
-        `
-      window.__E2E_MOCKS__ = {
-        vault_check_directory: () => true,
-        ocr_get_model_status: () => ({ installed: true, bundled: true }),
-        sync_list_conflicts: () => [],
-      };
-      const originalInvoke = window.__TAURI_INTERNALS__.invoke;
-      window.__TAURI_INTERNALS__.invoke = async (cmd, args) => {
-        const result = await originalInvoke(cmd, args);
-        if (cmd === 'user_data_get_preferences') result.sidebarPosition = '${position}';
-        return result;
-      };
-    `,
-    });
-    await login(page);
-    if (testInfo.project.name === 'mobile') {
-      await expectMobileNavigation(page);
-      await expect(page.locator('header')).toHaveCount(1);
-      return;
-    }
-    await expect(page.locator('#desktop-navigation')).toHaveCount(0);
-    await expect(page.locator('header')).toHaveCount(2);
-    const rectangles = await page.locator('header').evaluateAll((elements) =>
-      elements.map((el) => {
-        const r = el.getBoundingClientRect();
-        return { top: r.top, bottom: r.bottom, left: r.left, width: r.width };
-      }),
-    );
-    expect(rectangles.every((r) => r.left === 0 && r.width === 1280)).toBe(true);
-    expect(
-      rectangles[0].bottom <= rectangles[1].top || rectangles[1].bottom <= rectangles[0].top,
-    ).toBe(true);
-  });
-}
 
 test('深色主题和减少动态效果在最小桌面窗口保持可用', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 600 });
@@ -189,19 +162,22 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   const sidebar = page.locator('#desktop-navigation');
   await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(root).toHaveAttribute('data-theme', 'dark');
-  await expect(root).toHaveAttribute('data-reduce-motion', 'true');
-  await expect(page.getByRole('button', { name: 'Collapse sidebar' })).toBeInViewport();
+  await expect(root).toHaveAttribute('data-system-reduce-motion', 'true');
+  await expect(root).toHaveAttribute('data-reduce-motion', 'false');
+  await expect(root).toHaveAttribute('data-motion-policy', 'application');
+  await expect(page.getByRole('button', { name: 'Hide pages and objects' })).toBeInViewport();
   await expect(sidebar.getByRole('button', { name: 'Settings', exact: true })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(800);
   const navBounds = await sidebar.boundingBox();
   const contentBounds = await page.locator('main').boundingBox();
   expect(contentBounds!.x).toBeGreaterThanOrEqual(navBounds!.x + navBounds!.width);
-  expect(contentBounds!.width).toBeGreaterThan(500);
-  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-  await expect(sidebar).toHaveCSS('width', '96px');
+  expect(contentBounds!.width).toBeGreaterThan(400);
+  await page.getByRole('button', { name: 'Hide pages and objects' }).click();
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+  await expect(sidebar).toHaveCSS('width', '52px');
   await expect(
     sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
-  ).toBeVisible();
+  ).toBeHidden();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(800);
   await page.screenshot({ path: 'test-results/desktop-minimum-dark.png' });
 });

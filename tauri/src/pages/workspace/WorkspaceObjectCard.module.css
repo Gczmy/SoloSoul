@@ -35,8 +35,8 @@
 }
 
 .objectName {
-  font-size: var(--text-body);
-  font-weight: 600;
+  font-size: var(--object-ui-title-size, var(--text-body));
+  font-weight: var(--object-ui-font-weight, 600);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -147,6 +147,15 @@
 .anchor {
   position: relative;
   border-radius: 12px;
+}
+
+:global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .anchor {
+  --object-ui-font-weight: 400;
+  --object-ui-title-size: 15px;
+  --object-ui-caption-size: 12px;
+  --text-badge: 12px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 .anchor[data-ruler-target='true'] {
   outline: 2px solid var(--accent-primary);

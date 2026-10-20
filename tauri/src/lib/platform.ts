@@ -1,4 +1,5 @@
 import { platform, type Platform } from '@tauri-apps/plugin-os';
+import { applyMotionPlatform } from './motionPolicy';
 
 let cachedPlatform: Platform | null = null;
 
@@ -53,6 +54,7 @@ export function isWindowsSync(): boolean {
  */
 export async function initPlatform(): Promise<void> {
   document.documentElement.dataset.platform = await getPlatform();
+  applyMotionPlatform(document.documentElement.dataset.platform);
 }
 
 /**

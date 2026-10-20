@@ -2,8 +2,8 @@
 .sideNav {
   --tools-reveal-duration: 420ms;
   --tools-reveal-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
-  width: var(--sidebar-width, 96px);
-  min-width: var(--sidebar-width, 96px);
+  width: var(--sidebar-width, 64px);
+  min-width: var(--sidebar-width, 64px);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -13,6 +13,10 @@
   padding-bottom: 12px;
   background: var(--bg-toolbar);
   z-index: 101;
+}
+
+.sideNav[data-desktop-rail][data-expanded='false'] {
+  padding-top: calc(var(--appbar-height, 52px) + 8px);
 }
 
 :global(html[data-desktop-platform='windows']) .sideNav {
@@ -523,7 +527,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .addPagePopover {
+  :global(html:not([data-motion-policy='application'])) .addPagePopover {
     animation: none;
   }
 }
@@ -587,6 +591,10 @@
 }
 .sideNav[data-windows-shell='true'][data-position='right'] .brandHeader {
   flex-direction: row-reverse;
+}
+.sideNav[data-expanded='false'] .brandHeader {
+  justify-content: center;
+  padding-inline: 0;
 }
 .brandName {
   flex: 1;
@@ -690,9 +698,13 @@
   align-items: stretch;
 }
 .sideNav[data-expanded='false'] .foldableArea {
-  /* 窄轨道保留紧凑图文按钮，两侧留出玻璃轮廓，不越过原生材质区域。 */
+  /* 图标菜单两侧留出轮廓，不越过侧栏表面。 */
   left: 4px;
   width: calc(100% - 8px);
+}
+.sideNav[data-expanded='false'] .foldableContent {
+  /* 留出滚动条后仍容纳完整的 44px 图标命中区。 */
+  padding: 2px;
 }
 .sideNav[data-expanded='true'] .arrowToggle {
   width: 100%;
@@ -703,11 +715,14 @@
   border-radius: 8px;
 }
 .sideNav[data-expanded='true'] .compactActionLabel {
+  display: block;
   font-size: 13px;
   font-weight: 500;
 }
 @media (prefers-reduced-motion: reduce) {
-  .sideNav :is(.foldableArea, .primaryZone, .arrowIcon) {
+  :global(html:not([data-motion-policy='application']))
+    .sideNav
+    :is(.foldableArea, .primaryZone, .arrowIcon) {
     transition: none;
   }
 }
@@ -734,16 +749,14 @@
   padding: 4px 0;
 }
 
-/* 工具开关沿用普通导航的折叠图文尺寸。 */
+/* 工具开关与普通导航共用 44px 图标命中区。 */
 .sideNav[data-expanded='false'] .arrowToggle {
-  width: 72px;
-  height: 48px;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
 }
 .compactActionLabel {
+  display: none;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -751,4 +764,45 @@
   font-size: 12px;
   line-height: 16px;
   text-align: center;
+}
+
+/* 与顶栏共用按钮、图标及留白，不改变移动端与 macOS 的导航尺寸。 */
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail] {
+  padding-bottom: 4px;
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail][data-expanded='false'] {
+  padding-top: calc(var(--appbar-height, 52px) + 4px);
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail]
+  :is(.navPrimary, .foldableContent) {
+  gap: 0;
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail] .fixedActions {
+  padding-top: 0;
+  border-top: 0;
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail][data-expanded='false']
+  .arrowToggle {
+  width: var(--desktop-chrome-control-size);
+  height: var(--desktop-chrome-control-size);
+  margin: 4px 0;
+  border-radius: var(--desktop-chrome-control-radius);
+}
+:global(html[data-desktop-platform='windows']) .sideNav[data-desktop-rail] .arrowToggle > svg {
+  width: var(--desktop-chrome-icon-size);
+  height: var(--desktop-chrome-icon-size);
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail][data-expanded='false']
+  .foldableArea {
+  left: 0;
+  width: 100%;
+}
+:global(html[data-desktop-platform='windows'])
+  .sideNav[data-desktop-rail][data-expanded='false']
+  .foldableContent {
+  padding: 0;
+  scrollbar-gutter: stable both-edges;
 }

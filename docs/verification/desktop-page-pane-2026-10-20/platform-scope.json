@@ -1,0 +1,5 @@
+{
+  "change": "Keep the new directory and fixed rail limited to desktop platforms",
+  "checks": { "playwright": "Android and iOS wide-viewport integration tests passed" },
+  "behavior": "Android retains its dedicated navigation. iOS retains its existing expandable navigation on wide viewports. Neither mounts the desktop directory or its data observer."
+}

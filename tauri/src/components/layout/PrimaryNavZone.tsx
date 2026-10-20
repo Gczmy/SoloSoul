@@ -14,9 +14,10 @@ import type { CustomPage } from '@/stores/settingsStore';
 interface PrimaryNavZoneProps {
   sidebarPosition: NavPosition;
   isHorizontal: boolean;
+  onAddPage?: () => void;
 }
 
-export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZoneProps) {
+export function PrimaryNavZone({ sidebarPosition, isHorizontal, onAddPage }: PrimaryNavZoneProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('navigation');
@@ -168,6 +169,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
       {/* AddPageButton — vertical mode only (horizontal mode renders it in TopFunctionBar) */}
       {!isHorizontal && (
         <AddPageButton
+          onOpenRequest={onAddPage}
           onCreate={(page) => {
             navigate(`/workspace/custom/${page.id}`);
           }}

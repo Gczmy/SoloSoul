@@ -1,0 +1,5 @@
+{
+  "change": "Use directory typography for the Add Page action",
+  "checks": { "playwright": "Final directory and floating-card integration: 10 passed", "productionBuild": "passed" },
+  "behavior": "The full-width directory action inherits the 13px directory font instead of the reusable compact navigation label's 10px size."
+}

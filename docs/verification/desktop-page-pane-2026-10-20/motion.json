@@ -1,0 +1,11 @@
+{
+  "change": "Synchronized pane/editor transition",
+  "checks": {
+    "playwright": "3 integration tests passed; 14 frame samples include intermediate positions while the pane/rail keep fixed widths and editor right edge stays fixed",
+    "reversal": "Rapid close/open/close settles and retains the editor DOM",
+    "accessibility": "System reduced motion settles immediately; application and native preferences also disable the transition",
+    "vitest": "6 persistent-shell regressions passed",
+    "typescriptAndLint": "passed"
+  },
+  "motion": "320ms cubic-bezier(.22,1,.36,1); no transform is applied to the editor or ancestors of fixed content overlays"
+}

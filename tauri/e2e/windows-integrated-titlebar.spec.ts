@@ -45,6 +45,18 @@ for (const motion of ['normal', 'native', 'system'] as const) {
       const header = page.locator('[data-appbar]');
       await expect(header).toHaveCSS('height', '52px');
       expect((await header.boundingBox())!.x).toBe(0);
+      const toggleBounds = (await header
+        .getByRole('button', { name: 'Hide pages and objects' })
+        .boundingBox())!;
+      expect(toggleBounds).toMatchObject({ x: 8, y: 8, width: 36, height: 36 });
+      const headerButtons = await header.locator('button:visible').evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const r = button.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, height: r.height };
+        }),
+      );
+      expect(headerButtons.length).toBeGreaterThan(0);
+      expect(headerButtons.every((button) => button.top === 8 && button.bottom === 44)).toBe(true);
       const shellColor = await page
         .locator('html')
         .evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -65,7 +77,8 @@ for (const motion of ['normal', 'native', 'system'] as const) {
       await expect(surface).toHaveCSS('border-radius', '12px');
       const content = page.locator('[data-shell-content]');
       await expect(content).toHaveCSS('border-radius', '0px');
-      if (position === 'left' || position === 'right') {
+      await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+      {
         const nav = page.locator('#desktop-navigation');
         // Record production geometry reads during the switch, before a later RAF can hide a stale width.
         await nav.evaluate((navigation) => {
@@ -77,7 +90,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
             if (this === navigation || navigation.contains(this)) {
               const expanded = navigation.getAttribute('data-expanded');
               const width = original.call(navigation).width;
-              const expected = expanded === 'true' ? 186 : 96;
+              const expected = 52;
               if (Math.abs(width - expected) > 0.5) mismatches.push({ expanded, width });
             }
             return rect;
@@ -116,15 +129,18 @@ for (const motion of ['normal', 'native', 'system'] as const) {
               if (performance.now() - start < 350) requestAnimationFrame(sample);
             };
             sample();
-          }).observe(navigation, { attributes: true, attributeFilter: ['data-expanded'] });
+          }).observe(document.querySelector('[data-page-pane-body]')!, {
+            attributes: true,
+            attributeFilter: ['data-pane-open'],
+          });
         });
-        const toggle = nav.getByRole('button', { name: 'Collapse sidebar' });
+        const toggle = header.getByRole('button', { name: 'Hide pages and objects' });
         const before = await toggle.boundingBox();
         const navBounds = (await nav.boundingBox())!;
-        expect(before!.y).toBeGreaterThanOrEqual(52);
+        expect(before!.y).toBeGreaterThanOrEqual(0);
         expect(before!.x).toBeGreaterThanOrEqual(navBounds.x);
         expect(before!.x + before!.width).toBeLessThanOrEqual(navBounds.x + navBounds.width);
-        await expect(header.getByRole('button', { name: 'Collapse sidebar' })).toHaveCount(0);
+        await expect(nav.getByRole('button', { name: 'Hide pages and objects' })).toHaveCount(0);
         const track = await page
           .locator('#desktop-navigation')
           .getByRole('button', { name: 'Identity', exact: true })
@@ -132,7 +148,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
           .elementHandle();
         const stableSurface = await surface.elementHandle();
         await toggle.click();
-        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '96px');
+        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
         expect(
           await page.evaluate(
             () =>
@@ -140,17 +156,19 @@ for (const motion of ['normal', 'native', 'system'] as const) {
                 .__SIDEBAR_LAYOUT_MISMATCHES__,
           ),
         ).toEqual([]);
-        const after = await nav.getByRole('button', { name: 'Expand sidebar' }).boundingBox();
-        expect(after).toEqual(before);
+        const after = await header
+          .getByRole('button', { name: 'Show pages and objects' })
+          .boundingBox();
+        expect(after!.y).toBe(before!.y);
+        expect(after!.x + after!.width / 2).toBe(navBounds.x + navBounds.width / 2);
         await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', shellColor);
         for (let i = 0; i < 8; i++) {
-          await nav
-            .getByRole('button', { name: i % 2 === 0 ? 'Expand sidebar' : 'Collapse sidebar' })
+          await header
+            .getByRole('button', {
+              name: i % 2 === 0 ? 'Show pages and objects' : 'Hide pages and objects',
+            })
             .click();
-          await expect(page.locator('#desktop-navigation')).toHaveCSS(
-            'width',
-            i % 2 === 0 ? '186px' : '96px',
-          );
+          await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
           expect(await track!.evaluate((element) => element.isConnected)).toBe(true);
           expect(await stableSurface!.evaluate((element) => element.isConnected)).toBe(true);
           expect(

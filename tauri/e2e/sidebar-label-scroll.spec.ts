@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { login, setupTauriMock } from './fixtures/auth';
 
-const longName = '公开页面名称和个人资料备注';
+const longName = '公开页面名称和个人资料备注信息示例长名';
 test.use({ viewport: { width: 1200, height: 800 }, isMobile: false, hasTouch: false });
 
 async function prepare(page: Page, platform = 'macos', position = 'left', reduceMotion = false) {
@@ -37,6 +37,8 @@ async function prepare(page: Page, platform = 'macos', position = 'left', reduce
           ui_get_preferences: () => prefs,
           user_data_get_preferences: () => prefs,
           vault_check_directory: () => true,
+          ocr_get_model_status: () => ({ installed: true, bundled: true }),
+          ocr_list_available_tiers: () => [],
           sync_list_conflicts: () => [],
           object_list: ({ filter }: { filter?: { typeId?: string } }) =>
             filter?.typeId === 'page' ? pages : [],
@@ -62,7 +64,7 @@ async function prepare(page: Page, platform = 'macos', position = 'left', reduce
   );
   await login(page);
   await expect(
-    page.getByRole('navigation').getByRole('button', { name: longName, exact: true }),
+    page.locator('#desktop-page-pane').getByRole('button', { name: longName, exact: true }),
   ).toBeVisible();
 }
 
@@ -72,7 +74,7 @@ for (const platform of ['macos', 'windows']) {
       page,
     }) => {
       await prepare(page, platform, position);
-      const nav = page.locator('#desktop-navigation');
+      const nav = page.locator('#desktop-page-pane');
       const button = nav.getByRole('button', { name: longName, exact: true });
       const viewport = button.locator('[data-nav-label]');
       const track = viewport.locator('[data-label-track]');
@@ -82,7 +84,7 @@ for (const platform of ['macos', 'windows']) {
       await expect(viewport).toHaveAttribute('data-overflow', 'true');
       await expect(viewport).toHaveCSS('text-overflow', 'clip');
       expect(await viewport.evaluate((e) => getComputedStyle(e).maskImage)).toContain('gradient');
-      const iconBefore = await button.locator('svg').boundingBox();
+      const iconBefore = await button.locator('svg').last().boundingBox();
       const buttonBefore = await button.boundingBox();
       await page.screenshot({ path: test.info().outputPath('idle.png') });
       await button.hover();
@@ -96,7 +98,7 @@ for (const platform of ['macos', 'windows']) {
       const textBox = (await track.boundingBox())!;
       const clip = (await viewport.boundingBox())!;
       expect(Math.abs(textBox.x + textBox.width - clip.x - clip.width)).toBeLessThanOrEqual(1);
-      expect(await button.locator('svg').boundingBox()).toEqual(iconBefore);
+      expect(await button.locator('svg').last().boundingBox()).toEqual(iconBefore);
       expect(await button.boundingBox()).toEqual(buttonBefore);
       await page.screenshot({ path: test.info().outputPath('tail.png') });
       await expect(viewport).toHaveAttribute('data-scroll-state', 'reverse');
@@ -104,32 +106,38 @@ for (const platform of ['macos', 'windows']) {
       await expect(track).toHaveCSS('transform', 'none');
       await expect(viewport).not.toHaveAttribute('data-scroll-state');
       await button.click();
-      await expect(page).toHaveURL(/workspace\/custom\/label-long$/);
-      await button.dblclick();
+      await expect(button).toHaveAttribute('aria-expanded', 'true');
+      await page
+        .locator('#desktop-navigation')
+        .getByRole('button', { name: longName, exact: true })
+        .dblclick();
       const input = page.locator('[data-macos-glass="panel"] input').first();
       await expect(input).toHaveValue(longName);
       await input.fill('新名称');
       await input.press('Enter');
-      const renamed = nav.getByRole('button', { name: '新名称', exact: true });
+      const renamed = nav.locator('[data-page-id="label-long"]');
       await expect(renamed.locator('[data-nav-label]')).toHaveAttribute('data-overflow', 'false');
       await expect(renamed.locator('[data-nav-label]')).toHaveCSS('mask-image', 'none');
       const stableTrack = await renamed.locator('[data-label-track]').elementHandle();
-      await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
-      await expect(renamed.locator('[data-nav-label]')).toHaveCount(0);
+      await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+      await expect(renamed.locator('[data-nav-label]')).toHaveAttribute('data-overflow', 'false');
       expect(await stableTrack!.evaluate((element) => element.isConnected)).toBe(true);
       await expect(renamed.locator('[data-label-track]')).toHaveCSS('transform', 'none');
-      await renamed.hover();
+      await page
+        .locator('#desktop-navigation')
+        .getByRole('button', { name: '新名称', exact: true })
+        .hover();
       await expect(page.locator('[role="tooltip"]').filter({ hasText: '新名称' })).toBeVisible();
     });
   }
 }
 
-test('keyboard focus scrolls; system and native reduced motion cancel and show complete name', async ({
+test('desktop labels ignore system motion reduction; forced colors still use static labels', async ({
   page,
   browserName,
 }) => {
   await prepare(page);
-  const nav = page.locator('#desktop-navigation');
+  const nav = page.locator('#desktop-page-pane');
   const button = nav.getByRole('button', { name: longName, exact: true });
   const viewport = button.locator('[data-nav-label]');
   const track = viewport.locator('[data-label-track]');
@@ -139,21 +147,15 @@ test('keyboard focus scrolls; system and native reduced motion cancel and show c
   await expect(button).toBeFocused();
   await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(track).toHaveCSS('transform', 'none');
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toBeVisible();
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toHaveCSS(
-    'animation-name',
-    'none',
-  );
+  await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.locator('html').evaluate((root) => {
-    root.dataset.reduceMotion = 'true';
+    root.dataset.systemReduceMotion = 'true';
   });
-  await expect(track).toHaveCSS('transform', 'none');
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toBeVisible();
+  await expect(viewport).toHaveAttribute('data-scroll-state', 'forward');
   await page.locator('html').evaluate((root) => {
-    delete root.dataset.reduceMotion;
+    delete root.dataset.systemReduceMotion;
   });
   await page.emulateMedia({ forcedColors: 'active' });
   await expect(viewport).toHaveCSS('mask-image', 'none');
@@ -171,10 +173,14 @@ test('application reduced motion keeps the whole name in the hover card', async 
 });
 
 for (const position of ['top', 'bottom']) {
-  test(`${position}: horizontal navigation retains its complete-name tooltip`, async ({ page }) => {
+  test(`${position}: legacy placement uses the collapsed left sidebar tooltip`, async ({
+    page,
+  }) => {
     await prepare(page, 'macos', position);
+    await expect(page.locator('#desktop-navigation')).toHaveAttribute('data-position', 'left');
+    await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
     const button = page
-      .getByRole('navigation')
+      .locator('#desktop-navigation')
       .getByRole('button', { name: longName, exact: true });
     await expect(button.locator('[data-nav-label]')).toHaveCount(0);
     await button.hover();
@@ -186,7 +192,9 @@ test('label remeasures font/container changes and falls back when animation is u
   page,
 }) => {
   await prepare(page);
-  const button = page.getByRole('navigation').getByRole('button', { name: longName, exact: true });
+  const button = page
+    .locator('#desktop-page-pane')
+    .getByRole('button', { name: longName, exact: true });
   const viewport = button.locator('[data-nav-label]');
   await expect(viewport).toHaveAttribute('data-overflow', 'true');
   await button.evaluate((element) => {
@@ -210,6 +218,10 @@ test('label remeasures font/container changes and falls back when animation is u
     Object.defineProperty(element, 'animate', { value: undefined, configurable: true });
   });
   await button.hover();
-  await expect(page.locator('[role="tooltip"]').filter({ hasText: longName })).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Page details', exact: true })
+      .getByRole('heading', { name: longName, exact: true }),
+  ).toBeVisible();
   await expect(button.locator('[data-label-track]')).toHaveCSS('transform', 'none');
 });

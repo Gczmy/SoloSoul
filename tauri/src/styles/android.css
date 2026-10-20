@@ -1169,8 +1169,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-platform='android'] *,
-  [data-platform='android'] *::before {
+  html:not([data-motion-policy='application'])[data-platform='android'] *,
+  html:not([data-motion-policy='application'])[data-platform='android'] *::before {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18next from 'i18next';
-import common from '@/locales/en-US/common.json';
-import navigation from '@/locales/en-US/navigation.json';
-import settings from '@/locales/en-US/settings.json';
+import common from '@/locales/zh-CN/common.json';
+import navigation from '@/locales/zh-CN/navigation.json';
+import settings from '@/locales/zh-CN/settings.json';
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ShellNotificationsProvider } from '@/components/layout/ShellNotifications';
@@ -17,7 +17,9 @@ import { prepareStartupWindow, observeNativeWindowLayout } from '@/lib/nativeWin
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { useUiStore } from '@/stores/uiStore';
 import { invokeCommand } from './bridge';
-import { useSettingsStore } from './stores';
+import { publicObjects, useSettingsStore } from './stores';
+import { useMediaPreference } from '@/hooks/useMediaPreference';
+import { followsSystemMotion } from '@/lib/motionPolicy';
 import { applyTheme } from '@/lib/theme';
 import '@/styles/tokens.css';
 import '@/styles/global.css';
@@ -46,6 +48,14 @@ function bounds(selector: string) {
     };
   });
 }
+function subscribeNativeMotion(notify: () => void) {
+  const observer = new MutationObserver(notify);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-reduce-motion', 'data-motion-policy'],
+  });
+  return () => observer.disconnect();
+}
 async function capture() {
   const frame = useNativeWindowStore.getState().windowsFrame;
   const frontend = {
@@ -55,6 +65,12 @@ async function capture() {
       ? getComputedStyle(document.querySelector('[data-appbar]')!).backgroundImage
       : null,
     highContrast: document.documentElement.dataset.highContrast,
+    motion: {
+      userReduced: useSettingsStore.getState().settings.reduceMotion,
+      nativeReduced: document.documentElement.dataset.systemReduceMotion === 'true',
+      systemReduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      policy: document.documentElement.dataset.motionPolicy,
+    },
     surfaces: Object.fromEntries(
       ['html', 'body', '[data-appbar]', '#desktop-navigation', '[data-shell-surface]'].map(
         (selector) => {
@@ -72,6 +88,11 @@ async function capture() {
     ),
     content: bounds('[data-shell-surface], [data-shell-content], [data-auth-content]'),
     navigation: bounds('#desktop-navigation'),
+    navigationControls: bounds('#desktop-navigation button'),
+    navigationIcons: bounds('#desktop-navigation button > svg'),
+    pagePane: bounds('[data-page-pane], [data-page-pane-scroll]'),
+    pagePaneWidth: useUiStore.getState().desktopPagePaneWidth,
+    pagePaneOpen: useUiStore.getState().desktopPagePaneOpen,
     primary: bounds('#desktop-navigation [class*="navPrimary"]'),
     addPage: bounds('[data-add-page-zone]'),
     tools: bounds('[data-sidebar-tools]'),
@@ -90,8 +111,20 @@ function Fixture() {
   const [clicks, setClicks] = useState(0);
   const [preview, setPreview] = useState(false);
   const [detail, setDetail] = useState(false);
+  const userReduced = useSettingsStore((state) => state.settings.reduceMotion);
+  const systemReduced = useMediaPreference('(prefers-reduced-motion: reduce)');
+  const nativeReduced = useSyncExternalStore(
+    subscribeNativeMotion,
+    () => document.documentElement.dataset.reduceMotion === 'true',
+    () => false,
+  );
+  const systemLimited = followsSystemMotion() && (systemReduced || nativeReduced);
+  const motionEnabled = !userReduced && !systemLimited;
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedObject = publicObjects.find(
+    (object) => location.pathname === `/editor/${object.id}`,
+  );
   useEffect(observeNativeWindowLayout, []);
   useEffect(() => {
     const timer = setTimeout(() => void capture(), 250);
@@ -103,7 +136,7 @@ function Fixture() {
       clearTimeout(timer);
       window.removeEventListener('keydown', probe);
     };
-  }, [location.key, clicks, preview, detail]);
+  }, [location.key, clicks, preview, detail, userReduced, systemReduced, nativeReduced]);
   const theme = async () => {
     const dark = document.documentElement.dataset.theme !== 'dark';
     await applyTheme({ preset: dark ? 'warm-stone-dark' : 'warm-stone', accentColor: 'ocean' });
@@ -111,9 +144,6 @@ function Fixture() {
   };
   const primary = (
     <>
-      <Button data-interact={clicks} onClick={() => setClicks((value) => value + 1)}>
-        Interact {clicks}
-      </Button>
       <Button variant="secondary" onClick={() => setDetail(true)}>
         Object detail
       </Button>
@@ -121,27 +151,24 @@ function Fixture() {
   );
   const actions = (
     <>
+      <Button
+        variant="secondary"
+        aria-pressed={motionEnabled}
+        aria-describedby="fixture-motion-status"
+        disabled={systemLimited}
+        onClick={() =>
+          useSettingsStore.setState((state) => ({
+            settings: { ...state.settings, reduceMotion: !state.settings.reduceMotion },
+          }))
+        }
+      >
+        动态效果：{systemLimited ? '系统关闭' : userReduced ? '关闭' : '开启'}
+      </Button>
       <Button variant="secondary" onClick={() => void theme()}>
         Light / Dark
       </Button>
-      <Button variant="secondary" onClick={() => setPreview(true)}>
-        Preview
-      </Button>
-      <Button variant="secondary" onClick={() => navigate('/auth')}>
-        Authentication layout
-      </Button>
       <Button variant="secondary" onClick={() => void capture()}>
         Capture layout
-      </Button>
-      <Button
-        variant="secondary"
-        onClick={() =>
-          useSettingsStore.setState({
-            settings: { ...useSettingsStore.getState().settings, sidebarPosition: 'right' },
-          })
-        }
-      >
-        Right navigation
       </Button>
     </>
   );
@@ -166,15 +193,43 @@ function Fixture() {
           path="*"
           element={
             <AppShell
-              title={location.pathname === '/' ? 'Workspace' : 'Identity'}
+              title={selectedObject ? '编辑公开示例对象' : '桌面布局验收'}
               primaryActions={primary}
               actions={actions}
               onBack={location.pathname === '/' ? undefined : () => navigate('/')}
             >
-              <h2>Windows shell regression</h2>
-              <p>Production window chrome and full sidebar, synthetic business content.</p>
+              <h2 style={{ fontSize: 16, lineHeight: '24px', fontWeight: 400 }}>
+                {selectedObject?.name ?? '最新桌面布局 · Windows 原生验收'}
+              </h2>
+              <p id="fixture-motion-status" role="status">
+                {systemLimited
+                  ? '系统正在减少动态效果。请先在 Windows 中启用动画效果，再使用顶栏开关验收；本窗口遵循系统设置。'
+                  : motionEnabled
+                    ? '动态效果已开启：桌面动画独立于系统设置，顶栏开关可关闭动画；页面树展开、收起及长名称悬停滚动均使用正式实现。'
+                    : '动态效果已关闭：点击顶栏“动态效果：关闭”开启动画，仅影响本次隔离验收。'}
+              </p>
+              <p>使用当前源码的正式窗框、顶栏、图标侧栏与页面树；业务内容为公开示例。</p>
+              <p>
+                可测试顶栏折叠、分隔线调宽、搜索、页面展开、对象跳转、新建页面卡片及长名称悬停滚动。
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+                <Button data-interact={clicks} onClick={() => setClicks((value) => value + 1)}>
+                  Interact {clicks}
+                </Button>
+                <Button variant="secondary" onClick={() => setPreview(true)}>
+                  Preview
+                </Button>
+                <Button variant="secondary" onClick={() => navigate('/auth')}>
+                  Authentication layout
+                </Button>
+              </div>
               <label>
-                Public fixture draft <input data-public-draft defaultValue="public fixture edit" />
+                公开示例草稿{' '}
+                <input
+                  key={location.pathname}
+                  data-public-draft
+                  defaultValue={selectedObject?.name ?? 'public fixture edit'}
+                />
               </label>
               <div style={{ minHeight: 1200, paddingTop: 24 }}>
                 <p>Scrollable content retains its own surface.</p>
@@ -223,12 +278,16 @@ async function bootstrap() {
   await applyTheme({ preset: 'warm-stone-dark', accentColor: 'ocean' });
   document.documentElement.dataset.platform = 'windows';
   await i18next.init({
-    lng: 'en-US',
-    resources: { 'en-US': { common, navigation, settings } },
+    lng: 'zh-CN',
+    resources: { 'zh-CN': { common, navigation, settings } },
     interpolation: { escapeValue: false },
   });
   await prepareStartupWindow();
-  useUiStore.setState({ sidebarExpanded: true });
+  useUiStore.setState({
+    sidebarExpanded: false,
+    desktopPagePaneOpen: true,
+    desktopPagePaneWidth: 264,
+  });
 
   createRoot(document.getElementById('root')!).render(
     <I18nextProvider i18n={i18next}>

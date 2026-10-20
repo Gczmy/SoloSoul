@@ -1,0 +1,520 @@
+import { test, expect, type Page } from '@playwright/test';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { login } from './fixtures/auth';
+
+async function expectTitleOverContent(page: Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+        const title = document.querySelector<HTMLElement>('[data-appbar] h1')!;
+        return Math.abs(
+          title.getBoundingClientRect().x -
+            content.getBoundingClientRect().x -
+            parseFloat(getComputedStyle(content).paddingLeft),
+        );
+      }),
+    )
+    .toBeLessThan(1);
+  const marker = page.locator('[data-page-pane-title-divider]');
+  await expect(marker).toHaveCSS('width', '1px');
+  await expect(marker).toHaveCSS('height', '20px');
+  await expect(marker).toHaveCSS('pointer-events', 'none');
+  await expect
+    .poll(() =>
+      marker.evaluate((element) => {
+        const separator = document.querySelector<HTMLElement>(
+          '[role="separator"][aria-controls="desktop-page-pane"]',
+        )!;
+        return Math.abs(
+          element.getBoundingClientRect().x -
+            separator.getBoundingClientRect().x -
+            parseFloat(getComputedStyle(separator, '::after').left),
+        );
+      }),
+    )
+    .toBeLessThan(1);
+}
+
+test.beforeEach(async ({ page }, info) => {
+  page.on('pageerror', (error) => console.error('Page error:', error.message));
+  page.on('response', (response) => {
+    if (response.status() >= 400) console.error('HTTP:', response.status(), response.url());
+  });
+  page.on('console', (message) => {
+    if (message.type() === 'error') console.error('Browser:', message.text());
+  });
+  test.skip(info.project.name !== 'chromium', 'Desktop pane; mobile navigation tested separately');
+  await page.addInitScript({
+    content:
+      readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
+      `
+    window.__MOCK_PLATFORM__ = 'windows';
+    localStorage.setItem('i18nextLng', 'en-US');
+    const objects = Array.from({ length: 40 }, (_, i) => ({
+      id: 'pane-object-' + i, name: i === 0 ? 'Passport for navigation' : i === 1 ? 'Object with a long descriptive name here' : 'Identity record ' + i,
+      typeId: 'identity', sectionType: 'identity', iconName: 'id-card',
+      sensitivityLevel: 'public', createdAt: '2026-10-20', updatedAt: '2026-10-20',
+      isDeleted: false, templateId: null, templateType: null, tags: [], hasAttachments: false, properties: {}
+    }));
+    let frame = false;
+    window.__E2E_MOCKS__ = {
+      vault_check_directory: () => true,
+      object_list: ({ filter } = {}) => filter?.typeId === 'page' ? objects.filter(o => o.typeId === 'page') : objects,
+      object_get: ({ objectId, accountId }) => {
+        const object = objects.find(o => o.id === objectId);
+        return object ? { ...object, accountId, properties: { publicField: 'Public preview body', privateField: 'MUST-NOT-SHOW-PREVIEW' }, propertyLabels: { publicField: 'public', privateField: 'sensitive' } } : null;
+      },
+      object_create: ({ input }) => { const obj = { ...objects[0], ...input }; objects.push(obj); return obj; },
+      ocr_get_model_status: () => ({ installed: true, bundled: true }),
+      sync_list_conflicts: () => [],
+      set_titlebar_color: () => ({ platform: 'windows', material: 'mica', reduceMotion: false, highContrast: false }),
+      set_titlebar_controls: args => { if (args.windowsFrame !== undefined) frame = args.windowsFrame; },
+      get_window_layout: () => ({ platform: 'windows', windowsFrame: frame ? {
+        enabled: true, headerHeight: 52, dpi: 96, maximized: false,
+        captionBounds: [window.innerWidth - 146, 0, 146, 30]
+      } : undefined })
+    };
+  `,
+  });
+  await login(page);
+});
+
+test('fixed rail, persistent pane, object edit routing and floating page creation', async ({
+  page,
+}) => {
+  const rail = page.locator('#desktop-navigation');
+  const pane = page.locator('#desktop-page-pane');
+  const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
+  await expect(rail).toHaveCSS('width', '52px');
+  expect((await rail.boundingBox())!.width).toBe(
+    (await page.locator('[data-appbar]').boundingBox())!.height,
+  );
+  const surface = (await page.locator('[data-shell-surface]').boundingBox())!;
+  expect(surface.x).toBe(surface.y);
+  expect(surface.y).toBe((await page.locator('[data-appbar]').boundingBox())!.height);
+  await expect(rail).toHaveAttribute('data-expanded', 'false');
+  await expect(rail.locator('button[aria-controls="desktop-navigation"]')).toHaveCount(0);
+  expect(
+    (await rail.getByRole('button', { name: 'Home', exact: true }).boundingBox())!.y,
+  ).toBeLessThan(70);
+  const identity = pane.locator('[data-page-id="identity"]');
+  await expect(identity).toHaveAttribute('aria-expanded', 'true');
+  await expect(pane.locator('[data-object-id]')).toHaveCount(40);
+  const scroller = pane.locator('[data-page-pane-scroll]');
+  const search = pane.getByRole('searchbox');
+  const searchBefore = await search.boundingBox();
+  const addBefore = await pane.getByRole('button', { name: 'Add Page', exact: true }).boundingBox();
+  await scroller.evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+  });
+  expect(await search.boundingBox()).toEqual(searchBefore);
+  expect(await pane.getByRole('button', { name: 'Add Page', exact: true }).boundingBox()).toEqual(
+    addBefore,
+  );
+  await search.fill('Passport');
+  await pane.getByRole('button', { name: 'Passport for navigation', exact: true }).click();
+  await expect(page).toHaveURL(/\/editor\/pane-object-0$/);
+  await expect(pane.locator('[data-object-id="pane-object-0"]')).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  const content = page.locator('[data-shell-content]');
+  await content.evaluate((el) => {
+    el.dataset.mountSentinel = 'preserved';
+    el.scrollTop = 120;
+  });
+  await toggle.click();
+  await expect(pane).toHaveAttribute('inert', '');
+  await expect(rail).toHaveCSS('width', '52px');
+  await toggle.click();
+  await expect(search).toHaveValue('Passport');
+  await expect(content).toHaveAttribute('data-mount-sentinel', 'preserved');
+  await search.fill('');
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+  const paneBefore = await pane.boundingBox();
+  await pane.getByRole('button', { name: 'Add Page', exact: true }).click();
+  const input = page.getByPlaceholder('Page name', { exact: true });
+  await expect(input).toBeVisible();
+  await expect(input).toBeInViewport();
+  expect(await input.evaluate((el) => !!el.closest('#desktop-page-pane'))).toBe(false);
+  expect(await pane.boundingBox()).toEqual(paneBefore);
+  await input.fill('Created from pane');
+  await input.press('Enter');
+  await expect(page).toHaveURL(/\/workspace\/custom\//);
+  await expect(pane.getByRole('button', { name: 'Created from pane', exact: true })).toBeVisible();
+});
+
+test('resizer supports pointer capture, bounds, keyboard, reset and persistence', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  const divider = page.locator('[role="separator"][aria-controls="desktop-page-pane"]');
+  await expect(pane).toHaveCSS('width', '264px');
+  await expectTitleOverContent(page);
+  let box = (await divider.boundingBox())!;
+  await page.mouse.move(box.x + 4, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 800, box.y + box.height / 2, { steps: 8 });
+  await expect(pane).toHaveCSS('width', '400px');
+  await expectTitleOverContent(page);
+  await page.mouse.up();
+  await divider.focus();
+  await page.keyboard.press('Home');
+  await expect(pane).toHaveCSS('width', '200px');
+  await expectTitleOverContent(page);
+  await page.keyboard.press('Shift+ArrowRight');
+  await expect(pane).toHaveCSS('width', '232px');
+  await page.keyboard.press('ArrowRight');
+  await expect(divider).toHaveAttribute('aria-valuenow', '240');
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(divider).toHaveAttribute('tabindex', '-1');
+  await expectTitleOverContent(page);
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(pane).toHaveCSS('width', '240px');
+  await page.reload();
+  await login(page);
+  await expect(pane).toHaveCSS('width', '240px');
+  await expectTitleOverContent(page);
+  box = (await divider.boundingBox())!;
+  await page.mouse.move(box.x + 4, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 500, box.y + box.height / 2, { steps: 6 });
+  await page.mouse.up();
+  await expect(pane).toHaveCSS('width', '200px');
+  await divider.dblclick();
+  await expect(pane).toHaveCSS('width', '264px');
+  await expectTitleOverContent(page);
+  await page.setViewportSize({ width: 800, height: 600 });
+  await expectTitleOverContent(page);
+  await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
+});
+
+test('pane and editor move together, rapid reversal preserves DOM, desktop ignores system motion reduction', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const body = page.locator('[data-page-pane-body]');
+  const content = page.locator('[data-shell-content]');
+  await content.evaluate((el) => {
+    el.dataset.motionSentinel = 'retained';
+  });
+  const { frames, titleOffsets, markerOffsets } = await page.evaluate(async () => {
+    const toggle = document.querySelector<HTMLButtonElement>(
+      '[data-appbar] button[aria-controls="desktop-page-pane"]',
+    )!;
+    const pane = document.querySelector<HTMLElement>('#desktop-page-pane')!;
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    const rail = document.querySelector<HTMLElement>('#desktop-navigation')!;
+    const title = document.querySelector<HTMLElement>('[data-appbar] h1')!;
+    const marker = document.querySelector<HTMLElement>('[data-page-pane-title-divider]')!;
+    const separator = document.querySelector<HTMLElement>(
+      '[role="separator"][aria-controls="desktop-page-pane"]',
+    )!;
+    const titleOffsets: number[] = [];
+    const markerOffsets: number[] = [];
+    // ResizeObserver runs before paint, after the shell publishes the current content boundary.
+    const observer = new ResizeObserver(() => {
+      titleOffsets.push(
+        title.getBoundingClientRect().x -
+          content.getBoundingClientRect().x -
+          parseFloat(getComputedStyle(content).paddingLeft),
+      );
+      markerOffsets.push(
+        marker.getBoundingClientRect().x -
+          separator.getBoundingClientRect().x -
+          parseFloat(getComputedStyle(separator, '::after').left),
+      );
+    });
+    observer.observe(content);
+    const values = [];
+    toggle.click();
+    for (let i = 0; i < 14; i++) {
+      await new Promise(requestAnimationFrame);
+      const r = content.getBoundingClientRect();
+      values.push({
+        x: r.x,
+        right: r.right,
+        paneWidth: pane.getBoundingClientRect().width,
+        railWidth: rail.getBoundingClientRect().width,
+      });
+    }
+    toggle.click();
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    toggle.click();
+    await new Promise(requestAnimationFrame);
+    observer.disconnect();
+    return { frames: values, titleOffsets, markerOffsets };
+  });
+  expect(new Set(frames.map((frame) => Math.round(frame.x))).size).toBeGreaterThan(3);
+  expect(
+    frames.every(
+      (frame) =>
+        Math.abs(frame.right - frames[0].right) < 1 &&
+        frame.paneWidth === 264 &&
+        frame.railWidth === 52,
+    ),
+  ).toBe(true);
+  expect(titleOffsets.length).toBeGreaterThan(3);
+  expect(titleOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);
+  expect(markerOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await expect(content).toHaveAttribute('data-motion-sentinel', 'retained');
+  await expectTitleOverContent(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(body).toHaveAttribute('data-pane-animating', 'true');
+  await expect(body).toHaveCSS('transition-duration', '0.3s');
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  const x = (await content.boundingBox())!.x;
+  await page.waitForTimeout(80);
+  expect((await content.boundingBox())!.x).toBe(x);
+});
+
+test('long object names scroll alone and remeasure after pane resizing', async ({ page }) => {
+  const row = page.locator('#desktop-page-pane [data-object-id="pane-object-1"]');
+  const label = row.locator('[data-nav-label]');
+  const track = row.locator('[data-label-track]');
+  await expect(label).toHaveAttribute('data-overflow', 'true');
+  const icon = await row.locator('svg').boundingBox();
+  const rowBox = await row.boundingBox();
+  await row.hover();
+  await expect(label).toHaveAttribute('data-scroll-state', 'forward');
+  await expect(label).toHaveAttribute('data-scroll-state', 'tail', { timeout: 10000 });
+  await expect(label).toHaveAttribute('data-fade', 'left');
+  const clip = (await label.boundingBox())!;
+  const text = (await track.boundingBox())!;
+  expect(Math.abs(clip.x + clip.width - text.x - text.width)).toBeLessThan(1);
+  expect(await row.locator('svg').boundingBox()).toEqual(icon);
+  expect(await row.boundingBox()).toEqual(rowBox);
+  await page.getByRole('separator', { name: 'Resize pages and objects' }).focus();
+  await page.keyboard.press('End');
+  await expect(label).toHaveAttribute('data-overflow', 'false');
+  await expect(track).toHaveCSS('transform', 'none');
+});
+
+test('pane motion preserves label measurements and reveals a stable opaque surface', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  await expect(pane.locator('[data-object-id]')).toHaveCount(40);
+  await expect(pane.locator('[data-object-id="pane-object-1"] [data-nav-label]')).toHaveAttribute(
+    'data-overflow',
+    'true',
+  );
+  const result = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const pane = document.querySelector<HTMLElement>('#desktop-page-pane')!;
+    const body = document.querySelector<HTMLElement>('[data-page-pane-body]')!;
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    const toggle = document.querySelector<HTMLButtonElement>(
+      '[data-appbar] button[aria-controls="desktop-page-pane"]',
+    )!;
+    const label = pane.querySelector<HTMLElement>(
+      '[data-object-id="pane-object-1"] [data-nav-label]',
+    )!;
+    const original = Element.prototype.getBoundingClientRect;
+    let labelReads = 0;
+    Element.prototype.getBoundingClientRect = function () {
+      if (pane.contains(this) && this.matches('[data-nav-label], [data-label-track]')) {
+        labelReads++;
+      }
+      return original.call(this);
+    };
+    const captures: Array<{
+      open: boolean;
+      samples: Array<{ time: number; x: number; opacity: string; overflow: string | undefined }>;
+    }> = [];
+    try {
+      for (const open of [false, true]) {
+        toggle.click();
+        const start = performance.now();
+        const samples = [];
+        let running = false;
+        for (let i = 0; i < 90; i++) {
+          await new Promise(requestAnimationFrame);
+          samples.push({
+            time: performance.now() - start,
+            x: content.getBoundingClientRect().x,
+            opacity: getComputedStyle(pane).opacity,
+            overflow: label.dataset.overflow,
+          });
+          running ||= Boolean(body.dataset.paneAnimating);
+          if (running && !body.dataset.paneAnimating) break;
+        }
+        captures.push({ open, samples });
+      }
+      return { labelReads, captures };
+    } finally {
+      Element.prototype.getBoundingClientRect = original;
+    }
+  });
+  const capturePath = test.info().outputPath('pane-motion.json');
+  writeFileSync(capturePath, JSON.stringify(result));
+  await test.info().attach('pane-motion-measurement', {
+    path: capturePath,
+    contentType: 'application/json',
+  });
+  expect(result.labelReads).toBe(0);
+  for (const capture of result.captures) {
+    expect(capture.samples.length).toBeGreaterThan(3);
+    expect(capture.samples.every((sample) => sample.opacity === '1')).toBe(true);
+    expect(capture.samples.every((sample) => sample.overflow === 'true')).toBe(true);
+    const positions = capture.samples.map((sample) => sample.x);
+    for (let i = 1; i < positions.length; i++) {
+      const delta = positions[i] - positions[i - 1];
+      expect(capture.open ? delta : -delta).toBeGreaterThanOrEqual(-0.1);
+    }
+  }
+  await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+  await expectTitleOverContent(page);
+});
+
+test('rail Add Page opens the pane then one floating card; folding cancels pending creation', async ({
+  page,
+}) => {
+  const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
+  const body = page.locator('[data-page-pane-body]');
+  const pane = page.locator('#desktop-page-pane');
+  await toggle.click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await page
+    .locator('#desktop-navigation')
+    .getByRole('button', { name: 'Add Page', exact: true })
+    .click();
+  const card = page.locator('[data-add-page-popover]');
+  await expect(card).toBeVisible();
+  await expect(card).toHaveCount(1);
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await expect(card.locator('input').first()).toBeFocused();
+  const rect = (await card.boundingBox())!;
+  expect(rect.x).toBeGreaterThanOrEqual((await pane.boundingBox())!.x);
+  expect(rect.x + rect.width).toBeLessThanOrEqual(page.viewportSize()!.width - 12);
+  await toggle.click();
+  await expect(card).toHaveCount(0);
+  await page
+    .locator('#desktop-navigation')
+    .getByRole('button', { name: 'Add Page', exact: true })
+    .click();
+  await toggle.click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await toggle.click();
+  await expect(body).not.toHaveAttribute('data-pane-animating');
+  await expect(card).toHaveCount(0);
+});
+
+test('filtered page rows still expand and collapse without changing the editor route', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  const search = pane.getByRole('searchbox');
+  await search.fill('Identity record');
+  const identity = pane.locator('[data-page-id="identity"]');
+  const object = pane.locator('[data-object-id="pane-object-2"]');
+  await expect(object).toBeVisible();
+  await identity.click();
+  await expect(identity).toHaveAttribute('aria-expanded', 'false');
+  await expect(object).toBeHidden();
+  await identity.click();
+  await expect(object).toBeVisible();
+  await expect(page).toHaveURL('/');
+});
+
+test('page and object hover cards reuse ruler appearance, mask fields and navigate to the editor', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  await pane.locator('[data-page-id="identity"]').hover();
+  const pageCard = page.getByRole('region', { name: 'Page details', exact: true });
+  await expect(pageCard.getByRole('heading', { name: 'Identity', exact: true })).toBeVisible();
+  await expect(pageCard.getByRole('heading')).toHaveCSS('font-weight', '400');
+  await expect(pageCard.getByRole('heading')).toHaveCSS('font-size', '15px');
+  await expect(pageCard).toContainText('40 objects');
+  await expect(pageCard).toHaveCSS('border-radius', '14px');
+  await pageCard.hover();
+  await page.waitForTimeout(200);
+  await expect(pageCard).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(pageCard).toHaveCount(0);
+  await pane.locator('[data-object-id="pane-object-0"]').hover();
+  const objectCard = page.getByRole('region', { name: 'Object details', exact: true });
+  await expect(objectCard.getByRole('heading', { name: 'Passport for navigation' })).toBeVisible();
+  await expect(objectCard.getByRole('heading')).toHaveCSS('font-weight', '400');
+  await expect(objectCard.locator('dt').first()).toHaveCSS('font-size', '12px');
+  await expect(objectCard.locator('dd').first()).toHaveCSS('font-size', '13px');
+  await expect(objectCard).toContainText('Public preview body');
+  await expect(objectCard).not.toContainText('MUST-NOT-SHOW-PREVIEW');
+  await expect(objectCard).toContainText('••••••••');
+  await objectCard.getByRole('button', { name: 'Edit object', exact: true }).click();
+  await expect(pane.locator('[data-object-id="pane-object-0"]')).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(objectCard).toHaveCount(0);
+});
+
+test('hover cards stay inside the window and close on scrolling or folding', async ({ page }) => {
+  const pane = page.locator('#desktop-page-pane');
+  const row = pane.locator('[data-object-id="pane-object-39"]');
+  await row.hover();
+  const card = page.getByRole('region', { name: 'Object details', exact: true });
+  await expect(card.getByRole('heading', { name: 'Identity record 39' })).toBeVisible();
+  const rect = (await card.boundingBox())!;
+  expect(rect.x).toBeGreaterThanOrEqual(0);
+  expect(rect.y).toBeGreaterThanOrEqual(52);
+  expect(rect.x + rect.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(rect.y + rect.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+  await pane.locator('[data-page-pane-scroll]').evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  await expect(card).toHaveCount(0);
+  await pane.locator('[data-object-id="pane-object-0"]').hover();
+  await expect(card).toBeVisible();
+  await page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]').click();
+  await expect(card).toHaveCount(0);
+});
+
+test('keyboard focus opens one preview, Escape returns focus and offscreen focus keeps the card visible', async ({
+  page,
+}) => {
+  const pane = page.locator('#desktop-page-pane');
+  const identity = pane.locator('[data-page-id="identity"]');
+  await page.keyboard.press('Tab');
+  await identity.focus();
+  const pageCard = page.getByRole('region', { name: 'Page details', exact: true });
+  await expect(pageCard).toBeVisible();
+  await pageCard.getByRole('button', { name: 'Open page', exact: true }).focus();
+  await page.keyboard.press('Escape');
+  await expect(pageCard).toHaveCount(0);
+  await expect(identity).toBeFocused();
+  const lastObject = pane.locator('[data-object-id="pane-object-39"]');
+  await lastObject.focus();
+  const objectCard = page.getByRole('region', { name: 'Object details', exact: true });
+  await expect(objectCard.getByRole('heading', { name: 'Identity record 39' })).toBeVisible();
+  await expect(page.locator('[data-page-pane-preview]')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(objectCard).toHaveCount(0);
+});
+
+test('titlebar toggle keeps its sidebar hint on hover and keyboard focus in both states', async ({
+  page,
+}) => {
+  const toggle = page.locator('[data-appbar] button[aria-controls="desktop-page-pane"]');
+  const hint = page.locator('[data-page-pane-toggle-tooltip]');
+  await toggle.hover();
+  await expect(hint).toHaveText('Show/hide sidebar');
+  const bounds = (await hint.boundingBox())!;
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await toggle.click();
+  await expect(hint).toHaveText('Show/hide sidebar');
+  await page.keyboard.press('Escape');
+  await expect(hint).toHaveCount(0);
+  await page.mouse.move(700, 600);
+  await page.keyboard.press('Tab');
+  await toggle.focus();
+  await expect(hint).toHaveText('Show/hide sidebar');
+  await page.keyboard.press('Tab');
+  await expect(hint).toHaveCount(0);
+});

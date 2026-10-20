@@ -3,9 +3,7 @@ import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
 for (const position of ['left', 'right', 'top', 'bottom']) {
-  test(`Windows Mica ${position} 操作栏与正文同色、导航透出材质且正文独立滚动`, async ({
-    page,
-  }) => {
+  test(`Windows Mica 旧 ${position} 配置使用左侧栏，顶栏随外壳且正文独立滚动`, async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 600 });
     await page.addInitScript({
       content:
@@ -37,25 +35,25 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     await expect(guide).toBeVisible();
     const guideBounds = (await guide.boundingBox())!;
     expect(guideBounds.x + guideBounds.width).toBeLessThanOrEqual(800);
-    const navigation =
-      position === 'left' || position === 'right'
-        ? page.locator('#desktop-navigation')
-        : page.locator('header:not([data-appbar])');
+    const navigation = page.locator('#desktop-navigation');
+    await expect(navigation).toHaveAttribute('data-position', 'left');
     await expect(navigation).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-    await expect(header).toHaveCSS('border-top-left-radius', '12px');
-    await expect(header).toHaveCSS('border-top-right-radius', '12px');
+    await expect(header).toHaveCSS('border-top-left-radius', '0px');
+    await expect(header).toHaveCSS('border-top-right-radius', '0px');
     const content = page.locator('main');
     const bounds = (await content.boundingBox())!;
-    expect(bounds.y).toBe(position === 'top' ? 88 : 40);
-    expect(bounds.y + bounds.height).toBe(position === 'bottom' ? 544 : 592);
-    await expect(content).toHaveCSS('border-top-left-radius', position === 'top' ? '12px' : '0px');
-    await expect(content).toHaveCSS('border-top-right-radius', position === 'top' ? '12px' : '0px');
+    expect(bounds.y).toBe(40);
+    expect(bounds.y + bounds.height).toBe(592);
+    await expect(content).toHaveCSS('border-top-left-radius', '12px');
+    await expect(content).toHaveCSS('border-top-right-radius', '12px');
     const surface = await content.evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(surface).not.toBe('rgba(0, 0, 0, 0)');
-    await expect(header).toHaveCSS('background-color', surface);
+    const shellColor = await navigation.evaluate((el) => getComputedStyle(el).backgroundColor);
+    await expect(header).toHaveCSS('background-color', shellColor);
     await expect(header).toHaveCSS('border-bottom-color', 'rgba(0, 0, 0, 0)');
     await expect(header).toHaveCSS('box-shadow', 'none');
-    await expect(content).toHaveCSS('box-shadow', 'none');
+    await expect(content).not.toHaveCSS('box-shadow', 'none');
+    await expect(content).toHaveCSS('border-top-width', '1px');
     const headerBounds = (await header.boundingBox())!;
     expect(headerBounds.x).toBe(bounds.x);
     expect(headerBounds.width).toBe(bounds.width);

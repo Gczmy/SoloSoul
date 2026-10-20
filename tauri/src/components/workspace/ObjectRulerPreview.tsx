@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownToLine, Paperclip } from 'lucide-react';
+import { ArrowRight, Paperclip } from 'lucide-react';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useRevealState } from '@/hooks/useRevealState';
 import { flattenPropertyEntries } from '@/lib/propertyFlatten';
@@ -17,6 +17,7 @@ interface ObjectRulerPreviewProps {
   total: number;
   attachmentCount?: number;
   onNavigate: () => void;
+  navigateLabel?: string;
 }
 
 function sensitivity(value: string | undefined): SensitivityLevel {
@@ -31,6 +32,7 @@ export function ObjectRulerPreview({
   total,
   attachmentCount,
   onNavigate,
+  navigateLabel,
 }: ObjectRulerPreviewProps) {
   const { t } = useTranslation('common');
   const { maskValue } = useRevealState();
@@ -91,8 +93,8 @@ export function ObjectRulerPreview({
         </dl>
       )}
       <button type="button" className={styles.jumpButton} onClick={onNavigate}>
-        <ArrowDownToLine size={14} />
-        {t('object_ruler_jump')}
+        <ArrowRight size={14} />
+        {navigateLabel ?? t('object_ruler_jump')}
       </button>
     </>
   );

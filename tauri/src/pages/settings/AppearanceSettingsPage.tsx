@@ -14,9 +14,8 @@ import type { AccentPreset } from '@/types';
 import type { SupportedLang } from '@/lib/i18n';
 import { isMobilePlatformSync, isAndroidSync } from '@/lib/platform';
 import { AndroidAppearance } from '@/components/android/AndroidAppearance';
-import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
+import { Palette } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
-import type { AppSettings } from '@/stores/settingsStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './AppearanceSettingsPage.module.css';
@@ -32,17 +31,6 @@ const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = 
 const LANG_OPTIONS: { value: SupportedLang; label: string }[] = [
   { value: 'zh-CN', label: '中文（简体）' },
   { value: 'en-US', label: 'English' },
-];
-
-const SIDEBAR_OPTIONS: {
-  value: AppSettings['sidebarPosition'];
-  labelKey: string;
-  icon: React.ElementType;
-}[] = [
-  { value: 'left', labelKey: 'settings:sidebar_left', icon: PanelLeft },
-  { value: 'right', labelKey: 'settings:sidebar_right', icon: PanelRight },
-  { value: 'top', labelKey: 'settings:sidebar_top', icon: PanelTop },
-  { value: 'bottom', labelKey: 'settings:sidebar_bottom', icon: PanelBottom },
 ];
 
 export function AppearanceSettingsPage() {
@@ -244,52 +232,6 @@ export function AppearanceSettingsPage() {
                 ))}
               </div>
             </Card>
-
-            {/* Sidebar position (desktop only) */}
-            {!isMobilePlatform && (
-              <Card>
-                <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-                  {t('settings:sidebar_position')}
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  {SIDEBAR_OPTIONS.map((opt) => {
-                    const Icon = opt.icon;
-                    const isActive = settings.sidebarPosition === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => updateSetting(accountId, 'sidebarPosition', opt.value)}
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '12px 4px',
-                          borderRadius: 10,
-                          border: isActive
-                            ? '2px solid var(--accent-primary)'
-                            : '1px solid var(--border-subtle)',
-                          background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                        }}
-                      >
-                        <Icon size={ICON_SIZE['2xl']} />
-                        <span
-                          style={{
-                            fontSize: 'var(--text-caption)',
-                            fontWeight: isActive ? 500 : 400,
-                          }}
-                        >
-                          {t(opt.labelKey)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
 
             {/* Sidebar button mode: card vs page (desktop only) */}
             {!isMobilePlatform && (

@@ -58,11 +58,13 @@ for (const theme of ['light', 'dark']) {
       await expect(header).toHaveCSS('height', '52px');
       expect((await content.boundingBox())!.y).toBe(originalTop);
       await expect(
-        page.getByRole('button', { name: 'Collapse sidebar', exact: true }),
+        page.getByRole('button', { name: 'Hide pages and objects', exact: true }),
       ).toBeVisible();
     }
-    await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
-    await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
+    await page.getByRole('button', { name: 'Hide pages and objects', exact: true }).click();
+    await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
+    await page.getByRole('button', { name: 'Show pages and objects', exact: true }).click();
+    await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
     await expect(header).toHaveCSS('height', '52px');
   });
 }

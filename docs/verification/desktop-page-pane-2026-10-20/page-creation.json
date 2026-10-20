@@ -1,0 +1,9 @@
+{
+  "change": "One desktop page-creation card shared by the rail and directory action",
+  "checks": {
+    "playwright": "5 desktop integration tests passed, including delayed rail opening after pane motion, single portal, input focus, viewport fit and cancellation on folding",
+    "vitest": "15 tests passed for page creation failure behavior, UI state and persistent shell",
+    "typescript": "passed"
+  },
+  "behavior": "Rail Add Page expands the directory and waits for motion to settle. Creation remains a portal below the directory action; it never consumes list space. The existing validation/write-failure safeguards remain in use."
+}
