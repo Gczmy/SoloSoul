@@ -12,31 +12,41 @@ import { ContentLoadingSkeleton } from '@/components/ui/ContentLoadingSkeleton';
 export function ShellLayout() {
   const location = useLocation();
   const route = shellRouteIdentity(location);
-  const { title, actions, primaryActions, onBack, objectInspector, continuity, handoff } =
-    useShellConfigStore(
-      useShallow((s) => {
-        const continuity = Boolean(s.registration?.continuityScope);
-        const exact = s.registration?.route === route;
-        const handoff =
-          !exact &&
-          continuity &&
-          Boolean(matchPath(s.registration!.continuityScope!, location.pathname));
-        return s.registration?.isCurrent() && (exact || handoff)
-          ? {
-              title: s.title,
-              actions: s.actions,
-              primaryActions: s.primaryActions,
-              onBack: s.onBack,
-              objectInspector: s.objectInspector,
-              continuity,
-              handoff,
-            }
-          : { ...EMPTY_SHELL_CONFIG, continuity: false, handoff: false };
-      }),
-    );
+  const {
+    title,
+    actions,
+    primaryActions,
+    windowsContentToolbar,
+    onBack,
+    objectInspector,
+    continuity,
+    handoff,
+  } = useShellConfigStore(
+    useShallow((s) => {
+      const continuity = Boolean(s.registration?.continuityScope);
+      const exact = s.registration?.route === route;
+      const handoff =
+        !exact &&
+        continuity &&
+        Boolean(matchPath(s.registration!.continuityScope!, location.pathname));
+      return s.registration?.isCurrent() && (exact || handoff)
+        ? {
+            title: s.title,
+            actions: s.actions,
+            primaryActions: s.primaryActions,
+            windowsContentToolbar: s.windowsContentToolbar,
+            onBack: s.onBack,
+            objectInspector: s.objectInspector,
+            continuity,
+            handoff,
+          }
+        : { ...EMPTY_SHELL_CONFIG, continuity: false, handoff: false };
+    }),
+  );
   return (
     <AppShell
       title={title}
+      windowsContentToolbar={windowsContentToolbar}
       primaryActions={
         continuity && primaryActions ? (
           <div style={{ display: 'contents' }} inert={handoff}>

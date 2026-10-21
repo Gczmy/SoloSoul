@@ -12,6 +12,7 @@ export interface PageShellProps {
   title: string;
   actions?: ReactNode;
   primaryActions?: ReactNode;
+  windowsContentToolbar?: boolean;
   onBack?: () => void;
   continuityScope?: string;
   objectInspector?: ObjectInspectorContext;
@@ -27,6 +28,7 @@ export function PageShell({
   title,
   actions,
   primaryActions,
+  windowsContentToolbar,
   onBack,
   continuityScope,
   objectInspector,
@@ -54,7 +56,23 @@ export function PageShell({
   }, [registration]);
   useLayoutEffect(() => () => unregister(latestRegistration.current), [unregister]);
   useLayoutEffect(() => {
-    register(registration, { title, actions, primaryActions, onBack, objectInspector });
-  }, [register, registration, title, actions, primaryActions, onBack, objectInspector]);
+    register(registration, {
+      title,
+      actions,
+      primaryActions,
+      windowsContentToolbar,
+      onBack,
+      objectInspector,
+    });
+  }, [
+    register,
+    registration,
+    title,
+    actions,
+    primaryActions,
+    windowsContentToolbar,
+    onBack,
+    objectInspector,
+  ]);
   return <>{children}</>;
 }

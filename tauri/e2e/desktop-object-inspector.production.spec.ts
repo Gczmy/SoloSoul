@@ -15,7 +15,9 @@ async function setup(page: Page, platform: 'windows' | 'macos', theme: 'light' |
     const objects=['one','two','empty'].map((id,i)=>({id,name:i===0?'Passport for navigation':i===1?'Second record':'Empty record',
       typeId:'identity',sectionType:'identity',sensitivityLevel:'public',createdAt:'2026-10-20',updatedAt:'2026-10-20',
       isDeleted:false,templateId:null,templateType:null,tags:[],hasAttachments:false,
-      properties:{__fields:{field:{name:'Public field',type:'text',sensitivityLevel:'public'}},field:'Editor body '+id},propertyLabels:{field:'public'}}));
+      properties:{__fields:Object.fromEntries(Array.from({length:14},(_,n)=>['field'+n,{name:'Public field '+n,type:'text',sensitivityLevel:'public'}])),
+        ...Object.fromEntries(Array.from({length:14},(_,n)=>['field'+n,'Editor body '+id+' '+n]))},
+      propertyLabels:Object.fromEntries(Array.from({length:14},(_,n)=>['field'+n,'public']))}));
     window.__INSPECTOR_CALLS__=[];
     let frame=false;
     window.__E2E_MOCKS__={
@@ -81,6 +83,19 @@ for (const platform of ['windows', 'macos'] as const)
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       const toggle = page.locator('[data-object-inspector-toggle]');
       await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      const toolbar = page.locator('[data-editor-content-toolbar]');
+      const header = page.locator('[data-appbar]');
+      const actionArea = platform === 'windows' ? toolbar : header;
+      await expect(actionArea.getByRole('button', { name: 'Cancel', exact: true })).toBeVisible();
+      await expect(actionArea.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
+      await expect(actionArea.locator('[data-object-inspector-toggle]')).toHaveCount(1);
+      if (platform === 'windows') {
+        await expect(header.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
+        await expect(toolbar).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      } else {
+        await expect(toolbar).toHaveCount(0);
+        await expect(page.locator('[data-shell-content]')).toHaveCSS('mask-image', 'none');
+      }
       await toggle.click();
       const panel = page.locator('[data-object-inspector]');
       await expect(panel).toBeVisible();
@@ -98,17 +113,56 @@ for (const platform of ['windows', 'macos'] as const)
       expect(dock!.width).toBe(340);
       expect((await page.locator('[data-appbar]').boundingBox())!.height).toBe(52);
       await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '56px');
+      if (platform === 'windows') {
+        const bar = (await toolbar.boundingBox())!;
+        expect(bar.height).toBe(52);
+        expect(Math.abs(bar.y + bar.height - body!.y)).toBeLessThan(1);
+        expect(Math.abs(bar.y + bar.height - dock!.y)).toBeLessThan(1);
+        expect(Math.abs(bar.x + bar.width - dock!.x - dock!.width)).toBeLessThan(1);
+        const buttons = await toolbar.locator('button').evaluateAll((els) =>
+          els.map((el) => {
+            const r = el.getBoundingClientRect();
+            return { x: r.x, y: r.y, height: r.height, right: r.right };
+          }),
+        );
+        expect(buttons).toHaveLength(3);
+        expect(buttons[0].x).toBeGreaterThan(bar.x + bar.width / 2);
+        expect(buttons[0].x).toBeLessThan(buttons[1].x);
+        expect(buttons[1].x).toBeLessThan(buttons[2].x);
+        expect(buttons.every((button) => button.height === 32 && button.y === buttons[0].y)).toBe(
+          true,
+        );
+        await expect(content).not.toHaveCSS('mask-image', 'none');
+        const name = page.getByLabel('Object Name', { exact: true });
+        await name.fill('UNSAVED WINDOWS DRAFT');
+        const contentHandle = await content.elementHandle();
+        const field = content.getByText('Public field 5', { exact: true });
+        await content.evaluate((el) => {
+          el.scrollTop = 600;
+        });
+        await expect.poll(() => content.evaluate((el) => el.scrollTop)).toBe(600);
+        expect((await toolbar.boundingBox())!).toEqual(bar);
+        await expect(toolbar.getByRole('button', { name: 'Save', exact: true })).toBeInViewport();
+        await field.click();
+        await page.screenshot({ path: info.outputPath(`windows-${theme}-toolbar-scroll.png`) });
+        expect(await contentHandle!.evaluate((el) => el.isConnected)).toBe(true);
+        await expect(name).toHaveValue('UNSAVED WINDOWS DRAFT');
+        await content.evaluate((el) => {
+          el.scrollTop = 0;
+        });
+        await name.fill('Passport for navigation');
+      }
       await panel.locator('[data-history-snapshot]').first().click();
       await expect(panel.getByText('PUBLIC one-snap-31', { exact: true })).toBeVisible();
       await expect(panel.getByText('PRIVATE one-snap-31', { exact: true })).toHaveCount(0);
       await panel.getByRole('button', { name: 'Click to reveal', exact: true }).click();
       await expect(panel.getByText('PRIVATE one-snap-31', { exact: true })).toBeVisible();
       const scroller = panel.locator('[data-object-inspector-scroll]');
-      const header = await panel.locator('header').boundingBox();
+      const panelHeader = await panel.locator('header').boundingBox();
       const editorScroll = await content.evaluate((el) => el.scrollTop);
       await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight));
       expect(await content.evaluate((el) => el.scrollTop)).toBe(editorScroll);
-      expect(await panel.locator('header').boundingBox()).toEqual(header);
+      expect(await panel.locator('header').boundingBox()).toEqual(panelHeader);
       await panel.getByRole('button', { name: 'Load more', exact: true }).click();
       await expect(panel.locator('[data-history-snapshot]')).toHaveCount(32);
       await panel.getByRole('tab', { name: 'Attachments', exact: true }).click();

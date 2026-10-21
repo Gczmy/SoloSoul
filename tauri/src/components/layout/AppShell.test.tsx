@@ -94,7 +94,87 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
       desktopPagePaneOpen: true,
       desktopObjectInspectorOpen: false,
     });
-    useNativeWindowStore.setState({ isMacOS: false, titlebarHeight: 0, trafficLightsRight: 0 });
+    useNativeWindowStore.setState({
+      isMacOS: false,
+      isWindows: false,
+      titlebarHeight: 0,
+      trafficLightsRight: 0,
+    });
+  });
+
+  it.each(['windows', 'macos'] as const)(
+    '%s 编辑操作遵循各自位置，开关右栏不重建正文或操作',
+    async (platform) => {
+      useNativeWindowStore.setState({
+        isWindows: platform === 'windows',
+        isMacOS: platform === 'macos',
+      });
+      render(
+        <MemoryRouter>
+          <AppShell
+            title="编辑"
+            windowsContentToolbar
+            primaryActions={
+              <>
+                <button>取消</button>
+                <button>保存</button>
+              </>
+            }
+            objectInspector={{ objectId: 'one', objectName: 'Object', ready: true }}
+          >
+            <input aria-label="操作栏中的草稿" />
+          </AppShell>
+        </MemoryRouter>,
+      );
+      const header = screen.getByTestId('app-bar');
+      const toolbar = document.querySelector('[data-editor-content-toolbar]');
+      const save = screen.getByText('保存');
+      const toggle = document.querySelector('[data-object-inspector-toggle]')!;
+      if (platform === 'windows') {
+        expect(toolbar).toContainElement(save);
+        expect(toolbar).toContainElement(toggle as HTMLElement);
+        expect(header).not.toContainElement(save);
+      } else {
+        expect(toolbar).toBeNull();
+        expect(header).toContainElement(save);
+        expect(header).toContainElement(toggle as HTMLElement);
+      }
+      const input = screen.getByLabelText('操作栏中的草稿');
+      fireEvent.change(input, { target: { value: '未保存草稿' } });
+      const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+      content.scrollTop = 150;
+      fireEvent.click(toggle);
+      await screen.findByTestId('inspector');
+      fireEvent.click(screen.getByText('Close inspector'));
+      expect(document.querySelector('[data-shell-content]')).toBe(content);
+      expect(content.scrollTop).toBe(150);
+      expect(input).toHaveValue('未保存草稿');
+      expect(screen.getByText('保存')).toBe(save);
+      expect(toggle).toHaveFocus();
+    },
+  );
+
+  it('Windows 新建对象的操作栏不依赖右栏；其他页面主操作仍在原顶栏', () => {
+    useNativeWindowStore.setState({ isWindows: true });
+    const page = (editor: boolean) => (
+      <MemoryRouter>
+        <AppShell
+          title="新建"
+          windowsContentToolbar={editor}
+          primaryActions={<button>保存</button>}
+        >
+          内容
+        </AppShell>
+      </MemoryRouter>
+    );
+    const { rerender } = render(page(true));
+    expect(document.querySelector('[data-editor-content-toolbar]')).toContainElement(
+      screen.getByText('保存'),
+    );
+    expect(document.querySelector('[data-object-inspector-toggle]')).toBeNull();
+    rerender(page(false));
+    expect(document.querySelector('[data-editor-content-toolbar]')).toBeNull();
+    expect(screen.getByTestId('app-bar')).toContainElement(screen.getByText('保存'));
   });
 
   it('macOS全屏切换中的32pt临时栏高不压缩AppBar，正文和编辑状态不重建', () => {

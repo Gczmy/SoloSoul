@@ -89,6 +89,11 @@ async function capture() {
     controls: bounds(
       '[data-appbar] button, [data-windows-titlebar] button, [data-preview-titlebar] button',
     ),
+    editorToolbar: bounds('[data-editor-content-toolbar]'),
+    editorToolbarControls: bounds('[data-editor-content-toolbar] button'),
+    editorScrollMask: document.querySelector('[data-shell-content]')
+      ? getComputedStyle(document.querySelector('[data-shell-content]')!).maskImage
+      : null,
     content: bounds('[data-shell-surface], [data-shell-content], [data-auth-content]'),
     navigation: bounds('#desktop-navigation'),
     navigationControls: bounds('#desktop-navigation button'),

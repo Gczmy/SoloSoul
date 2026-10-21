@@ -46,6 +46,7 @@ interface AppShellProps {
   title: string;
   actions?: React.ReactNode;
   primaryActions?: React.ReactNode;
+  windowsContentToolbar?: boolean;
   onBack?: () => void;
   objectInspector?: ObjectInspectorContext;
 }
@@ -55,6 +56,7 @@ export function AppShell({
   title,
   actions,
   primaryActions,
+  windowsContentToolbar,
   onBack,
   objectInspector,
 }: AppShellProps) {
@@ -135,6 +137,17 @@ export function AppShell({
       <InspectorIcon size={20} />
     </button>
   ) : null;
+  const editorActions = inspectorToggle ? (
+    <>
+      {primaryActions}
+      {inspectorToggle}
+    </>
+  ) : (
+    primaryActions
+  );
+  const contentToolbar = Boolean(
+    isWindows && desktopPane && windowsContentToolbar && editorActions,
+  );
   // 旧导航保留交通灯避让；macOS/Windows 页面树布局固定使用 56px 图标栏。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
@@ -292,16 +305,7 @@ export function AppShell({
     >
       <AppBar
         title={title}
-        primaryActions={
-          inspectorToggle ? (
-            <>
-              {primaryActions}
-              {inspectorToggle}
-            </>
-          ) : (
-            primaryActions
-          )
-        }
+        primaryActions={contentToolbar ? undefined : editorActions}
         actions={actions}
         onBack={onBack}
         sidebarPosition={effectivePosition}
@@ -341,10 +345,21 @@ export function AppShell({
             data-pane-animating={paneAnimating || undefined}
             data-inspector-open={inspectorOpen}
             data-inspector-animating={inspectorAnimating || undefined}
+            data-content-toolbar={contentToolbar || undefined}
           >
             {desktopPane && (
               <div className={styles.paneSlot}>
                 <DesktopPagePane open={paneOpen} animating={paneAnimating} />
+              </div>
+            )}
+            {contentToolbar && (
+              <div
+                className={styles.contentToolbar}
+                data-editor-content-toolbar
+                role="group"
+                aria-label={title}
+              >
+                {editorActions}
               </div>
             )}
             <main ref={contentRef} className={styles.content} data-shell-content>

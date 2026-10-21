@@ -127,6 +127,7 @@ function ObjectEditorForm() {
       onBack={handleBack}
       continuityScope={isNew ? undefined : '/editor/:objectId'}
       primaryActions={useTitlebarActions && showActions ? formActions : undefined}
+      windowsContentToolbar
       objectInspector={objectInspector}
     >
       <PageContainer variant="xs" gap="default" className={styles.editor}>
