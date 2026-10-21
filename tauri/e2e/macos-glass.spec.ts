@@ -253,7 +253,10 @@ for (const theme of ['light', 'dark'] as const) {
       'false',
     );
     await nav.getByRole('button', { name: 'Identity', exact: true }).click();
-    await page.getByRole('button', { name: /^Passport/ }).click();
+    await page
+      .getByRole('main')
+      .getByRole('button', { name: /^Passport/ })
+      .click();
     const detail = page.getByTestId('object-detail-modal');
     await expectContentSurface(detail);
     await expectUnobstructed(detail);
@@ -276,7 +279,7 @@ for (const theme of ['light', 'dark'] as const) {
     await expectUnobstructed(confirm);
     await confirm.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(confirm).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /^Passport/ })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('button', { name: /^Passport/ })).toBeVisible();
   });
 }
 

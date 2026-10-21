@@ -57,7 +57,7 @@ for (const platform of ['macos', 'windows'] as const) {
         );
         const nav = page.locator('#desktop-navigation');
         await expect(nav).toBeVisible();
-        expect((await nav.boundingBox())!.width).toBe(52);
+        expect((await nav.boundingBox())!.width).toBe(56);
         await expect(nav.getByRole('img', { name: 'SoloSoul', exact: true })).toHaveCount(0);
         const home = nav.getByRole('button', { name: 'Home', exact: true });
         const ink = scheme.mode === 'dark' ? 'rgb(180, 180, 180)' : 'rgb(82, 82, 82)';
@@ -179,7 +179,7 @@ for (const platform of ['macos', 'windows'] as const) {
         await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
           'data-pane-animating',
         );
-        await expect(nav).toHaveCSS('width', '52px');
+        await expect(nav).toHaveCSS('width', '56px');
         await expect(nav).toHaveCSS('border-left-width', '0px');
         await expect(nav).toHaveCSS('border-right-width', '0px');
         const collapsedBox = (await nav.boundingBox())!;
@@ -188,7 +188,7 @@ for (const platform of ['macos', 'windows'] as const) {
         await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
           'data-pane-animating',
         );
-        await expect(nav).toHaveCSS('width', '52px');
+        await expect(nav).toHaveCSS('width', '56px');
         await page.locator('html').evaluate((root) => {
           root.dataset.nativeMaterial = 'solid';
         });

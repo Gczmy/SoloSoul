@@ -87,7 +87,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const bodyRef = useRef<HTMLDivElement>(null);
   const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen);
   const paneAnimating = usePagePaneMotion(bodyRef, desktopPane, paneOpen);
-  // 旧导航保留交通灯避让；页面树布局的功能图标栏与顶栏等宽。
+  // 旧导航保留交通灯避让；macOS/Windows 页面树布局固定使用 56px 图标栏。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
     isMacOS && effectivePosition === 'left' ? Math.ceil(trafficLightsRight + 16) : 0,
@@ -95,7 +95,9 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const sidebarWidth = isAndroid
     ? 88
     : desktopPane
-      ? appbarHeight
+      ? isMacOS || isWindows
+        ? 56
+        : appbarHeight
       : legacySidebarExpanded
         ? Math.max(DESKTOP_SIDEBAR_EXPANDED_WIDTH, collapsedWidth)
         : collapsedWidth;

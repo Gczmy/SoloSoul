@@ -48,7 +48,7 @@ for (const side of ['left', 'right'] as const) {
     await login(page);
     const sidebar = page.locator('#desktop-navigation');
     await expect(sidebar).toHaveAttribute('data-position', 'left');
-    await expect(sidebar).toHaveCSS('width', '52px');
+    await expect(sidebar).toHaveCSS('width', '56px');
 
     for (const card of [
       {
@@ -99,7 +99,7 @@ for (const side of ['left', 'right'] as const) {
         const loadingBounds = (await loading.boundingBox())!;
         const inset = loadingBounds.x;
         // 首次 chunk 延迟时，占位也必须位于展开侧栏外侧。
-        expect(inset).toBeGreaterThanOrEqual(52);
+        expect(inset).toBeGreaterThanOrEqual(56);
         // 等首次入场结束，再加载正文；记录正文替换期间的每帧边界，捕获动画重播。
         await page.locator('[data-ai-quick-chat]').evaluate(async (el) => {
           await Promise.all(el.getAnimations().map((animation) => animation.finished));
@@ -126,9 +126,9 @@ for (const side of ['left', 'right'] as const) {
       expect(frames.length).toBeGreaterThan(0);
       for (const frame of frames) {
         expect(frame.top).toBeCloseTo(expectedTop, 0);
-        expect(frame.inset).toBe(56);
+        expect(frame.inset).toBe(60);
         if (frame.rect) {
-          expect(frame.rect.x).toBeCloseTo(56, 1);
+          expect(frame.rect.x).toBeCloseTo(60, 1);
           expect(frame.rect.y).toBeCloseTo(expectedTop, 1);
           expect(frame.rect.width).toBeCloseTo(380, 1);
           expect(frame.rect.height).toBeCloseTo(520, 1);
@@ -147,9 +147,9 @@ for (const side of ['left', 'right'] as const) {
     await aiButton.scrollIntoViewIfNeeded();
     await aiButton.click();
     const chat = page.locator('[data-ai-quick-chat]');
-    // 图标栏与顶栏均为52px；浮层在侧栏外再留4px。
-    await expect(sidebar).toHaveCSS('width', '52px');
-    await expect(chat).toHaveCSS('left', '56px');
+    // 图标栏宽 56px、顶栏高 52px；浮层在侧栏外再留 4px。
+    await expect(sidebar).toHaveCSS('width', '56px');
+    await expect(chat).toHaveCSS('left', '60px');
     const anchor = (await aiButton.boundingBox())!;
     await expect(chat).toHaveCSS('top', `${Math.min(Math.max(anchor.y, 8), 372)}px`);
     await page.setViewportSize({ width: 1000, height: 600 });
@@ -188,7 +188,7 @@ for (const side of ['top', 'bottom'] as const) {
     const chat = page.locator('[data-ai-quick-chat]');
     const anchor = (await button.boundingBox())!;
     await expect(chat).toHaveCSS('top', `${Math.min(Math.max(anchor.y, 8), 720 - 520 - 8)}px`);
-    await expect(chat).toHaveCSS('left', '56px');
+    await expect(chat).toHaveCSS('left', '60px');
     await expect(chat).toBeInViewport();
   });
 }

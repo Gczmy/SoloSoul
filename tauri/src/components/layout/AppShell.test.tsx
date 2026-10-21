@@ -91,6 +91,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     for (const titlebarHeight of [0, 32, 52]) {
       act(() => useNativeWindowStore.setState({ titlebarHeight }));
       expect(shell?.style.getPropertyValue('--appbar-height')).toBe('52px');
+      expect(shell?.style.getPropertyValue('--sidebar-width')).toBe('56px');
       expect(document.querySelector('[data-shell-content]')).toBe(content);
       expect(input).toHaveValue('保留草稿');
       expect(input).toHaveFocus();
