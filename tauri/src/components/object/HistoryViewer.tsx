@@ -29,6 +29,7 @@ import { ValueContainer } from '@/components/ui/ValueContainer';
 import { ToastOutlet } from '@/components/ui/ToastOutlet';
 import { Button } from '@/components/ui/Button';
 import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
+import { HoverScrollLabel } from '@/components/ui/HoverScrollLabel';
 import rowStyles from '@/components/ui/FieldRowLayout.module.css';
 import styles from './HistoryViewer.module.css';
 import { flattenPropertyEntries, type DynamicChildItem } from '@/lib/propertyFlatten';
@@ -260,12 +261,14 @@ function SnapshotCard({
   onCriticalAccess,
   loadSnapshot,
   cachedSnapshot,
+  scrollNames = false,
 }: {
   loadSnapshot: (id: string) => Promise<Record<string, unknown>>;
   cachedSnapshot: (id: string) => Record<string, unknown> | undefined;
   snap: SnapshotEntry;
   accountId?: string;
   objectId: string;
+  scrollNames?: boolean;
   index: number;
   total: number;
   verifyPassword: Verification;
@@ -334,9 +337,10 @@ function SnapshotCard({
             wordBreak: 'break-word',
             textAlign: 'right',
             maxWidth: '70%',
+            minWidth: 0,
           }}
         >
-          {snapName}
+          {scrollNames ? <HoverScrollLabel text={snapName} focusable /> : snapName}
         </div>
       </div>
       {fields.length > 0 && (
@@ -726,7 +730,10 @@ function HistoryViewerSession({
                       onClick={() => setExpandedId(expanded ? null : entry.id)}
                     >
                       <span className={styles.timelineTitle}>
-                        <span>{t(`common:${summary}`)}</span>
+                        <HoverScrollLabel
+                          className={styles.timelineName}
+                          text={t(`common:${summary}`)}
+                        />
                         <time dateTime={date.toISOString()} title={date.toLocaleString()}>
                           {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </time>
@@ -749,6 +756,7 @@ function HistoryViewerSession({
                           onCriticalAccess={writeCriticalAccessLog}
                           loadSnapshot={loadSnapshot}
                           cachedSnapshot={cachedSnapshot}
+                          scrollNames
                         />
                       </div>
                     )}

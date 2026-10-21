@@ -92,9 +92,14 @@
 .timelineTitle {
   display: flex;
   justify-content: space-between;
+  min-width: 0;
   gap: 12px;
 }
+.timelineName {
+  flex: 1;
+}
 .timelineTitle time {
+  flex-shrink: 0;
   color: var(--text-tertiary);
   font-size: 11px;
   white-space: nowrap;

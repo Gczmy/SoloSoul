@@ -13,6 +13,7 @@ import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificat
 import { useWorkspacePasswordGuard } from '@/hooks/useWorkspacePasswordGuard';
 import { useToastError } from '@/hooks/useToastError';
 import { Button } from '@/components/ui/Button';
+import { HoverScrollLabel } from '@/components/ui/HoverScrollLabel';
 import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { HistoryViewer } from './HistoryViewer';
 import styles from './ObjectInspectorPanel.module.css';
@@ -67,9 +68,7 @@ function InspectorSession({
       <header className={styles.header}>
         <div className={styles.heading}>
           <span>{t('object_inspector')}</span>
-          <span className={styles.name} title={context.objectName}>
-            {context.objectName}
-          </span>
+          <HoverScrollLabel className={styles.name} text={context.objectName} focusable />
         </div>
         <button
           type="button"
@@ -297,9 +296,7 @@ function InspectorAttachments({
                 <FileText size={19} />
               </span>
               <span className={styles.fileInfo}>
-                <span className={styles.fileName} title={item.fileName}>
-                  {item.fileName}
-                </span>
+                <HoverScrollLabel className={styles.fileName} text={item.fileName} />
                 <span className={styles.fileMeta}>
                   {formatBytes(item.sizeBytes)} ·{' '}
                   <time dateTime={item.createdAt}>

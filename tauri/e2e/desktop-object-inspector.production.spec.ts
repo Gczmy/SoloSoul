@@ -2,7 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
-async function setup(page: Page, platform: 'windows' | 'macos', theme: 'light' | 'dark') {
+const LONG_OBJECT_NAME =
+  'A record with a very long descriptive object name that must scroll to reveal the ending';
+const LONG_HISTORY_NAME = 'A saved version with a very long descriptive object name';
+const LONG_FILE_NAME = 'A document with a very long descriptive file name.txt';
+
+async function setup(
+  page: Page,
+  platform: 'windows' | 'macos',
+  theme: 'light' | 'dark',
+  longNames = false,
+) {
+  const firstName = longNames ? LONG_OBJECT_NAME : 'Passport for navigation';
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.addInitScript({
     content:
@@ -12,7 +23,7 @@ async function setup(page: Page, platform: 'windows' | 'macos', theme: 'light' |
     localStorage.setItem('i18nextLng','en-US');
     const prefs={theme:'${theme}',accentColor:'ocean',hasSeenOnboarding:true,defaultLightTheme:'warm-stone',defaultDarkTheme:'warm-stone-dark'};
     localStorage.setItem('solosoul_ui_prefs',JSON.stringify(prefs));
-    const objects=['one','two','empty'].map((id,i)=>({id,name:i===0?'Passport for navigation':i===1?'Second record':'Empty record',
+    const objects=['one','two','empty'].map((id,i)=>({id,name:i===0?${JSON.stringify(firstName)}:i===1?'Second record':'Empty record',
       typeId:'identity',sectionType:'identity',sensitivityLevel:'public',createdAt:'2026-10-20',updatedAt:'2026-10-20',
       isDeleted:false,templateId:null,templateType:null,tags:[],hasAttachments:false,
       properties:{__fields:Object.fromEntries(Array.from({length:14},(_,n)=>['field'+n,{name:'Public field '+n,type:'text',sensitivityLevel:'public'}])),
@@ -37,12 +48,12 @@ async function setup(page: Page, platform: 'windows' | 'macos', theme: 'light' |
       },
       snapshot_get_data:({snapshotId})=>{
         window.__INSPECTOR_CALLS__.push(['body',snapshotId]);
-        return {name:'Snapshot '+snapshotId,properties:{public:'PUBLIC '+snapshotId,secret:'PRIVATE '+snapshotId},propertyLabels:{public:'public',secret:'sensitive'}};
+        return {name:${longNames ? JSON.stringify(LONG_HISTORY_NAME) : "'Snapshot '+snapshotId"},properties:{public:'PUBLIC '+snapshotId,secret:'PRIVATE '+snapshotId},propertyLabels:{public:'public',secret:'sensitive'}};
       },
       attachment_list:({objectId,showDeleted})=>{
         window.__INSPECTOR_CALLS__.push(['attachments',objectId,showDeleted]);
         return objectId==='empty'?[]:Array.from({length:36},(_,i)=>({id:objectId+'-file-'+i,objectId,
-          fileName:objectId+' attachment '+i+' with a long descriptive name for the supporting document.pdf',mimeType:'application/pdf',
+          fileName:${longNames ? `i===35?${JSON.stringify(LONG_FILE_NAME)}:i===34?'short.txt':objectId+' attachment '+i` : "objectId+' attachment '+i+' with a long descriptive name for the supporting document.pdf'"},mimeType:'application/pdf',
           sizeBytes:1024*(i+1),createdAt:new Date(Date.UTC(2026,9,20,12,i)).toISOString()}));
       },
       set_titlebar_color:()=>({platform:'${platform}',material:'${platform === 'macos' ? 'liquid-glass' : 'mica'}',reduceMotion:false,highContrast:false}),
@@ -60,12 +71,10 @@ async function setup(page: Page, platform: 'windows' | 'macos', theme: 'light' |
   await login(page);
   await page
     .locator('#desktop-page-pane')
-    .getByRole('button', { name: 'Passport for navigation', exact: true })
+    .getByRole('button', { name: firstName, exact: true })
     .click();
   await expect(page).toHaveURL(/\/editor\/one$/);
-  await expect(page.getByLabel('Object Name', { exact: true })).toHaveValue(
-    'Passport for navigation',
-  );
+  await expect(page.getByLabel('Object Name', { exact: true })).toHaveValue(firstName);
 }
 
 for (const platform of ['windows', 'macos'] as const)
@@ -431,6 +440,93 @@ for (const platform of ['windows', 'macos'] as const) {
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(480);
       await card.getByRole('button', { name: 'Edit object', exact: true }).click();
       await expect(page).toHaveURL(/\/editor\/two$/);
+    });
+  }
+}
+
+for (const platform of ['windows', 'macos'] as const) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`${platform} ${theme}: inspector long names scroll without moving rows or loading extra history`, async ({
+      page,
+    }) => {
+      await setup(page, platform, theme, true);
+      await page.locator('[data-object-inspector-toggle]').click();
+      const panel = page.locator('[data-object-inspector]');
+      const objectName = panel.locator('header [data-hover-scroll-label]');
+      await expect(objectName).toHaveAttribute('data-overflow', 'true');
+      const headerBounds = await panel.locator('header').boundingBox();
+      const textTrack = (label: ReturnType<Page['locator']>) =>
+        label.locator('[data-hover-scroll-track]');
+      const finishTravel = async (label: ReturnType<Page['locator']>) => {
+        await expect(label).toHaveAttribute('data-scroll-state', 'forward');
+        await textTrack(label).evaluate((el) =>
+          el.getAnimations().forEach((animation) => animation.finish()),
+        );
+        await expect(label).toHaveAttribute('data-scroll-state', 'tail');
+        await expect(label).toHaveAttribute('data-fade', 'left');
+        const viewport = (await label.boundingBox())!;
+        const track = (await textTrack(label).boundingBox())!;
+        expect(Math.abs(viewport.x + viewport.width - track.x - track.width)).toBeLessThan(1);
+      };
+      await objectName.hover();
+      await finishTravel(objectName);
+      expect(await panel.locator('header').boundingBox()).toEqual(headerBounds);
+      expect(
+        await page.evaluate('window.__INSPECTOR_CALLS__.filter(c=>c[0]==="body").length'),
+      ).toBe(0);
+      await page.mouse.move(600, 40);
+      await expect(objectName).not.toHaveAttribute('data-scroll-state');
+      await expect(textTrack(objectName)).toHaveCSS('transform', 'none');
+      await page.keyboard.press('Tab');
+      await objectName.focus();
+      await expect(objectName).toHaveAttribute('data-scroll-state', 'forward');
+      await panel.locator('[data-history-snapshot]').first().click();
+      const savedName = panel
+        .locator('[data-hover-scroll-label]')
+        .filter({ hasText: LONG_HISTORY_NAME });
+      await expect(savedName).toHaveAttribute('data-overflow', 'true');
+      await savedName.hover();
+      await finishTravel(savedName);
+      expect(
+        await page.evaluate('window.__INSPECTOR_CALLS__.filter(c=>c[0]==="body").length'),
+      ).toBe(1);
+      await panel.getByRole('tab', { name: 'Attachments', exact: true }).click();
+      const file = panel.locator('[data-inspector-attachment]').first();
+      const fileName = file.locator('[data-hover-scroll-label]');
+      await expect(fileName).toHaveAttribute('data-overflow', 'true');
+      const rowBounds = await file.boundingBox();
+      const iconBounds = await file.locator('svg').first().boundingBox();
+      const metadataBounds = await file.locator('time').boundingBox();
+      await file.locator('svg').first().hover();
+      await finishTravel(fileName);
+      expect(await file.boundingBox()).toEqual(rowBounds);
+      expect(await file.locator('svg').first().boundingBox()).toEqual(iconBounds);
+      expect(await file.locator('time').boundingBox()).toEqual(metadataBounds);
+      await page.mouse.move(600, 40);
+      await expect(fileName).not.toHaveAttribute('data-scroll-state');
+      await expect(textTrack(fileName)).toHaveCSS('transform', 'none');
+      await page.keyboard.press('Tab');
+      await file.focus();
+      await expect(fileName).toHaveAttribute('data-scroll-state', 'forward');
+      const oldTrack = await textTrack(fileName).elementHandle();
+      await panel.getByRole('tab', { name: 'History', exact: true }).click();
+      expect(await oldTrack!.evaluate((el) => el.isConnected)).toBe(false);
+      await panel.getByRole('tab', { name: 'Attachments', exact: true }).click();
+      const shortName = panel
+        .locator('[data-inspector-attachment]')
+        .nth(1)
+        .locator('[data-hover-scroll-label]');
+      await expect(shortName).toHaveAttribute('data-overflow', 'false');
+      await shortName.hover();
+      await expect(shortName).not.toHaveAttribute('data-scroll-state');
+      await page.evaluate(() => {
+        document.documentElement.dataset.highContrast = 'true';
+      });
+      await expect(fileName).toHaveAttribute('data-static', 'true');
+      await file.hover();
+      await expect(fileName).toHaveAttribute('title', LONG_FILE_NAME);
+      await expect(fileName).not.toHaveAttribute('data-scroll-state');
+      await expect(textTrack(fileName)).toHaveCSS('transform', 'none');
     });
   }
 }
