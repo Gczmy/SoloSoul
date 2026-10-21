@@ -33,7 +33,7 @@ export function ObjectEditorPage() {
 
 function ObjectEditorForm() {
   const navigate = useNavigate();
-  const isWindows = useNativeWindowStore((s) => s.isWindows);
+  const useTitlebarActions = useNativeWindowStore((s) => s.isWindows || s.isMacOS);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const {
     isNew,
@@ -66,12 +66,16 @@ function ObjectEditorForm() {
   const showForm = (isNew || loadedFor === objectId) && Boolean(selectedType || !isNew);
   const formActions = (
     <>
-      <Button variant="secondary" size={isWindows ? 'sm' : 'md'} onClick={() => navigate(-1)}>
+      <Button
+        variant="secondary"
+        size={useTitlebarActions ? 'sm' : 'md'}
+        onClick={() => navigate(-1)}
+      >
         {t('common:cancel')}
       </Button>
       <Button
         variant="primary"
-        size={isWindows ? 'sm' : 'md'}
+        size={useTitlebarActions ? 'sm' : 'md'}
         onClick={handleSave}
         loading={isSaving}
       >
@@ -84,7 +88,7 @@ function ObjectEditorForm() {
     <PageShell
       title={isNew ? t('common:new_object') : t('common:edit_object')}
       onBack={handleBack}
-      primaryActions={isWindows && showForm ? formActions : undefined}
+      primaryActions={useTitlebarActions && showForm ? formActions : undefined}
     >
       <PageContainer variant="xs" gap="default" className={styles.editor}>
         <ObjectTemplateSelector
@@ -124,7 +128,7 @@ function ObjectEditorForm() {
               isNew={isNew}
               suggestions={fieldSuggestions}
             />
-            {!isWindows && <div className={styles.formActions}>{formActions}</div>}
+            {!useTitlebarActions && <div className={styles.formActions}>{formActions}</div>}
           </>
         )}
       </PageContainer>
