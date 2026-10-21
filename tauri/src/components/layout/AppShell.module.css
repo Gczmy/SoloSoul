@@ -38,15 +38,100 @@
 .contentBody[data-page-pane-body] {
   position: relative;
   display: grid;
-  grid-template-columns: var(--page-pane-width, 264px) minmax(0, 1fr);
+  --inspector-column-width: 0px;
+  grid-template-columns: var(--page-pane-width, 264px) minmax(0, 1fr) var(--inspector-column-width);
   flex: 1;
   min-height: 0;
   min-width: 0;
 }
 .contentBody[data-page-pane-body][data-pane-open='false'] {
-  grid-template-columns: 0px minmax(0, 1fr);
+  grid-template-columns: 0px minmax(0, 1fr) var(--inspector-column-width);
+}
+.contentBody[data-inspector-open='true'] {
+  --inspector-column-width: var(--object-inspector-width, 340px);
+}
+.contentBody[data-inspector-animating] {
+  transition: grid-template-columns var(--page-pane-motion);
+}
+.inspectorSlot {
+  grid-column: 3;
+  grid-row: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  contain: layout paint;
+}
+.contentBody[data-page-pane-body] > .content {
+  grid-column: 2;
+  grid-row: 1;
+}
+.contentBody[data-content-toolbar] {
+  /* 为收起状态的右栏开关保留空间，表单和操作组始终使用同一留白。 */
+  --editor-trailing-inset: calc(var(--shell-page-padding, 24px) + 40px);
+  grid-template-rows: 52px minmax(0, 1fr);
+}
+.contentToolbar {
+  grid-column: 2 / -1;
+  grid-row: 1;
+  position: relative;
+  display: grid;
+  /* 直接继承正文列的逐帧宽度，不另启动一组过渡。 */
+  grid-template-columns: subgrid;
+  min-width: 0;
+  /* 与内容面共享底色，不绘制独立背景、边框或阴影。 */
+  background: transparent;
+  --button-min-height: 32px;
+  --button-padding: 5px 12px;
+  --button-font-size: 13px;
+}
+.contentToolbarViewport {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 var(--editor-trailing-inset) 0 var(--shell-page-padding, 24px);
+  /* 与正文保留相同的滚动条槽，避免系统滚动条宽度导致错位。 */
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+.contentToolbarActions {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: var(--page-max-width-xs);
+  margin: 0 auto;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.contentToolbar [data-object-inspector-toggle] {
+  position: absolute;
+  right: var(--shell-page-padding, 24px);
+  top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+.contentBody[data-content-toolbar] > .content {
+  grid-row: 2;
+  padding-right: var(--editor-trailing-inset);
+  /* 渐隐只作用于正文；滚动越过边界后由上方操作栏自然裁住。 */
+  mask-image: linear-gradient(to bottom, transparent, #000 24px);
+  scroll-padding-top: 24px;
+}
+.contentBody[data-content-toolbar] > .inspectorSlot {
+  grid-row: 2;
 }
 .paneSlot {
+  grid-column: 1;
+  grid-row: 1 / -1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;

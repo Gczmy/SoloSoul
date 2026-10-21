@@ -34,6 +34,7 @@ function configuredPage(label: string) {
       title: `${label} 标题`,
       actions: <button onClick={action}>{label} 次要操作</button>,
       primaryActions: <button onClick={primaryAction}>{label} 主操作</button>,
+      windowsContentToolbar: true,
       onBack,
     },
   };
@@ -68,6 +69,7 @@ function expectEmptyConfig() {
     title: '',
     actions: undefined,
     primaryActions: undefined,
+    windowsContentToolbar: undefined,
     onBack: undefined,
   });
 }

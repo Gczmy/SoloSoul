@@ -1,4 +1,9 @@
 {
+  "object_inspector": "Object details",
+  "toggle_object_inspector": "Show/hide object details",
+  "close_object_inspector": "Close object details",
+  "inspector_newest_first": "Newest first",
+  "inspector_attachments_failed": "Could not load attachments.",
   "attachment_cleanup_pending": "Attachment records were deleted, but some files are awaiting cleanup. Unlock again to retry automatically.",
   "cancel_download": "Cancel download",
   "update_cancelling": "Cancelling download…",

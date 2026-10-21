@@ -1,6 +1,6 @@
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { backendErrorLogDetails } from '@/lib/backendErrorWire';
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, ChevronLeft, ChevronRight, X, LoaderCircle } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -27,6 +27,9 @@ import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
 import { ToastOutlet } from '@/components/ui/ToastOutlet';
+import { Button } from '@/components/ui/Button';
+import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
+import { HoverScrollLabel } from '@/components/ui/HoverScrollLabel';
 import rowStyles from '@/components/ui/FieldRowLayout.module.css';
 import styles from './HistoryViewer.module.css';
 import { flattenPropertyEntries, type DynamicChildItem } from '@/lib/propertyFlatten';
@@ -186,7 +189,7 @@ function HistoryField({
               <FieldTypeIcon type={type || 'text'} />
               <span
                 style={{
-                  fontWeight: 500,
+                  fontWeight: 'var(--history-field-weight, 500)',
                   color: 'var(--text-secondary)',
                   textDecoration: deprecated ? 'line-through' : 'none',
                 }}
@@ -258,12 +261,14 @@ function SnapshotCard({
   onCriticalAccess,
   loadSnapshot,
   cachedSnapshot,
+  scrollNames = false,
 }: {
   loadSnapshot: (id: string) => Promise<Record<string, unknown>>;
   cachedSnapshot: (id: string) => Record<string, unknown> | undefined;
   snap: SnapshotEntry;
   accountId?: string;
   objectId: string;
+  scrollNames?: boolean;
   index: number;
   total: number;
   verifyPassword: Verification;
@@ -327,14 +332,15 @@ function SnapshotCard({
             marginLeft: 'auto',
             fontSize: 'var(--text-body-sm)',
             color: 'var(--text-primary)',
-            fontWeight: 500,
+            fontWeight: 'var(--history-field-weight, 500)',
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
             textAlign: 'right',
             maxWidth: '70%',
+            minWidth: 0,
           }}
         >
-          {snapName}
+          {scrollNames ? <HoverScrollLabel text={snapName} focusable /> : snapName}
         </div>
       </div>
       {fields.length > 0 && (
@@ -420,7 +426,7 @@ function SnapshotCard({
                   <FieldTypeIcon type={field.type || 'dynamic_group'} />
                   <span
                     style={{
-                      fontWeight: 500,
+                      fontWeight: 'var(--history-field-weight, 500)',
                       color: 'var(--text-secondary)',
                       textDecoration: deprecated ? 'line-through' : 'none',
                     }}
@@ -462,7 +468,7 @@ function SnapshotCard({
                 fontSize: 'var(--text-badge)',
                 background: 'rgba(91,124,153,0.08)',
                 color: 'var(--accent-primary)',
-                fontWeight: 500,
+                fontWeight: 'var(--history-field-weight, 500)',
               }}
             >
               {tag}
@@ -488,6 +494,9 @@ export interface HistoryViewerProps {
   getFieldName: (fieldKey: string) => string;
   fieldOrder?: string[];
   zIndex?: number;
+  /** 时间轴可嵌入桌面停靠面板；默认保留原有模态查看器。 */
+  presentation?: 'modal' | 'timeline';
+  onCountChange?: (count: number) => void;
 }
 
 export function HistoryViewer(props: HistoryViewerProps) {
@@ -514,11 +523,18 @@ function HistoryViewerSession({
   onClose,
   passwordVerify,
   zIndex = 2000,
+  presentation = 'modal',
+  onCountChange,
 }: HistoryViewerProps & { accountId?: string }) {
   const requests = useHistoryRequests();
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [listFailed, setListFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const timelineId = useId();
+  const timelineWindow = useIncrementalWindow(20);
   // 解密数据仅保留在当前卡片会话内；切对象、切账户、锁定或关闭即失效。
   const cache = useRef(
     new Map<
@@ -599,13 +615,18 @@ function HistoryViewerSession({
 
   useEffect(() => {
     const request = requests.begin('list', accountId);
+    setLoading(true);
+    setListFailed(false);
     request
       .invokeTyped('snapshot_list', { objectId: objectId })
       .then((data) => {
-        if (request.isCurrent()) setSnapshots(data);
+        if (request.isCurrent()) {
+          setSnapshots([...data].sort((a, b) => b.timestamp - a.timestamp));
+        }
       })
       .catch((err) => {
         if (!request.isCurrent()) return;
+        setListFailed(true);
         // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
         showToast({
           type: 'error',
@@ -618,9 +639,15 @@ function HistoryViewerSession({
     return () => requests.invalidate('list');
     // showToast/t 为稳定引用，仅需在 objectId 变化时重新加载
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectId, accountId, requests]);
+  }, [objectId, accountId, requests, loadAttempt]);
 
   useEffect(() => {
+    if (!loading && !listFailed) onCountChange?.(snapshots.length);
+  }, [loading, listFailed, snapshots.length, onCountChange]);
+
+  useEffect(() => {
+    // 时间轴只在展开一条记录后解密；折叠列表不读取快照正文，也不预读邻居。
+    if (presentation === 'timeline') return;
     const id = snapshots[currentIdx]?.id;
     if (!id) return;
     let active = true;
@@ -636,7 +663,7 @@ function HistoryViewerSession({
     return () => {
       active = false;
     };
-  }, [snapshots, currentIdx, loadSnapshot]);
+  }, [snapshots, currentIdx, loadSnapshot, presentation]);
 
   const goPrev = () => setCurrentIdx((i) => Math.max(0, Math.min(i + 1, snapshots.length - 1)));
   const goNext = () => setCurrentIdx((i) => Math.max(i - 1, 0));
@@ -645,6 +672,108 @@ function HistoryViewerSession({
   const total = snapshots.length;
   const isOldest = currentIdx >= total - 1;
   const isLatest = currentIdx <= 0;
+
+  if (presentation === 'timeline') {
+    const summaryKeys = new Set([
+      'diff_created',
+      'diff_updated',
+      'diff_template_sync',
+      'diff_rollback',
+      'diff_imported',
+    ]);
+    return (
+      <div className={styles.timeline} data-history-timeline>
+        {loading ? (
+          <div role="status" className={styles.message}>
+            <LoaderCircle className={styles.loadingIcon} size={18} aria-hidden="true" />
+            {t('common:loading')}
+          </div>
+        ) : listFailed ? (
+          <div role="alert" className={styles.timelineMessage}>
+            <p>{t('common:history_load_failed')}</p>
+            <Button size="sm" variant="secondary" onClick={() => setLoadAttempt((n) => n + 1)}>
+              {t('common:retry')}
+            </Button>
+          </div>
+        ) : snapshots.length === 0 ? (
+          <div className={styles.timelineMessage}>
+            <Clock size={26} aria-hidden="true" />
+            <p>{t('common:no_history')}</p>
+          </div>
+        ) : (
+          <>
+            {snapshots.slice(0, timelineWindow.limit).map((entry, index) => {
+              const date = new Date(entry.timestamp);
+              const day = date.toLocaleDateString();
+              const previousDay =
+                index > 0 ? new Date(snapshots[index - 1].timestamp).toLocaleDateString() : '';
+              const expanded = expandedId === entry.id;
+              const detailId = `${timelineId}-${entry.id}`;
+              // 旧导入摘要可能是任意文本，列表不直接回显未知内容或解密字段值。
+              const summary = summaryKeys.has(entry.diffSummary)
+                ? entry.diffSummary
+                : 'diff_updated';
+              return (
+                <div key={entry.id}>
+                  {day !== previousDay && <div className={styles.timelineDay}>{day}</div>}
+                  <article
+                    className={styles.timelineEntry}
+                    data-history-timestamp={entry.timestamp}
+                  >
+                    <Clock size={13} className={styles.timelineDot} aria-hidden="true" />
+                    <button
+                      type="button"
+                      className={styles.timelineSummary}
+                      data-history-snapshot={entry.id}
+                      aria-expanded={expanded}
+                      aria-controls={detailId}
+                      onClick={() => setExpandedId(expanded ? null : entry.id)}
+                    >
+                      <span className={styles.timelineTitle}>
+                        <HoverScrollLabel
+                          className={styles.timelineName}
+                          text={t(`common:${summary}`)}
+                        />
+                        <time dateTime={date.toISOString()} title={date.toLocaleString()}>
+                          {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </time>
+                      </span>
+                      <span className={styles.timelineVersion}>
+                        {t('common:version')} #{total - index}
+                        <ChevronRight size={13} data-expanded={expanded} aria-hidden="true" />
+                      </span>
+                    </button>
+                    {expanded && (
+                      <div id={detailId} className={styles.timelineDetail}>
+                        <SnapshotCard
+                          key={entry.id}
+                          accountId={accountId}
+                          objectId={objectId}
+                          snap={entry}
+                          index={index}
+                          total={total}
+                          verifyPassword={passwordVerify}
+                          onCriticalAccess={writeCriticalAccessLog}
+                          loadSnapshot={loadSnapshot}
+                          cachedSnapshot={cachedSnapshot}
+                          scrollNames
+                        />
+                      </div>
+                    )}
+                  </article>
+                </div>
+              );
+            })}
+            {timelineWindow.hasMore(total) && (
+              <Button size="sm" variant="secondary" onClick={timelineWindow.showMore}>
+                {t('common:load_more')}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

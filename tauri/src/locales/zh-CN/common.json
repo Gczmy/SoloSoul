@@ -1,4 +1,9 @@
 {
+  "object_inspector": "对象资料",
+  "toggle_object_inspector": "显示/隐藏对象资料",
+  "close_object_inspector": "关闭对象资料",
+  "inspector_newest_first": "按时间倒序排列",
+  "inspector_attachments_failed": "附件加载失败。",
   "attachment_cleanup_pending": "附件记录已删除，部分文件清理待重试；重新解锁后会自动重试。",
   "cancel_download": "取消下载",
   "update_cancelling": "正在取消下载…",

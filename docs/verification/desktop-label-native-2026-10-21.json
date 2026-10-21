@@ -1,0 +1,449 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-21",
+  "status": "console-comparison-pending",
+  "sourceCommit": "9250f6271eb1d2a46ebb856ee401d1c8caae688f",
+  "scope": "isolated-public-native-WebView2",
+  "theme": "dark",
+  "userConfirmedObservation": "RDP",
+  "windows": {
+    "edition": "Windows 11 Enterprise LTSC",
+    "build": "26100",
+    "remoteDisplayHz": 32,
+    "remoteResolution": [1440, 900],
+    "dwmRefreshHz": 32,
+    "dwmComposeHz": 32,
+    "rdpDwmFrameIntervalOverridePresent": false
+  },
+  "webview": {
+    "version": "Edg/155.0.4283.62",
+    "gpu": "Intel UHD Graphics 630",
+    "gpuCompositing": "enabled",
+    "renderer": "ANGLE (Intel, Intel(R) UHD Graphics 630 (0x00003E98) Direct3D11 vs_5_0 ps_5_0, D3D11-31.0.101.2141)"
+  },
+  "fixture": {
+    "sourceModules": 197,
+    "allSourceHashesVerified": true,
+    "htmlSha256": "4302b9a948c350f5eee065bec509b867b8f52891c702b82c172b611a77e241aa"
+  },
+  "cases": [
+    {
+      "name": "idle",
+      "samples": 130,
+      "fps": 32,
+      "p50Ms": 31.2,
+      "p95Ms": 31.7,
+      "maxMs": 32.1,
+      "over50Ms": 0,
+      "phases": {
+        "none": 130
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 0,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "header-normal",
+      "samples": 193,
+      "fps": 31.999,
+      "p50Ms": 31.3,
+      "p95Ms": 31.7,
+      "maxMs": 35.3,
+      "over50Ms": 0,
+      "phases": {
+        "forward": 100,
+        "tail": 32,
+        "reverse": 61
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "header-no-label-mask",
+      "samples": 129,
+      "fps": 31.998,
+      "p50Ms": 31.3,
+      "p95Ms": 31.8,
+      "maxMs": 32.8,
+      "over50Ms": 0,
+      "phases": {
+        "rest": 26,
+        "forward": 103
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "header-no-content-mask",
+      "samples": 129,
+      "fps": 31.998,
+      "p50Ms": 31.3,
+      "p95Ms": 31.6,
+      "maxMs": 31.9,
+      "over50Ms": 0,
+      "phases": {
+        "tail": 19,
+        "reverse": 110
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "header-no-masks",
+      "samples": 130,
+      "fps": 32,
+      "p50Ms": 31.2,
+      "p95Ms": 31.9,
+      "maxMs": 32.1,
+      "over50Ms": 0,
+      "phases": {
+        "rest": 11,
+        "forward": 115,
+        "tail": 4
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "control-transform",
+      "samples": 130,
+      "fps": 32.003,
+      "p50Ms": 31.2,
+      "p95Ms": 31.7,
+      "maxMs": 31.9,
+      "over50Ms": 0,
+      "phases": {
+        "none": 130
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "header-repeat",
+      "samples": 193,
+      "fps": 32,
+      "p50Ms": 31.2,
+      "p95Ms": 31.7,
+      "maxMs": 34.5,
+      "over50Ms": 0,
+      "phases": {
+        "forward": 102,
+        "tail": 32,
+        "reverse": 59
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "attachment-normal",
+      "samples": 193,
+      "fps": 31.999,
+      "p50Ms": 31.3,
+      "p95Ms": 31.6,
+      "maxMs": 32,
+      "over50Ms": 0,
+      "phases": {
+        "forward": 193
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "snapshot-normal",
+      "samples": 194,
+      "fps": 32,
+      "p50Ms": 31.3,
+      "p95Ms": 31.8,
+      "maxMs": 32,
+      "over50Ms": 0,
+      "phases": {
+        "forward": 194
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    },
+    {
+      "name": "control-present",
+      "samples": 193,
+      "fps": 31.998,
+      "p50Ms": 31.3,
+      "p95Ms": 31.7,
+      "maxMs": 32.1,
+      "over50Ms": 0,
+      "phases": {
+        "none": 193
+      },
+      "longTasks": 0,
+      "layoutCount": 0,
+      "animationInstances": 1,
+      "foreground": true,
+      "visible": true
+    }
+  ],
+  "traces": [
+    {
+      "name": "native-trace.json",
+      "beginFrame": {
+        "count": 193,
+        "spanMs": 6000.166,
+        "rate": 31.999,
+        "p50IntervalMs": 31.248,
+        "maxIntervalMs": 35.302
+      },
+      "drawAndSwap": {
+        "count": 164,
+        "spanMs": 6003.158,
+        "rate": 27.152,
+        "p50IntervalMs": 31.26,
+        "maxIntervalMs": 783.428
+      },
+      "present": {
+        "count": 164,
+        "spanMs": 6003.165,
+        "rate": 27.152,
+        "p50IntervalMs": 31.285,
+        "maxIntervalMs": 792.646
+      },
+      "drawDuration": {
+        "count": 164,
+        "maxMs": 0.524,
+        "totalMs": 44.629
+      },
+      "presentDuration": {
+        "count": 164,
+        "maxMs": 1.747,
+        "totalMs": 26.627
+      },
+      "paint": {
+        "count": 4,
+        "maxMs": 0.875,
+        "totalMs": 1.446
+      },
+      "raster": {
+        "count": 2,
+        "maxMs": 0.267,
+        "totalMs": 0.315
+      },
+      "recordedDroppedFrameMarkers": 0,
+      "dirtyRects": ["947,143 277x16", "948,143 275x16"]
+    },
+    {
+      "name": "attachment-normal-trace.json",
+      "beginFrame": {
+        "count": 193,
+        "spanMs": 6000.192,
+        "rate": 31.999,
+        "p50IntervalMs": 31.272,
+        "maxIntervalMs": 32.002
+      },
+      "drawAndSwap": {
+        "count": 193,
+        "spanMs": 6004.266,
+        "rate": 31.977,
+        "p50IntervalMs": 31.283,
+        "maxIntervalMs": 35.787
+      },
+      "present": {
+        "count": 193,
+        "spanMs": 6004.14,
+        "rate": 31.978,
+        "p50IntervalMs": 31.291,
+        "maxIntervalMs": 36.212
+      },
+      "drawDuration": {
+        "count": 193,
+        "maxMs": 0.45,
+        "totalMs": 53.319
+      },
+      "presentDuration": {
+        "count": 193,
+        "maxMs": 1.688,
+        "totalMs": 32.08
+      },
+      "paint": {
+        "count": 0,
+        "maxMs": 0,
+        "totalMs": 0
+      },
+      "raster": {
+        "count": 0,
+        "maxMs": 0,
+        "totalMs": 0
+      },
+      "recordedDroppedFrameMarkers": 0,
+      "dirtyRects": ["999,231 223x17"]
+    },
+    {
+      "name": "snapshot-normal-trace.json",
+      "beginFrame": {
+        "count": 194,
+        "spanMs": 6031.357,
+        "rate": 31.999,
+        "p50IntervalMs": 31.247,
+        "maxIntervalMs": 31.996
+      },
+      "drawAndSwap": {
+        "count": 194,
+        "spanMs": 6033.355,
+        "rate": 31.989,
+        "p50IntervalMs": 31.247,
+        "maxIntervalMs": 35.946
+      },
+      "present": {
+        "count": 194,
+        "spanMs": 6033.388,
+        "rate": 31.989,
+        "p50IntervalMs": 31.266,
+        "maxIntervalMs": 35.938
+      },
+      "drawDuration": {
+        "count": 194,
+        "maxMs": 0.666,
+        "totalMs": 55.326
+      },
+      "presentDuration": {
+        "count": 194,
+        "maxMs": 0.345,
+        "totalMs": 29.498
+      },
+      "paint": {
+        "count": 0,
+        "maxMs": 0,
+        "totalMs": 0
+      },
+      "raster": {
+        "count": 0,
+        "maxMs": 0,
+        "totalMs": 0
+      },
+      "recordedDroppedFrameMarkers": 0,
+      "dirtyRects": ["1061,318 178x17"]
+    },
+    {
+      "name": "control-present-trace.json",
+      "beginFrame": {
+        "count": 193,
+        "spanMs": 6000.331,
+        "rate": 31.998,
+        "p50IntervalMs": 31.256,
+        "maxIntervalMs": 32.049
+      },
+      "drawAndSwap": {
+        "count": 193,
+        "spanMs": 6004.223,
+        "rate": 31.977,
+        "p50IntervalMs": 31.277,
+        "maxIntervalMs": 40.095
+      },
+      "present": {
+        "count": 193,
+        "spanMs": 6004.057,
+        "rate": 31.978,
+        "p50IntervalMs": 31.334,
+        "maxIntervalMs": 40.461
+      },
+      "drawDuration": {
+        "count": 193,
+        "maxMs": 0.409,
+        "totalMs": 47.324
+      },
+      "presentDuration": {
+        "count": 193,
+        "maxMs": 0.423,
+        "totalMs": 32.872
+      },
+      "paint": {
+        "count": 0,
+        "maxMs": 0,
+        "totalMs": 0
+      },
+      "raster": {
+        "count": 0,
+        "maxMs": 0,
+        "totalMs": 0
+      },
+      "recordedDroppedFrameMarkers": 0,
+      "dirtyRects": ["369,65 182x21"]
+    }
+  ],
+  "interpretation": {
+    "currentLimit": "The current RDP session DWM clock and the native renderer both run at 32 Hz.",
+    "maskComparison": "Removing label and content masks did not increase the observed cadence.",
+    "continuousMotion": "Attachment, snapshot and independent-control traces each present at approximately 32 frames per second.",
+    "headerHold": "The header trace includes a deliberate 1-second tail hold; its lower overall Present count is not counted as continuous-motion frame loss.",
+    "layerTreeCaution": "Empty LayerTree paint notifications did not mean zero Paint events: the header trace includes four Paint events and two RasterTask events at phase boundaries.",
+    "appScope": "The isolated host uses the current production components and native window modules; no formal Vault or account is loaded."
+  },
+  "limits": [
+    "No local console 60Hz comparison",
+    "Server-side animation/compositor evidence does not measure the RDP client screen or network",
+    "LayerTree paint notifications were empty while the trace recorded phase-boundary Paint events; do not interpret empty notifications as zero actual paints"
+  ],
+  "changes": {
+    "productionCode": false,
+    "systemSettings": false,
+    "rdpConnection": false,
+    "clientTransportFpsMeasured": false
+  },
+  "cleanup": {
+    "hostExited": true,
+    "loopbackListenerClosed": true,
+    "nativeCloseEvent": true,
+    "nativeDestroyedEvent": true,
+    "profileCacheRemoved": true,
+    "fixturesAndEvidenceRetained": true
+  },
+  "evidenceSha256": {
+    "idle.json": "b19663a4a9e6dacf23ed74d170115fe10ff204f0c7f6ed0e5f5bb11d96563fe9",
+    "header-normal.json": "dfff184527a642f748b2e03749f3f60e63d718ecab487867e5d4f322fbeeab2f",
+    "header-no-label-mask.json": "95c20ec950eb47ba1a75c892e6f19dd03163081a361a8c20d91c7d364e86640f",
+    "header-no-content-mask.json": "987d19d34ff89feef5810c30e8d6f2c5f6ae711b620fb88547b50732a357cfd7",
+    "header-no-masks.json": "906272e01ec22a9b620760cdedfd0b3e132f1041b791868ecbfd5d496d8b1100",
+    "control-transform.json": "ad3182293b37ca4f90509b42d21f8c308cc7911336f1a5f5d183d794b5ab37f9",
+    "header-repeat.json": "26c5c497ae556f4f1e8dd3eb98bbefb3ef1d910031ca88e5209e016a0dd1876a",
+    "attachment-normal.json": "ce66d2d91c379b8a7f8061467c002c85713f146c9a8dabde68fdd31df6459def",
+    "snapshot-normal.json": "31b78b57a3b3c3c62eb515dc206a4786d78bff89bbecfa2b9a44c96ee4fdf0b9",
+    "control-present.json": "0261e287d5ad7328efefd4ccd20cdc3ba586bbd1bad5d8e7c1c57cbf46136aef",
+    "native-trace.json": "ead62fa70c6a1fd8372900e751154ea8c9bdc5c0450593caeece61f10b2eb71c",
+    "attachment-normal-trace.json": "f1fdf1ab6111026de3e2be971b358edae2d03a305e7f6d62bec5548d5f61305b",
+    "snapshot-normal-trace.json": "0f2e61f585e358270cc3aeae14eaf6cd854a509f3436975e6fe80ca6caa5e432",
+    "control-present-trace.json": "09c1c236a4602a9329155f5efc6234b2374e7cb4176a394cde06713646a9ca8a",
+    "windows-display-timing.json": "4fea7b72e75247a5c7b76bee84a8f6a15723ba18e80b84edf7f3c01ba4c0a5b0",
+    "native-system-info.json": "8d3e27cf6633bfd3753daa0b6ad78cee6b05f967a099450187d101dd9addd27d",
+    "measure-native.mjs": "075995042c64f3dcd09f317be8d242bcee8693aebfcb763c37cef6af5132cb1c",
+    "measure-native-v2.mjs": "a99c61274fac6da6ef9b215f068fb1c0fcea8f62dc210c0c4b7fd7020ea9f3e7",
+    "DwmReadOnly.cs": "00523adaf570e651ab246b6f9bcec16e7706fa4db04dcd3fa8c14b447a080e32",
+    "evidence-summary.json": "6fb1950a41905b6d089f0c608a31d67e0cb44057f00567a7fa4e361a04c71bc7"
+  },
+  "references": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmgetcompositiontiminginfo",
+    "https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ns-dwmapi-dwm_timing_info",
+    "https://learn.microsoft.com/en-us/troubleshoot/windows-server/remote/frame-rate-limited-to-30-fps"
+  ]
+}

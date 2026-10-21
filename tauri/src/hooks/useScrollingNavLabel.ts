@@ -75,50 +75,71 @@ export function useScrollingNavLabel(label: string, enabled: boolean, active: bo
       setAnimationUnavailable(true);
       return;
     }
-    let stopped = false;
-    let animation: Animation | undefined;
-    const travelTime = (overflow / 24) * 1000;
-    const move = (from: number, to: number, duration: number) => {
-      animation?.cancel();
-      animation = text.animate(
-        [{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }],
-        { duration, easing: 'linear', fill: 'forwards' },
-      );
-      return animation.finished;
-    };
-    const loop = async () => {
-      while (!stopped) {
-        viewport.dataset.fade = 'right';
-        viewport.dataset.scrollState = 'waiting';
-        await move(0, 0, 400);
-        if (stopped) return;
-        viewport.dataset.scrollState = 'forward';
-        await move(0, -overflow, travelTime);
-        if (stopped) return;
-        // 末尾停留时去掉右侧遮罩，最后一个字必须完整可读。
-        viewport.dataset.fade = 'left';
-        viewport.dataset.scrollState = 'tail';
-        await move(-overflow, -overflow, 1000);
-        if (stopped) return;
-        viewport.dataset.fade = 'both';
-        viewport.dataset.scrollState = 'reverse';
-        await move(-overflow, 0, travelTime);
-        if (stopped) return;
-        viewport.dataset.fade = 'right';
-        viewport.dataset.scrollState = 'rest';
-        await move(0, 0, 1000);
-      }
-    };
-    void loop().catch(() => {
-      if (!stopped) setAnimationUnavailable(true);
+    // 一次创建完整往返时间轴，停留/折返不再取消和重建文字的合成动画。
+    const delay = 400;
+    const rampTime = Math.min(180, ((overflow / 24) * 1000) / 2);
+    const rampDistance = (24 * rampTime) / 2000;
+    const travelTime = (overflow / 24) * 1000 + rampTime;
+    const tailEnd = travelTime + 1000;
+    const reverseEnd = tailEnd + travelTime;
+    const duration = reverseEnd + 1000;
+    const accelerate = 'cubic-bezier(0.333333, 0, 0.666667, 0.333333)';
+    const decelerate = 'cubic-bezier(0.333333, 0.666667, 0.666667, 1)';
+    const frame = (time: number, x: number, easing = 'linear'): Keyframe => ({
+      offset: time / duration,
+      transform: `translate3d(${x}px, 0, 0)`,
+      easing,
     });
+    let animation: Animation;
+    try {
+      animation = text.animate(
+        [
+          frame(0, 0, accelerate),
+          frame(rampTime, -rampDistance),
+          frame(travelTime - rampTime, -overflow + rampDistance, decelerate),
+          frame(travelTime, -overflow),
+          frame(tailEnd, -overflow, accelerate),
+          frame(tailEnd + rampTime, -overflow + rampDistance),
+          frame(reverseEnd - rampTime, -rampDistance, decelerate),
+          frame(reverseEnd, 0),
+          frame(duration, 0),
+        ],
+        { delay, duration, iterations: Infinity, fill: 'both' },
+      );
+    } catch {
+      setAnimationUnavailable(true);
+      return;
+    }
+    let tick = 0;
+    const updatePhase = () => {
+      // 只观察时间来切换边缘遮罩，不用 JS 逐帧设置位移或测量布局。
+      const time = (typeof animation.currentTime === 'number' ? animation.currentTime : 0) - delay;
+      const position = Math.max(0, time) % duration;
+      const phase =
+        time < 0
+          ? 'waiting'
+          : position < travelTime
+            ? 'forward'
+            : position < tailEnd
+              ? 'tail'
+              : position < reverseEnd
+                ? 'reverse'
+                : 'rest';
+      if (viewport.dataset.scrollState !== phase) {
+        viewport.dataset.scrollState = phase;
+        // 末尾停留时去掉右侧遮罩，最后一个字必须完整可读。
+        viewport.dataset.fade = phase === 'tail' ? 'left' : phase === 'reverse' ? 'both' : 'right';
+      }
+      tick = requestAnimationFrame(updatePhase);
+    };
+    updatePhase();
     return () => {
-      stopped = true;
-      animation?.cancel();
+      cancelAnimationFrame(tick);
+      animation.cancel();
       viewport.dataset.fade = 'right';
       delete viewport.dataset.scrollState;
     };
-  }, [enabled, active, overflow, staticMode]);
+  }, [enabled, active, label, overflow, staticMode]);
 
   return { viewportRef, textRef, isOverflowing: overflow > 0, staticMode };
 }

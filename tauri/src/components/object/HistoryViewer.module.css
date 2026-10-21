@@ -31,6 +31,98 @@
 .loadingIcon {
   animation: spin 1s linear infinite;
 }
+.timeline {
+  --history-field-weight: 400;
+  font-size: 13px;
+  min-width: 0;
+}
+.timelineMessage {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.timelineDay {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 14px 2px 8px;
+  color: var(--text-tertiary);
+  background: var(--shell-content-surface, var(--bg-base));
+  font-size: 11px;
+}
+.timelineEntry {
+  position: relative;
+  padding-left: 24px;
+  min-width: 0;
+}
+.timelineEntry::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 22px;
+  bottom: 0;
+  border-left: 1px solid var(--border-subtle);
+}
+.timelineDot {
+  position: absolute;
+  left: 0;
+  top: 15px;
+  color: var(--text-tertiary);
+  background: var(--shell-content-surface, var(--bg-base));
+}
+.timelineSummary {
+  width: 100%;
+  padding: 10px 6px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.timelineSummary:hover {
+  background: var(--bg-hover);
+}
+.timelineTitle {
+  display: flex;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 12px;
+}
+.timelineName {
+  flex: 1;
+}
+.timelineTitle time {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.timelineVersion {
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+.timelineVersion svg[data-expanded='true'] {
+  transform: rotate(90deg);
+}
+.timelineDetail {
+  margin: 0 4px 12px;
+  padding: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);

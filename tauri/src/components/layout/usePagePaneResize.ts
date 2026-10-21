@@ -17,13 +17,17 @@ export function usePagePaneResize(
   bodyRef: RefObject<HTMLDivElement | null>,
   enabled: boolean,
   open: boolean,
+  reservedWidth = 0,
 ) {
   const preferred = useUiStore((state) => state.desktopPagePaneWidth);
   const setPreferred = useUiStore((state) => state.setDesktopPagePaneWidth);
   const [bodyWidth, setBodyWidth] = useState(0);
   const [draft, setDraft] = useState<number | null>(null);
   const drag = useRef<{ pointer: number; x: number; width: number; current: number } | null>(null);
-  const max = Math.max(PAGE_PANE_MIN, Math.min(PAGE_PANE_MAX, Math.floor(bodyWidth - EDITOR_MIN)));
+  const max = Math.max(
+    PAGE_PANE_MIN,
+    Math.min(PAGE_PANE_MAX, Math.floor(bodyWidth - reservedWidth - EDITOR_MIN)),
+  );
   const bound = (value: number) => Math.max(PAGE_PANE_MIN, Math.min(max, Math.round(value)));
   const width = bodyWidth > 0 ? bound(draft ?? preferred) : preferred;
 

@@ -243,8 +243,14 @@ mod regression {
                 } else {
                     "RF-1142 — Windows frame regression"
                 })
-                .inner_size(900.0, 600.0)
-                .min_inner_size(400.0, 300.0)
+                .inner_size(
+                    if fixture.is_some() { 1280.0 } else { 900.0 },
+                    if fixture.is_some() { 800.0 } else { 600.0 },
+                )
+                .min_inner_size(
+                    if fixture.is_some() { 800.0 } else { 400.0 },
+                    if fixture.is_some() { 600.0 } else { 300.0 },
+                )
                 .decorations(true)
                 .transparent(true)
                 .visible(fixture.is_none())

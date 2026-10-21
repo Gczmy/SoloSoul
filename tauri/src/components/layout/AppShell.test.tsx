@@ -43,7 +43,25 @@ vi.mock('./MobileBottomNav', () => ({
   MobileBottomNav: () => <div data-testid="bottom-nav" />,
 }));
 vi.mock('./AppBar', () => ({
-  AppBar: () => <div data-testid="app-bar" />,
+  AppBar: ({
+    primaryActions,
+    onPagePaneToggle,
+  }: {
+    primaryActions?: React.ReactNode;
+    onPagePaneToggle?: () => void;
+  }) => (
+    <div data-testid="app-bar">
+      {primaryActions}
+      <button onClick={onPagePaneToggle}>Toggle page pane</button>
+    </div>
+  ),
+}));
+vi.mock('@/components/object/ObjectInspectorPanel', () => ({
+  ObjectInspectorPanel: ({ onClose }: { onClose: () => void }) => (
+    <aside data-testid="inspector">
+      <button onClick={onClose}>Close inspector</button>
+    </aside>
+  ),
 }));
 vi.mock('./DesktopPagePane', () => ({
   DesktopPagePane: ({ open }: { open: boolean }) => <aside data-testid="page-pane" inert={!open} />,
@@ -66,12 +84,97 @@ function TallPageA() {
 describe('AppShell 路由导航后内容区滚动重置', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     syncStub.incomingPairingRequest = null;
     syncStub.trustPeer.mockReset();
     syncStub.loadStatus.mockReset();
     syncStub.clearIncomingPairingRequest.mockReset();
-    useUiStore.setState({ toasts: [], desktopPagePaneOpen: true });
-    useNativeWindowStore.setState({ isMacOS: false, titlebarHeight: 0, trafficLightsRight: 0 });
+    useUiStore.setState({
+      toasts: [],
+      desktopPagePaneOpen: true,
+      desktopObjectInspectorOpen: false,
+    });
+    useNativeWindowStore.setState({
+      isMacOS: false,
+      isWindows: false,
+      titlebarHeight: 0,
+      trafficLightsRight: 0,
+    });
+  });
+
+  it.each(['windows', 'macos'] as const)(
+    '%s 编辑操作遵循各自位置，开关右栏不重建正文或操作',
+    async (platform) => {
+      useNativeWindowStore.setState({
+        isWindows: platform === 'windows',
+        isMacOS: platform === 'macos',
+      });
+      render(
+        <MemoryRouter>
+          <AppShell
+            title="编辑"
+            windowsContentToolbar
+            primaryActions={
+              <>
+                <button>取消</button>
+                <button>保存</button>
+              </>
+            }
+            objectInspector={{ objectId: 'one', objectName: 'Object', ready: true }}
+          >
+            <input aria-label="操作栏中的草稿" />
+          </AppShell>
+        </MemoryRouter>,
+      );
+      const header = screen.getByTestId('app-bar');
+      const toolbar = document.querySelector('[data-editor-content-toolbar]');
+      const save = screen.getByText('保存');
+      const toggle = document.querySelector('[data-object-inspector-toggle]')!;
+      if (platform === 'windows') {
+        expect(toolbar).toContainElement(save);
+        expect(toolbar).toContainElement(toggle as HTMLElement);
+        expect(header).not.toContainElement(save);
+      } else {
+        expect(toolbar).toBeNull();
+        expect(header).toContainElement(save);
+        expect(header).toContainElement(toggle as HTMLElement);
+      }
+      const input = screen.getByLabelText('操作栏中的草稿');
+      fireEvent.change(input, { target: { value: '未保存草稿' } });
+      const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+      content.scrollTop = 150;
+      fireEvent.click(toggle);
+      await screen.findByTestId('inspector');
+      fireEvent.click(screen.getByText('Close inspector'));
+      expect(document.querySelector('[data-shell-content]')).toBe(content);
+      expect(content.scrollTop).toBe(150);
+      expect(input).toHaveValue('未保存草稿');
+      expect(screen.getByText('保存')).toBe(save);
+      expect(toggle).toHaveFocus();
+    },
+  );
+
+  it('Windows 新建对象的操作栏不依赖右栏；其他页面主操作仍在原顶栏', () => {
+    useNativeWindowStore.setState({ isWindows: true });
+    const page = (editor: boolean) => (
+      <MemoryRouter>
+        <AppShell
+          title="新建"
+          windowsContentToolbar={editor}
+          primaryActions={<button>保存</button>}
+        >
+          内容
+        </AppShell>
+      </MemoryRouter>
+    );
+    const { rerender } = render(page(true));
+    expect(document.querySelector('[data-editor-content-toolbar]')).toContainElement(
+      screen.getByText('保存'),
+    );
+    expect(document.querySelector('[data-object-inspector-toggle]')).toBeNull();
+    rerender(page(false));
+    expect(document.querySelector('[data-editor-content-toolbar]')).toBeNull();
+    expect(screen.getByTestId('app-bar')).toContainElement(screen.getByText('保存'));
   });
 
   it('macOS全屏切换中的32pt临时栏高不压缩AppBar，正文和编辑状态不重建', () => {
@@ -99,7 +202,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
   });
 
   it('侧栏展开状态变化不重建正文或丢失草稿、焦点和滚动位置', () => {
-    useUiStore.setState({ desktopPagePaneOpen: true });
+    useUiStore.setState({ desktopPagePaneOpen: true, desktopObjectInspectorOpen: false });
     const { unmount } = render(
       <MemoryRouter>
         <AppShell title="首页">
@@ -132,6 +235,46 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     expect(release).not.toHaveBeenCalledWith('--shell-content-left');
     unmount();
     expect(document.documentElement.style.getPropertyValue('--sidebar-width')).toBe('');
+  });
+
+  it('窄桌面打开右栏临时隐藏左栏并保留草稿，关闭后恢复用户的左栏偏好', async () => {
+    const media = window.matchMedia('all');
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        ...media,
+        matches: query.includes('max-width: 1099px'),
+      })),
+    );
+    useUiStore.setState({ desktopPagePaneOpen: true });
+    render(
+      <MemoryRouter>
+        <AppShell
+          title="编辑"
+          objectInspector={{ objectId: 'one', objectName: 'Object', ready: true }}
+        >
+          <input aria-label="Dock draft" />
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    fireEvent.change(screen.getByLabelText('Dock draft'), { target: { value: 'unsaved draft' } });
+    content.scrollTop = 140;
+    fireEvent.click(document.querySelector('[data-object-inspector-toggle]')!);
+    await screen.findByTestId('inspector');
+    expect(screen.getByTestId('page-pane')).toHaveAttribute('inert');
+    expect(useUiStore.getState().desktopPagePaneOpen).toBe(true);
+    fireEvent.click(screen.getByText('Close inspector'));
+    expect(screen.getByTestId('page-pane')).not.toHaveAttribute('inert');
+    expect(screen.getByLabelText('Dock draft')).toHaveValue('unsaved draft');
+    expect(document.querySelector('[data-shell-content]')).toBe(content);
+    expect(content.scrollTop).toBe(140);
+    expect(document.querySelector('[data-object-inspector-toggle]')).toHaveFocus();
+    fireEvent.click(document.querySelector('[data-object-inspector-toggle]')!);
+    await screen.findByTestId('inspector');
+    fireEvent.click(screen.getByText('Toggle page pane'));
+    expect(screen.getByTestId('page-pane')).not.toHaveAttribute('inert');
+    expect(useUiStore.getState().desktopObjectInspectorOpen).toBe(false);
   });
 
   it('入站配对信任失败时保留对话框并提示错误', async () => {

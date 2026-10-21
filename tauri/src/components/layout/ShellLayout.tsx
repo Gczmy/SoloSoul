@@ -12,7 +12,16 @@ import { ContentLoadingSkeleton } from '@/components/ui/ContentLoadingSkeleton';
 export function ShellLayout() {
   const location = useLocation();
   const route = shellRouteIdentity(location);
-  const { title, actions, primaryActions, onBack, continuity, handoff } = useShellConfigStore(
+  const {
+    title,
+    actions,
+    primaryActions,
+    windowsContentToolbar,
+    onBack,
+    objectInspector,
+    continuity,
+    handoff,
+  } = useShellConfigStore(
     useShallow((s) => {
       const continuity = Boolean(s.registration?.continuityScope);
       const exact = s.registration?.route === route;
@@ -25,7 +34,9 @@ export function ShellLayout() {
             title: s.title,
             actions: s.actions,
             primaryActions: s.primaryActions,
+            windowsContentToolbar: s.windowsContentToolbar,
             onBack: s.onBack,
+            objectInspector: s.objectInspector,
             continuity,
             handoff,
           }
@@ -35,6 +46,7 @@ export function ShellLayout() {
   return (
     <AppShell
       title={title}
+      windowsContentToolbar={windowsContentToolbar}
       primaryActions={
         continuity && primaryActions ? (
           <div style={{ display: 'contents' }} inert={handoff}>
@@ -54,6 +66,11 @@ export function ShellLayout() {
         )
       }
       onBack={onBack}
+      objectInspector={
+        objectInspector && handoff
+          ? { ...objectInspector, ready: false, failed: false, objectName: '' }
+          : objectInspector
+      }
     >
       <Suspense fallback={<ContentLoadingSkeleton />}>
         <Outlet />

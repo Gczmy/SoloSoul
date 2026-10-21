@@ -1,7 +1,9 @@
 import { build, normalizePath } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
+import process from 'node:process';
+import { Buffer } from 'node:buffer';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -18,6 +20,12 @@ const aliases = [
   { find: '@/lib/ipcClient', replacement: resolve(fixture, 'bridge.ts') },
   { find: '@/lib/platform', replacement: resolve(fixture, 'platform.ts') },
   { find: '@/lib/i18n', replacement: resolve(fixture, 'i18n.ts') },
+  ...['@/hooks/useWorkspacePasswordGuard', '@/components/forms/PasswordVerificationDialog'].map(
+    (find) => ({
+      find,
+      replacement: resolve(fixture, 'verification.tsx'),
+    }),
+  ),
   ...['TopFunctionBar', 'MobileBottomNav'].map((name) => ({
     find: `./${name}`,
     replacement: resolve(fixture, 'slots.tsx'),
@@ -68,7 +76,9 @@ const modules = Object.keys(chunks[0].modules)
   .map((id) => normalizePath(id.split('?')[0]))
   .filter((id) => id.startsWith(normalizedRoot + '/') && !id.includes('/node_modules/'));
 const forbidden = modules.filter((id) =>
-  /\/src\/(App\/|pages\/auth\/|stores\/(authStore|settingsStore|syncStore)\.ts)/.test(id),
+  /\/src\/(App\/|pages\/auth\/|stores\/(authStore|settingsStore|syncStore)\.ts|hooks\/useWorkspacePasswordGuard\.ts|components\/forms\/PasswordVerificationDialog\.tsx)/.test(
+    id,
+  ),
 );
 if (forbidden.length)
   throw new Error(
@@ -89,6 +99,11 @@ for (const file of [
   'components/workspace/ObjectRulerPreview.tsx',
   'components/layout/usePagePaneResize.ts',
   'components/layout/usePagePaneMotion.ts',
+  'components/layout/ShellLayout.tsx',
+  'components/layout/PageShell.tsx',
+  'pages/editor/ObjectEditorPage.tsx',
+  'components/object/ObjectInspectorPanel.tsx',
+  'components/object/HistoryViewer.tsx',
   'components/layout/AuthLayout.tsx',
   'components/attachment/PreviewTitlebar.tsx',
 ])
@@ -111,6 +126,6 @@ const html =
   '</script></body></html>';
 await writeFile(destination, html, { flag: 'wx' });
 await writeFile(destination + '.sources.json', JSON.stringify(manifest, null, 2), { flag: 'wx' });
-console.log(
-  `Fixture: ${destination}; ${Buffer.byteLength(html)} bytes; ${modules.length} source modules`,
+process.stdout.write(
+  `Fixture: ${destination}; ${Buffer.byteLength(html)} bytes; ${modules.length} source modules\n`,
 );

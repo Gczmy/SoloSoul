@@ -8,14 +8,28 @@ export interface ShellConfig {
   title: string;
   actions?: ReactNode;
   primaryActions?: ReactNode;
+  /** Windows 编辑操作移入内容面；其他平台保留原顶栏。 */
+  windowsContentToolbar?: boolean;
   onBack?: () => void;
+  objectInspector?: ObjectInspectorContext;
+}
+
+/** 仅登记当前对象身份；正文和附件不进入全局布局状态。 */
+export interface ObjectInspectorContext {
+  objectId: string;
+  objectName: string;
+  typeId?: string;
+  ready: boolean;
+  failed?: boolean;
 }
 
 export const EMPTY_SHELL_CONFIG: Readonly<ShellConfig> = {
   title: '',
   actions: undefined,
   primaryActions: undefined,
+  windowsContentToolbar: undefined,
   onBack: undefined,
+  objectInspector: undefined,
 };
 
 export interface ShellRegistration {
@@ -51,7 +65,9 @@ export const useShellConfigStore = create<ShellConfigState>((set) => ({
         prev.title === config.title &&
         prev.actions === config.actions &&
         prev.primaryActions === config.primaryActions &&
-        prev.onBack === config.onBack
+        prev.windowsContentToolbar === config.windowsContentToolbar &&
+        prev.onBack === config.onBack &&
+        prev.objectInspector === config.objectInspector
       ) {
         return prev;
       }
@@ -60,7 +76,9 @@ export const useShellConfigStore = create<ShellConfigState>((set) => ({
         title: config.title,
         actions: config.actions,
         primaryActions: config.primaryActions,
+        windowsContentToolbar: config.windowsContentToolbar,
         onBack: config.onBack,
+        objectInspector: config.objectInspector,
       };
     }),
   unregister: (registration) =>

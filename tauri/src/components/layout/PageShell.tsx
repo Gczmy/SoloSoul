@@ -1,15 +1,21 @@
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { createSessionRequests } from '@/lib/sessionRequests';
-import { shellRouteIdentity, useShellConfigStore } from './shellConfigStore';
+import {
+  shellRouteIdentity,
+  useShellConfigStore,
+  type ObjectInspectorContext,
+} from './shellConfigStore';
 
 export interface PageShellProps {
   children: ReactNode;
   title: string;
   actions?: ReactNode;
   primaryActions?: ReactNode;
+  windowsContentToolbar?: boolean;
   onBack?: () => void;
   continuityScope?: string;
+  objectInspector?: ObjectInspectorContext;
 }
 
 /**
@@ -22,8 +28,10 @@ export function PageShell({
   title,
   actions,
   primaryActions,
+  windowsContentToolbar,
   onBack,
   continuityScope,
+  objectInspector,
 }: PageShellProps) {
   const route = shellRouteIdentity(useLocation());
   const [owner] = useState(() => Symbol('PageShell'));
@@ -48,7 +56,23 @@ export function PageShell({
   }, [registration]);
   useLayoutEffect(() => () => unregister(latestRegistration.current), [unregister]);
   useLayoutEffect(() => {
-    register(registration, { title, actions, primaryActions, onBack });
-  }, [register, registration, title, actions, primaryActions, onBack]);
+    register(registration, {
+      title,
+      actions,
+      primaryActions,
+      windowsContentToolbar,
+      onBack,
+      objectInspector,
+    });
+  }, [
+    register,
+    registration,
+    title,
+    actions,
+    primaryActions,
+    windowsContentToolbar,
+    onBack,
+    objectInspector,
+  ]);
   return <>{children}</>;
 }

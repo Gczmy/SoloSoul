@@ -6,6 +6,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { toObjectDataView, type ObjectDataView } from '@/lib/objectViewModel';
 import { ObjectRulerPreview } from '@/components/workspace/ObjectRulerPreview';
+import { usePagePanePreviewContentReady } from './PagePanePreviewFrame';
 import styles from '@/components/workspace/WorkspaceObjectRuler.module.css';
 
 export function PagePanePagePreview({
@@ -96,8 +97,10 @@ export function PagePaneObjectPreview({
       unsubscribe();
     };
   }, [accountId, authenticated, objectId, requests]);
+  const current =
+    result && result.accountId === accountId && result.objectId === objectId ? result : null;
+  usePagePanePreviewContentReady(Boolean(authenticated && accountId && current));
   if (!authenticated || !accountId) return null;
-  const current = result?.accountId === accountId && result.objectId === objectId ? result : null;
   if (!current) return <p role="status">{t('page_pane_loading')}</p>;
   if (!current.object) return <p role="status">{t('page_pane_preview_unavailable')}</p>;
   return (

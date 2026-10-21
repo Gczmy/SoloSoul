@@ -1,0 +1,34 @@
+.viewport {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  text-align: start;
+}
+.track {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+  vertical-align: top;
+}
+.viewport[data-overflow='true']:not([data-static]) {
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 16px), transparent);
+}
+.viewport[data-overflow='true'][data-fade='left']:not([data-static]) {
+  mask-image: linear-gradient(to right, transparent, #000 10px, #000 100%);
+}
+.viewport[data-overflow='true'][data-fade='both']:not([data-static]) {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 10px,
+    #000 calc(100% - 16px),
+    transparent
+  );
+}
+.viewport:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}

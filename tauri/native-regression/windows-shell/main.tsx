@@ -6,7 +6,10 @@ import i18next from 'i18next';
 import common from '@/locales/zh-CN/common.json';
 import navigation from '@/locales/zh-CN/navigation.json';
 import settings from '@/locales/zh-CN/settings.json';
+import editor from '@/locales/zh-CN/editor.json';
 import { AppShell } from '@/components/layout/AppShell';
+import { ShellLayout } from '@/components/layout/ShellLayout';
+import { ObjectEditorPage } from '@/pages/editor/ObjectEditorPage';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ShellNotificationsProvider } from '@/components/layout/ShellNotifications';
 import { PreviewWindow } from '@/components/attachment/PreviewWindow';
@@ -86,6 +89,12 @@ async function capture() {
     controls: bounds(
       '[data-appbar] button, [data-windows-titlebar] button, [data-preview-titlebar] button',
     ),
+    editorToolbar: bounds('[data-editor-content-toolbar]'),
+    editorToolbarControls: bounds('[data-editor-content-toolbar] button'),
+    editorForm: bounds('[data-object-editor-form]'),
+    editorScrollMask: document.querySelector('[data-shell-content]')
+      ? getComputedStyle(document.querySelector('[data-shell-content]')!).maskImage
+      : null,
     content: bounds('[data-shell-surface], [data-shell-content], [data-auth-content]'),
     navigation: bounds('#desktop-navigation'),
     navigationControls: bounds('#desktop-navigation button'),
@@ -93,6 +102,14 @@ async function capture() {
     pagePane: bounds('[data-page-pane], [data-page-pane-scroll]'),
     pagePaneWidth: useUiStore.getState().desktopPagePaneWidth,
     pagePaneOpen: useUiStore.getState().desktopPagePaneOpen,
+    objectInspectorOpen: useUiStore.getState().desktopObjectInspectorOpen,
+    objectInspectorTab: useUiStore.getState().desktopObjectInspectorTab,
+    objectInspector: bounds('[data-object-inspector], [data-object-inspector-scroll]'),
+    inspectorObjectId: document
+      .querySelector('[data-object-inspector]')
+      ?.getAttribute('data-object-id'),
+    historyRows: bounds('[data-history-snapshot]'),
+    attachmentRows: bounds('[data-inspector-attachment]'),
     primary: bounds('#desktop-navigation [class*="navPrimary"]'),
     addPage: bounds('[data-add-page-zone]'),
     tools: bounds('[data-sidebar-tools]'),
@@ -127,9 +144,10 @@ function Fixture() {
   );
   useEffect(observeNativeWindowLayout, []);
   useEffect(() => {
-    const timer = setTimeout(() => void capture(), 250);
+    const timer = setTimeout(() => void capture(), 750);
     const probe = (event: KeyboardEvent) => {
       if (event.key === 'F8') void capture();
+      if (event.key === 'F6') void theme();
     };
     window.addEventListener('keydown', probe);
     return () => {
@@ -175,6 +193,9 @@ function Fixture() {
   return (
     <div data-fixture-route={location.pathname}>
       <Routes>
+        <Route element={<ShellLayout />}>
+          <Route path="/editor/:objectId" element={<ObjectEditorPage />} />
+        </Route>
         <Route path="/auth" element={<AuthLayout />}>
           <Route
             index
@@ -279,7 +300,7 @@ async function bootstrap() {
   document.documentElement.dataset.platform = 'windows';
   await i18next.init({
     lng: 'zh-CN',
-    resources: { 'zh-CN': { common, navigation, settings } },
+    resources: { 'zh-CN': { common, navigation, settings, editor } },
     interpolation: { escapeValue: false },
   });
   await prepareStartupWindow();
@@ -287,11 +308,13 @@ async function bootstrap() {
     sidebarExpanded: false,
     desktopPagePaneOpen: true,
     desktopPagePaneWidth: 264,
+    desktopObjectInspectorOpen: true,
+    desktopObjectInspectorTab: 'history',
   });
 
   createRoot(document.getElementById('root')!).render(
     <I18nextProvider i18n={i18next}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/', '/editor/public-object-0']} initialIndex={1}>
         <ShellNotificationsProvider notifications={null}>
           <Fixture />
         </ShellNotificationsProvider>
