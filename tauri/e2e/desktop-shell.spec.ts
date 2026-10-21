@@ -54,13 +54,13 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
     }
     await expect(sidebar).toHaveAttribute('data-position', 'left');
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
-    await expect(sidebar).toHaveCSS('width', '52px');
+    await expect(sidebar).toHaveCSS('width', '56px');
     await expect(
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
     ).toBeHidden();
     await page.getByRole('button', { name: 'Hide pages and objects' }).click();
     await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-    await expect(sidebar).toHaveCSS('width', '52px');
+    await expect(sidebar).toHaveCSS('width', '56px');
     for (const name of ['Home', 'Settings', 'Add Page', 'Tools']) {
       const button = sidebar.getByRole('button', { name, exact: true });
       const label = button.locator('span').last();
@@ -69,7 +69,7 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
       const buttonBounds = (await button.boundingBox())!;
       expect(buttonBounds.width).toBe(36);
       expect(buttonBounds.height).toBe(36);
-      expect(buttonBounds.x - (await sidebar.boundingBox())!.x).toBe(8);
+      expect(buttonBounds.x - (await sidebar.boundingBox())!.x).toBe(10);
       expect(iconBounds.width).toBe(20);
       expect(iconBounds.height).toBe(20);
       expect(
@@ -84,7 +84,7 @@ for (const position of ['left', 'right', 'top', 'bottom'] as const) {
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
     await page.getByRole('button', { name: 'Show pages and objects' }).click();
     await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-    await expect(sidebar).toHaveCSS('width', '52px');
+    await expect(sidebar).toHaveCSS('width', '56px');
     expect(await page.evaluate(() => localStorage.getItem('solosoul_page_pane_open'))).toBe('true');
     const navBounds = await sidebar.boundingBox();
     const headerBounds = await page.locator('header').first().boundingBox();
@@ -174,7 +174,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   expect(contentBounds!.width).toBeGreaterThan(400);
   await page.getByRole('button', { name: 'Hide pages and objects' }).click();
   await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-  await expect(sidebar).toHaveCSS('width', '52px');
+  await expect(sidebar).toHaveCSS('width', '56px');
   await expect(
     sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
   ).toBeHidden();

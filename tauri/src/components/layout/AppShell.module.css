@@ -242,6 +242,8 @@
     min-width: 0;
     min-height: 0;
     margin: var(--mac-content-inset);
+    /* 顶部玻璃区域只由 AppBar 分配高度，不在正文外重复加高。 */
+    margin-top: 0;
     margin-left: var(--mac-content-leading-inset);
     background: var(--shell-content-surface);
     border-radius: var(--mac-content-radius);

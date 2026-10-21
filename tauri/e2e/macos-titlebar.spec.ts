@@ -97,7 +97,7 @@ for (const theme of ['light', 'dark']) {
               };
             }),
           )
-          .toEqual({ visibleWidth: 52, railWidth: 52, maxIconOffset: 0 });
+          .toEqual({ visibleWidth: 56, railWidth: 56, maxIconOffset: 0 });
         await toggle.click();
         await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute(
           'data-pane-animating',
@@ -124,10 +124,10 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     await expect(header.locator('h1')).toHaveCSS('font-size', '15px');
     await expect(header.locator('h1')).toHaveCSS('font-weight', '400');
     const mainBox = (await page.locator('main').boundingBox())!;
-    expect(mainBox.y).toBe(61);
+    expect(mainBox.y).toBe(53);
     await expect(page.locator('main')).toHaveCSS('padding-top', '24px');
-    // 顶栏高度不变；内容面有 8px 外沿留白和 1px 细边框。
-    expect(mainBox.y + 24).toBe(85);
+    // 顶栏高 52px；内容面紧接顶栏，保留 1px 细边框。
+    expect(mainBox.y + 24).toBe(77);
     expect(headerBox.x).toBe(0);
     expect(headerBox.width).toBe(1280);
     await expect(page.locator('[data-shell-surface]')).toHaveCSS('border-radius', '16px');
@@ -168,12 +168,12 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       expect(await expandedToggle.boundingBox()).toEqual(toggleBefore);
       await expectNativeControl(expandedToggle);
       await expect(sidebar.getByRole('button', { name: 'Show pages and objects' })).toHaveCount(0);
-      await expect(sidebar).toHaveCSS('width', '52px');
+      await expect(sidebar).toHaveCSS('width', '56px');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
-      // 图标栏与顶栏等宽等高；交通灯仍由顶栏控件单独避让。
+      // 图标栏比顶栏宽 4px；交通灯仍由顶栏控件单独避让。
       const collapsed = (await sidebar.boundingBox())!;
       {
-        expect(collapsed.width).toBe((await header.boundingBox())!.height);
+        expect(collapsed.width).toBe((await header.boundingBox())!.height + 4);
         expect((await header.boundingBox())!.x).toBe(0);
         expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width + 1);
       }
@@ -208,7 +208,7 @@ test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ pa
   await expectNativeControl(create);
   await page.getByRole('button', { name: 'Hide pages and objects' }).click();
   await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-  await expect(sidebar).toHaveCSS('width', '52px');
+  await expect(sidebar).toHaveCSS('width', '56px');
   await expectNativeControl(back);
   expect((await back.boundingBox())!.x).toBeGreaterThanOrEqual(91);
   await page.setViewportSize({ width: 800, height: 600 });
@@ -238,22 +238,22 @@ test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ p
       window.dispatchEvent(new Event('resize'));
     }, height);
     await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', `${height}px`);
-    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(61);
+    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(53);
     expect((await page.locator('header').boundingBox())!.height).toBe(52);
     expect((await page.locator('header').boundingBox())!.y).toBe(0);
-    await expect(sidebar).toHaveCSS('width', '52px');
+    await expect(sidebar).toHaveCSS('width', '56px');
   }
 });
 
-test('macOS 交通灯范围变宽时顶栏控件避让，图标栏仍与顶栏等宽等高', async ({ page }) => {
+test('macOS 交通灯范围变宽时顶栏控件避让，图标栏宽度不被压缩', async ({ page }) => {
   await mockMacOS(page, 'left', 106);
   await login(page);
   const sidebar = page.locator('#desktop-navigation');
   await page.getByRole('button', { name: 'Hide pages and objects' }).click();
   await expect(page.locator('[data-page-pane-body]')).not.toHaveAttribute('data-pane-animating');
-  await expect(sidebar).toHaveCSS('width', '52px');
+  await expect(sidebar).toHaveCSS('width', '56px');
   expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(0);
-  expect((await page.locator('main').boundingBox())!.x).toBe(53);
+  expect((await page.locator('main').boundingBox())!.x).toBe(57);
   const toggle = page.getByRole('button', { name: 'Show pages and objects' });
   expect((await toggle.boundingBox())!.x).toBe(118);
   await expectNativeControl(toggle);

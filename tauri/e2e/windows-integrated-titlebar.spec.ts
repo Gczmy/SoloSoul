@@ -48,7 +48,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
       const toggleBounds = (await header
         .getByRole('button', { name: 'Hide pages and objects' })
         .boundingBox())!;
-      expect(toggleBounds).toMatchObject({ x: 8, y: 8, width: 36, height: 36 });
+      expect(toggleBounds).toMatchObject({ x: 10, y: 8, width: 36, height: 36 });
       const headerButtons = await header.locator('button:visible').evaluateAll((buttons) =>
         buttons.map((button) => {
           const r = button.getBoundingClientRect();
@@ -90,7 +90,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
             if (this === navigation || navigation.contains(this)) {
               const expanded = navigation.getAttribute('data-expanded');
               const width = original.call(navigation).width;
-              const expected = 52;
+              const expected = 56;
               if (Math.abs(width - expected) > 0.5) mismatches.push({ expanded, width });
             }
             return rect;
@@ -148,7 +148,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
           .elementHandle();
         const stableSurface = await surface.elementHandle();
         await toggle.click();
-        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
+        await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '56px');
         expect(
           await page.evaluate(
             () =>
@@ -168,7 +168,7 @@ for (const motion of ['normal', 'native', 'system'] as const) {
               name: i % 2 === 0 ? 'Show pages and objects' : 'Hide pages and objects',
             })
             .click();
-          await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '52px');
+          await expect(page.locator('#desktop-navigation')).toHaveCSS('width', '56px');
           expect(await track!.evaluate((element) => element.isConnected)).toBe(true);
           expect(await stableSurface!.evaluate((element) => element.isConnected)).toBe(true);
           expect(
