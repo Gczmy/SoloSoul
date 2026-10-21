@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -10,6 +11,8 @@ import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
 import { AndroidObjectDestination } from '@/components/android/AndroidObjectDestination';
 import { isAndroidSync } from '@/lib/platform';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
+import { useAuthStore } from '@/stores/authStore';
+import { ContentLoadingSkeleton } from '@/components/ui/ContentLoadingSkeleton';
 import { useObjectEditorPage } from './useObjectEditorPage';
 import styles from './ObjectEditorPage.module.css';
 
@@ -20,6 +23,7 @@ export function ObjectEditorPage() {
   const { t } = useTranslation('common');
   const section = searchParams.get('section') || '';
   const parentId = searchParams.get('parentId') || '';
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
   if (isAndroidSync() && !objectId && !section && !parentId) {
     return (
       <PageShell title={t('new_object')} onBack={() => navigate(-1)}>
@@ -27,8 +31,10 @@ export function ObjectEditorPage() {
       </PageShell>
     );
   }
-  // 页面归属变化时重新挂载表单，避免上一页面的模板、字段和校验状态串入。
-  return <ObjectEditorForm key={JSON.stringify([objectId, section, parentId])} />;
+  // 同账户编辑对象时保留页面框架；归属或账户变化仍隔离整个表单。
+  return (
+    <ObjectEditorForm key={JSON.stringify([accountId, Boolean(objectId), section, parentId])} />
+  );
 }
 
 function ObjectEditorForm() {
@@ -37,8 +43,10 @@ function ObjectEditorForm() {
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const {
     isNew,
-    objectId,
-    loadedFor,
+    isObjectReady,
+    isLoadingObject,
+    objectLoadFailed,
+    retryObjectLoad,
     visibleTemplates,
     selectedType,
     setSelectedType,
@@ -63,7 +71,19 @@ function ObjectEditorForm() {
     isSaving,
   } = useObjectEditorPage();
 
-  const showForm = (isNew || loadedFor === objectId) && Boolean(selectedType || !isNew);
+  const [loadingNotice, setLoadingNotice] = useState(false);
+  useEffect(() => {
+    if (!isLoadingObject) {
+      setLoadingNotice(false);
+      return;
+    }
+    const timer = setTimeout(() => setLoadingNotice(true), 250);
+    return () => clearTimeout(timer);
+  }, [isLoadingObject]);
+  const showLoadingNotice = isLoadingObject && loadingNotice;
+
+  const showForm = isNew ? Boolean(selectedType) : Boolean(currentObject);
+  const showActions = !isNew || showForm;
   const formActions = (
     <>
       <Button
@@ -78,6 +98,9 @@ function ObjectEditorForm() {
         size={useTitlebarActions ? 'sm' : 'md'}
         onClick={handleSave}
         loading={isSaving}
+        disabled={!isObjectReady}
+        className={styles.saveButton}
+        data-object-loading={isLoadingObject && !showLoadingNotice ? 'brief' : undefined}
       >
         {t('common:save')}
       </Button>
@@ -88,48 +111,74 @@ function ObjectEditorForm() {
     <PageShell
       title={isNew ? t('common:new_object') : t('common:edit_object')}
       onBack={handleBack}
-      primaryActions={useTitlebarActions && showForm ? formActions : undefined}
+      continuityScope={isNew ? undefined : '/editor/:objectId'}
+      primaryActions={useTitlebarActions && showActions ? formActions : undefined}
     >
       <PageContainer variant="xs" gap="default" className={styles.editor}>
-        <ObjectTemplateSelector
-          isNew={isNew}
-          visibleTemplates={visibleTemplates}
-          selectedType={selectedType}
-          onSelect={setSelectedType}
-          templateMeta={templateMeta}
-          userTemplates={userTemplates}
-          typeId={typeId}
-          currentObject={currentObject}
-          contractTypeId={contractTypeId}
-          customPages={customPages}
-        />
-
-        {showForm && (
-          <>
-            <Card>
-              <Input
-                label={t('common:object_name')}
-                aria-label={t('common:object_name')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('common:object_name_placeholder')}
-              />
-            </Card>
-            <ObjectFieldList
-              fields={fields}
-              displayFields={displayFields}
-              values={values}
-              onChange={handleFieldChange}
-              validationErrors={validationErrors}
-              onClearError={handleClearError}
+        {showLoadingNotice && (
+          <span className={styles.loadingStatus} role="status" data-editor-loading-notice>
+            {t('common:loading')}
+          </span>
+        )}
+        {objectLoadFailed && (
+          <div role="alert" className={styles.loadError}>
+            {t('common:object_load_failed')}
+            <Button size="sm" variant="secondary" onClick={retryObjectLoad}>
+              {t('common:retry')}
+            </Button>
+          </div>
+        )}
+        <div
+          className={styles.formBody}
+          data-object-editor-form
+          aria-busy={isLoadingObject}
+          inert={!isObjectReady}
+        >
+          <div className={styles.formBody} key={currentObject?.id ?? 'new'}>
+            <ObjectTemplateSelector
+              isNew={isNew}
+              visibleTemplates={visibleTemplates}
+              selectedType={selectedType}
+              onSelect={setSelectedType}
+              templateMeta={templateMeta}
+              userTemplates={userTemplates}
+              typeId={typeId}
               currentObject={currentObject}
               contractTypeId={contractTypeId}
-              getSensitivity={getSensitivity}
-              isNew={isNew}
-              suggestions={fieldSuggestions}
+              customPages={customPages}
             />
-            {!useTitlebarActions && <div className={styles.formActions}>{formActions}</div>}
-          </>
+
+            {showForm && (
+              <>
+                <Card>
+                  <Input
+                    label={t('common:object_name')}
+                    aria-label={t('common:object_name')}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t('common:object_name_placeholder')}
+                  />
+                </Card>
+                <ObjectFieldList
+                  fields={fields}
+                  displayFields={displayFields}
+                  values={values}
+                  onChange={handleFieldChange}
+                  validationErrors={validationErrors}
+                  onClearError={handleClearError}
+                  currentObject={currentObject}
+                  contractTypeId={contractTypeId}
+                  getSensitivity={getSensitivity}
+                  isNew={isNew}
+                  suggestions={fieldSuggestions}
+                />
+              </>
+            )}
+            {!isNew && !currentObject && <ContentLoadingSkeleton />}
+          </div>
+        </div>
+        {!useTitlebarActions && showActions && (
+          <div className={styles.formActions}>{formActions}</div>
         )}
       </PageContainer>
     </PageShell>

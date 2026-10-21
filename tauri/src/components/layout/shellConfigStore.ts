@@ -22,6 +22,8 @@ export interface ShellRegistration {
   readonly owner: symbol;
   readonly route: string;
   readonly isCurrent: () => boolean;
+  /** 同一页面内部参数切换时保留控件节点；交接期间必须 inert。 */
+  readonly continuityScope?: string;
 }
 
 /** 同路径重新导航、动态参数、查询和锚点变化均是新的路由身份。 */

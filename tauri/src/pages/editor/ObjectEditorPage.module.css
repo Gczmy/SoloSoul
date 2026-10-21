@@ -1,5 +1,39 @@
 .editor {
   min-width: 0;
+  position: relative;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-gap);
+  min-width: 0;
+}
+
+/* 短读取已在逻辑上禁用保存，外观保留稳定；慢读取才显示常规禁用反馈。 */
+.saveButton[data-object-loading='brief']:disabled,
+:global(html[data-desktop-platform]) .saveButton[data-object-loading='brief']:disabled {
+  opacity: 1;
+}
+
+.loadingStatus {
+  position: absolute;
+  top: 4px;
+  right: var(--page-padding);
+  z-index: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+}
+
+.loadError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-error);
 }
 
 :global(html:is([data-desktop-platform='windows'], [data-desktop-platform='macos'])) .editor {

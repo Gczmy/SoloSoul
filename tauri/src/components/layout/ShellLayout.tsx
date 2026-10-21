@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { matchPath, Outlet, useLocation } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { AppShell } from './AppShell';
 import { EMPTY_SHELL_CONFIG, shellRouteIdentity, useShellConfigStore } from './shellConfigStore';
@@ -10,21 +10,51 @@ import { ContentLoadingSkeleton } from '@/components/ui/ContentLoadingSkeleton';
  * PageShell 注册当前路由的配置；新页面尚未注册或渲染失败时顶栏采用明确空态。
  */
 export function ShellLayout() {
-  const route = shellRouteIdentity(useLocation());
-  const { title, actions, primaryActions, onBack } = useShellConfigStore(
-    useShallow((s) =>
-      s.registration?.route === route && s.registration.isCurrent()
+  const location = useLocation();
+  const route = shellRouteIdentity(location);
+  const { title, actions, primaryActions, onBack, continuity, handoff } = useShellConfigStore(
+    useShallow((s) => {
+      const continuity = Boolean(s.registration?.continuityScope);
+      const exact = s.registration?.route === route;
+      const handoff =
+        !exact &&
+        continuity &&
+        Boolean(matchPath(s.registration!.continuityScope!, location.pathname));
+      return s.registration?.isCurrent() && (exact || handoff)
         ? {
             title: s.title,
             actions: s.actions,
             primaryActions: s.primaryActions,
             onBack: s.onBack,
+            continuity,
+            handoff,
           }
-        : EMPTY_SHELL_CONFIG,
-    ),
+        : { ...EMPTY_SHELL_CONFIG, continuity: false, handoff: false };
+    }),
   );
   return (
-    <AppShell title={title} primaryActions={primaryActions} actions={actions} onBack={onBack}>
+    <AppShell
+      title={title}
+      primaryActions={
+        continuity && primaryActions ? (
+          <div style={{ display: 'contents' }} inert={handoff}>
+            {primaryActions}
+          </div>
+        ) : (
+          primaryActions
+        )
+      }
+      actions={
+        continuity && actions ? (
+          <div style={{ display: 'contents' }} inert={handoff}>
+            {actions}
+          </div>
+        ) : (
+          actions
+        )
+      }
+      onBack={onBack}
+    >
       <Suspense fallback={<ContentLoadingSkeleton />}>
         <Outlet />
       </Suspense>

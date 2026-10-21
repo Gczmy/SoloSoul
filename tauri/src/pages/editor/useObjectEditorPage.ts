@@ -16,6 +16,7 @@ import { logger } from '@/lib/logger';
 import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
 import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
+import { createSessionRequests } from '@/lib/sessionRequests';
 
 interface FieldDef {
   key: string;
@@ -33,7 +34,10 @@ interface FieldDef {
 export interface UseObjectEditorPageResult {
   isNew: boolean;
   objectId: string | undefined;
-  loadedFor: string | null;
+  isObjectReady: boolean;
+  isLoadingObject: boolean;
+  objectLoadFailed: boolean;
+  retryObjectLoad: () => void;
   visibleTemplates: string[];
   selectedType: string;
   setSelectedType: React.Dispatch<React.SetStateAction<string>>;
@@ -59,9 +63,45 @@ export interface UseObjectEditorPageResult {
   isSaving: boolean;
 }
 
+/** 先构造完整字段值，避免字段树先挂载空值再逐项回填。 */
+function objectFormValues(object: ObjectData): Record<string, unknown> {
+  const values: Record<string, unknown> = {};
+  const definitions = object.properties.__fields as Record<string, { type?: string }> | undefined;
+  for (const [key, value] of Object.entries(object.properties)) {
+    if (key.startsWith('__')) continue;
+    if (definitions?.[key]?.type === 'dynamic_group' && Array.isArray(value)) values[key] = value;
+    else if (typeof value === 'string' || Array.isArray(value)) values[key] = value;
+    else if (value !== null && value !== undefined) values[key] = String(value);
+  }
+  return values;
+}
+
+function matchObjectTemplate(object: ObjectData, templates: UserTemplate[]): string {
+  if (object.templateId) {
+    const exact = templates.find(
+      (template) =>
+        template.id === object.templateId && (template.category || 'identity') === object.typeId,
+    );
+    if (exact) return exact.id;
+    // 保留旧版 utpl_ 前缀兼容；明确指定但已删除的模板仍走 __fields 回退。
+    return templates.find((template) => template.id === `utpl_${object.templateId}`)?.id ?? '';
+  }
+  const keys = Object.keys(objectFormValues(object));
+  let bestScore = 0;
+  let matched = '';
+  for (const template of templates) {
+    const matches = template.properties.filter((field) => keys.includes(field.id)).length;
+    if (matches > bestScore && matches >= template.properties.length * 0.5) {
+      bestScore = matches;
+      matched = template.id;
+    }
+  }
+  return matched;
+}
+
 /**
  * 对象新建/编辑页的全部状态与逻辑：模板加载与匹配（含旧版 utpl_ 兼容与
- * __fields 回退）、表单填充门控（loadedFor 防死锁）、动态组与字段类型校验
+ * __fields 回退）、完整快照切换与请求隔离、动态组与字段类型校验
  * （表驱动）、新建/更新保存编排。
  */
 export function useObjectEditorPage(): UseObjectEditorPageResult {
@@ -79,8 +119,10 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const getObject = useObjectStore((s) => s.getObject);
   const createObject = useObjectStore((s) => s.createObject);
   const updateObject = useObjectStore((s) => s.updateObject);
-  const currentObjectCache = useObjectStore((s) => s.currentObjectCache);
-  const currentObject = objectId ? (currentObjectCache[objectId] ?? null) : null;
+  // 只发布已完整装配的对象快照。路由切换期间保留上一帧，但禁止编辑/保存。
+  const [currentObject, setCurrentObject] = useState<ObjectData | null>(null);
+  const [requests] = useState(createSessionRequests);
+  useEffect(() => () => requests.invalidate(), [requests]);
   const { onError, onSuccess } = useToastError();
   const userTemplates = useTemplateStore((s) => s.templates);
   const loadUserTemplates = useTemplateStore((s) => s.loadTemplates);
@@ -98,8 +140,11 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     });
   }, []);
 
+  const templatesReady = useRef<Promise<void>>(Promise.resolve());
   useEffect(() => {
-    loadUserTemplates().catch((err) => logger.warn('[ObjectEditor] Load templates failed:', err));
+    templatesReady.current = loadUserTemplates().catch((err) =>
+      logger.warn('[ObjectEditor] Load templates failed:', err),
+    );
   }, [loadUserTemplates]);
 
   // Build templateMeta and objectTemplates from loaded user templates
@@ -173,23 +218,27 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const [selectedType, setSelectedType] = useState('');
   const hasAutoSelectedRef = useRef(false);
   useEffect(() => {
-    if (!hasAutoSelectedRef.current && visibleTemplates.length > 0 && !selectedType) {
+    if (isNew && !hasAutoSelectedRef.current && visibleTemplates.length > 0 && !selectedType) {
       setSelectedType(visibleTemplates[0]);
       hasAutoSelectedRef.current = true;
     }
-  }, [visibleTemplates, selectedType, templateMeta]);
+  }, [isNew, visibleTemplates, selectedType, templateMeta]);
   const [name, setName] = useState('');
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  // 记录已完成加载（无论成败）的对象 ID。替代原先 loadingObjRef + dataLoaded
-  // 双状态门控——ref 门控在真机时序下存在死锁窗口（填充 effect bail 后不再触发），
-  // 导致页面只剩对象类型一行、字段全部空白（模拟器时序快恰好绕过，故无法复现）。
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [failedFor, setFailedFor] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const isObjectReady = isNew || (loadedFor === objectId && currentObject?.id === objectId);
+  const objectLoadFailed = !isNew && failedFor === objectId;
+  const isLoadingObject = !isObjectReady && !objectLoadFailed;
+  const retryObjectLoad = () => setLoadAttempt((attempt) => attempt + 1);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   // 字段推荐：其他对象中「同名字段且有内容」的标量值，按字段名分组供编辑器展示。
   // 一次加载全账户（排除当前编辑对象），失败仅降级为无推荐（不阻塞编辑流程）。
   const [fieldSuggestions, setFieldSuggestions] = useState<Record<string, FieldSuggestion[]>>({});
+  const [suggestionsFor, setSuggestionsFor] = useState<string | null>(null);
+  const suggestionObjectId = isNew ? null : (currentObject?.id ?? null);
 
   const fields = objectTemplates[selectedType] || [];
   const selectedTemplate = userTemplates.find((t) => t.id === selectedType);
@@ -217,14 +266,13 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const destinationPage = customPages.find((page) => page.id === typeId && !page.deletedAt);
   const resolvedParentId = parentId || destinationPage?.id;
 
-  // 字段推荐加载：accountId/objectId 变化时重新拉取（编辑对象时排除自身）
+  // 推荐跟随已显示的完整快照，等待新对象时不清空上一帧，也不混入另一对象的推荐。
   useEffect(() => {
-    if (!accountId) return;
+    if (!accountId || (!isNew && !suggestionObjectId)) return;
     let cancelled = false;
-    setFieldSuggestions({});
     invokeTypedCommand('object_field_suggestions', {
       accountId,
-      excludeObjectId: objectId ?? null,
+      excludeObjectId: suggestionObjectId,
     })
       .then((items) => {
         if (cancelled) return;
@@ -236,6 +284,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
           (grouped[canonical] ||= []).push(item);
         }
         setFieldSuggestions(grouped);
+        setSuggestionsFor(suggestionObjectId);
       })
       .catch((err) =>
         logger.warn('[ObjectEditor] Load field suggestions failed:', backendErrorLogDetails(err)),
@@ -243,116 +292,48 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     return () => {
       cancelled = true;
     };
-  }, [accountId, objectId]);
+  }, [accountId, isNew, suggestionObjectId]);
 
-  // Load existing object and populate form
+  // 同一路由组件保留页面框架。等对象和首轮模板读取结束，一次提交名称、字段、
+  // 模板及校验状态；缓存更新本身不能提前放开保存，也不能展示半填充的表单。
   useEffect(() => {
     if (isNew || !objectId || !accountId) return;
-    let cancelled = false;
-    // 重置表单状态，避免旧对象的缓存数据被锁定进表单
-    setDataLoaded(false);
+    const request = requests.begin('editor-load', accountId);
+    requests.invalidate('editor-save');
+    setIsSaving(false);
+    setFailedFor(null);
     setLoadedFor(null);
-    setName('');
-    setValues({});
-    getObject(accountId, objectId)
-      .catch((e) => onError(e, t('common:object_load_failed')))
-      .finally(() => {
-        // 无论成败都标记加载结束：失败已有 toast，表单照常渲染，避免空白页
-        if (!cancelled) setLoadedFor(objectId);
+    Promise.all([getObject(accountId, objectId), templatesReady.current])
+      .then(([object]) => {
+        if (!request.isCurrent()) return;
+        if (!object || object.id !== objectId || object.accountId !== accountId) {
+          setFailedFor(objectId);
+          return;
+        }
+        setCurrentObject(object);
+        setName(object.name || '');
+        setValues(objectFormValues(object));
+        setSelectedType(matchObjectTemplate(object, useTemplateStore.getState().templates));
+        setValidationErrors({});
+        setLoadedFor(objectId);
+      })
+      .catch((error) => {
+        if (!request.isCurrent()) return;
+        setFailedFor(objectId);
+        onError(error, t('common:object_load_failed'));
       });
     return () => {
-      cancelled = true;
+      requests.invalidate('editor-load');
+      requests.invalidate('editor-save');
     };
-  }, [objectId, accountId, getObject, isNew, onError, t]);
+  }, [objectId, accountId, getObject, isNew, onError, t, requests, loadAttempt]);
 
-  // When currentObject loads (for editing), populate the form
-  // Guard: 仅当本次加载已结束（loadedFor === objectId）且缓存对象就是当前对象时才填充，
-  // 避免 getObject 解析前用旧缓存（stale cache）提前填充。
-  // Template matching re-runs when objectTemplates async-finish loading
-  // (fixes "空白内容" bug where templates loaded after dataLoaded was set).
+  // 后续模板刷新只重新匹配字段定义，不覆盖当前草稿和校验结果。
   useEffect(() => {
-    if (isNew || loadedFor !== objectId || !currentObject || currentObject.id !== objectId) return;
-
-    // Populate property values (only on first load, not on template re-match)
-    if (!dataLoaded) {
-      setName(currentObject.name || '');
-      const vals: Record<string, unknown> = {};
-      if (currentObject.properties && typeof currentObject.properties === 'object') {
-        const fieldDefs = (currentObject.properties as Record<string, unknown>).__fields as
-          | Record<string, { type?: string }>
-          | undefined;
-        for (const [k, v] of Object.entries(currentObject.properties)) {
-          if (k.startsWith('__')) continue;
-          const fieldType = fieldDefs?.[k]?.type;
-          if (fieldType === 'dynamic_group' && Array.isArray(v)) {
-            vals[k] = v;
-          } else if (typeof v === 'string') {
-            vals[k] = v;
-          } else if (typeof v === 'number' || typeof v === 'boolean') {
-            vals[k] = String(v);
-          } else if (Array.isArray(v)) {
-            vals[k] = v;
-          } else if (v !== null && v !== undefined) {
-            vals[k] = String(v);
-          }
-        }
-      }
-      setValues(vals);
+    if (!isNew && currentObject) {
+      setSelectedType(matchObjectTemplate(currentObject, userTemplates));
     }
-
-    // Detect template (re-runs when objectTemplates changes even after dataLoaded)
-    let matchedType = '';
-    if (currentObject.templateId) {
-      if (objectTemplates[currentObject.templateId]) {
-        // 确保模板与对象属于同一页面。若模板被恢复（重新创建）但页面不同，不认为是匹配的模板
-        if (templateMeta[currentObject.templateId]?.category === currentObject.typeId) {
-          matchedType = currentObject.templateId;
-        }
-      }
-      // Backward compat: old user-template objects used utpl_ prefix
-      if (!matchedType) {
-        const legacyKey = `utpl_${currentObject.templateId}`;
-        if (objectTemplates[legacyKey]) {
-          matchedType = legacyKey;
-        }
-      }
-    }
-    // 仅当对象没有 templateId（旧版对象）时才模糊匹配其他模板。
-    // 如果有 templateId 但模板不存在（已删除），不匹配到其他模板，
-    // 而是走 __fields 回退路径，避免匹配到同字段 ID 的不同语言模板。
-    if (!matchedType && !currentObject.templateId) {
-      const propKeys = Object.keys(values);
-      let bestScore = 0;
-      for (const [tplName, tplFields] of Object.entries(objectTemplates)) {
-        const tplKeys = tplFields.map((f) => f.key);
-        const matchCount = tplKeys.filter((k) => propKeys.includes(k)).length;
-        if (matchCount > bestScore && matchCount >= tplKeys.length * 0.5) {
-          bestScore = matchCount;
-          matchedType = tplName;
-        }
-      }
-    }
-    if (matchedType) {
-      setSelectedType(matchedType);
-    } else if (!dataLoaded) {
-      // 仅首次加载时清空 selectedType；后续模板加载后不覆盖用户已选
-      setSelectedType('');
-    }
-
-    if (!dataLoaded) {
-      setDataLoaded(true);
-    }
-  }, [
-    currentObject,
-    isNew,
-    dataLoaded,
-    objectId,
-    loadedFor,
-    objectTemplates,
-    templateMeta,
-    currentObjectCache,
-    values,
-  ]);
+  }, [currentObject, isNew, userTemplates]);
 
   const validateFields = (): boolean => {
     const errors: Record<string, string> = {};
@@ -422,7 +403,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   };
 
   const handleSave = async () => {
-    if (!accountId) return;
+    if (!accountId || !isObjectReady || isSaving) return;
     if (isNew) {
       const knownDestination = SYSTEM_PAGE_KEYS.some((key) => key === typeId) || destinationPage;
       if (
@@ -440,6 +421,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
       onError(t('editor:validation_failed'), t('common:object_save_failed'));
       return;
     }
+    const request = requests.begin('editor-save', accountId);
     setIsSaving(true);
     try {
       if (isNew) {
@@ -452,19 +434,21 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
           templateId: selectedType || undefined,
           templateType: selectedType ? 'user' : undefined,
         });
+        if (!request.isCurrent()) return;
         onSuccess(t('common:object_created'));
       } else {
         await updateObject(objectId!, {
           name: name || t('common:object_name_placeholder'),
           properties: values,
         });
+        if (!request.isCurrent()) return;
         onSuccess(t('common:object_saved'));
       }
       navigate(-1);
     } catch (e) {
-      onError(e, t('common:object_save_failed'));
+      if (request.isCurrent()) onError(e, t('common:object_save_failed'));
     } finally {
-      setIsSaving(false);
+      if (request.isCurrent()) setIsSaving(false);
     }
   };
 
@@ -477,7 +461,10 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   return {
     isNew,
     objectId,
-    loadedFor,
+    isObjectReady,
+    isLoadingObject,
+    objectLoadFailed,
+    retryObjectLoad,
     visibleTemplates,
     selectedType,
     setSelectedType,
@@ -496,7 +483,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     validationErrors,
     handleClearError,
     getSensitivity,
-    fieldSuggestions,
+    fieldSuggestions: suggestionsFor === suggestionObjectId ? fieldSuggestions : {},
     handleSave,
     handleBack,
     isSaving,

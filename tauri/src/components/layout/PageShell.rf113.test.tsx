@@ -181,9 +181,13 @@ describe('RF113 常驻壳配置的页面所有权', () => {
     expect(document.querySelector('[data-appbar]')).toBeNull();
   });
 
-  it.each(['锁定保留账户 ID', '同账户重新登录', '切换账户'] as const)(
-    '%s 清空旧配置；旧页面新 props 不能续用失效会话，新挂载页面可以注册',
-    (transition) => {
+  it.each(
+    (['锁定保留账户 ID', '同账户重新登录', '切换账户'] as const).flatMap((transition) =>
+      [undefined, '/a'].map((continuityScope) => ({ transition, continuityScope })),
+    ),
+  )(
+    '$transition / scope=$continuityScope 清空旧配置；旧页面不能续用失效会话',
+    ({ transition, continuityScope }) => {
       const initial = configuredPage('原会话页面');
       const staleOne = configuredPage('旧页面第一次更新');
       const staleTwo = configuredPage('旧页面第二次更新');
@@ -198,6 +202,7 @@ describe('RF113 常驻壳配置的页面所有权', () => {
             <button onClick={() => setRemounted(true)}>重新进入页面</button>
             <PageShell
               key={remounted ? 'fresh-page' : 'original-page'}
+              continuityScope={continuityScope}
               {...(remounted ? fresh : oldConfigurations[revision]).props}
             >
               <div>会话页面正文</div>
@@ -284,50 +289,59 @@ describe('RF113 常驻壳配置的页面所有权', () => {
     expect(pageA.props.onBack).not.toHaveBeenCalled();
   });
 
-  it('同一路由组件更新对象参数与 query 后使用新配置和回调，壳保持同实例', () => {
-    const invoked = vi.fn();
-    function ItemPage() {
-      const { id } = useParams();
-      const { search } = useLocation();
-      const view = new URLSearchParams(search).get('view');
-      const label = `${id}/${view}`;
-      return (
-        <PageShell
-          title={label}
-          actions={<button onClick={() => invoked('action', id, view)}>操作 {label}</button>}
-          primaryActions={
-            <button onClick={() => invoked('primary', id, view)}>主操作 {label}</button>
-          }
-          onBack={() => invoked('back', id, view)}
-        >
-          <Link to="/item/two?view=detail">切换对象和视图</Link>
-          <Link to="/item/two?view=audit">仅切换视图</Link>
-        </PageShell>
-      );
-    }
-    renderShell(<Route path="/item/:id" element={<ItemPage />} />, '/item/one?view=summary');
-    const shell = shellElement();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('one/summary');
+  it.each([undefined, '/item/:id'])(
+    'scope=%s 参数更新使用新回调，连续范围保留操作节点',
+    (continuityScope) => {
+      const invoked = vi.fn();
+      function ItemPage() {
+        const { id } = useParams();
+        const { search } = useLocation();
+        const view = new URLSearchParams(search).get('view');
+        const label = `${id}/${view}`;
+        return (
+          <PageShell
+            title={label}
+            continuityScope={continuityScope}
+            actions={<button onClick={() => invoked('action', id, view)}>操作 {label}</button>}
+            primaryActions={
+              <button onClick={() => invoked('primary', id, view)}>主操作 {label}</button>
+            }
+            onBack={() => invoked('back', id, view)}
+          >
+            <Link to="/item/two?view=detail">切换对象和视图</Link>
+            <Link to="/item/two?view=audit">仅切换视图</Link>
+          </PageShell>
+        );
+      }
+      renderShell(<Route path="/item/:id" element={<ItemPage />} />, '/item/one?view=summary');
+      const shell = shellElement();
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('one/summary');
 
-    for (const [link, view, previous] of [
-      ['切换对象和视图', 'detail', 'one/summary'],
-      ['仅切换视图', 'audit', 'two/detail'],
-    ]) {
-      invoked.mockClear();
-      fireEvent.click(screen.getByRole('link', { name: link }));
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`two/${view}`);
-      expect(screen.queryByRole('button', { name: `操作 ${previous}` })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: `主操作 ${previous}` })).not.toBeInTheDocument();
-      fireEvent.click(screen.getByRole('button', { name: `操作 two/${view}` }));
-      fireEvent.click(screen.getByRole('button', { name: `主操作 two/${view}` }));
-      fireEvent.click(screen.getByRole('button', { name: 'back' }));
-      expect(invoked.mock.calls).toEqual([
-        ['action', 'two', view],
-        ['primary', 'two', view],
-        ['back', 'two', view],
-      ]);
-      expect(useShellConfigStore.getState().title).toBe(`two/${view}`);
-      expect(shellElement()).toBe(shell);
-    }
-  });
+      for (const [link, view, previous] of [
+        ['切换对象和视图', 'detail', 'one/summary'],
+        ['仅切换视图', 'audit', 'two/detail'],
+      ]) {
+        invoked.mockClear();
+        const previousPrimary = screen.getByRole('button', { name: `主操作 ${previous}` });
+        fireEvent.click(screen.getByRole('link', { name: link }));
+        if (continuityScope)
+          expect(screen.getByRole('button', { name: `主操作 two/${view}` })).toBe(previousPrimary);
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`two/${view}`);
+        expect(screen.queryByRole('button', { name: `操作 ${previous}` })).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('button', { name: `主操作 ${previous}` }),
+        ).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: `操作 two/${view}` }));
+        fireEvent.click(screen.getByRole('button', { name: `主操作 two/${view}` }));
+        fireEvent.click(screen.getByRole('button', { name: 'back' }));
+        expect(invoked.mock.calls).toEqual([
+          ['action', 'two', view],
+          ['primary', 'two', view],
+          ['back', 'two', view],
+        ]);
+        expect(useShellConfigStore.getState().title).toBe(`two/${view}`);
+        expect(shellElement()).toBe(shell);
+      }
+    },
+  );
 });

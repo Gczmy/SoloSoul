@@ -45,7 +45,7 @@ interface ObjectState {
     accountId: string,
     filter?: NonNullable<IpcCommands['object_list']['args']['filter']>,
   ) => Promise<void>;
-  getObject: (accountId: string, objectId: string) => Promise<void>;
+  getObject: (accountId: string, objectId: string) => Promise<ObjectData | null | undefined>;
   createObject: (input: CreateObjectValues) => Promise<ObjectData>;
   updateObject: (objectId: string, input: UpdateObjectValues) => Promise<void>;
   deleteObject: (objectId: string) => Promise<void>;
@@ -103,6 +103,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
           : s.currentObjectCache,
         isLoading: false,
       }));
+      // 调用方直接使用本次已校验的响应，不能从旧缓存推断此次读取成功。
+      return obj;
     } catch (err) {
       if (!request.isCurrent()) return;
       setCurrent({ error: normalizeObjectError(err), isLoading: false });
