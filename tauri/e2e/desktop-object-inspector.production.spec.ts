@@ -459,9 +459,14 @@ for (const platform of ['windows', 'macos'] as const) {
         label.locator('[data-hover-scroll-track]');
       const finishTravel = async (label: ReturnType<Page['locator']>) => {
         await expect(label).toHaveAttribute('data-scroll-state', 'forward');
-        await textTrack(label).evaluate((el) =>
-          el.getAnimations().forEach((animation) => animation.finish()),
-        );
+        await textTrack(label).evaluate((el) => {
+          const animation = el.getAnimations()[0];
+          const effect = animation.effect as KeyframeEffect;
+          const timing = effect.getTiming();
+          const tail = effect.getKeyframes()[3].computedOffset;
+          animation.pause();
+          animation.currentTime = timing.delay + tail * Number(timing.duration) + 150;
+        });
         await expect(label).toHaveAttribute('data-scroll-state', 'tail');
         await expect(label).toHaveAttribute('data-fade', 'left');
         const viewport = (await label.boundingBox())!;
@@ -530,3 +535,69 @@ for (const platform of ['windows', 'macos'] as const) {
     });
   }
 }
+
+test('scrolling names retain one continuous timeline through stops, reversals and loops', async ({
+  page,
+}) => {
+  await setup(page, 'windows', 'dark', true);
+  await page.locator('[data-object-inspector-toggle]').click();
+  const label = page.locator('[data-object-inspector] header [data-hover-scroll-label]');
+  await label.hover();
+  await expect(label).toHaveAttribute('data-scroll-state', 'forward');
+  const result = await label.evaluate(async (el) => {
+    const track = el.querySelector<HTMLElement>('[data-hover-scroll-track]')!;
+    const animation = track.getAnimations()[0];
+    const effect = animation.effect as KeyframeEffect;
+    const timing = effect.getTiming();
+    const duration = Number(timing.duration);
+    const frames = effect.getKeyframes();
+    const at = async (time: number) => {
+      animation.currentTime = time;
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      return {
+        x: new DOMMatrix(getComputedStyle(track).transform).m41,
+        phase: (el as HTMLElement).dataset.scrollState,
+        sameAnimation: track.getAnimations().length === 1 && track.getAnimations()[0] === animation,
+      };
+    };
+    animation.pause();
+    const boundaries = [];
+    for (const index of [0, 3, 4, 7, 8]) {
+      const boundary = timing.delay + frames[index].computedOffset * duration;
+      boundaries.push({ before: await at(boundary - 16), after: await at(boundary + 16) });
+    }
+    // 起步与停下有短缓动，正文仍在同一合成时间轴内连续前进。
+    const start = await at(timing.delay);
+    const first = await at(timing.delay + 16);
+    const cruiseStart = await at(timing.delay + 500);
+    const cruiseEnd = await at(timing.delay + 516);
+    return {
+      iterations: timing.iterations,
+      boundaries,
+      startStep: Math.abs(first.x - start.x),
+      cruiseStep: Math.abs(cruiseEnd.x - cruiseStart.x),
+    };
+  });
+  expect(result.iterations).toBe(Infinity);
+  expect(result.boundaries.map(({ after }) => after.phase)).toEqual([
+    'forward',
+    'tail',
+    'reverse',
+    'rest',
+    'forward',
+  ]);
+  for (const { before, after } of result.boundaries) {
+    expect(before.sameAnimation && after.sameAnimation).toBe(true);
+    expect(Math.abs(after.x - before.x)).toBeLessThan(1);
+  }
+  expect(result.cruiseStep).toBeGreaterThan(0.3);
+  expect(result.startStep).toBeLessThan(result.cruiseStep / 4);
+  await page.mouse.move(600, 40);
+  await expect(label).not.toHaveAttribute('data-scroll-state');
+  await expect(label.locator('[data-hover-scroll-track]')).toHaveCSS('transform', 'none');
+  expect(
+    await label.locator('[data-hover-scroll-track]').evaluate((el) => el.getAnimations().length),
+  ).toBe(0);
+});
