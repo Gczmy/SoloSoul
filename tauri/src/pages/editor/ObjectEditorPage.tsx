@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -42,6 +42,7 @@ function ObjectEditorForm() {
   const useTitlebarActions = useNativeWindowStore((s) => s.isWindows || s.isMacOS);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const {
+    objectId,
     isNew,
     isObjectReady,
     isLoadingObject,
@@ -84,6 +85,19 @@ function ObjectEditorForm() {
 
   const showForm = isNew ? Boolean(selectedType) : Boolean(currentObject);
   const showActions = !isNew || showForm;
+  const objectInspector = useMemo(
+    () =>
+      objectId
+        ? {
+            objectId,
+            ready: isObjectReady,
+            failed: objectLoadFailed,
+            objectName: isObjectReady ? (currentObject?.name ?? '') : '',
+            typeId: isObjectReady ? currentObject?.typeId : undefined,
+          }
+        : undefined,
+    [objectId, isObjectReady, objectLoadFailed, currentObject?.name, currentObject?.typeId],
+  );
   const formActions = (
     <>
       <Button
@@ -113,6 +127,7 @@ function ObjectEditorForm() {
       onBack={handleBack}
       continuityScope={isNew ? undefined : '/editor/:objectId'}
       primaryActions={useTitlebarActions && showActions ? formActions : undefined}
+      objectInspector={objectInspector}
     >
       <PageContainer variant="xs" gap="default" className={styles.editor}>
         {showLoadingNotice && (

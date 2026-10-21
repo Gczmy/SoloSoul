@@ -235,7 +235,8 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
       values.push({
         x: r.x,
         right: r.right,
-        paneWidth: pane.getBoundingClientRect().width,
+        // 变换后的 DOMRect 使用浮点合成坐标；固定布局宽度不应被其舍入误差影响。
+        paneWidth: pane.offsetWidth,
         railWidth: rail.getBoundingClientRect().width,
       });
     }
@@ -249,13 +250,15 @@ test('pane and editor move together, rapid reversal preserves DOM, desktop ignor
   });
   expect(new Set(frames.map((frame) => Math.round(frame.x))).size).toBeGreaterThan(3);
   expect(
-    frames.every(
+    frames.filter(
       (frame) =>
-        Math.abs(frame.right - frames[0].right) < 1 &&
-        frame.paneWidth === 264 &&
-        frame.railWidth === 56,
+        !(
+          Math.abs(frame.right - frames[0].right) < 1 &&
+          frame.paneWidth === 264 &&
+          frame.railWidth === 56
+        ),
     ),
-  ).toBe(true);
+  ).toEqual([]);
   expect(titleOffsets.length).toBeGreaterThan(3);
   expect(titleOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);
   expect(markerOffsets.every((offset) => Math.abs(offset) < 1)).toBe(true);

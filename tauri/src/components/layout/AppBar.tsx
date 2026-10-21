@@ -27,6 +27,8 @@ interface AppBarProps {
   onBack?: () => void;
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
   pagePane?: boolean;
+  pagePaneOpen?: boolean;
+  onPagePaneToggle?: () => void;
 }
 
 export function AppBar({
@@ -36,13 +38,16 @@ export function AppBar({
   onBack,
   sidebarPosition = 'left',
   pagePane = false,
+  pagePaneOpen,
+  onPagePaneToggle,
 }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
   const { t: navT } = useTranslation('navigation');
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
   const isNarrowViewport = useIsNarrowViewport();
-  const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const storedPaneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const paneOpen = pagePaneOpen ?? storedPaneOpen;
   const togglePane = useUiStore((s) => s.toggleDesktopPagePane);
   const macShell = isMacOS && !isNarrowViewport && !isAndroidSync();
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
@@ -144,7 +149,7 @@ export function AppBar({
           aria-describedby={showToggleHint ? toggleHintId : undefined}
           aria-expanded={paneOpen}
           aria-controls="desktop-page-pane"
-          onClick={togglePane}
+          onClick={onPagePaneToggle ?? togglePane}
           onMouseEnter={toggleHint.handleMouseEnter}
           onMouseLeave={hideToggleHint}
           onFocus={(event) => {

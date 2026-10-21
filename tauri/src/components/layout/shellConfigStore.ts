@@ -9,6 +9,16 @@ export interface ShellConfig {
   actions?: ReactNode;
   primaryActions?: ReactNode;
   onBack?: () => void;
+  objectInspector?: ObjectInspectorContext;
+}
+
+/** 仅登记当前对象身份；正文和附件不进入全局布局状态。 */
+export interface ObjectInspectorContext {
+  objectId: string;
+  objectName: string;
+  typeId?: string;
+  ready: boolean;
+  failed?: boolean;
 }
 
 export const EMPTY_SHELL_CONFIG: Readonly<ShellConfig> = {
@@ -16,6 +26,7 @@ export const EMPTY_SHELL_CONFIG: Readonly<ShellConfig> = {
   actions: undefined,
   primaryActions: undefined,
   onBack: undefined,
+  objectInspector: undefined,
 };
 
 export interface ShellRegistration {
@@ -51,7 +62,8 @@ export const useShellConfigStore = create<ShellConfigState>((set) => ({
         prev.title === config.title &&
         prev.actions === config.actions &&
         prev.primaryActions === config.primaryActions &&
-        prev.onBack === config.onBack
+        prev.onBack === config.onBack &&
+        prev.objectInspector === config.objectInspector
       ) {
         return prev;
       }
@@ -61,6 +73,7 @@ export const useShellConfigStore = create<ShellConfigState>((set) => ({
         actions: config.actions,
         primaryActions: config.primaryActions,
         onBack: config.onBack,
+        objectInspector: config.objectInspector,
       };
     }),
   unregister: (registration) =>

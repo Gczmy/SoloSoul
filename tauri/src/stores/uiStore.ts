@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
+
+export type ObjectInspectorTab = 'history' | 'attachments';
 
 export interface Toast {
   id: string;
@@ -21,6 +24,11 @@ export interface SafSyncProgress {
 }
 
 interface UiState {
+  desktopObjectInspectorOpen: boolean;
+  desktopObjectInspectorTab: ObjectInspectorTab;
+  setDesktopObjectInspectorOpen: (open: boolean) => void;
+  setDesktopObjectInspectorTab: (tab: ObjectInspectorTab) => void;
+  showDesktopPagePane: () => void;
   desktopPagePaneOpen: boolean;
   desktopPageCreationRequest: number | null;
   requestDesktopPageCreation: () => void;
@@ -71,6 +79,19 @@ function readSidebarExpanded(): boolean {
 }
 
 export const useUiStore = create<UiState>((set) => ({
+  desktopObjectInspectorOpen: false,
+  desktopObjectInspectorTab: 'history',
+  setDesktopObjectInspectorOpen: (desktopObjectInspectorOpen) =>
+    set({ desktopObjectInspectorOpen }),
+  setDesktopObjectInspectorTab: (desktopObjectInspectorTab) => set({ desktopObjectInspectorTab }),
+  showDesktopPagePane: () => {
+    try {
+      localStorage.setItem('solosoul_page_pane_open', 'true');
+    } catch {
+      /* Optional UI cache. */
+    }
+    set({ desktopPagePaneOpen: true, desktopObjectInspectorOpen: false });
+  },
   desktopPageCreationRequest: null,
   requestDesktopPageCreation: () => {
     try {
@@ -78,7 +99,11 @@ export const useUiStore = create<UiState>((set) => ({
     } catch {
       /* Optional UI cache. */
     }
-    set({ desktopPagePaneOpen: true, desktopPageCreationRequest: ++pageCreationCounter });
+    set({
+      desktopPagePaneOpen: true,
+      desktopObjectInspectorOpen: false,
+      desktopPageCreationRequest: ++pageCreationCounter,
+    });
   },
   desktopPagePaneWidth: (() => {
     try {
@@ -162,3 +187,7 @@ export const useUiStore = create<UiState>((set) => ({
   setSafAuthToastShown: (shown) => set({ safAuthToastShown: shown }),
   setReopenAccountSource: (reopen) => set({ reopenAccountSource: reopen }),
 }));
+
+onRequestSessionChange(() =>
+  useUiStore.setState({ desktopObjectInspectorOpen: false, desktopObjectInspectorTab: 'history' }),
+);

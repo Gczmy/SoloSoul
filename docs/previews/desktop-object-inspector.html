@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-platform="windows">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>SoloSoul · 对象历史与附件预览</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --shell: #f3f3f3; --surface: #fff; --text: #242424; --secondary: #626262;
+      --muted: #858585; --edge: #dedede; --divider: #ececec; --hover: #f5f5f5;
+      --selected: #ededed; --field: #fafafa; --primary: #292929; --primary-ink: #fff;
+      --scroll: #c2c2c2; --green: #397354; --red: #9b5353;
+      --shadow: 0 1px 2px #0000000a, 0 4px 14px #0000000f;
+      --card-shadow: 0 12px 40px #00000016, 0 2px 8px #0000000a;
+      --rail: 56px; --header: 52px; --tree-width: 264px; --inspector-width: 340px;
+      --motion: 320ms cubic-bezier(.22, 1, .36, 1);
+      font: 14px/1.5 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+      color: var(--text); background: var(--shell);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --shell: #181818; --surface: #212121; --text: #ececec; --secondary: #b4b4b4;
+      --muted: #929292; --edge: #343434; --divider: #333; --hover: #2a2a2a;
+      --selected: #353535; --field: #262626; --primary: #e8e8e8; --primary-ink: #202020;
+      --scroll: #646464; --green: #92bea1; --red: #d49a9a;
+      --shadow: 0 1px 2px #00000029, 0 4px 14px #00000033;
+      --card-shadow: 0 14px 40px #00000055, 0 2px 8px #00000033;
+    }
+    :root[data-platform="macos"] { font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .42; cursor: default; }
+    button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="separator"]:focus-visible {
+      outline: 2px solid var(--secondary); outline-offset: 2px;
+    }
+    button { border: 0; background: transparent; }
+    h1, h2, h3, p { margin: 0; font-weight: 400; }
+    svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    [hidden] { display: none !important; }
+    .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .preview-bar {
+      min-height: 54px; height: 54px; display: flex; align-items: center; gap: 10px;
+      padding: 0 18px; border-bottom: 1px solid var(--edge); white-space: nowrap;
+    }
+    .preview-label { font-size: 11px; padding: 3px 7px; border: 1px solid var(--edge); border-radius: 5px; color: var(--secondary); }
+    .preview-title { font-size: 13px; }
+    .preview-subtitle { font-size: 11px; color: var(--muted); }
+    .preview-controls { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .preview-controls select { border: 1px solid var(--edge); border-radius: 6px; background: var(--surface); padding: 5px 7px; font-size: 12px; }
+    .mode-switch { display: flex; gap: 2px; border: 1px solid var(--edge); border-radius: 7px; padding: 2px; }
+    .mode-switch button { padding: 4px 9px; font-size: 12px; color: var(--secondary); border-radius: 4px; }
+    .mode-switch button[aria-pressed="true"] { color: var(--text); background: var(--surface); box-shadow: 0 1px 3px #0000000d; }
+    .app {
+      --left-extent: var(--tree-width); --right-extent: var(--inspector-width);
+      height: calc(100dvh - 54px); min-height: 400px; display: grid;
+      grid-template-columns: var(--rail) minmax(0, 1fr); grid-template-rows: var(--header) minmax(0, 1fr);
+      position: relative;
+    }
+    .app[data-left-open="false"] { --left-extent: 0px; }
+    .app[data-right-open="false"], .app[data-effective-mode="floating"] { --right-extent: 0px; }
+    .titlebar { grid-column: 1 / -1; display: flex; align-items: center; min-width: 0; position: relative; z-index: 10; }
+    .title-left-toggle { position: absolute; left: 10px; top: 8px; }
+    .chrome-title {
+      position: absolute; left: calc(var(--rail) + var(--left-extent)); min-width: 0;
+      display: flex; align-items: center; gap: 16px; padding-left: 24px;
+      transition: left var(--motion); font-size: 15px; max-width: calc(100% - 530px);
+    }
+    .title-marker { position: absolute; left: 0; width: 1px; height: 20px; background: var(--edge); }
+    .title-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .title-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; padding-left: 12px; }
+    .save-state { color: var(--muted); font-size: 11px; margin-right: 6px; white-space: nowrap; }
+    .control { min-height: 32px; padding: 5px 12px; border-radius: 7px; font-size: 12px; white-space: nowrap; }
+    .control:hover:not(:disabled) { background: var(--selected); }
+    .control.primary { background: var(--primary); color: var(--primary-ink); }
+    .control.primary:hover:not(:disabled) { opacity: .85; background: var(--primary); }
+    .icon-button { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0; }
+    .icon-button:hover { background: var(--selected); color: var(--text); }
+    .action-separator { width: 1px; height: 18px; background: var(--edge); margin: 0 4px; }
+    .right-toggle { display: flex; align-items: center; gap: 7px; font-size: 12px; height: 36px; padding: 0 10px; border-radius: 8px; color: var(--secondary); }
+    .right-toggle[aria-expanded="true"] { background: var(--selected); color: var(--text); }
+    .right-toggle:hover { background: var(--selected); }
+    .window-controls { display: flex; height: 52px; width: 146px; padding-left: 8px; margin-left: 10px; flex-shrink: 0; }
+    .window-controls span { width: 46px; display: grid; place-items: center; color: var(--secondary); }
+    .window-controls svg { width: 12px; height: 12px; }
+    .traffic-lights { display: none; gap: 8px; align-items: center; position: absolute; left: 18px; top: 20px; }
+    .traffic-lights span { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #00000012; }
+    .traffic-lights span:nth-child(1) { background: #ff6058; }
+    .traffic-lights span:nth-child(2) { background: #febc2e; }
+    .traffic-lights span:nth-child(3) { background: #28c840; }
+    [data-platform="macos"] .traffic-lights { display: flex; }
+    [data-platform="macos"] .window-controls { display: none; }
+    [data-platform="macos"] .title-actions { margin-right: 12px; }
+    [data-platform="macos"] .title-left-toggle { left: 91px; width: 32px; height: 32px; top: 10px; }
+    [data-platform="macos"] .chrome-title { left: max(140px, calc(var(--rail) + var(--left-extent))); }
+    [data-platform="macos"] .app[data-left-open="false"] .title-marker { visibility: hidden; }
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::after {
+      content: attr(data-tooltip); pointer-events: none; position: absolute; top: calc(100% + 9px); left: 50%;
+      transform: translate(-50%, -3px); opacity: 0; visibility: hidden; padding: 6px 9px;
+      border: 1px solid var(--edge); border-radius: 7px; background: var(--surface); color: var(--text);
+      box-shadow: var(--shadow); font-size: 11px; font-weight: 400; white-space: nowrap;
+      transition: opacity 140ms, transform 140ms, visibility 140ms; z-index: 50;
+    }
+    [data-tooltip]:hover::after, [data-tooltip]:focus-visible::after { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition-delay: 250ms; }
+    .title-left-toggle[data-tooltip] { position: absolute; }
+    .title-left-toggle::after { left: 0; transform: translate(0, -3px); }
+    .title-left-toggle:hover::after, .title-left-toggle:focus-visible::after { transform: translate(0, 0); }
+    .rail { grid-column: 1; grid-row: 2; display: flex; align-items: center; flex-direction: column; gap: 8px; padding: 8px 0 10px; color: var(--secondary); }
+    .rail-item { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; }
+    .rail-item[aria-current="page"] { background: var(--selected); color: var(--text); }
+    .rail-item:hover { background: var(--selected); }
+    .rail-gap { flex: 1; }
+    .rail-rule { height: 1px; width: 24px; background: var(--edge); margin: 4px 0; }
+    [data-platform="macos"] .rail-item { width: 44px; height: 44px; border-radius: 11px; }
+    .content-surface {
+      grid-column: 2; grid-row: 2; margin: 0 8px 8px 0; min-width: 0; min-height: 0;
+      background: var(--surface); border: 1px solid var(--edge); border-radius: 12px; box-shadow: var(--shadow);
+      display: grid; grid-template-columns: var(--left-extent) minmax(0, 1fr) var(--right-extent);
+      position: relative; overflow: hidden; transition: grid-template-columns var(--motion);
+    }
+    [data-platform="macos"] .content-surface { border-radius: 16px; }
+    .tree-slot { min-width: 0; min-height: 0; overflow: hidden; border-right: 1px solid var(--divider); }
+    .tree { width: var(--tree-width); height: 100%; display: flex; flex-direction: column; transform: translateX(0); transition: transform var(--motion), visibility 0s; }
+    .app[data-left-open="false"] .tree { transform: translateX(-100%); visibility: hidden; transition: transform var(--motion), visibility 0s 320ms; }
+    .tree-head { padding: 16px 12px 11px; flex-shrink: 0; }
+    .tree-heading { font-size: 12px; margin: 0 2px 12px; color: var(--secondary); }
+    .search { display: flex; align-items: center; gap: 7px; padding: 0 9px; height: 33px; border: 1px solid var(--edge); border-radius: 7px; }
+    .search svg { width: 15px; height: 15px; color: var(--muted); }
+    .search input { min-width: 0; width: 100%; font-size: 12px; border: 0; background: transparent; outline: none; }
+    .add-page { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; height: 32px; margin-top: 8px; border: 1px solid var(--edge); border-radius: 7px; font-size: 12px; }
+    .add-page svg { width: 15px; height: 15px; }
+    .add-page:hover { background: var(--hover); }
+    .tree-scroll, .inspector-scroll, .editor-scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--scroll) transparent; }
+    .tree-scroll { flex: 1; min-height: 0; padding: 0 8px 16px; }
+    .page-row { display: flex; align-items: center; gap: 8px; width: 100%; height: 36px; padding: 0 8px; border-radius: 7px; font-size: 13px; text-align: left; }
+    .page-row:hover { background: var(--hover); }
+    .page-row svg { width: 15px; height: 15px; }
+    .page-row .chevron { width: 12px; height: 12px; color: var(--secondary); transition: transform 180ms; }
+    .page-row[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+    .page-count { color: var(--muted); margin-left: auto; font-size: 10px; }
+    .object-row { display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 10px 0 34px; border-radius: 7px; font-size: 13px; text-align: left; color: var(--secondary); }
+    .object-row svg { width: 14px; height: 14px; color: var(--muted); }
+    .object-row:hover { background: var(--hover); }
+    .object-row[aria-current="true"] { color: var(--text); background: var(--selected); }
+    .scroll-name { display: block; flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .scroll-name > span { display: inline-block; white-space: nowrap; }
+    .scroll-name[data-overflow="true"] { mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 9px), transparent); }
+    button:hover .scroll-name[data-overflow="true"] > span { animation: marquee var(--marquee-duration, 3s) 600ms ease-in-out infinite alternate; }
+    @keyframes marquee { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(-1 * var(--overflow))); } }
+    .pane-resizer { position: absolute; left: calc(var(--left-extent) - 3px); top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 4; touch-action: none; transition: left var(--motion); }
+    .pane-resizer:hover, .pane-resizer:focus-visible, .app[data-resizing="true"] .pane-resizer { background: color-mix(in srgb, var(--secondary) 20%, transparent); }
+    .app[data-left-open="false"] .pane-resizer { visibility: hidden; pointer-events: none; }
+    .app[data-resizing="true"] .content-surface, .app[data-resizing="true"] .chrome-title, .app[data-resizing="true"] .pane-resizer { transition: none; }
+    .editor { grid-column: 2; min-width: 0; min-height: 0; display: flex; overflow: hidden; }
+    .editor-scroll { flex: 1; min-width: 0; padding: 34px clamp(22px, 3vw, 48px) 24px; container-type: inline-size; }
+    .editor-inner { max-width: 740px; margin: 0 auto; }
+    .object-heading { display: flex; align-items: center; gap: 13px; margin-bottom: 26px; }
+    .object-icon { width: 44px; height: 48px; border-radius: 11px; background: var(--field); border: 1px solid var(--divider); display: grid; place-items: center; color: var(--secondary); flex-shrink: 0; }
+    .object-icon svg { width: 24px; height: 24px; }
+    .object-heading-text { min-width: 0; }
+    .object-heading h1 { font-size: 21px; letter-spacing: -.4px; line-height: 1.45; overflow-wrap: anywhere; }
+    .object-heading p { color: var(--muted); font-size: 11px; margin-top: 4px; }
+    .section-title { font-size: 12px; color: var(--secondary); margin-bottom: 14px; }
+    .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px 20px; }
+    .field { min-width: 0; }
+    .field label { display: block; color: var(--secondary); font-size: 12px; margin-bottom: 7px; }
+    .field input, .field textarea { width: 100%; background: var(--surface); border: 1px solid var(--edge); border-radius: 8px; font-size: 13px; padding: 9px 11px; }
+    .field textarea { min-height: 115px; resize: vertical; line-height: 1.7; }
+    .field.full { grid-column: 1 / -1; }
+    .secret-field { position: relative; }
+    .secret-field input { padding-right: 37px; }
+    .secret-field button { position: absolute; right: 4px; top: 3px; width: 30px; height: 31px; display: grid; place-items: center; border-radius: 5px; color: var(--muted); }
+    .secret-field button:hover { background: var(--hover); }
+    .secret-field svg { width: 16px; height: 16px; }
+    .object-meta { border-top: 1px solid var(--divider); padding-top: 18px; margin-top: 28px; display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--muted); font-size: 11px; }
+    .inspector-slot { grid-column: 3; overflow: hidden; min-width: 0; min-height: 0; position: relative; }
+    .inspector {
+      width: var(--inspector-width); height: 100%; background: var(--surface); border-left: 1px solid var(--divider);
+      display: flex; flex-direction: column; transform: translateX(0); opacity: 1;
+      transition: transform var(--motion), opacity 180ms, visibility 0s;
+    }
+    .app[data-right-open="false"] .inspector { transform: translateX(100%); opacity: 0; visibility: hidden; transition: transform var(--motion), opacity 160ms, visibility 0s 320ms; }
+    .inspector-head { padding: 10px 12px 0; flex-shrink: 0; }
+    .inspector-tabs-row { display: flex; align-items: center; gap: 8px; }
+    .tabs { display: flex; align-items: center; gap: 3px; flex: 1; }
+    .tab { display: flex; align-items: center; justify-content: center; gap: 7px; height: 33px; padding: 0 10px; border-radius: 7px; color: var(--secondary); font-size: 13px; white-space: nowrap; }
+    .tab:hover { background: var(--hover); }
+    .tab[aria-selected="true"] { background: var(--selected); color: var(--text); }
+    .tab svg { width: 15px; height: 15px; }
+    .tab-count { font-size: 10px; color: var(--muted); }
+    .close-panel { width: 28px; height: 28px; border-radius: 6px; }
+    .close-panel svg { width: 16px; height: 16px; }
+    .inspector-context { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); padding: 13px 2px 12px; border-bottom: 1px solid var(--divider); }
+    .context-name { min-width: 0; flex: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .sort-label { display: flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 10px; }
+    .sort-label svg { width: 12px; height: 12px; }
+    .inspector-scroll { flex: 1; min-height: 0; padding: 0 12px 16px; }
+    .day-heading { padding: 15px 3px 9px; font-size: 11px; color: var(--muted); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    .history-event { position: relative; padding-left: 26px; }
+    .history-event::before { content: ''; position: absolute; left: 8px; top: 21px; bottom: -5px; border-left: 1px solid var(--divider); }
+    .history-event:last-child::before { bottom: 14px; }
+    .event-dot { position: absolute; left: 0; top: 13px; width: 17px; height: 17px; display: grid; place-items: center; background: var(--surface); color: var(--muted); z-index: 1; }
+    .event-dot svg { width: 13px; height: 13px; }
+    .event-summary { width: 100%; padding: 10px 6px 11px; text-align: left; border-radius: 7px; display: block; }
+    .event-summary:hover { background: var(--hover); }
+    .event-top { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; }
+    .event-title { min-width: 0; flex: 1; line-height: 1.7; }
+    .event-time { font-size: 11px; color: var(--muted); padding-top: 3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .event-description { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; margin-top: 3px; line-height: 1.6; }
+    .event-description svg { width: 11px; height: 11px; margin-left: auto; transition: transform 160ms; }
+    .history-event[data-expanded="true"] .event-description svg { transform: rotate(90deg); }
+    .event-details { margin: 0 5px 10px; padding: 10px; border: 1px solid var(--divider); border-radius: 8px; background: var(--field); }
+    .change + .change { border-top: 1px solid var(--divider); margin-top: 10px; padding-top: 10px; }
+    .change-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11px; margin-bottom: 6px; }
+    .sensitive-tag { display: inline-flex; gap: 3px; align-items: center; font-size: 9px; color: var(--muted); }
+    .sensitive-tag svg { width: 10px; height: 10px; }
+    .value-row { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px; font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+    .value-row > span:first-child { color: var(--muted); font-size: 10px; padding-top: 1px; }
+    .before { color: var(--secondary); text-decoration: line-through; text-decoration-color: var(--muted); }
+    .after { color: var(--text); }
+    .event-note { font-size: 11px; line-height: 1.7; color: var(--secondary); overflow-wrap: anywhere; }
+    .attachment-row { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 6px; border-radius: 8px; text-align: left; }
+    .attachment-row:hover { background: var(--hover); }
+    .file-icon { width: 33px; height: 38px; border: 1px solid var(--divider); background: var(--field); border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; color: var(--secondary); }
+    .file-icon svg { width: 18px; height: 18px; }
+    .attachment-copy { min-width: 0; flex: 1; }
+    .attachment-name { font-size: 13px; color: var(--text); }
+    .attachment-meta { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+    .attachment-arrow { width: 13px; height: 13px; color: var(--muted); opacity: 0; transition: opacity 120ms; }
+    .attachment-row:hover .attachment-arrow, .attachment-row:focus-visible .attachment-arrow { opacity: 1; }
+    .inspector-footer { border-top: 1px solid var(--divider); padding: 10px 16px; font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; flex-shrink: 0; }
+    .empty-state { min-height: 260px; height: 70%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 16px; }
+    .empty-state > svg { width: 27px; height: 27px; color: var(--muted); margin-bottom: 16px; }
+    .empty-state h3 { font-size: 13px; margin-bottom: 7px; }
+    .empty-state p { color: var(--muted); font-size: 11px; line-height: 1.8; max-width: 220px; }
+    .app[data-effective-mode="floating"] .inspector-slot { position: absolute; right: 12px; top: 12px; bottom: 12px; width: var(--inspector-width); z-index: 8; overflow: visible; }
+    .app[data-effective-mode="floating"] .inspector { border: 1px solid var(--edge); border-radius: 13px; box-shadow: var(--card-shadow); overflow: hidden; }
+    .app[data-effective-mode="floating"][data-right-open="false"] .inspector-slot { pointer-events: none; }
+    .app[data-effective-mode="floating"][data-right-open="false"] .inspector { transform: translateX(18px); }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 9px 14px; border: 1px solid var(--edge); background: var(--surface); box-shadow: var(--card-shadow); border-radius: 9px; font-size: 12px; z-index: 80; }
+    dialog { width: min(420px, calc(100vw - 32px)); padding: 0; background: var(--surface); color: var(--text); border: 1px solid var(--edge); border-radius: 16px; box-shadow: var(--card-shadow); }
+    dialog::backdrop { background: #0005; }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 20px 12px; }
+    .dialog-head h2 { font-size: 15px; }
+    .dialog-body { padding: 0 22px 23px; }
+    .file-hero { display: flex; align-items: center; gap: 12px; padding: 12px 0 23px; }
+    .file-hero .file-icon { width: 42px; height: 48px; }
+    .file-hero h3 { font-size: 13px; overflow-wrap: anywhere; }
+    .file-hero p { color: var(--muted); font-size: 11px; margin-top: 4px; }
+    .file-info { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 13px; font-size: 12px; }
+    .file-info dt { color: var(--muted); }
+    .file-info dd { margin: 0; overflow-wrap: anywhere; }
+    .dialog-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px; }
+    @container (max-width: 420px) { .form-grid { grid-template-columns: minmax(0, 1fr); } .object-heading h1 { font-size: 19px; } }
+    @media (max-width: 1200px) { .preview-subtitle { display: none; } .right-toggle-label { display: none; } .right-toggle { width: 36px; padding: 0; justify-content: center; } .chrome-title { max-width: calc(100% - 440px); } }
+    @media (max-width: 1000px) { .preview-title { display: none; } .save-state { display: none; } .chrome-title { max-width: calc(100% - 340px); } }
+    @media (max-width: 760px) { .window-controls { display: none; } .title-actions { margin-right: 10px; } .chrome-title { max-width: calc(100% - 260px); } .preview-bar { padding: 0 10px; gap: 6px; } .preview-controls { gap: 6px; } .preview-label { display: none; } .preview-controls { width: 100%; justify-content: space-between; } .mode-switch button { padding-inline: 6px; } :root { --inspector-width: min(340px, calc(100vw - 88px)); } .inspector { width: 100%; } .title-actions .action-separator { margin: 0; } .editor-scroll { padding: 25px 20px; } }
+    @media (max-height: 600px) { .editor-scroll { padding-top: 24px; } .object-heading { margin-bottom: 20px; } .rail { gap: 4px; } }
+  </style>
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M5 16c0-3 6-3 6 0m3-7h4m-4 4h4"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V5h7l2 3h9v12H3Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8Zm0 0v5h5M8 13h8m-8 4h6"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 5 5 3-3 4 4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1 7M3 4v6h6m3-4v6l4 2"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m8 13 7-7a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7L13 2m-6 12 8-8"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7a2 2 0 0 0-5-5L4 14Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v16m-5-5 5 5 5-5"/></symbol>
+    <symbol id="i-left-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m7-13-4 4 4 4"/></symbol>
+    <symbol id="i-right-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18m-7-13 4 4-4 4"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 13h18m-9-2v4"/></symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="m10 3-1 3-3 1-3-1-1 3 2 3-1 3 2 3 3-1 3 1 1 3h3l1-3 3-1 3 1 1-3-2-3 1-3-2-3-3 1-3-1-1-3Z" transform="translate(1) scale(.9)"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-minimize" viewBox="0 0 24 24"><path d="M4 12h16"/></symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/></symbol>
+  </defs></svg>
+
+  <div class="preview-bar">
+    <span class="preview-label">交互预览</span><span class="preview-title">右侧 · 历史与附件</span><span class="preview-subtitle" id="preview-note">示例数据 · 可切换对象、展开记录</span>
+    <div class="preview-controls">
+      <div class="mode-switch" aria-label="预览布局" title="停靠面板在窄窗口下自动切换为浮动卡片"><button type="button" data-mode-choice="docked" aria-pressed="true">停靠面板</button><button type="button" data-mode-choice="floating" aria-pressed="false">浮动卡片</button></div>
+      <select id="platform-choice" aria-label="预览平台"><option value="windows">Windows</option><option value="macos">macOS</option></select>
+      <select id="theme-choice" aria-label="预览主题"><option value="system">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select>
+    </div>
+  </div>
+
+  <div class="app" id="app" data-left-open="true" data-right-open="true" data-effective-mode="docked">
+    <header class="titlebar">
+      <div class="traffic-lights" aria-hidden="true"><span></span><span></span><span></span></div>
+      <button type="button" id="toggle-tree" class="icon-button title-left-toggle" aria-label="显示/隐藏侧边栏" aria-expanded="true" aria-controls="page-tree" data-tooltip="显示/隐藏侧边栏"><svg><use href="#i-left-panel"/></svg></button>
+      <div class="chrome-title"><span class="title-marker" aria-hidden="true"></span><span class="title-text">编辑对象</span></div>
+      <div class="title-actions">
+        <span class="save-state" id="save-state">已保存</span><button type="button" class="control" id="cancel-edit">取消</button><button type="button" class="control primary" id="save-object" disabled>保存</button>
+        <span class="action-separator" aria-hidden="true"></span>
+        <button type="button" id="toggle-inspector" class="right-toggle" aria-label="显示/隐藏历史与附件" aria-expanded="true" aria-controls="object-inspector" data-tooltip="显示/隐藏历史与附件"><svg><use href="#i-right-panel"/></svg><span class="right-toggle-label">历史与附件</span></button>
+      </div>
+      <div class="window-controls" aria-hidden="true"><span><svg><use href="#i-minimize"/></svg></span><span><svg><use href="#i-maximize"/></svg></span><span><svg><use href="#i-close"/></svg></span></div>
+    </header>
+
+    <nav class="rail" aria-label="功能导航">
+      <button type="button" class="rail-item" aria-label="首页" data-rail-page="home"><svg><use href="#i-home"/></svg></button>
+      <button type="button" class="rail-item" aria-label="身份与证件" aria-current="page" data-rail-page="identity"><svg><use href="#i-id"/></svg></button>
+      <button type="button" class="rail-item" aria-label="工作资料" data-rail-page="work"><svg><use href="#i-briefcase"/></svg></button>
+      <button type="button" class="rail-item" aria-label="文档" data-rail-page="documents"><svg><use href="#i-folder"/></svg></button>
+      <span class="rail-gap"></span>
+      <button type="button" class="rail-item" aria-label="工具" id="demo-tools"><svg><use href="#i-tools"/></svg></button><span class="rail-rule"></span>
+      <button type="button" class="rail-item" aria-label="锁定" id="demo-lock"><svg><use href="#i-lock"/></svg></button>
+      <button type="button" class="rail-item" aria-label="设置" id="demo-settings"><svg><use href="#i-settings"/></svg></button>
+    </nav>
+
+    <div class="content-surface" id="content-surface">
+      <aside class="tree-slot"><div class="tree" id="page-tree">
+        <div class="tree-head"><div class="tree-heading">页面与对象</div><div class="search"><svg><use href="#i-search"/></svg><input id="tree-search" aria-label="搜索页面与对象" placeholder="搜索页面与对象" autocomplete="off"></div><button type="button" class="add-page" id="add-page"><svg><use href="#i-plus"/></svg>新建页面</button></div>
+        <div class="tree-scroll" id="tree-rows"></div>
+      </div></aside>
+
+      <main class="editor" aria-label="对象编辑区"><div class="editor-scroll"><div class="editor-inner">
+        <div class="object-heading"><div class="object-icon"><svg><use href="#i-id"/></svg></div><div class="object-heading-text"><h1 id="object-title">个人护照 · 出行资料</h1><p id="object-category">身份与证件</p></div></div>
+        <div class="section-title">对象信息</div>
+        <form id="object-form"><div class="form-grid">
+          <div class="field full"><label for="field-name">对象名称</label><input id="field-name" name="name" autocomplete="off"></div>
+          <div class="field"><label for="field-owner">持有人</label><input id="field-owner" name="owner" autocomplete="off"></div>
+          <div class="field"><label for="field-number">证件号码</label><div class="secret-field"><input id="field-number" name="number" type="password" autocomplete="off"><button type="button" id="show-number" aria-label="显示/隐藏示例证件号码"><svg><use href="#i-eye"/></svg></button></div></div>
+          <div class="field"><label for="field-issue">签发日期</label><input id="field-issue" name="issue" type="date"></div>
+          <div class="field"><label for="field-expiry">有效期至</label><input id="field-expiry" name="expiry" type="date"></div>
+          <div class="field full"><label for="field-notes">备注</label><textarea id="field-notes" name="notes"></textarea></div>
+        </div></form>
+        <div class="object-meta"><span id="object-created"></span><span id="object-updated"></span></div>
+      </div></div></main>
+
+      <aside class="inspector-slot" id="object-inspector" aria-label="当前对象的历史与附件">
+        <div class="inspector">
+          <div class="inspector-head">
+            <div class="inspector-tabs-row"><div class="tabs" role="tablist" aria-label="对象资料类型">
+              <button type="button" class="tab" id="tab-history" role="tab" aria-selected="true" aria-controls="panel-history" tabindex="0"><svg><use href="#i-history"/></svg>历史记录<span class="tab-count" id="history-count"></span></button>
+              <button type="button" class="tab" id="tab-attachments" role="tab" aria-selected="false" aria-controls="panel-attachments" tabindex="-1"><svg><use href="#i-paperclip"/></svg>附件<span class="tab-count" id="attachments-count"></span></button>
+            </div><button type="button" class="icon-button close-panel" id="close-inspector" aria-label="关闭历史与附件"><svg><use href="#i-close"/></svg></button></div>
+            <div class="inspector-context"><span id="inspector-object-name" class="context-name"></span><span class="sort-label"><svg><use href="#i-down"/></svg><span id="sort-label">变更时间倒序</span></span></div>
+          </div>
+          <div class="inspector-scroll" id="inspector-scroll"><div id="panel-history" role="tabpanel" aria-labelledby="tab-history"></div><div id="panel-attachments" role="tabpanel" aria-labelledby="tab-attachments" hidden></div></div>
+          <div class="inspector-footer"><span id="footer-total"></span><span id="footer-latest"></span></div>
+        </div>
+      </aside>
+      <div class="pane-resizer" id="tree-resizer" role="separator" aria-label="调整页面与对象区域宽度" aria-orientation="vertical" aria-controls="page-tree" aria-valuemin="200" aria-valuemax="380" aria-valuenow="264" tabindex="0"></div>
+    </div>
+  </div>
+
+  <dialog id="file-dialog" aria-labelledby="file-dialog-title"><div class="dialog-head"><h2 id="file-dialog-title">附件信息</h2><button type="button" class="icon-button dialog-close" aria-label="关闭附件信息"><svg><use href="#i-close"/></svg></button></div><div class="dialog-body" id="file-dialog-body"></div></dialog>
+  <dialog id="page-dialog" aria-labelledby="page-dialog-title"><div class="dialog-head"><h2 id="page-dialog-title">新建页面</h2><button type="button" class="icon-button dialog-close" aria-label="关闭新建页面"><svg><use href="#i-close"/></svg></button></div><form class="dialog-body" id="new-page-form"><div class="field"><label for="new-page-name">页面名称</label><input id="new-page-name" required maxlength="80" placeholder="输入页面名称" autocomplete="off"></div><div class="dialog-actions"><button type="button" class="control dialog-close">取消</button><button type="submit" class="control primary">创建页面</button></div></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const root = document.documentElement, app = $('#app');
+    const icon = (name, className = '') => `<svg aria-hidden="true" class="${className}"><use href="#i-${name}"/></svg>`;
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const now = Date.now(), hour = 3600000, day = 24 * hour;
+    const at = (hours) => now - hours * hour;
+    const dateFormatter = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    const timeFormatter = new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const shortDate = (stamp) => dateFormatter.format(stamp);
+    const shortTime = (stamp) => timeFormatter.format(stamp);
+    const fullTime = (stamp) => `${shortDate(stamp)} ${shortTime(stamp)}`;
+    const dayLabel = (stamp) => shortDate(stamp) === shortDate(Date.now()) ? '今天' : shortDate(stamp) === shortDate(Date.now() - day) ? '昨天' : shortDate(stamp);
+    const files = [
+      { id: 'f1', name: '护照扫描件_2026.pdf', type: 'PDF', size: 2516582, added: at(1.5) },
+      { id: 'f2', name: '签证页_日本.jpg', type: 'JPG', size: 1887437, added: at(3) },
+      { id: 'f3', name: '出行行程与航班信息_2026年秋季备份文件.pdf', type: 'PDF', size: 1290240, added: at(5.3) },
+      { id: 'f4', name: '证件照片_白底.png', type: 'PNG', size: 3040870, added: at(19) },
+      { id: 'f5', name: '紧急联系人.txt', type: 'TXT', size: 3840, added: at(28) },
+      { id: 'f6', name: '护照更新申请回执.pdf', type: 'PDF', size: 770048, added: at(49) },
+      { id: 'f7', name: '旧版护照_资料页.pdf', type: 'PDF', size: 1468006, added: at(76) },
+      { id: 'f8', name: '证件办理注意事项.txt', type: 'TXT', size: 9216, added: at(105) }
+    ];
+    const history = [
+      { id: 'h1', time: at(.7), type: 'edit', title: '修改了对象名称', description: '名称 · 1 项变更', changes: [{ field: '对象名称', before: '个人护照', after: '个人护照 · 出行资料' }] },
+      { id: 'h2', time: at(1.5), type: 'attachment', title: '添加了附件', description: files[0].name, note: `${files[0].name} · 2.4 MB` },
+      { id: 'h3', time: at(2.2), type: 'edit', title: '更新了 2 个字段', description: '签发日期、有效期', changes: [{ field: '签发日期', before: '2019-08-16', after: '2026-10-18' }, { field: '有效期至', before: '2029-08-15', after: '2036-10-17' }] },
+      { id: 'h4', time: at(3), type: 'attachment', title: '添加了附件', description: files[1].name, note: `${files[1].name} · 1.8 MB` },
+      { id: 'h5', time: at(5.3), type: 'attachment', title: '添加了附件', description: files[2].name, note: files[2].name },
+      { id: 'h6', time: at(18), type: 'edit', title: '更新了备注', description: '备注 · 1 项变更', changes: [{ field: '备注', before: '出行前检查证件。', after: '出行前检查证件有效期。电子扫描件与签证页已附在此对象中。' }] },
+      { id: 'h7', time: at(19), type: 'attachment', title: '添加了附件', description: files[3].name, note: files[3].name },
+      { id: 'h8', time: at(28), type: 'attachment', title: '添加了附件', description: files[4].name, note: files[4].name },
+      { id: 'h9', time: at(48), type: 'edit', title: '修改了证件号码', description: '证件号码 · 敏感字段', changes: [{ field: '证件号码', before: '••••••••', after: '••••••••', sensitive: true }] },
+      { id: 'h10', time: at(49), type: 'attachment', title: '添加了附件', description: files[5].name, note: files[5].name },
+      { id: 'h11', time: at(76), type: 'attachment', title: '添加了附件', description: files[6].name, note: files[6].name },
+      { id: 'h13', time: at(105), type: 'attachment', title: '添加了附件', description: files[7].name, note: files[7].name },
+      { id: 'h12', time: at(130), type: 'create', title: '创建了对象', description: '身份与证件', note: '已创建对象，后续变更将按时间记录在此。' }
+    ];
+    const objects = {
+      passport: { id: 'passport', page: 'identity', name: '个人护照 · 出行资料', owner: '林予安（示例）', number: 'EX1234567', issue: '2026-10-18', expiry: '2036-10-17', notes: '出行前检查证件有效期。电子扫描件与签证页已附在此对象中。', created: at(130), updated: at(.7), history, files },
+      residence: { id: 'residence', page: 'identity', name: '居留许可', owner: '林予安（示例）', number: 'R00001234', issue: '2026-05-01', expiry: '2028-05-01', notes: '办理相关事项时携带原件。', created: at(140), updated: at(8), history: [
+        { id: 'r1', time: at(8), type: 'edit', title: '更新了有效期', description: '有效期至 · 1 项变更', changes: [{ field: '有效期至', before: '2027-05-01', after: '2028-05-01' }] },
+        { id: 'r2', time: at(30), type: 'attachment', title: '添加了附件', description: '居留许可_扫描件.pdf', note: '居留许可_扫描件.pdf · 1.2 MB' },
+        { id: 'r3', time: at(140), type: 'create', title: '创建了对象', description: '身份与证件', note: '已创建居留许可。' }
+      ], files: [{ id: 'rf1', name: '居留许可_扫描件.pdf', type: 'PDF', size: 1258291, added: at(30) }] },
+      emergency: { id: 'emergency', page: 'identity', name: '紧急联系卡', owner: '林予安（示例）', number: '', issue: '', expiry: '', notes: '在这里整理紧急联络方式。', created: at(160), updated: at(160), history: [], files: [] },
+      work: { id: 'work', page: 'work', name: '工作证 · 项目资料', owner: '林予安（示例）', number: 'W000123', issue: '2026-01-01', expiry: '2027-01-01', notes: '项目联络与办公资料。', created: at(200), updated: at(24), history: [{ id: 'w1', time: at(24), type: 'edit', title: '更新了备注', description: '备注 · 1 项变更', changes: [{ field: '备注', before: '办公资料。', after: '项目联络与办公资料。' }] }], files: [] }
+    };
+    const pages = [{ id: 'identity', name: '身份与证件', icon: 'id', open: true }, { id: 'work', name: '工作资料', icon: 'briefcase', open: false }, { id: 'documents', name: '文档', icon: 'folder', open: false }];
+    let currentId = 'passport', selectedTab = 'history', mode = 'docked', rightOpen = true, leftOpen = innerWidth >= 1000;
+    const expandedEvents = new Set();
+    const scrollPositions = new Map();
+    const currentObject = () => objects[currentId];
+    const bytes = (size) => size >= 1048576 ? `${(size / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
+    let nameObserver;
+    const measureNames = () => {
+      nameObserver?.disconnect();
+      const measure = (node) => { const distance = Math.max(0, node.firstElementChild.scrollWidth - node.clientWidth + 6); node.dataset.overflow = String(distance > 8); node.style.setProperty('--overflow', `${distance}px`); node.style.setProperty('--marquee-duration', `${Math.max(2.6, distance / 30)}s`); };
+      nameObserver = new ResizeObserver((entries) => entries.forEach(({target}) => measure(target)));
+      document.querySelectorAll('.scroll-name').forEach((node) => { nameObserver.observe(node); measure(node); });
+    };
+    let toastTimer;
+    function toast(message) { clearTimeout(toastTimer); $('#toast').textContent = message; $('#toast').hidden = false; toastTimer = setTimeout(() => { $('#toast').hidden = true; }, 2300); }
+    function setDirty(dirty) { $('#save-state').textContent = dirty ? '未保存' : '已保存'; $('#save-object').disabled = !dirty; }
+    function saveScroll() { scrollPositions.set(`${currentId}:${selectedTab}`, $('#inspector-scroll').scrollTop); }
+    function applyLayout() {
+      const effective = mode === 'floating' || innerWidth < 1100 ? 'floating' : 'docked';
+      app.dataset.effectiveMode = effective; app.dataset.rightOpen = String(rightOpen); app.dataset.leftOpen = String(leftOpen);
+      $('#toggle-inspector').setAttribute('aria-expanded', String(rightOpen));
+      $('#object-inspector').inert = !rightOpen;
+      $('#object-inspector').setAttribute('aria-hidden', String(!rightOpen));
+      $('#page-tree').inert = !leftOpen;
+      $('#toggle-tree').setAttribute('aria-expanded', String(leftOpen));
+      $('#preview-note').textContent = mode === 'docked' && effective === 'floating' ? '窄窗口自动浮动 · 示例数据' : '示例数据 · 可切换对象、展开记录';
+      document.querySelectorAll('[data-mode-choice]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.modeChoice === mode)));
+    }
+    function setRightOpen(value, restoreFocus = false) { rightOpen = value; applyLayout(); if (!value && restoreFocus) $('#toggle-inspector').focus({preventScroll:true}); }
+    function renderTree() {
+      const term = $('#tree-search').value.trim().toLowerCase();
+      $('#tree-rows').innerHTML = pages.map((page) => {
+        const children = Object.values(objects).filter((object) => object.page === page.id && (!term || `${page.name} ${object.name}`.toLowerCase().includes(term)));
+        if (term && !children.length && !page.name.toLowerCase().includes(term)) return '';
+        const open = page.open || !!term;
+        return `<section><button type="button" class="page-row" data-page="${page.id}" aria-expanded="${open}">${icon('chevron','chevron')}${icon(page.icon)}<span class="scroll-name"><span>${escapeHtml(page.name)}</span></span><span class="page-count">${children.length}</span></button><div ${open ? '' : 'hidden'}>${children.map((object) => `<button type="button" class="object-row" data-object="${object.id}" aria-current="${object.id === currentId}">${icon('file')}<span class="scroll-name"><span>${escapeHtml(object.name)}</span></span></button>`).join('')}</div></section>`;
+      }).join('');
+      measureNames();
+    }
+    function grouped(items, stampKey, renderer) {
+      const sorted = [...items].sort((a,b) => b[stampKey] - a[stampKey]);
+      let lastDay = '';
+      return sorted.map((item) => { const thisDay = shortDate(item[stampKey]); const heading = thisDay !== lastDay ? `<div class="day-heading">${escapeHtml(dayLabel(item[stampKey]))}</div>` : ''; lastDay = thisDay; return heading + renderer(item); }).join('');
+    }
+    function historyRow(event) {
+      const expanded = expandedEvents.has(`${currentId}:${event.id}`);
+      const content = event.changes ? event.changes.map((change) => `<div class="change"><div class="change-label"><span>${escapeHtml(change.field)}</span>${change.sensitive ? `<span class="sensitive-tag">${icon('lock')}已隐藏</span>` : ''}</div><div class="value-row"><span>原值</span><span class="before">${escapeHtml(change.before || '未填写')}</span></div><div class="value-row"><span>现值</span><span class="after">${escapeHtml(change.after || '未填写')}</span></div></div>`).join('') : `<p class="event-note">${escapeHtml(event.note)}</p>`;
+      return `<article class="history-event" data-expanded="${expanded}" data-timestamp="${event.time}"><span class="event-dot">${icon(event.type === 'attachment' ? 'paperclip' : event.type === 'create' ? 'plus' : 'edit')}</span><button type="button" class="event-summary" data-event="${event.id}" aria-expanded="${expanded}" aria-controls="detail-${event.id}"><span class="event-top"><span class="event-title">${escapeHtml(event.title)}</span><time class="event-time" datetime="${new Date(event.time).toISOString()}" title="${fullTime(event.time)}">${shortTime(event.time)}</time></span><span class="event-description"><span>${escapeHtml(event.description)}</span>${icon('chevron')}</span></button><div id="detail-${event.id}" class="event-details" ${expanded ? '' : 'hidden'}>${content}</div></article>`;
+    }
+    function attachmentRow(file) {
+      return `<button type="button" class="attachment-row" data-file="${file.id}" data-timestamp="${file.added}" aria-label="查看附件信息：${escapeHtml(file.name)}"><span class="file-icon">${icon(['JPG','PNG'].includes(file.type) ? 'image' : 'file')}</span><span class="attachment-copy"><span class="attachment-name scroll-name"><span>${escapeHtml(file.name)}</span></span><span class="attachment-meta"><span>${file.type} · ${bytes(file.size)}</span><time datetime="${new Date(file.added).toISOString()}" title="${fullTime(file.added)}">${shortTime(file.added)}</time></span></span>${icon('arrow','attachment-arrow')}</button>`;
+    }
+    function renderInspector() {
+      const object = currentObject();
+      $('#history-count').textContent = object.history.length;
+      $('#attachments-count').textContent = object.files.length;
+      $('#inspector-object-name').textContent = object.name;
+      $('#inspector-object-name').title = object.name;
+      $('#panel-history').innerHTML = object.history.length ? grouped(object.history, 'time', historyRow) : `<div class="empty-state">${icon('history')}<h3>暂无历史记录</h3><p>对象发生变更后，记录会按时间显示在这里。</p></div>`;
+      $('#panel-attachments').innerHTML = object.files.length ? grouped(object.files, 'added', attachmentRow) : `<div class="empty-state">${icon('paperclip')}<h3>暂无附件</h3><p>添加到此对象的文件，会按添加时间显示在这里。</p></div>`;
+      for (const name of ['history', 'attachments']) { const active = name === selectedTab; $(`#tab-${name}`).setAttribute('aria-selected', String(active)); $(`#tab-${name}`).tabIndex = active ? 0 : -1; $(`#panel-${name}`).hidden = !active; }
+      $('#sort-label').textContent = selectedTab === 'history' ? '变更时间倒序' : '添加时间倒序';
+      $('#footer-total').textContent = selectedTab === 'history' ? `${object.history.length} 条记录` : `${object.files.length} 个附件`;
+      const latest = selectedTab === 'history' ? Math.max(...object.history.map((event) => event.time)) : Math.max(...object.files.map((file) => file.added));
+      $('#footer-latest').textContent = selectedTab === 'attachments' && object.files.length ? `共 ${bytes(object.files.reduce((sum,file) => sum + file.size,0))}` : Number.isFinite(latest) ? `最近变更 ${shortTime(latest)}` : '';
+      $('#inspector-scroll').scrollTop = scrollPositions.get(`${currentId}:${selectedTab}`) || 0;
+      measureNames();
+    }
+    function renderEditor() {
+      const object = currentObject();
+      $('#object-title').textContent = object.name;
+      $('#object-category').textContent = pages.find((page) => page.id === object.page).name;
+      for (const key of ['name','owner','number','issue','expiry','notes']) $(`[name="${key}"]`).value = object[key];
+      $('#field-number').type = 'password';
+      $('#object-created').textContent = `创建于 ${fullTime(object.created)}`;
+      $('#object-updated').textContent = `最后更新 ${fullTime(object.updated)}`;
+      setDirty(false);
+    }
+    function selectObject(id) { saveScroll(); currentId = id; renderEditor(); renderTree(); renderInspector(); $('.editor-scroll').scrollTop = 0; }
+    function selectTab(name, focus = false) { saveScroll(); selectedTab = name; renderInspector(); if (focus) $(`#tab-${name}`).focus(); }
+    $('#toggle-tree').addEventListener('click', () => { leftOpen = !leftOpen; applyLayout(); });
+    $('#toggle-inspector').addEventListener('click', () => setRightOpen(!rightOpen));
+    $('#close-inspector').addEventListener('click', () => setRightOpen(false, true));
+    document.querySelectorAll('[data-mode-choice]').forEach((button) => button.addEventListener('click', () => { mode = button.dataset.modeChoice; applyLayout(); }));
+    $('#tree-search').addEventListener('input', renderTree);
+    $('#tree-rows').addEventListener('click', (event) => {
+      const object = event.target.closest('[data-object]'); if (object) { selectObject(object.dataset.object); return; }
+      const page = event.target.closest('[data-page]'); if (page) { const target = pages.find((entry) => entry.id === page.dataset.page); target.open = !target.open; renderTree(); }
+    });
+    for (const tab of ['history','attachments']) $(`#tab-${tab}`).addEventListener('click', () => selectTab(tab));
+    $('.tabs').addEventListener('keydown', (event) => { if (['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) { event.preventDefault(); selectTab(event.key === 'Home' ? 'history' : event.key === 'End' ? 'attachments' : selectedTab === 'history' ? 'attachments' : 'history', true); } });
+    $('#panel-history').addEventListener('click', (event) => { const button = event.target.closest('[data-event]'); if (!button) return; const key = `${currentId}:${button.dataset.event}`; if (expandedEvents.has(key)) expandedEvents.delete(key); else expandedEvents.add(key); const article = button.closest('article'); article.dataset.expanded = String(expandedEvents.has(key)); button.setAttribute('aria-expanded', String(expandedEvents.has(key))); $(`#detail-${button.dataset.event}`).hidden = !expandedEvents.has(key); });
+    $('#panel-attachments').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-file]'); if (!button) return; const file = currentObject().files.find((entry) => entry.id === button.dataset.file);
+      $('#file-dialog-body').innerHTML = `<div class="file-hero"><div class="file-icon">${icon(['JPG','PNG'].includes(file.type) ? 'image' : 'file')}</div><div><h3>${escapeHtml(file.name)}</h3><p>${file.type} 文件 · ${bytes(file.size)}</p></div></div><dl class="file-info"><dt>所属对象</dt><dd>${escapeHtml(currentObject().name)}</dd><dt>添加时间</dt><dd>${escapeHtml(fullTime(file.added))}</dd><dt>文件类型</dt><dd>${file.type}</dd><dt>文件大小</dt><dd>${bytes(file.size)}</dd></dl>`;
+      $('#file-dialog').showModal();
+    });
+    document.querySelectorAll('.dialog-close').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
+    document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => { if (event.target !== dialog) return; const box = dialog.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close(); }));
+    $('#add-page').addEventListener('click', () => { $('#new-page-name').value = ''; $('#page-dialog').showModal(); $('#new-page-name').focus(); });
+    $('#new-page-form').addEventListener('submit', (event) => { event.preventDefault(); const name = $('#new-page-name').value.trim(); if (!name) return; pages.push({id:`page-${Date.now()}`,name,icon:'folder',open:true}); $('#page-dialog').close(); renderTree(); toast(`已创建页面「${name}」`); });
+    $('#object-form').addEventListener('input', () => setDirty(true));
+    $('#object-form').addEventListener('submit', (event) => { event.preventDefault(); $('#save-object').click(); });
+    $('#show-number').addEventListener('click', () => { $('#field-number').type = $('#field-number').type === 'password' ? 'text' : 'password'; });
+    const fieldLabels = {name:'对象名称',owner:'持有人',number:'证件号码',issue:'签发日期',expiry:'有效期至',notes:'备注'};
+    $('#save-object').addEventListener('click', () => {
+      const object = currentObject(), changes = [];
+      for (const key of Object.keys(fieldLabels)) { const next = $(`[name="${key}"]`).value; if (next !== object[key]) { changes.push({field:fieldLabels[key],before:key === 'number' ? '••••••••' : object[key],after:key === 'number' ? '••••••••' : next,sensitive:key === 'number'}); object[key] = next; } }
+      if (!changes.length) { setDirty(false); return; }
+      if (!object.name.trim()) object.name = '未命名对象';
+      object.updated = Date.now();
+      object.history.push({id:`save-${Date.now()}`,time:object.updated,type:'edit',title:`更新了 ${changes.length} 个字段`,description:changes.map((change) => change.field).join('、'),changes});
+      scrollPositions.set(`${currentId}:history`,0); renderEditor(); renderTree(); renderInspector(); toast('对象已保存');
+    });
+    $('#cancel-edit').addEventListener('click', () => { renderEditor(); toast('已恢复到上次保存的内容'); });
+    document.querySelectorAll('[data-rail-page]').forEach((button) => button.addEventListener('click', () => { const pageId = button.dataset.railPage; if (pageId === 'work') { pages.find((page) => page.id === 'work').open = true; selectObject('work'); } else if (pageId === 'documents') { $('#tab-attachments').click(); setRightOpen(true); } else selectObject('passport'); document.querySelectorAll('[data-rail-page]').forEach((item) => { if (item === button) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current'); }); }));
+    $('#demo-tools').addEventListener('click', () => { selectTab('attachments'); setRightOpen(true); });
+    $('#demo-settings').addEventListener('click', () => $('#theme-choice').focus());
+    $('#demo-lock').addEventListener('click', () => { $('#field-number').type = 'password'; toast('敏感字段已隐藏'); });
+    const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+    function setTheme() { const selected = $('#theme-choice').value; root.dataset.theme = selected === 'system' ? systemTheme.matches ? 'dark' : 'light' : selected; }
+    $('#theme-choice').addEventListener('change', setTheme); systemTheme.addEventListener('change', () => { if ($('#theme-choice').value === 'system') setTheme(); });
+    $('#platform-choice').addEventListener('change', () => { root.dataset.platform = $('#platform-choice').value; requestAnimationFrame(measureNames); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !document.querySelector('dialog[open]') && rightOpen) { event.preventDefault(); setRightOpen(false,true); } });
+    const resizer = $('#tree-resizer');
+    function resizeTree(width) { const right = rightOpen && app.dataset.effectiveMode === 'docked' ? 340 : 0; const max = Math.max(200,Math.min(380,app.clientWidth - 56 - right - 360 - 16)); const value = Math.round(Math.max(200,Math.min(max,width))); app.style.setProperty('--tree-width',`${value}px`); resizer.setAttribute('aria-valuenow',value); }
+    resizer.addEventListener('pointerdown', (event) => { if (event.button !== 0) return; event.preventDefault(); resizer.setPointerCapture(event.pointerId); app.dataset.resizing = 'true'; });
+    resizer.addEventListener('pointermove', (event) => { if (resizer.hasPointerCapture(event.pointerId)) resizeTree(event.clientX - app.getBoundingClientRect().left - 56); });
+    function endResize() { delete app.dataset.resizing; }
+    resizer.addEventListener('pointerup', endResize); resizer.addEventListener('pointercancel', endResize); resizer.addEventListener('lostpointercapture', endResize);
+    resizer.addEventListener('dblclick', () => resizeTree(264));
+    resizer.addEventListener('keydown', (event) => { if (['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) { event.preventDefault(); const current = Number(resizer.getAttribute('aria-valuenow')); resizeTree(event.key === 'Home' ? 200 : event.key === 'End' ? 380 : current + (event.key === 'ArrowLeft' ? -12 : 12)); } });
+    window.addEventListener('resize', applyLayout);
+    setTheme(); renderEditor(); renderTree(); renderInspector(); applyLayout();
+  </script>
+</body>
+</html>

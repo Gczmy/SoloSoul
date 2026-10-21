@@ -1,0 +1,152 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: var(--object-inspector-width, 340px);
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--shell-content-surface, var(--bg-base));
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 400;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 12px;
+}
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+.name {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.close {
+  flex-shrink: 0;
+}
+.tabs {
+  display: flex;
+  margin: 0 16px 4px;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--bg-hover);
+}
+.tabs button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+.tabs button[aria-selected='true'] {
+  background: var(--shell-content-surface, var(--bg-base));
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+.count {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0 12px 16px 16px;
+}
+.footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-subtle);
+  padding: 11px 16px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+.file {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 7px;
+  padding: 11px 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.file:hover {
+  background: var(--bg-hover);
+}
+.fileIcon {
+  width: 34px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+}
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.fileMeta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.empty {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  color: var(--text-secondary);
+}
+.tabs button:focus-visible,
+.file:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}

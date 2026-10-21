@@ -10,6 +10,17 @@ function render(ui: ReactElement) {
 }
 
 describe('PageShell（B1 壳配置桥）', () => {
+  it('登记当前对象身份，并在卸载时清除右栏上下文', () => {
+    const objectInspector = { objectId: 'one', objectName: 'Object', ready: true };
+    const { unmount } = render(
+      <PageShell title="Editor" objectInspector={objectInspector}>
+        <div>Editor</div>
+      </PageShell>,
+    );
+    expect(useShellConfigStore.getState().objectInspector).toBe(objectInspector);
+    unmount();
+    expect(useShellConfigStore.getState().objectInspector).toBeUndefined();
+  });
   beforeEach(() => {
     useShellConfigStore.setState({
       title: '',

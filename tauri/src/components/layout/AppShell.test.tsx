@@ -43,7 +43,25 @@ vi.mock('./MobileBottomNav', () => ({
   MobileBottomNav: () => <div data-testid="bottom-nav" />,
 }));
 vi.mock('./AppBar', () => ({
-  AppBar: () => <div data-testid="app-bar" />,
+  AppBar: ({
+    primaryActions,
+    onPagePaneToggle,
+  }: {
+    primaryActions?: React.ReactNode;
+    onPagePaneToggle?: () => void;
+  }) => (
+    <div data-testid="app-bar">
+      {primaryActions}
+      <button onClick={onPagePaneToggle}>Toggle page pane</button>
+    </div>
+  ),
+}));
+vi.mock('@/components/object/ObjectInspectorPanel', () => ({
+  ObjectInspectorPanel: ({ onClose }: { onClose: () => void }) => (
+    <aside data-testid="inspector">
+      <button onClick={onClose}>Close inspector</button>
+    </aside>
+  ),
 }));
 vi.mock('./DesktopPagePane', () => ({
   DesktopPagePane: ({ open }: { open: boolean }) => <aside data-testid="page-pane" inert={!open} />,
@@ -66,11 +84,16 @@ function TallPageA() {
 describe('AppShell 路由导航后内容区滚动重置', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     syncStub.incomingPairingRequest = null;
     syncStub.trustPeer.mockReset();
     syncStub.loadStatus.mockReset();
     syncStub.clearIncomingPairingRequest.mockReset();
-    useUiStore.setState({ toasts: [], desktopPagePaneOpen: true });
+    useUiStore.setState({
+      toasts: [],
+      desktopPagePaneOpen: true,
+      desktopObjectInspectorOpen: false,
+    });
     useNativeWindowStore.setState({ isMacOS: false, titlebarHeight: 0, trafficLightsRight: 0 });
   });
 
@@ -99,7 +122,7 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
   });
 
   it('侧栏展开状态变化不重建正文或丢失草稿、焦点和滚动位置', () => {
-    useUiStore.setState({ desktopPagePaneOpen: true });
+    useUiStore.setState({ desktopPagePaneOpen: true, desktopObjectInspectorOpen: false });
     const { unmount } = render(
       <MemoryRouter>
         <AppShell title="首页">
@@ -132,6 +155,46 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
     expect(release).not.toHaveBeenCalledWith('--shell-content-left');
     unmount();
     expect(document.documentElement.style.getPropertyValue('--sidebar-width')).toBe('');
+  });
+
+  it('窄桌面打开右栏临时隐藏左栏并保留草稿，关闭后恢复用户的左栏偏好', async () => {
+    const media = window.matchMedia('all');
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        ...media,
+        matches: query.includes('max-width: 1099px'),
+      })),
+    );
+    useUiStore.setState({ desktopPagePaneOpen: true });
+    render(
+      <MemoryRouter>
+        <AppShell
+          title="编辑"
+          objectInspector={{ objectId: 'one', objectName: 'Object', ready: true }}
+        >
+          <input aria-label="Dock draft" />
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    fireEvent.change(screen.getByLabelText('Dock draft'), { target: { value: 'unsaved draft' } });
+    content.scrollTop = 140;
+    fireEvent.click(document.querySelector('[data-object-inspector-toggle]')!);
+    await screen.findByTestId('inspector');
+    expect(screen.getByTestId('page-pane')).toHaveAttribute('inert');
+    expect(useUiStore.getState().desktopPagePaneOpen).toBe(true);
+    fireEvent.click(screen.getByText('Close inspector'));
+    expect(screen.getByTestId('page-pane')).not.toHaveAttribute('inert');
+    expect(screen.getByLabelText('Dock draft')).toHaveValue('unsaved draft');
+    expect(document.querySelector('[data-shell-content]')).toBe(content);
+    expect(content.scrollTop).toBe(140);
+    expect(document.querySelector('[data-object-inspector-toggle]')).toHaveFocus();
+    fireEvent.click(document.querySelector('[data-object-inspector-toggle]')!);
+    await screen.findByTestId('inspector');
+    fireEvent.click(screen.getByText('Toggle page pane'));
+    expect(screen.getByTestId('page-pane')).not.toHaveAttribute('inert');
+    expect(useUiStore.getState().desktopObjectInspectorOpen).toBe(false);
   });
 
   it('入站配对信任失败时保留对话框并提示错误', async () => {

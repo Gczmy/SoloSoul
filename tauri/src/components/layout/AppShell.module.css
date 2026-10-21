@@ -38,13 +38,32 @@
 .contentBody[data-page-pane-body] {
   position: relative;
   display: grid;
-  grid-template-columns: var(--page-pane-width, 264px) minmax(0, 1fr);
+  --inspector-column-width: 0px;
+  grid-template-columns: var(--page-pane-width, 264px) minmax(0, 1fr) var(--inspector-column-width);
   flex: 1;
   min-height: 0;
   min-width: 0;
 }
 .contentBody[data-page-pane-body][data-pane-open='false'] {
-  grid-template-columns: 0px minmax(0, 1fr);
+  grid-template-columns: 0px minmax(0, 1fr) var(--inspector-column-width);
+}
+.contentBody[data-inspector-open='true'] {
+  --inspector-column-width: var(--object-inspector-width, 340px);
+}
+.contentBody[data-inspector-animating] {
+  transition: grid-template-columns var(--page-pane-motion);
+}
+.inspectorSlot {
+  grid-column: 3;
+  grid-row: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  contain: layout paint;
+}
+.contentBody[data-page-pane-body] > .content {
+  grid-column: 2;
+  grid-row: 1;
 }
 .paneSlot {
   min-width: 0;

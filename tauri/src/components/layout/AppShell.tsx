@@ -1,5 +1,5 @@
 import { useAndroidGlassSurface } from '@/hooks/useAndroidGlass';
-import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { useLocation } from 'react-router-dom';
@@ -22,6 +22,15 @@ import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
 import { DESKTOP_SIDEBAR_COLLAPSED_WIDTH, DESKTOP_SIDEBAR_EXPANDED_WIDTH } from '@/lib/constants';
+import { PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { useMediaPreference } from '@/hooks/useMediaPreference';
+import type { ObjectInspectorContext } from './shellConfigStore';
+
+const ObjectInspectorPanel = lazy(() =>
+  import('@/components/object/ObjectInspectorPanel').then((module) => ({
+    default: module.ObjectInspectorPanel,
+  })),
+);
 
 const FUNCTION_BAR_HEIGHT = 48;
 const SHELL_LAYOUT_KEYS = [
@@ -38,9 +47,17 @@ interface AppShellProps {
   actions?: React.ReactNode;
   primaryActions?: React.ReactNode;
   onBack?: () => void;
+  objectInspector?: ObjectInspectorContext;
 }
 
-export function AppShell({ children, title, actions, primaryActions, onBack }: AppShellProps) {
+export function AppShell({
+  children,
+  title,
+  actions,
+  primaryActions,
+  onBack,
+  objectInspector,
+}: AppShellProps) {
   const { t } = useTranslation('settings');
   const { onError } = useToastError();
   const isAndroid = isAndroidSync();
@@ -63,7 +80,12 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             ? Math.max(52, titlebarHeight)
             : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
-  const paneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const storedPaneOpen = useUiStore((s) => s.desktopPagePaneOpen);
+  const inspectorRequested = useUiStore((s) => s.desktopObjectInspectorOpen);
+  const setInspectorOpen = useUiStore((s) => s.setDesktopObjectInspectorOpen);
+  const showPagePane = useUiStore((s) => s.showDesktopPagePane);
+  const togglePagePane = useUiStore((s) => s.toggleDesktopPagePane);
+  const compactDesktop = useMediaPreference('(max-width: 1099px)');
   const legacySidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
   // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
@@ -84,9 +106,35 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
   const desktopPane = !isMobilePlatformSync() && !isNarrowViewport && !isHorizontal;
+  const inspectorAvailable = desktopPane && Boolean(objectInspector);
+  const inspectorOpen = inspectorAvailable && inspectorRequested;
+  const paneSuppressed = inspectorOpen && compactDesktop;
+  const paneOpen = storedPaneOpen && !paneSuppressed;
   const bodyRef = useRef<HTMLDivElement>(null);
-  const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen);
+  const paneResize = usePagePaneResize(bodyRef, desktopPane, paneOpen, inspectorOpen ? 340 : 0);
   const paneAnimating = usePagePaneMotion(bodyRef, desktopPane, paneOpen);
+  const inspectorAnimating = usePagePaneMotion(bodyRef, desktopPane, inspectorOpen);
+  const closeInspector = () => {
+    setInspectorOpen(false);
+    document.querySelector<HTMLButtonElement>('[data-object-inspector-toggle]')?.focus();
+  };
+  const InspectorIcon = inspectorOpen ? PanelRightClose : PanelRightOpen;
+  const inspectorToggle = inspectorAvailable ? (
+    <button
+      type="button"
+      data-object-inspector-toggle
+      data-ui-icon-button="neutral"
+      data-ui-icon-intent="neutral"
+      data-desktop-control="icon"
+      aria-label={t('common:toggle_object_inspector')}
+      title={t('common:toggle_object_inspector')}
+      aria-expanded={inspectorOpen}
+      aria-controls="desktop-object-inspector"
+      onClick={() => setInspectorOpen(!inspectorOpen)}
+    >
+      <InspectorIcon size={20} />
+    </button>
+  ) : null;
   // 旧导航保留交通灯避让；macOS/Windows 页面树布局固定使用 56px 图标栏。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
@@ -231,6 +279,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
           // 与图文布局同次提交；子组件测量时不能继承上一状态的全局宽度。
           '--sidebar-width': `${sidebarWidth}px`,
           '--page-pane-width': `${paneResize.width}px`,
+          '--object-inspector-width': '340px',
           flexDirection: isHorizontal
             ? effectivePosition === 'top'
               ? 'column'
@@ -243,11 +292,22 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
     >
       <AppBar
         title={title}
-        primaryActions={primaryActions}
+        primaryActions={
+          inspectorToggle ? (
+            <>
+              {primaryActions}
+              {inspectorToggle}
+            </>
+          ) : (
+            primaryActions
+          )
+        }
         actions={actions}
         onBack={onBack}
         sidebarPosition={effectivePosition}
         pagePane={desktopPane}
+        pagePaneOpen={paneOpen}
+        onPagePaneToggle={() => (paneSuppressed ? showPagePane() : togglePagePane())}
       />
       {isAndroid ? (
         <AndroidNavigation />
@@ -279,6 +339,8 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             data-pane-open={paneOpen}
             data-pane-resizing={paneResize.resizing || undefined}
             data-pane-animating={paneAnimating || undefined}
+            data-inspector-open={inspectorOpen}
+            data-inspector-animating={inspectorAnimating || undefined}
           >
             {desktopPane && (
               <div className={styles.paneSlot}>
@@ -288,6 +350,20 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
             <main ref={contentRef} className={styles.content} data-shell-content>
               {children}
             </main>
+            {desktopPane && (
+              <div
+                id="desktop-object-inspector"
+                className={styles.inspectorSlot}
+                inert={!inspectorOpen}
+                aria-hidden={!inspectorOpen}
+              >
+                {inspectorOpen && objectInspector && (
+                  <Suspense fallback={<div role="status">{t('common:loading')}</div>}>
+                    <ObjectInspectorPanel context={objectInspector} onClose={closeInspector} />
+                  </Suspense>
+                )}
+              </div>
+            )}
             {desktopPane && (
               <div
                 className={styles.paneSeparator}
