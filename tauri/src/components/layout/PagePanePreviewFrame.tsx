@@ -1,4 +1,6 @@
 import {
+  createContext,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -9,6 +11,14 @@ import {
 import { createPortal } from 'react-dom';
 import { shellInset } from '@/components/workspace/objectRuler';
 import styles from '@/components/workspace/WorkspaceObjectRuler.module.css';
+
+const PreviewContentReady = createContext<((ready: boolean) => void) | null>(null);
+
+/** 异步正文在布局阶段报告就绪，避免先绘制加载态，再改变卡片尺寸和位置。 */
+export function usePagePanePreviewContentReady(ready: boolean) {
+  const reportReady = useContext(PreviewContentReady);
+  useLayoutEffect(() => reportReady?.(ready), [reportReady, ready]);
+}
 
 export function PagePanePreviewFrame({
   anchor,
@@ -32,10 +42,16 @@ export function PagePanePreviewFrame({
   children: ReactNode;
 }) {
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  // 同步预览默认就绪；异步正文在第一次绘制前通过 Context 暂停显示。
+  const [contentReady, setContentReady] = useState(true);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   useLayoutEffect(() => {
     const update = () => {
+      if (!contentReady) {
+        setPosition(null);
+        return;
+      }
       const button = anchor.current;
       const card = cardRef.current;
       if (!button || !card) return;
@@ -72,7 +88,7 @@ export function PagePanePreviewFrame({
       window.removeEventListener('scroll', scroll, true);
       window.removeEventListener('resize', update);
     };
-  }, [anchor, cardRef]);
+  }, [anchor, cardRef, contentReady]);
   useEffect(() => {
     const dismiss = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onDismiss();
@@ -94,7 +110,8 @@ export function PagePanePreviewFrame({
         ...position,
         right: 'auto',
         maxWidth: 'calc(100vw - 16px)',
-        visibility: position ? undefined : 'hidden',
+        visibility: contentReady && position ? undefined : 'hidden',
+        animation: 'none',
         zIndex: 200,
       }}
       onMouseEnter={onMouseEnter}
@@ -110,7 +127,9 @@ export function PagePanePreviewFrame({
           onClose();
       }}
     >
-      {children}
+      <PreviewContentReady.Provider value={setContentReady}>
+        {children}
+      </PreviewContentReady.Provider>
     </div>,
     document.body,
   );

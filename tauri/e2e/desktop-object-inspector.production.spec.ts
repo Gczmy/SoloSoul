@@ -322,3 +322,115 @@ for (const theme of ['light', 'dark'] as const) {
     await page.screenshot({ path: info.outputPath(`windows-${theme}-aligned-actions.png`) });
   });
 }
+
+for (const platform of ['windows', 'macos'] as const) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`${platform} ${theme}: sidebar previews first appear complete without motion or resizing`, async ({
+      page,
+    }) => {
+      await setup(page, platform, theme);
+      await page.setViewportSize({ width: 1280, height: 480 });
+      const pane = page.locator('#desktop-page-pane');
+      const card = page.locator('[data-page-pane-preview]');
+      const startSampling = async () =>
+        page.evaluate(() => {
+          const frames: Array<{
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            opacity: string;
+            transform: string;
+            animations: number;
+            loading: boolean;
+          }> = [];
+          let frame = 0;
+          const sample = () => {
+            const card = document.querySelector<HTMLElement>('[data-page-pane-preview]');
+            if (card) {
+              const style = getComputedStyle(card);
+              if (style.visibility !== 'hidden' && style.display !== 'none') {
+                const rect = card.getBoundingClientRect();
+                frames.push({
+                  x: rect.x,
+                  y: rect.y,
+                  width: rect.width,
+                  height: rect.height,
+                  opacity: style.opacity,
+                  transform: style.transform,
+                  animations: card.getAnimations().length,
+                  loading: Boolean(card.querySelector('[role="status"]')),
+                });
+              }
+            }
+            frame = requestAnimationFrame(sample);
+          };
+          sample();
+          Object.assign(window, {
+            __stopPreviewSamples: () => {
+              cancelAnimationFrame(frame);
+              return frames;
+            },
+          });
+        });
+      const expectStable = async () => {
+        await page.waitForTimeout(200);
+        const frames = (await page.evaluate('window.__stopPreviewSamples()')) as Array<{
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          opacity: string;
+          transform: string;
+          animations: number;
+          loading: boolean;
+        }>;
+        expect(frames.length).toBeGreaterThan(4);
+        expect(
+          frames.filter(
+            (frame) =>
+              frame.opacity !== '1' ||
+              frame.transform !== 'none' ||
+              frame.animations > 0 ||
+              frame.loading ||
+              Math.abs(frame.x - frames[0].x) > 0.5 ||
+              Math.abs(frame.y - frames[0].y) > 0.5 ||
+              Math.abs(frame.width - frames[0].width) > 0.5 ||
+              Math.abs(frame.height - frames[0].height) > 0.5,
+          ),
+        ).toEqual([]);
+      };
+      await startSampling();
+      await pane.locator('[data-page-id="identity"]').hover();
+      await expect(card.getByRole('heading', { name: 'Identity', exact: true })).toBeVisible();
+      await expectStable();
+      await page.keyboard.press('Escape');
+      await expect(card).toHaveCount(0);
+      await page.evaluate(() => {
+        const state = window as unknown as {
+          __E2E_MOCKS__: Record<string, (args: unknown) => Promise<unknown>>;
+          __finishPreview?: () => Promise<void>;
+        };
+        const original = state.__E2E_MOCKS__.object_get;
+        state.__E2E_MOCKS__.object_get = (args) =>
+          new Promise((resolve) => {
+            state.__finishPreview = async () => resolve(await original(args));
+          });
+      });
+      await startSampling();
+      await pane.locator('[data-object-id="two"]').hover();
+      await expect(card).toHaveCount(1);
+      await expect(card).toBeHidden();
+      await page.waitForTimeout(250);
+      await expect(card).toBeHidden();
+      await page.evaluate('window.__finishPreview()');
+      await expect(card.getByRole('heading', { name: 'Second record', exact: true })).toBeVisible();
+      await expectStable();
+      const bounds = (await card.boundingBox())!;
+      expect(bounds.y).toBeGreaterThanOrEqual(52);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(480);
+      await card.getByRole('button', { name: 'Edit object', exact: true }).click();
+      await expect(page).toHaveURL(/\/editor\/two$/);
+    });
+  }
+}

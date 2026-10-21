@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { setRequestSession } from '@/lib/sessionRequests';
 import { PagePaneObjectPreview } from './PagePanePreview';
 import type { ObjectData } from '@/lib/generated/ipcContracts';
+import { useRef } from 'react';
+import { PagePanePreviewFrame } from './PagePanePreviewFrame';
 
 const object = (id: string): ObjectData => ({
   id,
@@ -33,6 +35,28 @@ const preview = (objectId: string, onNavigate = vi.fn()) => (
   />
 );
 
+function FramedPreview({ objectId }: { objectId: string }) {
+  const anchor = useRef<HTMLButtonElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  return (
+    <>
+      <button ref={anchor}>Preview anchor</button>
+      <PagePanePreviewFrame
+        anchor={anchor}
+        cardRef={card}
+        id="test-preview"
+        label="Object details"
+        onClose={vi.fn()}
+        onDismiss={vi.fn()}
+        onMouseEnter={vi.fn()}
+        onMouseLeave={vi.fn()}
+      >
+        {preview(objectId)}
+      </PagePanePreviewFrame>
+    </>
+  );
+}
+
 beforeEach(() => {
   vi.mocked(invoke).mockReset();
   useAuthStore.setState({
@@ -53,6 +77,34 @@ it('uses the ruler mask, exposes public fields only, and opens the editor', asyn
   fireEvent.click(screen.getByRole('button', { name: 'page_pane_edit_object' }));
   expect(navigate).toHaveBeenCalledOnce();
 });
+
+it.each(['success', 'failure'])(
+  'shows only the completed %s card, never its loading frame',
+  async (outcome) => {
+    let finish!: () => void;
+    vi.mocked(invoke).mockImplementation(
+      () =>
+        new Promise((resolve, reject) => {
+          finish = () =>
+            outcome === 'success'
+              ? resolve(object('a'))
+              : reject(new Error('Public fixture failure'));
+        }),
+    );
+    render(<FramedPreview objectId="a" />);
+    await waitFor(() => expect(finish).toBeDefined());
+    const frame = screen.getByRole('region', { hidden: true });
+    expect(frame).not.toBeVisible();
+    expect(screen.getByText('page_pane_loading')).not.toBeVisible();
+    await act(async () => finish());
+    await waitFor(() => expect(frame).toBeVisible());
+    expect(screen.queryByText('page_pane_loading')).not.toBeInTheDocument();
+    if (outcome === 'success') {
+      expect(screen.getByText('Public preview')).toBeVisible();
+      expect(frame).not.toHaveTextContent('PRIVATE-PREVIEW-SECRET');
+    } else expect(screen.getByText('page_pane_preview_unavailable')).toBeVisible();
+  },
+);
 
 it.each(['account', 'deleted', 'id'])(
   'rejects a %s-mismatched object response',
@@ -77,9 +129,9 @@ it('does not replace a new hover card with a late previous response', async () =
       });
     return object('b');
   });
-  const { rerender } = render(preview('a'));
+  const { rerender } = render(<FramedPreview objectId="a" />);
   await waitFor(() => expect(finishOld).toBeDefined());
-  rerender(preview('b'));
+  rerender(<FramedPreview objectId="b" />);
   expect(await screen.findByRole('heading', { name: 'Object b' })).toBeInTheDocument();
   await act(async () => finishOld(object('a')));
   expect(screen.getByRole('heading', { name: 'Object b' })).toBeInTheDocument();
@@ -91,7 +143,7 @@ it('clears already loaded details on account lock', async () => {
   render(preview('a'));
   expect(await screen.findByText('Public preview')).toBeInTheDocument();
   act(() => {
-    useAuthStore.setState({ isAuthenticated: false });
+    useAuthStore.setState({ isAuthenticated: false, currentAccount: null });
     setRequestSession(null);
   });
   expect(document.body.innerHTML).not.toContain('Public preview');
