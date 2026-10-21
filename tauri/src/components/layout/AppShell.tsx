@@ -359,7 +359,12 @@ export function AppShell({
                 role="group"
                 aria-label={title}
               >
-                {editorActions}
+                <div className={styles.contentToolbarViewport}>
+                  <div className={styles.contentToolbarActions} data-editor-form-actions>
+                    {primaryActions}
+                  </div>
+                </div>
+                {inspectorToggle}
               </div>
             )}
             <main ref={contentRef} className={styles.content} data-shell-content>

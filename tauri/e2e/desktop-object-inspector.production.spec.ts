@@ -126,7 +126,9 @@ for (const platform of ['windows', 'macos'] as const)
           }),
         );
         expect(buttons).toHaveLength(3);
-        expect(buttons[0].x).toBeGreaterThan(bar.x + bar.width / 2);
+        const form = page.locator('[data-object-editor-form]');
+        const formBox = (await form.boundingBox())!;
+        expect(Math.abs(buttons[1].right - formBox.x - formBox.width)).toBeLessThan(1);
         expect(buttons[0].x).toBeLessThan(buttons[1].x);
         expect(buttons[1].x).toBeLessThan(buttons[2].x);
         expect(buttons.every((button) => button.height === 32 && button.y === buttons[0].y)).toBe(
@@ -233,3 +235,90 @@ test('narrow desktop temporarily hides the left pane, preserves drafts and resto
   await expect(page.locator('#desktop-page-pane')).not.toHaveAttribute('inert', '');
   await expect(name).toHaveValue('UNSAVED DRAFT');
 });
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`windows ${theme}: save tracks the form edge throughout inspector motion and rapid reversal`, async ({
+    page,
+  }, info) => {
+    await setup(page, 'windows', theme);
+    const name = page.getByLabel('Object Name', { exact: true });
+    await name.fill('UNSAVED ALIGNMENT DRAFT');
+    const main = await page.locator('[data-shell-content]').elementHandle();
+    const save = await page.getByRole('button', { name: 'Save', exact: true }).elementHandle();
+    for (const width of [1280, 1600, 800]) {
+      await page.setViewportSize({ width, height: 800 });
+      await expect(page.locator('[data-pane-animating], [data-inspector-animating]')).toHaveCount(
+        0,
+      );
+      for (const rapid of [false, true]) {
+        const frames = await page.evaluate(async (rapid) => {
+          const toggle = document.querySelector<HTMLButtonElement>(
+            '[data-object-inspector-toggle]',
+          )!;
+          const frameSamples: Array<{
+            formRight: number;
+            saveRight: number;
+            saveLeft: number;
+            cancelRight: number;
+            saveY: number;
+            cancelY: number;
+            toggleLeft: number;
+            toggleRight: number;
+          }> = [];
+          const start = performance.now();
+          let reversed = false;
+          toggle.click();
+          await new Promise<void>((resolve) => {
+            const sample = () => {
+              const form = document
+                .querySelector('[data-object-editor-form]')!
+                .getBoundingClientRect();
+              const actions = document.querySelectorAll('[data-editor-form-actions] button');
+              const cancel = actions[0].getBoundingClientRect();
+              const save = actions[1].getBoundingClientRect();
+              const control = toggle.getBoundingClientRect();
+              frameSamples.push({
+                formRight: form.right,
+                saveRight: save.right,
+                saveLeft: save.left,
+                cancelRight: cancel.right,
+                saveY: save.y,
+                cancelY: cancel.y,
+                toggleLeft: control.left,
+                toggleRight: control.right,
+              });
+              if (rapid && !reversed && performance.now() - start > 100) {
+                toggle.click();
+                reversed = true;
+              }
+              if (performance.now() - start < 550) requestAnimationFrame(sample);
+              else resolve();
+            };
+            requestAnimationFrame(sample);
+          });
+          return frameSamples;
+        }, rapid);
+        expect(frames.length).toBeGreaterThan(4);
+        const badFrames = frames.filter(
+          (frame) =>
+            Math.abs(frame.formRight - frame.saveRight) > 1 ||
+            frame.cancelRight >= frame.saveLeft ||
+            frame.saveRight + 7 > frame.toggleLeft ||
+            frame.cancelY !== frame.saveY ||
+            Math.abs(frame.toggleRight - frames[0].toggleRight) > 1,
+        );
+        expect(badFrames).toEqual([]);
+        if (!rapid) {
+          expect(
+            Math.max(...frames.map((frame) => frame.saveRight)) -
+              Math.min(...frames.map((frame) => frame.saveRight)),
+          ).toBeGreaterThan(40);
+        }
+        await expect(name).toHaveValue('UNSAVED ALIGNMENT DRAFT');
+        expect(await main!.evaluate((el) => el.isConnected)).toBe(true);
+        expect(await save!.evaluate((el) => el.isConnected)).toBe(true);
+      }
+    }
+    await page.screenshot({ path: info.outputPath(`windows-${theme}-aligned-actions.png`) });
+  });
+}

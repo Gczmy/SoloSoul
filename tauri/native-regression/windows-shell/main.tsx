@@ -91,6 +91,7 @@ async function capture() {
     ),
     editorToolbar: bounds('[data-editor-content-toolbar]'),
     editorToolbarControls: bounds('[data-editor-content-toolbar] button'),
+    editorForm: bounds('[data-object-editor-form]'),
     editorScrollMask: document.querySelector('[data-shell-content]')
       ? getComputedStyle(document.querySelector('[data-shell-content]')!).maskImage
       : null,
