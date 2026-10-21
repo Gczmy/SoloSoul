@@ -1,0 +1,97 @@
+name: Shared frontend validation
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        type: string
+        required: true
+
+jobs:
+  unit:
+    name: TypeScript, lint and unit coverage
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/check-frontend
+        with:
+          node_version: ${{ inputs.node_version }}
+
+  browser:
+    name: Production browser (${{ matrix.shard }}/4)
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: npm
+          cache-dependency-path: tauri/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install production browser
+        run: npx playwright install --with-deps chromium
+      # 继承现有 production 配置：真实 Vite 生产构建、1 worker、2 次重试及所有用例。
+      - name: Run production browser shard
+        run: npm run test:e2e:production -- --shard=${{ matrix.shard }}/4 --reporter=list,blob
+      - name: Upload shard report and attachments
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-browser-blob-${{ matrix.shard }}
+          path: tauri/blob-report/
+          if-no-files-found: error
+          retention-days: 7
+
+  browser-report:
+    name: Merge and verify production coverage
+    if: always()
+    needs: [browser]
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: npm
+          cache-dependency-path: tauri/package-lock.json
+      - name: Install report dependencies
+        run: npm ci --ignore-scripts
+      - name: Download all four shard reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: production-browser-blob-*
+          path: tauri/all-blob-reports
+          merge-multiple: true
+      - name: Require four shard reports
+        run: test "$(find all-blob-reports -maxdepth 1 -name 'report-*.zip' | wc -l)" -eq 4
+      - name: Enumerate the complete production suite
+        run: npx playwright test --config playwright.production.config.ts --list --reporter=json > production-browser-inventory.json
+      - name: Merge browser reports
+        run: npx playwright merge-reports --reporter=html,json all-blob-reports
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+          PLAYWRIGHT_JSON_OUTPUT_NAME: production-browser-results.json
+      - name: Verify every production case was accounted for
+        run: node scripts/check-production-shards.mjs production-browser-inventory.json production-browser-results.json
+      - name: Upload merged browser report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-browser-report
+          path: |
+            tauri/playwright-report/
+            tauri/production-browser-inventory.json
+            tauri/production-browser-results.json
+          if-no-files-found: error
+          retention-days: 7

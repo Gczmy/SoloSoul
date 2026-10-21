@@ -57,22 +57,23 @@ jobs:
       - name: Test ACL contract comparison
         run: python3 -m unittest discover -s scripts -p test_check_acl_consistency.py
 
+  frontend-validation:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/frontend-validation.yml
+    with:
+      node_version: '22'
+
+  # 保留既有 required check 名称；任一单测、分片或报告失败均阻止通过。
   frontend-check:
     name: Frontend TypeScript & Lint
-    if: github.event_name == 'pull_request'
-    # Playwright 1.60 supports Ubuntu 24.04; ubuntu-latest now also selects 26.04.
+    if: always() && github.event_name == 'pull_request'
+    needs: [frontend-validation]
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: tauri
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Shared frontend validation
-        uses: ./.github/actions/check-frontend
-        with:
-          node_version: ${{ env.NODE_VERSION }}
+      - name: Require all frontend validation jobs
+        env:
+          VALIDATION_RESULT: ${{ needs.frontend-validation.result }}
+        run: test "$VALIDATION_RESULT" = success
 
   rust-check:
     name: Rust Format, Clippy & Tests
