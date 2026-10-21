@@ -96,7 +96,8 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: tauri/src-tauri
+          workspaces: tauri
+          prefix-key: v1-tauri-workspace
 
       - name: Install Linux Host development dependencies
         run: |
