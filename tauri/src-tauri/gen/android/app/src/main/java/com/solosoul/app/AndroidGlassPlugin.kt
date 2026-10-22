@@ -232,7 +232,7 @@ class AndroidGlassPlugin(private val activity: Activity) : Plugin(activity) {
                 gravity = Gravity.CENTER_VERTICAL
                 minimumHeight = dp(76)
                 setPadding(dp(12), dp(14), dp(12), dp(14))
-                background = rounded(Color.parseColor(if (index == 0) args.container else args.background), 18)
+                background = rounded(Color.parseColor(args.background), 18)
                 isClickable = true; isFocusable = true
                 contentDescription = "${labels[index]}. ${descriptions[index]}"
                 setOnClickListener { finish(action) }
