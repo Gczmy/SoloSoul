@@ -74,6 +74,7 @@ describe('desktop object inspector', () => {
     expect(screen.queryByRole('status')).toBeNull();
     expect(screen.getByRole('complementary', { name: 'object_inspector' })).toBeVisible();
     expect(screen.getByRole('tablist')).toBeVisible();
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false');
     expect(ipc).not.toHaveBeenCalled();
   });
   it('loads only active attachments for the current object, newest first, and reuses preview', async () => {

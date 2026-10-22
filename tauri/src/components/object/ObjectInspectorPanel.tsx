@@ -127,7 +127,7 @@ function InspectorSession({
         aria-labelledby={`object-inspector-tab-${tab}`}
         tabIndex={0}
         data-object-inspector-scroll
-        aria-busy={!context.ready}
+        aria-busy={!context.ready && !context.failed}
       >
         {!context.ready ? (
           <div className={styles.loading} role={context.failed ? 'alert' : 'status'}>
