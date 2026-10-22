@@ -54,7 +54,13 @@ impl WasmSandbox {
         // 移动端强制使用 Pulley 解释器目标，避免 Cranelift JIT 在 Android/iOS 上的 native signal / mmap 兼容性问题
         #[cfg(any(target_os = "android", target_os = "ios"))]
         {
-            config.target("pulley64").map_err(|e| {
+            // Pulley 指针宽度必须与设备一致；通用 APK 同时包含 ARMv7 与 ARM64。
+            let target = if cfg!(target_pointer_width = "32") {
+                "pulley32"
+            } else {
+                "pulley64"
+            };
+            config.target(target).map_err(|e| {
                 PluginError::ExecutionFailed(format!("设置 Pulley target 失败: {}", e))
             })?;
         }

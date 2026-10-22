@@ -1,0 +1,19 @@
+{
+  "scope": "Mobile Pulley target pointer width",
+  "sourceBase": "88aadd81a",
+  "problem": "The mobile sandbox forced pulley64 even for the 32-bit ARMv7 library included in the universal Android APK.",
+  "change": "Select pulley32 for 32-bit mobile targets and pulley64 for 64-bit targets. Fuel limits, sessions, host checks and desktop compilation behavior are unchanged.",
+  "validation": {
+    "rustFormat": "passed",
+    "windowsReleaseCompilation": "passed; mobile-only branch excluded",
+    "androidArm64ReleaseCompilation": "passed",
+    "androidArmv7ReleaseCompilation": "passed",
+    "armv7Elf": { "class": 32, "machine": 40, "bytes": 39512068 },
+    "currentProductionFrontendEmbeddedInBothLibraries": true,
+    "toolchain": "Rust 1.99.1; Android NDK 27"
+  },
+  "limits": [
+    "Compilation and static package checks do not replace plugin execution on a physical 32-bit Android device; this runtime acceptance remains unverified.",
+    "No physical iOS device validation was performed."
+  ]
+}
