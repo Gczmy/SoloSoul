@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { TemplateEditor } from '@/components/template/TemplateEditor';
 import type { useTemplateEditor } from '@/hooks/useTemplateEditor';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidTemplateEditor } from '@/components/template/android/AndroidTemplateEditor';
 
 interface TemplateEditorModalProps {
   /** useTemplateEditor 收敛的全部编辑器状态与回调（P224-③ 拆分，数据经编排层透传） */
@@ -47,6 +49,10 @@ export function TemplateEditorModal({ editor }: TemplateEditorModalProps) {
     handleDynamicGroupSensitivityChange,
     toggleShowDeprecated,
   } = editor;
+
+  if (isAndroidSync()) {
+    return editingTemplate ? <AndroidTemplateEditor editor={editor} /> : null;
+  }
 
   return (
     <Dialog

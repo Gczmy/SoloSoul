@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-22",
+  "scope": "Android fullscreen template editor and bottom option sheets",
+  "changes": [
+    "Android-only fullscreen editor with fixed cancel/save header and one scrolling form",
+    "Vertical field rows, with a single column of choices below 360 CSS pixels",
+    "Bottom sheets for field types, sensitivity, destination page, icon and plugin binding",
+    "Selected type is supplied directly when adding a field; the new name receives focus",
+    "Option drafts support cancel and remove blank or duplicate values only on confirmation",
+    "Dynamic field settings and archived field restore/cleanup remain available",
+    "Nested back, focus restoration, keyboard insets, safe areas and external-navigation cleanup"
+  ],
+  "preserved": [
+    "Windows/macOS desktop dialog and inline controls",
+    "Existing template persistence and save-error handling",
+    "Field-usage checks, archive confirmation and restore behavior",
+    "Plugin contract derivation and binding persistence",
+    "The final allowed dynamic field type cannot be deselected"
+  ],
+  "validation": {
+    "unitTests": {
+      "passed": 27,
+      "files": [
+        "src/hooks/useTemplateEditor.test.tsx",
+        "src/components/template/TemplateEditor.test.tsx",
+        "src/components/template/TemplatePageSelect.test.tsx",
+        "src/hooks/useOverlayBackGuard.test.ts"
+      ]
+    },
+    "templateBrowserTests": {
+      "file": "e2e/android-template-editor.spec.ts",
+      "passed": 20,
+      "failed": 0,
+      "flaky": 0,
+      "reportSha256": "b480a65d506a2925c321b1de904125fe05c3ec061a69ca053a61f68b1fe1e236",
+      "viewports": ["320x568", "390x844", "640x320", "320x400"],
+      "coverage": ["light/dark", "Chinese/English", "large text", "safe areas and keyboard inset", "independent scroll", "create/update/cancel/save failure", "nested back", "archive/restore", "plugin bindings", "dynamic field limits"]
+    },
+    "desktopMouseBrowserTests": { "passed": 4, "platforms": ["windows", "macos"], "themes": ["light", "dark"] },
+    "existingAndroidTouchRegression": { "passed": 1, "file": "e2e/android-touch-targets.spec.ts" },
+    "typeScript": "passed",
+    "eslint": { "errors": 0, "warnings": 1, "warning": "Pre-existing unused event parameter in src/stores/syncStore.ts" },
+    "environment": "Browser tests with public fixtures. Hardware back is exercised via browser history. No Android native-device acceptance is claimed."
+  },
+  "release": {
+    "version": "2.14.0",
+    "rebuilt": false,
+    "existingPackagesContainTheseChanges": false
+  }
+}

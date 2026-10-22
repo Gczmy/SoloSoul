@@ -15,6 +15,8 @@ export function AndroidSheet({
   trigger,
   zIndex,
   material = 'glass',
+  className = '',
+  inertRoot = true,
 }: {
   title: string;
   children: ReactNode;
@@ -26,6 +28,9 @@ export function AndroidSheet({
   zIndex?: CSSProperties['zIndex'];
   /** 长表单使用实色，短操作菜单保留局部玻璃。 */
   material?: 'glass' | 'solid';
+  className?: string;
+  /** 全屏宿主已管理背景禁用时，由宿主负责恢复，避免嵌套卸载后遗留 inert。 */
+  inertRoot?: boolean;
 }) {
   const { t } = useTranslation('common');
   const titleId = useId();
@@ -35,7 +40,7 @@ export function AndroidSheet({
   useOverlayBackGuard({ innerOpen, onCloseInner: onBack, onClose });
   useEffect(() => {
     const previous = trigger ?? document.activeElement;
-    const app = document.getElementById('root');
+    const app = inertRoot ? document.getElementById('root') : null;
     const wasInert = app?.inert ?? false;
     if (app) app.inert = true;
     const focusables = () =>
@@ -83,7 +88,7 @@ export function AndroidSheet({
       if (previous instanceof HTMLElement && previous.isConnected)
         previous.focus({ preventScroll: true });
     };
-  }, [trigger]);
+  }, [trigger, inertRoot]);
   useEffect(() => {
     // 新建页面/返回选择层时焦点随内容移动，避免停在已卸载的输入框。
     (
@@ -100,7 +105,7 @@ export function AndroidSheet({
       <div className="android-sheet-scrim" onClick={onClose} />
       <div
         ref={panel}
-        className={`android-sheet${material === 'glass' ? ' android-glass-surface' : ''}`}
+        className={`android-sheet${material === 'glass' ? ' android-glass-surface' : ''} ${className}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

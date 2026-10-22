@@ -28,7 +28,12 @@ export function useTemplateEditor() {
   const updateTemplate = useTemplateStore((s) => s.updateTemplate);
   const loadTemplates = useTemplateStore((s) => s.loadTemplates);
   const installedPlugins = usePluginStore((s) => s.installedPlugins) ?? EMPTY_PLUGINS;
-  const { requestConfirm, dialog: confirmDialog } = useConfirm();
+  const {
+    requestConfirm,
+    dialog: confirmDialog,
+    isOpen: confirmOpen,
+    close: closeConfirm,
+  } = useConfirm();
 
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const [isNewTemplate, setIsNewTemplate] = useState(false);
@@ -136,7 +141,10 @@ export function useTemplateEditor() {
   const saveEdit = async () => {
     const name = editName.trim();
     if (!name) {
-      showToast({ type: 'warning', message: t('common:name_required', { defaultValue: '请输入模板名称' }) });
+      showToast({
+        type: 'warning',
+        message: t('common:name_required', { defaultValue: '请输入模板名称' }),
+      });
       setShowNameError(true);
       return;
     }
@@ -314,16 +322,21 @@ export function useTemplateEditor() {
     setEditProperties((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const addProperty = () => {
+  const addPropertyOfType = (type: PropertyType) => {
     const newProp: TemplateProperty = {
       id: crypto.randomUUID(),
       name: t('settings:new_field_name', { defaultValue: '新字段' }),
-      type: newFieldType,
+      type,
       sensitivityLevel: 'internal',
       allowedTypes: undefined,
       maxItems: undefined,
     };
     setEditProperties((prev) => [...prev, newProp]);
+    return newProp.id;
+  };
+
+  const addProperty = () => {
+    addPropertyOfType(newFieldType);
   };
 
   return {
@@ -343,6 +356,8 @@ export function useTemplateEditor() {
     fieldUsageMap,
     showNameError,
     confirmDialog,
+    confirmOpen,
+    closeConfirm,
     // 编辑器基础输入 setter（TemplateEditorModal 透传用）
     setEditName,
     setEditCategory,
@@ -362,6 +377,7 @@ export function useTemplateEditor() {
     restoreProperty,
     permanentlyRemoveProperty,
     addProperty,
+    addPropertyOfType,
     handleDynamicGroupEnabledChange,
     handleDynamicGroupAllowedTypesChange,
     handleDynamicGroupMaxItemsChange,

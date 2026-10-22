@@ -1,0 +1,261 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--safe-area-top) var(--safe-area-right)
+    calc(var(--safe-area-bottom) + var(--android-keyboard-inset, 0px)) var(--safe-area-left);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.header h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.header > button {
+  flex-shrink: 0;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  scroll-padding-block: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.section,
+.field,
+.config,
+.choiceList {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 12px;
+}
+
+.section h3,
+.label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-body-sm);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.field {
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--bg-base);
+}
+
+.fieldName {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.fieldName > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.fieldName > button {
+  flex-shrink: 0;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.choice,
+.option,
+.binding {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-sizing: border-box;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+}
+
+.choice > span,
+.option > span,
+.binding > span {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.choice svg,
+.option svg {
+  flex-shrink: 0;
+}
+
+.choice small,
+.option small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.option[aria-checked='true'] {
+  border-color: var(--md-primary-ink);
+  background: var(--md-secondary-container);
+}
+
+.option:disabled,
+.choice:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.choiceList {
+  gap: 8px;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sheet > :not(:last-child) {
+  flex-shrink: 0;
+}
+
+.sheetBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px;
+  scroll-padding-block: 4px;
+}
+
+.subheading {
+  margin: 12px 0 0;
+  font-size: var(--text-body-sm);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions > button {
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.hint,
+.contractId {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 160px;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+}
+
+.checkRow > span:last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.binding {
+  cursor: default;
+}
+
+.binding button {
+  flex-shrink: 0;
+}
+
+.deprecatedName {
+  text-decoration: line-through;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 359px) {
+  .choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

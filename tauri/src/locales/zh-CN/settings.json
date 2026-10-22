@@ -755,6 +755,12 @@
     }
   },
   "template_manager_title": "模板管理",
+  "template_mobile": {
+    "field_type": "字段类型",
+    "dynamic_settings": "动态字段设置",
+    "options_hint": "每行输入一个选项，确认时自动去除空行和重复项。",
+    "field_usage": "有 {{active}} 个正常对象和 {{trash}} 个回收站对象正在使用。"
+  },
   "new_template": "新建模板",
   "template_category": "所属页面",
   "system_pages": "系统页面",

@@ -355,10 +355,11 @@ test('Android template and data dialogs keep actions reachable on narrow screens
   await page.setViewportSize({ width: 320, height: 844 });
   await navigate(page, '/settings/templates');
   await page.getByRole('button', { name: 'New Template', exact: true }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = page.locator('[data-android-template-editor]');
   await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: /Icon/ }).click();
-  const grid = dialog.locator('.template-icon-grid');
+  const iconSheet = page.getByRole('dialog', { name: 'Template Icon', exact: true });
+  const grid = iconSheet.locator('.template-icon-grid');
   await expect(grid).toBeVisible();
   expect(
     await grid.evaluate((element) => {
@@ -377,6 +378,7 @@ test('Android template and data dialogs keep actions reachable on narrow screens
     path: test.info().outputPath('template-icons-320.png'),
     animations: 'disabled',
   });
+  await iconSheet.getByRole('button', { name: 'Close', exact: true }).click();
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await navigate(page, '/settings/data');
   await page.getByRole('button', { name: 'View breakdown', exact: true }).click();

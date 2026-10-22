@@ -755,6 +755,12 @@
     }
   },
   "template_manager_title": "Template Manager",
+  "template_mobile": {
+    "field_type": "Field type",
+    "dynamic_settings": "Dynamic field settings",
+    "options_hint": "Enter one option per line. Blank lines and duplicates are removed when confirmed.",
+    "field_usage": "Used by {{active}} active and {{trash}} trashed objects."
+  },
   "new_template": "New Template",
   "template_category": "Page",
   "system_pages": "System Pages",
