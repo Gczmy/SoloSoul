@@ -3,6 +3,12 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 fn main() {
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("android") {
+        // NDK r27 及更早版本需要同时指定最大页和常用页大小，保证 LOAD 与 RELRO
+        // 均兼容 16 KB 设备；只作用于 Android 共享库的最终链接。
+        println!("cargo:rustc-link-arg-cdylib=-Wl,-z,max-page-size=16384");
+        println!("cargo:rustc-link-arg-cdylib=-Wl,-z,common-page-size=16384");
+    }
     // 内联移动插件的事件监听同样需要 ACL；只开放监听，菜单命令仍经 Rust 校验。
     let attributes = tauri_build::Attributes::new().plugin(
         "android-glass",

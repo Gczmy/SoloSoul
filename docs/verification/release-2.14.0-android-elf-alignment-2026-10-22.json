@@ -1,0 +1,21 @@
+{
+  "scope": "Android release ELF LOAD and RELRO alignment",
+  "sourceBase": "540ab65de",
+  "problem": "The first ARM64 release library built with NDK r27 had four LOAD segments aligned to 4096 bytes.",
+  "change": "Set max-page-size=16384 and common-page-size=16384 on Android cdylib links. The Windows and macOS branches emit neither flag.",
+  "validation": {
+    "rustFormat": "passed",
+    "androidReleaseCompilation": { "arm64": "passed", "armv7": "passed" },
+    "loadSegmentAlignmentBytes": { "arm64": [16384, 16384, 16384, 16384], "armv7": [16384, 16384, 16384, 16384] },
+    "relroEndAlignedTo16384": { "arm64": true, "armv7": true },
+    "ndkStripUnneededOutputRechecked": "Both architectures retain correct ELF identity, production frontend keys, LOAD alignment and RELRO alignment.",
+    "arm64StrippedSha256": "b60c6860449b298e462999ddd5117c092c4c41213bf582c4a57e18719b596389",
+    "armv7StrippedSha256": "5299bd3dbae03212e2f2d376a6e422eea944069ff7ee091b45ba31ab4316950b",
+    "toolchain": "Rust 1.99.1; Android NDK 27"
+  },
+  "limits": [
+    "APK ZIP alignment and final packaging are recorded in the release preparation summary.",
+    "No physical 16 KB page-size Android device was exercised."
+  ],
+  "reference": "https://developer.android.com/guide/practices/page-sizes"
+}

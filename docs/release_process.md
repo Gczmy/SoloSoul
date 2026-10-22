@@ -282,6 +282,15 @@ cargo tauri android build --apk
 
 > **为什么默认构建 APK 而不是 AAB？** 当前 SoloSoul 不进入 Google Play 商店分发，APK 可直接在 Android 设备上安装，更适合 GitHub Release 侧载和内测。AAB 无法直接安装，仅作为未来上架 Play Store 时的备选格式。
 
+#### Android 16 KB 页对齐
+
+`tauri/src-tauri/build.rs` 为 Android 共享库的最终链接设置
+`max-page-size=16384` 和 `common-page-size=16384`，同时对齐 LOAD 与 RELRO，
+覆盖 NDK r27 的构建环境。发布时检查 APK 中的原生库及 ZIP 对齐；
+SDK Build-Tools 35.0.0 或更新版本可执行 `zipalign -c -P 16 -v 4 <APK>`。
+链接与打包检查不能替代 16 KB 设备运行验收，说明见
+[Android 官方页大小指南](https://developer.android.com/guide/practices/page-sizes)。
+
 #### Android 版本号规则
 
 | 来源 | 说明 |
