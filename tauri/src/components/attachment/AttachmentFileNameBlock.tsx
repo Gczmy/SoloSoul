@@ -17,6 +17,8 @@ interface AttachmentFileNameBlockProps {
   description?: string | null;
   /** 可选：附件标签（存在时以小型 chips 显示，超过 4 个可展开） */
   tags?: string[];
+  /** 全局附件管理：展开时直接显示内容，不增加标题行或底色。 */
+  plainExpanded?: boolean;
 }
 
 /** 折叠态最多展示的标签数；超出部分收进「+N」并可用箭头展开。 */
@@ -61,10 +63,12 @@ function ToggleButton({
   expanded,
   onClick,
   label,
+  plain = false,
 }: {
   expanded: boolean;
   onClick: () => void;
   label: string;
+  plain?: boolean;
 }) {
   return (
     <button
@@ -97,7 +101,7 @@ function ToggleButton({
         // 状态驱动而非 hover/触摸事件驱动：展开态保持「点击效果」（accent 色 +
         // 高亮底），收起态恢复常态——安卓 WebView 触摸后合成 mouseover 无 mouseout
         // 会导致 hover 样式残留卡死（标签与描述按钮行为不一致的根因）。
-        background: expanded ? 'var(--bg-hover)' : 'transparent',
+        background: expanded && !plain ? 'var(--bg-hover)' : 'transparent',
         color: expanded ? 'var(--accent-primary)' : 'var(--text-tertiary)',
         cursor: 'pointer',
         // T003 移动端触控：消除 300ms 点击延迟与双击缩放误触发；
@@ -174,6 +178,7 @@ function ExpandableBlock({
   marginTop,
   opacity,
   children,
+  plainExpanded = false,
 }: {
   expanded: boolean;
   /** 收起态是否可展开（溢出/超限才显示箭头与整行可点） */
@@ -186,6 +191,7 @@ function ExpandableBlock({
   /** 整块不透明度（回收站态半透明） */
   opacity: number;
   children: ReactNode;
+  plainExpanded?: boolean;
 }) {
   const { t } = useTranslation(['common']);
   return (
@@ -196,15 +202,15 @@ function ExpandableBlock({
         opacity,
         // 展开态：整块叠**第一层**半透明主题色圆角背景，把折叠把手行与内容圈在一起；
         // 收起态无背景、维持原样。
-        background: expanded ? BLOCK_BG : undefined,
-        borderRadius: expanded ? 8 : undefined,
-        padding: expanded ? 4 : undefined,
+        background: expanded && !plainExpanded ? BLOCK_BG : undefined,
+        borderRadius: expanded && !plainExpanded ? 8 : undefined,
+        padding: expanded && !plainExpanded ? 4 : undefined,
         display: 'flex',
         flexDirection: 'column',
         gap: 4,
       }}
     >
-      {expanded && <CollapseHandleRow label={label} onCollapse={onCollapse} />}
+      {expanded && !plainExpanded && <CollapseHandleRow label={label} onCollapse={onCollapse} />}
       <div
         data-attachment-toggle-row={!expanded && canExpand ? '' : undefined}
         style={{
@@ -229,11 +235,12 @@ function ExpandableBlock({
         }
       >
         {children}
-        {!expanded && canExpand ? (
+        {(!expanded && canExpand) || (expanded && plainExpanded) ? (
           <ToggleButton
-            expanded={false}
-            onClick={onExpand}
-            label={t('common:expand', { defaultValue: '展开' })}
+            expanded={expanded}
+            plain={plainExpanded}
+            onClick={expanded ? onCollapse : onExpand}
+            label={`${expanded ? t('common:collapse', { defaultValue: '收起' }) : t('common:expand', { defaultValue: '展开' })} ${label}`}
           />
         ) : null}
       </div>
@@ -262,6 +269,7 @@ export function AttachmentFileNameBlock({
   metaLeadingIcon,
   description,
   tags,
+  plainExpanded = false,
 }: AttachmentFileNameBlockProps) {
   const { t } = useTranslation(['common']);
   const visibleTags = (tags ?? []).filter((x) => x.trim());
@@ -337,6 +345,7 @@ export function AttachmentFileNameBlock({
     <div style={{ flex: 1, minWidth: 0 }}>
       {/* 名称行：超长时折叠/展开（ExpandableBlock 共享） */}
       <ExpandableBlock
+        plainExpanded={plainExpanded}
         expanded={nameExpanded}
         canExpand={nameOverflow}
         onExpand={() => setNameExpanded(true)}
@@ -383,6 +392,7 @@ export function AttachmentFileNameBlock({
       </div>
       {trimmedDesc && (
         <ExpandableBlock
+          plainExpanded={plainExpanded}
           expanded={descExpanded}
           canExpand={descOverflow}
           onExpand={() => setDescExpanded(true)}
@@ -414,6 +424,7 @@ export function AttachmentFileNameBlock({
       )}
       {visibleTags.length > 0 && (
         <ExpandableBlock
+          plainExpanded={plainExpanded}
           expanded={tagsExpanded}
           canExpand={showTagsToggle}
           onExpand={() => setTagsExpanded(true)}
@@ -445,12 +456,12 @@ export function AttachmentFileNameBlock({
                   // 空间不足时优先截断标签文本而非换行。
                   flexShrink: tagsExpanded ? 0 : 1,
                   minWidth: 0,
-                  padding: '1px 8px',
+                  padding: tagsExpanded && plainExpanded ? 0 : '1px 8px',
                   borderRadius: 999,
                   fontSize: 'var(--text-badge)',
                   color: 'var(--accent-primary)',
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
+                  border: tagsExpanded && plainExpanded ? 'none' : '1px solid var(--border-subtle)',
+                  background: tagsExpanded && plainExpanded ? 'transparent' : 'var(--bg-toolbar)',
                   // 展开态允许 chip 内文本换行：**必须加 maxWidth: 100%**——flex-basis: auto
                   // 的 item 默认宽度为内容 max-content，长标签会撑出容器而溢出，whiteSpace:
                   // normal 永远没有换行机会；maxWidth 将 item 宽度钳制在容器宽度内，

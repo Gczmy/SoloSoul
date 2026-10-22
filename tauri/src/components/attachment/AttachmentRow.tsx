@@ -95,6 +95,7 @@ function AttachmentRowBase({
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <AttachmentFileNameBlock
+              plainExpanded
               fileName={item.fileName}
               sizeBytes={item.sizeBytes}
               createdAt={item.createdAt}
@@ -154,6 +155,7 @@ function AttachmentRowBase({
       </div>
 
       <AttachmentFileNameBlock
+        plainExpanded
         fileName={item.fileName}
         sizeBytes={item.sizeBytes}
         createdAt={item.createdAt}

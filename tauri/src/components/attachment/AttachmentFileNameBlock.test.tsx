@@ -10,6 +10,52 @@ const base = {
   showTrash: false,
 };
 
+describe('全局附件管理直接展开内容', () => {
+  it.each(['name', 'description', 'tags'])(
+    '%s 完整展示、无元文本与底色，仍可复制与收起',
+    (field) => {
+      const long = 'PublicLongContent_'.repeat(30);
+      const props = {
+        ...base,
+        plainExpanded: true,
+        fileName: field === 'name' ? long : base.fileName,
+        description: field === 'description' ? long : undefined,
+        tags: field === 'tags' ? [long, 'b', 'c', 'd', 'e'] : undefined,
+      };
+      const { rerender } = render(<AttachmentFileNameBlock {...props} />);
+      const text = screen.getByText(long);
+      Object.defineProperty(text, 'scrollWidth', { configurable: true, value: 2000 });
+      Object.defineProperty(text, 'clientWidth', { configurable: true, value: 100 });
+      rerender(
+        <AttachmentFileNameBlock
+          {...props}
+          tags={props.tags ? [...props.tags] : undefined}
+          fileName={props.fileName + ' '}
+          description={props.description ? props.description + ' x' : undefined}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { expanded: false }));
+      for (const label of ['名称', '描述', '标签'])
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      const content = screen.getByText(field === 'description' ? long + ' x' : long);
+      const button = screen.getByRole('button', { expanded: true });
+      expect(button.parentElement).toContainElement(content);
+      expect(button).toHaveStyle({ background: 'transparent' });
+      expect(button.parentElement!.parentElement!.style.background).toBe('');
+      if (field === 'tags')
+        expect(content).toHaveStyle({
+          background: 'transparent',
+          whiteSpace: 'normal',
+        });
+      else expect(content).toHaveStyle({ whiteSpace: 'pre-wrap', userSelect: 'text' });
+      fireEvent.click(content);
+      expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+      fireEvent.click(button);
+      expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    },
+  );
+});
+
 describe('AttachmentFileNameBlock 描述折叠/展开', () => {
   it('短描述不显示展开箭头（未溢出时无意义按钮）', () => {
     render(<AttachmentFileNameBlock {...base} description="短描述" />);
