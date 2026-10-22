@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-22",
+  "scope": "Android light login background",
+  "change": "Render the login underlay only in Android dark mode. Light mode uses the existing auth background without an extra gray plate.",
+  "desktop": "Unchanged; the selector is Android-only.",
+  "validation": {
+    "existingLoginBrowserTests": { "passed": 8, "failed": 0 },
+    "themeAndMaterialSamples": {
+      "passed": 12,
+      "themes": ["light", "dark"],
+      "glassPreferences": ["off", "local", "enhanced"],
+      "reducedTransparency": [false, true],
+      "checks": ["no underlay in light mode", "dark underlay retained", "no horizontal overflow"]
+    },
+    "environment": "Browser tests with public mock data; not Android device acceptance."
+  },
+  "release": { "version": "2.14.0", "rebuilt": false }
+}

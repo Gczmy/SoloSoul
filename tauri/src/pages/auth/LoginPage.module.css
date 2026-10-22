@@ -13,12 +13,12 @@
   }
 }
 
-/* 手机保留共同的深底板 / 浅面板关系；安全区和键盘仍由认证布局分配。 */
+/* 深色模式保留衬底；浅色登录直接使用认证页主题底色，避免玻璃透出灰块。 */
 :global(html[data-platform='android']) .loginWrapper {
   position: relative;
   isolation: isolate;
 }
-:global(html[data-platform='android']) .loginWrapper::before {
+:global(html[data-platform='android'][data-theme='dark']) .loginWrapper::before {
   content: '';
   position: absolute;
   inset: 12px;
