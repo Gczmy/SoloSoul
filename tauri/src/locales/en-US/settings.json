@@ -441,6 +441,8 @@
   "advanced_import": "Advanced Import",
   "quick_import": "Quick Import",
   "import_strategy_title": "Import Strategy",
+  "conflict_imported_name": "Imported object",
+  "conflict_local_name": "Local object",
   "strategy_skipExisting": "Skip existing",
   "strategy_skipExisting_desc": "Skip objects that already exist in the vault",
   "strategy_overwrite": "Overwrite",

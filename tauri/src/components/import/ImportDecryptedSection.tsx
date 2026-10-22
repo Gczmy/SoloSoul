@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import type { TFunction } from 'i18next';
 import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidImportConflict } from './AndroidImportConflict';
 import type {
   AttachmentImportInfo,
   ConflictKind,
@@ -170,8 +172,18 @@ export function ImportDecryptedSection({
             </div>
             {/* Per-object conflict strategy selector */}
             {decryptedPreview.conflicts.map((c) => {
-              const currentStrategy =
-                objectConflictStrategies.get(c.objectId) ?? importStrategy;
+              const currentStrategy = objectConflictStrategies.get(c.objectId) ?? importStrategy;
+              if (isAndroidSync())
+                return (
+                  <AndroidImportConflict
+                    key={c.objectId}
+                    importedName={c.importedName}
+                    existingName={c.existingName}
+                    kindLabel={conflictKindText(c.kind)}
+                    value={currentStrategy}
+                    onChange={(strategy) => onSetObjectConflictStrategy(c.objectId, strategy)}
+                  />
+                );
               return (
                 <div
                   key={c.objectId}
@@ -205,10 +217,7 @@ export function ImportDecryptedSection({
                   <select
                     value={currentStrategy}
                     onChange={(e) =>
-                      onSetObjectConflictStrategy(
-                        c.objectId,
-                        e.target.value as ImportStrategy,
-                      )
+                      onSetObjectConflictStrategy(c.objectId, e.target.value as ImportStrategy)
                     }
                     style={{
                       fontSize: 'var(--text-caption)',
@@ -221,9 +230,7 @@ export function ImportDecryptedSection({
                       cursor: 'pointer',
                     }}
                   >
-                    <option value="skipExisting">
-                      {t('settings:strategy_skipExisting')}
-                    </option>
+                    <option value="skipExisting">{t('settings:strategy_skipExisting')}</option>
                     <option value="overwrite">{t('settings:strategy_overwrite')}</option>
                     <option value="keepBoth">{t('settings:strategy_keepBoth')}</option>
                   </select>

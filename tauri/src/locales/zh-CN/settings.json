@@ -441,6 +441,8 @@
   "advanced_import": "高级导入",
   "quick_import": "快速导入",
   "import_strategy_title": "导入策略",
+  "conflict_imported_name": "导入对象",
+  "conflict_local_name": "本地对象",
   "strategy_skipExisting": "跳过已有",
   "strategy_skipExisting_desc": "跳过保险库中已存在的对象",
   "strategy_overwrite": "覆盖",
