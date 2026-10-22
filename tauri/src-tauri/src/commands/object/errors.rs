@@ -45,6 +45,9 @@ pub(super) fn read(cause: String) -> BackendError {
     BackendError::caused_by(Code::ObjectReadFailed, Stage::Read, cause)
 }
 pub(super) fn write(cause: String) -> BackendError {
+    if cause == solosoul_vault::storage::OBJECT_EDIT_LOCKED {
+        return BackendError::new(Code::ObjectLocked).at(Stage::Write);
+    }
     BackendError::caused_by(Code::ObjectWriteFailed, Stage::Write, cause)
 }
 pub(super) fn validate(cause: String) -> BackendError {
@@ -65,6 +68,9 @@ pub(super) fn create(cause: solosoul_core::objects::CreateRecordError) -> Backen
     BackendError::caused_by(code, stage, cause)
 }
 pub(super) fn rollback(cause: solosoul_core::objects::RollbackError) -> BackendError {
+    if cause.message == solosoul_vault::storage::OBJECT_EDIT_LOCKED {
+        return BackendError::new(Code::ObjectLocked).at(Stage::ObjectSave);
+    }
     use solosoul_core::objects::RollbackErrorStage as R;
     let (code, stage) = match cause.stage {
         R::SnapshotOwner => (Code::SnapshotReadFailed, Stage::SnapshotOwner),

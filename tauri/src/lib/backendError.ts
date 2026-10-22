@@ -26,6 +26,7 @@ const BACKEND_ERROR_KEYS = {
   OBJECT_VALIDATION_FAILED: 'common:backend_object_validation_failed',
   OBJECT_READ_FAILED: 'common:object_load_failed',
   OBJECT_WRITE_FAILED: 'common:object_save_failed',
+  OBJECT_LOCKED: 'common:backend_object_locked',
   OBJECT_TEMPLATE_MISSING: 'common:backend_object_template_missing',
   OBJECT_TEMPLATE_NOT_FOUND: 'common:backend_object_template_not_found',
   OBJECT_TEMPLATE_READ_FAILED: 'common:backend_object_template_read_failed',

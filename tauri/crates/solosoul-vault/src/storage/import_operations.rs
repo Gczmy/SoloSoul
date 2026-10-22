@@ -53,6 +53,9 @@ pub struct ImportCiphertextProof {
 pub struct ImportAttachmentOwnerPlan {
     pub owner_id: String,
     pub expected_attachments: Option<Value>,
+    /// 接纳记录时的保护状态；允许同一导入完成已锁定来源对象的附件恢复。
+    #[serde(default)]
+    pub expected_edit_locked: bool,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -827,6 +830,7 @@ impl VaultStore {
             let new_version=version.checked_add(1).ok_or("import_operation_version_overflow")?;
             let hlc=BatchHlc::new(conn,node_id_tx(conn)?).and_then(|mut h|h.next()).map_err(|e|e.to_string())?;
             let enc=encrypt_text_field(key,&serde_json::to_string(&props).map_err(|_|INVALID)?).map_err(|_|WRITE)?;
+            if !baseline.expected_edit_locked { Self::ensure_object_editable_tx(conn,key,owner)?; }
             if conn.execute("UPDATE objects SET properties=?1,version=?2,updated_at=?3 WHERE id=?4 AND account_id=?5 AND is_deleted=0 AND version=?6",params![enc,new_version,chrono::Utc::now().to_rfc3339(),owner,lease.account_id,version]).map_err(|_|WRITE)?!=1{return Err("import_operation_owner_changed".into())}
             Self::set_record_hlc_tx(conn,"objects",owner,&hlc).map_err(|_|"import_batch_hlc_failed")?;
             for i in selected{op.steps[i].phase=ImportAttachmentPhase::MetadataCommitted;}

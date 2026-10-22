@@ -411,6 +411,7 @@ pub async fn attachment_copy_to_vault(
     attachment_id: String,
     file_name: String,
 ) -> Result<String, String> {
+    vault_handle(&state)?.ensure_object_editable(&object_id)?;
     // P007: 提前在块作用域内取 base + 附件密钥并释放非 Send 的 vault_service guard，
     // 避免后续 spawn_blocking 的 await 跨 guard 存活。
     // P001: 附件以加密形式落盘（at-rest），复制时用附件密钥加密写入。

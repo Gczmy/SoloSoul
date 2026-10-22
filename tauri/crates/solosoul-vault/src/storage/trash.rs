@@ -72,6 +72,9 @@ impl VaultStore {
             "Failed to begin transaction",
             "Failed to commit transaction",
             |c| {
+                for id in soft_delete_ids {
+                    Self::ensure_object_editable_tx(c, &key, id)?;
+                }
                 for (item, hlc) in items.iter().zip(item_hlcs.iter()) {
                     Self::save_trash_item_tx(c, &key, item)?;
                     Self::set_record_hlc_tx(c, "trash_items", &item.id, hlc)?;

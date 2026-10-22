@@ -528,6 +528,16 @@ impl VaultStore {
         obj: &ObjectRecord,
         template_names: Option<&std::collections::HashMap<String, String>>,
     ) -> Result<(), String> {
+        Self::ensure_object_editable_tx(conn, key, &obj.id)?;
+        Self::save_object_unchecked_tx(conn, key, obj, template_names)
+    }
+
+    pub(super) fn save_object_unchecked_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        obj: &ObjectRecord,
+        template_names: Option<&std::collections::HashMap<String, String>>,
+    ) -> Result<(), String> {
         // 保存模板名称到 properties，用于模板被删除后仍能显示原始模板名
         // P014：Cow 惰性克隆——无 template_id 或查不到模板名时零拷贝借用，
         // 仅在实际需要注入 __templateName 时才克隆整棵 JSON。
@@ -1047,6 +1057,7 @@ impl VaultStore {
     }
 
     pub fn delete_object(&self, id: &str, soft: bool) -> Result<(), String> {
+        let key = self.data_key()?;
         if soft {
             // 方案 B：软删也是写变更，落库新 HLC（对象行保留，is_deleted 翻转）。
             let hlc = self.new_local_hlc()?;
@@ -1058,6 +1069,7 @@ impl VaultStore {
                 "Failed to begin transaction",
                 "Failed to commit transaction",
                 |c| {
+                    Self::ensure_object_editable_tx(c, &key, id)?;
                     c.execute(
                         "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2",
                         params![now, id],
@@ -1082,6 +1094,7 @@ impl VaultStore {
                 "Failed to begin transaction",
                 "Failed to commit transaction",
                 |c| {
+                    Self::ensure_object_editable_tx(c, &key, id)?;
                     c.execute("DELETE FROM objects WHERE id = ?1", params![id])
                         .map_err(|e| format!("delete_object: {}", e))
                 },

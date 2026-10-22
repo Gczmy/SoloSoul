@@ -16,6 +16,7 @@ pub enum BackendErrorCode {
     ObjectValidationFailed,
     ObjectReadFailed,
     ObjectWriteFailed,
+    ObjectLocked,
     ObjectTemplateMissing,
     ObjectTemplateNotFound,
     ObjectTemplateReadFailed,

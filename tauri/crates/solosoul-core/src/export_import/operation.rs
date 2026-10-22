@@ -367,6 +367,9 @@ pub fn prepare_import_operation(
             owners.push(ImportAttachmentOwnerPlan {
                 owner_id: owner_id.clone(),
                 expected_attachments: expected,
+                expected_edit_locked: solosoul_vault::storage::object_edit_locked(
+                    &write.record.properties,
+                ),
             });
         }
     }

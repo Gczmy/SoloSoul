@@ -71,6 +71,10 @@ pub fn rollback_object(
         .map_err(|e| RollbackError::new(Stage::ObjectRead, e))?
         .ok_or_else(|| RollbackError::new(Stage::ObjectNotFound, "Object not found"))?;
 
+    vault
+        .ensure_object_editable(object_id)
+        .map_err(|e| RollbackError::new(Stage::ObjectSave, e))?;
+    let edit_lock = record.properties.get("__editLocked").cloned();
     if let Some(name) = snapshot["name"].as_str() {
         record.name = name.to_string();
     }
@@ -82,6 +86,14 @@ pub fn rollback_object(
     }
     if !snapshot["properties"].is_null() {
         record.properties = snapshot["properties"].clone();
+    }
+    // 恢复内容不能顺带改变当前写保护，解锁必须通过显式状态切换。
+    if let Some(properties) = record.properties.as_object_mut() {
+        if let Some(value) = edit_lock {
+            properties.insert("__editLocked".into(), value);
+        } else {
+            properties.remove("__editLocked");
+        }
     }
     // RF-007：camelCase 键存在即优先（包括 null），无键保留，显式 null 清除。
     if let Some(labels) = snapshot

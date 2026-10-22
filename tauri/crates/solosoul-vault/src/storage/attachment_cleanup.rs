@@ -272,6 +272,7 @@ impl VaultStore {
                     return Err("Attachment object account mismatch".to_string());
                 }
                 let mut targets = Vec::new();
+                Self::ensure_object_editable_tx(tx, &key, object_id)?;
                 for entry in attachment_entries(&record.properties)? {
                     let id = entry["id"]
                         .as_str()

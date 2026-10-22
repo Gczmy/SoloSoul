@@ -146,6 +146,7 @@ commands.allow = [
   "object_sync_with_template",
   "object_trash_list",
   "object_update",
+  "object_set_locked",
   "ocr_delete_model",
   "ocr_download_model",
   "ocr_get_active_tier",

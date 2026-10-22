@@ -93,6 +93,7 @@ fn register_core_commands(
         commands::object::object_field_suggestions,
         commands::object::object_create,
         commands::object::object_update,
+        commands::object::object_set_locked,
         commands::object::object_delete,
         commands::object::object_sync_with_template,
         commands::object::object_ignore_template_sync,

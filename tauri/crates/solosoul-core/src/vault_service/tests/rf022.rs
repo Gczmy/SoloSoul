@@ -177,6 +177,7 @@ fn publish(svc: &VaultService, account: &str) -> Published {
         owners: vec![ImportAttachmentOwnerPlan {
             owner_id: object_id.into(),
             expected_attachments: None,
+            expected_edit_locked: false,
         }],
         steps: vec![ImportAttachmentStepPlan {
             entry_ordinal: 2,

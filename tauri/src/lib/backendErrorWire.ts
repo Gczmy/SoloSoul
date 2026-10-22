@@ -20,6 +20,7 @@ const CODES = {
   OBJECT_VALIDATION_FAILED: true,
   OBJECT_READ_FAILED: true,
   OBJECT_WRITE_FAILED: true,
+  OBJECT_LOCKED: true,
   OBJECT_TEMPLATE_MISSING: true,
   OBJECT_TEMPLATE_NOT_FOUND: true,
   OBJECT_TEMPLATE_READ_FAILED: true,
@@ -170,6 +171,7 @@ const OBJECT_COMMANDS = [
   'object_field_suggestions',
   'object_create',
   'object_update',
+  'object_set_locked',
   'object_delete',
   'object_sync_with_template',
   'object_ignore_template_sync',
@@ -233,6 +235,7 @@ export function readBackendError(value: unknown): BackendError | null {
   return safe;
 }
 const LEGACY_OBJECT_CODES: Record<string, BackendErrorCode> = {
+  OBJECT_EDIT_LOCKED: 'OBJECT_LOCKED',
   'No account is currently unlocked': 'VAULT_LOCKED',
   'No account unlocked': 'VAULT_LOCKED',
   'No account is unlocked': 'VAULT_LOCKED',

@@ -37,7 +37,11 @@ mod conversations;
 mod device_preferences;
 mod metadata;
 pub use device_preferences::DeviceSyncPreferences;
+mod object_lock;
 mod objects;
+pub use object_lock::{
+    object_edit_locked, preserve_object_edit_metadata, OBJECT_EDIT_LOCKED, OBJECT_EDIT_LOCK_KEY,
+};
 mod profile;
 mod reencrypt;
 mod snapshots;

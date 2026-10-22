@@ -135,6 +135,7 @@ const objectSnapshotCommands = [
   'object_field_suggestions',
   'object_create',
   'object_update',
+  'object_set_locked',
   'object_delete',
   'object_sync_with_template',
   'object_ignore_template_sync',
@@ -386,6 +387,12 @@ export async function checkObjectSnapshotCalls() {
   const ticket = createSessionRequests().begin('object', accountId);
   const sessionResult: ObjectData | null = await ticket.invokeTyped('object_get', { accountId, objectId });
   const sessionRollback: null = await ticket.invokeTyped('snapshot_rollback', { snapshotId, objectId });
+  const protectedObject: ObjectData = await ticket.invokeTyped('object_set_locked', { objectId, locked: true });
+  // @ts-expect-error 保护状态必须显式为 boolean。
+  void invokeTypedCommand('object_set_locked', { objectId, locked: 'true' });
+  // @ts-expect-error 状态切换不能携带内容修改。
+  void ticket.invokeTyped('object_set_locked', { objectId, locked: false, properties: {} });
+  void protectedObject;
 
   const typeChange: SyncFieldChangeItem = { kind: 'type', payload: { oldType: 'text', newType: 'number' } };
   const optionsChange: SyncFieldChangeItem = { kind: 'options' };
@@ -838,7 +845,7 @@ test('RF304 real default and outcome drift fail check without overwriting output
 test('RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields', async () => {
   await withProductionFixture(async (root) => {
     const manifest = await generateContracts({ root });
-    assert.equal(manifest.commands.length, 106); // RF205 新增只读平台能力命令。
+    assert.equal(manifest.commands.length, 107); // 新增显式对象锁定命令。
     assert.equal(manifest.events.length, 11);
     const fixture = JSON.parse(
       await readFile(
@@ -1161,7 +1168,7 @@ test('RF318 all actual transfer errors compile with safe counts and keep ImportO
       ),
       [...objectSnapshotCommands, ...llm, ...transferCommands].sort(),
     );
-    assert.equal(objectSnapshotCommands.length + llm.length + transferCommands.length, 56);
+    assert.equal(objectSnapshotCommands.length + llm.length + transferCommands.length, 57);
     await copyTypedSources(root);
     const fixture = JSON.parse(
       await readFile(
@@ -1276,7 +1283,7 @@ test('RF319 actual synchronization rejection contracts preserve pairing and reco
         llm.length +
         transferCommands.length +
         syncErrorCommands.length,
-      81,
+      82,
     );
     await copyTypedSources(root);
     const fixture = JSON.parse(
@@ -1376,7 +1383,7 @@ test('RF320 all plugin rejection contracts use real safe fixtures and retain res
         ...pluginErrorCommands,
       ].sort(),
     );
-    assert.equal(manifest.structuredErrorCommands.length, 95);
+    assert.equal(manifest.structuredErrorCommands.length, 96);
     await copyTypedSources(root);
     const fixtures = JSON.parse(
       await readFile(

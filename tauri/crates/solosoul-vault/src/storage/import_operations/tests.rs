@@ -44,6 +44,7 @@ impl Fixture {
                 .map(|owner| ImportAttachmentOwnerPlan {
                     owner_id: owner.into(),
                     expected_attachments: None,
+                    expected_edit_locked: false,
                 })
                 .collect(),
             steps,
@@ -518,6 +519,41 @@ fn rf022_metadata_preserves_new_other_fields_and_uses_actual_plaintext_length() 
             .attachment_count,
         1
     );
+}
+
+#[test]
+fn imported_locked_objects_restore_attachments_but_later_user_lock_blocks_pending_changes() {
+    let f = Fixture::new();
+    let mut start = f.start(ImportSourceKind::Manual, &["owner"], false);
+    let mut batch = f.batch(&["owner"]);
+    batch.objects[0].record.properties["__editLocked"] = json!(true);
+    start.owners[0].expected_edit_locked = true;
+    f.commit(&start, &batch).unwrap();
+    let lease = f
+        .vault
+        .claim_import_operation(ACCOUNT, &start.operation_id, &start.root_binding)
+        .unwrap();
+    f.stage_publish(&lease, 0);
+    f.vault
+        .commit_import_attachment_metadata(&lease, "owner")
+        .unwrap();
+    let restored = f.vault.load_object("owner").unwrap().unwrap();
+    assert!(crate::storage::object_edit_locked(&restored.properties));
+    assert_eq!(restored.properties["__attachments"][0]["sizeBytes"], 42);
+
+    let other = Fixture::new();
+    let (_, lease) = other.accept(&["owner"], false);
+    other.stage_publish(&lease, 0);
+    other.vault.set_object_edit_lock("owner", true).unwrap();
+    let before = other.raw();
+    assert_eq!(
+        other
+            .vault
+            .commit_import_attachment_metadata(&lease, "owner")
+            .unwrap_err(),
+        crate::storage::OBJECT_EDIT_LOCKED
+    );
+    assert_eq!(other.raw(), before);
 }
 #[test]
 fn rf022_metadata_requires_all_zip_published_then_detects_attachment_baseline_conflict() {

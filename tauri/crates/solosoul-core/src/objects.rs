@@ -200,6 +200,7 @@ pub fn move_to_trash(
     original_parent_id: Option<String>,
     retention_ms: i64,
 ) -> Result<(), String> {
+    vault.ensure_object_editable(&record.id)?;
     let now_ms = chrono::Utc::now().timestamp_millis();
     let full_record = serde_json::json!({
         "id": record.id,
@@ -712,6 +713,7 @@ pub fn add_attachments(
     base_path: &Path,
     attachment_key: Option<&[u8; 32]>,
 ) -> Result<AttachmentMeta, String> {
+    vault.ensure_object_editable(object_id)?;
     let mut record = vault
         .load_object(object_id)?
         .ok_or_else(|| format!("对象 '{}' 不存在", object_id))?;

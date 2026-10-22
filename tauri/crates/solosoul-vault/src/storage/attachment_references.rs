@@ -741,7 +741,16 @@ fn journal_start(value: &Value) -> Result<(), String> {
         .and_then(Value::as_array)
         .ok_or(INVALID)?
     {
-        fields(owner, &["ownerId", "expectedAttachments"])?;
+        fields(
+            owner,
+            &["ownerId", "expectedAttachments", "expectedEditLocked"],
+        )?;
+        if owner
+            .get("expectedEditLocked")
+            .is_some_and(|value| !value.is_boolean())
+        {
+            return Err(INVALID.into());
+        }
     }
     for step in value
         .get("steps")

@@ -62,6 +62,7 @@ export type BackendErrorCode =
   | 'OBJECT_VALIDATION_FAILED'
   | 'OBJECT_READ_FAILED'
   | 'OBJECT_WRITE_FAILED'
+  | 'OBJECT_LOCKED'
   | 'OBJECT_TEMPLATE_MISSING'
   | 'OBJECT_TEMPLATE_NOT_FOUND'
   | 'OBJECT_TEMPLATE_READ_FAILED'
@@ -1100,6 +1101,7 @@ export type IpcCommands = {
     result: Array<ObjectSummary>;
   };
   object_list_deprecated_fields: { args: { objectId: string }; result: Array<DeprecatedField> };
+  object_set_locked: { args: { objectId: string; locked: boolean }; result: ObjectData };
   object_sync_with_template: {
     args: { objectId: string; dryRun: boolean };
     result: TemplateSyncResult;
@@ -1262,6 +1264,7 @@ export type IpcCommandErrors = {
   object_ignore_template_sync: BackendError;
   object_list: BackendError;
   object_list_deprecated_fields: BackendError;
+  object_set_locked: BackendError;
   object_sync_with_template: BackendError;
   object_trash_list: BackendError;
   object_update: BackendError;

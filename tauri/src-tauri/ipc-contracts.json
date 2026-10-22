@@ -1,5 +1,6 @@
 {
   "commands": [
+    { "name": "object_set_locked", "source": "src-tauri/src/commands/object/mod.rs" },
     {
       "name": "get_app_info",
       "source": "src-tauri/src/commands/system.rs"

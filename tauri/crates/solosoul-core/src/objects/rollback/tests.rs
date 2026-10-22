@@ -4,6 +4,27 @@ use serde_json::{json, Value};
 use solosoul_vault::VaultConfig;
 use tempfile::TempDir;
 
+#[test]
+fn locked_rollback_does_not_write_and_old_snapshots_cannot_change_edit_protection() {
+    let fixture = Fixture::new();
+    let id = "object-a";
+    let snapshot = fixture.snapshot(
+        id,
+        &json!({"name":"Restored","properties":{"__editLocked":true,"value":"old"}}),
+    );
+    fixture.vault.set_object_edit_lock(id, true).unwrap();
+    let before = fixture.state();
+    let error = rollback_object(&fixture.vault, id, &snapshot).unwrap_err();
+    assert_eq!(error.message, solosoul_vault::storage::OBJECT_EDIT_LOCKED);
+    assert_eq!(fixture.state(), before);
+    fixture.vault.set_object_edit_lock(id, false).unwrap();
+    let restored = rollback_object(&fixture.vault, id, &snapshot).unwrap();
+    assert_eq!(restored.record.name, "Restored");
+    assert!(!solosoul_vault::storage::object_edit_locked(
+        &restored.record.properties
+    ));
+}
+
 // 所有数据、密钥和故障只存在于本测试新建的临时 Vault。
 struct Fixture {
     vault: VaultStore,

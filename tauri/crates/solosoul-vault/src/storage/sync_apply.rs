@@ -615,7 +615,9 @@ impl VaultStore {
         }
         // Re-encrypt properties locally. 同步应用路径逐条处理（P024 模板名
         // 查询保留原行为），批量导入路径才走预加载 map。
-        Self::save_object_tx(conn, key, &obj, None)?;
+        // 同步是既有 HLC/冲突策略选定的完整状态复制，必须能传播显式解锁；
+        // 本地编辑入口仍走受保护的 save_object_tx。
+        Self::save_object_unchecked_tx(conn, key, &obj, None)?;
         let _ = local_node_id;
         Ok(true)
     }

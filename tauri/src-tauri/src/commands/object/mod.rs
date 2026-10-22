@@ -21,6 +21,40 @@ use uuid::Uuid;
 
 pub const MS_PER_DAY: i64 = 24 * 3600 * 1000;
 
+/// 显式改变对象写保护，不改变字段、敏感度、附件或历史快照。
+#[tauri::command]
+pub async fn object_set_locked(
+    state: State<'_, AppState>,
+    object_id: String,
+    locked: bool,
+) -> Result<ObjectData, BackendError> {
+    let vault = vault_handle(&state)?;
+    let data = tokio::task::spawn_blocking(move || {
+        let record = vault
+            .set_object_edit_lock(&object_id, locked)
+            .map_err(errors::write)?;
+        errors::log_audit_best_effort(
+            &vault,
+            if locked {
+                "object_lock"
+            } else {
+                "object_unlock"
+            },
+            "object",
+            Some(&object_id),
+            Some(&record.name),
+            "user",
+            None,
+        );
+        Ok::<_, BackendError>(record_to_data(&record))
+    })
+    .await
+    .map_err(errors::task)??;
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    Ok(data)
+}
+
 /// 回收站保留期选项。
 pub const RETENTION_30D: &str = "30d";
 pub const RETENTION_60D: &str = "60d";
@@ -667,7 +701,9 @@ pub async fn object_update(
         let old_fields = record.properties.get("__fields").cloned();
         let old_tpl_name = record.properties.get("__templateName").cloned();
         record.name = input.name;
-        record.properties = input.properties;
+        let mut properties = input.properties;
+        solosoul_vault::storage::preserve_object_edit_metadata(&record.properties, &mut properties);
+        record.properties = properties;
         if let Some(sl) = input.sensitivity_level {
             record.sensitivity_level = sl;
         }
