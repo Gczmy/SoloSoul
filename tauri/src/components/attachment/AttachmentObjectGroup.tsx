@@ -6,6 +6,8 @@ import { ICON_SIZE } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { AttachmentRow } from '@/components/attachment/AttachmentRow';
 import type { ReactNode } from 'react';
@@ -19,12 +21,14 @@ function ObjectDropTarget({
   objectId,
   loadData,
   children,
+  readOnly,
 }: {
   objectId: string;
+  readOnly?: boolean;
   loadData: () => void;
   children: ReactNode;
 }) {
-  const { ref, dragState } = useDragToAttach(objectId, { onComplete: loadData });
+  const { ref, dragState } = useDragToAttach(readOnly ? null : objectId, { onComplete: loadData });
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       {children}
@@ -73,6 +77,7 @@ function AttachmentObjectGroupBase({
 }: AttachmentObjectGroupProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const isMobile = isMobilePlatformSync();
+  const editLocked = useObjectEditLocked(obj.objectId, undefined, obj.editLocked);
 
   const row = (
     <div>
@@ -124,9 +129,11 @@ function AttachmentObjectGroupBase({
               >
                 {obj.objectName}
               </span>
+              <ObjectEditLockBadge objectId={obj.objectId} locked={obj.editLocked} compact />
               {!showTrash && (
                 <BadgeIconButton
                   Icon={Upload}
+                  disabled={editLocked}
                   onClick={(e) => {
                     e.stopPropagation();
                     onUpload(obj.objectId);
@@ -163,6 +170,7 @@ function AttachmentObjectGroupBase({
             >
               {obj.objectName}
             </span>
+            <ObjectEditLockBadge objectId={obj.objectId} locked={obj.editLocked} />
             <span
               style={{
                 fontSize: 'var(--text-caption)',
@@ -177,6 +185,7 @@ function AttachmentObjectGroupBase({
             {!showTrash && (
               <BadgeIconButton
                 Icon={Upload}
+                disabled={editLocked}
                 onClick={(e) => {
                   e.stopPropagation();
                   onUpload(obj.objectId);
@@ -192,6 +201,7 @@ function AttachmentObjectGroupBase({
         <>
           {obj.attachments.map((att) => (
             <AttachmentRow
+              readOnly={editLocked}
               key={att.id}
               item={att}
               objectId={obj.objectId}
@@ -215,7 +225,12 @@ function AttachmentObjectGroupBase({
   return showTrash ? (
     <div key={obj.objectId}>{row}</div>
   ) : (
-    <ObjectDropTarget key={obj.objectId} objectId={obj.objectId} loadData={loadData}>
+    <ObjectDropTarget
+      readOnly={editLocked}
+      key={obj.objectId}
+      objectId={obj.objectId}
+      loadData={loadData}
+    >
       {row}
     </ObjectDropTarget>
   );

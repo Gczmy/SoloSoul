@@ -197,7 +197,7 @@ it('Android footer shows template and all icon-only field levels, including summ
     />,
   );
   expect(screen.getByText('Identity · Account')).toBeInTheDocument();
-  const badges = container.querySelectorAll('.android-row-meta [title]');
+  const badges = container.querySelectorAll('.android-row-meta [title^="sensitivity_label:"]');
   expect(badges).toHaveLength(4);
   for (const badge of badges) {
     expect(badge.querySelector('svg')).not.toBeNull();
@@ -225,7 +225,7 @@ it('对象字段非法敏感度在 Android 汇总为 internal，合法 critical 
     />,
   );
 
-  const badges = container.querySelectorAll('.android-row-meta [title]');
+  const badges = container.querySelectorAll('.android-row-meta [title^="sensitivity_label:"]');
   expect(badges).toHaveLength(2);
   expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
   expect(screen.getByTitle('sensitivity_label: critical')).toBeInTheDocument();

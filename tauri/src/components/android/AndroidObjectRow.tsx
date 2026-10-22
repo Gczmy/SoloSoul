@@ -10,6 +10,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AndroidSheet } from './AndroidSheet';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import type { ObjectData, ObjectSummary } from '@/stores/objectStore';
 
@@ -47,6 +49,7 @@ export function AndroidObjectRow({
   onDismissSync?: () => void;
 }) {
   const { t } = useTranslation(['common', 'editor']);
+  const editLocked = useObjectEditLocked(obj.id, obj.properties);
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const action = (callback: () => void) => {
@@ -65,6 +68,7 @@ export function AndroidObjectRow({
             {collectionLabel} · {templateName}
           </small>
           <span className="android-row-meta">
+            <ObjectEditLockBadge objectId={obj.id} properties={obj.properties} />
             {sensitivities.map((level) => (
               <SensitivityBadge key={level} level={level} showText={false} />
             ))}
@@ -104,18 +108,18 @@ export function AndroidObjectRow({
                 {attachmentCount !== undefined ? ` · ${attachmentCount}` : ''}
               </strong>
             </button>
-            {needsSync && onSync && (
+            {needsSync && onSync && !editLocked && (
               <button type="button" onClick={() => action(onSync)}>
                 <RefreshCw />
                 <strong>{t('editor:template_updated_hint')}</strong>
               </button>
             )}
-            {needsSync && onDismissSync && (
+            {needsSync && onDismissSync && !editLocked && (
               <button type="button" onClick={() => action(onDismissSync)}>
                 <strong>{t('material.skip_sync')}</strong>
               </button>
             )}
-            <button type="button" onClick={() => action(onDelete)}>
+            <button type="button" disabled={editLocked} onClick={() => action(onDelete)}>
               <Trash2 />
               <strong>{t('delete')}</strong>
             </button>

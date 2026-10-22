@@ -10,6 +10,7 @@ interface AttachmentViewerHeaderProps {
   activeCount: number;
   trashCount: number;
   uploading: boolean;
+  readOnly?: boolean;
   onShowActive: () => void;
   onShowTrash: () => void;
   onAdd: () => void;
@@ -23,6 +24,7 @@ export function AttachmentViewerHeader({
   activeCount,
   trashCount,
   uploading,
+  readOnly,
   onShowActive,
   onShowTrash,
   onAdd,
@@ -104,10 +106,10 @@ export function AttachmentViewerHeader({
               onClick={onAdd}
               title={t('common:upload', { defaultValue: 'Upload' })}
               iconSize={ICON_SIZE.sm}
-              disabled={uploading}
+              disabled={uploading || readOnly}
             />
           ) : (
-            <Button variant="secondary" size="sm" onClick={onAdd} disabled={uploading}>
+            <Button variant="secondary" size="sm" onClick={onAdd} disabled={uploading || readOnly}>
               {uploading ? (
                 <RotateCw size={ICON_SIZE.sm} style={{ animation: 'spin 1s linear infinite' }} />
               ) : (

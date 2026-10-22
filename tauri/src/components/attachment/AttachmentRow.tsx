@@ -14,6 +14,7 @@ interface AttachmentRowProps {
   item: AttachmentMeta;
   objectId: string;
   showTrash: boolean;
+  readOnly?: boolean;
   isChecked: boolean;
   onToggleSelect: (compositeKey: string) => void;
   onPreview: (item: AttachmentMeta) => void;
@@ -31,6 +32,7 @@ function AttachmentRowBase({
   item,
   objectId,
   showTrash,
+  readOnly,
   isChecked,
   onToggleSelect,
   onPreview,
@@ -47,6 +49,7 @@ function AttachmentRowBase({
 
   const actions = (
     <AttachmentActions
+      readOnly={readOnly}
       fileName={item.fileName}
       showTrash={showTrash}
       onPreview={() => onPreview(item)}

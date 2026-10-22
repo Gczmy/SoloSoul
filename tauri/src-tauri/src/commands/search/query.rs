@@ -279,6 +279,7 @@ pub(crate) fn search_templates(
             };
             items.push(SearchResultItem {
                 object_id: tpl.id,
+                edit_locked: false,
                 name: tpl.name,
                 collection_type: "template".to_string(),
                 template_name: None,
@@ -320,6 +321,7 @@ pub(crate) fn search_pages(
         };
         items.push(SearchResultItem {
             object_id: page.id.clone(),
+            edit_locked: false,
             name: page.name,
             collection_type: "page".to_string(),
             template_name: None,
@@ -344,6 +346,7 @@ pub(crate) fn search_pages(
         if section_lower.contains(&q) || q.contains(&section_lower) {
             items.push(SearchResultItem {
                 object_id: section.to_string(),
+                edit_locked: false,
                 name: section.to_string(),
                 collection_type: section.to_string(),
                 template_name: None,

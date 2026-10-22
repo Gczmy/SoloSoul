@@ -9,6 +9,7 @@ import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { useAttachmentBatchOps } from './useAttachmentBatchOps';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 import {
   previewItemByMime,
   downloadAttachmentFile,
@@ -75,6 +76,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
   const [photoAlbumOpen, setPhotoAlbumOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { t } = useTranslation(['common', 'editor']);
+  const editLocked = useObjectEditLocked(objectId);
   const showToast = useUiStore((s) => s.showToast);
   const { dialog: confirmDialog } = useConfirm();
   const isNarrowViewport = useIsNarrowViewport();
@@ -337,7 +339,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     onCountChange,
   });
 
-  const { ref: dragRef, dragState } = useDragToAttach(objectId, {
+  const { ref: dragRef, dragState } = useDragToAttach(editLocked ? null : objectId, {
     onComplete: () => {
       loadAttachments();
       onCountChange?.();

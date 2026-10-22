@@ -10,6 +10,7 @@ import { isAndroidSync } from '@/lib/platform';
 interface AttachmentActionsProps {
   fileName: string;
   showTrash: boolean;
+  readOnly?: boolean;
   onPreview: () => void;
   onDownload: () => void;
   onShare: () => void;
@@ -75,6 +76,9 @@ function AndroidAttachmentActions({ fileName, showTrash, ...handlers }: Attachme
               <button
                 key={label}
                 type="button"
+                disabled={
+                  handlers.readOnly && (showTrash || danger || action === handlers.onEditMeta)
+                }
                 data-danger={danger || undefined}
                 onClick={() => {
                   setOpen(false);
@@ -109,12 +113,14 @@ export function AttachmentActions({
   onSoftDelete,
   onRestore,
   onPermanentDelete,
+  readOnly,
 }: AttachmentActionsProps) {
   const { t } = useTranslation(['common']);
 
   if (isAndroidSync()) {
     return (
       <AndroidAttachmentActions
+        readOnly={readOnly}
         fileName={fileName}
         showTrash={showTrash}
         onPreview={onPreview}
@@ -133,11 +139,17 @@ export function AttachmentActions({
       <>
         <BadgeIconButton
           Icon={RotateCcw}
+          disabled={readOnly}
           onClick={onRestore}
           title={t('common:restore')}
           iconSize={ICON_SIZE.sm}
         />
-        <DeleteButton iconOnly onClick={onPermanentDelete} title={t('common:delete_permanently')} />
+        <DeleteButton
+          disabled={readOnly}
+          iconOnly
+          onClick={onPermanentDelete}
+          title={t('common:delete_permanently')}
+        />
       </>
     );
   }
@@ -165,12 +177,18 @@ export function AttachmentActions({
       {onEditMeta && (
         <BadgeIconButton
           Icon={FilePen}
+          disabled={readOnly}
           onClick={onEditMeta}
           title={t('common:edit_meta', { defaultValue: 'Edit Attachment Attributes' })}
           iconSize={ICON_SIZE.sm}
         />
       )}
-      <DeleteButton iconOnly onClick={onSoftDelete} title={t('common:delete')} />
+      <DeleteButton
+        disabled={readOnly}
+        iconOnly
+        onClick={onSoftDelete}
+        title={t('common:delete')}
+      />
     </>
   );
 }

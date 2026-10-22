@@ -17,6 +17,7 @@ import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 import {
   flattenPropertiesGrouped,
@@ -136,9 +137,13 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     }
     return suppliedObject;
   }, [accountId, fetchedObj, isCompleteObject, objId, suppliedObject]);
-  const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null, {
-    onComplete: handleAttachmentsChange,
-  });
+  const editLocked = useObjectEditLocked(obj?.id, obj?.properties);
+  const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(
+    editLocked ? null : obj?.id || null,
+    {
+      onComplete: handleAttachmentsChange,
+    },
+  );
 
   useEffect(() => {
     loadTemplates().catch((err) => logger.warn('[ObjectDetail] Load templates failed:', err));

@@ -20,6 +20,8 @@ import { flattenPropertyEntries, type FlattenedPropertyEntry } from '@/lib/prope
 import styles from './WorkspaceObjectCard.module.css';
 import { isAndroidSync } from '@/lib/platform';
 import { AndroidObjectRow } from '@/components/android/AndroidObjectRow';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 
 /**
  * P024: 收敛至共享核心 flattenPropertyEntries（展平模式 + 过滤 `__` 字段）。
@@ -79,14 +81,15 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
 }: WorkspaceObjectCardProps) {
   const { t } = useTranslation(['editor', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const editLocked = useObjectEditLocked(obj.id, obj.properties);
   const tpl = userTemplates.find((t) => t.id === obj.templateId);
 
   // 懒加载：每张卡片根据模板指纹映射独立计算同步状态，避免父级批量计算导致切换页面闪烁。
   // 用户点击“否”后记录当时模板指纹；模板再次变更时提示条重新出现。
   const hashNeedsSync = useMemo(() => {
-    if (!templateHashMap || isSyncDialogOpen) return false;
+    if (!templateHashMap || isSyncDialogOpen || editLocked) return false;
     return objectNeedsSync(obj, templateHashMap);
-  }, [obj, templateHashMap, isSyncDialogOpen]);
+  }, [obj, templateHashMap, isSyncDialogOpen, editLocked]);
 
   // 语义复核（异步）：复核期间不显示提示条，确认有真实变更才显示
   const [semanticNeedsSync, setSemanticNeedsSync] = useState(false);
@@ -133,7 +136,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   const getFieldName = (fieldKey: string): string =>
     getFieldProperty(fieldKey)?.name || objFieldDefs?.[fieldKey]?.name || fieldKey;
 
-  const { ref: dragRef, dragState } = useDragToAttach(obj.id, {
+  const { ref: dragRef, dragState } = useDragToAttach(editLocked ? null : obj.id, {
     onComplete: onUploadComplete,
   });
 
@@ -244,6 +247,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             <div className={styles.headerContent}>
               {/* 第1行：对象名 */}
               <span className={styles.objectName}>{obj.name}</span>
+              <ObjectEditLockBadge objectId={obj.id} properties={obj.properties} />
               {/* 第2行：所属页面 */}
               <span className={styles.pageBadge}>{collectionLabel}</span>
               {/* 第3行：模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
@@ -290,6 +294,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title={t('common:edit')} />
               <BadgeIconButton
                 Icon={Trash2}
+                disabled={editLocked}
                 onClick={() => onDelete(obj)}
                 title={t('common:move_to_trash')}
                 dangerOutline
@@ -314,6 +319,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title={t('common:edit')} />
             <BadgeIconButton
               Icon={Trash2}
+              disabled={editLocked}
               onClick={() => onDelete(obj)}
               title={t('common:move_to_trash')}
               dangerOutline

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from './authStore';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { onVaultDataChange } from '@/lib/vaultDataChanges';
+import { objectEditLocked } from '@/lib/objectEditLock';
 
 /** Only navigation metadata is retained; this store never keeps field values. */
 export interface PageIndexObject {
@@ -9,6 +10,7 @@ export interface PageIndexObject {
   name: string;
   sectionId: string;
   iconName: string;
+  editLocked?: boolean;
 }
 
 interface PageIndexState {
@@ -40,11 +42,12 @@ export const useDesktopPageIndexStore = create<PageIndexState>((set) => ({
             (object) =>
               !object.isDeleted && object.typeId !== 'page' && object.typeId !== 'unknown',
           )
-          .map(({ id, name, sectionType, typeId, iconName }) => ({
+          .map(({ id, name, sectionType, typeId, iconName, properties }) => ({
             id,
             name,
             sectionId: sectionType || typeId,
             iconName,
+            ...(objectEditLocked(properties) ? { editLocked: true } : {}),
           })),
         loading: false,
       });

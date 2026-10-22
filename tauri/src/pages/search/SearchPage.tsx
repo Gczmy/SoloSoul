@@ -25,6 +25,7 @@ import {
   sortSensitivityLevels,
 } from '@/lib/searchShared';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
 import styles from './SearchPage.module.css';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
@@ -199,6 +200,9 @@ export function SearchPage() {
                             </>
                           )}
                         <MatchHint item={item} query={query} t={t} accountId={accountId} />
+                        {!isPage && item.itemType !== 'template' && (
+                          <ObjectEditLockBadge objectId={item.objectId} locked={item.editLocked} />
+                        )}
                       </div>
                     </div>
                   </div>

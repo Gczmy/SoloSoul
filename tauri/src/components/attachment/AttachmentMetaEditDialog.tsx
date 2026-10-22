@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useUiStore } from '@/stores/uiStore';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 
 /** 保存成功后回传的最新属性（父级据此更新本地列表 / 照片集）。
  *  fileName 仅在名称实际变更（触发 attachment_rename）时返回。 */
@@ -62,6 +63,7 @@ export function AttachmentMetaEditDialog({
 }: AttachmentMetaEditDialogProps) {
   const { t } = useTranslation('common');
   const showToast = useUiStore((s) => s.showToast);
+  const editLocked = useObjectEditLocked(item.objectId);
 
   const [name, setName] = useState(item.fileName ?? '');
   const [description, setDescription] = useState(item.description ?? '');
@@ -78,6 +80,7 @@ export function AttachmentMetaEditDialog({
   }, [item.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (editLocked) return;
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       setTags((prev) => mergeTagInput(prev, tagInput));
@@ -89,6 +92,7 @@ export function AttachmentMetaEditDialog({
 
   /** 失焦（点击对话框外部/其他区域）时，输入框有内容则直接生成标签。 */
   const handleTagBlur = () => {
+    if (editLocked) return;
     if (tagInput.trim()) {
       setTags((prev) => mergeTagInput(prev, tagInput));
       setTagInput('');
@@ -96,11 +100,12 @@ export function AttachmentMetaEditDialog({
   };
 
   const removeTag = (tag: string) => {
+    if (editLocked) return;
     setTags((prev) => prev.filter((x) => x !== tag));
   };
 
   const handleSave = async () => {
-    if (saving) return;
+    if (saving || editLocked) return;
     setSaving(true);
     try {
       // 名称：trim 后非空且与原名不同才触发 attachment_rename（空串视为不改名，防误清空）
@@ -174,6 +179,7 @@ export function AttachmentMetaEditDialog({
           </label>
           <Input
             value={name}
+            readOnly={editLocked}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('common:name', { defaultValue: 'Name' })}
             aria-label={t('common:name', { defaultValue: 'Name' })}
@@ -195,6 +201,7 @@ export function AttachmentMetaEditDialog({
             {t('common:attachment_description', { defaultValue: 'Description' })}
           </label>
           <textarea
+            readOnly={editLocked}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t('common:attachment_description_placeholder', {
@@ -269,6 +276,7 @@ export function AttachmentMetaEditDialog({
                 <button
                   type="button"
                   onClick={() => removeTag(tag)}
+                  disabled={editLocked}
                   aria-label={t('common:remove_tag', { defaultValue: 'Remove tag' })}
                   style={{
                     display: 'flex',
@@ -295,6 +303,7 @@ export function AttachmentMetaEditDialog({
             ))}
             <Input
               value={tagInput}
+              readOnly={editLocked}
               onChange={(e) => setTagInput(e.target.value.slice(0, MAX_TAG_LEN))}
               onKeyDown={handleTagKeyDown}
               onBlur={handleTagBlur}
@@ -328,7 +337,13 @@ export function AttachmentMetaEditDialog({
           <Button variant="tertiary" size="sm" onClick={onClose} disabled={saving}>
             {t('common:cancel')}
           </Button>
-          <Button variant="primary" size="sm" onClick={handleSave} loading={saving}>
+          <Button
+            disabled={editLocked}
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            loading={saving}
+          >
             {t('common:save')}
           </Button>
         </div>

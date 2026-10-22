@@ -34,6 +34,7 @@ export interface SearchItem {
   name: string;
   typeId: string;
   itemType?: string;
+  editLocked?: boolean;
   parentId?: string;
   templateName?: string;
   templateDeleted?: boolean;

@@ -23,6 +23,7 @@ import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
 import { onRequestSessionChange } from '@/lib/sessionRequests';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
 import {
   Highlight,
   MatchHint,
@@ -441,6 +442,7 @@ function SearchResultRow({
           ) : (
             <>
               <span className={styles.typeTag}>{t('settings:search_type_object')}</span>
+              <ObjectEditLockBadge objectId={item.objectId} locked={item.editLocked} compact />
               <span>
                 {' '}
                 ·{' '}

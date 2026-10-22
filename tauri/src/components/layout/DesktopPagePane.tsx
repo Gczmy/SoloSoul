@@ -10,6 +10,7 @@ import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { AddPageButton } from './AddPageButton';
 import { PagePaneRow } from './PagePaneRow';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
 import { PagePaneObjectPreview, PagePanePagePreview } from './PagePanePreview';
 import styles from './DesktopPagePane.module.css';
 
@@ -235,6 +236,13 @@ export function DesktopPagePane({
                         }
                         onClick={() => openObject(object.id)}
                         leading={<FileText size={15} aria-hidden="true" />}
+                        trailing={
+                          <ObjectEditLockBadge
+                            objectId={object.id}
+                            locked={object.editLocked}
+                            compact
+                          />
+                        }
                       />
                     </li>
                   ))}

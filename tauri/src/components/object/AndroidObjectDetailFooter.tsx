@@ -15,6 +15,7 @@ export function AndroidObjectDetailFooter({
   onAttachments,
   onEdit,
   onDelete,
+  editLocked = false,
 }: {
   objectName: string;
   attachmentCount?: number;
@@ -23,6 +24,7 @@ export function AndroidObjectDetailFooter({
   onAttachments: () => void;
   onEdit?: () => void;
   onDelete: () => void;
+  editLocked?: boolean;
 }) {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
@@ -103,7 +105,12 @@ export function AndroidObjectDetailFooter({
                   </button>
                 )}
                 <hr className="android-object-menu-divider" />
-                <button type="button" data-danger onClick={() => select(onDelete)}>
+                <button
+                  type="button"
+                  data-danger
+                  disabled={editLocked}
+                  onClick={() => select(onDelete)}
+                >
                   <Trash2 size={24} aria-hidden="true" />
                   <span>{t('delete')}</span>
                 </button>

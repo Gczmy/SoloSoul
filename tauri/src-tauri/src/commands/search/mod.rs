@@ -35,6 +35,7 @@ pub struct SearchResultItem {
     pub collection_type: String,
     /// "object" or "page"
     pub item_type: String,
+    pub edit_locked: bool,
     pub parent_id: Option<String>,
     /// Name of the template used by this object (object results only)
     pub template_name: Option<String>,

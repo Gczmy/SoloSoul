@@ -45,15 +45,19 @@ vi.mock('@/stores/settingsStore', () => ({
 }));
 
 vi.mock('@/stores/objectStore', () => ({
-  useObjectStore: {
-    getState: () => ({
-      deleteObject: objectStoreMock.deleteObject,
-      currentObjectCache: {},
-    }),
-    // P020 二次复核：直接 invoke 成功后写缓存（不置 isLoading）；测试中 invoke 返回
-    // null 不触发，此处仅保证 API 存在。
-    setState: vi.fn(),
-  },
+  useObjectStore: Object.assign(
+    (selector: (s: { currentObjectCache: Record<string, never>; objects: never[] }) => unknown) =>
+      selector({ currentObjectCache: {}, objects: [] }),
+    {
+      getState: () => ({
+        deleteObject: objectStoreMock.deleteObject,
+        currentObjectCache: {},
+      }),
+      // P020 二次复核：直接 invoke 成功后写缓存（不置 isLoading）；测试中 invoke 返回
+      // null 不触发，此处仅保证 API 存在。
+      setState: vi.fn(),
+    },
+  ),
 }));
 
 vi.mock('@/hooks/useDragToAttach', () => ({

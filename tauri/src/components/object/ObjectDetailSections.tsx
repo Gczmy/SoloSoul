@@ -8,6 +8,7 @@ import type { GuidePage } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/constants';
 import { isAndroidSync } from '@/lib/platform';
 import { AndroidObjectDetailFooter } from './AndroidObjectDetailFooter';
+import { ObjectEditLockBadge } from './ObjectEditLockBadge';
 import styles from './ObjectDetailModal.module.css';
 
 type T = ReturnType<typeof useTranslation>['t'];
@@ -51,6 +52,7 @@ export function ObjectDetailHeader({
           >
             {obj.name}
           </h2>
+          <ObjectEditLockBadge objectId={obj.id} properties={obj.properties} />
           <span
             style={{
               fontSize: 'var(--text-badge)',
@@ -230,6 +232,7 @@ export function ObjectDetailFooter({
   onAttachments,
   onEdit,
   onDelete,
+  editLocked = false,
 }: {
   t: T;
   objectName: string;
@@ -239,6 +242,7 @@ export function ObjectDetailFooter({
   onAttachments: () => void;
   onEdit?: () => void;
   onDelete: () => void;
+  editLocked?: boolean;
 }) {
   if (isAndroidSync()) {
     return (
@@ -250,6 +254,7 @@ export function ObjectDetailFooter({
         onAttachments={onAttachments}
         onEdit={onEdit}
         onDelete={onDelete}
+        editLocked={editLocked}
       />
     );
   }
@@ -289,7 +294,7 @@ export function ObjectDetailFooter({
           </button>
         )}
         <div className={styles.deleteBtnWrapper}>
-          <DeleteButton onClick={onDelete} title={t('common:delete')}>
+          <DeleteButton disabled={editLocked} onClick={onDelete} title={t('common:delete')}>
             <span className={styles.actionLabel}>{t('common:delete')}</span>
           </DeleteButton>
         </div>

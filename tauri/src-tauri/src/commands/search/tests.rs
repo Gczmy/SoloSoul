@@ -185,6 +185,7 @@ fn test_search_properties_for_matches_deeply_nested() {
 fn test_search_result_serialization() {
     let item = SearchResultItem {
         object_id: "obj-1".to_string(),
+        edit_locked: true,
         name: "Test".to_string(),
         collection_type: "note".to_string(),
         item_type: "object".to_string(),
@@ -207,6 +208,7 @@ fn test_search_result_serialization() {
     };
     let json = serde_json::to_string(&result).unwrap();
     assert!(json.contains("\"objectId\":\"obj-1\""));
+    assert!(json.contains("\"editLocked\":true"));
     assert!(json.contains("\"relevance\":3.5"));
     assert!(json.contains("\"hasMore\":false"));
     assert!(json.contains("\"total\":1"));
@@ -217,6 +219,7 @@ fn test_search_result_serialization() {
 fn test_search_result_item_serialization_optional_fields() {
     let item = SearchResultItem {
         object_id: "obj-2".to_string(),
+        edit_locked: false,
         name: "Minimal".to_string(),
         collection_type: "task".to_string(),
         item_type: "object".to_string(),

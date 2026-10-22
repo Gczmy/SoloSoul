@@ -14,6 +14,7 @@ interface AttachmentListItemProps {
   compositeKey: string;
   checked: boolean;
   showTrash: boolean;
+  readOnly?: boolean;
   isLast: boolean;
   onToggleSelect: (key: string) => void;
   onRestore: (item: AttachmentItem) => void;
@@ -35,6 +36,7 @@ export function AttachmentListItem({
   compositeKey,
   checked,
   showTrash,
+  readOnly,
   isLast,
   onToggleSelect,
   onRestore,
@@ -115,6 +117,7 @@ export function AttachmentListItem({
 
   const actions = (
     <AttachmentActions
+      readOnly={readOnly}
       fileName={item.fileName}
       showTrash={showTrash}
       onPreview={() => onPreview(item)}

@@ -1,5 +1,6 @@
 import { Images } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ToastOutlet } from '@/components/ui/ToastOutlet';
@@ -28,6 +29,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
 }
 
 function AttachmentViewerForObject(props: AttachmentViewerProps) {
+  const editLocked = useObjectEditLocked(props.objectId);
   const {
     zIndex,
     objectId,
@@ -143,6 +145,7 @@ function AttachmentViewerForObject(props: AttachmentViewerProps) {
         >
           {/* Header（P013 拆分） */}
           <AttachmentViewerHeader
+            readOnly={editLocked}
             isNarrowViewport={isNarrowViewport}
             showTrash={showTrash}
             activeCount={items.length}
@@ -162,6 +165,7 @@ function AttachmentViewerForObject(props: AttachmentViewerProps) {
           {/* 批量操作工具栏 — 常驻显示（P013 拆分） */}
           {displayItems.length > 0 && (
             <AttachmentBatchToolbar
+              readOnly={editLocked}
               showTrash={showTrash}
               allSelected={allSelected}
               selectedCount={selectedIds.size}
@@ -222,6 +226,7 @@ function AttachmentViewerForObject(props: AttachmentViewerProps) {
                 const checked = selectedIds.has(compositeKey);
                 return (
                   <AttachmentListItem
+                    readOnly={editLocked}
                     key={item.id}
                     item={item}
                     compositeKey={compositeKey}

@@ -7,6 +7,7 @@ import { ICON_SIZE } from '@/lib/constants';
 
 interface AttachmentBatchToolbarProps {
   showTrash: boolean;
+  readOnly?: boolean;
   allSelected: boolean;
   selectedCount: number;
   onToggleSelectAll: () => void;
@@ -19,6 +20,7 @@ interface AttachmentBatchToolbarProps {
 /** AttachmentViewer 批量操作工具栏（常驻显示，选中项出现时展开操作按钮）（P013 拆分）。 */
 export function AttachmentBatchToolbar({
   showTrash,
+  readOnly,
   allSelected,
   selectedCount,
   onToggleSelectAll,
@@ -67,16 +69,20 @@ export function AttachmentBatchToolbar({
           <Button variant="secondary" size="sm" onClick={onBatchDownload}>
             <Download size={ICON_SIZE.sm} /> {t('download')}
           </Button>
-          <DeleteButton onClick={onBatchDelete} title={t('delete')}>
+          <DeleteButton disabled={readOnly} onClick={onBatchDelete} title={t('delete')}>
             {t('delete')}
           </DeleteButton>
         </div>
       ) : selectedCount > 0 && showTrash ? (
         <div style={{ display: 'flex', gap: 6 }}>
-          <Button variant="secondary" size="sm" onClick={onBatchRestore}>
+          <Button disabled={readOnly} variant="secondary" size="sm" onClick={onBatchRestore}>
             <RotateCw size={ICON_SIZE.sm} /> {t('restore')}
           </Button>
-          <DeleteButton onClick={onBatchPermanentDelete} title={t('delete_permanently')}>
+          <DeleteButton
+            disabled={readOnly}
+            onClick={onBatchPermanentDelete}
+            title={t('delete_permanently')}
+          >
             {t('delete_permanently')}
           </DeleteButton>
         </div>

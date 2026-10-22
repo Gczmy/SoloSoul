@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Paperclip } from 'lucide-react';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
 import { useRevealState } from '@/hooks/useRevealState';
 import { flattenPropertyEntries } from '@/lib/propertyFlatten';
 import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
@@ -59,6 +60,7 @@ export function ObjectRulerPreview({
       </div>
       <h2 className={styles.previewTitle}>{object.name}</h2>
       <div className={styles.badges}>
+        <ObjectEditLockBadge objectId={object.id} properties={object.properties} />
         <SensitivityBadge level={sensitivity(object.sensitivityLevel)} />
         {attachmentCount ? (
           <span className={styles.attachments}>

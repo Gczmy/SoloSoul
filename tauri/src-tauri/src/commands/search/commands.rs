@@ -187,6 +187,7 @@ pub(crate) fn match_object_to_query(
         resolve_template_display(rec.template_id.as_deref(), tpl_from_cache, tpl_from_props);
     Some(SearchResultItem {
         object_id: rec.id.clone(),
+        edit_locked: solosoul_vault::storage::object_edit_locked(&rec.properties),
         name: rec.name.clone(),
         collection_type: rec.type_id.clone(),
         template_name: tpl_name,
@@ -271,6 +272,7 @@ fn search_by_page_only(
                 resolve_template_display(s.template_id.as_deref(), tpl_from_cache, tpl_from_props);
             SearchResultItem {
                 object_id: s.id,
+                edit_locked: solosoul_vault::storage::object_edit_locked(&s.properties),
                 name: s.name,
                 collection_type: s.collection_type,
                 template_name: tpl_name,
@@ -340,6 +342,7 @@ fn expand_template_matches(
         let field_count = count_object_fields(&obj.properties);
         items.push(SearchResultItem {
             object_id: obj.id.clone(),
+            edit_locked: solosoul_vault::storage::object_edit_locked(&obj.properties),
             name: obj.name.clone(),
             collection_type: obj.type_id.clone(),
             template_name: Some(tpl.name.clone()),

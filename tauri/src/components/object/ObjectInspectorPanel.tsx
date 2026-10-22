@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { HoverScrollLabel } from '@/components/ui/HoverScrollLabel';
 import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { HistoryViewer } from './HistoryViewer';
+import { ObjectEditLockBadge } from './ObjectEditLockBadge';
 import { useObjectInspectorTransition } from './useObjectInspectorTransition';
 import styles from './ObjectInspectorPanel.module.css';
 
@@ -87,6 +88,7 @@ function InspectorSession({
       <header className={styles.header}>
         <div className={styles.heading}>
           <span>{t('object_inspector')}</span>
+          <ObjectEditLockBadge objectId={view?.context.objectId ?? context.objectId} />
           <HoverScrollLabel
             className={styles.name}
             text={view?.context.objectName ?? '\u00a0'}

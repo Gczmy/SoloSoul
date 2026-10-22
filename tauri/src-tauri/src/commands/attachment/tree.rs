@@ -10,6 +10,7 @@ use super::*;
 pub struct AttachmentTreeObject {
     pub object_id: String,
     pub object_name: String,
+    pub edit_locked: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub template_name: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -160,6 +161,9 @@ pub(crate) fn build_attachment_tree_pages(
                     Some(AttachmentTreeObject {
                         object_id: summary.id.clone(),
                         object_name: summary.name.clone(),
+                        edit_locked: solosoul_vault::storage::object_edit_locked(
+                            &summary.properties,
+                        ),
                         template_name,
                         attachments: filtered,
                     })

@@ -20,6 +20,7 @@ export interface AttachmentMeta {
 export interface AttachmentTreeObject {
   objectId: string;
   objectName: string;
+  editLocked?: boolean;
   templateName?: string | null;
   attachments: AttachmentMeta[];
 }

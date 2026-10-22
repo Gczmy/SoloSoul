@@ -16,6 +16,7 @@ import { isAndroidSync } from '@/lib/platform';
 import styles from './ObjectDetailModal.module.css';
 import { ToastOutlet } from '@/components/ui/ToastOutlet';
 import { useNativeBackdropClose } from '@/hooks/useNativeBackdropClose';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 
 import { useObjectDetailModal, type ObjectDetailModalProps } from './useObjectDetailModal';
 
@@ -90,6 +91,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     detailDragRef,
     detailDragState,
   } = useObjectDetailModal({ ...props, onClose });
+  const editLocked = useObjectEditLocked(obj?.id, obj?.properties);
 
   // 对象详情以本地状态覆盖工作区；Android 返回应先关闭最上层卡片，保留列表路由。
   useOverlayBackGuard({
@@ -146,7 +148,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
               <div className={styles.modalBody}>
                 <ToastOutlet priority={4000} />
                 {/* 模板更新提示条 */}
-                {needsSync && onSyncTemplate && (
+                {needsSync && onSyncTemplate && !editLocked && (
                   <ObjectDetailTemplateSyncBanner
                     t={t}
                     onSync={onSyncTemplate}
@@ -203,6 +205,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
 
               {/* Actions */}
               <ObjectDetailFooter
+                editLocked={editLocked}
                 t={t}
                 objectName={obj.name}
                 attachmentCount={attachmentCount}
