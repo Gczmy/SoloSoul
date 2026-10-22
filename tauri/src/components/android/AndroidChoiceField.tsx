@@ -48,7 +48,7 @@ export function AndroidChoiceField(
           setOpen(true);
         }}
       >
-        <span>{summary ?? (text || placeholder || t('select'))}</span>
+        <span>{summary ?? (text || placeholder || t('select_option'))}</span>
         <ChevronDown size={20} aria-hidden="true" />
       </button>
       {open && !disabled && (

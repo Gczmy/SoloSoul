@@ -78,6 +78,16 @@
   padding: 2px;
   scroll-padding-block: 4px;
 }
+.sheet :global(.android-sheet-heading h2) {
+  min-width: 0;
+  max-height: 4.5em;
+  overflow-y: auto;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+.sheet :global(.android-sheet-heading > button) {
+  flex-shrink: 0;
+}
 .actions {
   display: flex;
   flex-shrink: 0;

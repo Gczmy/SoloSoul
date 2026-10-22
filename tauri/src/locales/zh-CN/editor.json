@@ -86,6 +86,7 @@
   "validation_failed": "字段类型填写错误，请检查后重试",
   "dynamic_group_add": "添加字段",
   "dynamic_group_new_item": "新字段",
+  "dynamic_group_type": "字段类型",
   "dynamic_group_max_items": "子字段数量不能超过 {{max}} 个",
   "dynamic_group_empty_name": "第 {{index}} 个子字段名称不能为空",
   "dynamic_group_duplicate_name": "子字段名称重复：{{name}}",

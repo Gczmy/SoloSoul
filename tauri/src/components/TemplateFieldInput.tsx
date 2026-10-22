@@ -1,4 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidChoiceField } from '@/components/android/AndroidChoiceField';
 import type { PropertyType } from '@/types/template';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DatePicker } from '@/components/forms/DatePicker';
@@ -29,6 +32,7 @@ export function TemplateFieldInput({
   badge,
   hint,
 }: TemplateFieldInputProps) {
+  const { t } = useTranslation('common');
   const labelRow = (
     <span className={styles.labelRow}>
       {icon}
@@ -45,6 +49,40 @@ export function TemplateFieldInput({
     file: 'text', // file references stored as text (attachment id or path)
   };
   const uniqueOptions = [...new Set(options ?? [])];
+
+  if (isAndroidSync() && (type === 'select' || type === 'multiselect')) {
+    const title = label || t('select_option', { defaultValue: 'Select an option' });
+    const choices = uniqueOptions.map((option) => ({ value: option, label: option }));
+    return (
+      <div className={styles.field}>
+        <label htmlFor={propertyId} className={styles.label}>
+          {labelRow}
+        </label>
+        {hint && <div className={styles.hint}>{hint}</div>}
+        {type === 'multiselect' ? (
+          <AndroidChoiceField
+            id={propertyId}
+            title={title}
+            choices={choices}
+            multiple
+            value={uniqueOptions.filter((option) => Array.isArray(value) && value.includes(option))}
+            onChange={onChange}
+            disabled={disabled}
+          />
+        ) : (
+          <AndroidChoiceField
+            id={propertyId}
+            title={title}
+            choices={[{ value: '', label: t('clear', { defaultValue: 'Clear' }) }, ...choices]}
+            value={String(value || '')}
+            onChange={onChange}
+            disabled={disabled}
+            summary={value ? undefined : t('select_option', { defaultValue: 'Select an option' })}
+          />
+        )}
+      </div>
+    );
+  }
 
   switch (type) {
     case 'date':

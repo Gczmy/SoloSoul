@@ -119,6 +119,39 @@
   align-self: flex-start;
 }
 
+:global(html[data-platform='android']) .container,
+:global(html[data-platform='android']) .itemBody {
+  min-width: 0;
+}
+:global(html[data-platform='android']) .itemHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+:global(html[data-platform='android']) .itemHeader > * {
+  min-width: 0;
+}
+:global(html[data-platform='android']) .actions {
+  justify-self: end;
+}
+:global(html[data-platform='android']) .nameButton {
+  width: 100%;
+  text-align: start;
+}
+:global(html[data-platform='android']) .nameButton span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:global(html[data-platform='android']) .nameButton svg {
+  flex-shrink: 0;
+}
+:global(html[data-platform='android']) .header > div:first-child {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+:global(html[data-platform='android']) .label {
+  overflow-wrap: anywhere;
+}
+
 /* 移动端：组名单独一行，敏感度徽章换行到组名下方 */
 @media (max-width: 767px) {
   .header > div:first-child {

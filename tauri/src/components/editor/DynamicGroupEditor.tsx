@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/Input';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { AndroidChoiceField } from '@/components/android/AndroidChoiceField';
+import { isAndroidSync } from '@/lib/platform';
 import type { PropertyType, SensitivityLevel } from '@/types/template';
 import styles from './DynamicGroupEditor.module.css';
 
@@ -161,6 +163,7 @@ export function DynamicGroupEditor({
                     if (e.key === 'Enter') setEditingNameId(null);
                   }}
                   autoFocus
+                  disabled={disabled}
                   className={styles.nameInput}
                 />
               ) : (
@@ -208,18 +211,34 @@ export function DynamicGroupEditor({
 
             <div className={styles.itemBody}>
               <div className={styles.typeSelectRow}>
-                <select
-                  className={styles.typeSelect}
-                  value={item.type}
-                  onChange={(e) => handleUpdate(item.id, { type: e.target.value as PropertyType })}
-                  disabled={disabled}
-                >
-                  {availableTypes.map((pt) => (
-                    <option key={pt} value={pt}>
-                      {t(`editor:field_types.${pt}`, pt)}
-                    </option>
-                  ))}
-                </select>
+                {isAndroidSync() ? (
+                  <AndroidChoiceField
+                    title={t('editor:dynamic_group_type', { defaultValue: 'Field type' })}
+                    value={item.type}
+                    disabled={disabled}
+                    choices={availableTypes.map((pt) => ({
+                      value: pt,
+                      label: t(`editor:field_types.${pt}`, pt),
+                      icon: <FieldTypeIcon type={pt} />,
+                    }))}
+                    onChange={(type) => handleUpdate(item.id, { type: type as PropertyType })}
+                  />
+                ) : (
+                  <select
+                    className={styles.typeSelect}
+                    value={item.type}
+                    onChange={(e) =>
+                      handleUpdate(item.id, { type: e.target.value as PropertyType })
+                    }
+                    disabled={disabled}
+                  >
+                    {availableTypes.map((pt) => (
+                      <option key={pt} value={pt}>
+                        {t(`editor:field_types.${pt}`, pt)}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <TemplateFieldInput
                 propertyId={`${propertyId}-${item.id}`}

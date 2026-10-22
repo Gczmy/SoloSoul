@@ -86,6 +86,7 @@
   "validation_failed": "Some fields contain invalid values, please check and retry",
   "dynamic_group_add": "Add field",
   "dynamic_group_new_item": "New field",
+  "dynamic_group_type": "Field type",
   "dynamic_group_max_items": "Cannot add more than {{max}} items",
   "dynamic_group_empty_name": "Item {{index}} name is required",
   "dynamic_group_duplicate_name": "Duplicate item name: {{name}}",
