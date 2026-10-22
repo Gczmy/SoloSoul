@@ -1,5 +1,5 @@
 name: SoloSoul frontend validation
-description: Shared frontend gates for Ubuntu CI and PR jobs
+description: Shared TypeScript, lint and unit coverage gates for Ubuntu CI and PR jobs
 inputs:
   node_version:
     description: Toolchain version supplied by the caller
@@ -43,13 +43,3 @@ runs:
         path: tauri/coverage/
         if-no-files-found: error
         retention-days: 7
-
-    - name: Install production smoke browser
-      shell: bash
-      working-directory: tauri
-      run: npx playwright install --with-deps chromium
-
-    - name: Production startup smoke test
-      shell: bash
-      working-directory: tauri
-      run: npm run test:e2e:production

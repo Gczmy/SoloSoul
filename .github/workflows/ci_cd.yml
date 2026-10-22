@@ -59,22 +59,22 @@ jobs:
   # ============================================================
   # Job 1: Frontend Checks (TypeScript, Lint, Unit Tests)
   # ============================================================
+  frontend-validation:
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/frontend-validation.yml
+    with:
+      node_version: '22'
+
   frontend-check:
     name: ${{ github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks' }}
-    if: github.event_name != 'pull_request'
-    # Keep browser checks on a runner supported by the locked Playwright version.
+    if: always() && github.event_name != 'pull_request'
+    needs: [frontend-validation]
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: tauri
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Shared frontend validation
-        uses: ./.github/actions/check-frontend
-        with:
-          node_version: ${{ env.NODE_VERSION }}
+      - name: Require all frontend validation jobs
+        env:
+          VALIDATION_RESULT: ${{ needs.frontend-validation.result }}
+        run: test "$VALIDATION_RESULT" = success
 
   # ============================================================
   # Job 2: Rust Checks & Tests
@@ -96,7 +96,8 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: tauri/src-tauri
+          workspaces: tauri
+          prefix-key: v1-tauri-workspace
 
       - name: Install Linux Host development dependencies
         run: |
