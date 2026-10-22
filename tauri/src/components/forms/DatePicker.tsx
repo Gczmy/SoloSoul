@@ -6,6 +6,8 @@ import { X } from 'lucide-react';
 import styles from './DatePicker.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 import { DatePickerCalendar } from './DatePickerCalendar';
+import { DatePickerAndroid } from './DatePickerAndroid';
+import { isAndroidSync } from '@/lib/platform';
 import {
   SEGMENTS_CONFIG,
   SEPARATOR_BEFORE,
@@ -21,6 +23,7 @@ import {
 } from './DatePicker.helpers';
 
 export function DatePicker({ value, onChange, includeTime, disabled }: DatePickerProps) {
+  const android = isAndroidSync();
   const { t, i18n } = useTranslation('common');
   const locale = useMemo(() => (i18n.language.startsWith('zh') ? zhCN : enUS), [i18n.language]);
 
@@ -238,7 +241,7 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || android) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -246,9 +249,34 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
+  }, [open, android]);
 
   const hasValue = !!selectedDate;
+
+  if (android)
+    return (
+      <DatePickerAndroid
+        value={value}
+        segments={segments}
+        includeTime={includeTime}
+        disabled={disabled}
+        open={open}
+        setOpen={setOpen}
+        segmentRefs={segmentRefs}
+        onSegmentChange={handleSegmentChange}
+        isInvalid={isSegmentInvalid}
+        onClear={() => {
+          applyValue(undefined);
+          setOpen(false);
+        }}
+        onCalendarChange={(date) => {
+          const picked = segmentsFromValue(date);
+          const next = { ...segments, year: picked.year, month: picked.month, day: picked.day };
+          setSegments(next);
+          commitSegments(next);
+        }}
+      />
+    );
 
   return (
     <div className={styles.datePicker} ref={containerRef}>
