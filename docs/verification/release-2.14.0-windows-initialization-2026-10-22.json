@@ -9,7 +9,10 @@
     "runtimeDirectoryCreatedByBuildScript": true,
     "tauriResourceScan": "passed with empty runtime directory",
     "postTauriBuildOutput": "app_level_names.rs was regenerated after tauri_build returned successfully",
-    "fullReleaseBuild": "Still running when this narrow build-script validation was recorded; final package results are recorded separately."
+    "fullReleaseBuild": "passed",
+    "nsisRebundleAndArchiveVerification": "passed",
+    "finalInstallerBytes": 67980650,
+    "finalInstallerSha256": "fc723801ec31050c8cfda9e77abe2b15e36f117de93bd42f5e91bcef0c4a2f6c"
   },
   "limits": [
     "No desktop application was launched.",

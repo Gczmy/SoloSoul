@@ -1,0 +1,86 @@
+{
+  "scope": "2.14.0 Windows and Android release preparation for Mac signing",
+  "sourceCodeCommit": "b485bb3f9",
+  "version": "2.14.0",
+  "androidVersionCode": 2014000,
+  "gitInputs": {
+    "versionRepresentationsChecked": 6,
+    "pluginMarketCommit": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+    "pluginWasmFilesTrackedAndRemotelyAvailable": 22,
+    "embeddingArchiveTrackedAndMatchesRegistry": true,
+    "ocrBuildResources": "Ignored binaries supplied separately in the Mac handoff archive; Mac PDFium remains platform-specific."
+  },
+  "isolatedFixCommits": {
+    "windowsRuntimePackaging": "78a0e26a2",
+    "windowsFirstBuildInitialization": "88aadd81a",
+    "mobilePulleyPointerWidth": "540ab65de",
+    "androidElfAlignment": "b485bb3f9"
+  },
+  "windows": {
+    "file": "SoloSoul_2.14.0_x64-setup.exe",
+    "bytes": 67980650,
+    "sha256": "fc723801ec31050c8cfda9e77abe2b15e36f117de93bd42f5e91bcef0c4a2f6c",
+    "releaseBuildAndNsis": "passed",
+    "archiveAndPeImports": "passed",
+    "runtimeDlls": 11,
+    "resourcesVerifiedByHash": { "docs": 44, "ocr": 4, "pluginFiles": 44 },
+    "pdfiumAndPluginRegistry": "match build inputs",
+    "embeddedProductionFrontend": "current",
+    "authenticode": "absent",
+    "updaterSignature": "pending existing Mac key"
+  },
+  "android": {
+    "file": "SoloSoul_2.14.0_universal-unsigned.apk",
+    "bytes": 116423652,
+    "sha256": "8edbbed2f52b61cfc2fe1b50fa14439d6d28dc24d4c31b845b25758ebab6b8f3",
+    "releaseNativeCompilation": { "arm64": "passed", "armv7": "passed" },
+    "gradleRelease": { "passed": true, "tasks": 267, "executed": 226, "upToDate": 41 },
+    "buildMethod": "Tauri native compilation followed by copied, isolated Gradle JNI/assets source sets. Windows file-symlink permission prevented Tauri's link step; no system policy was changed. Only the separately completed Rust tasks were excluded from Gradle.",
+    "nativeInputHashes": "Both packaged application libraries exactly match their current Cargo release outputs. Gradle preserves these already stripped bytes.",
+    "productionFrontend": "current entry keys present in both application libraries",
+    "resourcesVerifiedByManifestHash": 89,
+    "abis": ["arm64-v8a", "armeabi-v7a"],
+    "minSdk": 28,
+    "targetSdk": 36,
+    "debuggable": false,
+    "usesCleartextTraffic": false,
+    "extractNativeLibs": false,
+    "zipAlignment16KiB": "passed",
+    "applicationElfLoadAndRelroAlignment": "passed for both ABIs",
+    "ocrSdkNativeLibraries": "Both match the official com.google.mlkit:text-recognition-bundled-common:17.0.0 AAR; existing dependency remains unchanged.",
+    "ocrArm64RelroLayout": {
+      "loadAlignmentBytes": 16384,
+      "relroOccupiesItsOwnWritableLoad": true,
+      "rawRelroEnd": "0xa57000",
+      "roundedProtectionEnd": "0xa58000",
+      "nextWritableLoadPageStart": "0xa58000",
+      "roundedProtectionOverlapsOtherWritableLoads": false,
+      "note": "A raw RELRO-end divisibility check alone rejected this isolated-LOAD layout. Full segment analysis resolves the false positive; no library bytes or dependency versions were changed."
+    },
+    "signing": "unsigned; v1 and v2/v3 signature blocks absent; apksigner reports the expected missing signature"
+  },
+  "checks": {
+    "frontend": { "distinctFilesPassed": 276, "distinctTestsPassed": 2486, "initialWorkerStartupTimeouts": 2, "singleWorkerRecheckFiles": 2, "singleWorkerRecheckTestsPassed": 24 },
+    "node": { "total": 284, "passed": 283, "skipped": 1, "failed": 0 },
+    "types": "passed by production builds",
+    "lint": { "errors": 0, "existingWarnings": 1 },
+    "rustFormat": "passed",
+    "markdownChunkBoundary": "passed"
+  },
+  "handoff": {
+    "ocrSupportArchiveBytes": 26032148,
+    "ocrSupportArchiveSha256": "c8a14c8ac31d34a7e1fa7b01d881a15a4f2dece4c8b96cfc21d88036189daac7",
+    "macInstructions": "MAC-HANDOFF-2.14.0.txt accompanies the local artifacts.",
+    "remaining": ["Mac build", "Original-key APK and updater signing", "Signed-package installation acceptance", "User-managed publication"]
+  },
+  "limits": [
+    "No release tag, GitHub Release or artifact upload was created by this task.",
+    "No private signing keys were used or generated on this host.",
+    "No signed package was installed, no physical 16 KB or 32-bit Android device was exercised, and no Vault was accessed.",
+    "Other tasks remain paused."
+  ],
+  "references": [
+    "https://developer.android.com/guide/practices/page-sizes",
+    "https://developers.google.com/ml-kit/release-notes"
+  ]
+}

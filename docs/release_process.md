@@ -316,7 +316,8 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 - `SOLOSOUL_KEY_ALIAS`
 - `SOLOSOUL_KEY_PASSWORD`
 
-本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
+缺少环境变量不等于自动回退到 debug 签名。跨机签名时应显式生成未签名的
+Release APK，再由持有原 keystore 的机器签名；构建机直接签名时需提供上述变量。
 
 **发布 keystore 固定信息（v2.11.0 事故后固化）：**
 
