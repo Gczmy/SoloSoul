@@ -86,7 +86,9 @@ describe('ShellLayout（B1 常驻壳布局）', () => {
           </Routes>
         </MemoryRouter>,
       );
-      await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+      await waitFor(() =>
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false'),
+      );
       const list = screen.getByRole('tabpanel');
       list.scrollTop = 120;
       const calls = vi.mocked(invoke).mock.calls.length;

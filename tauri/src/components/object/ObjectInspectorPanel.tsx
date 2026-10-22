@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Clock, Paperclip, X, FileText, ChevronRight, LoaderCircle } from 'lucide-react';
@@ -7,6 +7,7 @@ import { useUiStore, type ObjectInspectorTab } from '@/stores/uiStore';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { formatBytes } from '@/lib/utils';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
+import type { SnapshotEntry } from '@/types/history';
 import type { ObjectInspectorContext } from '@/components/layout/shellConfigStore';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { HoverScrollLabel } from '@/components/ui/HoverScrollLabel';
 import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { HistoryViewer } from './HistoryViewer';
+import { useObjectInspectorTransition } from './useObjectInspectorTransition';
 import styles from './ObjectInspectorPanel.module.css';
 
 export function ObjectInspectorPanel({
@@ -28,10 +30,10 @@ export function ObjectInspectorPanel({
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const [session, setSession] = useState(0);
   useLayoutEffect(() => onRequestSessionChange(() => setSession((n) => n + 1)), []);
-  // 保留停靠面板框架；对象未就绪时仅清除名称和受保护内容。
+  // 交接对象保留框架；账户或锁定会话变化时立即清空整个面板会话。
   return (
     <InspectorSession
-      key={JSON.stringify([accountId, context.objectId, session])}
+      key={JSON.stringify([accountId, session])}
       context={context}
       accountId={accountId}
       onClose={onClose}
@@ -51,12 +53,33 @@ function InspectorSession({
   const { t } = useTranslation('common');
   const tab = useUiStore((s) => s.desktopObjectInspectorTab);
   const setTab = useUiStore((s) => s.setDesktopObjectInspectorTab);
-  const [counts, setCounts] = useState<Partial<Record<ObjectInspectorTab, number>>>({});
+  const transition = useObjectInspectorTransition(context, tab, accountId);
+  const { view, active, pending, failed, objectFailed, showPending, retry } = transition;
+  const listRef = useRef<HTMLDivElement>(null);
+  const [counts, setCounts] = useState<{
+    objectId: string;
+    values: Partial<Record<ObjectInspectorTab, number>>;
+  }>();
+  useLayoutEffect(() => {
+    if (!view || !active) return;
+    setCounts((previous) => ({
+      objectId: view.context.objectId,
+      values: {
+        ...(previous?.objectId === view.context.objectId ? previous.values : {}),
+        [view.data.tab]: view.data.items.length,
+      },
+    }));
+  }, [view, active]);
+  const viewKey = active ? view?.key : undefined;
+  useLayoutEffect(() => {
+    if (viewKey && listRef.current) listRef.current.scrollTop = 0;
+  }, [viewKey]);
   return (
     <aside
       className={styles.panel}
       data-object-inspector
-      data-object-id={context.objectId}
+      data-object-id={view?.context.objectId ?? context.objectId}
+      data-inspector-target-id={context.objectId}
       aria-label={t('object_inspector')}
     >
       <header className={styles.header}>
@@ -64,10 +87,17 @@ function InspectorSession({
           <span>{t('object_inspector')}</span>
           <HoverScrollLabel
             className={styles.name}
-            text={context.ready ? context.objectName : '\u00a0'}
-            focusable={context.ready}
+            text={view?.context.objectName ?? '\u00a0'}
+            focusable={active}
           />
         </div>
+        <span className={styles.pending}>
+          {showPending && (
+            <span role="status" aria-label={t('loading')}>
+              <LoaderCircle size={14} aria-hidden="true" />
+            </span>
+          )}
+        </span>
         <button
           type="button"
           data-ui-icon-button="neutral"
@@ -83,6 +113,12 @@ function InspectorSession({
       <div role="tablist" aria-label={t('object_inspector')} className={styles.tabs}>
         {(['history', 'attachments'] as const).map((value) => {
           const Icon = value === 'history' ? Clock : Paperclip;
+          const count =
+            view?.data.tab === value
+              ? view.data.items.length
+              : view && counts?.objectId === view.context.objectId
+                ? counts.values[value]
+                : undefined;
           return (
             <button
               key={value}
@@ -110,9 +146,9 @@ function InspectorSession({
             >
               <Icon size={14} aria-hidden="true" />
               {t(value)}
-              {context.ready && counts[value] !== undefined && (
+              {count !== undefined && (
                 <span className={styles.count} aria-hidden="true">
-                  {counts[value]}
+                  {count}
                 </span>
               )}
             </button>
@@ -120,40 +156,52 @@ function InspectorSession({
         })}
       </div>
       <div
+        ref={listRef}
         className={styles.list}
-        key={tab}
         id="object-inspector-list"
         role="tabpanel"
         aria-labelledby={`object-inspector-tab-${tab}`}
         tabIndex={0}
         data-object-inspector-scroll
-        aria-busy={!context.ready && !context.failed}
+        aria-busy={pending}
       >
-        {!context.ready ? (
-          <div className={styles.loading} role={context.failed ? 'alert' : 'status'}>
-            {!context.failed && <LoaderCircle size={18} aria-hidden="true" />}
-            {t(context.failed ? 'object_load_failed' : 'loading')}
+        {failed ? (
+          <div className={styles.empty} role="alert">
+            <p>
+              {t(
+                objectFailed
+                  ? 'object_load_failed'
+                  : tab === 'history'
+                    ? 'history_load_failed'
+                    : 'inspector_attachments_failed',
+              )}
+            </p>
+            {!objectFailed && (
+              <Button variant="secondary" size="sm" onClick={retry}>
+                {t('retry')}
+              </Button>
+            )}
           </div>
-        ) : tab === 'history' ? (
-          <InspectorHistory
-            context={context}
-            accountId={accountId}
-            onCount={(count) =>
-              setCounts((previous) =>
-                previous.history === count ? previous : { ...previous, history: count },
-              )
-            }
-          />
+        ) : view ? (
+          <div key={view.key} inert={!active} data-inspector-content>
+            {view.data.tab === 'history' ? (
+              <InspectorHistory
+                context={view.context}
+                accountId={accountId}
+                initialSnapshots={view.data.items}
+                active={active}
+              />
+            ) : (
+              <InspectorAttachments
+                context={view.context}
+                accountId={accountId}
+                initialItems={view.data.items}
+                active={active}
+              />
+            )}
+          </div>
         ) : (
-          <InspectorAttachments
-            context={context}
-            accountId={accountId}
-            onCount={(count) =>
-              setCounts((previous) =>
-                previous.attachments === count ? previous : { ...previous, attachments: count },
-              )
-            }
-          />
+          <div className={styles.loading} aria-hidden="true" />
         )}
       </div>
       <footer className={styles.footer}>{t('inspector_newest_first')}</footer>
@@ -164,14 +212,20 @@ function InspectorSession({
 function InspectorHistory({
   context,
   accountId,
-  onCount,
+  initialSnapshots,
+  active,
 }: {
   context: ObjectInspectorContext;
   accountId?: string;
-  onCount: (count: number) => void;
+  initialSnapshots: SnapshotEntry[];
+  active: boolean;
 }) {
   const { t } = useTranslation('common');
   const guard = useWorkspacePasswordGuard(accountId);
+  const closeVerification = guard.handlePwDialogClose;
+  useLayoutEffect(() => {
+    if (!active && guard.showPwDialog) closeVerification();
+  }, [active, guard.showPwDialog, closeVerification]);
   return (
     <>
       <HistoryViewer
@@ -184,10 +238,11 @@ function InspectorHistory({
         getFieldSensitivity={() => 'internal'}
         getFieldName={(key) => key}
         isFieldDeprecated={() => false}
-        onCountChange={onCount}
+        initialSnapshots={initialSnapshots}
+        active={active}
       />
       <PasswordVerificationDialog
-        open={guard.showPwDialog}
+        open={active && guard.showPwDialog}
         onClose={guard.handlePwDialogClose}
         onVerify={guard.handlePwDialogVerify}
         title={t('critical_access_title')}
@@ -206,52 +261,28 @@ function InspectorHistory({
 function InspectorAttachments({
   context,
   accountId,
-  onCount,
+  initialItems,
+  active,
 }: {
   context: ObjectInspectorContext;
   accountId?: string;
-  onCount: (count: number) => void;
+  initialItems: AttachmentItem[];
+  active: boolean;
 }) {
   const { t } = useTranslation('common');
   const { onError } = useToastError();
   const [requests] = useState(createSessionRequests);
-  const [items, setItems] = useState<AttachmentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
+  const [items, setItems] = useState(initialItems);
   const [preview, setPreview] = useState<AttachmentItem | null>(null);
   const window = useIncrementalWindow(30);
   useLayoutEffect(() => () => requests.invalidate(), [requests]);
-  useEffect(() => {
-    const request = requests.begin('attachments', accountId);
-    setLoading(true);
-    setFailed(false);
-    request
-      .invoke<AttachmentItem[]>('attachment_list', {
-        objectId: context.objectId,
-        showDeleted: false,
-      })
-      .then((data) => {
-        if (!request.isCurrent()) return;
-        const timestamp = (item: AttachmentItem) => Date.parse(item.createdAt) || 0;
-        setItems(
-          data
-            .filter((item) => item.objectId === context.objectId && !item.deletedAt)
-            .sort((a, b) => timestamp(b) - timestamp(a)),
-        );
-      })
-      .catch(() => {
-        if (request.isCurrent()) setFailed(true);
-      })
-      .finally(() => {
-        if (request.isCurrent()) setLoading(false);
-      });
-    return () => requests.invalidate('attachments');
-  }, [context.objectId, accountId, requests, attempt]);
-  useEffect(() => {
-    if (!loading && !failed) onCount(items.length);
-  }, [loading, failed, items.length, onCount]);
+  useLayoutEffect(() => {
+    if (active) return;
+    requests.invalidate();
+    setPreview(null);
+  }, [active, requests]);
   const openExternal = async (item: AttachmentItem) => {
+    if (!active) return;
     const request = requests.begin(undefined, accountId);
     try {
       await request.invoke('attachment_open', {
@@ -262,22 +293,6 @@ function InspectorAttachments({
       if (request.isCurrent()) onError(error, t('inspector_attachments_failed'));
     }
   };
-  if (loading)
-    return (
-      <div className={styles.loading} role="status">
-        <LoaderCircle size={18} />
-        {t('loading')}
-      </div>
-    );
-  if (failed)
-    return (
-      <div className={styles.empty} role="alert">
-        <p>{t('inspector_attachments_failed')}</p>
-        <Button variant="secondary" size="sm" onClick={() => setAttempt((n) => n + 1)}>
-          {t('retry')}
-        </Button>
-      </div>
-    );
   return (
     <>
       {items.length === 0 ? (
@@ -294,7 +309,7 @@ function InspectorAttachments({
               className={styles.file}
               key={item.id}
               data-inspector-attachment={item.id}
-              onClick={() => setPreview(item)}
+              onClick={() => active && setPreview(item)}
             >
               <span className={styles.fileIcon}>
                 <FileText size={19} />
@@ -325,7 +340,8 @@ function InspectorAttachments({
           {t('load_more')}
         </Button>
       )}
-      {preview &&
+      {active &&
+        preview &&
         createPortal(
           <AttachmentPreviewOverlay
             item={preview}

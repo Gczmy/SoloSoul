@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-22",
+  "scope": "Desktop object inspector atomic object handoff",
+  "base": "163c5d257",
+  "cause": "Object transitions cleared the panel, then mounted history or attachment readers only after the editor finished, causing serial requests and multiple visible intermediate states.",
+  "changes": [
+    "Prefetch only the selected tab metadata in parallel with the incoming editor read.",
+    "Commit the object identity, name, metadata list and active counter together once both reads are ready.",
+    "Retain the prior object's correctly labelled metadata as inert while waiting, preserving the panel and scroll container; reset scroll only when the next complete view is committed.",
+    "Immediately close attachment previews, expanded history bodies and pending password verification on handoff; invalidate their requests and clear decrypted snapshot caches.",
+    "Discard the retained view when showing an object or metadata failure; immediately clear it on account change or lock/unlock and reject late responses from skipped objects or expired sessions.",
+    "Use a fixed-size header status slot after 250ms rather than replacing a populated list with a loading message; same-object reselect remains a no-op."
+  ],
+  "validation": {
+    "baseline_negative_control": "The three object handoff regression cases fail against the preceding implementation.",
+    "typescript": "passed",
+    "eslint": "0 errors; one pre-existing unused event parameter warning in syncStore",
+    "format": "passed",
+    "frontend_suite": {
+      "files": 275,
+      "passed": 2473,
+      "coverage_percent": {
+        "statements": 86.02,
+        "branches": 73.75,
+        "functions": 80.97,
+        "lines": 87.98
+      },
+      "thresholds": "Existing 80/70/80/80 thresholds passed without changes."
+    },
+    "production_browser": {
+      "result": "24 passed, 0 retries",
+      "platform_theme_matrix": [
+        "windows light",
+        "windows dark",
+        "macos light",
+        "macos dark"
+      ],
+      "handoff_races": "16 scenarios across history/attachments and editor-first/metadata-first completion orders",
+      "frame_checks": [
+        "Both IPC reads start before either controlled gate is released.",
+        "Every sampled animation frame has metadata rows, a matching object identity and name, and no full-list loading replacement.",
+        "Panel and scroll container nodes remain connected, and each target tab list is requested once per object handoff.",
+        "Revealed history fields disappear immediately during handoff."
+      ],
+      "existing_regressions": [
+        "same-object reselection",
+        "chronological tabs",
+        "independent scroll",
+        "empty states",
+        "draft preservation",
+        "toolbar alignment",
+        "long-name scrolling",
+        "pane toggle hover hints"
+      ]
+    },
+    "native_acceptance": "Not performed for this change; platform variants use the production browser fixture."
+  },
+  "evidence_sha256": {
+    "baseline_negative_control": "cc72978be4dc3b65218bbf5bb3a6748c50439f84e2d2faac735a0c4466eb37ce",
+    "frontend_suite": "b4bc157366770e97abfdc8ab04f3178f2c2efd6adb61105b07e9a04a25a16d89",
+    "production_browser": "48a68b13824be671fa2c02e14c69d5b8aa41c23848580021d444b6b15d00c98f",
+    "eslint": "16fb308547ddd85b9e3c28c016120e7c1735739f55c599ddf9218b3b4a94093f"
+  },
+  "paused": ["release builds", "all unrelated tasks"]
+}

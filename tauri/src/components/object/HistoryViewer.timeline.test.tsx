@@ -31,6 +31,61 @@ const row = (id: string) =>
   document.querySelector<HTMLButtonElement>(`[data-history-snapshot="${id}"]`)!;
 
 describe('embedded history timeline', () => {
+  it('uses prepared metadata without a second list read, and clears decrypted data during handoff', async () => {
+    ipc.mockResolvedValue({
+      properties: { secret: 'SECRET_VALUE' },
+      propertyLabels: { secret: 'sensitive' },
+    });
+    const prepared = [entry('prepared', 2)];
+    const { rerender } = render(<HistoryViewer {...props} initialSnapshots={prepared} />);
+    expect(row('prepared')).toBeInTheDocument();
+    expect(ipc).not.toHaveBeenCalled();
+    fireEvent.click(row('prepared'));
+    fireEvent.click(await screen.findByText('••••••••'));
+    await screen.findByText('SECRET_VALUE');
+    rerender(<HistoryViewer {...props} initialSnapshots={prepared} active={false} />);
+    expect(screen.queryByText('SECRET_VALUE')).toBeNull();
+    expect(row('prepared')).toHaveAttribute('aria-expanded', 'false');
+    rerender(<HistoryViewer {...props} initialSnapshots={prepared} active />);
+    fireEvent.click(row('prepared'));
+    await screen.findByText('••••••••');
+    expect(screen.queryByText('SECRET_VALUE')).toBeNull();
+    expect(ipc.mock.calls.map(([cmd]) => cmd)).toEqual(['snapshot_get_data', 'snapshot_get_data']);
+  });
+
+  it('rejects pending critical verification and auditing after a handoff', async () => {
+    let finish!: (value: { ok: boolean; method: 'password' }) => void;
+    const verify = vi.fn(
+      () =>
+        new Promise<{ ok: boolean; method: 'password' }>((done) => {
+          finish = done;
+        }),
+    );
+    ipc.mockResolvedValue({
+      properties: { secret: 'CRITICAL_SECRET' },
+      propertyLabels: { secret: 'critical' },
+    });
+    const prepared = [entry('prepared', 2)];
+    const { rerender } = render(
+      <HistoryViewer {...props} initialSnapshots={prepared} passwordVerify={verify} />,
+    );
+    fireEvent.click(row('prepared'));
+    fireEvent.click(await screen.findByText('••••••••'));
+    await waitFor(() => expect(verify).toHaveBeenCalled());
+    rerender(
+      <HistoryViewer
+        {...props}
+        initialSnapshots={prepared}
+        passwordVerify={verify}
+        active={false}
+      />,
+    );
+    await act(async () => finish({ ok: true, method: 'password' }));
+    expect(screen.queryByText('CRITICAL_SECRET')).toBeNull();
+    expect(ipc.mock.calls.some(([cmd]) => cmd === 'log_write')).toBe(false);
+    expect(row('prepared')).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('sorts metadata newest first without decrypting snapshots or echoing unknown summaries', async () => {
     ipc.mockResolvedValue([
       entry('old', 1),
