@@ -108,6 +108,42 @@ for (const platform of ['windows', 'macos'] as const)
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       const toggle = page.locator('[data-object-inspector-toggle]');
       await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      const leftToggle = page.locator('[data-appbar] [aria-controls="desktop-page-pane"]');
+      await leftToggle.hover();
+      const leftHint = page.locator('[data-page-pane-toggle-tooltip]');
+      await expect(leftHint).toHaveText('Show/hide sidebar');
+      const hintStyle = (element: Element) => {
+        const style = getComputedStyle(element);
+        return [
+          'background-color',
+          'color',
+          'border-radius',
+          'box-shadow',
+          'font-size',
+          'animation-name',
+        ].map((name) => style.getPropertyValue(name));
+      };
+      const expectedHintStyle = await leftHint.evaluate(hintStyle);
+      await toggle.hover();
+      await expect(leftHint).toHaveCount(0);
+      const rightHint = page.locator('[data-object-inspector-toggle-tooltip]');
+      await expect(rightHint).toHaveText('Show/hide object details');
+      expect(await rightHint.evaluate(hintStyle)).toEqual(expectedHintStyle);
+      await expect(toggle).not.toHaveAttribute('title');
+      await expect(toggle).toHaveAttribute(
+        'aria-describedby',
+        (await rightHint.getAttribute('id'))!,
+      );
+      const hintBox = (await rightHint.boundingBox())!;
+      expect(hintBox.x).toBeGreaterThanOrEqual(8);
+      expect(hintBox.x + hintBox.width).toBeLessThanOrEqual(1272);
+      await page.keyboard.press('Escape');
+      await expect(rightHint).toHaveCount(0);
+      await page.mouse.move(640, 400);
+      await toggle.focus();
+      await expect(rightHint).toBeVisible();
+      await page.keyboard.press('Tab');
+      await expect(rightHint).toHaveCount(0);
       const toolbar = page.locator('[data-editor-content-toolbar]');
       const header = page.locator('[data-appbar]');
       const actionArea = platform === 'windows' ? toolbar : header;

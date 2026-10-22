@@ -11,6 +11,7 @@ import { usePagePaneMotion } from './usePagePaneMotion';
 import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
+import { PaneToggleButton } from './PaneToggleButton';
 import { PairingDialog } from '@/components/sync/PairingDialog';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -122,20 +123,21 @@ export function AppShell({
   };
   const InspectorIcon = inspectorOpen ? PanelRightClose : PanelRightOpen;
   const inspectorToggle = inspectorAvailable ? (
-    <button
-      type="button"
+    <PaneToggleButton
+      tooltip={t('common:toggle_object_inspector')}
+      tooltipMarker="object-inspector"
+      align="end"
       data-object-inspector-toggle
       data-ui-icon-button="neutral"
       data-ui-icon-intent="neutral"
       data-desktop-control="icon"
       aria-label={t('common:toggle_object_inspector')}
-      title={t('common:toggle_object_inspector')}
       aria-expanded={inspectorOpen}
       aria-controls="desktop-object-inspector"
       onClick={() => setInspectorOpen(!inspectorOpen)}
     >
       <InspectorIcon size={20} />
-    </button>
+    </PaneToggleButton>
   ) : null;
   const editorActions = inspectorToggle ? (
     <>
