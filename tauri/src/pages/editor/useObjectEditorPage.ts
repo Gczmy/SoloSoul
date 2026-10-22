@@ -9,7 +9,6 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import type { PropertyType, UserTemplate } from '@/types/template';
 import type { FieldSuggestion } from '@/components/editor/FieldSuggestions';
-import { invokeTypedCommand } from '@/lib/typedIpc';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { logger } from '@/lib/logger';
@@ -97,6 +96,15 @@ function matchObjectTemplate(object: ObjectData, templates: UserTemplate[]): str
     }
   }
   return matched;
+}
+
+function groupFieldSuggestions(items: FieldSuggestion[]): Record<string, FieldSuggestion[]> {
+  const grouped: Record<string, FieldSuggestion[]> = {};
+  for (const item of items) {
+    const canonical = resolveCanonicalFieldName(item.fieldKey, item.fieldName);
+    (grouped[canonical] ||= []).push(item);
+  }
+  return grouped;
 }
 
 /**
@@ -235,10 +243,8 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const retryObjectLoad = () => setLoadAttempt((attempt) => attempt + 1);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   // 字段推荐：其他对象中「同名字段且有内容」的标量值，按字段名分组供编辑器展示。
-  // 一次加载全账户（排除当前编辑对象），失败仅降级为无推荐（不阻塞编辑流程）。
+  // 与对象快照一起发布，避免先清空推荐、再异步回填；失败降级为无推荐。
   const [fieldSuggestions, setFieldSuggestions] = useState<Record<string, FieldSuggestion[]>>({});
-  const [suggestionsFor, setSuggestionsFor] = useState<string | null>(null);
-  const suggestionObjectId = isNew ? null : (currentObject?.id ?? null);
 
   const fields = objectTemplates[selectedType] || [];
   const selectedTemplate = userTemplates.find((t) => t.id === selectedType);
@@ -266,36 +272,26 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const destinationPage = customPages.find((page) => page.id === typeId && !page.deletedAt);
   const resolvedParentId = parentId || destinationPage?.id;
 
-  // 推荐跟随已显示的完整快照，等待新对象时不清空上一帧，也不混入另一对象的推荐。
+  // 新建对象没有待读取的快照，推荐独立加载；编辑对象在下方并行读取后统一发布。
   useEffect(() => {
-    if (!accountId || (!isNew && !suggestionObjectId)) return;
-    let cancelled = false;
-    invokeTypedCommand('object_field_suggestions', {
-      accountId,
-      excludeObjectId: suggestionObjectId,
-    })
+    if (!accountId || !isNew) return;
+    const request = requests.begin('editor-suggestions', accountId);
+    request
+      .invokeTyped('object_field_suggestions', { accountId, excludeObjectId: null })
       .then((items) => {
-        if (cancelled) return;
-        const grouped: Record<string, FieldSuggestion[]> = {};
-        for (const item of items) {
-          // 跨语言归一：中文名/英文名等同一字段的本地化名归到同一规范键
-          // （如「出生日期」与「Date of Birth」→ dateOfBirth）
-          const canonical = resolveCanonicalFieldName(item.fieldKey, item.fieldName);
-          (grouped[canonical] ||= []).push(item);
-        }
-        setFieldSuggestions(grouped);
-        setSuggestionsFor(suggestionObjectId);
+        if (request.isCurrent()) setFieldSuggestions(groupFieldSuggestions(items));
       })
-      .catch((err) =>
-        logger.warn('[ObjectEditor] Load field suggestions failed:', backendErrorLogDetails(err)),
-      );
+      .catch((err) => {
+        if (request.isCurrent())
+          logger.warn('[ObjectEditor] Load field suggestions failed:', backendErrorLogDetails(err));
+      });
     return () => {
-      cancelled = true;
+      requests.invalidate('editor-suggestions');
     };
-  }, [accountId, isNew, suggestionObjectId]);
+  }, [accountId, isNew, requests]);
 
-  // 同一路由组件保留页面框架。等对象和首轮模板读取结束，一次提交名称、字段、
-  // 模板及校验状态；缓存更新本身不能提前放开保存，也不能展示半填充的表单。
+  // 同一路由组件保留页面框架。并行读取对象、首轮模板和字段推荐，一次提交完整
+  // 表单；缓存更新不能提前开放保存，推荐失败也不能阻止编辑。
   useEffect(() => {
     if (isNew || !objectId || !accountId) return;
     const request = requests.begin('editor-load', accountId);
@@ -303,8 +299,16 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     setIsSaving(false);
     setFailedFor(null);
     setLoadedFor(null);
-    Promise.all([getObject(accountId, objectId), templatesReady.current])
-      .then(([object]) => {
+    const suggestions = request
+      .invokeTyped('object_field_suggestions', { accountId, excludeObjectId: objectId })
+      .then(groupFieldSuggestions)
+      .catch((err) => {
+        if (request.isCurrent())
+          logger.warn('[ObjectEditor] Load field suggestions failed:', backendErrorLogDetails(err));
+        return {};
+      });
+    Promise.all([getObject(accountId, objectId), templatesReady.current, suggestions])
+      .then(([object, , grouped]) => {
         if (!request.isCurrent()) return;
         if (!object || object.id !== objectId || object.accountId !== accountId) {
           setFailedFor(objectId);
@@ -315,6 +319,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
         setValues(objectFormValues(object));
         setSelectedType(matchObjectTemplate(object, useTemplateStore.getState().templates));
         setValidationErrors({});
+        setFieldSuggestions(grouped);
         setLoadedFor(objectId);
       })
       .catch((error) => {
@@ -483,7 +488,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     validationErrors,
     handleClearError,
     getSensitivity,
-    fieldSuggestions: suggestionsFor === suggestionObjectId ? fieldSuggestions : {},
+    fieldSuggestions,
     handleSave,
     handleBack,
     isSaving,

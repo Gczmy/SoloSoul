@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-22",
+  "base": "0ade027abd0aed6c32428f866b1455b94a9164ac",
+  "scope": "Object editor same-field recommendations flicker during object switches",
+  "root_cause": "Recommendations were requested only after publishing the incoming object. The object ownership guard temporarily returned an empty recommendation map, removing the section until a second asynchronous update.",
+  "changes": [
+    "Read the target object and its recommendations in parallel, and publish form values, template, recommendations and readiness together.",
+    "Retain the previous complete, inert form while the incoming snapshot loads; do not clear the recommendation section between responses.",
+    "Use the editor request generation and account session guard for recommendation reads, including the new-object path.",
+    "Handle recommendation transport and processing failures independently, allowing editing without recommendations rather than failing the form.",
+    "Keep source exclusion, localized field matching and the existing per-object remasking lifetime; do not introduce a shared decrypted-value cache."
+  ],
+  "validation": {
+    "regression_reproduction": "Original implementation failed 5 of the initial 6 controlled request tests; the new-object behavior passed.",
+    "unit_tests": "56 passed in 5 files, including 8 new cases for request ordering, stale results, failure degradation, malformed responses, vault locking and new-object recommendations.",
+    "production_browser": {
+      "result": "30 passed, no retries",
+      "matrix": ["windows light", "windows dark", "macos light", "macos dark"],
+      "recommendation_cases": "4 new scenarios sample every animation frame through object-first, recommendation-first and skipped-object responses; every sampled visible editor has its matching recommendation list, with no empty or misattributed frame.",
+      "preservation": "Source exclusion, fill action, sensitive-value remasking, repeated selection without a new recommendation request, optional failure fallback and absence of page errors passed.",
+      "existing_regressions": "26 existing inspector, chronological history/attachment handoff, action alignment, sidebar preview and continuous-name-scroll tests passed."
+    },
+    "typescript": "passed",
+    "targeted_eslint": "passed",
+    "format": "passed",
+    "diagnostics": "The first preview-service attempt did not respond to HTTP and was stopped. An initial production run exposed a missing optional-response processing fallback; this was fixed and the complete 30-case suite passed afterward.",
+    "native_acceptance": "No new Windows or macOS native executable acceptance was performed; production browser platform fixtures were used."
+  },
+  "evidence_sha256": {
+    "regression_reproduction": "945327f332464f06146becb810a76a7b8ba323b5972a2eb566d5920807af3ab4",
+    "unit_tests": "5792f6d4499b483e780344ff8994c228fec77536e74eef33fb6e8e0416ab41eb",
+    "production_browser": "17a8a06b1c7c27641cecb2222e4a45a18612780159df5c3fa568982b091e4f8a"
+  },
+  "delivery": "One isolated fix directly on main, followed by commit and push; no feature branch or pull request.",
+  "paused": ["release builds", "all unrelated tasks"]
+}
