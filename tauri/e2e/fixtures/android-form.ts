@@ -53,13 +53,33 @@ export async function mountForm(
         'position:fixed;inset:0;z-index:4500;padding:16px;box-sizing:border-box;overflow:auto;background:var(--bg-base);color:var(--text-primary)';
       document.body.append(host);
       const changes: unknown[] = [];
-      Object.assign(window, { __FORM_CHANGES__: changes });
+      const actions: unknown[] = [];
+      Object.assign(window, { __FORM_CHANGES__: changes, __FORM_ACTIONS__: actions });
+      const callbacks = Object.fromEntries(
+        [
+          'onSetActive',
+          'onDeleteProvider',
+          'onSaveProvider',
+          'onTestConnection',
+          'onSubmit',
+          'onCancel',
+          'onSetObjectConflictStrategy',
+        ].map((key) => [
+          key,
+          (...args: unknown[]) => {
+            actions.push({ name: key, args });
+            if (key === 'onSaveProvider') return Promise.resolve(true);
+            if (key === 'onTestConnection') return Promise.resolve('Public connection response');
+          },
+        ]),
+      );
       function Fixture() {
         const [value, setValue] = React.useState(props.value);
         return React.createElement(
           'div',
           { 'data-form-fixture-ready': '', style: { minWidth: 0, width: '100%' } },
           React.createElement(Component, {
+            ...callbacks,
             ...props,
             value,
             onChange: (next: unknown) => {

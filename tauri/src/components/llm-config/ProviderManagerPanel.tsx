@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { ICON_SIZE } from '@/lib/constants';
 import { MASK_PLACEHOLDER } from '@/lib/masking';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidChoiceList } from '@/components/android/AndroidChoiceList';
+import styles from './ProviderManagerPanel.module.css';
 
 import type { ProviderConfig } from '@/types/llmProvider';
 export type { ProviderConfig };
@@ -33,6 +36,7 @@ export function ProviderManagerPanel({
   onTestConnection,
 }: ProviderManagerPanelProps) {
   const { t } = useTranslation(['settings', 'common']);
+  const android = isAndroidSync();
   const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
@@ -88,7 +92,7 @@ export function ProviderManagerPanel({
 
   return (
     <>
-      <Card>
+      <Card className={android ? styles.androidCard : undefined}>
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
           {t('settings:ai_service_providers')}
         </h3>
@@ -100,7 +104,10 @@ export function ProviderManagerPanel({
               <div
                 key={p.id}
                 style={{
-                  display: 'flex',
+                  display: android ? 'grid' : 'flex',
+                  gridTemplateColumns: android
+                    ? `24px minmax(0,1fr) repeat(${p.isBuiltIn ? 1 : 2},48px)`
+                    : undefined,
                   alignItems: 'center',
                   gap: 8,
                   padding: '8px 10px',
@@ -122,11 +129,16 @@ export function ProviderManagerPanel({
                   onClick={(e) => e.stopPropagation()}
                   style={{ accentColor: 'var(--accent-primary)' }}
                 />
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontWeight: 500 }}>{p.name}</span>
+                <div
+                  style={{ flex: 1, ...(android ? { minWidth: 0, overflowWrap: 'anywhere' } : {}) }}
+                >
+                  <span style={{ fontWeight: 500, display: android ? 'block' : undefined }}>
+                    {p.name}
+                  </span>
                   <span
                     style={{
-                      marginLeft: 6,
+                      marginLeft: android ? 0 : 6,
+                      display: android ? 'block' : undefined,
                       fontSize: 'var(--text-badge)',
                       color: 'var(--text-tertiary)',
                     }}
@@ -149,6 +161,8 @@ export function ProviderManagerPanel({
                   )}
                 </div>
                 <button
+                  type="button"
+                  aria-label={t('settings:llm_configure') + ' ' + p.name}
                   onClick={(e) => {
                     e.stopPropagation();
                     setEditingProvider({ ...p });
@@ -166,6 +180,8 @@ export function ProviderManagerPanel({
                 </button>
                 {!p.isBuiltIn && (
                   <button
+                    type="button"
+                    aria-label={t('common:delete') + ' ' + p.name}
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteProvider(p.id);
@@ -194,7 +210,7 @@ export function ProviderManagerPanel({
 
       {editingProvider && (
         <div ref={providerFormRef}>
-          <Card>
+          <Card className={android ? styles.androidCard : undefined}>
             <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
               {editingProvider.isBuiltIn
                 ? t('settings:llm_configure') + ' ' + editingProvider.name
@@ -248,28 +264,44 @@ export function ProviderManagerPanel({
                 >
                   {t('settings:llm_api_type')}
                 </label>
-                <select
-                  value={editingProvider.apiType}
-                  onChange={(e) =>
-                    setEditingProvider((p) =>
-                      p ? { ...p, apiType: e.target.value as 'openAI' | 'anthropic' } : null,
-                    )
-                  }
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    fontSize: 'var(--text-body)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 8,
-                    background: 'var(--bg-elevated)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="openAI">OpenAI Compatible</option>
-                  <option value="anthropic">Anthropic</option>
-                </select>
+                {android ? (
+                  <AndroidChoiceList
+                    label={t('settings:llm_api_type')}
+                    value={editingProvider.apiType}
+                    choices={[
+                      { value: 'openAI', label: 'OpenAI Compatible' },
+                      { value: 'anthropic', label: 'Anthropic' },
+                    ]}
+                    onChoose={(apiType) =>
+                      setEditingProvider((p) =>
+                        p ? { ...p, apiType: apiType as 'openAI' | 'anthropic' } : null,
+                      )
+                    }
+                  />
+                ) : (
+                  <select
+                    value={editingProvider.apiType}
+                    onChange={(e) =>
+                      setEditingProvider((p) =>
+                        p ? { ...p, apiType: e.target.value as 'openAI' | 'anthropic' } : null,
+                      )
+                    }
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      fontSize: 'var(--text-body)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 8,
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="openAI">OpenAI Compatible</option>
+                    <option value="anthropic">Anthropic</option>
+                  </select>
+                )}
               </div>
               <Input
                 label={t('settings:llm_api_key')}
@@ -299,7 +331,7 @@ export function ProviderManagerPanel({
                   {testResult}
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: android ? 'wrap' : undefined }}>
                 <Button variant="secondary" onClick={handleTestConnection} loading={testing}>
                   {t('settings:llm_test_connection')}
                 </Button>

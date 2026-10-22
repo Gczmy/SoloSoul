@@ -1,0 +1,15 @@
+.androidCard {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.androidCard h3 {
+  overflow-wrap: anywhere;
+}
+.androidCard input[type='radio'] {
+  min-width: 0;
+  width: 24px;
+  margin: 0;
+}
+.androidCard button {
+  flex-shrink: 0;
+}
