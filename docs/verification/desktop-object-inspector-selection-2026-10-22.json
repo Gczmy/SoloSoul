@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-22",
+  "task": "Desktop object inspector selection stability",
+  "sourceBase": "7857d8a789840403c7dc2d4e6b6c04bea36a2c87",
+  "rootCause": [
+    "Reselecting the active object created a new navigation entry.",
+    "The shell treated a navigation-key change as an object handoff and unmounted inspector contents.",
+    "An unready object replaced the complete inspector frame with a loading message."
+  ],
+  "changes": [
+    "Active-object selection and its preview action no longer navigate again.",
+    "The shell invalidates inspector contents on a different target object, not a same-object navigation key.",
+    "Object loading or failure retains the panel frame and tabs while clearing the old name, counts, contents and preview.",
+    "Account/session/object isolation and late-response rejection remain enabled."
+  ],
+  "verification": {
+    "regressionBeforeFix": {
+      "passed": 2,
+      "failed": 2,
+      "failure": "History and attachment list DOM instances were replaced after same-object navigation."
+    },
+    "targetedAfterFix": {
+      "files": 4,
+      "passed": 25,
+      "failed": 0
+    },
+    "fullVitest": {
+      "files": 275,
+      "passed": 2467,
+      "failed": 0
+    },
+    "node": {
+      "total": 279,
+      "passed": 278,
+      "failed": 0,
+      "existingPlatformSkipped": 1
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "preExistingWarnings": 1
+    },
+    "productionBrowser": {
+      "passed": 16,
+      "failed": 0,
+      "retries": 0,
+      "browser": "Chrome 155.0.8059.40",
+      "platformFixtures": ["windows", "macos"],
+      "themes": ["light", "dark"],
+      "assertions": [
+        "same-object list identity, request count and scroll preservation",
+        "expanded history preservation",
+        "object-switch synchronization",
+        "stale-content and preview isolation",
+        "tabs and independent scrolling",
+        "toolbar and long-name interactions"
+      ],
+      "nativeMacOSAcceptance": false,
+      "nativeWindowsAcceptance": false
+    },
+    "testEnvironmentRetry": "The first test invocation could not rename a system temporary cache file and ran no tests. Subsequent checks used an owned D-drive temporary directory."
+  },
+  "reviewFollowUp": {
+    "issue": "An unavailable object left the error panel marked aria-busy after loading had failed.",
+    "change": "Only a pending object load is busy; a settled failure exposes its alert without a busy marker.",
+    "regression": "The unavailable-object case now requires aria-busy=false; pending-object coverage still requires true.",
+    "targetedVitest": { "files": 2, "passed": 10, "failed": 0 },
+    "typecheckExitCode": 0
+  },
+  "releaseBuildsResumed": false,
+  "otherTasksResumed": false
+}

@@ -25,23 +25,17 @@ export function ObjectInspectorPanel({
   context: ObjectInspectorContext;
   onClose: () => void;
 }) {
-  const { t } = useTranslation('common');
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const [session, setSession] = useState(0);
   useLayoutEffect(() => onRequestSessionChange(() => setSession((n) => n + 1)), []);
-  // 对象尚未就绪时不沿用上一个对象的名称、正文、附件和验证对话框。
-  return context.ready ? (
+  // 保留停靠面板框架；对象未就绪时仅清除名称和受保护内容。
+  return (
     <InspectorSession
       key={JSON.stringify([accountId, context.objectId, session])}
       context={context}
       accountId={accountId}
       onClose={onClose}
     />
-  ) : (
-    <div className={styles.loading} role={context.failed ? 'alert' : 'status'}>
-      {!context.failed && <LoaderCircle size={18} aria-hidden="true" />}
-      {t(context.failed ? 'object_load_failed' : 'loading')}
-    </div>
   );
 }
 
@@ -68,7 +62,11 @@ function InspectorSession({
       <header className={styles.header}>
         <div className={styles.heading}>
           <span>{t('object_inspector')}</span>
-          <HoverScrollLabel className={styles.name} text={context.objectName} focusable />
+          <HoverScrollLabel
+            className={styles.name}
+            text={context.ready ? context.objectName : '\u00a0'}
+            focusable={context.ready}
+          />
         </div>
         <button
           type="button"
@@ -112,7 +110,7 @@ function InspectorSession({
             >
               <Icon size={14} aria-hidden="true" />
               {t(value)}
-              {counts[value] !== undefined && (
+              {context.ready && counts[value] !== undefined && (
                 <span className={styles.count} aria-hidden="true">
                   {counts[value]}
                 </span>
@@ -129,8 +127,14 @@ function InspectorSession({
         aria-labelledby={`object-inspector-tab-${tab}`}
         tabIndex={0}
         data-object-inspector-scroll
+        aria-busy={!context.ready && !context.failed}
       >
-        {tab === 'history' ? (
+        {!context.ready ? (
+          <div className={styles.loading} role={context.failed ? 'alert' : 'status'}>
+            {!context.failed && <LoaderCircle size={18} aria-hidden="true" />}
+            {t(context.failed ? 'object_load_failed' : 'loading')}
+          </div>
+        ) : tab === 'history' ? (
           <InspectorHistory
             context={context}
             accountId={accountId}

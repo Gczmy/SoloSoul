@@ -72,6 +72,9 @@ describe('desktop object inspector', () => {
     );
     expect(screen.getByRole('alert')).toHaveTextContent('object_load_failed');
     expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('complementary', { name: 'object_inspector' })).toBeVisible();
+    expect(screen.getByRole('tablist')).toBeVisible();
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false');
     expect(ipc).not.toHaveBeenCalled();
   });
   it('loads only active attachments for the current object, newest first, and reuses preview', async () => {
@@ -123,11 +126,20 @@ describe('desktop object inspector', () => {
     ipc.mockResolvedValue([file('one-file', '2026-01-01')]);
     const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
     fireEvent.click(await screen.findByText('one-file.pdf'));
+    const panel = screen.getByRole('complementary');
+    const tabs = screen.getByRole('tablist');
     rerender(<ObjectInspectorPanel context={{ ...context, ready: false }} onClose={vi.fn()} />);
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.queryByText('one-file.pdf')).toBeNull();
     expect(screen.queryByText('First object')).toBeNull();
     expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByRole('complementary')).toBe(panel);
+    expect(screen.getByRole('tablist')).toBe(tabs);
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('tab', { name: 'attachments' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
   });
 
   it('invalidates a pending response across lock/unlock even for the same account', async () => {
