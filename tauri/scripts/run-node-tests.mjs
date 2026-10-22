@@ -28,6 +28,7 @@ const files = [
   'src-tauri/src/android_native_perf/observer.node.test.mjs',
   'scripts/update-distribution.test.js',
   'scripts/stage-mobile-resources.test.cjs',
+  '../scripts/stage-windows-runtime.test.mjs',
 ];
 
 if (process.argv.length !== 2) {

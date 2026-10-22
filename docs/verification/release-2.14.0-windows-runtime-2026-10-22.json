@@ -1,0 +1,34 @@
+{
+  "scope": "2.14.0 Windows release runtime packaging",
+  "sourceBase": "166ec7f9d5718e24265bc469b34f8bdc7b33c3e8",
+  "problem": "The release executable imports MSVCP140, MSVCP140_1 and DirectML, but the original NSIS payload contained none of these DLLs and did not install the VC runtime.",
+  "change": "Before bundling, stage validated x64 release CRT DLLs from the installed Visual Studio redistributable directory and DirectML from this build's Cargo output. Install all DLLs beside the application with a SHA-256 manifest. Fail before packaging when an input is missing or invalid.",
+  "validation": {
+    "runtimeStagingTests": { "passed": 5, "failed": 0 },
+    "completeNodeSuite": { "total": 284, "passed": 283, "skipped": 1, "failed": 0 },
+    "nodeSuiteEnvironment": "Native Windows; restricted-environment junction permission failures were rerun successfully with native filesystem access.",
+    "releaseBuild": "passed",
+    "nsisRebundle": "passed",
+    "archiveIntegrity": "passed",
+    "executableVersion": "2.14.0",
+    "architecture": "x64",
+    "packagedRuntimeDlls": 11,
+    "runtimeManifestSha256": "c88d12dedd498ee67f10dc0723dd5d3ef8907faffb57f7368002004c1d081141",
+    "resourceFilesComparedBySha256": { "docs": 44, "ocr": 4, "plugins": 44 },
+    "pdfiumAndPluginRegistry": "packaged bytes match inputs",
+    "peImports": "Application, PDFium and all 11 runtime DLLs checked; non-system imports resolve to packaged DLLs.",
+    "productionFrontend": "Current production entry keys embedded in executable; no dev server entry.",
+    "bundleType": "NSIS marker present and unknown marker absent. Rebundling an already patched binary emits a marker-not-found warning; final marker was independently verified.",
+    "installerBytes": 68029899,
+    "installerSha256": "960e964611d25a5f2c3c981c31526cc43b44ba921fc58da4d544dea206245d37"
+  },
+  "limits": [
+    "Package inspection only; no application install, native launch or Vault access in this release build task.",
+    "Windows Authenticode is absent. Updater signing is deferred to the existing signing keys on the user's Mac.",
+    "No Git tag or public release was created."
+  ],
+  "references": [
+    "https://learn.microsoft.com/en-us/cpp/windows/walkthrough-deploying-a-visual-cpp-application-to-an-application-local-folder?view=msvc-170",
+    "https://v2.tauri.app/develop/resources/"
+  ]
+}

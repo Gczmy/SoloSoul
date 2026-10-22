@@ -39,6 +39,14 @@ Windows 构建必须准备 `resources/pdfium/pdfium.dll`，不能以该目录中
 明确打包到 `pdfium/pdfium.dll`；缺少此库时，PDF OCR 与水印功能无法在普通
 Windows 环境加载 PDFium。`scripts/build_windows_release.sh` 在构建前校验 DLL。
 
+Windows 打包前还会自动运行 `scripts/stage-windows-runtime.mjs`，从 Visual Studio
+的 release redistributable 目录准备 x64 C++ 运行库，并从本次 Cargo 输出准备
+`DirectML.dll`。这些 DLL 随安装包放在 `SoloSoul.exe` 同级目录，避免依赖开发机上
+已安装的运行库。脚本检查 PE 架构、必要文件和 SHA-256；缺少依赖会终止打包。
+`resources-desktop/windows-runtime/` 是忽略的生成目录，DLL 不提交到 Git；只提交
+打包脚本和配置。构建机须安装 Visual Studio 的 C++ 工具及 redistributable 文件。
+部署依据见 [Microsoft 应用本地部署说明](https://learn.microsoft.com/en-us/cpp/windows/walkthrough-deploying-a-visual-cpp-application-to-an-application-local-folder?view=msvc-170)。
+
 ### Tauri 自动更新器签名密钥
 
 应用内「检查更新」依赖 Tauri Updater，要求 Release 包附带 Ed25519 签名文件（`.sig`）以及 `latest.json`。构建前必须配置私钥。
