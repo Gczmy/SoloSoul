@@ -9,10 +9,8 @@ import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
 import { ToolbarActions } from './ToolbarActions';
 import { ICON_SIZE } from '@/lib/constants';
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { createPortal } from 'react-dom';
-import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
-import navStyles from './NavButton.module.css';
+import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { PaneToggleButton } from './PaneToggleButton';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
 import { isAndroidSync } from '@/lib/platform';
@@ -53,28 +51,7 @@ export function AppBar({
   const windowsShell = useNativeWindowStore((s) => Boolean(s.windowsFrame));
   const windowsHeaderHeight = useNativeWindowStore((s) => s.windowsFrame?.headerHeight);
   const hasSidebarToggle = pagePane && !isHorizontal;
-  const toggleRef = useRef<HTMLButtonElement>(null);
-  const toggleHintId = useId();
-  const [toggleFocused, setToggleFocused] = useState(false);
-  const toggleHint = useHoverCardPosition(toggleRef, {
-    isHorizontal: true,
-    isBottom: false,
-    isRight: false,
-  });
   const toggleName = navT(paneOpen ? 'page_pane_collapse' : 'page_pane_expand');
-  const showToggleHint = hasSidebarToggle && (toggleHint.isHovered || toggleFocused);
-  const hideToggleHint = toggleHint.handleMouseLeave;
-  useEffect(() => {
-    if (!showToggleHint) return;
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setToggleFocused(false);
-        hideToggleHint();
-      }
-    };
-    window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
-  }, [showToggleHint, hideToggleHint]);
   const ToggleIcon =
     sidebarPosition === 'right'
       ? paneOpen
@@ -138,52 +115,21 @@ export function AppBar({
         </span>
       )}
       {hasSidebarToggle && (
-        <button
-          ref={toggleRef}
-          type="button"
+        <PaneToggleButton
+          tooltip={navT('page_pane_toggle')}
+          tooltipMarker="page-pane"
           className={styles.sidebarToggle}
           data-titlebar-control
           data-desktop-control="icon"
           data-tauri-drag-region="false"
           aria-label={toggleName}
-          aria-describedby={showToggleHint ? toggleHintId : undefined}
           aria-expanded={paneOpen}
           aria-controls="desktop-page-pane"
           onClick={onPagePaneToggle ?? togglePane}
-          onMouseEnter={toggleHint.handleMouseEnter}
-          onMouseLeave={hideToggleHint}
-          onFocus={(event) => {
-            if (event.currentTarget.matches(':focus-visible')) {
-              setToggleFocused(true);
-              toggleHint.updateCardPosition();
-            }
-          }}
-          onBlur={() => setToggleFocused(false)}
         >
           <ToggleIcon size={20} />
-        </button>
+        </PaneToggleButton>
       )}
-      {showToggleHint &&
-        toggleHint.cardStyle &&
-        createPortal(
-          <div
-            id={toggleHintId}
-            role="tooltip"
-            data-page-pane-toggle-tooltip
-            data-macos-glass="tooltip"
-            className={navStyles.nameCardPortalHorizontal}
-            style={{
-              position: 'fixed',
-              ...toggleHint.cardStyle,
-              left: Math.max(8, Number(toggleHint.cardStyle.left) - 20),
-              transform: 'none',
-              zIndex: 200,
-            }}
-          >
-            {navT('page_pane_toggle')}
-          </div>,
-          document.body,
-        )}
       <div className={styles.left}>
         {onBack && (
           <button

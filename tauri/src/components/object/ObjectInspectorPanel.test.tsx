@@ -122,17 +122,27 @@ describe('desktop object inspector', () => {
     expect(screen.queryByText('First object')).toBeNull();
   });
 
-  it('unmounts preview and old contents immediately while the next editor is loading', async () => {
-    ipc.mockResolvedValue([file('one-file', '2026-01-01')]);
+  it('keeps correctly attributed inert metadata until the next editor and list are both ready, but closes preview immediately', async () => {
+    let finish!: (value: AttachmentItem[]) => void;
+    ipc.mockResolvedValueOnce([file('one-file', '2026-01-01')]).mockImplementationOnce(
+      () =>
+        new Promise<AttachmentItem[]>((resolve) => {
+          finish = resolve;
+        }),
+    );
     const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
     fireEvent.click(await screen.findByText('one-file.pdf'));
     const panel = screen.getByRole('complementary');
     const tabs = screen.getByRole('tablist');
-    rerender(<ObjectInspectorPanel context={{ ...context, ready: false }} onClose={vi.fn()} />);
+    const next = { objectId: 'two', objectName: 'Second object', ready: false };
+    rerender(<ObjectInspectorPanel context={next} onClose={vi.fn()} />);
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(screen.queryByText('one-file.pdf')).toBeNull();
-    expect(screen.queryByText('First object')).toBeNull();
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByText('one-file.pdf')).toBeInTheDocument();
+    expect(screen.getByText('First object')).toBeInTheDocument();
+    expect(panel).toHaveAttribute('data-object-id', 'one');
+    expect(panel).toHaveAttribute('data-inspector-target-id', 'two');
+    expect(document.querySelector('[data-inspector-content]')).toHaveAttribute('inert');
+    expect(screen.queryByRole('status')).toBeNull();
     expect(screen.getByRole('complementary')).toBe(panel);
     expect(screen.getByRole('tablist')).toBe(tabs);
     expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'true');
@@ -140,6 +150,123 @@ describe('desktop object inspector', () => {
       'aria-selected',
       'true',
     );
+    expect(ipc.mock.calls.filter(([cmd]) => cmd === 'attachment_list')).toHaveLength(2);
+    await act(async () => finish([file('two-file', '2026-02-01', 'two')]));
+    expect(screen.queryByText('two-file.pdf')).toBeNull();
+    expect(screen.getByText('First object')).toBeInTheDocument();
+    rerender(<ObjectInspectorPanel context={{ ...next, ready: true }} onClose={vi.fn()} />);
+    expect(screen.getByText('two-file.pdf')).toBeInTheDocument();
+    expect(screen.getByText('Second object')).toBeInTheDocument();
+    expect(screen.queryByText('one-file.pdf')).toBeNull();
+    expect(screen.getByRole('complementary')).toBe(panel);
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false');
+    expect(document.querySelector('[data-inspector-content]')).not.toHaveAttribute('inert');
+    expect(ipc.mock.calls.filter(([cmd]) => cmd === 'attachment_list')).toHaveLength(2);
+  });
+
+  it.each(['history', 'attachments'] as const)(
+    'waits for %s metadata when the new editor wins the race',
+    async (tab) => {
+      useUiStore.setState({ desktopObjectInspectorTab: tab });
+      const metadata = (id: string) =>
+        tab === 'history'
+          ? [
+              {
+                id: `${id}-snapshot`,
+                timestamp: 1,
+                triggeredBy: 'user_edit',
+                diffSummary: 'diff_updated',
+              },
+            ]
+          : [file(`${id}-file`, '2026-01-01', id)];
+      let finish!: (value: unknown) => void;
+      ipc.mockResolvedValueOnce(metadata('one')).mockImplementationOnce(
+        () =>
+          new Promise((done) => {
+            finish = done;
+          }),
+      );
+      const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+      await waitFor(() =>
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false'),
+      );
+      const list = screen.getByRole('tabpanel');
+      list.scrollTop = 120;
+      rerender(
+        <ObjectInspectorPanel
+          context={{ objectId: 'two', objectName: 'Second object', ready: true }}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByText('First object')).toBeInTheDocument();
+      expect(screen.queryByText('Second object')).toBeNull();
+      expect(list.scrollTop).toBe(120);
+      expect(screen.getByRole('tabpanel')).toBe(list);
+      await act(async () => finish(metadata('two')));
+      expect(screen.getByText('Second object')).toBeInTheDocument();
+      expect(screen.queryByText('First object')).toBeNull();
+      expect(list.scrollTop).toBe(0);
+      expect(screen.getByRole('tabpanel')).toBe(list);
+      expect(
+        ipc.mock.calls.filter(
+          ([cmd]) => cmd === (tab === 'history' ? 'snapshot_list' : 'attachment_list'),
+        ),
+      ).toHaveLength(2);
+      expect(ipc.mock.calls.some(([cmd]) => cmd === 'snapshot_get_data')).toBe(false);
+    },
+  );
+
+  it('clears retained metadata on failure and ignores a skipped object response', async () => {
+    let skipped!: (value: AttachmentItem[]) => void;
+    ipc
+      .mockResolvedValueOnce([file('one-file', '2026-01-01')])
+      .mockImplementationOnce(
+        () =>
+          new Promise<AttachmentItem[]>((done) => {
+            skipped = done;
+          }),
+      )
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce([file('three-file', '2026-02-01', 'three')]);
+    const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    await screen.findByText('one-file.pdf');
+    rerender(
+      <ObjectInspectorPanel
+        context={{ objectId: 'two', objectName: '', ready: false }}
+        onClose={vi.fn()}
+      />,
+    );
+    rerender(
+      <ObjectInspectorPanel
+        context={{ objectId: 'three', objectName: 'Third object', ready: true }}
+        onClose={vi.fn()}
+      />,
+    );
+    await screen.findByRole('alert');
+    expect(screen.queryByText('one-file.pdf')).toBeNull();
+    expect(screen.queryByText('First object')).toBeNull();
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false');
+    fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+    await screen.findByText('three-file.pdf');
+    await act(async () => skipped([file('two-file', '2026-01-01', 'two')]));
+    expect(screen.queryByText('two-file.pdf')).toBeNull();
+    expect(screen.getByText('Third object')).toBeInTheDocument();
+  });
+
+  it('drops displayed metadata synchronously on a lock/unlock cycle', async () => {
+    setRequestSession('account');
+    useUiStore.setState({ desktopObjectInspectorTab: 'attachments' });
+    ipc
+      .mockResolvedValueOnce([file('old-file', '2026-01-01')])
+      .mockImplementation(() => new Promise(() => {}));
+    render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    await screen.findByText('old-file.pdf');
+    act(() => {
+      setRequestSession(null);
+      setRequestSession('account');
+    });
+    expect(screen.queryByText('old-file.pdf')).toBeNull();
+    expect(screen.queryByText('First object')).toBeNull();
   });
 
   it('invalidates a pending response across lock/unlock even for the same account', async () => {

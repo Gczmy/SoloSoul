@@ -108,6 +108,42 @@ for (const platform of ['windows', 'macos'] as const)
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       const toggle = page.locator('[data-object-inspector-toggle]');
       await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      const leftToggle = page.locator('[data-appbar] [aria-controls="desktop-page-pane"]');
+      await leftToggle.hover();
+      const leftHint = page.locator('[data-page-pane-toggle-tooltip]');
+      await expect(leftHint).toHaveText('Show/hide sidebar');
+      const hintStyle = (element: Element) => {
+        const style = getComputedStyle(element);
+        return [
+          'background-color',
+          'color',
+          'border-radius',
+          'box-shadow',
+          'font-size',
+          'animation-name',
+        ].map((name) => style.getPropertyValue(name));
+      };
+      const expectedHintStyle = await leftHint.evaluate(hintStyle);
+      await toggle.hover();
+      await expect(leftHint).toHaveCount(0);
+      const rightHint = page.locator('[data-object-inspector-toggle-tooltip]');
+      await expect(rightHint).toHaveText('Show/hide object details');
+      expect(await rightHint.evaluate(hintStyle)).toEqual(expectedHintStyle);
+      await expect(toggle).not.toHaveAttribute('title');
+      await expect(toggle).toHaveAttribute(
+        'aria-describedby',
+        (await rightHint.getAttribute('id'))!,
+      );
+      const hintBox = (await rightHint.boundingBox())!;
+      expect(hintBox.x).toBeGreaterThanOrEqual(8);
+      expect(hintBox.x + hintBox.width).toBeLessThanOrEqual(1272);
+      await page.keyboard.press('Escape');
+      await expect(rightHint).toHaveCount(0);
+      await page.mouse.move(640, 400);
+      await toggle.focus();
+      await expect(rightHint).toBeVisible();
+      await page.keyboard.press('Tab');
+      await expect(rightHint).toHaveCount(0);
       const toolbar = page.locator('[data-editor-content-toolbar]');
       const header = page.locator('[data-appbar]');
       const actionArea = platform === 'windows' ? toolbar : header;
@@ -240,6 +276,139 @@ for (const platform of ['windows', 'macos'] as const)
       expect(errors).toEqual([]);
     });
   }
+
+for (const platform of ['windows', 'macos'] as const)
+  for (const theme of ['light', 'dark'] as const)
+    for (const tab of ['history', 'attachments'] as const) {
+      test(`${platform} ${theme}: atomic ${tab} handoff never paints a blank or misattributed list`, async ({
+        page,
+      }, info) => {
+        await setup(page, platform, theme);
+        await page.locator('[data-object-inspector-toggle]').click();
+        const panel = page.locator('[data-object-inspector]');
+        await panel
+          .getByRole('tab', { name: tab === 'history' ? 'History' : 'Attachments', exact: true })
+          .click();
+        const attribute = tab === 'history' ? 'data-history-snapshot' : 'data-inspector-attachment';
+        const rows = panel.locator(`[${attribute}]`);
+        await expect(rows.first()).toHaveAttribute(
+          attribute,
+          tab === 'history' ? 'one-snap-31' : 'one-file-35',
+        );
+        const panelHandle = await panel.elementHandle();
+        const listHandle = await panel.locator('[data-object-inspector-scroll]').elementHandle();
+        const samples: unknown[] = [];
+        for (const order of ['editor-first', 'metadata-first'] as const) {
+          if (tab === 'history') {
+            await rows.first().click();
+            await panel.getByRole('button', { name: 'Click to reveal', exact: true }).click();
+            await expect(panel.getByText('PRIVATE one-snap-31', { exact: true })).toBeVisible();
+          }
+          await page.evaluate(`(() => {
+            const mocks = window.__E2E_MOCKS__;
+            const objectGet = mocks.object_get;
+            const command = ${JSON.stringify(tab === 'history' ? 'snapshot_list' : 'attachment_list')};
+            const list = mocks[command];
+            const gate = window.__INSPECTOR_HANDOFF__ = {started: [], frames: [], running: true, metadataDone: false};
+            const editor = new Promise(done => {gate.editor = done;});
+            const metadata = new Promise(done => {gate.metadata = done;});
+            mocks.object_get = async args => {
+              if(args.objectId === 'two') {gate.started.push('editor'); await editor;}
+              return objectGet(args);
+            };
+            mocks[command] = async args => {
+              if(args.objectId === 'two') {gate.started.push('metadata'); await metadata;}
+              const result = await list(args);
+              if(args.objectId === 'two') gate.metadataDone = true;
+              return result;
+            };
+            const sample = () => {
+              const panel = document.querySelector('[data-object-inspector]');
+              const list = panel.querySelector('[data-object-inspector-scroll]');
+              gate.frames.push({id: panel.dataset.objectId,
+                name: panel.querySelector('header [data-hover-scroll-label]').textContent,
+                first: list.querySelector('[${attribute}]')?.getAttribute('${attribute}'),
+                count: list.querySelectorAll('[${attribute}]').length,
+                loading: !!list.querySelector('[role="status"]')});
+              if(gate.running) requestAnimationFrame(sample);
+            };
+            requestAnimationFrame(sample);
+          })()`);
+          await page.locator('#desktop-page-pane [data-object-id="two"]').click();
+          await expect
+            .poll(() => page.evaluate('window.__INSPECTOR_HANDOFF__.started.slice().sort()'))
+            .toEqual(['editor', 'metadata']);
+          await expect(panel).toHaveAttribute('data-inspector-target-id', 'two');
+          await expect(panel).toHaveAttribute('data-object-id', 'one');
+          await expect(panel.locator('[data-inspector-content]')).toHaveAttribute('inert', '');
+          await expect(panel.getByText('PRIVATE one-snap-31', { exact: true })).toHaveCount(0);
+          await page.evaluate(
+            `window.__INSPECTOR_HANDOFF__.${order === 'editor-first' ? 'editor' : 'metadata'}()`,
+          );
+          if (order === 'editor-first') {
+            await expect(page.getByLabel('Object Name', { exact: true })).toHaveValue(
+              'Second record',
+            );
+          } else {
+            await expect
+              .poll(() => page.evaluate('window.__INSPECTOR_HANDOFF__.metadataDone'))
+              .toBe(true);
+          }
+          await expect(panel).toHaveAttribute('data-object-id', 'one');
+          await expect(panel.locator('header')).toContainText('Passport for navigation');
+          await expect
+            .poll(() => page.evaluate('window.__INSPECTOR_HANDOFF__.frames.length'))
+            .toBeGreaterThan(8);
+          await page.evaluate(
+            `window.__INSPECTOR_HANDOFF__.${order === 'editor-first' ? 'metadata' : 'editor'}()`,
+          );
+          await expect(panel).toHaveAttribute('data-object-id', 'two');
+          await expect(panel.locator('header')).toContainText('Second record');
+          await expect(rows.first()).toHaveAttribute(
+            attribute,
+            tab === 'history' ? 'two-snap-31' : 'two-file-35',
+          );
+          await expect(panel.locator('[data-inspector-content]')).not.toHaveAttribute('inert', '');
+          await expect
+            .poll(() => page.evaluate('window.__INSPECTOR_HANDOFF__.frames.at(-1)?.id'))
+            .toBe('two');
+          const frames = await page.evaluate(`(() => {
+            const gate = window.__INSPECTOR_HANDOFF__;
+            gate.running = false;
+            return gate.frames;
+          })()`);
+          expect(frames.length).toBeGreaterThan(8);
+          for (const frame of frames) {
+            expect(frame.count).toBeGreaterThan(0);
+            expect(frame.loading).toBe(false);
+            expect(frame.first).toMatch(new RegExp(`^${frame.id}-`));
+            expect(frame.name).toBe(
+              frame.id === 'one' ? 'Passport for navigation' : 'Second record',
+            );
+          }
+          samples.push({ order, frames });
+          expect(await panelHandle!.evaluate((element) => element.isConnected)).toBe(true);
+          expect(await listHandle!.evaluate((element) => element.isConnected)).toBe(true);
+          expect(
+            await page.evaluate(
+              `window.__INSPECTOR_CALLS__.filter(c=>c[0]===${JSON.stringify(tab === 'history' ? 'list' : 'attachments')}&&c[1]==='two').length`,
+            ),
+          ).toBe(order === 'editor-first' ? 1 : 2);
+          if (order === 'editor-first') {
+            await page.locator('#desktop-page-pane [data-object-id="one"]').click();
+            await expect(panel).toHaveAttribute('data-object-id', 'one');
+            await expect(rows.first()).toHaveAttribute(
+              attribute,
+              tab === 'history' ? 'one-snap-31' : 'one-file-35',
+            );
+          }
+        }
+        await info.attach('object-handoff-frames', {
+          body: JSON.stringify(samples),
+          contentType: 'application/json',
+        });
+      });
+    }
 
 test('narrow desktop temporarily hides the left pane, preserves drafts and restores preference', async ({
   page,

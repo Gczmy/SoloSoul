@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-22",
+  "scope": "Shared desktop sidebar and object inspector toggle hover hints",
+  "base": "fd7f5b771f3c1e9d8b0ba1d7b256cb345539c04e",
+  "changes": [
+    "Both pane toggles use the same portal tooltip component and card styles.",
+    "The inspector toggle no longer shows an additional browser-native title tooltip.",
+    "Pointer hover, keyboard focus, blur and Escape share the same behavior; the trailing tooltip aligns inside the window edge."
+  ],
+  "validation": {
+    "typescript": "passed",
+    "targeted_eslint": "passed",
+    "shell_unit_tests": "14 passed across 2 files",
+    "production_browser": {
+      "result": "4 passed, no retries",
+      "matrix": ["windows light", "windows dark", "macos light", "macos dark"],
+      "checks": [
+        "matching computed tooltip styles",
+        "pointer and keyboard dismissal",
+        "window edge containment",
+        "existing dock, tabs, scrolling and object synchronization"
+      ]
+    },
+    "native_acceptance": "not performed; platform variants were exercised in the production browser fixture"
+  },
+  "paused": ["release builds", "all unrelated tasks"]
+}

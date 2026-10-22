@@ -31,6 +31,15 @@
 .close {
   flex-shrink: 0;
 }
+.pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
 .tabs {
   display: flex;
   margin: 0 16px 4px;

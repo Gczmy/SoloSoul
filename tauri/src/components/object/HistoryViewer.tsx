@@ -497,6 +497,10 @@ export interface HistoryViewerProps {
   /** 时间轴可嵌入桌面停靠面板；默认保留原有模态查看器。 */
   presentation?: 'modal' | 'timeline';
   onCountChange?: (count: number) => void;
+  /** 停靠面板已经读取的元数据；正文仍只在展开时读取。 */
+  initialSnapshots?: SnapshotEntry[];
+  /** 对象交接期间保留元数据，立即关闭正文并作废验证与解密请求。 */
+  active?: boolean;
 }
 
 export function HistoryViewer(props: HistoryViewerProps) {
@@ -525,10 +529,14 @@ function HistoryViewerSession({
   zIndex = 2000,
   presentation = 'modal',
   onCountChange,
+  initialSnapshots,
+  active = true,
 }: HistoryViewerProps & { accountId?: string }) {
   const requests = useHistoryRequests();
-  const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [snapshots, setSnapshots] = useState<SnapshotEntry[]>(() =>
+    [...(initialSnapshots ?? [])].sort((a, b) => b.timestamp - a.timestamp),
+  );
+  const [loading, setLoading] = useState(initialSnapshots === undefined);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [listFailed, setListFailed] = useState(false);
@@ -544,6 +552,7 @@ function HistoryViewerSession({
   );
   const loadSnapshot = useCallback(
     (id: string) => {
+      if (!active) return Promise.reject(new Error('History is inactive during object handoff'));
       const cached = cache.current.get(id);
       if (cached) return cached.promise;
       const request = requests.begin(`snapshot:${id}`, accountId);
@@ -565,12 +574,18 @@ function HistoryViewerSession({
       while (cache.current.size > 8) cache.current.delete(cache.current.keys().next().value!);
       return entry.promise;
     },
-    [requests, accountId],
+    [requests, accountId, active],
   );
   useLayoutEffect(() => {
     const sessionCache = cache.current;
     return () => sessionCache.clear();
   }, []);
+  useLayoutEffect(() => {
+    if (active) return;
+    requests.invalidate();
+    cache.current.clear();
+    setExpandedId(null);
+  }, [active, requests]);
   const cachedSnapshot = useCallback((id: string) => cache.current.get(id)?.data, []);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
@@ -614,6 +629,7 @@ function HistoryViewerSession({
   };
 
   useEffect(() => {
+    if (initialSnapshots !== undefined && loadAttempt === 0) return;
     const request = requests.begin('list', accountId);
     setLoading(true);
     setListFailed(false);
@@ -639,7 +655,7 @@ function HistoryViewerSession({
     return () => requests.invalidate('list');
     // showToast/t 为稳定引用，仅需在 objectId 变化时重新加载
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectId, accountId, requests, loadAttempt]);
+  }, [objectId, accountId, requests, loadAttempt, initialSnapshots]);
 
   useEffect(() => {
     if (!loading && !listFailed) onCountChange?.(snapshots.length);
@@ -647,23 +663,23 @@ function HistoryViewerSession({
 
   useEffect(() => {
     // 时间轴只在展开一条记录后解密；折叠列表不读取快照正文，也不预读邻居。
-    if (presentation === 'timeline') return;
+    if (presentation === 'timeline' || !active) return;
     const id = snapshots[currentIdx]?.id;
     if (!id) return;
-    let active = true;
+    let prefetchActive = true;
     // 当前记录完成后才预读相邻两条，不让预读抢占首次显示。
     void loadSnapshot(id)
       .then(() => {
-        if (!active) return;
+        if (!prefetchActive) return;
         for (const neighbor of [snapshots[currentIdx - 1], snapshots[currentIdx + 1]]) {
           if (neighbor) void loadSnapshot(neighbor.id).catch(() => {});
         }
       })
       .catch(() => {});
     return () => {
-      active = false;
+      prefetchActive = false;
     };
-  }, [snapshots, currentIdx, loadSnapshot, presentation]);
+  }, [snapshots, currentIdx, loadSnapshot, presentation, active]);
 
   const goPrev = () => setCurrentIdx((i) => Math.max(0, Math.min(i + 1, snapshots.length - 1)));
   const goNext = () => setCurrentIdx((i) => Math.max(i - 1, 0));
@@ -707,7 +723,7 @@ function HistoryViewerSession({
               const day = date.toLocaleDateString();
               const previousDay =
                 index > 0 ? new Date(snapshots[index - 1].timestamp).toLocaleDateString() : '';
-              const expanded = expandedId === entry.id;
+              const expanded = active && expandedId === entry.id;
               const detailId = `${timelineId}-${entry.id}`;
               // 旧导入摘要可能是任意文本，列表不直接回显未知内容或解密字段值。
               const summary = summaryKeys.has(entry.diffSummary)

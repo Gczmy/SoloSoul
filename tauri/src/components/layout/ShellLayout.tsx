@@ -69,8 +69,11 @@ export function ShellLayout() {
       onBack={onBack}
       objectInspector={
         // 导航 key 更新不等于对象变化；同一对象不能因此卸载历史和附件会话。
-        objectInspector && handoff && objectInspector.objectId !== inspectorTargetId
-          ? { ...objectInspector, ready: false, failed: false, objectName: '' }
+        objectInspector &&
+        handoff &&
+        inspectorTargetId &&
+        objectInspector.objectId !== inspectorTargetId
+          ? { objectId: inspectorTargetId, ready: false, failed: false, objectName: '' }
           : objectInspector
       }
     >
