@@ -3,6 +3,7 @@ const listeners = new Set<() => void>();
 const writes = new Set([
   'object_create',
   'object_update',
+  'object_set_locked',
   'object_delete',
   'page_delete',
   'trash_restore',

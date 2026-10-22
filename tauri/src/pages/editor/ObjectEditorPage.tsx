@@ -5,6 +5,8 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
+import { Lock, LockOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelector';
 import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
@@ -70,6 +72,8 @@ function ObjectEditorForm() {
     handleSave,
     handleBack,
     isSaving,
+    isEditLocked,
+    handleToggleEditLock,
   } = useObjectEditorPage();
 
   const [loadingNotice, setLoadingNotice] = useState(false);
@@ -100,24 +104,45 @@ function ObjectEditorForm() {
   );
   const formActions = (
     <>
-      <Button
-        variant="secondary"
-        size={useTitlebarActions ? 'sm' : 'md'}
-        onClick={() => navigate(-1)}
-      >
-        {t('common:cancel')}
-      </Button>
-      <Button
-        variant="primary"
-        size={useTitlebarActions ? 'sm' : 'md'}
-        onClick={handleSave}
-        loading={isSaving}
-        disabled={!isObjectReady}
-        className={styles.saveButton}
-        data-object-loading={isLoadingObject && !showLoadingNotice ? 'brief' : undefined}
-      >
-        {t('common:save')}
-      </Button>
+      {!isEditLocked && (
+        <>
+          <Button
+            variant="secondary"
+            size={useTitlebarActions ? 'sm' : 'md'}
+            onClick={() => navigate(-1)}
+            disabled={isSaving}
+          >
+            {t('common:cancel')}
+          </Button>
+          <Button
+            variant="primary"
+            size={useTitlebarActions ? 'sm' : 'md'}
+            onClick={handleSave}
+            loading={isSaving}
+            disabled={!isObjectReady || isSaving}
+            className={styles.saveButton}
+            data-object-loading={isLoadingObject && !showLoadingNotice ? 'brief' : undefined}
+          >
+            {t('common:save')}
+          </Button>
+        </>
+      )}
+      {!isNew && (
+        <Button
+          variant="secondary"
+          size={useTitlebarActions ? 'sm' : 'md'}
+          onClick={handleToggleEditLock}
+          loading={isSaving}
+          disabled={!isObjectReady || isSaving}
+        >
+          {isEditLocked ? (
+            <LockOpen size={16} aria-hidden="true" />
+          ) : (
+            <Lock size={16} aria-hidden="true" />
+          )}
+          {t(isEditLocked ? 'common:object_unlock' : 'common:object_lock')}
+        </Button>
+      )}
     </>
   );
 
@@ -147,6 +172,7 @@ function ObjectEditorForm() {
         <div
           className={styles.formBody}
           data-object-editor-form
+          data-edit-locked={isEditLocked || undefined}
           aria-busy={isLoadingObject}
           inert={!isObjectReady}
         >
@@ -171,9 +197,18 @@ function ObjectEditorForm() {
                     label={t('common:object_name')}
                     aria-label={t('common:object_name')}
                     value={name}
+                    readOnly={isEditLocked || isSaving}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('common:object_name_placeholder')}
                   />
+                  {!isNew && objectId && (
+                    <div className={styles.objectStatus}>
+                      <ObjectEditLockBadge
+                        objectId={objectId}
+                        properties={currentObject?.properties}
+                      />
+                    </div>
+                  )}
                 </Card>
                 <ObjectFieldList
                   fields={fields}
@@ -187,6 +222,7 @@ function ObjectEditorForm() {
                   getSensitivity={getSensitivity}
                   isNew={isNew}
                   suggestions={fieldSuggestions}
+                  readOnly={isEditLocked || isSaving}
                 />
               </>
             )}

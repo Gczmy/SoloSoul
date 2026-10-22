@@ -15,6 +15,7 @@ interface TemplateFieldInputProps {
   options?: string[];
   onChange: (value: unknown) => void;
   disabled?: boolean;
+  readOnly?: boolean;
   icon?: React.ReactNode;
   badge?: React.ReactNode;
   hint?: string;
@@ -26,13 +27,17 @@ export function TemplateFieldInput({
   type,
   value,
   options,
-  onChange,
+  onChange: changeValue,
   disabled,
+  readOnly,
   icon,
   badge,
   hint,
 }: TemplateFieldInputProps) {
   const { t } = useTranslation('common');
+  const onChange = (next: unknown) => {
+    if (!disabled && !readOnly) changeValue(next);
+  };
   const labelRow = (
     <span className={styles.labelRow}>
       {icon}
@@ -67,7 +72,7 @@ export function TemplateFieldInput({
             multiple
             value={uniqueOptions.filter((option) => Array.isArray(value) && value.includes(option))}
             onChange={onChange}
-            disabled={disabled}
+            disabled={disabled || readOnly}
           />
         ) : (
           <AndroidChoiceField
@@ -76,7 +81,7 @@ export function TemplateFieldInput({
             choices={[{ value: '', label: t('clear', { defaultValue: 'Clear' }) }, ...choices]}
             value={String(value || '')}
             onChange={onChange}
-            disabled={disabled}
+            disabled={disabled || readOnly}
             summary={value ? undefined : t('select_option', { defaultValue: 'Select an option' })}
           />
         )}
@@ -93,7 +98,7 @@ export function TemplateFieldInput({
           <DatePicker
             value={String(value ?? '')}
             onChange={(v) => onChange(v)}
-            disabled={disabled}
+            disabled={disabled || readOnly}
           />
         </div>
       );
@@ -107,7 +112,7 @@ export function TemplateFieldInput({
             value={String(value ?? '')}
             onChange={(v) => onChange(v)}
             includeTime
-            disabled={disabled}
+            disabled={disabled || readOnly}
           />
         </div>
       );
@@ -126,6 +131,7 @@ export function TemplateFieldInput({
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             rows={6}
+            readOnly={readOnly}
           />
         </div>
       );
@@ -137,7 +143,7 @@ export function TemplateFieldInput({
             <SelectCheckbox
               checked={Boolean(value)}
               onChange={(v) => onChange(v)}
-              disabled={disabled}
+              disabled={disabled || readOnly}
             />
             {labelRow}
           </label>
@@ -155,7 +161,7 @@ export function TemplateFieldInput({
             className={styles.select}
             value={String(value || '')}
             onChange={(e) => onChange(e.target.value)}
-            disabled={disabled}
+            disabled={disabled || readOnly}
           >
             <option value="">-- 请选择 --</option>
             {uniqueOptions.map((opt) => (
@@ -185,7 +191,7 @@ export function TemplateFieldInput({
                       : selected.filter((v) => v !== opt);
                     onChange(next);
                   }}
-                  disabled={disabled}
+                  disabled={disabled || readOnly}
                 />
                 <span>{opt}</span>
               </label>
@@ -206,6 +212,7 @@ export function TemplateFieldInput({
           <input
             id={propertyId}
             type={inputType}
+            readOnly={readOnly}
             className={styles.input}
             value={String(value ?? '')}
             onChange={(e) => onChange(e.target.value)}

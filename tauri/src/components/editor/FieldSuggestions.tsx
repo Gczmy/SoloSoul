@@ -21,6 +21,7 @@ interface FieldSuggestionsProps {
   onPick: (value: string) => void;
   /** 折叠态最多展示条数（超出时提供展开/收起按钮）。 */
   limit?: number;
+  readOnly?: boolean;
 }
 
 /** 公开内容单行展示限长（遮掩内容恒为 8 圆点，无需截断）。 */
@@ -58,6 +59,7 @@ export function FieldSuggestions({
   suggestions,
   onPick,
   limit = 3,
+  readOnly,
 }: FieldSuggestionsProps) {
   const { t } = useTranslation(['editor', 'common']);
   const [expanded, setExpanded] = useState(false);
@@ -238,6 +240,7 @@ export function FieldSuggestions({
                 <button
                   type="button"
                   data-testid="field-suggestion-fill"
+                  disabled={readOnly}
                   title={t('field_suggestions_fill', {
                     object: s.objectName,
                     defaultValue: `Fill into this field with value from "${s.objectName}"`,

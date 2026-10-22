@@ -10,6 +10,14 @@
   min-width: 0;
 }
 
+/* 写保护只禁止修改，不把字段淡化为不可查看内容。 */
+.formBody[data-edit-locked] :is(input, textarea, select, button):disabled {
+  opacity: 1;
+  color: var(--text-secondary);
+  -webkit-text-fill-color: currentColor;
+  cursor: default;
+}
+
 /* 短读取已在逻辑上禁用保存，外观保留稳定；慢读取才显示常规禁用反馈。 */
 .saveButton[data-object-loading='brief']:disabled,
 :global(html[data-desktop-platform]) .saveButton[data-object-loading='brief']:disabled {
@@ -49,6 +57,10 @@
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.objectStatus {
+  margin-top: 8px;
 }
 
 /* 移动端：操作随长表单滚动，避免固定操作栏与底部导航、键盘重叠。 */

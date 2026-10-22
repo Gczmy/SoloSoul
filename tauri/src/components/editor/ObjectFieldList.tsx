@@ -38,6 +38,7 @@ interface ObjectFieldListProps {
   isNew: boolean;
   /** 其他对象同名字段的推荐内容（字段名 → 条目列表），缺失时该字段无推荐列表。 */
   suggestions?: Record<string, FieldSuggestion[]>;
+  readOnly?: boolean;
 }
 
 export function ObjectFieldList({
@@ -52,6 +53,7 @@ export function ObjectFieldList({
   getSensitivity,
   isNew: _isNew,
   suggestions,
+  readOnly,
 }: ObjectFieldListProps) {
   const { t } = useTranslation(['common', 'editor', 'navigation']);
 
@@ -69,6 +71,7 @@ export function ObjectFieldList({
     if (propType === 'dynamic_group') {
       return (
         <DynamicGroupEditor
+          readOnly={readOnly}
           propertyId={field.key}
           label={field.label === '__dynamic_group__' ? dynamicGroupLabel : field.label}
           value={values[field.key]}
@@ -87,6 +90,7 @@ export function ObjectFieldList({
     return (
       <>
         <TemplateFieldInput
+          readOnly={readOnly}
           propertyId={field.key}
           label={field.label}
           type={propType}
@@ -115,6 +119,7 @@ export function ObjectFieldList({
         {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩）。
             按规范字段名匹配——中文名/英文名等同一字段的本地化名归到同一键。 */}
         <FieldSuggestions
+          readOnly={readOnly}
           fieldName={field.label}
           suggestions={suggestions?.[resolveCanonicalFieldName(field.key, field.label)] ?? []}
           onPick={(val) => {
@@ -173,6 +178,7 @@ export function ObjectFieldList({
                   return (
                     <div key={key}>
                       <DynamicGroupEditor
+                        readOnly={readOnly}
                         propertyId={key}
                         label={fieldName === '__dynamic_group__' ? dynamicGroupLabel : fieldName}
                         value={val}
@@ -191,6 +197,7 @@ export function ObjectFieldList({
                 return (
                   <div key={key}>
                     <TemplateFieldInput
+                      readOnly={readOnly}
                       propertyId={key}
                       label={fieldName}
                       type={propType}
@@ -223,6 +230,7 @@ export function ObjectFieldList({
                     {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩）。
                         按规范字段名匹配——中文名/英文名等同一字段的本地化名归到同一键。 */}
                     <FieldSuggestions
+                      readOnly={readOnly}
                       fieldName={fieldName}
                       suggestions={suggestions?.[resolveCanonicalFieldName(key, fieldName)] ?? []}
                       onPick={(v) => {

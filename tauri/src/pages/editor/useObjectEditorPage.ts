@@ -16,6 +16,7 @@ import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
 import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
 import { createSessionRequests } from '@/lib/sessionRequests';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 
 interface FieldDef {
   key: string;
@@ -60,6 +61,8 @@ export interface UseObjectEditorPageResult {
   handleSave: () => Promise<void>;
   handleBack: () => void;
   isSaving: boolean;
+  isEditLocked: boolean;
+  handleToggleEditLock: () => Promise<void>;
 }
 
 /** 先构造完整字段值，避免字段树先挂载空值再逐项回填。 */
@@ -127,6 +130,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const getObject = useObjectStore((s) => s.getObject);
   const createObject = useObjectStore((s) => s.createObject);
   const updateObject = useObjectStore((s) => s.updateObject);
+  const setObjectLocked = useObjectStore((s) => s.setObjectLocked);
   // 只发布已完整装配的对象快照。路由切换期间保留上一帧，但禁止编辑/保存。
   const [currentObject, setCurrentObject] = useState<ObjectData | null>(null);
   const [requests] = useState(createSessionRequests);
@@ -135,10 +139,6 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const userTemplates = useTemplateStore((s) => s.templates);
   const loadUserTemplates = useTemplateStore((s) => s.loadTemplates);
   const customPages = useSettingsStore((s) => s.settings.customPages);
-
-  const handleFieldChange = useCallback((key: string, val: unknown) => {
-    setValues((v) => ({ ...v, [key]: val }));
-  }, []);
 
   const handleClearError = useCallback((key: string) => {
     setValidationErrors((err) => {
@@ -238,6 +238,16 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const [failedFor, setFailedFor] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const isObjectReady = isNew || (loadedFor === objectId && currentObject?.id === objectId);
+  const isEditLocked = useObjectEditLocked(
+    objectId,
+    currentObject && currentObject.id === objectId ? currentObject.properties : undefined,
+  );
+  const handleFieldChange = useCallback(
+    (key: string, val: unknown) => {
+      if (!isEditLocked && isObjectReady && !isSaving) setValues((v) => ({ ...v, [key]: val }));
+    },
+    [isEditLocked, isObjectReady, isSaving],
+  );
   const objectLoadFailed = !isNew && failedFor === objectId;
   const isLoadingObject = !isObjectReady && !objectLoadFailed;
   const retryObjectLoad = () => setLoadAttempt((attempt) => attempt + 1);
@@ -408,7 +418,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   };
 
   const handleSave = async () => {
-    if (!accountId || !isObjectReady || isSaving) return;
+    if (!accountId || !isObjectReady || isSaving || isEditLocked) return;
     if (isNew) {
       const knownDestination = SYSTEM_PAGE_KEYS.some((key) => key === typeId) || destinationPage;
       if (
@@ -457,6 +467,41 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     }
   };
 
+  const handleToggleEditLock = async () => {
+    if (!accountId || !objectId || !isObjectReady || isSaving || !currentObject) return;
+    const locking = !isEditLocked;
+    const dirty =
+      name !== currentObject.name ||
+      JSON.stringify(values) !== JSON.stringify(objectFormValues(currentObject));
+    if (locking && dirty && !validateFields()) {
+      onError(t('editor:validation_failed'), t('common:object_save_failed'));
+      return;
+    }
+    const request = requests.begin('editor-save', accountId);
+    setIsSaving(true);
+    try {
+      if (locking && dirty) {
+        await updateObject(objectId, {
+          name: name || t('common:object_name_placeholder'),
+          properties: values,
+        });
+        if (!request.isCurrent()) return;
+        const saved = useObjectStore.getState().currentObjectCache[objectId];
+        if (saved?.accountId === accountId) setCurrentObject(saved);
+      }
+      const object = await setObjectLocked(objectId, locking);
+      if (!request.isCurrent()) return;
+      setCurrentObject(object);
+      setName(object.name);
+      setValues(objectFormValues(object));
+      onSuccess(t(locking ? 'common:object_locked_success' : 'common:object_unlocked_success'));
+    } catch (error) {
+      if (request.isCurrent()) onError(error, t('common:object_lock_failed'));
+    } finally {
+      if (request.isCurrent()) setIsSaving(false);
+    }
+  };
+
   const handleBack = () => {
     // TemplateManager already returns to /editor with replace: true,
     // so a single history step back correctly lands on the previous page (workspace).
@@ -492,5 +537,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     handleSave,
     handleBack,
     isSaving,
+    isEditLocked,
+    handleToggleEditLock,
   };
 }

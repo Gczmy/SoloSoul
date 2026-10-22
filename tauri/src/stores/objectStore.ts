@@ -48,6 +48,7 @@ interface ObjectState {
   getObject: (accountId: string, objectId: string) => Promise<ObjectData | null | undefined>;
   createObject: (input: CreateObjectValues) => Promise<ObjectData>;
   updateObject: (objectId: string, input: UpdateObjectValues) => Promise<void>;
+  setObjectLocked: (objectId: string, locked: boolean) => Promise<ObjectData>;
   deleteObject: (objectId: string) => Promise<void>;
   /** 预览对象按当前模板同步后的变更（dryRun=true）。 */
   previewSyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>;
@@ -193,6 +194,30 @@ export const useObjectStore = create<ObjectState>((set) => ({
       // 退出页面」，编辑内容静默丢失。
       throw err;
     }
+  },
+
+  setObjectLocked: async (objectId, locked) => {
+    const request = requests.begin(`object:${objectId}`);
+    const obj = toObjectDataView(
+      await request.invokeTyped('object_set_locked', { objectId, locked }),
+    );
+    request.assertCurrent();
+    if (obj.id !== objectId || obj.accountId !== useAuthStore.getState().currentAccount?.id)
+      throw new Error('Object response ownership mismatch');
+    set((s) => ({
+      currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
+      objects: s.objects.map((item) =>
+        item.id === objectId
+          ? {
+              ...item,
+              updatedAt: obj.updatedAt,
+              properties: { ...item.properties, __editLocked: obj.properties.__editLocked },
+            }
+          : item,
+      ),
+    }));
+    invalidateSearchCache();
+    return obj;
   },
 
   deleteObject: async (objectId) => {

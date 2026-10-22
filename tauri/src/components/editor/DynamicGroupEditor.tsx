@@ -28,6 +28,7 @@ interface DynamicGroupEditorProps {
   sensitivity?: SensitivityLevel;
   onChange: (value: DynamicGroupItem[]) => void;
   disabled?: boolean;
+  readOnly?: boolean;
 }
 
 const ALL_PROPERTY_TYPES: PropertyType[] = [
@@ -75,10 +76,17 @@ export function DynamicGroupEditor({
   allowedTypes,
   maxItems,
   sensitivity,
-  onChange,
+  onChange: changeValue,
   disabled,
+  readOnly,
 }: DynamicGroupEditorProps) {
   const { t } = useTranslation(['common', 'editor']);
+  const onChange = useCallback(
+    (next: DynamicGroupItem[]) => {
+      if (!disabled && !readOnly) changeValue(next);
+    },
+    [disabled, readOnly, changeValue],
+  );
   const items = normalizeValue(value);
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
 
@@ -163,7 +171,8 @@ export function DynamicGroupEditor({
                     if (e.key === 'Enter') setEditingNameId(null);
                   }}
                   autoFocus
-                  disabled={disabled}
+                  readOnly={readOnly}
+                  disabled={disabled || readOnly}
                   className={styles.nameInput}
                 />
               ) : (
@@ -183,7 +192,7 @@ export function DynamicGroupEditor({
                   variant="tertiary"
                   size="sm"
                   onClick={() => handleMove(item.id, -1)}
-                  disabled={disabled || index === 0}
+                  disabled={disabled || readOnly || index === 0}
                   aria-label={t('common:move_up')}
                 >
                   <ChevronUp size={14} />
@@ -192,7 +201,7 @@ export function DynamicGroupEditor({
                   variant="tertiary"
                   size="sm"
                   onClick={() => handleMove(item.id, 1)}
-                  disabled={disabled || index === items.length - 1}
+                  disabled={disabled || readOnly || index === items.length - 1}
                   aria-label={t('common:move_down')}
                 >
                   <ChevronDown size={14} />
@@ -201,7 +210,7 @@ export function DynamicGroupEditor({
                   variant="danger-outline"
                   size="sm"
                   onClick={() => handleRemove(item.id)}
-                  disabled={disabled}
+                  disabled={disabled || readOnly}
                   aria-label={t('common:delete')}
                 >
                   <Trash2 size={14} />
@@ -215,7 +224,7 @@ export function DynamicGroupEditor({
                   <AndroidChoiceField
                     title={t('editor:dynamic_group_type', { defaultValue: 'Field type' })}
                     value={item.type}
-                    disabled={disabled}
+                    disabled={disabled || readOnly}
                     choices={availableTypes.map((pt) => ({
                       value: pt,
                       label: t(`editor:field_types.${pt}`, pt),
@@ -230,7 +239,7 @@ export function DynamicGroupEditor({
                     onChange={(e) =>
                       handleUpdate(item.id, { type: e.target.value as PropertyType })
                     }
-                    disabled={disabled}
+                    disabled={disabled || readOnly}
                   >
                     {availableTypes.map((pt) => (
                       <option key={pt} value={pt}>
@@ -247,6 +256,7 @@ export function DynamicGroupEditor({
                 value={item.value}
                 onChange={(val) => handleUpdate(item.id, { value: val })}
                 disabled={disabled}
+                readOnly={readOnly}
               />
             </div>
           </div>
@@ -258,7 +268,7 @@ export function DynamicGroupEditor({
           variant="secondary"
           size="sm"
           onClick={handleAdd}
-          disabled={disabled}
+          disabled={disabled || readOnly}
           className={styles.addButton}
         >
           <Plus size={14} />
