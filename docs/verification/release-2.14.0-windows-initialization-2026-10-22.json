@@ -1,0 +1,18 @@
+{
+  "scope": "Windows runtime resource directory initialization on first build",
+  "sourceBase": "78a0e26a2",
+  "problem": "Tauri scans bundle resources during Rust compilation, before beforeBundleCommand can stage runtime DLLs. A clean checkout initially has no ignored runtime directory.",
+  "change": "The Windows MSVC build script initializes the empty runtime directory before calling tauri_build. The bundling hook still validates and fills the complete DLL set after compilation.",
+  "validation": {
+    "rustFormat": "passed",
+    "runtimeDirectoryAbsentAtStart": true,
+    "runtimeDirectoryCreatedByBuildScript": true,
+    "tauriResourceScan": "passed with empty runtime directory",
+    "postTauriBuildOutput": "app_level_names.rs was regenerated after tauri_build returned successfully",
+    "fullReleaseBuild": "Still running when this narrow build-script validation was recorded; final package results are recorded separately."
+  },
+  "limits": [
+    "No desktop application was launched.",
+    "Only the Windows MSVC branch initializes this directory."
+  ]
+}
