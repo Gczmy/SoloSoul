@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-22",
+  "base": "3b900df938bfc5ebc50b53f5306cdaa13d39bc9c",
+  "scope": "Desktop right inspector history/attachment tab flicker",
+  "root_cause": "The transition retained the previous view only when its tab matched the requested tab. Changing tabs therefore removed the complete list before the incoming metadata arrived.",
+  "changes": [
+    "Retain the current complete view during a tab read, using the existing atomic handoff when the incoming list is ready.",
+    "Commit tab selection, keyboard tab stop and tabpanel labelling with the displayed list so that retained history is never labelled as attachments or vice versa.",
+    "Keep retained content inert, close attachment previews and remask expanded history immediately while waiting for the next active view.",
+    "Keep fresh metadata reads, descending order, independent scroll, error/retry behavior and stale object/account/session response rejection; do not add a shared data cache."
+  ],
+  "validation": {
+    "before_fix": "All 4 new controlled tab-handoff regression cases failed against the original implementation; 10 unrelated cases were intentionally excluded from this reproduction.",
+    "unit_tests": "53 passed across ObjectInspectorPanel, HistoryViewer and editor field-suggestion handoff (3 files), including the 4 new tab cases.",
+    "production_browser": {
+      "distinct_scenarios_passed": 34,
+      "matrix": ["windows light", "windows dark", "macos light", "macos dark"],
+      "broad_run": "29 passed; 5 test-assumption failures: four new cases assumed the attachment page size for history, and one existing case checked immediate unmount before asynchronous handoff completed.",
+      "targeted_recheck": "8 passed with no retries after correcting those assertions: 4 tab-handoff cases and all 4 long-name scrolling cases. The application implementation was unchanged between the broad run and this recheck.",
+      "frame_samples": {
+        "windows_light": 66,
+        "windows_dark": 63,
+        "macos_light": 54,
+        "macos_dark": 55
+      },
+      "sampled_frames_total": 238,
+      "blank_list_frames": 0,
+      "mislabelled_frames": 0,
+      "list_loading_frames": 0,
+      "preservation": "Rapid tab reversal, an object switch during a pending tab read, stale response rejection, protected history remasking, stable panel/scroll nodes, descending lists and no page errors passed."
+    },
+    "typescript": "passed",
+    "targeted_eslint": "passed, including the final browser test changes",
+    "format": "passed",
+    "native_acceptance": "No new Windows or macOS native executable acceptance was performed; production browser platform fixtures were used."
+  },
+  "evidence_sha256": {
+    "before_fix": "39b03829533eafb1156412d25cc694e21b2f41b3e2d992891f074b2598ec4c78",
+    "unit_tests": "cf8351906e5cbbdf870127e241b0f3330fe1fd8ba92b5fbf9e07cc60bc02b272",
+    "production_broad_run": "2261661458a2f238a5cd7aea8f8400402250c0a54aea69b08a3e9d20377801d7",
+    "production_targeted_recheck": "af1ca4b5987b57f43e2b5dc4649d7288a85800b4d1e5223b00a9b5183ff6eba4",
+    "frame_summary": "dccc67e23451ad2403006299e9aad72b1c19b920d25ad761d3118885045ce42d"
+  },
+  "delivery": "One independent fix committed and pushed directly on main, without a feature branch or pull request.",
+  "paused": ["release builds", "all unrelated tasks"]
+}

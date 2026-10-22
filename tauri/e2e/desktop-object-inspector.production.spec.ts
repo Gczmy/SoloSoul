@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
 const LONG_OBJECT_NAME =
@@ -421,6 +421,142 @@ for (const platform of ['windows', 'macos'] as const)
       });
     }
 
+for (const platform of ['windows', 'macos'] as const)
+  for (const theme of ['light', 'dark'] as const) {
+    test(`${platform} ${theme}: atomic tab handoff keeps a complete and correctly labelled list`, async ({
+      page,
+    }, info) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await setup(page, platform, theme);
+      await page.locator('[data-object-inspector-toggle]').click();
+      const panel = page.locator('[data-object-inspector]');
+      const list = panel.locator('[data-object-inspector-scroll]');
+      const selected = panel.getByRole('tab', { selected: true });
+      await expect(panel.locator('[data-history-snapshot]').first()).toHaveAttribute(
+        'data-history-snapshot',
+        'one-snap-31',
+      );
+      const initialHistoryRows = await panel.locator('[data-history-snapshot]').count();
+      expect(initialHistoryRows).toBeGreaterThan(0);
+      const panelNode = await panel.elementHandle();
+      const listNode = await list.elementHandle();
+      await panel.locator('[data-history-snapshot]').first().click();
+      await panel.getByRole('button', { name: 'Click to reveal', exact: true }).click();
+      await expect(panel.getByText('PRIVATE one-snap-31', { exact: true })).toBeVisible();
+      await page.evaluate(`(() => {
+        const mocks = window.__E2E_MOCKS__;
+        const gate = window.__INSPECTOR_TAB_HANDOFF__ = {requests: [], frames: [], running: true};
+        for (const [command, tab] of [['snapshot_list', 'history'], ['attachment_list', 'attachments']]) {
+          const read = mocks[command];
+          mocks[command] = async args => {
+            await new Promise(done => gate.requests.push({tab, id: args.objectId, finish: done}));
+            return read(args);
+          };
+        }
+        const sample = () => {
+          const panel = document.querySelector('[data-object-inspector]');
+          const list = panel.querySelector('[data-object-inspector-scroll]');
+          gate.frames.push({
+            id: panel.dataset.objectId,
+            selected: panel.querySelector('[role="tab"][aria-selected="true"]').id,
+            labelled: list.getAttribute('aria-labelledby'),
+            history: list.querySelector('[data-history-snapshot]')?.getAttribute('data-history-snapshot'),
+            attachment: list.querySelector('[data-inspector-attachment]')?.getAttribute('data-inspector-attachment'),
+            status: !!list.querySelector('[role="status"]'),
+          });
+          if (gate.running) requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      })()`);
+      const click = async (tab: 'History' | 'Attachments', count: number) => {
+        await panel.getByRole('tab', { name: tab, exact: true }).click();
+        await expect
+          .poll(() => page.evaluate('window.__INSPECTOR_TAB_HANDOFF__.requests.length'))
+          .toBe(count);
+      };
+      const release = (index: number) =>
+        page.evaluate(`window.__INSPECTOR_TAB_HANDOFF__.requests[${index}].finish()`);
+      await list.evaluate((el) => {
+        el.scrollTop = 100;
+      });
+      await click('Attachments', 1);
+      await expect(selected).toHaveAttribute('id', 'object-inspector-tab-history');
+      await expect(panel.locator('[data-inspector-content]')).toHaveAttribute('inert', '');
+      await expect(panel.getByText('PRIVATE one-snap-31', { exact: true })).toHaveCount(0);
+      await expect(panel.locator('[data-history-snapshot]')).toHaveCount(initialHistoryRows);
+      await expect
+        .poll(() => page.evaluate('window.__INSPECTOR_TAB_HANDOFF__.frames.length'))
+        .toBeGreaterThan(8);
+      await page.screenshot({ path: info.outputPath(`${platform}-${theme}-tab-pending.png`) });
+      await release(0);
+      await expect(selected).toHaveAttribute('id', 'object-inspector-tab-attachments');
+      await expect(panel.locator('[data-inspector-attachment]').first()).toHaveAttribute(
+        'data-inspector-attachment',
+        'one-file-35',
+      );
+      expect(await list.evaluate((el) => el.scrollTop)).toBe(0);
+      await click('History', 2);
+      await expect(panel.locator('[data-inspector-attachment]')).toHaveCount(30);
+      await expect(selected).toHaveAttribute('id', 'object-inspector-tab-attachments');
+      await release(1);
+      await expect(selected).toHaveAttribute('id', 'object-inspector-tab-history');
+      // Reverse direction before the first request completes; only the latest tab may publish.
+      await click('Attachments', 3);
+      await click('History', 4);
+      await release(3);
+      await expect(list).toHaveAttribute('aria-busy', 'false');
+      await release(2);
+      await expect(selected).toHaveAttribute('id', 'object-inspector-tab-history');
+      // An object switch while a tab is pending must not publish that previous object's response.
+      await click('Attachments', 5);
+      await page.locator('#desktop-page-pane [data-object-id="two"]').click();
+      await expect
+        .poll(() => page.evaluate('window.__INSPECTOR_TAB_HANDOFF__.requests.length'))
+        .toBe(6);
+      await expect(page.getByLabel('Object Name', { exact: true })).toHaveValue('Second record');
+      await release(5);
+      await expect(panel).toHaveAttribute('data-object-id', 'two');
+      await expect(panel.locator('[data-inspector-attachment]').first()).toHaveAttribute(
+        'data-inspector-attachment',
+        'two-file-35',
+      );
+      await release(4);
+      await expect(list).toHaveAttribute('aria-busy', 'false');
+      await expect(selected).toHaveAttribute('id', 'object-inspector-tab-attachments');
+      await expect(panel.locator('header')).toContainText('Second record');
+      const frames = await page.evaluate(`(() => {
+        const gate = window.__INSPECTOR_TAB_HANDOFF__;
+        gate.running = false;
+        return gate.frames;
+      })()`);
+      expect(frames.length).toBeGreaterThan(8);
+      for (const frame of frames) {
+        expect(frame.selected).toBe(frame.labelled);
+        expect(frame.status).toBe(false);
+        if (frame.selected === 'object-inspector-tab-history') {
+          expect(frame.history).toBe(frame.id + '-snap-31');
+          expect(frame.attachment).toBeUndefined();
+        } else {
+          expect(frame.attachment).toBe(frame.id + '-file-35');
+          expect(frame.history).toBeUndefined();
+        }
+      }
+      expect(await panelNode!.evaluate((el) => el.isConnected)).toBe(true);
+      expect(await listNode!.evaluate((el) => el.isConnected)).toBe(true);
+      expect(errors).toEqual([]);
+      await info.attach('tab-handoff-frames', {
+        body: JSON.stringify(frames),
+        contentType: 'application/json',
+      });
+      writeFileSync(
+        info.outputPath(`${platform}-${theme}-tab-frames.json`),
+        JSON.stringify(frames),
+      );
+      await page.screenshot({ path: info.outputPath(`${platform}-${theme}-tab-complete.png`) });
+    });
+  }
+
 test('narrow desktop temporarily hides the left pane, preserves drafts and restores preference', async ({
   page,
 }) => {
@@ -834,6 +970,10 @@ for (const platform of ['windows', 'macos'] as const) {
       await expect(fileName).toHaveAttribute('data-scroll-state', 'forward');
       const oldTrack = await textTrack(fileName).elementHandle();
       await panel.getByRole('tab', { name: 'History', exact: true }).click();
+      await expect(panel.getByRole('tab', { name: 'History', exact: true })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
       expect(await oldTrack!.evaluate((el) => el.isConnected)).toBe(false);
       await panel.getByRole('tab', { name: 'Attachments', exact: true }).click();
       const shortName = panel

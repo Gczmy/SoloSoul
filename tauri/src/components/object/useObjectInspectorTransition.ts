@@ -96,9 +96,8 @@ export function useObjectInspectorTransition(
     if (failed) setDisplayed(undefined);
     else if (incoming) setDisplayed(incoming);
   }, [failed, incoming]);
-  const view = failed
-    ? undefined
-    : (incoming ?? (displayed?.data.tab === tab ? displayed : undefined));
+  // 切换标签也交接完整画面，目标列表就绪前保留旧列表，避免短暂清空内容。
+  const view = failed ? undefined : (incoming ?? displayed);
   const pending = !failed && !incoming;
   const [noticeKey, setNoticeKey] = useState<string>();
   useEffect(() => {

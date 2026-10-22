@@ -55,6 +55,8 @@ function InspectorSession({
   const setTab = useUiStore((s) => s.setDesktopObjectInspectorTab);
   const transition = useObjectInspectorTransition(context, tab, accountId);
   const { view, active, pending, failed, objectFailed, showPending, retry } = transition;
+  // 标签选中态与已显示的内容一起更新；请求中的旧画面仍保持原来的语义归属。
+  const displayedTab = view?.data.tab ?? tab;
   const listRef = useRef<HTMLDivElement>(null);
   const [counts, setCounts] = useState<{
     objectId: string;
@@ -125,9 +127,9 @@ function InspectorSession({
               type="button"
               role="tab"
               id={`object-inspector-tab-${value}`}
-              aria-selected={tab === value}
+              aria-selected={displayedTab === value}
               aria-controls="object-inspector-list"
-              tabIndex={tab === value ? 0 : -1}
+              tabIndex={displayedTab === value ? 0 : -1}
               onKeyDown={(event) => {
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
                 event.preventDefault();
@@ -160,7 +162,7 @@ function InspectorSession({
         className={styles.list}
         id="object-inspector-list"
         role="tabpanel"
-        aria-labelledby={`object-inspector-tab-${tab}`}
+        aria-labelledby={`object-inspector-tab-${displayedTab}`}
         tabIndex={0}
         data-object-inspector-scroll
         aria-busy={pending}

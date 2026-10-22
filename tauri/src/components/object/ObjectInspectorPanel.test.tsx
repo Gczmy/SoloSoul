@@ -51,6 +51,7 @@ const file = (
 });
 beforeEach(() => {
   vi.clearAllMocks();
+  ipc.mockReset();
   useUiStore.setState({
     desktopObjectInspectorTab: 'attachments',
     desktopObjectInspectorOpen: true,
@@ -78,12 +79,16 @@ describe('desktop object inspector', () => {
     expect(ipc).not.toHaveBeenCalled();
   });
   it('loads only active attachments for the current object, newest first, and reuses preview', async () => {
-    ipc.mockResolvedValue([
-      file('old', '2026-01-01'),
-      file('foreign', '2026-06-01', 'other'),
-      file('new', '2026-02-01'),
-      file('deleted', '2026-07-01', 'one', '2026-07-02'),
-    ]);
+    ipc.mockImplementation(async (command) =>
+      command === 'snapshot_list'
+        ? []
+        : [
+            file('old', '2026-01-01'),
+            file('foreign', '2026-06-01', 'other'),
+            file('new', '2026-02-01'),
+            file('deleted', '2026-07-01', 'one', '2026-07-02'),
+          ],
+    );
     render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
     await screen.findByText('new.pdf');
     expect(
@@ -96,7 +101,117 @@ describe('desktop object inspector', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('new');
     fireEvent.click(screen.getByRole('tab', { name: 'history' }));
     expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'history' })).toHaveAttribute('aria-selected', 'true'),
+    );
+  });
+
+  it.each(['history', 'attachments'] as const)(
+    'keeps the current list and tab attribution until %s is ready',
+    async (target) => {
+      const origin = target === 'history' ? 'attachments' : 'history';
+      useUiStore.setState({ desktopObjectInspectorTab: origin });
+      const snapshot = [
+        { id: 'one-snapshot', timestamp: 1, triggeredBy: 'user_edit', diffSummary: 'diff_updated' },
+      ];
+      const attachments = [file('one-file', '2026-01-01')];
+      let finish!: (items: unknown) => void;
+      ipc
+        .mockResolvedValueOnce(origin === 'history' ? snapshot : attachments)
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              finish = resolve;
+            }),
+        );
+      render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+      await waitFor(() =>
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false'),
+      );
+      const list = screen.getByRole('tabpanel');
+      const content = document.querySelector('[data-inspector-content]');
+      const header = document.querySelector('[data-object-inspector] header');
+      list.scrollTop = 100;
+      fireEvent.click(screen.getByRole('tab', { name: target }));
+      expect(document.querySelector('[data-inspector-content]')).toBe(content);
+      expect(content).toHaveAttribute('inert');
+      expect(screen.getByRole('tab', { name: origin })).toHaveAttribute('aria-selected', 'true');
+      expect(list).toHaveAttribute('aria-labelledby', `object-inspector-tab-${origin}`);
+      expect(list).toHaveAttribute('aria-busy', 'true');
+      expect(list.scrollTop).toBe(100);
+      expect(
+        document.querySelector(
+          origin === 'history' ? '[data-history-snapshot]' : '[data-inspector-attachment]',
+        ),
+      ).not.toBeNull();
+      await act(async () => finish(target === 'history' ? snapshot : attachments));
+      expect(
+        document.querySelector(
+          target === 'history' ? '[data-history-snapshot]' : '[data-inspector-attachment]',
+        ),
+      ).not.toBeNull();
+      expect(screen.getByRole('tab', { name: target })).toHaveAttribute('aria-selected', 'true');
+      expect(list).toHaveAttribute('aria-labelledby', `object-inspector-tab-${target}`);
+      expect(list).toHaveAttribute('aria-busy', 'false');
+      expect(list.scrollTop).toBe(0);
+      expect(screen.getByRole('tabpanel')).toBe(list);
+      expect(document.querySelector('[data-object-inspector] header')).toBe(header);
+      expect(document.querySelector('[data-inspector-content]')).not.toHaveAttribute('inert');
+      expect(ipc.mock.calls).toHaveLength(2);
+      expect(ipc.mock.calls.some(([command]) => command === 'snapshot_get_data')).toBe(false);
+    },
+  );
+
+  it('rejects a skipped tab response after rapidly returning to attachments', async () => {
+    let finish!: (items: unknown) => void;
+    ipc
+      .mockResolvedValueOnce([file('old-file', '2026-01-01')])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      )
+      .mockResolvedValueOnce([file('fresh-file', '2026-02-01')]);
+    render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    await screen.findByText('old-file.pdf');
+    fireEvent.click(screen.getByRole('tab', { name: 'history' }));
+    expect(screen.getByText('old-file.pdf')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'attachments' }));
+    await screen.findByText('fresh-file.pdf');
+    await act(async () =>
+      finish([
+        {
+          id: 'late-snapshot',
+          timestamp: 1,
+          triggeredBy: 'user_edit',
+          diffSummary: 'diff_updated',
+        },
+      ]),
+    );
+    expect(screen.getByText('fresh-file.pdf')).toBeInTheDocument();
+    expect(document.querySelector('[data-history-snapshot]')).toBeNull();
+    expect(screen.getByRole('tab', { name: 'attachments' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('replaces retained tab contents with an attributed error, then retries to a genuine empty state', async () => {
+    ipc
+      .mockResolvedValueOnce([file('old-file', '2026-01-01')])
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce([]);
+    render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    await screen.findByText('old-file.pdf');
+    fireEvent.click(screen.getByRole('tab', { name: 'history' }));
+    expect(screen.getByText('old-file.pdf')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent('history_load_failed');
+    expect(screen.queryByText('old-file.pdf')).toBeNull();
     expect(screen.getByRole('tab', { name: 'history' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+    await screen.findByText('common:no_history');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false');
   });
 
   it('clears old metadata and rejects a late attachment response on object change', async () => {
@@ -301,9 +416,11 @@ describe('desktop object inspector', () => {
     await screen.findByText('no_attachments');
     fireEvent.keyDown(screen.getByRole('tab', { name: 'attachments' }), { key: 'Home' });
     expect(screen.getByRole('tab', { name: 'history' })).toHaveFocus();
-    expect(screen.getByRole('tabpanel')).toHaveAttribute(
-      'aria-labelledby',
-      'object-inspector-tab-history',
+    await waitFor(() =>
+      expect(screen.getByRole('tabpanel')).toHaveAttribute(
+        'aria-labelledby',
+        'object-inspector-tab-history',
+      ),
     );
   });
 });
