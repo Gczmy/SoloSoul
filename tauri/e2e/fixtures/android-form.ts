@@ -93,7 +93,8 @@ export async function mountForm(
     },
     { module, name, props },
   );
-  await expect(page.locator('[data-form-fixture-ready]')).toBeVisible();
+  // Fixed-position dialogs do not contribute height to their mounting container.
+  await expect(page.locator('[data-form-fixture-ready]')).toBeAttached();
 }
 
 export async function noOverflow(page: Page, selector: string) {

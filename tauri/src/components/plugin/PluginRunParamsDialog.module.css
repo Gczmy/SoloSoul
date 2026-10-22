@@ -127,6 +127,42 @@
   border: none;
 }
 
+.android .dialog {
+  box-sizing: border-box;
+  min-width: 0;
+  max-height: calc(
+    100dvh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px) -
+      var(--android-keyboard-inset, 0px) - 32px
+  );
+  padding: 20px 16px;
+  overflow-wrap: anywhere;
+}
+.android .field,
+.android .form {
+  min-width: 0;
+}
+.android .label {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.android .required {
+  margin-inline-start: 4px;
+}
+.android .input {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 48px;
+  font-family: inherit;
+}
+.android .checkboxRow > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.android .actions {
+  flex-wrap: wrap;
+}
+
 .cancelBtn {
   background: var(--bg-hover);
   color: var(--text-secondary);

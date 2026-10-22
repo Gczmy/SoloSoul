@@ -5,6 +5,8 @@ import styles from './PluginRunParamsDialog.module.css';
 import type { PluginParam } from '@/lib/plugin';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/constants';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidChoiceField } from '@/components/android/AndroidChoiceField';
 
 interface PluginRunParamsDialogProps {
   pluginName: string;
@@ -34,6 +36,7 @@ export function PluginRunParamsDialog({
   onCancel,
 }: PluginRunParamsDialogProps) {
   const { t } = useTranslation('plugin');
+  const android = isAndroidSync();
   const [values, setValues] = useState<Record<string, string>>(() => initialValues(params));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -63,7 +66,7 @@ export function PluginRunParamsDialog({
   };
 
   return (
-    <div data-macos-glass-backdrop className={styles.overlay}>
+    <div data-macos-glass-backdrop className={`${styles.overlay} ${android ? styles.android : ''}`}>
       <div data-macos-glass="panel" className={styles.dialog}>
         <div className={styles.header}>
           <Settings2 size={ICON_SIZE.xl} className={styles.icon} />
@@ -99,22 +102,36 @@ export function PluginRunParamsDialog({
                   </label>
                 )}
 
-                {param.type === 'select' && (
-                  <select
-                    className={styles.input}
-                    value={values[param.id]}
-                    onChange={(e) => handleChange(param.id, e.target.value)}
-                  >
-                    <option value="">
-                      {t('param_select_placeholder', { defaultValue: 'Select...' })}
-                    </option>
-                    {param.options?.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
+                {param.type === 'select' &&
+                  (android ? (
+                    <AndroidChoiceField
+                      title={param.label}
+                      value={values[param.id]}
+                      choices={[
+                        {
+                          value: '',
+                          label: t('param_select_placeholder', { defaultValue: 'Select...' }),
+                        },
+                        ...(param.options ?? []),
+                      ]}
+                      onChange={(value) => handleChange(param.id, value)}
+                    />
+                  ) : (
+                    <select
+                      className={styles.input}
+                      value={values[param.id]}
+                      onChange={(e) => handleChange(param.id, e.target.value)}
+                    >
+                      <option value="">
+                        {t('param_select_placeholder', { defaultValue: 'Select...' })}
                       </option>
-                    ))}
-                  </select>
-                )}
+                      {param.options?.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  ))}
 
                 {param.type !== 'boolean' && param.type !== 'select' && (
                   <input
