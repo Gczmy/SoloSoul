@@ -45,13 +45,16 @@ vi.mock('./MobileBottomNav', () => ({
 vi.mock('./AppBar', () => ({
   AppBar: ({
     primaryActions,
+    trailingActions,
     onPagePaneToggle,
   }: {
     primaryActions?: React.ReactNode;
+    trailingActions?: React.ReactNode;
     onPagePaneToggle?: () => void;
   }) => (
-    <div data-testid="app-bar">
+    <div data-testid="app-bar" data-appbar>
       {primaryActions}
+      {trailingActions}
       <button onClick={onPagePaneToggle}>Toggle page pane</button>
     </div>
   ),

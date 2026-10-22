@@ -94,6 +94,7 @@ export function AppShell({
   // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
   // （从长页面中部进入导出/同步等页面时表现为「页面从下方开始」）。
   const contentRef = useRef<HTMLElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   useLayoutEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
@@ -150,6 +151,7 @@ export function AppShell({
   const contentToolbar = Boolean(
     isWindows && desktopPane && windowsContentToolbar && editorActions,
   );
+  const macEditorActions = isMacOS && desktopPane && Boolean(windowsContentToolbar);
   // 旧导航保留交通灯避让；macOS/Windows 页面树布局固定使用 56px 图标栏。
   const collapsedWidth = Math.max(
     DESKTOP_SIDEBAR_COLLAPSED_WIDTH,
@@ -209,6 +211,18 @@ export function AppShell({
         const value = `${Math.max(0, geometry[index])}px`;
         if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
       });
+      // 复用正文尺寸通知，在绘制前读取表单的实际右边缘，兼容居中宽度和滚动条。
+      // 不单独启动顶栏过渡，避免左右面板动画反向时出现第二套位置动画。
+      const header = shellRef.current?.querySelector<HTMLElement>('[data-appbar]');
+      const form = macEditorActions
+        ? content.querySelector<HTMLElement>('[data-object-editor-form]')
+        : null;
+      if (header && form) {
+        const right = `${Math.max(12, window.innerWidth - form.getBoundingClientRect().right)}px`;
+        if (header.style.getPropertyValue('--editor-actions-right') !== right)
+          header.style.setProperty('--editor-actions-right', right);
+      } else if (header?.style.getPropertyValue('--editor-actions-right'))
+        header.style.removeProperty('--editor-actions-right');
     };
     measure();
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
@@ -226,6 +240,8 @@ export function AppShell({
     isNarrowViewport,
     appbarHeight,
     isAndroid,
+    macEditorActions,
+    location.key,
   ]);
 
   useAndroidGlassSurface();
@@ -282,11 +298,13 @@ export function AppShell({
 
   return (
     <div
+      ref={shellRef}
       className={styles.appShell}
       data-android-shell={isAndroid || undefined}
       data-macos-shell={(isMacOS && !isNarrowViewport && !isAndroid) || undefined}
       data-windows-shell={windowsShell || undefined}
       data-navigation={effectivePosition}
+      data-mac-editor-actions={macEditorActions || undefined}
       data-page-pane-animating={(desktopPane && paneAnimating) || undefined}
       style={
         {
@@ -307,7 +325,11 @@ export function AppShell({
     >
       <AppBar
         title={title}
-        primaryActions={contentToolbar ? undefined : editorActions}
+        primaryActions={
+          contentToolbar ? undefined : macEditorActions ? primaryActions : editorActions
+        }
+        alignEditorActions={macEditorActions}
+        trailingActions={macEditorActions ? inspectorToggle : undefined}
         actions={actions}
         onBack={onBack}
         sidebarPosition={effectivePosition}

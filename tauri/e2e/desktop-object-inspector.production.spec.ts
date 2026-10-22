@@ -150,6 +150,17 @@ for (const platform of ['windows', 'macos'] as const)
       await expect(actionArea.getByRole('button', { name: 'Cancel', exact: true })).toBeVisible();
       await expect(actionArea.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
       await expect(actionArea.locator('[data-object-inspector-toggle]')).toHaveCount(1);
+      if (platform === 'macos') {
+        await expect
+          .poll(async () => {
+            const form = (await page.locator('[data-object-editor-form]').boundingBox())!;
+            const save = (await header
+              .getByRole('button', { name: 'Save', exact: true })
+              .boundingBox())!;
+            return Math.abs(form.x + form.width - save.x - save.width);
+          })
+          .toBeLessThan(1);
+      }
       if (platform === 'windows') {
         await expect(header.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
         await expect(toolbar).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
@@ -520,6 +531,123 @@ for (const theme of ['light', 'dark'] as const) {
       }
     }
     await page.screenshot({ path: info.outputPath(`windows-${theme}-aligned-actions.png`) });
+  });
+}
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`macos ${theme}: topbar actions follow the form edge during pane motion and resizing`, async ({
+    page,
+  }, info) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await setup(page, 'macos', theme);
+    const draft = page.getByLabel('Object Name', { exact: true });
+    await draft.fill('UNSAVED MAC DRAFT');
+    const header = page.locator('[data-appbar]');
+    const save = await header.getByRole('button', { name: 'Save', exact: true }).elementHandle();
+    const main = await page.locator('[data-shell-content]').elementHandle();
+    await expect(header).toHaveAttribute('data-align-editor-actions', 'true');
+    await expect(page.locator('[data-editor-content-toolbar]')).toHaveCount(0);
+    for (const width of [1280, 1600, 800]) {
+      await page.setViewportSize({ width, height: 800 });
+      await expect(page.locator('[data-pane-animating], [data-inspector-animating]')).toHaveCount(
+        0,
+      );
+      for (const rapid of [false, true]) {
+        const frames = await page.evaluate(async (rapid) => {
+          const content = document.querySelector('[data-shell-content]')!;
+          const toggle = document.querySelector<HTMLButtonElement>(
+            '[data-object-inspector-toggle]',
+          )!;
+          const frames: Array<{
+            formRight: number;
+            saveRight: number;
+            saveLeft: number;
+            cancelRight: number;
+            saveY: number;
+            cancelY: number;
+            toggleLeft: number;
+            toggleRight: number;
+          }> = [];
+          // ResizeObserver delivers after the shell's geometry update and before paint.
+          const observer = new ResizeObserver(() => {
+            const form = document
+              .querySelector('[data-object-editor-form]')!
+              .getBoundingClientRect();
+            const actions = document.querySelectorAll('[data-editor-form-actions] button');
+            const cancel = actions[0].getBoundingClientRect();
+            const save = actions[1].getBoundingClientRect();
+            const control = toggle.getBoundingClientRect();
+            frames.push({
+              formRight: form.right,
+              saveRight: save.right,
+              saveLeft: save.left,
+              cancelRight: cancel.right,
+              saveY: save.y,
+              cancelY: cancel.y,
+              toggleLeft: control.left,
+              toggleRight: control.right,
+            });
+          });
+          observer.observe(content);
+          const start = performance.now();
+          let reversed = false;
+          toggle.click();
+          await new Promise<void>((resolve) => {
+            const wait = () => {
+              if (rapid && !reversed && performance.now() - start > 100) {
+                toggle.click();
+                reversed = true;
+              }
+              if (performance.now() - start < 550) requestAnimationFrame(wait);
+              else resolve();
+            };
+            requestAnimationFrame(wait);
+          });
+          observer.disconnect();
+          return frames;
+        }, rapid);
+        expect(frames.length).toBeGreaterThan(4);
+        expect(
+          frames.filter(
+            (frame) =>
+              Math.abs(frame.formRight - frame.saveRight) > 1 ||
+              frame.cancelRight >= frame.saveLeft ||
+              frame.saveRight + 7 > frame.toggleLeft ||
+              frame.cancelY !== frame.saveY ||
+              Math.abs(frame.toggleRight - frames[0].toggleRight) > 1,
+          ),
+        ).toEqual([]);
+        if (!rapid)
+          expect(
+            Math.max(...frames.map((frame) => frame.saveRight)) -
+              Math.min(...frames.map((frame) => frame.saveRight)),
+          ).toBeGreaterThan(40);
+        await expect(draft).toHaveValue('UNSAVED MAC DRAFT');
+        expect(await main!.evaluate((element) => element.isConnected)).toBe(true);
+        expect(await save!.evaluate((element) => element.isConnected)).toBe(true);
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(page.locator('[data-pane-animating], [data-inspector-animating]')).toHaveCount(0);
+    const separator = page.getByRole('separator', { name: 'Resize pages and objects' });
+    await expect(separator).toBeVisible();
+    await expect(separator).toHaveAttribute('aria-valuemax', '400');
+    await expect(separator).not.toHaveAttribute('aria-disabled', 'true');
+    await separator.focus();
+    await page.keyboard.press('End');
+    await expect(separator).toHaveAttribute('aria-valuenow', '400');
+    await expect
+      .poll(async () => {
+        const form = (await page.locator('[data-object-editor-form]').boundingBox())!;
+        const action = (await header
+          .getByRole('button', { name: 'Save', exact: true })
+          .boundingBox())!;
+        return Math.abs(form.x + form.width - action.x - action.width);
+      })
+      .toBeLessThan(1);
+    await page.screenshot({ path: info.outputPath(`macos-${theme}-aligned-actions.png`) });
+    expect(errors).toEqual([]);
   });
 }
 

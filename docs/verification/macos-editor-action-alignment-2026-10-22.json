@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-22",
+  "base": "5da3c354d077a74b5670cb5e327239f620a8a65d",
+  "scope": "macOS desktop object editor cancel/save alignment",
+  "changes": [
+    "Keep cancel/save in the existing top app bar and align the group's right edge with the editor form.",
+    "Keep the object inspector toggle at the window trailing edge, outside the moving form action group.",
+    "Reuse content ResizeObserver geometry to update alignment before paint, including centered maximum width and scrollbar gutters; no separate topbar animation or polling.",
+    "Reserve trailing room in the macOS editor for the inspector toggle at narrow desktop widths.",
+    "Continue updating native control hit regions on style changes without restarting size observation, avoiding repeated resize notifications during geometry updates."
+  ],
+  "validation": {
+    "typescript": "passed",
+    "targeted_eslint": "passed",
+    "format": "passed",
+    "unit_tests": "20 passed across AppShell, ToolbarActions and nativeTitlebarControls (3 files)",
+    "production_browser": {
+      "suite": "26 passed, no retries",
+      "matrix": ["windows light", "windows dark", "macos light", "macos dark"],
+      "macos_alignment": "12 combinations across 2 themes, 3 desktop widths and normal/rapidly reversed inspector motion; pre-paint geometry samples confirm form/save alignment, action spacing and a stationary inspector toggle.",
+      "preservation": "Draft value, main content node and save button node survive pane transitions; no new content toolbar is created on macOS.",
+      "supplementary_resize": "Final verification additionally requires the left separator to be operable and reach the explicit 400px maximum before checking alignment.",
+      "supplementary_resize_result": "2 passed, no retries (macOS light and dark)",
+      "test_harness_correction": "The first supplementary resize command was issued while the existing animation guard disabled resizing. The test now waits for the separator to become operable instead of sending an ignored command."
+    },
+    "native_acceptance": "macOS hardware unavailable; production browser platform fixture and native-control ownership unit tests were used."
+  },
+  "evidence_sha256": {
+    "unit_tests": "d2290d6679d3a26b279fe03e9a89e1205b98fb42d6e77f49db447c74fe978f01",
+    "production_browser": "a98a6b681ba4077d5c527671e8b4ad72e0b1d089bb39ef5d4e24a380f903883a",
+    "supplementary_resize": "aeb68cc491b35d684323299d766092be9a77059079d0a16c0d351c9d4ddfc269"
+  },
+  "delivery": "Direct change on main, as requested; no feature branch or pull request.",
+  "paused": ["release builds", "all unrelated tasks"]
+}

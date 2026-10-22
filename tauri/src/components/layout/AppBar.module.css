@@ -151,6 +151,18 @@
   flex-shrink: 0;
   min-width: 0;
 }
+/* 编辑操作仍在原顶栏；只移动操作组，右栏开关保持在窗口右侧。 */
+.appBar[data-align-editor-actions] .actions {
+  margin-right: calc(var(--editor-actions-right, 12px) - 12px);
+}
+.trailingActions {
+  position: absolute;
+  right: 12px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
 .backButton {
   flex-shrink: 0;
   min-width: 32px;

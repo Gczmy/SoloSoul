@@ -27,6 +27,8 @@ interface AppBarProps {
   pagePane?: boolean;
   pagePaneOpen?: boolean;
   onPagePaneToggle?: () => void;
+  alignEditorActions?: boolean;
+  trailingActions?: React.ReactNode;
 }
 
 export function AppBar({
@@ -38,6 +40,8 @@ export function AppBar({
   pagePane = false,
   pagePaneOpen,
   onPagePaneToggle,
+  alignEditorActions = false,
+  trailingActions,
 }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
@@ -87,6 +91,7 @@ export function AppBar({
       data-macos-shell={macShell || undefined}
       data-windows-shell={windowsShell || undefined}
       data-page-pane-toggle={hasSidebarToggle || undefined}
+      data-align-editor-actions={(macShell && alignEditorActions) || undefined}
       data-tauri-drag-region={isMacOS || windowsHeaderHeight === 0 ? 'false' : 'deep'}
       style={
         {
@@ -146,9 +151,23 @@ export function AppBar({
         )}
         <h1 className={styles.title}>{title}</h1>
       </div>
-      <div className={styles.actions} data-titlebar-control data-tauri-drag-region="false">
+      <div
+        className={styles.actions}
+        data-editor-form-actions={alignEditorActions || undefined}
+        data-titlebar-control
+        data-tauri-drag-region="false"
+      >
         <ToolbarActions primary={primaryActions}>{actions}</ToolbarActions>
       </div>
+      {trailingActions && (
+        <div
+          className={styles.trailingActions}
+          data-titlebar-control
+          data-tauri-drag-region="false"
+        >
+          {trailingActions}
+        </div>
+      )}
     </header>
   );
 }

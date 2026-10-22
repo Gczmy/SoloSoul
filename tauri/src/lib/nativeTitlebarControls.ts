@@ -300,8 +300,10 @@ export function observeTitlebarControls(
     header.querySelectorAll(selector).forEach((element) => resize.observe(element));
   };
   observeSizes();
-  const mutation = new MutationObserver(() => {
-    observeSizes();
+  const mutation = new MutationObserver((records) => {
+    // 位置变量更新只需重新发布命中区；重挂尺寸观察会在正文 RO 回调中触发循环通知。
+    if (records.some((record) => record.type !== 'attributes' || record.attributeName !== 'style'))
+      observeSizes();
     schedule();
   });
   mutation.observe(header, {

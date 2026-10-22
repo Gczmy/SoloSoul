@@ -335,6 +335,10 @@
     /* 仅裁剪内容面；Portal 仍挂在外部，不加入 filter/transform 定位祖先。 */
     overflow: hidden;
   }
+  :global(html[data-desktop-platform='macos']) .appShell[data-mac-editor-actions] .content {
+    /* 窄窗口及覆盖式滚动条下也为顶栏右侧开关保留间隔，与 Windows 编辑器一致。 */
+    padding-right: calc(var(--shell-page-padding, 24px) + 40px);
+  }
 }
 
 @media (min-width: 768px) {

@@ -1,4 +1,5 @@
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import { resizeObserverInstances } from '@/test/setup';
 const invoke = vi.hoisted(() => vi.fn());
 vi.mock('./ipcClient', () => ({ invokeCommand: invoke }));
 beforeEach(() => {
@@ -22,6 +23,34 @@ function header(rect: DOMRect) {
 const tick = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
 describe('native titlebar control ownership', () => {
+  it('updates moved controls without restarting size observation for position-only styles', async () => {
+    const { observeTitlebarControls } = await import('./nativeTitlebarControls');
+    const { element, button } = header(new DOMRect(10, 10, 32, 32));
+    const stop = observeTitlebarControls(element);
+    const sizes = resizeObserverInstances.at(-1)!;
+    try {
+      await vi.waitFor(() => expect(invoke).toHaveBeenCalled());
+      const observations = sizes.observe.mock.calls.length;
+      const disconnects = sizes.disconnect.mock.calls.length;
+      button.getBoundingClientRect = () => new DOMRect(110, 10, 32, 32);
+      element.style.setProperty('--editor-actions-right', '150px');
+      await vi.waitFor(() =>
+        expect(invoke.mock.lastCall?.[1].regions).toEqual([
+          { x: 110, y: 10, width: 32, height: 32 },
+        ]),
+      );
+      expect(sizes.observe).toHaveBeenCalledTimes(observations);
+      expect(sizes.disconnect).toHaveBeenCalledTimes(disconnects);
+      const extra = document.createElement('button');
+      extra.dataset.titlebarControl = '';
+      extra.getBoundingClientRect = () => new DOMRect(150, 10, 32, 32);
+      element.append(extra);
+      await vi.waitFor(() => expect(invoke.mock.lastCall?.[1].regions).toHaveLength(2));
+      expect(sizes.observe.mock.calls.length).toBeGreaterThan(observations);
+    } finally {
+      stop();
+    }
+  });
   it('moves a nested custom mask into the same native surface and restores its inline style on removal', async () => {
     const { useNativeWindowStore } = await import('@/stores/nativeWindowStore');
     useNativeWindowStore.setState({
