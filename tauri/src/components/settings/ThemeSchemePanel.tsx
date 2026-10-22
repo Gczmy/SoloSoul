@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Monitor, X } from 'lucide-react';
 import { getSchemesByMode, type ThemeScheme } from '@/lib/themeSchemes';
 import { ICON_SIZE } from '@/lib/constants';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 
 interface ThemeSchemePanelProps {
   isOpen: boolean;
@@ -36,7 +36,11 @@ export function ThemeSchemePanel({
   const [panelMode, setPanelMode] = useState<'light' | 'dark'>(effectiveMode);
 
   const schemes = useMemo(
-    () => getSchemesByMode(panelMode, isMobilePlatformSync() ? 'shared' : 'desktop'),
+    () =>
+      getSchemesByMode(
+        panelMode,
+        isAndroidSync() ? 'android' : isMobilePlatformSync() ? 'shared' : 'desktop',
+      ),
     [panelMode],
   );
   const activeId = panelMode === 'light' ? defaultLightTheme : defaultDarkTheme;

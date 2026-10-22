@@ -131,7 +131,7 @@ export async function applyTheme(config: ThemeConfig, isCurrent: () => boolean =
   root.setAttribute('data-theme', resolvedMode);
   root.style.colorScheme = resolvedMode;
   applyAccentColor(accent, config.customAccentHex);
-  const appearance = isAndroidSync() || isMobilePlatformSync() ? 'shared' : 'desktop';
+  const appearance = isAndroidSync() ? 'android' : isMobilePlatformSync() ? 'shared' : 'desktop';
   applyScheme(activeScheme, appearance);
   applyAccentTextColors();
   const scheme = getSchemeById(activeScheme, appearance);

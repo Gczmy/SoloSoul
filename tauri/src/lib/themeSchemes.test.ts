@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('getSchemeById', () => {
+  it('Android warm stone separates page/card surfaces without changing shared or desktop schemes', async () => {
+    const { getSchemeById, getSchemesByMode } = await import('./themeSchemes');
+    const shared = getSchemeById('warm-stone')!;
+    const android = getSchemeById('warm-stone', 'android')!;
+    expect(shared.variables['--bg-base']).toBe('#fafaf6');
+    expect(getSchemeById('warm-stone', 'desktop')!.variables['--bg-base']).toBe('#ffffff');
+    expect(android.variables['--bg-base']).toBe('#eeeae2');
+    expect(android.variables['--bg-elevated']).toBe('#fffdf9');
+    expect(android.preview.bg).toBe(android.variables['--bg-base']);
+    expect(getSchemesByMode('light', 'android').find((s) => s.id === 'warm-stone')).toEqual(
+      android,
+    );
+    expect(getSchemeById('warm-stone-dark', 'android')).toEqual(getSchemeById('warm-stone-dark'));
+    expect(getSchemeById('clean-slate', 'android')).toEqual(getSchemeById('clean-slate'));
+  });
   it('returns the warm-stone scheme by id', async () => {
     const { getSchemeById } = await import('./themeSchemes');
     const scheme = getSchemeById('warm-stone');
@@ -202,6 +217,7 @@ describe('主题边界与文字可读性', () => {
       ...THEME_SCHEMES,
       getSchemeById('warm-stone', 'desktop')!,
       getSchemeById('warm-stone-dark', 'desktop')!,
+      getSchemeById('warm-stone', 'android')!,
     ]) {
       for (const text of ['--text-primary', '--text-secondary', '--text-tertiary']) {
         const hex = scheme.variables[text];

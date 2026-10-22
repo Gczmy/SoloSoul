@@ -8,7 +8,7 @@
 
 import type { ThemePreset } from '@/types';
 
-export type SchemeAppearance = 'shared' | 'desktop';
+export type SchemeAppearance = 'shared' | 'desktop' | 'android';
 export const DESKTOP_NAVIGATION_COLORS = { light: '#f3f3f3', dark: '#181818' } as const;
 
 export interface ThemeScheme {
@@ -458,16 +458,37 @@ const DESKTOP_DEFAULT_SURFACES: Record<string, Record<SurfaceToken, string>> = {
   },
 };
 
+/** 安卓浅色暖石：页面使用暖灰石色，卡片保留暖白，避免大面积表面融在一起。 */
+const ANDROID_WARM_STONE_SURFACES: Record<SurfaceToken, string> = {
+  '--bg-base': '#eeeae2',
+  '--bg-elevated': '#fffdf9',
+  '--bg-toolbar': 'rgba(255, 253, 249, 0.92)',
+  '--bg-elevated-hover': '#f8f4ed',
+  '--bg-inset': '#e7e1d6',
+  '--bg-hover': '#e5dfd4',
+  '--bg-active': '#dad1c2',
+  '--border-subtle': '#d5cec1',
+  '--border-default': '#c9bfae',
+  '--border-strong': '#aa9b84',
+};
+
 export function getSchemeById(
   id: string | null,
   appearance: SchemeAppearance = 'shared',
 ): ThemeScheme | undefined {
   const scheme = THEME_SCHEMES.find((s) => s.id === id);
-  if (!scheme || appearance !== 'desktop' || !DESKTOP_DEFAULT_SURFACES[scheme.id]) return scheme;
-  const surfaces = DESKTOP_DEFAULT_SURFACES[scheme.id];
+  if (!scheme) return scheme;
+  const surfaces =
+    appearance === 'desktop'
+      ? DESKTOP_DEFAULT_SURFACES[scheme.id]
+      : appearance === 'android' && scheme.id === 'warm-stone'
+        ? ANDROID_WARM_STONE_SURFACES
+        : undefined;
+  if (!surfaces) return scheme;
   return {
     ...scheme,
-    nameKey: `settings:scheme_desktop_neutral_${scheme.mode}`,
+    nameKey:
+      appearance === 'desktop' ? `settings:scheme_desktop_neutral_${scheme.mode}` : scheme.nameKey,
     preview: {
       ...scheme.preview,
       bg: surfaces['--bg-base'],

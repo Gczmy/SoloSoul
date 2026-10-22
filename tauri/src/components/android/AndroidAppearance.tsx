@@ -117,7 +117,7 @@ export function AndroidAppearance() {
                   )
                 }
               >
-                {getSchemesByMode(mode).map((scheme) => (
+                {getSchemesByMode(mode, 'android').map((scheme) => (
                   <option key={scheme.id} value={scheme.id}>
                     {t(scheme.nameKey)}
                   </option>

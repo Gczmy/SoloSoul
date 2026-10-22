@@ -102,7 +102,7 @@ export function androidMaterialTokens(colors: AndroidThemeColors): Record<string
 }
 
 function initialColors(): AndroidThemeColors {
-  const scheme = getSchemeById('warm-stone')!;
+  const scheme = getSchemeById('warm-stone', 'android')!;
   return {
     background: scheme.variables['--bg-base'],
     surface: scheme.variables['--bg-elevated'],
