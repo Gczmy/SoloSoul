@@ -77,6 +77,22 @@ async function setup(
   await expect(page.getByLabel('Object Name', { exact: true })).toHaveValue(firstName);
 }
 
+async function expectReselectionToPreserveInspector(page: Page) {
+  const panel = page.locator('[data-object-inspector]');
+  const panelNode = await panel.elementHandle();
+  const listNode = await panel.locator('[data-object-inspector-scroll]').elementHandle();
+  const scrollTop = await listNode!.evaluate((element) => element.scrollTop);
+  const calls = await page.evaluate('JSON.stringify(window.__INSPECTOR_CALLS__)');
+  for (let click = 0; click < 3; click++) {
+    await page.locator('#desktop-page-pane [data-object-id="one"]').click();
+  }
+  expect(await panelNode!.evaluate((element) => element.isConnected)).toBe(true);
+  expect(await listNode!.evaluate((element) => element.isConnected)).toBe(true);
+  expect(await listNode!.evaluate((element) => element.scrollTop)).toBe(scrollTop);
+  expect(await page.evaluate('JSON.stringify(window.__INSPECTOR_CALLS__)')).toBe(calls);
+  await expect(panel.getByRole('status')).toHaveCount(0);
+}
+
 for (const platform of ['windows', 'macos'] as const)
   for (const theme of ['light', 'dark'] as const) {
     test(`${platform} ${theme}: docked chronological tabs, independent scroll and synchronized objects`, async ({
@@ -176,6 +192,11 @@ for (const platform of ['windows', 'macos'] as const)
       expect(await panel.locator('header').boundingBox()).toEqual(panelHeader);
       await panel.getByRole('button', { name: 'Load more', exact: true }).click();
       await expect(panel.locator('[data-history-snapshot]')).toHaveCount(32);
+      await expectReselectionToPreserveInspector(page);
+      await expect(panel.locator('[data-history-snapshot]').first()).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
       await panel.getByRole('tab', { name: 'Attachments', exact: true }).click();
       await expect(panel.locator('[data-inspector-attachment]').first()).toHaveAttribute(
         'data-inspector-attachment',
@@ -187,6 +208,7 @@ for (const platform of ['windows', 'macos'] as const)
       expect(await panel.getByRole('tablist').boundingBox()).toEqual(tabs);
       await panel.getByRole('button', { name: 'Load more', exact: true }).click();
       await expect(panel.locator('[data-inspector-attachment]')).toHaveCount(36);
+      await expectReselectionToPreserveInspector(page);
       await panel.getByRole('tab', { name: 'History', exact: true }).click();
       await expect(panel.locator('[data-history-snapshot]').first()).toHaveAttribute(
         'aria-expanded',

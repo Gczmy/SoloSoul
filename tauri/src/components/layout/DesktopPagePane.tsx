@@ -35,6 +35,11 @@ export function DesktopPagePane({
   const [searchCollapsed, setSearchCollapsed] = useState(() => new Set<string>());
   const [expanded, setExpanded] = useState(() => new Set<string>(['identity']));
   const selectedId = editorMatch?.params.objectId;
+  const openObject = (objectId: string) => {
+    setActivePreview(null);
+    // 重选当前对象不新增导航记录，也不重置编辑器及右侧面板的滚动和草稿。
+    if (selectedId !== objectId) navigate(`/editor/${encodeURIComponent(objectId)}`);
+  };
   useEffect(() => setActivePreview(null), [accountId, authenticated]);
 
   useEffect(() => {
@@ -225,13 +230,10 @@ export function DesktopPagePane({
                             collectionLabel={name}
                             index={index}
                             total={children.length}
-                            onNavigate={() => {
-                              setActivePreview(null);
-                              navigate(`/editor/${encodeURIComponent(object.id)}`);
-                            }}
+                            onNavigate={() => openObject(object.id)}
                           />
                         }
-                        onClick={() => navigate(`/editor/${encodeURIComponent(object.id)}`)}
+                        onClick={() => openObject(object.id)}
                         leading={<FileText size={15} aria-hidden="true" />}
                       />
                     </li>

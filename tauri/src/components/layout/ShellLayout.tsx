@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { matchPath, Outlet, useLocation } from 'react-router-dom';
+import { matchPath, Outlet, useLocation, useMatch } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { AppShell } from './AppShell';
 import { EMPTY_SHELL_CONFIG, shellRouteIdentity, useShellConfigStore } from './shellConfigStore';
@@ -11,6 +11,7 @@ import { ContentLoadingSkeleton } from '@/components/ui/ContentLoadingSkeleton';
  */
 export function ShellLayout() {
   const location = useLocation();
+  const inspectorTargetId = useMatch('/editor/:objectId')?.params.objectId;
   const route = shellRouteIdentity(location);
   const {
     title,
@@ -67,7 +68,8 @@ export function ShellLayout() {
       }
       onBack={onBack}
       objectInspector={
-        objectInspector && handoff
+        // 导航 key 更新不等于对象变化；同一对象不能因此卸载历史和附件会话。
+        objectInspector && handoff && objectInspector.objectId !== inspectorTargetId
           ? { ...objectInspector, ready: false, failed: false, objectName: '' }
           : objectInspector
       }
