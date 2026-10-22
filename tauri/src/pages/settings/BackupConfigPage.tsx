@@ -19,11 +19,15 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidChoiceField } from '@/components/android/AndroidChoiceField';
+import styles from './BackupConfigPage.module.css';
 
 export function BackupConfigPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
   const { t } = useTranslation(['settings', 'common']);
+  const android = isAndroidSync();
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
   // Prefetch Runtime: 备份列表共享缓存（预热后直接渲染）；变更操作后 reload 刷新
   const { data: backups, reload } = usePrefetchData(prefetchRegistry.backups);
@@ -169,7 +173,10 @@ export function BackupConfigPage() {
           >
             {t('settings:backup_hint')}
           </p>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div
+            className={android ? styles.createRow : undefined}
+            style={{ display: android ? 'grid' : 'flex', gap: 8 }}
+          >
             <Input
               value={backupName}
               onChange={(e) => setBackupName(e.target.value)}
@@ -223,33 +230,57 @@ export function BackupConfigPage() {
           >
             {t('settings:backup_reminder_desc')}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: android ? 'stretch' : 'center',
+              flexDirection: android ? 'column' : undefined,
+              gap: android ? 12 : undefined,
+              justifyContent: 'space-between',
+            }}
+          >
             <span style={{ fontSize: 'var(--text-sm)' }}>{t('settings:backup_reminder_days')}</span>
-            <select
-              value={settings.backupReminderDays}
-              onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                if (currentAccount?.id) {
-                  updateSetting(currentAccount.id, 'backupReminderDays', value);
-                }
-              }}
-              style={{
-                padding: '6px 10px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
-                fontFamily: 'inherit',
-                fontSize: 'var(--text-body-sm)',
-              }}
-            >
-              <option value="0">{t('settings:backup_reminder_off')}</option>
-              <option value="1">{t('settings:backup_reminder_1d')}</option>
-              <option value="3">{t('settings:backup_reminder_3d')}</option>
-              <option value="7">{t('settings:backup_reminder_7d')}</option>
-              <option value="15">{t('settings:backup_reminder_15d')}</option>
-              <option value="30">{t('settings:backup_reminder_30d')}</option>
-            </select>
+            {android ? (
+              <AndroidChoiceField
+                title={t('settings:backup_reminder_days')}
+                value={String(settings.backupReminderDays)}
+                disabled={!currentAccount?.id}
+                choices={[0, 1, 3, 7, 15, 30].map((days) => ({
+                  value: String(days),
+                  label: t(`settings:backup_reminder_${days === 0 ? 'off' : `${days}d`}`),
+                }))}
+                onChange={(value) => {
+                  if (currentAccount?.id)
+                    void updateSetting(currentAccount.id, 'backupReminderDays', Number(value));
+                }}
+              />
+            ) : (
+              <select
+                value={settings.backupReminderDays}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  if (currentAccount?.id) {
+                    updateSetting(currentAccount.id, 'backupReminderDays', value);
+                  }
+                }}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'inherit',
+                  fontSize: 'var(--text-body-sm)',
+                }}
+              >
+                <option value="0">{t('settings:backup_reminder_off')}</option>
+                <option value="1">{t('settings:backup_reminder_1d')}</option>
+                <option value="3">{t('settings:backup_reminder_3d')}</option>
+                <option value="7">{t('settings:backup_reminder_7d')}</option>
+                <option value="15">{t('settings:backup_reminder_15d')}</option>
+                <option value="30">{t('settings:backup_reminder_30d')}</option>
+              </select>
+            )}
           </div>
         </Card>
 
@@ -276,6 +307,7 @@ export function BackupConfigPage() {
               {backups.map((backup) => (
                 <div
                   key={backup.id}
+                  className={android ? styles.backupRow : undefined}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
