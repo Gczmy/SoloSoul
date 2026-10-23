@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   MoreHorizontal,
@@ -15,10 +15,8 @@ import { AndroidSheet } from './AndroidSheet';
 import { ObjectEditLockBadge } from '@/components/object/ObjectEditLockBadge';
 import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
-import { useAuthStore } from '@/stores/authStore';
-import { useToastError } from '@/hooks/useToastError';
-import { createSessionRequests } from '@/lib/sessionRequests';
+import type { ObjectData, ObjectSummary } from '@/stores/objectStore';
+import { useObjectLockAction } from '@/hooks/useObjectLockAction';
 
 export function AndroidObjectRow({
   obj,
@@ -55,41 +53,15 @@ export function AndroidObjectRow({
 }) {
   const { t } = useTranslation(['common', 'editor']);
   const editLocked = useObjectEditLocked(obj.id, obj.properties);
-  const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const setObjectLocked = useObjectStore((s) => s.setObjectLocked);
-  const { onError, onSuccess } = useToastError();
-  const [requests] = useState(createSessionRequests);
-  useEffect(() => () => requests.invalidate(), [requests]);
-  const context = JSON.stringify([accountId, obj.id]);
-  const currentContext = useRef(context);
-  currentContext.current = context;
-  const pendingContext = useRef<string | null>(null);
-  const [lockPendingContext, setLockPendingContext] = useState<string | null>(null);
-  const lockPending = lockPendingContext === context;
+  const { lockPending, toggleLock } = useObjectLockAction(obj.id, editLocked);
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const action = (callback: () => void) => {
     setOpen(false);
     callback();
   };
-  const toggleLock = async () => {
-    if (pendingContext.current === context) return;
-    const request = requests.begin();
-    const isCurrent = () => request.isCurrent() && currentContext.current === context;
-    const locked = !editLocked;
-    pendingContext.current = context;
-    setLockPendingContext(context);
-    try {
-      await setObjectLocked(obj.id, locked);
-      if (!isCurrent()) return;
-      setOpen(false);
-      onSuccess(t(locked ? 'object_locked_success' : 'object_unlocked_success'));
-    } catch (error) {
-      if (isCurrent()) onError(error, t('object_lock_failed'));
-    } finally {
-      if (pendingContext.current === context) pendingContext.current = null;
-      if (isCurrent()) setLockPendingContext(null);
-    }
+  const changeLock = async () => {
+    if (await toggleLock()) setOpen(false);
   };
   return (
     <div className="android-object-row" data-testid="workspace-object-card">
@@ -129,7 +101,7 @@ export function AndroidObjectRow({
               <Pencil />
               <strong>{t('edit')}</strong>
             </button>
-            <button type="button" disabled={lockPending} onClick={() => void toggleLock()}>
+            <button type="button" disabled={lockPending} onClick={() => void changeLock()}>
               {editLocked ? <LockOpen /> : <Lock />}
               <strong>{t(editLocked ? 'object_unlock' : 'object_lock')}</strong>
             </button>

@@ -205,6 +205,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
 
               {/* Actions */}
               <ObjectDetailFooter
+                objectId={obj.id}
                 editLocked={editLocked}
                 t={t}
                 objectName={obj.name}

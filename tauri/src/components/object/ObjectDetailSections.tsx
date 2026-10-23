@@ -238,6 +238,7 @@ export function ObjectDetailTags({ tags }: { tags: string[] }) {
 
 /** 详情卡片底部操作栏：指南 + 历史/附件/编辑/删除。 */
 export function ObjectDetailFooter({
+  objectId,
   t,
   objectName,
   attachmentCount,
@@ -248,6 +249,7 @@ export function ObjectDetailFooter({
   onDelete,
   editLocked = false,
 }: {
+  objectId: string;
   t: T;
   objectName: string;
   attachmentCount?: number;
@@ -261,6 +263,7 @@ export function ObjectDetailFooter({
   if (isAndroidSync()) {
     return (
       <AndroidObjectDetailFooter
+        objectId={objectId}
         objectName={objectName}
         attachmentCount={attachmentCount}
         guidePages={guidePages}

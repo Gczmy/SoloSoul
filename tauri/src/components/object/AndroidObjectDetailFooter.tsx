@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CircleHelp, Clock, MoreHorizontal, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import {
+  CircleHelp,
+  Clock,
+  Lock,
+  LockOpen,
+  MoreHorizontal,
+  Paperclip,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { AndroidSheet } from '@/components/android/AndroidSheet';
 import { GuidePageContent } from '@/components/guide/GuidePageContent';
 import type { GuidePage } from '@/components/guide/PageGuide';
+import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
+import { useObjectLockAction } from '@/hooks/useObjectLockAction';
 
 /** 安卓详情底栏：内容/编辑直达，其余操作在底部面板内展开。 */
 export function AndroidObjectDetailFooter({
+  objectId,
   objectName,
   attachmentCount,
   guidePages,
@@ -17,6 +29,7 @@ export function AndroidObjectDetailFooter({
   onDelete,
   editLocked = false,
 }: {
+  objectId: string;
   objectName: string;
   attachmentCount?: number;
   guidePages: GuidePage[];
@@ -28,6 +41,8 @@ export function AndroidObjectDetailFooter({
 }) {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
+  const locked = useObjectEditLocked(objectId, undefined, editLocked);
+  const { lockPending, toggleLock } = useObjectLockAction(objectId, locked);
   const [panel, setPanel] = useState<'menu' | 'guide' | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const guideContent = useRef<HTMLDivElement>(null);
@@ -38,6 +53,9 @@ export function AndroidObjectDetailFooter({
   const select = (action: () => void) => {
     close();
     action();
+  };
+  const changeLock = async () => {
+    if (await toggleLock()) close();
   };
 
   return (
@@ -65,6 +83,7 @@ export function AndroidObjectDetailFooter({
           <button
             type="button"
             className="android-object-detail-action android-object-detail-edit"
+            disabled={lockPending}
             onClick={onEdit}
           >
             <Pencil size={20} aria-hidden="true" />
@@ -93,7 +112,15 @@ export function AndroidObjectDetailFooter({
           {panel === 'menu' ? (
             <>
               <p className="android-object-menu-name">{objectName}</p>
-              <div className="android-object-menu-actions">
+              <div className="android-object-menu-actions" aria-busy={lockPending}>
+                <button type="button" disabled={lockPending} onClick={() => void changeLock()}>
+                  {locked ? (
+                    <LockOpen size={24} aria-hidden="true" />
+                  ) : (
+                    <Lock size={24} aria-hidden="true" />
+                  )}
+                  <span>{t(locked ? 'object_unlock' : 'object_lock')}</span>
+                </button>
                 <button type="button" onClick={() => select(onHistory)}>
                   <Clock size={24} aria-hidden="true" />
                   <span>{t('history')}</span>
@@ -108,7 +135,7 @@ export function AndroidObjectDetailFooter({
                 <button
                   type="button"
                   data-danger
-                  disabled={editLocked}
+                  disabled={locked || lockPending}
                   onClick={() => select(onDelete)}
                 >
                   <Trash2 size={24} aria-hidden="true" />

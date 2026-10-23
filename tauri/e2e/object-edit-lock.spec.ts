@@ -203,7 +203,44 @@ for (const platform of ['windows', 'macos', 'android']) {
           'data-object-edit-lock',
           'locked',
         );
+        await card.locator('.android-row-button').click();
+        const detail = page.getByRole('dialog', { name: 'Public A', exact: true });
+        const detailActions = detail.getByRole('button', { name: 'Actions for Public A' });
+        const detailMenu = page.getByRole('dialog', { name: 'More actions', exact: true });
+        await detailActions.click();
+        await expect(
+          detailMenu.getByRole('button', { name: 'Delete', exact: true }),
+        ).toBeDisabled();
+        await detailMenu.getByRole('button', { name: 'Unlock', exact: true }).click();
+        await expect(detailMenu).toHaveCount(0);
+        await expect(detail).toBeVisible();
+        await expect(detail.getByText('Public text A', { exact: true })).toBeVisible();
+        await expect(detail.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'editable',
+        );
+        await expect(card.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'editable',
+        );
+        await detailActions.click();
+        await expect(detailMenu.getByRole('button', { name: 'Delete', exact: true })).toBeEnabled();
+        await detailMenu.evaluate(async (panel) => {
+          await Promise.all(panel.getAnimations().map((animation) => animation.finished));
+        });
+        await page.screenshot({ path: info.outputPath(`android-${theme}-detail-lock-menu.png`) });
+        await detailMenu.getByRole('button', { name: 'Lock', exact: true }).click();
+        await expect(detailMenu).toHaveCount(0);
+        await expect(detail.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'locked',
+        );
+        await expect(detail.getByText('Public text A', { exact: true })).toBeVisible();
+        await expect(page).toHaveURL('/workspace');
+        await detail.getByTestId('object-detail-close').click();
         expect(await page.evaluate(() => Reflect.get(window, '__LOCK_CALLS__'))).toEqual([
+          'unlock',
+          'lock',
           'unlock',
           'lock',
         ]);
