@@ -17,6 +17,8 @@ import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
 import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
 import { createSessionRequests } from '@/lib/sessionRequests';
 import { useObjectEditLocked } from '@/hooks/useObjectEditLocked';
+import { isMobilePlatformSync } from '@/lib/platform';
+import { objectFormValues, objectEditorHasChanges } from './objectEditorDraft';
 
 interface FieldDef {
   key: string;
@@ -63,19 +65,6 @@ export interface UseObjectEditorPageResult {
   isSaving: boolean;
   isEditLocked: boolean;
   handleToggleEditLock: () => Promise<void>;
-}
-
-/** 先构造完整字段值，避免字段树先挂载空值再逐项回填。 */
-function objectFormValues(object: ObjectData): Record<string, unknown> {
-  const values: Record<string, unknown> = {};
-  const definitions = object.properties.__fields as Record<string, { type?: string }> | undefined;
-  for (const [key, value] of Object.entries(object.properties)) {
-    if (key.startsWith('__')) continue;
-    if (definitions?.[key]?.type === 'dynamic_group' && Array.isArray(value)) values[key] = value;
-    else if (typeof value === 'string' || Array.isArray(value)) values[key] = value;
-    else if (value !== null && value !== undefined) values[key] = String(value);
-  }
-  return values;
 }
 
 function matchObjectTemplate(object: ObjectData, templates: UserTemplate[]): string {
@@ -452,12 +441,26 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
         if (!request.isCurrent()) return;
         onSuccess(t('common:object_created'));
       } else {
-        await updateObject(objectId!, {
-          name: name || t('common:object_name_placeholder'),
+        const savedName = name || t('common:object_name_placeholder');
+        // 比较编辑器表示，避免未改动的数值/布尔值仅因转为输入字符串而写入历史。
+        if (
+          !isMobilePlatformSync() &&
+          currentObject &&
+          !objectEditorHasChanges(currentObject, savedName, values)
+        ) {
+          onSuccess(t('common:object_saved'));
+          return;
+        }
+        const saved = await updateObject(objectId!, {
+          name: savedName,
           properties: values,
         });
         if (!request.isCurrent()) return;
+        setCurrentObject(saved);
+        setName(saved.name);
+        setValues(objectFormValues(saved));
         onSuccess(t('common:object_saved'));
+        if (!isMobilePlatformSync()) return;
       }
       navigate(-1);
     } catch (e) {
@@ -470,9 +473,11 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const handleToggleEditLock = async () => {
     if (!accountId || !objectId || !isObjectReady || isSaving || !currentObject) return;
     const locking = !isEditLocked;
-    const dirty =
-      name !== currentObject.name ||
-      JSON.stringify(values) !== JSON.stringify(objectFormValues(currentObject));
+    const dirty = objectEditorHasChanges(
+      currentObject,
+      name || t('common:object_name_placeholder'),
+      values,
+    );
     if (locking && dirty && !validateFields()) {
       onError(t('editor:validation_failed'), t('common:object_save_failed'));
       return;
@@ -481,13 +486,12 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     setIsSaving(true);
     try {
       if (locking && dirty) {
-        await updateObject(objectId, {
+        const saved = await updateObject(objectId, {
           name: name || t('common:object_name_placeholder'),
           properties: values,
         });
         if (!request.isCurrent()) return;
-        const saved = useObjectStore.getState().currentObjectCache[objectId];
-        if (saved?.accountId === accountId) setCurrentObject(saved);
+        setCurrentObject(saved);
       }
       const object = await setObjectLocked(objectId, locking);
       if (!request.isCurrent()) return;

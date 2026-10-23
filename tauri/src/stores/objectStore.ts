@@ -47,7 +47,7 @@ interface ObjectState {
   ) => Promise<void>;
   getObject: (accountId: string, objectId: string) => Promise<ObjectData | null | undefined>;
   createObject: (input: CreateObjectValues) => Promise<ObjectData>;
-  updateObject: (objectId: string, input: UpdateObjectValues) => Promise<void>;
+  updateObject: (objectId: string, input: UpdateObjectValues) => Promise<ObjectData>;
   setObjectLocked: (objectId: string, locked: boolean) => Promise<ObjectData>;
   deleteObject: (objectId: string) => Promise<void>;
   /** 预览对象按当前模板同步后的变更（dryRun=true）。 */
@@ -186,8 +186,9 @@ export const useObjectStore = create<ObjectState>((set) => ({
       }));
       // P038: 编辑对象后立即失效搜索缓存
       invalidateSearchCache();
+      return obj;
     } catch (err) {
-      if (!request.isCurrent()) return;
+      request.assertCurrent();
       setCurrent({ error: normalizeObjectError(err), isLoading: false });
       // P002: 与 createObject 对齐——失败必须向上抛，调用方（useObjectEditorPage
       // handleSave）依赖异常进入 onError 分支；吞错会导致「保存失败被误报成功并
