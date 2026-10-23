@@ -158,6 +158,23 @@ for (const platform of ['windows', 'macos', 'android']) {
       await expect(field).not.toHaveAttribute('readonly', '');
       await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
       await expect(page.getByTestId('field-suggestions')).toBeVisible();
+      await expect(
+        page.locator('[data-object-editor-form] [data-object-edit-lock]'),
+      ).toHaveAttribute('data-object-edit-lock', 'editable');
+      if (platform !== 'android') {
+        await expect(
+          page.locator('[data-page-pane] [data-object-id="object-A"] [data-object-edit-lock]'),
+        ).toHaveCount(0);
+        await page.locator('[data-page-pane] [data-object-id="object-A"]').hover();
+        const preview = page.locator('[data-page-pane-preview]');
+        await expect(preview).toBeVisible();
+        await expect(preview.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'editable',
+        );
+        await page.keyboard.press('Escape');
+        await expect(preview).toHaveCount(0);
+      }
       await field.fill('Edited public text');
       await page.getByRole('button', { name: 'Lock', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Unlock', exact: true })).toBeEnabled();

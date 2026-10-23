@@ -39,13 +39,21 @@ it('badges across stale summaries change together without fetching or hiding con
     <>
       <ObjectEditLockBadge objectId="A" properties={{}} />
       <ObjectEditLockBadge objectId="A" properties={{}} compact />
+      <div data-testid="sidebar-status">
+        <ObjectEditLockBadge objectId="A" properties={{}} compact lockedOnly />
+      </div>
     </>,
   );
   expect(screen.getAllByLabelText('object_editable')).toHaveLength(2);
+  expect(screen.getByTestId('sidebar-status')).toBeEmptyDOMElement();
   act(() => useObjectStore.setState({ currentObjectCache: { A: statusRecord('account', true) } }));
-  expect(screen.getAllByLabelText('object_locked')).toHaveLength(2);
+  expect(screen.getAllByLabelText('object_locked')).toHaveLength(3);
+  expect(
+    screen.getByTestId('sidebar-status').querySelector('[data-object-edit-lock]'),
+  ).toHaveAttribute('data-object-edit-lock', 'locked');
   act(() => useObjectStore.setState({ currentObjectCache: { A: statusRecord('account', false) } }));
   expect(screen.getAllByLabelText('object_editable')).toHaveLength(2);
+  expect(screen.getByTestId('sidebar-status')).toBeEmptyDOMElement();
 });
 
 it('does not use cached status from a different account', () => {

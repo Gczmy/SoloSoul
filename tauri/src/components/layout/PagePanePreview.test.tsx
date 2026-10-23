@@ -72,6 +72,7 @@ it('uses the ruler mask, exposes public fields only, and opens the editor', asyn
   const navigate = vi.fn();
   render(preview('a', navigate));
   expect(await screen.findByText('Public preview')).toBeInTheDocument();
+  expect(screen.getByLabelText('object_editable')).toBeInTheDocument();
   expect(screen.getByText('••••••••')).toBeInTheDocument();
   expect(document.body.innerHTML).not.toContain('PRIVATE-PREVIEW-SECRET');
   fireEvent.click(screen.getByRole('button', { name: 'page_pane_edit_object' }));

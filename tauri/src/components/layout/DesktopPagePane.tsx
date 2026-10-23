@@ -241,6 +241,7 @@ export function DesktopPagePane({
                             objectId={object.id}
                             locked={object.editLocked}
                             compact
+                            lockedOnly
                           />
                         }
                       />
