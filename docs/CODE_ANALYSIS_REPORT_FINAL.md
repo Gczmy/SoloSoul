@@ -1,5 +1,8 @@
 # SoloSoul 代码复审记录
 
+> 本文件保留第六轮历史复审结果。2026-10-23 第七轮扫描已新增待修复项，
+> 当前状态以 [最新扫描报告](CODE_SCAN_2026-10-23.md) 和 [问题台账](CODE_ANALYSIS_REPORT.md) 为准；旧结论不代表当前源码已通过终审。
+
 日期：2026-09-17，轮次 6。执行依据：[review_code_process.md](review_code_process.md)。完整问题台账：[CODE_ANALYSIS_REPORT.md](CODE_ANALYSIS_REPORT.md)。
 
 ## 本轮状态：本次修复完成，历史 P012 延期
