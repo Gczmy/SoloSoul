@@ -283,8 +283,12 @@ for (const theme of ['light', 'dark'] as const) {
   });
 }
 
-test('小窗口菜单与辅助功能回退保持键盘操作及清晰表面', async ({ page }) => {
+test('小窗口多操作菜单与辅助功能回退保持键盘操作及清晰表面', async ({ page }) => {
   await setupMac(page, 'light');
+  await page.evaluate(() => {
+    history.pushState(null, '', '/llm-chat');
+    dispatchEvent(new PopStateEvent('popstate'));
+  });
   await page.setViewportSize({ width: 800, height: 600 });
   const more = page
     .locator('[data-appbar]')
@@ -295,7 +299,7 @@ test('小窗口菜单与辅助功能回退保持键盘操作及清晰表面', as
   await expectNavigationGlass(menu);
   await expectUnobstructed(menu);
   const guide = menu.getByRole('button', { name: 'Guide', exact: true });
-  await expect(guide).toBeFocused();
+  await expect(menu.getByRole('button').first()).toBeFocused();
   // 菜单内部操作保留原有菜单样式，避免每项叠加滤镜。
   await expect(guide).toHaveCSS('backdrop-filter', 'none');
   await page.keyboard.press('Escape');

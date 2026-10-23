@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react';
 import styles from './ToolbarActions.module.css';
 
-/** 主操作常驻；次要操作按顶栏实际可用宽度收纳，组件保持挂载。 */
+/** 主操作及单个次要操作常驻；多个次要操作按顶栏可用宽度收纳。 */
 export function ToolbarActions({
   primary,
   children,
@@ -30,7 +30,10 @@ export function ToolbarActions({
         header.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
       // 保留标题空间，并记住横排宽度；收纳后的菜单宽度不能用于判断展开，避免来回切换。
       if (!compact) expandedWidth.current = ref.current?.getBoundingClientRect().width ?? 0;
-      setCompact(available < Math.max(640, expandedWidth.current + 96));
+      const actionCount =
+        secondary.current?.querySelectorAll('button, a[href], input, select, [role="button"]')
+          .length ?? 0;
+      setCompact(actionCount > 1 && available < Math.max(640, expandedWidth.current + 96));
     };
     const observer = new ResizeObserver(measure);
     observer.observe(header);
