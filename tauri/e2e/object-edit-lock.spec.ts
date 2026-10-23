@@ -133,6 +133,45 @@ for (const platform of ['windows', 'macos', 'android']) {
         { platform, theme },
       );
       await login(page);
+      if (platform === 'android') {
+        await page.locator('.android-navigation a[href="/workspace"]').click();
+        const card = page.locator('.android-object-row').filter({ hasText: 'Public A' });
+        const otherCard = page.locator('.android-object-row').filter({ hasText: 'Public B' });
+        const trigger = card.getByRole('button', { name: 'Actions for Public A' });
+        const sheet = page.getByRole('dialog', { name: 'Public A', exact: true });
+        await trigger.click();
+        await expect(sheet.getByRole('button', { name: 'Delete', exact: true })).toBeDisabled();
+        await sheet.getByRole('button', { name: 'Unlock', exact: true }).click();
+        await expect(sheet).toHaveCount(0);
+        await expect(card.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'editable',
+        );
+        await expect(otherCard.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'editable',
+        );
+        await expect(page).toHaveURL('/workspace');
+        await trigger.click();
+        await expect(sheet.getByRole('button', { name: 'Delete', exact: true })).toBeEnabled();
+        await sheet.evaluate(async (panel) => {
+          await Promise.all(panel.getAnimations().map((animation) => animation.finished));
+        });
+        await page.screenshot({ path: info.outputPath(`android-${theme}-lock-menu.png`) });
+        await sheet.getByRole('button', { name: 'Lock', exact: true }).click();
+        await expect(sheet).toHaveCount(0);
+        await expect(card.locator('[data-object-edit-lock]')).toHaveAttribute(
+          'data-object-edit-lock',
+          'locked',
+        );
+        expect(await page.evaluate(() => Reflect.get(window, '__LOCK_CALLS__'))).toEqual([
+          'unlock',
+          'lock',
+        ]);
+        await page.evaluate(() => {
+          (Reflect.get(window, '__LOCK_CALLS__') as string[]).length = 0;
+        });
+      }
       const openObject = async (id: string) => {
         await page.evaluate((id) => {
           history.pushState(null, '', `/editor/object-${id}`);
