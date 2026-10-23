@@ -38,6 +38,8 @@ interface ObjectFieldListProps {
   isNew: boolean;
   /** 其他对象同名字段的推荐内容（字段名 → 条目列表），缺失时该字段无推荐列表。 */
   suggestions?: Record<string, FieldSuggestion[]>;
+  /** 对象锁定时隐藏推荐；保存期间的临时只读不改变显示。 */
+  showSuggestions?: boolean;
   readOnly?: boolean;
 }
 
@@ -53,6 +55,7 @@ export function ObjectFieldList({
   getSensitivity,
   isNew: _isNew,
   suggestions,
+  showSuggestions = true,
   readOnly,
 }: ObjectFieldListProps) {
   const { t } = useTranslation(['common', 'editor', 'navigation']);
@@ -118,15 +121,17 @@ export function ObjectFieldList({
         />
         {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩）。
             按规范字段名匹配——中文名/英文名等同一字段的本地化名归到同一键。 */}
-        <FieldSuggestions
-          readOnly={readOnly}
-          fieldName={field.label}
-          suggestions={suggestions?.[resolveCanonicalFieldName(field.key, field.label)] ?? []}
-          onPick={(val) => {
-            onChange(field.key, val);
-            if (validationErrors[field.key]) onClearError(field.key);
-          }}
-        />
+        {showSuggestions && (
+          <FieldSuggestions
+            readOnly={readOnly}
+            fieldName={field.label}
+            suggestions={suggestions?.[resolveCanonicalFieldName(field.key, field.label)] ?? []}
+            onPick={(val) => {
+              onChange(field.key, val);
+              if (validationErrors[field.key]) onClearError(field.key);
+            }}
+          />
+        )}
       </>
     );
   };
@@ -229,15 +234,17 @@ export function ObjectFieldList({
                     />
                     {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩）。
                         按规范字段名匹配——中文名/英文名等同一字段的本地化名归到同一键。 */}
-                    <FieldSuggestions
-                      readOnly={readOnly}
-                      fieldName={fieldName}
-                      suggestions={suggestions?.[resolveCanonicalFieldName(key, fieldName)] ?? []}
-                      onPick={(v) => {
-                        onChange(key, v);
-                        if (validationErrors[key]) onClearError(key);
-                      }}
-                    />
+                    {showSuggestions && (
+                      <FieldSuggestions
+                        readOnly={readOnly}
+                        fieldName={fieldName}
+                        suggestions={suggestions?.[resolveCanonicalFieldName(key, fieldName)] ?? []}
+                        onPick={(v) => {
+                          onChange(key, v);
+                          if (validationErrors[key]) onClearError(key);
+                        }}
+                      />
+                    )}
                     {validationErrors[key] && (
                       <div
                         style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}

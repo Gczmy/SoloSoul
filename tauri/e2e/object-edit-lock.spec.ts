@@ -52,7 +52,16 @@ for (const platform of ['windows', 'macos', 'android']) {
                 filter?.typeId === 'page' ? [] : objects,
               object_get: ({ objectId }: { objectId: string }) =>
                 objects.find((object) => object.id === objectId),
-              object_field_suggestions: () => [],
+              object_field_suggestions: () => [
+                {
+                  objectId: 'public-source',
+                  objectName: 'Public source',
+                  fieldKey: 'title',
+                  fieldName: 'Public field',
+                  sensitivityLevel: 'public',
+                  value: 'Public recommendation',
+                },
+              ],
               attachment_count_batch: () => ({ 'object-A': 1, 'object-B': 1 }),
               template_list: () => [
                 {
@@ -135,6 +144,7 @@ for (const platform of ['windows', 'macos', 'android']) {
       const field = page.locator('input#title');
       await expect(field).toHaveValue('Public text A');
       await expect(field).toHaveAttribute('readonly', '');
+      await expect(page.getByTestId('field-suggestions')).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Unlock', exact: true })).toBeEnabled();
       await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toHaveCount(0);
@@ -147,9 +157,11 @@ for (const platform of ['windows', 'macos', 'android']) {
       await page.getByRole('button', { name: 'Unlock', exact: true }).click();
       await expect(field).not.toHaveAttribute('readonly', '');
       await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
+      await expect(page.getByTestId('field-suggestions')).toBeVisible();
       await field.fill('Edited public text');
       await page.getByRole('button', { name: 'Lock', exact: true }).click();
       await expect(page.getByRole('button', { name: 'Unlock', exact: true })).toBeEnabled();
+      await expect(page.getByTestId('field-suggestions')).toHaveCount(0);
       await expect(field).toHaveAttribute('readonly', '');
       await expect(field).toHaveValue('Edited public text');
       expect(await page.evaluate(() => Reflect.get(window, '__LOCK_CALLS__'))).toEqual([

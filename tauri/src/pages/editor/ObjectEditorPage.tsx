@@ -231,6 +231,7 @@ function ObjectEditorForm() {
                   getSensitivity={getSensitivity}
                   isNew={isNew}
                   suggestions={fieldSuggestions}
+                  showSuggestions={!isEditLocked}
                   readOnly={isEditLocked || isSaving}
                 />
               </>

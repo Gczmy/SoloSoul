@@ -121,9 +121,21 @@ beforeEach(() => {
 });
 
 describe('object edit protection', () => {
-  it.each(['windows', 'macos', 'android'])(
-    '%s: locked fields remain readable and only Unlock is shown',
-    async (platform) => {
+  it.each(
+    ['windows', 'macos', 'android'].flatMap((platform) =>
+      [true, false].map((templateAvailable) => ({ platform, templateAvailable })),
+    ),
+  )(
+    '$platform, template available=$templateAvailable: locked fields remain readable without recommendations',
+    async ({ platform, templateAvailable }) => {
+      if (!templateAvailable) {
+        useTemplateStore.setState({ templates: [] });
+        record.properties.__fields = {
+          title: { name: 'Title', type: 'text' },
+          choice: { name: 'Choice', type: 'select', options: ['A', 'B'] },
+          date: { name: 'Date', type: 'date' },
+        };
+      }
       useNativeWindowStore.setState({
         isWindows: platform === 'windows',
         isMacOS: platform === 'macos',
@@ -138,9 +150,16 @@ describe('object edit protection', () => {
       expect(screen.queryByRole('button', { name: 'common:cancel' })).toBeNull();
       expect(screen.queryByRole('button', { name: 'common:save' })).toBeNull();
       expect(screen.getByRole('button', { name: 'common:object_unlock' })).toBeEnabled();
-      expect(screen.getByTestId('field-suggestion-fill')).toBeDisabled();
+      expect(screen.queryByTestId('field-suggestions')).toBeNull();
       if (platform !== 'android')
         expect(screen.getByRole('combobox', { name: /^Choice/ })).toBeDisabled();
+      fireEvent.click(screen.getByRole('button', { name: 'common:object_unlock' }));
+      await waitFor(() => expect(screen.getByTestId('field-suggestion-fill')).toBeEnabled());
+      fireEvent.click(screen.getByRole('button', { name: 'common:object_lock' }));
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'common:object_unlock' })).toBeEnabled(),
+      );
+      expect(screen.queryByTestId('field-suggestions')).toBeNull();
     },
   );
 
