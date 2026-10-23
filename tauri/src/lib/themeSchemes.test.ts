@@ -7,8 +7,8 @@ describe('getSchemeById', () => {
     const android = getSchemeById('warm-stone', 'android')!;
     expect(shared.variables['--bg-base']).toBe('#fafaf6');
     expect(getSchemeById('warm-stone', 'desktop')!.variables['--bg-base']).toBe('#ffffff');
-    expect(android.variables['--bg-base']).toBe('#eeeae2');
-    expect(android.variables['--bg-elevated']).toBe('#fffdf9');
+    expect(android.variables['--bg-base']).toBe('#f6f4ef');
+    expect(android.variables['--bg-elevated']).toBe('#fdfcf9');
     expect(android.preview.bg).toBe(android.variables['--bg-base']);
     expect(getSchemesByMode('light', 'android').find((s) => s.id === 'warm-stone')).toEqual(
       android,

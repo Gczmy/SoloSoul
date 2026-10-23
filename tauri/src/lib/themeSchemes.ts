@@ -458,18 +458,9 @@ const DESKTOP_DEFAULT_SURFACES: Record<string, Record<SurfaceToken, string>> = {
   },
 };
 
-/** 安卓浅色暖石：页面使用暖灰石色，卡片保留暖白，避免大面积表面融在一起。 */
-const ANDROID_WARM_STONE_SURFACES: Record<SurfaceToken, string> = {
-  '--bg-base': '#eeeae2',
-  '--bg-elevated': '#fffdf9',
-  '--bg-toolbar': 'rgba(255, 253, 249, 0.92)',
-  '--bg-elevated-hover': '#f8f4ed',
-  '--bg-inset': '#e7e1d6',
-  '--bg-hover': '#e5dfd4',
-  '--bg-active': '#dad1c2',
-  '--border-subtle': '#d5cec1',
-  '--border-default': '#c9bfae',
-  '--border-strong': '#aa9b84',
+/** 安卓浅色暖石只略微加深页面底色，保留原有暖白卡片和柔和边框。 */
+const ANDROID_WARM_STONE_SURFACES: Partial<Record<SurfaceToken, string>> = {
+  '--bg-base': '#f6f4ef',
 };
 
 export function getSchemeById(
@@ -491,8 +482,8 @@ export function getSchemeById(
       appearance === 'desktop' ? `settings:scheme_desktop_neutral_${scheme.mode}` : scheme.nameKey,
     preview: {
       ...scheme.preview,
-      bg: surfaces['--bg-base'],
-      elevated: surfaces['--bg-elevated'],
+      bg: surfaces['--bg-base'] ?? scheme.preview.bg,
+      elevated: surfaces['--bg-elevated'] ?? scheme.preview.elevated,
     },
     variables: { ...scheme.variables, ...surfaces },
   };

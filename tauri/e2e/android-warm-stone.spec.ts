@@ -23,12 +23,12 @@ for (const platform of ['android', 'windows', 'macos'])
     });
     expect(colors).toEqual(
       platform === 'android'
-        ? { base: '#eeeae2', card: '#fffdf9', startup: '#eeeae2' }
+        ? { base: '#f6f4ef', card: '#fdfcf9', startup: '#f6f4ef' }
         : { base: '#ffffff', card: '#f7f7f7', startup: '#ffffff' },
     );
     await expect(page.locator('[data-form-fixture] [data-ui-card]')).toHaveCSS(
       'background-color',
-      platform === 'android' ? 'rgb(255, 253, 249)' : 'rgb(247, 247, 247)',
+      platform === 'android' ? 'rgb(253, 252, 249)' : 'rgb(247, 247, 247)',
     );
     await page.screenshot({ path: test.info().outputPath(`${platform}-warm-stone.png`) });
   });
