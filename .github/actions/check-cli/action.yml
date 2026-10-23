@@ -26,7 +26,7 @@ runs:
     - name: Run Clippy
       shell: bash
       working-directory: solosoul_cli
-      run: cargo clippy --all-targets -- -D warnings
+      run: cargo clippy --locked --all-targets -- -D warnings
 
     - name: Prepare PDFium for CLI tests
       working-directory: tauri
@@ -39,4 +39,4 @@ runs:
     - name: Run CLI Tests
       shell: bash
       working-directory: solosoul_cli
-      run: cargo test --verbose --no-fail-fast
+      run: cargo test --locked --verbose --no-fail-fast
