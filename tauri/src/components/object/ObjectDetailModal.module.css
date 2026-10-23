@@ -44,6 +44,47 @@
   padding: 16px;
 }
 
+:global([data-platform='android']) .headerIdentity {
+  flex: 1;
+  min-width: 0;
+  margin-inline-end: 8px;
+}
+
+:global([data-platform='android']) .headerCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+:global([data-platform='android']) .headerMetadata {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+:global([data-platform='android']) .headerSource {
+  display: block;
+}
+
+:global([data-platform='android']) .headerDates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+:global([data-platform='android']) .headerSeparator {
+  display: none;
+}
+
+:global([data-platform='android']) .closeBtn {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
 .modal {
   background: var(--bg-elevated);
 

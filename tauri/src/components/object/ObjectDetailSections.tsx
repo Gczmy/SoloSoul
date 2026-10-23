@@ -36,11 +36,14 @@ export function ObjectDetailHeader({
       className={styles.modalHeader}
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div
+        className={styles.headerIdentity}
+        style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+      >
         <span style={{ flexShrink: 0, display: 'flex' }}>
           <ObjectDetailIcon size={ICON_SIZE['2xl']} />
         </span>
-        <div>
+        <div className={styles.headerCopy}>
           <h2
             style={{
               fontSize: 'var(--object-ui-title-size, var(--text-md))',
@@ -52,43 +55,54 @@ export function ObjectDetailHeader({
           >
             {obj.name}
           </h2>
-          <ObjectEditLockBadge objectId={obj.id} properties={obj.properties} />
-          <span
-            style={{
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              wordBreak: 'break-word',
-            }}
-          >
-            {collectionLabel}
-            {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
-            {obj.templateId &&
-              (() => {
-                const tplName = (obj.properties as Record<string, unknown>)?.__templateName as
-                  | string
-                  | undefined;
-                const tid = obj.templateId || '';
-                const label = detailTplMatch
-                  ? detailTplName || tid
-                  : tplName
-                    ? `${tplName} (${tid.slice(0, 8)}…)`
-                    : tid;
-                return (
-                  <span style={{ textDecoration: detailTplMatch ? 'none' : 'line-through' }}>
-                    {' · '}
-                    {label}
+          <div className={styles.headerMetadata}>
+            <ObjectEditLockBadge objectId={obj.id} properties={obj.properties} />
+            <span
+              style={{
+                fontSize: 'var(--text-badge)',
+                color: 'var(--text-tertiary)',
+                wordBreak: 'break-word',
+              }}
+            >
+              <span className={styles.headerSource}>
+                {collectionLabel}
+                {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
+                {obj.templateId &&
+                  (() => {
+                    const tplName = (obj.properties as Record<string, unknown>)?.__templateName as
+                      | string
+                      | undefined;
+                    const tid = obj.templateId || '';
+                    const label = detailTplMatch
+                      ? detailTplName || tid
+                      : tplName
+                        ? `${tplName} (${tid.slice(0, 8)}…)`
+                        : tid;
+                    return (
+                      <span style={{ textDecoration: detailTplMatch ? 'none' : 'line-through' }}>
+                        {' · '}
+                        {label}
+                      </span>
+                    );
+                  })()}
+                {obj.contractTypeId && (
+                  <span style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}>
+                    <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
                   </span>
-                );
-              })()}
-            {obj.contractTypeId && (
-              <span style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}>
-                <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+                )}
               </span>
-            )}
-            {' · '}
-            {t('common:created')}: {obj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}:{' '}
-            {obj.updatedAt?.slice(0, 10) || '—'}
-          </span>
+              <span className={styles.headerDates}>
+                <span className={styles.headerSeparator}>{' · '}</span>
+                <span>
+                  {t('common:created')}: {obj.createdAt?.slice(0, 10) || '—'}
+                </span>
+                <span className={styles.headerSeparator}>{' · '}</span>
+                <span>
+                  {t('common:updated')}: {obj.updatedAt?.slice(0, 10) || '—'}
+                </span>
+              </span>
+            </span>
+          </div>
         </div>
       </div>
       <button

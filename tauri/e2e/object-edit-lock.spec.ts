@@ -67,7 +67,10 @@ for (const platform of ['windows', 'macos', 'android']) {
                 {
                   id: 'public-template',
                   accountId: 'e2e-account',
-                  name: 'Public template',
+                  name:
+                    platform === 'android'
+                      ? 'Public template with a long name for narrow screen verification'
+                      : 'Public template',
                   category: 'identity',
                   createdAt: '2026-10-23',
                   properties: [
@@ -139,6 +142,42 @@ for (const platform of ['windows', 'macos', 'android']) {
         const otherCard = page.locator('.android-object-row').filter({ hasText: 'Public B' });
         const trigger = card.getByRole('button', { name: 'Actions for Public A' });
         const sheet = page.getByRole('dialog', { name: 'Public A', exact: true });
+        for (const width of [320, 390]) {
+          await page.setViewportSize({ width, height: 844 });
+          for (const [row, label] of [
+            [card, 'Public A'],
+            [otherCard, 'Public B'],
+          ] as const) {
+            await row.locator('.android-row-button').click();
+            const detail = page.getByRole('dialog', { name: label, exact: true });
+            const status = detail.locator('[data-object-edit-lock]');
+            const metadata = detail.getByText(/^Identity/);
+            await expect(metadata).toContainText('Public template with a long name');
+            const statusBox = (await status.boundingBox())!;
+            const metadataBox = (await metadata.boundingBox())!;
+            expect(metadataBox.y).toBeGreaterThanOrEqual(statusBox.y + statusBox.height + 3);
+            const close = detail.getByTestId('object-detail-close');
+            const closeBox = (await close.boundingBox())!;
+            expect(metadataBox.x + metadataBox.width).toBeLessThanOrEqual(closeBox.x);
+            for (const date of [detail.getByText(/^created:/), detail.getByText(/^updated:/)]) {
+              const box = (await date.boundingBox())!;
+              const lines = await date.evaluate((el) => {
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                return new Set(Array.from(range.getClientRects(), (rect) => rect.top)).size;
+              });
+              expect(lines).toBe(1);
+              expect(box.x + box.width).toBeLessThanOrEqual(closeBox.x);
+            }
+            expect(await detail.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+            if (width === 320 && label === 'Public B')
+              await page.screenshot({
+                path: info.outputPath(`android-${theme}-detail-metadata.png`),
+              });
+            await close.click();
+            await expect(detail).toHaveCount(0);
+          }
+        }
         await trigger.click();
         await expect(sheet.getByRole('button', { name: 'Delete', exact: true })).toBeDisabled();
         await sheet.getByRole('button', { name: 'Unlock', exact: true }).click();
