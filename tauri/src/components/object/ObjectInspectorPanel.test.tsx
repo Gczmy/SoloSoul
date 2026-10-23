@@ -5,6 +5,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { useUiStore } from '@/stores/uiStore';
 import { setRequestSession } from '@/lib/sessionRequests';
 import { ObjectInspectorPanel } from './ObjectInspectorPanel';
+import type { SnapshotEntry } from '@/types/history';
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 vi.mock('@/hooks/useWorkspacePasswordGuard', () => ({
@@ -64,6 +65,185 @@ afterEach(() => {
 });
 
 describe('desktop object inspector', () => {
+  const snapshot = (id: string, timestamp: number): SnapshotEntry => ({
+    id,
+    timestamp,
+    triggeredBy: 'user_edit',
+    diffSummary: 'diff_updated',
+  });
+  it('keeps the newest save refresh when earlier history reads finish last', async () => {
+    useUiStore.setState({ desktopObjectInspectorTab: 'history' });
+    const finishes: ((items: SnapshotEntry[]) => void)[] = [];
+    ipc
+      .mockResolvedValueOnce([snapshot('old', 1)])
+      .mockImplementation(() => new Promise<SnapshotEntry[]>((done) => finishes.push(done)));
+    const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    await waitFor(() =>
+      expect(document.querySelector('[data-history-snapshot="old"]')).not.toBeNull(),
+    );
+    rerender(
+      <ObjectInspectorPanel context={{ ...context, historyRevision: 1 }} onClose={vi.fn()} />,
+    );
+    rerender(
+      <ObjectInspectorPanel context={{ ...context, historyRevision: 2 }} onClose={vi.fn()} />,
+    );
+    await act(async () => finishes[1]([snapshot('newest', 3)]));
+    await act(async () => finishes[0]([snapshot('stale', 2)]));
+    expect(document.querySelector('[data-history-snapshot="newest"]')).not.toBeNull();
+    expect(document.querySelector('[data-history-snapshot="stale"]')).toBeNull();
+  });
+  it('refreshes saved history in place, retaining scroll and expanded snapshot data', async () => {
+    useUiStore.setState({ desktopObjectInspectorTab: 'history' });
+    const old = snapshot('old', 1);
+    const others = Array.from({ length: 19 }, (_, i) => snapshot(`other-${i}`, i + 2));
+    let finish!: (items: SnapshotEntry[]) => void;
+    let lists = 0;
+    ipc.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_get_data')
+        return { name: 'Expanded historical object', properties: {} };
+      if (cmd === 'snapshot_list')
+        return ++lists === 1
+          ? [...others, old]
+          : new Promise<SnapshotEntry[]>((done) => {
+              finish = done;
+            });
+      return [];
+    });
+    const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    const row = await waitFor(() => {
+      const element = document.querySelector('[data-history-snapshot="old"]')!;
+      expect(element).not.toBeNull();
+      return element;
+    });
+    fireEvent.click(row);
+    await screen.findByText('Expanded historical object');
+    const list = screen.getByRole('tabpanel');
+    const content = document.querySelector('[data-inspector-content]');
+    list.scrollTop = 75;
+    rerender(
+      <ObjectInspectorPanel
+        context={{ ...context, objectName: 'Saved name', historyRevision: 1 }}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('Expanded historical object')).toBeVisible();
+    expect(content).not.toHaveAttribute('inert');
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(list).toHaveAttribute('aria-busy', 'true');
+    await act(async () => finish([old, ...others, snapshot('latest', 30)]));
+    expect(
+      [...document.querySelectorAll('[data-history-snapshot]')].map((node) =>
+        node.getAttribute('data-history-snapshot'),
+      ),
+    ).toEqual(['latest', ...[...others].reverse().map((item) => item.id), 'old']);
+    expect(document.querySelector('[data-history-snapshot="old"]')).toBe(row);
+    expect(document.querySelector('[data-inspector-content]')).toBe(content);
+    expect(screen.getByText('Expanded historical object')).toBeVisible();
+    expect(screen.getByText('Saved name')).toBeVisible();
+    expect(list.scrollTop).toBe(75);
+    expect(list).toHaveAttribute('aria-busy', 'false');
+    expect(ipc.mock.calls.filter(([cmd]) => cmd === 'snapshot_get_data')).toHaveLength(1);
+    rerender(
+      <ObjectInspectorPanel
+        context={{ ...context, objectName: 'Saved name', historyRevision: 1 }}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(lists).toBe(2);
+  });
+
+  it('does not interrupt attachments when saving and reads fresh history on the next tab switch', async () => {
+    const old = snapshot('old', 1);
+    let snapshots = [old];
+    ipc.mockImplementation(async (cmd) =>
+      cmd === 'snapshot_list' ? snapshots : [file('public', '2026-01-01')],
+    );
+    const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    fireEvent.click(await screen.findByText('public.pdf'));
+    const content = document.querySelector('[data-inspector-content]');
+    snapshots = [old, snapshot('new', 2)];
+    rerender(
+      <ObjectInspectorPanel context={{ ...context, historyRevision: 1 }} onClose={vi.fn()} />,
+    );
+    expect(screen.getByRole('dialog')).toBeVisible();
+    expect(document.querySelector('[data-inspector-content]')).toBe(content);
+    expect(ipc.mock.calls.filter(([cmd]) => cmd === 'attachment_list')).toHaveLength(1);
+    expect(ipc.mock.calls.filter(([cmd]) => cmd === 'snapshot_list')).toHaveLength(0);
+    fireEvent.click(screen.getByRole('tab', { name: 'history' }));
+    await waitFor(() =>
+      expect(document.querySelectorAll('[data-history-snapshot]')).toHaveLength(2),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('preserves history on a refresh failure and retries without rebuilding the list', async () => {
+    useUiStore.setState({ desktopObjectInspectorTab: 'history' });
+    ipc
+      .mockResolvedValueOnce([snapshot('old', 1)])
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce([snapshot('new', 2), snapshot('old', 1)]);
+    const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+    await waitFor(() =>
+      expect(document.querySelector('[data-history-snapshot="old"]')).not.toBeNull(),
+    );
+    const content = document.querySelector('[data-inspector-content]');
+    rerender(
+      <ObjectInspectorPanel context={{ ...context, historyRevision: 1 }} onClose={vi.fn()} />,
+    );
+    await screen.findByRole('alert');
+    expect(document.querySelector('[data-inspector-content]')).toBe(content);
+    expect(content).not.toHaveAttribute('inert');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'false');
+    fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+    await waitFor(() =>
+      expect(document.querySelectorAll('[data-history-snapshot]')).toHaveLength(2),
+    );
+    expect(document.querySelector('[data-inspector-content]')).toBe(content);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it.each(['object', 'session'])(
+    'rejects a late background history refresh after changing %s',
+    async (target) => {
+      setRequestSession('account');
+      useUiStore.setState({ desktopObjectInspectorTab: 'history' });
+      let finish!: (items: SnapshotEntry[]) => void;
+      ipc
+        .mockResolvedValueOnce([snapshot('old', 1)])
+        .mockImplementationOnce(
+          () =>
+            new Promise<SnapshotEntry[]>((done) => {
+              finish = done;
+            }),
+        )
+        .mockResolvedValue([snapshot('current', 3)]);
+      const { rerender } = render(<ObjectInspectorPanel context={context} onClose={vi.fn()} />);
+      await waitFor(() =>
+        expect(document.querySelector('[data-history-snapshot="old"]')).not.toBeNull(),
+      );
+      rerender(
+        <ObjectInspectorPanel context={{ ...context, historyRevision: 1 }} onClose={vi.fn()} />,
+      );
+      if (target === 'object')
+        rerender(
+          <ObjectInspectorPanel
+            context={{ objectId: 'two', objectName: 'Second', ready: true }}
+            onClose={vi.fn()}
+          />,
+        );
+      else
+        act(() => {
+          setRequestSession(null);
+          setRequestSession('account');
+        });
+      await waitFor(() =>
+        expect(document.querySelector('[data-history-snapshot="current"]')).not.toBeNull(),
+      );
+      await act(async () => finish([snapshot('late', 2)]));
+      expect(document.querySelector('[data-history-snapshot="late"]')).toBeNull();
+      expect(document.querySelector('[data-history-snapshot="current"]')).not.toBeNull();
+    },
+  );
   it('reports an unavailable object instead of showing stale contents or spinning indefinitely', () => {
     render(
       <ObjectInspectorPanel

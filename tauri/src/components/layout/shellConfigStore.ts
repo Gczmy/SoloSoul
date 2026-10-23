@@ -21,6 +21,8 @@ export interface ObjectInspectorContext {
   typeId?: string;
   ready: boolean;
   failed?: boolean;
+  /** 仅在编辑内容实际保存成功后递增；不携带字段或快照正文。 */
+  historyRevision?: number;
 }
 
 export const EMPTY_SHELL_CONFIG: Readonly<ShellConfig> = {

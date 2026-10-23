@@ -47,6 +47,7 @@ export interface UseObjectEditorPageResult {
   userTemplates: UserTemplate[];
   typeId: string;
   currentObject: ObjectData | null;
+  historyRevision: number;
   contractTypeId: string | undefined;
   customPages: CustomPage[];
   name: string;
@@ -122,6 +123,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const setObjectLocked = useObjectStore((s) => s.setObjectLocked);
   // 只发布已完整装配的对象快照。路由切换期间保留上一帧，但禁止编辑/保存。
   const [currentObject, setCurrentObject] = useState<ObjectData | null>(null);
+  const [historyRevision, setHistoryRevision] = useState(0);
   const [requests] = useState(createSessionRequests);
   useEffect(() => () => requests.invalidate(), [requests]);
   const { onError, onSuccess } = useToastError();
@@ -459,6 +461,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
         setCurrentObject(saved);
         setName(saved.name);
         setValues(objectFormValues(saved));
+        setHistoryRevision((revision) => revision + 1);
         onSuccess(t('common:object_saved'));
         if (!isMobilePlatformSync()) return;
       }
@@ -492,6 +495,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
         });
         if (!request.isCurrent()) return;
         setCurrentObject(saved);
+        setHistoryRevision((revision) => revision + 1);
       }
       const object = await setObjectLocked(objectId, locking);
       if (!request.isCurrent()) return;
@@ -526,6 +530,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     userTemplates,
     typeId,
     currentObject,
+    historyRevision,
     contractTypeId,
     customPages,
     name,

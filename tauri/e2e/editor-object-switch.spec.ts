@@ -133,9 +133,11 @@ for (const platform of ['macos', 'windows'] as const) {
       await login(page);
       const pane = page.locator('#desktop-page-pane');
       const name = page.getByLabel('Object Name', { exact: true });
-      const save = page.locator('[data-appbar]').getByRole('button', { name: 'Save', exact: true });
+      const save = page
+        .locator('[data-editor-form-actions]')
+        .getByRole('button', { name: 'Save', exact: true });
       const cancel = page
-        .locator('[data-appbar]')
+        .locator('[data-editor-form-actions]')
         .getByRole('button', { name: 'Cancel', exact: true });
       const body = page.locator('[data-object-editor-form]');
       const select = (id: string) => pane.locator(`[data-object-id="object-${id}"]`).click();
@@ -179,7 +181,7 @@ for (const platform of ['macos', 'windows'] as const) {
         let stopped = false;
         const sample = () => {
           if (stopped) return;
-          const buttons = [...document.querySelectorAll('[data-appbar] button')];
+          const buttons = [...document.querySelectorAll('[data-editor-form-actions] button')];
           if (
             !document.querySelector('[data-object-editor-form] input') ||
             !buttons.some((button) => button.textContent === 'Save') ||

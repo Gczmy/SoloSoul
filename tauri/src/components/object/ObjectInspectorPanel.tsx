@@ -55,18 +55,22 @@ function InspectorSession({
   const tab = useUiStore((s) => s.desktopObjectInspectorTab);
   const setTab = useUiStore((s) => s.setDesktopObjectInspectorTab);
   const transition = useObjectInspectorTransition(context, tab, accountId);
-  const { view, active, pending, failed, objectFailed, showPending, retry } = transition;
+  const { view, active, pending, failed, refreshFailed, objectFailed, showPending, retry } =
+    transition;
   // 标签选中态与已显示的内容一起更新；请求中的旧画面仍保持原来的语义归属。
   const displayedTab = view?.data.tab ?? tab;
   const listRef = useRef<HTMLDivElement>(null);
   const [counts, setCounts] = useState<{
     objectId: string;
+    historyRevision?: number;
     values: Partial<Record<ObjectInspectorTab, number>>;
   }>();
   useLayoutEffect(() => {
     if (!view || !active) return;
     setCounts((previous) => ({
       objectId: view.context.objectId,
+      historyRevision:
+        view.data.tab === 'history' ? view.context.historyRevision : previous?.historyRevision,
       values: {
         ...(previous?.objectId === view.context.objectId ? previous.values : {}),
         [view.data.tab]: view.data.items.length,
@@ -120,7 +124,9 @@ function InspectorSession({
           const count =
             view?.data.tab === value
               ? view.data.items.length
-              : view && counts?.objectId === view.context.objectId
+              : view &&
+                  counts?.objectId === view.context.objectId &&
+                  (value !== 'history' || counts.historyRevision === context.historyRevision)
                 ? counts.values[value]
                 : undefined;
           return (
@@ -188,6 +194,20 @@ function InspectorSession({
           </div>
         ) : view ? (
           <div key={view.key} inert={!active} data-inspector-content>
+            {refreshFailed && (
+              <div role="alert" className={styles.refreshError}>
+                <p>
+                  {t(
+                    view.data.tab === 'history'
+                      ? 'history_load_failed'
+                      : 'inspector_attachments_failed',
+                  )}
+                </p>
+                <Button variant="secondary" size="sm" onClick={retry}>
+                  {t('retry')}
+                </Button>
+              </div>
+            )}
             {view.data.tab === 'history' ? (
               <InspectorHistory
                 context={view.context}
@@ -277,6 +297,7 @@ function InspectorAttachments({
   const { onError } = useToastError();
   const [requests] = useState(createSessionRequests);
   const [items, setItems] = useState(initialItems);
+  useLayoutEffect(() => setItems(initialItems), [initialItems]);
   const [preview, setPreview] = useState<AttachmentItem | null>(null);
   const window = useIncrementalWindow(30);
   useLayoutEffect(() => () => requests.invalidate(), [requests]);

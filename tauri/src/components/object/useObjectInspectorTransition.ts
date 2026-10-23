@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { ObjectInspectorContext } from '@/components/layout/shellConfigStore';
 import type { ObjectInspectorTab } from '@/stores/uiStore';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
@@ -21,12 +21,16 @@ export function useObjectInspectorTransition(
   accountId?: string,
 ) {
   const [requests] = useState(createSessionRequests);
-  const sequence = useRef(0);
   const [attempt, setAttempt] = useState(0);
-  const key = JSON.stringify([context.objectId, tab, attempt]);
+  // 内容节点归属仅随对象/标签变化；保存刷新不重挂载、不清空正文和滚动位置。
+  const key = JSON.stringify([context.objectId, tab]);
+  const readKey = JSON.stringify([
+    key,
+    attempt,
+    tab === 'history' ? (context.historyRevision ?? 0) : 0,
+  ]);
   const [result, setResult] = useState<{
     key: string;
-    version: number;
     data?: InspectorData;
     failed?: boolean;
   }>();
@@ -34,7 +38,6 @@ export function useObjectInspectorTransition(
   const objectFailed = Boolean(context.failed);
   useLayoutEffect(() => {
     const request = requests.begin('metadata', accountId);
-    const version = ++sequence.current;
     setResult(undefined);
     if (!objectFailed) {
       const read: Promise<InspectorData> =
@@ -56,28 +59,31 @@ export function useObjectInspectorTransition(
               }));
       void read
         .then((data) => {
-          if (request.isCurrent()) setResult({ key, version, data });
+          if (request.isCurrent()) setResult({ key: readKey, data });
         })
         .catch(() => {
-          if (request.isCurrent()) setResult({ key, version, failed: true });
+          if (request.isCurrent()) setResult({ key: readKey, failed: true });
         });
     }
     return () => requests.invalidate('metadata');
-  }, [accountId, context.objectId, key, objectFailed, requests, tab]);
+  }, [accountId, context.objectId, readKey, objectFailed, requests, tab]);
   useLayoutEffect(() => () => requests.invalidate(), [requests]);
 
-  const currentResult = result?.key === key ? result : undefined;
-  const failed = objectFailed || Boolean(context.ready && currentResult?.failed);
+  const currentResult = result?.key === readKey ? result : undefined;
+  const retaining = Boolean(context.ready && !objectFailed && displayed?.key === key);
+  const refreshFailed = retaining && Boolean(currentResult?.failed);
+  const failed = objectFailed || Boolean(context.ready && currentResult?.failed && !retaining);
   const incoming = useMemo<InspectorView | undefined>(
     () =>
       context.ready && !objectFailed && currentResult?.data
         ? {
-            key: `${key}:${currentResult.version}`,
+            key,
             context: {
               objectId: context.objectId,
               objectName: context.objectName,
               typeId: context.typeId,
               ready: true,
+              historyRevision: context.historyRevision,
             },
             data: currentResult.data,
           }
@@ -87,6 +93,7 @@ export function useObjectInspectorTransition(
       context.objectName,
       context.typeId,
       context.ready,
+      context.historyRevision,
       objectFailed,
       currentResult,
       key,
@@ -98,24 +105,25 @@ export function useObjectInspectorTransition(
   }, [failed, incoming]);
   // 切换标签也交接完整画面，目标列表就绪前保留旧列表，避免短暂清空内容。
   const view = failed ? undefined : (incoming ?? displayed);
-  const pending = !failed && !incoming;
+  const pending = !failed && !incoming && !currentResult?.failed;
   const [noticeKey, setNoticeKey] = useState<string>();
   useEffect(() => {
-    if (!pending) {
+    if (!pending || retaining) {
       setNoticeKey(undefined);
       return;
     }
-    const timer = setTimeout(() => setNoticeKey(key), 250);
+    const timer = setTimeout(() => setNoticeKey(readKey), 250);
     return () => clearTimeout(timer);
-  }, [key, pending]);
+  }, [readKey, pending, retaining]);
 
   return {
     view,
-    active: Boolean(incoming),
+    active: Boolean(incoming) || retaining,
     pending,
     failed,
+    refreshFailed,
     objectFailed,
-    showPending: pending && noticeKey === key,
+    showPending: pending && !retaining && noticeKey === readKey,
     retry: () => setAttempt((value) => value + 1),
   };
 }

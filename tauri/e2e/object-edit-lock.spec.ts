@@ -149,6 +149,7 @@ for (const platform of ['windows', 'macos', 'android']) {
       await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled();
       await field.fill('Edited public text');
       await page.getByRole('button', { name: 'Lock', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Unlock', exact: true })).toBeEnabled();
       await expect(field).toHaveAttribute('readonly', '');
       await expect(field).toHaveValue('Edited public text');
       expect(await page.evaluate(() => Reflect.get(window, '__LOCK_CALLS__'))).toEqual([

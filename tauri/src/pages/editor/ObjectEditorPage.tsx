@@ -57,6 +57,7 @@ function ObjectEditorForm() {
     userTemplates,
     typeId,
     currentObject,
+    historyRevision,
     contractTypeId,
     customPages,
     name,
@@ -98,9 +99,17 @@ function ObjectEditorForm() {
             failed: objectLoadFailed,
             objectName: isObjectReady ? (currentObject?.name ?? '') : '',
             typeId: isObjectReady ? currentObject?.typeId : undefined,
+            historyRevision,
           }
         : undefined,
-    [objectId, isObjectReady, objectLoadFailed, currentObject?.name, currentObject?.typeId],
+    [
+      objectId,
+      isObjectReady,
+      objectLoadFailed,
+      currentObject?.name,
+      currentObject?.typeId,
+      historyRevision,
+    ],
   );
   const formActions = (
     <>

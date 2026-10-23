@@ -543,6 +543,13 @@ function HistoryViewerSession({
   const [loadAttempt, setLoadAttempt] = useState(0);
   const timelineId = useId();
   const timelineWindow = useIncrementalWindow(20);
+  useLayoutEffect(() => {
+    if (initialSnapshots === undefined) return;
+    setSnapshots([...initialSnapshots].sort((a, b) => b.timestamp - a.timestamp));
+    setExpandedId((id) => (id && initialSnapshots.some((entry) => entry.id === id) ? id : null));
+    setLoading(false);
+    setListFailed(false);
+  }, [initialSnapshots]);
   // 解密数据仅保留在当前卡片会话内；切对象、切账户、锁定或关闭即失效。
   const cache = useRef(
     new Map<
@@ -629,7 +636,7 @@ function HistoryViewerSession({
   };
 
   useEffect(() => {
-    if (initialSnapshots !== undefined && loadAttempt === 0) return;
+    if (initialSnapshots !== undefined) return;
     const request = requests.begin('list', accountId);
     setLoading(true);
     setListFailed(false);
@@ -688,6 +695,11 @@ function HistoryViewerSession({
   const total = snapshots.length;
   const isOldest = currentIdx >= total - 1;
   const isLatest = currentIdx <= 0;
+  // 新记录插入顶部时，保留已展开但刚越过分页边界的记录。
+  const timelineLimit = Math.max(
+    timelineWindow.limit,
+    snapshots.findIndex((entry) => entry.id === expandedId) + 1,
+  );
 
   if (presentation === 'timeline') {
     const summaryKeys = new Set([
@@ -718,7 +730,7 @@ function HistoryViewerSession({
           </div>
         ) : (
           <>
-            {snapshots.slice(0, timelineWindow.limit).map((entry, index) => {
+            {snapshots.slice(0, timelineLimit).map((entry, index) => {
               const date = new Date(entry.timestamp);
               const day = date.toLocaleDateString();
               const previousDay =
@@ -780,7 +792,7 @@ function HistoryViewerSession({
                 </div>
               );
             })}
-            {timelineWindow.hasMore(total) && (
+            {total > timelineLimit && (
               <Button size="sm" variant="secondary" onClick={timelineWindow.showMore}>
                 {t('common:load_more')}
               </Button>

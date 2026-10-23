@@ -62,10 +62,15 @@ beforeEach(() => {
   vi.mocked(invoke).mockImplementation(async (command, args) => {
     const input = args as {
       objectId: string;
+      locked: boolean;
       input: { name: string; properties: Record<string, unknown> };
     };
     if (command === 'object_get') return { ...record, id: input.objectId };
     if (command === 'object_field_suggestions') return [];
+    if (command === 'object_set_locked') {
+      record = { ...record, properties: { ...record.properties, __editLocked: input.locked } };
+      return record;
+    }
     if (command === 'object_update' || command === 'object_create') {
       record = {
         ...record,
@@ -91,6 +96,18 @@ async function editor() {
 const writes = () => vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'object_update');
 
 describe('desktop editor save', () => {
+  it('refreshes history for dirty save-before-lock, but not for lock-only changes', async () => {
+    const hook = await editor();
+    await act(async () => hook.result.current.handleToggleEditLock());
+    expect(hook.result.current.historyRevision).toBe(0);
+    await act(async () => hook.result.current.handleToggleEditLock());
+    expect(hook.result.current.historyRevision).toBe(0);
+    await act(async () => hook.result.current.handleFieldChange('title', 'Changed before locking'));
+    await act(async () => hook.result.current.handleToggleEditLock());
+    expect(hook.result.current.historyRevision).toBe(1);
+    expect(hook.result.current.isEditLocked).toBe(true);
+    expect(writes()).toHaveLength(1);
+  });
   it('stays on the editor, accepts the persisted baseline, and does not write twice', async () => {
     const hook = await editor();
     await act(async () => hook.result.current.handleFieldChange('title', 'Changed'));
@@ -99,8 +116,10 @@ describe('desktop editor save', () => {
     expect(hook.result.current.currentObject?.updatedAt).toBe('saved');
     expect(hook.result.current.values.title).toBe('Changed');
     expect(hook.result.current.isSaving).toBe(false);
+    expect(hook.result.current.historyRevision).toBe(1);
     await act(async () => hook.result.current.handleSave());
     expect(writes()).toHaveLength(1);
+    expect(hook.result.current.historyRevision).toBe(1);
     expect(vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'object_get')).toHaveLength(1);
   });
   it('skips untouched and reverted drafts, including numeric and boolean input normalization', async () => {
@@ -111,6 +130,7 @@ describe('desktop editor save', () => {
     await act(async () => hook.result.current.handleFieldChange('title', 'Original'));
     await act(async () => hook.result.current.handleSave());
     expect(writes()).toHaveLength(0);
+    expect(hook.result.current.historyRevision).toBe(0);
     expect(navigate).not.toHaveBeenCalled();
   });
   it('accepts the empty-name fallback as the next baseline', async () => {
@@ -128,10 +148,12 @@ describe('desktop editor save', () => {
     await act(async () => hook.result.current.handleSave());
     expect(hook.result.current.values.title).toBe('Changed');
     expect(hook.result.current.currentObject?.properties.title).toBe('Original');
+    expect(hook.result.current.historyRevision).toBe(0);
     expect(hook.result.current.isSaving).toBe(false);
     expect(navigate).not.toHaveBeenCalled();
     await act(async () => hook.result.current.handleSave());
     expect(hook.result.current.currentObject?.properties.title).toBe('Changed');
+    expect(hook.result.current.historyRevision).toBe(1);
     expect(writes()).toHaveLength(2);
   });
   it.each(['object', 'account'])(
