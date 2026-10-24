@@ -172,8 +172,8 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
     if !target_canon.starts_with(&base_canon) {
         return Err("Path is outside the allowed directory".to_string());
     }
-    // P017: 返回 canonical 目标路径而非字面路径——消除符号链接 TOCTOU 竞态：
-    // 校验与后续文件操作使用同一已解析路径，字面路径可能在校验后被替换绕过。
+    // P017：后续操作使用已解析的目标路径，避免再次跟随原字面链接。
+    // 这不是文件句柄锁定；不保证抵御目录在校验后被恶意替换。
     Ok(target_canon)
 }
 
@@ -228,7 +228,7 @@ pub(crate) fn read_file_with_attachment_decrypt<R: tauri::Runtime>(
 /// commands that operate on user-selected paths must use this helper.
 ///
 /// 逐个允许基目录尝试 `resolve_within`；任一命中即返回规范化路径（P017：不再
-/// 返回字面路径，避免符号链接 TOCTOU）。若某基目录不存在（canonicalize 失败），
+/// 返回字面路径）。若某基目录不存在（canonicalize 失败），
 /// 视为该基目录不可用并继续尝试下一个。
 pub(crate) fn resolve_allowed_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
@@ -301,32 +301,77 @@ fn scan_dir_recursive(
     if max_depth == 0 || files.len() >= MAX_SCAN_FILES {
         return Ok(());
     }
-    let entries = fs_std::read_dir(dir).map_err(|e| e.to_string())?;
-    for entry in entries {
-        if files.len() >= MAX_SCAN_FILES {
-            break;
+    let root = dir
+        .canonicalize()
+        .map_err(|error| format!("Resolve scan directory: {error}"))?;
+    let mut scan = DirectoryScan {
+        root: root.clone(),
+        active_directories: Default::default(),
+        visited_directories: Default::default(),
+        visited_files: Default::default(),
+    };
+    scan.walk(&root, files, max_depth)
+}
+
+/// 以用户选定的规范目录为边界；根内链接按真实目标去重，循环/根外/损坏链接明确失败。
+struct DirectoryScan {
+    root: PathBuf,
+    active_directories: std::collections::HashSet<PathBuf>,
+    visited_directories: std::collections::HashMap<PathBuf, u32>,
+    visited_files: std::collections::HashSet<PathBuf>,
+}
+
+impl DirectoryScan {
+    fn walk(&mut self, dir: &Path, files: &mut Vec<ScannedFile>, depth: u32) -> Result<(), String> {
+        if self.active_directories.contains(dir) {
+            return Err("Directory cycle in scan".into());
         }
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
-        if path.is_dir() {
-            scan_dir_recursive(&path, files, max_depth - 1)?;
-        } else if path.is_file() {
-            let metadata = fs_std::metadata(&path).map_err(|e| e.to_string())?;
-            files.push(ScannedFile {
-                path: display_fs_path(&path),
-                name: path
-                    .file_name()
-                    .map(|n| n.to_string_lossy().to_string())
-                    .unwrap_or_default(),
-                size: metadata.len(),
-                ext: path
-                    .extension()
-                    .map(|e| e.to_string_lossy().to_string())
-                    .unwrap_or_default(),
-            });
+        if depth == 0 || files.len() >= MAX_SCAN_FILES {
+            return Ok(());
         }
+        // 深层别名可能先访问目标；后来通过较浅路径抵达时，仍须扫描新增深度范围。
+        if self
+            .visited_directories
+            .get(dir)
+            .is_some_and(|seen| *seen >= depth)
+        {
+            return Ok(());
+        }
+        self.visited_directories.insert(dir.to_path_buf(), depth);
+        self.active_directories.insert(dir.to_path_buf());
+        for entry in fs_std::read_dir(dir).map_err(|error| error.to_string())? {
+            if files.len() >= MAX_SCAN_FILES {
+                break;
+            }
+            let path = entry
+                .map_err(|error| error.to_string())?
+                .path()
+                .canonicalize()
+                .map_err(|error| format!("Resolve scanned entry: {error}"))?;
+            if !path.starts_with(&self.root) {
+                return Err("Path is outside the scan directory".into());
+            }
+            let metadata = fs_std::metadata(&path).map_err(|error| error.to_string())?;
+            if metadata.is_dir() {
+                self.walk(&path, files, depth - 1)?;
+            } else if metadata.is_file() && self.visited_files.insert(path.clone()) {
+                files.push(ScannedFile {
+                    path: display_fs_path(&path),
+                    name: path
+                        .file_name()
+                        .map(|name| name.to_string_lossy().into_owned())
+                        .unwrap_or_default(),
+                    size: metadata.len(),
+                    ext: path
+                        .extension()
+                        .map(|ext| ext.to_string_lossy().into_owned())
+                        .unwrap_or_default(),
+                });
+            }
+        }
+        self.active_directories.remove(dir);
+        Ok(())
     }
-    Ok(())
 }
 
 #[tauri::command]
@@ -440,6 +485,9 @@ pub async fn fs_read_file_as_text<R: tauri::Runtime>(
 
 #[cfg(test)]
 mod p053_tests;
+
+#[cfg(test)]
+mod p056_tests;
 
 #[cfg(test)]
 mod tests {
