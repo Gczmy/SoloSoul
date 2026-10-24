@@ -69,241 +69,306 @@ interface ObjectState {
 
 const requests = createSessionRequests();
 
-export const useObjectStore = create<ObjectState>((set) => ({
-  objects: [],
-  currentObjectCache: {},
-  isLoading: false,
-  error: null,
-
-  loadObjects: async (accountId, filter) => {
-    const request = requests.begin('objects', accountId);
-    const setCurrent = request.guardSet<ObjectState>(set);
-    // 立即清空之前页面的陈旧对象，避免页面切换时闪烁旧卡片
-    setCurrent({ objects: [], isLoading: true, error: null });
-    try {
-      const objects = await request.invokeTyped('object_list', {
-        accountId: accountId,
-        filter: filter || null,
-      });
-      request.assertCurrent();
-      setCurrent({ objects: objects.map(toObjectSummaryView), isLoading: false });
-    } catch (err) {
-      if (!request.isCurrent()) return;
-      setCurrent({ error: normalizeObjectError(err), isLoading: false });
+export const useObjectStore = create<ObjectState>((set) => {
+  type Request = ReturnType<typeof requests.begin>;
+  const loadingOwners = new Set<symbol>();
+  const mutationTails = new Map<string, Promise<void>>();
+  // loading 归属于会话中的操作，不能由读取的 latest-key 序号决定是否清理。
+  const beginLoading = (request: Request) => {
+    const token = Symbol();
+    if (request.isCurrent()) {
+      loadingOwners.add(token);
+      set({ isLoading: true, error: null });
     }
-  },
-
-  getObject: async (accountId, objectId, options) => {
-    const request = requests.begin(
-      options?.quiet ? `object-detail:${objectId}` : `object:${objectId}`,
-      accountId,
-    );
-    const setCurrent = request.guardSet<ObjectState>(set);
-    if (!options?.quiet) setCurrent({ isLoading: true, error: null });
+    return () => {
+      if (loadingOwners.delete(token) && request.isCurrent()) {
+        set({ isLoading: loadingOwners.size > 0 });
+      }
+    };
+  };
+  const invalidateObjectReads = (objectId: string) => {
+    requests.invalidate(`object:${objectId}`);
+    requests.invalidate(`object-detail:${objectId}`);
+  };
+  // 回执只受会话保护；同一对象的写入按调用顺序发送和发布。
+  const serializeMutation = async <T>(
+    objectId: string,
+    request: Request,
+    operation: () => Promise<T>,
+  ): Promise<T> => {
+    const previous = mutationTails.get(objectId);
+    let release!: () => void;
+    const tail = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    mutationTails.set(objectId, tail);
     try {
-      const wire = await request.invokeTyped('object_get', {
-        accountId: accountId,
+      if (previous) await previous;
+      request.assertCurrent();
+      return await operation();
+    } finally {
+      release();
+      if (mutationTails.get(objectId) === tail) mutationTails.delete(objectId);
+    }
+  };
+  return {
+    objects: [],
+    currentObjectCache: {},
+    isLoading: false,
+    error: null,
+
+    loadObjects: async (accountId, filter) => {
+      const request = requests.begin('objects', accountId);
+      const setCurrent = request.guardSet<ObjectState>(set);
+      const finishLoading = beginLoading(requests.begin(undefined, accountId));
+      // 立即清空之前页面的陈旧对象，避免页面切换时闪烁旧卡片
+      setCurrent({ objects: [] });
+      try {
+        const objects = await request.invokeTyped('object_list', {
+          accountId: accountId,
+          filter: filter || null,
+        });
+        request.assertCurrent();
+        setCurrent({ objects: objects.map(toObjectSummaryView) });
+      } catch (err) {
+        if (!request.isCurrent()) return;
+        setCurrent({ error: normalizeObjectError(err) });
+      } finally {
+        finishLoading();
+      }
+    },
+
+    getObject: async (accountId, objectId, options) => {
+      const request = requests.begin(
+        options?.quiet ? `object-detail:${objectId}` : `object:${objectId}`,
+        accountId,
+      );
+      const setCurrent = request.guardSet<ObjectState>(set);
+      const finishLoading = options?.quiet
+        ? () => {}
+        : beginLoading(requests.begin(undefined, accountId));
+      try {
+        const wire = await request.invokeTyped('object_get', {
+          accountId: accountId,
+          objectId: objectId,
+        });
+        request.assertCurrent();
+        if (options?.signal?.aborted) return;
+        const obj = wire === null ? null : toObjectDataView(wire);
+        setCurrent((s) => ({
+          currentObjectCache: obj
+            ? { ...s.currentObjectCache, [objectId]: obj }
+            : s.currentObjectCache,
+        }));
+        // 调用方直接使用本次已校验的响应，不能从旧缓存推断此次读取成功。
+        return obj;
+      } catch (err) {
+        if (!request.isCurrent() || options?.signal?.aborted) return;
+        if (options?.quiet) throw err;
+        setCurrent({ error: normalizeObjectError(err) });
+      } finally {
+        finishLoading();
+      }
+    },
+
+    createObject: async (input) => {
+      const request = requests.begin(undefined, input.accountId);
+      const setCurrent = request.guardSet<ObjectState>(set);
+      const finishLoading = beginLoading(request);
+      try {
+        const obj = toObjectDataView(
+          await request.invokeTyped('object_create', {
+            input: { ...input, properties: toJsonObject(input.properties) },
+          }),
+        );
+        request.assertCurrent();
+        setCurrent((s) => ({
+          objects: [
+            ...s.objects,
+            {
+              id: obj.id,
+              name: obj.name,
+              typeId: obj.typeId,
+              sensitivityLevel: obj.sensitivityLevel,
+              createdAt: obj.createdAt,
+              updatedAt: obj.updatedAt,
+              templateId: obj.templateId,
+              templateType: obj.templateType,
+              templateHash: obj.templateHash,
+              contractTypeId: obj.contractTypeId,
+            },
+          ],
+        }));
+        // P038: 新建对象后立即失效搜索缓存
+        invalidateSearchCache();
+        return obj;
+      } catch (err) {
+        request.assertCurrent();
+        setCurrent({ error: normalizeObjectError(err) });
+        throw err;
+      } finally {
+        finishLoading();
+      }
+    },
+
+    updateObject: async (objectId, input) => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<ObjectState>(set);
+      const finishLoading = beginLoading(request);
+      try {
+        const payload = { ...input, properties: toJsonObject(input.properties) };
+        return await serializeMutation(objectId, request, async () => {
+          const obj = toObjectDataView(
+            await request.invokeTyped('object_update', {
+              objectId: objectId,
+              input: payload,
+            }),
+          );
+          request.assertCurrent();
+          invalidateObjectReads(objectId);
+          setCurrent((s) => ({
+            currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
+            // 同步更新摘要列表对应项，避免列表与详情缓存不一致（P057）。
+            objects: s.objects.map((o) =>
+              o.id === objectId
+                ? {
+                    ...o,
+                    name: obj.name,
+                    sensitivityLevel: obj.sensitivityLevel,
+                    updatedAt: obj.updatedAt,
+                    templateId: obj.templateId,
+                    templateType: obj.templateType,
+                    templateHash: obj.templateHash,
+                    contractTypeId: obj.contractTypeId,
+                    tags: obj.tags,
+                    propertyLabels: obj.propertyLabels,
+                  }
+                : o,
+            ),
+          }));
+          // P038: 编辑对象后立即失效搜索缓存
+          invalidateSearchCache();
+          return obj;
+        });
+      } catch (err) {
+        request.assertCurrent();
+        setCurrent({ error: normalizeObjectError(err) });
+        // P002: 与 createObject 对齐——失败必须向上抛，调用方（useObjectEditorPage
+        // handleSave）依赖异常进入 onError 分支；吞错会导致「保存失败被误报成功并
+        // 退出页面」，编辑内容静默丢失。
+        throw err;
+      } finally {
+        finishLoading();
+      }
+    },
+
+    setObjectLocked: async (objectId, locked) => {
+      const request = requests.begin();
+      return serializeMutation(objectId, request, async () => {
+        const obj = toObjectDataView(
+          await request.invokeTyped('object_set_locked', { objectId, locked }),
+        );
+        request.assertCurrent();
+        if (obj.id !== objectId || obj.accountId !== useAuthStore.getState().currentAccount?.id)
+          throw new Error('Object response ownership mismatch');
+        invalidateObjectReads(objectId);
+        set((s) => ({
+          currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
+          objects: s.objects.map((item) =>
+            item.id === objectId
+              ? {
+                  ...item,
+                  updatedAt: obj.updatedAt,
+                  properties: { ...item.properties, __editLocked: obj.properties.__editLocked },
+                }
+              : item,
+          ),
+        }));
+        invalidateSearchCache();
+        return obj;
+      });
+    },
+
+    deleteObject: async (objectId) => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<ObjectState>(set);
+      const finishLoading = beginLoading(request);
+      try {
+        return await serializeMutation(objectId, request, async () => {
+          await request.invokeTyped('object_delete', { objectId: objectId });
+          request.assertCurrent();
+          invalidateObjectReads(objectId);
+          setCurrent((s) => {
+            // P043: 删除对象时同步清理详情缓存，避免残留旧数据被误读
+            const nextCache = { ...s.currentObjectCache };
+            delete nextCache[objectId];
+            return {
+              objects: s.objects.filter((o) => o.id !== objectId),
+              currentObjectCache: nextCache,
+            };
+          });
+          // P038: 删除对象后立即失效搜索缓存
+          invalidateSearchCache();
+        });
+      } catch (err) {
+        if (!request.isCurrent()) return;
+        setCurrent({ error: normalizeObjectError(err) });
+        throw err;
+      } finally {
+        finishLoading();
+      }
+    },
+
+    previewSyncTemplate: async (accountId, objectId) => {
+      const request = requests.begin(undefined, accountId);
+      return request.invokeTyped('object_sync_with_template', {
+        objectId: objectId,
+        dryRun: true,
+      });
+    },
+
+    applySyncTemplate: async (accountId, objectId) => {
+      const request = requests.begin(undefined, accountId);
+      return serializeMutation(objectId, request, async () => {
+        const result = await request.invokeTyped('object_sync_with_template', {
+          objectId: objectId,
+          dryRun: false,
+        });
+        request.assertCurrent();
+        invalidateObjectReads(objectId);
+        // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
+        request.assertCurrent();
+        await useObjectStore.getState().getObject(accountId, objectId);
+        request.assertCurrent();
+        // P038: 模板同步改写对象内容后立即失效搜索缓存
+        searchCache.invalidateAccount(accountId);
+        return result;
+      });
+    },
+
+    ignoreTemplateSync: async (objectId: string, hash: string) => {
+      const request = requests.begin();
+      return serializeMutation(objectId, request, async () => {
+        await request.invokeTyped('object_ignore_template_sync', { objectId: objectId, hash });
+        request.assertCurrent();
+        invalidateObjectReads(objectId);
+      });
+    },
+
+    loadDeprecatedFields: async (accountId, objectId) => {
+      const request = requests.begin(undefined, accountId);
+      return request.invokeTyped('object_list_deprecated_fields', {
         objectId: objectId,
       });
-      request.assertCurrent();
-      if (options?.signal?.aborted) return;
-      const obj = wire === null ? null : toObjectDataView(wire);
-      setCurrent((s) => ({
-        currentObjectCache: obj
-          ? { ...s.currentObjectCache, [objectId]: obj }
-          : s.currentObjectCache,
-        ...(options?.quiet ? {} : { isLoading: false }),
-      }));
-      // 调用方直接使用本次已校验的响应，不能从旧缓存推断此次读取成功。
-      return obj;
-    } catch (err) {
-      if (!request.isCurrent() || options?.signal?.aborted) return;
-      if (options?.quiet) throw err;
-      setCurrent({ error: normalizeObjectError(err), isLoading: false });
-    }
-  },
+    },
 
-  createObject: async (input) => {
-    const request = requests.begin(undefined, input.accountId);
-    const setCurrent = request.guardSet<ObjectState>(set);
-    setCurrent({ isLoading: true, error: null });
-    try {
-      const obj = toObjectDataView(
-        await request.invokeTyped('object_create', {
-          input: { ...input, properties: toJsonObject(input.properties) },
-        }),
-      );
-      request.assertCurrent();
-      setCurrent((s) => ({
-        objects: [
-          ...s.objects,
-          {
-            id: obj.id,
-            name: obj.name,
-            typeId: obj.typeId,
-            sensitivityLevel: obj.sensitivityLevel,
-            createdAt: obj.createdAt,
-            updatedAt: obj.updatedAt,
-            templateId: obj.templateId,
-            templateType: obj.templateType,
-            templateHash: obj.templateHash,
-            contractTypeId: obj.contractTypeId,
-          },
-        ],
-        isLoading: false,
-      }));
-      // P038: 新建对象后立即失效搜索缓存
-      invalidateSearchCache();
-      return obj;
-    } catch (err) {
-      request.assertCurrent();
-      setCurrent({ error: normalizeObjectError(err), isLoading: false });
-      throw err;
-    }
-  },
-
-  updateObject: async (objectId, input) => {
-    const request = requests.begin(`object:${objectId}`);
-    const setCurrent = request.guardSet<ObjectState>(set);
-    setCurrent({ isLoading: true, error: null });
-    try {
-      const obj = toObjectDataView(
-        await request.invokeTyped('object_update', {
-          objectId: objectId,
-          input: { ...input, properties: toJsonObject(input.properties) },
-        }),
-      );
-      request.assertCurrent();
-      requests.invalidate(`object-detail:${objectId}`);
-      setCurrent((s) => ({
-        currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
-        // 同步更新摘要列表对应项，避免列表与详情缓存不一致（P057）。
-        objects: s.objects.map((o) =>
-          o.id === objectId
-            ? {
-                ...o,
-                name: obj.name,
-                sensitivityLevel: obj.sensitivityLevel,
-                updatedAt: obj.updatedAt,
-                templateId: obj.templateId,
-                templateType: obj.templateType,
-                templateHash: obj.templateHash,
-                contractTypeId: obj.contractTypeId,
-                tags: obj.tags,
-                propertyLabels: obj.propertyLabels,
-              }
-            : o,
-        ),
-        isLoading: false,
-      }));
-      // P038: 编辑对象后立即失效搜索缓存
-      invalidateSearchCache();
-      return obj;
-    } catch (err) {
-      request.assertCurrent();
-      setCurrent({ error: normalizeObjectError(err), isLoading: false });
-      // P002: 与 createObject 对齐——失败必须向上抛，调用方（useObjectEditorPage
-      // handleSave）依赖异常进入 onError 分支；吞错会导致「保存失败被误报成功并
-      // 退出页面」，编辑内容静默丢失。
-      throw err;
-    }
-  },
-
-  setObjectLocked: async (objectId, locked) => {
-    const request = requests.begin(`object:${objectId}`);
-    const obj = toObjectDataView(
-      await request.invokeTyped('object_set_locked', { objectId, locked }),
-    );
-    request.assertCurrent();
-    if (obj.id !== objectId || obj.accountId !== useAuthStore.getState().currentAccount?.id)
-      throw new Error('Object response ownership mismatch');
-    requests.invalidate(`object-detail:${objectId}`);
-    set((s) => ({
-      currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
-      objects: s.objects.map((item) =>
-        item.id === objectId
-          ? {
-              ...item,
-              updatedAt: obj.updatedAt,
-              properties: { ...item.properties, __editLocked: obj.properties.__editLocked },
-            }
-          : item,
-      ),
-    }));
-    invalidateSearchCache();
-    return obj;
-  },
-
-  deleteObject: async (objectId) => {
-    const request = requests.begin(`object:${objectId}`);
-    const setCurrent = request.guardSet<ObjectState>(set);
-    setCurrent({ isLoading: true, error: null });
-    try {
-      await request.invokeTyped('object_delete', { objectId: objectId });
-      request.assertCurrent();
-      requests.invalidate(`object-detail:${objectId}`);
-      setCurrent((s) => {
-        // P043: 删除对象时同步清理详情缓存，避免残留旧数据被误读
-        const nextCache = { ...s.currentObjectCache };
-        delete nextCache[objectId];
-        return {
-          objects: s.objects.filter((o) => o.id !== objectId),
-          currentObjectCache: nextCache,
-          isLoading: false,
-        };
-      });
-      // P038: 删除对象后立即失效搜索缓存
-      invalidateSearchCache();
-    } catch (err) {
-      if (!request.isCurrent()) return;
-      setCurrent({ error: normalizeObjectError(err), isLoading: false });
-      throw err;
-    }
-  },
-
-  previewSyncTemplate: async (accountId, objectId) => {
-    const request = requests.begin(undefined, accountId);
-    return request.invokeTyped('object_sync_with_template', {
-      objectId: objectId,
-      dryRun: true,
-    });
-  },
-
-  applySyncTemplate: async (accountId, objectId) => {
-    const request = requests.begin(undefined, accountId);
-    const result = await request.invokeTyped('object_sync_with_template', {
-      objectId: objectId,
-      dryRun: false,
-    });
-    request.assertCurrent();
-    requests.invalidate(`object-detail:${objectId}`);
-    // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
-    request.assertCurrent();
-    await useObjectStore.getState().getObject(accountId, objectId);
-    request.assertCurrent();
-    // P038: 模板同步改写对象内容后立即失效搜索缓存
-    searchCache.invalidateAccount(accountId);
-    return result;
-  },
-
-  ignoreTemplateSync: async (objectId: string, hash: string) => {
-    const request = requests.begin();
-    await request.invokeTyped('object_ignore_template_sync', { objectId: objectId, hash });
-    request.assertCurrent();
-    requests.invalidate(`object-detail:${objectId}`);
-  },
-
-  loadDeprecatedFields: async (accountId, objectId) => {
-    const request = requests.begin(undefined, accountId);
-    return request.invokeTyped('object_list_deprecated_fields', {
-      objectId: objectId,
-    });
-  },
-
-  clearOnVaultLock: () => {
-    requests.invalidate();
-    return set({ objects: [], currentObjectCache: {}, isLoading: false, error: null });
-  },
-}));
+    clearOnVaultLock: () => {
+      requests.invalidate();
+      loadingOwners.clear();
+      mutationTails.clear();
+      return set({ objects: [], currentObjectCache: {}, isLoading: false, error: null });
+    },
+  };
+});
 
 onRequestSessionChange(() => useObjectStore.getState().clearOnVaultLock());
