@@ -73,7 +73,7 @@ impl VaultStore {
     /// 唯一有权绕过普通写保护的状态切换，持锁重读后只改变保护标记。
     pub fn set_object_edit_lock(&self, id: &str, locked: bool) -> Result<ObjectRecord, String> {
         let key = self.data_key()?;
-        let hlc = self.new_local_hlc()?;
+        let node = Self::normalize_sync_node_id(&self.local_node_id());
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         with_tx(conn, "Object lock begin", "Object lock commit", |conn| {
@@ -103,6 +103,7 @@ impl VaultStore {
                 .version
                 .checked_add(1)
                 .ok_or("Object version overflow")?;
+            let hlc = Self::new_local_hlc_tx(conn, &node)?;
             Self::save_object_unchecked_tx(conn, &key, &record, None)?;
             Self::set_record_hlc_tx(conn, "objects", id, &hlc)?;
             Ok(record)

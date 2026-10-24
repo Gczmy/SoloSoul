@@ -234,7 +234,7 @@ impl VaultStore {
         if ids.is_empty() {
             return Ok(Vec::new());
         }
-        let hlc = self.new_local_hlc()?;
+        let node = Self::normalize_sync_node_id(&self.local_node_id());
         let mut guard = self
             .conn
             .lock()
@@ -299,6 +299,7 @@ impl VaultStore {
                         .checked_add(1)
                         .ok_or("Attachment object version overflow")?;
                     record.updated_at = chrono::Utc::now().to_rfc3339();
+                    let hlc = Self::new_local_hlc_tx(tx, &node)?;
                     Self::save_object_tx(tx, &key, record, None)?;
                     Self::set_record_hlc_tx(tx, "objects", object_id, &hlc)?;
                     for (attachment_id, storage_id) in &targets {

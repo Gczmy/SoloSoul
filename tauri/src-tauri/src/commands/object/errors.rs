@@ -50,6 +50,17 @@ pub(super) fn write(cause: String) -> BackendError {
     }
     BackendError::caused_by(Code::ObjectWriteFailed, Stage::Write, cause)
 }
+pub(super) fn mutation(
+    cause: solosoul_vault::storage::ObjectMutationError<BackendError>,
+) -> BackendError {
+    use solosoul_vault::storage::ObjectMutationError as M;
+    match cause {
+        M::Read(cause) => read(cause),
+        M::Write(cause) => write(cause),
+        M::Edit(cause) => cause,
+        M::VersionOverflow => write("Object version overflow".into()),
+    }
+}
 pub(super) fn validate(cause: String) -> BackendError {
     BackendError::caused_by(Code::ObjectValidationFailed, Stage::Validate, cause)
 }

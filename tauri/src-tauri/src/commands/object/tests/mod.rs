@@ -12,6 +12,7 @@ fn setup_vault() -> (VaultStore, TempDir) {
 // ── 主题子模块（P047 拆分）──────────────────
 mod crud;
 mod misc;
+mod p052;
 mod rf010;
 mod rf302;
 mod snapshot;

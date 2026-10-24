@@ -447,9 +447,27 @@ impl VaultStore {
         })
     }
 
+    /// 对象修改持有事务时生成时钟，保证时钟顺序与提交顺序一致。
+    pub(crate) fn new_local_hlc_tx(
+        conn: &Connection,
+        node_id: &str,
+    ) -> Result<crate::RecordHlc, String> {
+        let max_existing = Self::max_hlc_wall_time_for_node_tx(conn, node_id)?;
+        let next = max_existing.checked_add(1).ok_or("Local HLC overflow")?;
+        Ok(crate::RecordHlc {
+            wall_time_ms: Self::parse_time_ms(&Self::now_rfc3339()).max(next),
+            counter: 0,
+            node_id: node_id.to_string(),
+        })
+    }
+
     fn max_hlc_wall_time_for_node(&self, node_id: &str) -> Result<u64, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::max_hlc_wall_time_for_node_tx(conn, node_id)
+    }
+
+    fn max_hlc_wall_time_for_node_tx(conn: &Connection, node_id: &str) -> Result<u64, String> {
         let max: Option<i64> = {
             let max_result = conn
                 .query_row(

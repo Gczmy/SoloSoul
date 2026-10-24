@@ -629,13 +629,15 @@ fn attach_object_to_parent(
     parent_id: Option<&str>,
 ) -> Result<(), BackendError> {
     if let Some(pid) = parent_id {
-        if let Ok(Some(mut parent)) = vault.load_object(pid) {
-            if !parent.children_ids.contains(&child_id.to_string()) {
-                parent.children_ids.push(child_id.to_string());
-                parent.updated_at = chrono::Utc::now().to_rfc3339();
-                parent.version += 1;
-                vault.save_object(&parent).map_err(errors::write)?;
+        match vault.mutate_object(pid, |parent| -> Result<_, BackendError> {
+            if parent.children_ids.iter().any(|id| id == child_id) {
+                return Ok(false);
             }
+            parent.children_ids.push(child_id.to_string());
+            Ok(true)
+        }) {
+            Err(solosoul_vault::storage::ObjectMutationError::Read(_)) | Ok(_) => {}
+            Err(error) => return Err(errors::mutation(error)),
         }
     }
     Ok(())
@@ -678,6 +680,55 @@ fn create_object_snapshot_and_audit(
     Ok(())
 }
 
+/// 普通表单更新只覆盖可编辑字段，保护元数据来自提交事务内的最新记录。
+fn mutate_object_fields(
+    vault: &solosoul_vault::VaultStore,
+    object_id: &str,
+    input: UpdateObjectInput,
+) -> Result<(ObjectRecord, String), BackendError> {
+    let mut old_sensitivity = String::new();
+    let record = vault
+        .mutate_object(object_id, |record| -> Result<_, BackendError> {
+            old_sensitivity = record.sensitivity_level.clone();
+            // Preserve old __fields and __templateName before overwriting properties (前端不发送这两项)
+            let old_fields = record.properties.get("__fields").cloned();
+            let old_tpl_name = record.properties.get("__templateName").cloned();
+            record.name = input.name;
+            let mut properties = input.properties;
+            solosoul_vault::storage::preserve_object_edit_metadata(
+                &record.properties,
+                &mut properties,
+            );
+            record.properties = properties;
+            if let Some(sl) = input.sensitivity_level {
+                record.sensitivity_level = sl;
+            }
+            if let Some(icon_name) = input.icon_name {
+                record.icon_name = icon_name;
+            }
+            // 普通更新不再自动同步模板字段定义与敏感度；仅在用户主动同步时更新。
+            // 这里只恢复前端未发送的 __fields 与 __templateName，确保对象结构完整。
+            if record.properties.get("__fields").is_none() {
+                if let Some(f) = old_fields {
+                    inject_property_fields(&mut record.properties, &f);
+                }
+            }
+            if record.properties.get("__templateName").is_none() {
+                if let Some(name) = old_tpl_name {
+                    if let Some(obj) = record.properties.as_object_mut() {
+                        obj.insert("__templateName".to_string(), name);
+                    }
+                }
+            }
+            // 校验 dynamic_group 字段
+            validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
+            Ok(true)
+        })
+        .map_err(errors::mutation)?
+        .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
+    Ok((record, old_sensitivity))
+}
+
 #[tauri::command]
 pub async fn object_update(
     state: State<'_, AppState>,
@@ -691,45 +742,7 @@ pub async fn object_update(
 
     // P114: load_object 解密 + save_object 加密写入 + 快照/日志移入 spawn_blocking。
     let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, BackendError> {
-        let mut record = vault
-            .load_object(&object_id)
-            .map_err(errors::read)?
-            .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
-
-        let old_sensitivity = record.sensitivity_level.clone();
-        // Preserve old __fields and __templateName before overwriting properties (前端不发送这两项)
-        let old_fields = record.properties.get("__fields").cloned();
-        let old_tpl_name = record.properties.get("__templateName").cloned();
-        record.name = input.name;
-        let mut properties = input.properties;
-        solosoul_vault::storage::preserve_object_edit_metadata(&record.properties, &mut properties);
-        record.properties = properties;
-        if let Some(sl) = input.sensitivity_level {
-            record.sensitivity_level = sl;
-        }
-        if let Some(icon_name) = input.icon_name {
-            record.icon_name = icon_name;
-        }
-        // 普通更新不再自动同步模板字段定义与敏感度；仅在用户主动同步时更新。
-        // 这里只恢复前端未发送的 __fields 与 __templateName，确保对象结构完整。
-        if record.properties.get("__fields").is_none() {
-            if let Some(f) = old_fields {
-                inject_property_fields(&mut record.properties, &f);
-            }
-        }
-        if record.properties.get("__templateName").is_none() {
-            if let Some(name) = old_tpl_name {
-                if let Some(obj) = record.properties.as_object_mut() {
-                    obj.insert("__templateName".to_string(), name);
-                }
-            }
-        }
-        // 校验 dynamic_group 字段
-        validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
-        record.updated_at = chrono::Utc::now().to_rfc3339();
-        record.version += 1;
-
-        vault.save_object(&record).map_err(errors::write)?;
+        let (record, old_sensitivity) = mutate_object_fields(&vault, &object_id, input)?;
 
         // §28: bump public_data_version when sensitivity changes to/from public
         let new_sensitivity = &record.sensitivity_level;
@@ -1371,7 +1384,7 @@ pub async fn object_sync_with_template(
     dry_run: bool,
 ) -> Result<TemplateSyncResult, BackendError> {
     let vault = vault_handle(&state)?;
-    let mut record = vault
+    let record = vault
         .load_object(&object_id)
         .map_err(errors::read)?
         .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
@@ -1387,22 +1400,26 @@ pub async fn object_sync_with_template(
         .flatten()
         .ok_or_else(|| BackendError::new(Code::ObjectTemplateNotFound))?;
 
-    let result = compute_sync_changes(&record, &tpl);
+    let mut result = compute_sync_changes(&record, &tpl);
 
     if dry_run {
         return Ok(result);
     }
 
-    apply_sync_changes(&mut record, &tpl, &result, false);
-
-    // 校验 dynamic_group 字段
-    validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
-
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    // 应用同步后清除已忽略指纹，避免旧忽略状态干扰未来检测。
-    record.ignored_template_hash = None;
-    vault.save_object(&record).map_err(errors::write)?;
+    let record = vault
+        .mutate_object(&object_id, |record| -> Result<_, BackendError> {
+            if record.template_id.as_deref() != Some(&template_id) {
+                return Err(BackendError::new(Code::ObjectTemplateMissing));
+            }
+            result = compute_sync_changes(record, &tpl);
+            apply_sync_changes(record, &tpl, &result, false);
+            validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
+            // 应用同步后清除已忽略指纹，避免旧忽略状态干扰未来检测。
+            record.ignored_template_hash = None;
+            Ok(true)
+        })
+        .map_err(errors::mutation)?
+        .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
 
     // 只有真正发生字段变更时才记录快照与审计日志
     if result.has_changes {
@@ -1450,14 +1467,13 @@ pub async fn object_ignore_template_sync(
     hash: String,
 ) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut record = vault
-        .load_object(&object_id)
-        .map_err(errors::read)?
+    vault
+        .mutate_object(&object_id, |record| -> Result<_, BackendError> {
+            record.ignored_template_hash = Some(hash);
+            Ok(true)
+        })
+        .map_err(errors::mutation)?
         .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
-    record.ignored_template_hash = Some(hash);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record).map_err(errors::write)?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())

@@ -283,17 +283,15 @@ pub fn migrate_contract_bindings(
                 if obj.template_id.as_deref() != Some(&tpl.id) {
                     continue;
                 }
-                let mut record = match vault.load_object(&obj.id)? {
-                    Some(r) => r,
-                    None => continue,
-                };
-                if record.template_hash.as_deref() != Some(&old_hash) {
-                    continue;
-                }
-                record.template_hash = Some(new_hash.clone());
-                record.updated_at = chrono::Utc::now().to_rfc3339();
-                record.version += 1;
-                vault.save_object(&record)?;
+                vault.mutate_object(&obj.id, |record| -> Result<_, String> {
+                    if record.template_id.as_deref() != Some(&tpl.id)
+                        || record.template_hash.as_deref() != Some(&old_hash)
+                    {
+                        return Ok(false);
+                    }
+                    record.template_hash = Some(new_hash.clone());
+                    Ok(true)
+                })?;
             }
         }
     }

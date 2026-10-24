@@ -22,6 +22,9 @@ const MAX_ATTACHMENT_TAG_LEN: usize = 30;
 /// 单个附件描述的最大字符数（超出部分截断）。
 const MAX_ATTACHMENT_DESCRIPTION_LEN: usize = 500;
 
+#[cfg(test)]
+mod p052_tests;
+
 /// P007: 附件元数据唯一来源 = solosoul-core `export_import::AttachmentMeta`
 /// （camelCase 序列化契约单一维护，GUI 与 CLI 导入导出不再双定义漂移）。
 pub use solosoul_core::export_import::AttachmentMeta;
@@ -63,6 +66,23 @@ pub(crate) fn save_attachments(props: &mut serde_json::Value, atts: &[Attachment
             serde_json::to_value(atts).unwrap_or_default(),
         );
     }
+}
+
+/// 读取、修改和提交使用同一对象事务；不能把旧附件列表覆盖到最新记录。
+fn mutate_attachments(
+    vault: &solosoul_vault::VaultStore,
+    object_id: &str,
+    edit: impl FnOnce(&mut Vec<AttachmentMeta>) -> Result<(), String>,
+) -> Result<(), String> {
+    vault
+        .mutate_object(object_id, |record| -> Result<_, String> {
+            let mut atts = load_attachments(&record.properties);
+            edit(&mut atts)?;
+            save_attachments(&mut record.properties, &atts);
+            Ok(true)
+        })?
+        .ok_or("Object not found")?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -162,15 +182,12 @@ pub async fn attachment_restore(
     attachment_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.deleted_at = None;
-    }
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachments(&vault, &object_id, |atts| {
+        if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+            a.deleted_at = None;
+        }
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -183,21 +200,18 @@ pub async fn attachment_save(
     meta: AttachmentMeta,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    // §10.4.4: maximum active attachments per object
-    let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
-    if active_count >= MAX_ACTIVE_ATTACHMENTS {
-        return Err(format!(
-            "Maximum {} active attachments per object reached",
-            MAX_ACTIVE_ATTACHMENTS
-        ));
-    }
-    atts.push(meta);
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachments(&vault, &object_id, |atts| {
+        // §10.4.4: maximum active attachments per object
+        let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
+        if active_count >= MAX_ACTIVE_ATTACHMENTS {
+            return Err(format!(
+                "Maximum {} active attachments per object reached",
+                MAX_ACTIVE_ATTACHMENTS
+            ));
+        }
+        atts.push(meta);
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -211,20 +225,17 @@ pub async fn attachment_rename(
     new_name: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        // P207: sanitize file_name to prevent path traversal
-        let safe_name = std::path::Path::new(&new_name)
-            .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or(new_name.clone());
-        a.file_name = safe_name;
-    }
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachments(&vault, &object_id, |atts| {
+        if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+            // P207: sanitize file_name to prevent path traversal
+            let safe_name = std::path::Path::new(&new_name)
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or(new_name.clone());
+            a.file_name = safe_name;
+        }
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -246,49 +257,46 @@ pub async fn attachment_update_meta(
     tags: Option<Vec<String>>,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    let att = atts
-        .iter_mut()
-        .find(|a| a.id == attachment_id)
-        .ok_or("Attachment not found")?;
-    if let Some(desc) = description {
-        let trimmed = desc.trim();
-        if trimmed.is_empty() {
-            att.description = None;
-        } else {
-            // 字符级截断：String::truncate 按字节截断，多字节 UTF-8（中文等）落在字符
-            // 中间会 panic——用 chars().take() 保证字符边界安全
-            att.description = Some(
-                trimmed
-                    .chars()
-                    .take(MAX_ATTACHMENT_DESCRIPTION_LEN)
-                    .collect(),
-            );
+    mutate_attachments(&vault, &object_id, |atts| {
+        let att = atts
+            .iter_mut()
+            .find(|a| a.id == attachment_id)
+            .ok_or("Attachment not found")?;
+        if let Some(desc) = description {
+            let trimmed = desc.trim();
+            if trimmed.is_empty() {
+                att.description = None;
+            } else {
+                // 字符级截断：String::truncate 按字节截断，多字节 UTF-8（中文等）落在字符
+                // 中间会 panic——用 chars().take() 保证字符边界安全
+                att.description = Some(
+                    trimmed
+                        .chars()
+                        .take(MAX_ATTACHMENT_DESCRIPTION_LEN)
+                        .collect(),
+                );
+            }
         }
-    }
-    if let Some(tags) = tags {
-        // 与前端一致：大小写不敏感去重 + 逐标签长度上限（均字符级，UTF-8 安全）
-        let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
-        let cleaned: Vec<String> = tags
-            .into_iter()
-            .filter_map(|s| {
-                let trimmed = s.trim().to_string();
-                let normalized = trimmed.to_lowercase();
-                if trimmed.is_empty() || !seen.insert(normalized) {
-                    None
-                } else {
-                    Some(trimmed.chars().take(MAX_ATTACHMENT_TAG_LEN).collect())
-                }
-            })
-            .take(MAX_ATTACHMENT_TAGS)
-            .collect();
-        att.tags = cleaned;
-    }
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+        if let Some(tags) = tags {
+            // 与前端一致：大小写不敏感去重 + 逐标签长度上限（均字符级，UTF-8 安全）
+            let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+            let cleaned: Vec<String> = tags
+                .into_iter()
+                .filter_map(|s| {
+                    let trimmed = s.trim().to_string();
+                    let normalized = trimmed.to_lowercase();
+                    if trimmed.is_empty() || !seen.insert(normalized) {
+                        None
+                    } else {
+                        Some(trimmed.chars().take(MAX_ATTACHMENT_TAG_LEN).collect())
+                    }
+                })
+                .take(MAX_ATTACHMENT_TAGS)
+                .collect();
+            att.tags = cleaned;
+        }
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -301,16 +309,12 @@ pub async fn attachment_soft_delete(
     attachment_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.deleted_at = Some(chrono::Utc::now().to_rfc3339());
-    }
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachments(&vault, &object_id, |atts| {
+        if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+            a.deleted_at = Some(chrono::Utc::now().to_rfc3339());
+        }
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -325,18 +329,15 @@ pub async fn attachment_batch_soft_delete(
     attachment_ids: Vec<String>,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    let ids_set: std::collections::HashSet<&str> =
-        attachment_ids.iter().map(|s| s.as_str()).collect();
-    let now = chrono::Utc::now().to_rfc3339();
-    for att in atts.iter_mut().filter(|a| ids_set.contains(a.id.as_str())) {
-        att.deleted_at = Some(now.clone());
-    }
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachments(&vault, &object_id, |atts| {
+        let ids_set: std::collections::HashSet<&str> =
+            attachment_ids.iter().map(|s| s.as_str()).collect();
+        let now = chrono::Utc::now().to_rfc3339();
+        for att in atts.iter_mut().filter(|a| ids_set.contains(a.id.as_str())) {
+            att.deleted_at = Some(now.clone());
+        }
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -351,17 +352,14 @@ pub async fn attachment_batch_restore(
     attachment_ids: Vec<String>,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let mut atts = load_attachments(&record.properties);
-    let ids_set: std::collections::HashSet<&str> =
-        attachment_ids.iter().map(|s| s.as_str()).collect();
-    for att in atts.iter_mut().filter(|a| ids_set.contains(a.id.as_str())) {
-        att.deleted_at = None;
-    }
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachments(&vault, &object_id, |atts| {
+        let ids_set: std::collections::HashSet<&str> =
+            attachment_ids.iter().map(|s| s.as_str()).collect();
+        for att in atts.iter_mut().filter(|a| ids_set.contains(a.id.as_str())) {
+            att.deleted_at = None;
+        }
+        Ok(())
+    })?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())

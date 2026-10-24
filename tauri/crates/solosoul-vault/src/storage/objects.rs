@@ -455,6 +455,8 @@ impl ObjectRowRaw {
 impl VaultStore {
     // ── Object CRUD ─────────────────────────────────────────
 
+    /// 创建、导入等完整记录写入。普通读改写必须使用 `mutate_object`，
+    /// 不能在连接锁外读取后把旧副本作为完整记录覆盖。
     pub fn save_object(&self, obj: &ObjectRecord) -> Result<(), String> {
         let key = self.data_key()?;
         // 方案 B（R-3 根治）：本地写统一生成并落库 HLC。生成需读 sync_hlc 最大值，

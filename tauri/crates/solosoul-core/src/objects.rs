@@ -32,6 +32,9 @@ pub use create::{
 mod rollback;
 pub use rollback::{rollback_object, RollbackError, RollbackErrorStage, RollbackOutcome};
 
+#[cfg(test)]
+mod p052_tests;
+
 const MAX_ACTIVE_ATTACHMENTS: usize = 200;
 
 // ── Object helpers ─────────────────────────────────────────
@@ -135,13 +138,16 @@ pub fn create_object(
     vault.save_object(&record)?;
 
     // 更新父页面的 children_ids
-    if let Ok(Some(mut parent)) = vault.load_object(page_id) {
-        if !parent.children_ids.contains(&id) {
-            parent.children_ids.push(id.clone());
-            parent.updated_at = chrono::Utc::now().to_rfc3339();
-            parent.version += 1;
-            vault.save_object(&parent)?;
+    match vault.mutate_object(page_id, |parent| -> Result<_, String> {
+        if parent.children_ids.contains(&id) {
+            return Ok(false);
         }
+        parent.children_ids.push(id.clone());
+        Ok(true)
+    }) {
+        // 与原创建入口一致：父页面不可读时容错，实际写入失败仍须报告。
+        Err(solosoul_vault::storage::ObjectMutationError::Read(_)) | Ok(_) => {}
+        Err(error) => return Err(error.into()),
     }
 
     save_creation_snapshot(
@@ -165,10 +171,29 @@ pub fn create_object(
 
 /// 保存编辑后的对象（含 snapshot 和日志）。
 pub fn update_object(vault: &VaultStore, object: &mut ObjectRecord) -> Result<(), String> {
-    object.updated_at = chrono::Utc::now().to_rfc3339();
-    object.version += 1;
-
-    vault.save_object(object)?;
+    // CLI 草稿可能早于附件/父子结构等写入；只应用表单字段，保护元数据以事务内最新值为准。
+    let draft = object.clone();
+    let saved = vault
+        .mutate_object(&draft.id, |record| -> Result<_, String> {
+            if record.account_id != draft.account_id || record.is_deleted {
+                return Err("对象不存在或已被删除".into());
+            }
+            let mut properties = draft.properties.clone();
+            solosoul_vault::storage::preserve_object_edit_metadata(
+                &record.properties,
+                &mut properties,
+            );
+            record.name = draft.name.clone();
+            record.icon_name = draft.icon_name.clone();
+            record.properties = properties;
+            record.property_labels = draft.property_labels.clone();
+            record.tags_json = draft.tags_json.clone();
+            record.sensitivity_level = draft.sensitivity_level.clone();
+            Ok(true)
+        })?
+        .ok_or("Object not found")?;
+    // 失败保留原草稿，成功才带回完整最新记录与版本。
+    *object = saved;
 
     let snapshot_data = serde_json::to_vec(&serde_json::json!({
         "name": object.name,
@@ -702,6 +727,26 @@ pub fn save_attachments(props: &mut serde_json::Value, atts: &[AttachmentMeta]) 
     }
 }
 
+/// 账户与删除状态在提交事务内重新核对，附件列表总是来自最新记录。
+fn mutate_attachment_record(
+    vault: &VaultStore,
+    account_id: &str,
+    object_id: &str,
+    edit: impl FnOnce(&mut Vec<AttachmentMeta>) -> Result<(), String>,
+) -> Result<ObjectRecord, String> {
+    vault
+        .mutate_object(object_id, |record| -> Result<_, String> {
+            if record.account_id != account_id || record.is_deleted {
+                return Err("对象不存在或已被删除".into());
+            }
+            let mut atts = load_attachments(&record.properties);
+            edit(&mut atts)?;
+            save_attachments(&mut record.properties, &atts);
+            Ok(true)
+        })?
+        .ok_or_else(|| format!("对象 '{}' 不存在", object_id))
+}
+
 /// 添加附件（复制文件 + 更新元数据）。
 /// `attachment_key`：P001 附件静态加密密钥（`Some` 时加密落盘；`None` 保持旧明文行为，
 /// 供无会话密钥的宿主/测试使用——读取端自动兼容两种形态）。
@@ -714,14 +759,14 @@ pub fn add_attachments(
     attachment_key: Option<&[u8; 32]>,
 ) -> Result<AttachmentMeta, String> {
     vault.ensure_object_editable(object_id)?;
-    let mut record = vault
+    let record = vault
         .load_object(object_id)?
         .ok_or_else(|| format!("对象 '{}' 不存在", object_id))?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
     }
 
-    let mut atts = load_attachments(&record.properties);
+    let atts = load_attachments(&record.properties);
     let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
     if active_count >= MAX_ACTIVE_ATTACHMENTS {
         return Err(format!(
@@ -770,11 +815,16 @@ pub fn add_attachments(
         tags: vec![],
     };
 
-    atts.push(meta.clone());
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    let record = mutate_attachment_record(vault, account_id, object_id, |atts| {
+        if atts.iter().filter(|att| att.deleted_at.is_none()).count() >= MAX_ACTIVE_ATTACHMENTS {
+            return Err(format!(
+                "单个对象最多保留 {} 个活跃附件",
+                MAX_ACTIVE_ATTACHMENTS
+            ));
+        }
+        atts.push(meta.clone());
+        Ok(())
+    })?;
 
     let _ = vault.log_structured(
         "attachment_add",
@@ -796,25 +846,15 @@ pub fn rename_attachment(
     attachment_id: &str,
     new_name: &str,
 ) -> Result<(), String> {
-    let mut record = vault
-        .load_object(object_id)?
-        .ok_or_else(|| format!("对象 '{}' 不存在", object_id))?;
-    if record.account_id != account_id || record.is_deleted {
-        return Err("对象不存在或已被删除".to_string());
-    }
-
     let safe_name = sanitize_file_name(new_name);
-    let mut atts = load_attachments(&record.properties);
-    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.file_name = safe_name.clone();
-    } else {
-        return Err(format!("附件 '{}' 不存在", attachment_id));
-    }
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachment_record(vault, account_id, object_id, |atts| {
+        if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+            a.file_name = safe_name.clone();
+        } else {
+            return Err(format!("附件 '{}' 不存在", attachment_id));
+        }
+        Ok(())
+    })?;
 
     let _ = vault.log_structured(
         "attachment_rename",
@@ -835,24 +875,14 @@ pub fn soft_delete_attachment(
     object_id: &str,
     attachment_id: &str,
 ) -> Result<(), String> {
-    let mut record = vault
-        .load_object(object_id)?
-        .ok_or_else(|| "对象不存在".to_string())?;
-    if record.account_id != account_id || record.is_deleted {
-        return Err("对象不存在或已被删除".to_string());
-    }
-
-    let mut atts = load_attachments(&record.properties);
-    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.deleted_at = Some(chrono::Utc::now().to_rfc3339());
-    } else {
-        return Err("附件不存在".to_string());
-    }
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachment_record(vault, account_id, object_id, |atts| {
+        if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+            a.deleted_at = Some(chrono::Utc::now().to_rfc3339());
+        } else {
+            return Err("附件不存在".to_string());
+        }
+        Ok(())
+    })?;
 
     let _ = vault.log_structured(
         "attachment_soft_delete",
@@ -873,24 +903,14 @@ pub fn restore_attachment(
     object_id: &str,
     attachment_id: &str,
 ) -> Result<(), String> {
-    let mut record = vault
-        .load_object(object_id)?
-        .ok_or_else(|| "对象不存在".to_string())?;
-    if record.account_id != account_id || record.is_deleted {
-        return Err("对象不存在或已被删除".to_string());
-    }
-
-    let mut atts = load_attachments(&record.properties);
-    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.deleted_at = None;
-    } else {
-        return Err("附件不存在".to_string());
-    }
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
+    mutate_attachment_record(vault, account_id, object_id, |atts| {
+        if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+            a.deleted_at = None;
+        } else {
+            return Err("附件不存在".to_string());
+        }
+        Ok(())
+    })?;
 
     let _ = vault.log_structured(
         "attachment_restore",

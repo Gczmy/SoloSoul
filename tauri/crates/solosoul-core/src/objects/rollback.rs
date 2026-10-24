@@ -66,72 +66,80 @@ pub fn rollback_object(
         .ok_or_else(|| RollbackError::new(Stage::SnapshotNotFound, "Snapshot not found"))?;
     let snapshot: serde_json::Value = serde_json::from_slice(&data)
         .map_err(|e| RollbackError::new(Stage::SnapshotParse, format!("Parse: {e}")))?;
-    let mut record = vault
-        .load_object(object_id)
-        .map_err(|e| RollbackError::new(Stage::ObjectRead, e))?
-        .ok_or_else(|| RollbackError::new(Stage::ObjectNotFound, "Object not found"))?;
-
-    vault
-        .ensure_object_editable(object_id)
-        .map_err(|e| RollbackError::new(Stage::ObjectSave, e))?;
-    let edit_lock = record.properties.get("__editLocked").cloned();
-    if let Some(name) = snapshot["name"].as_str() {
-        record.name = name.to_string();
-    }
-    if let Some(tags) = snapshot["tags"].as_array() {
-        record.tags_json = tags
-            .iter()
-            .filter_map(|value| value.as_str().map(str::to_string))
-            .collect();
-    }
-    if !snapshot["properties"].is_null() {
-        record.properties = snapshot["properties"].clone();
-    }
-    // 恢复内容不能顺带改变当前写保护，解锁必须通过显式状态切换。
-    if let Some(properties) = record.properties.as_object_mut() {
-        if let Some(value) = edit_lock {
-            properties.insert("__editLocked".into(), value);
-        } else {
-            properties.remove("__editLocked");
-        }
-    }
-    // RF-007：camelCase 键存在即优先（包括 null），无键保留，显式 null 清除。
-    if let Some(labels) = snapshot
-        .get("propertyLabels")
-        .or_else(|| snapshot.get("property_labels"))
-    {
-        record.property_labels = match labels {
-            serde_json::Value::Null => None,
-            serde_json::Value::Object(_) => Some(labels.clone()),
-            _ => {
+    let mut rollback_data = Vec::new();
+    let record = vault
+        .mutate_object(object_id, |record| -> Result<_, RollbackError> {
+            if solosoul_vault::storage::object_edit_locked(&record.properties) {
                 return Err(RollbackError::new(
-                    Stage::Labels,
-                    "Snapshot field labels must be an object or null",
-                ))
+                    Stage::ObjectSave,
+                    solosoul_vault::storage::OBJECT_EDIT_LOCKED,
+                ));
             }
-        };
-    }
-    record.version = record
-        .version
-        .checked_add(1)
-        .ok_or_else(|| RollbackError::new(Stage::Version, "Object version overflow"))?;
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    let rollback_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name,
-        "tags": record.tags_json,
-        "properties": record.properties,
-        "propertyLabels": record.property_labels,
-    }))
-    .map_err(|e| {
-        RollbackError::new(
-            Stage::Serialize,
-            format!("Serialize rollback snapshot: {e}"),
-        )
-    })?;
-
-    vault
-        .save_object(&record)
-        .map_err(|e| RollbackError::new(Stage::ObjectSave, e))?;
+            let edit_lock = record.properties.get("__editLocked").cloned();
+            if let Some(name) = snapshot["name"].as_str() {
+                record.name = name.to_string();
+            }
+            if let Some(tags) = snapshot["tags"].as_array() {
+                record.tags_json = tags
+                    .iter()
+                    .filter_map(|value| value.as_str().map(str::to_string))
+                    .collect();
+            }
+            if !snapshot["properties"].is_null() {
+                record.properties = snapshot["properties"].clone();
+            }
+            // 恢复内容不能顺带改变当前写保护，解锁必须通过显式状态切换。
+            if let Some(properties) = record.properties.as_object_mut() {
+                if let Some(value) = edit_lock {
+                    properties.insert("__editLocked".into(), value);
+                } else {
+                    properties.remove("__editLocked");
+                }
+            }
+            // RF-007：camelCase 键存在即优先（包括 null），无键保留，显式 null 清除。
+            if let Some(labels) = snapshot
+                .get("propertyLabels")
+                .or_else(|| snapshot.get("property_labels"))
+            {
+                record.property_labels = match labels {
+                    serde_json::Value::Null => None,
+                    serde_json::Value::Object(_) => Some(labels.clone()),
+                    _ => {
+                        return Err(RollbackError::new(
+                            Stage::Labels,
+                            "Snapshot field labels must be an object or null",
+                        ))
+                    }
+                };
+            }
+            record.version = record
+                .version
+                .checked_add(1)
+                .ok_or_else(|| RollbackError::new(Stage::Version, "Object version overflow"))?;
+            rollback_data = serde_json::to_vec(&serde_json::json!({
+                "name": record.name,
+                "tags": record.tags_json,
+                "properties": record.properties,
+                "propertyLabels": record.property_labels,
+            }))
+            .map_err(|e| {
+                RollbackError::new(
+                    Stage::Serialize,
+                    format!("Serialize rollback snapshot: {e}"),
+                )
+            })?;
+            Ok(true)
+        })
+        .map_err(|error| {
+            use solosoul_vault::storage::ObjectMutationError as M;
+            match error {
+                M::Read(error) => RollbackError::new(Stage::ObjectRead, error),
+                M::Write(error) => RollbackError::new(Stage::ObjectSave, error),
+                M::Edit(error) => error,
+                M::VersionOverflow => RollbackError::new(Stage::Version, "Object version overflow"),
+            }
+        })?
+        .ok_or_else(|| RollbackError::new(Stage::ObjectNotFound, "Object not found"))?;
 
     // 两项独立尝试：历史写失败仍须记录此次已经保存的对象回滚。
     let snapshot_error = vault

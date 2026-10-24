@@ -38,6 +38,8 @@ mod device_preferences;
 mod metadata;
 pub use device_preferences::DeviceSyncPreferences;
 mod object_lock;
+mod object_mutation;
+pub use object_mutation::ObjectMutationError;
 mod objects;
 pub use object_lock::{
     object_edit_locked, preserve_object_edit_metadata, OBJECT_EDIT_LOCKED, OBJECT_EDIT_LOCK_KEY,
