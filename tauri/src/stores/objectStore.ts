@@ -34,6 +34,8 @@ type UpdateObjectValues = Omit<IpcCommands['object_update']['args']['input'], 'p
   properties: Record<string, unknown>;
 };
 
+type ObjectReadOptions = { quiet: true; signal?: AbortSignal };
+
 interface ObjectState {
   objects: ObjectSummary[];
   /** 对象缓存，以 objectId 为键。每个组件读取自己的缓存槽，避免全局 currentObject 竞态。 */
@@ -45,7 +47,11 @@ interface ObjectState {
     accountId: string,
     filter?: NonNullable<IpcCommands['object_list']['args']['filter']>,
   ) => Promise<void>;
-  getObject: (accountId: string, objectId: string) => Promise<ObjectData | null | undefined>;
+  getObject: (
+    accountId: string,
+    objectId: string,
+    options?: ObjectReadOptions,
+  ) => Promise<ObjectData | null | undefined>;
   createObject: (input: CreateObjectValues) => Promise<ObjectData>;
   updateObject: (objectId: string, input: UpdateObjectValues) => Promise<ObjectData>;
   setObjectLocked: (objectId: string, locked: boolean) => Promise<ObjectData>;
@@ -87,27 +93,32 @@ export const useObjectStore = create<ObjectState>((set) => ({
     }
   },
 
-  getObject: async (accountId, objectId) => {
-    const request = requests.begin(`object:${objectId}`, accountId);
+  getObject: async (accountId, objectId, options) => {
+    const request = requests.begin(
+      options?.quiet ? `object-detail:${objectId}` : `object:${objectId}`,
+      accountId,
+    );
     const setCurrent = request.guardSet<ObjectState>(set);
-    setCurrent({ isLoading: true, error: null });
+    if (!options?.quiet) setCurrent({ isLoading: true, error: null });
     try {
       const wire = await request.invokeTyped('object_get', {
         accountId: accountId,
         objectId: objectId,
       });
       request.assertCurrent();
+      if (options?.signal?.aborted) return;
       const obj = wire === null ? null : toObjectDataView(wire);
       setCurrent((s) => ({
         currentObjectCache: obj
           ? { ...s.currentObjectCache, [objectId]: obj }
           : s.currentObjectCache,
-        isLoading: false,
+        ...(options?.quiet ? {} : { isLoading: false }),
       }));
       // 调用方直接使用本次已校验的响应，不能从旧缓存推断此次读取成功。
       return obj;
     } catch (err) {
-      if (!request.isCurrent()) return;
+      if (!request.isCurrent() || options?.signal?.aborted) return;
+      if (options?.quiet) throw err;
       setCurrent({ error: normalizeObjectError(err), isLoading: false });
     }
   },
@@ -163,6 +174,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
         }),
       );
       request.assertCurrent();
+      requests.invalidate(`object-detail:${objectId}`);
       setCurrent((s) => ({
         currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
         // 同步更新摘要列表对应项，避免列表与详情缓存不一致（P057）。
@@ -205,6 +217,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
     request.assertCurrent();
     if (obj.id !== objectId || obj.accountId !== useAuthStore.getState().currentAccount?.id)
       throw new Error('Object response ownership mismatch');
+    requests.invalidate(`object-detail:${objectId}`);
     set((s) => ({
       currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
       objects: s.objects.map((item) =>
@@ -228,6 +241,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
     try {
       await request.invokeTyped('object_delete', { objectId: objectId });
       request.assertCurrent();
+      requests.invalidate(`object-detail:${objectId}`);
       setCurrent((s) => {
         // P043: 删除对象时同步清理详情缓存，避免残留旧数据被误读
         const nextCache = { ...s.currentObjectCache };
@@ -262,6 +276,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
       dryRun: false,
     });
     request.assertCurrent();
+    requests.invalidate(`object-detail:${objectId}`);
     // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
     request.assertCurrent();
     await useObjectStore.getState().getObject(accountId, objectId);
@@ -275,6 +290,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
     const request = requests.begin();
     await request.invokeTyped('object_ignore_template_sync', { objectId: objectId, hash });
     request.assertCurrent();
+    requests.invalidate(`object-detail:${objectId}`);
   },
 
   loadDeprecatedFields: async (accountId, objectId) => {

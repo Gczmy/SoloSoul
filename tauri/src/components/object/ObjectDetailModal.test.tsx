@@ -11,8 +11,7 @@ const authMock = vi.hoisted(() => ({ accountId: 'acc-1' as string | null }));
 const objectStoreMock = vi.hoisted(() => ({ deleteObject: vi.fn() }));
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
-// P020 二次复核：modal 不再经全局 getObject action（会置 isLoading 闪列表），
-// 改为直接 invoke('object_get')；默认 mock 返回 null → fetchedObj=null → 回退传入 object。
+// P054：展示测试只模拟静默读取；真实 Store 仲裁由独立并发回归覆盖。
 vi.mock('@/lib/ipcClient', () => ({
   invokeCommand: vi.fn().mockResolvedValue(null),
 }));
@@ -44,21 +43,31 @@ vi.mock('@/stores/settingsStore', () => ({
     selector({ settings: { customPages: [] } }),
 }));
 
-vi.mock('@/stores/objectStore', () => ({
-  useObjectStore: Object.assign(
-    (selector: (s: { currentObjectCache: Record<string, never>; objects: never[] }) => unknown) =>
-      selector({ currentObjectCache: {}, objects: [] }),
-    {
-      getState: () => ({
-        deleteObject: objectStoreMock.deleteObject,
-        currentObjectCache: {},
-      }),
-      // P020 二次复核：直接 invoke 成功后写缓存（不置 isLoading）；测试中 invoke 返回
-      // null 不触发，此处仅保证 API 存在。
-      setState: vi.fn(),
-    },
-  ),
-}));
+vi.mock('@/stores/objectStore', async () => {
+  const { toObjectDataView } = await import('@/lib/objectViewModel');
+  const { invokeTypedCommand } = await import('@/lib/typedIpc');
+  return {
+    useObjectStore: Object.assign(
+      (selector: (s: { currentObjectCache: Record<string, never>; objects: never[] }) => unknown) =>
+        selector({ currentObjectCache: {}, objects: [] }),
+      {
+        getState: () => ({
+          deleteObject: objectStoreMock.deleteObject,
+          getObject: async (
+            accountId: string,
+            objectId: string,
+            options?: { signal?: AbortSignal },
+          ) => {
+            const wire = await invokeTypedCommand('object_get', { accountId, objectId });
+            if (options?.signal?.aborted) return;
+            return wire === null ? null : toObjectDataView(wire);
+          },
+          currentObjectCache: {},
+        }),
+      },
+    ),
+  };
+});
 
 vi.mock('@/hooks/useDragToAttach', () => ({
   useDragToAttach: () => ({ ref: { current: null }, dragState: 'idle' }),

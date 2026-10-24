@@ -2,8 +2,6 @@ import { fieldPresentationPolicy } from '@/lib/fieldPresentationPolicy';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { invokeTypedCommand } from '@/lib/typedIpc';
-import { toObjectDataView } from '@/lib/objectViewModel';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
@@ -162,21 +160,23 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     }
     // 有 object（摘要）时仍保持当前展示，拉取完成后再升级，避免闪屏。
     if (!suppliedObject) setLoading(true);
-    // P020 二次复核：绕开全局 store action（getObject 会置全局 isLoading →
-    // 打开弹窗瞬间背后工作区列表被骨架屏替换再换回），直接 invoke object_get；
-    // 结果同时写入 currentObjectCache 供其他消费方读取（不置 isLoading）。
+    // P054：静默读取使用 Store 的写入失效与会话保护，不触发背后列表的 loading。
+    // AbortSignal 同时阻止关闭/切换后的迟到响应写入共享缓存。
     let active = true;
-    invokeTypedCommand('object_get', { accountId: accountId, objectId: objId })
-      .then((wire) => {
-        // Discard stale responses: if a newer fetch started while this one
-        // was in-flight, don't overwrite fetchedObj with potentially stale data.
+    const controller = new AbortController();
+    useObjectStore
+      .getState()
+      .getObject(accountId, objId, { quiet: true, signal: controller.signal })
+      .then((data) => {
         if (!active || fetchIdRef.current !== id) return;
-        const obj = wire === null ? null : toObjectDataView(wire);
-        if (obj) {
-          useObjectStore.setState((s) => ({
-            currentObjectCache: { ...s.currentObjectCache, [objId]: obj },
-          }));
-        }
+        const cached =
+          data === undefined ? useObjectStore.getState().currentObjectCache[objId] : undefined;
+        const obj =
+          data === undefined
+            ? cached?.accountId === accountId && cached.id === objId
+              ? cached
+              : null
+            : data;
         setFetchedObj(obj ? { accountId, objectId: objId, data: obj } : null);
       })
       .catch(() => {
@@ -187,6 +187,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
       });
     return () => {
       active = false;
+      controller.abort();
     };
   }, [suppliedObject, isCompleteObject, objId, accountId]);
 
