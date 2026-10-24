@@ -14,13 +14,13 @@
 | ID | 优先级 | 类别 | 文件位置 | 问题 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | P052 | P1 | 数据一致性 | `tauri/src-tauri/src/commands/object/mod.rs:694`、`tauri/crates/solosoul-vault/src/storage/objects.rs:458` | 对象读改写不原子，编辑保存可覆盖并发写入的附件元数据 | `[x]` 已修复，事务合并与回滚验证通过 |
-| P053 | P1 | 资源边界/测试差异 | `tauri/src-tauri/src/commands/fs.rs:210` | 普通文件预览生产分支忽略 10 MiB 读取上限，测试分支另有检查，掩盖缺口 | `[ ]` 待修复 |
+| P053 | P1 | 资源边界/测试差异 | `tauri/src-tauri/src/commands/fs.rs:210` | 普通文件预览生产分支忽略 10 MiB 读取上限，测试分支另有检查，掩盖缺口 | `[x]` 已修复，共用有界读取与边界回归通过 |
 | P054 | P2 | 前端状态 | `tauri/src/components/object/useObjectDetailModal.tsx:169` | 迟到详情读取覆盖刚确认的对象锁状态 | `[ ]` 待修复 |
 | P055 | P2 | 前端并发 | `tauri/src/stores/objectStore.ts:91`、`:201` | 读写共享请求序号，读取可取消成功写入回执，反向交错可留下永久 loading | `[ ]` 待修复 |
 | P056 | P2 | 文件边界 | `tauri/src-tauri/src/commands/fs.rs:320` | 目录递归跟随子目录 junction/symlink，返回白名单外的文件元数据 | `[ ]` 待修复 |
 | P057 | P2 | 构建可复现性 | `solosoul_cli/Cargo.lock:4450` | CLI 锁文件仍记录共享 crate 2.13.2，当前 2.14.0 的 `--locked` 检查被拒绝 | `[x]` 已修复，固定依赖检查通过 |
 
-- 新增待修复：4；本轮已修复：2；当前处理：无。
+- 新增待修复：3；本轮已修复：3；当前处理：无。
 - 历史暂缓：P012，保持既有产品决策边界。
 - 自动基线与专项探针结果见本轮报告；未创建审查通过标签。
 

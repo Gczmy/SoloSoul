@@ -8,10 +8,13 @@
 //! 密钥由调用方提供（`VaultService::attachment_encryption_key()`，HKDF 派生），
 //! 本模块不接触会话密钥本身，便于 GUI / CLI / 测试共用。
 
-use solosoul_crypto::cipher::{decrypt_chunked_stream, encrypt_chunked_stream, CipherError};
+use solosoul_crypto::cipher::{decrypt_chunked_stream, encrypt_chunked_stream};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::Path;
+
+mod bounded;
+pub use bounded::read_file_with_attachment_key;
 
 /// HKDF info 标签：附件静态加密（与导出包附件密钥 `solosoul:attachments:v1` 区分）。
 pub const ATTACHMENT_AT_REST_INFO: &[u8] = b"solosoul:attachments:at-rest:v1";
@@ -96,22 +99,9 @@ fn write_private_copy(src: &Path, dst: &Path, key: Option<&[u8; 32]>) -> Result<
 }
 
 /// 读取文件全部内容：SOLC 密文则解密，否则原样（旧明文兼容）。
-/// `max_size` 为读取上限（防御超大文件 OOM）；密文长度上限按其 1.03 倍放大估算。
+/// `max_size` 按明文字节数限制；共用有界读取实现，兼容旧明文附件。
 pub fn read_file_decrypted(key: &[u8; 32], path: &Path, max_size: u64) -> Result<Vec<u8>, String> {
-    let meta = std::fs::metadata(path).map_err(|e| format!("读取文件元数据失败: {e}"))?;
-    if meta.len() > max_size * 103 / 100 {
-        return Err(format!("文件过大（{} 字节）", meta.len()));
-    }
-    let mut file = File::open(path).map_err(|e| format!("打开文件失败: {e}"))?;
-    if !is_encrypted_file(path) {
-        let mut buf = Vec::new();
-        file.read_to_end(&mut buf)
-            .map_err(|e| format!("读取文件失败: {e}"))?;
-        return Ok(buf);
-    }
-    let mut out: Vec<u8> = Vec::new();
-    decrypt_chunked_stream(key, &mut file, &mut out).map_err(|e: CipherError| e.to_string())?;
-    Ok(out)
+    read_file_with_attachment_key(path, max_size, || Ok(*key))
 }
 
 #[cfg(test)]

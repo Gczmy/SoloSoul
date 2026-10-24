@@ -1,13 +1,9 @@
 use serde::Serialize;
 use std::fs::{self as fs_std};
 use std::path::{Path, PathBuf};
-// `Manager`（`AppHandle::try_state`/`path`）与 `AppState` 仅在非测试构建中使用：
-// 测试变体的 `allowed_fs_bases` 直接返回文件系统根目录，不触碰 App 状态。
-#[cfg(not(test))]
 use tauri::Manager;
 // P107：访问 AppState 以读取 Vault 附件目录与附件解密密钥。
 // 桌面端：`allowed_fs_bases` 放行 Vault 附件目录；移动端：附件在应用数据目录内。
-#[cfg(not(test))]
 use crate::state::AppState;
 
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
@@ -203,49 +199,29 @@ pub(crate) fn display_fs_path(path: &Path) -> String {
     }
 }
 
-/// P001：读取附件文件内容——SOLC 密文则用附件密钥解密，普通明文直接读。
+/// P001/P053：共用有界附件读取；只有 SOLC 密文才从 AppState 获取密钥。
 /// 前端预览/导出读取 vault 附件（现已加密落盘）时必须走此路径；
-/// 非加密文件（普通用户文件）原样读取，零影响。
-#[cfg(not(test))]
+/// 普通用户文件与旧明文附件保持兼容，仍按明文字节上限读取。
 pub(crate) fn read_file_with_attachment_decrypt<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     path: &Path,
     max_size: u64,
 ) -> Result<Vec<u8>, String> {
-    if solosoul_core::attachment_crypto::is_encrypted_file(path) {
-        let key_arr: [u8; 32] = {
-            let state = app
-                .try_state::<AppState>()
-                .ok_or_else(|| "无法获取附件解密密钥".to_string())?;
-            let svc = state
-                .vault_service
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
-            let key = svc
-                .attachment_encryption_key()
-                .map_err(|e| format!("无法获取附件解密密钥: {}", e))?;
-            key.as_slice()
-                .try_into()
-                .map_err(|_| "附件密钥长度错误".to_string())?
-        };
-        solosoul_core::attachment_crypto::read_file_decrypted(&key_arr, path, max_size)
-    } else {
-        std::fs::read(path).map_err(|e| format!("Read: {}", e))
-    }
-}
-
-/// 测试变体：不依赖 AppState（测试环境无 Tauri 状态），非加密文件直接读。
-#[cfg(test)]
-pub(crate) fn read_file_with_attachment_decrypt<R: tauri::Runtime>(
-    _app: &tauri::AppHandle<R>,
-    path: &Path,
-    max_size: u64,
-) -> Result<Vec<u8>, String> {
-    let meta = std::fs::metadata(path).map_err(|e| format!("Read: {}", e))?;
-    if meta.len() > max_size {
-        return Err(format!("File too large: {} bytes", meta.len()));
-    }
-    std::fs::read(path).map_err(|e| format!("Read: {}", e))
+    solosoul_core::attachment_crypto::read_file_with_attachment_key(path, max_size, || {
+        let state = app
+            .try_state::<AppState>()
+            .ok_or_else(|| "无法获取附件解密密钥".to_string())?;
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件解密密钥: {}", e))?;
+        key.as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())
+    })
 }
 
 /// Resolve `path` within any allowed filesystem base directory. Filesystem
@@ -443,17 +419,7 @@ pub async fn fs_read_image_preview<R: tauri::Runtime>(
     let p = resolve_allowed_path(&app, &path)?;
     // P001: vault 附件密文自动解密（图片解码改为内存解码）。
     let max_dim = max_dim.min(MAX_PREVIEW_DIM);
-    let bytes = {
-        let meta = std::fs::metadata(&p).map_err(|e| format!("Metadata: {e}"))?;
-        if meta.len() > MAX_IMAGE_PREVIEW_READ_SIZE {
-            return Err(format!(
-                "File too large for image preview: {} bytes (max {})",
-                meta.len(),
-                MAX_IMAGE_PREVIEW_READ_SIZE
-            ));
-        }
-        read_file_with_attachment_decrypt(&app, &p, MAX_IMAGE_PREVIEW_READ_SIZE)?
-    };
+    let bytes = read_file_with_attachment_decrypt(&app, &p, MAX_IMAGE_PREVIEW_READ_SIZE)?;
     tokio::task::spawn_blocking(move || generate_image_preview_from_bytes(&bytes, max_dim))
         .await
         .map_err(|e| format!("fs_read_image_preview task failed: {e}"))?
@@ -471,6 +437,9 @@ pub async fn fs_read_file_as_text<R: tauri::Runtime>(
     let buf = read_file_with_attachment_decrypt(&app, &p, MAX_DATA_URL_SIZE)?;
     String::from_utf8(buf).map_err(|e| format!("Text decode: {}", e))
 }
+
+#[cfg(test)]
+mod p053_tests;
 
 #[cfg(test)]
 mod tests {
