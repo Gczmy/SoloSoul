@@ -1447,6 +1447,40 @@ fn build_upgraded_config(
 }
 
 #[cfg(test)]
+mod p058_tests {
+    use super::super::VaultService;
+
+    #[test]
+    fn p058_rekey_preparation_rejects_zero_count_without_replacing_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let plain = dir.path().join("public.txt");
+        let encrypted = dir.path().join("attachment");
+        let prepared = dir.path().join("new-key");
+        let old_key = [42; 32];
+        let new_key = [9; 32];
+        std::fs::write(&plain, b"public attachment").unwrap();
+        crate::attachment_crypto::encrypt_file_stream(&old_key, &plain, &encrypted).unwrap();
+        let mut damaged = std::fs::read(&encrypted).unwrap();
+        damaged[17..25].copy_from_slice(&0u64.to_be_bytes());
+        std::fs::write(&encrypted, &damaged).unwrap();
+        std::fs::write(&prepared, b"existing prepared file").unwrap();
+        assert!(
+            VaultService::prepare_attachment_rekey(&old_key, &new_key, &encrypted, &prepared)
+                .is_err()
+        );
+        assert_eq!(std::fs::read(&prepared).unwrap(), b"existing prepared file");
+        let fresh = dir.path().join("fresh-key");
+        assert!(
+            VaultService::prepare_attachment_rekey(&old_key, &new_key, &encrypted, &fresh).is_err()
+        );
+        assert!(!fresh.exists());
+        assert!(!encrypted.with_extension("rekey.tmp").exists());
+        assert_eq!(std::fs::read(&encrypted).unwrap(), damaged);
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
+    }
+}
+
+#[cfg(test)]
 mod rf905_auth_tests {
     use super::*;
     use crate::import_activity::begin_owned_root_activity;

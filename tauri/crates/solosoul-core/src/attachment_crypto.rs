@@ -212,6 +212,27 @@ mod tests {
         assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
     }
 
+    #[test]
+    fn p058_zero_count_preserves_destination_and_leaves_no_partial_copy() {
+        let dir = TempDir::new().unwrap();
+        let src = dir.path().join("source");
+        let enc = dir.path().join("encrypted");
+        let dst = dir.path().join("destination");
+        std::fs::write(&src, b"public attachment").unwrap();
+        encrypt_file_stream(&roundtrip_key(), &src, &enc).unwrap();
+        let mut damaged = std::fs::read(&enc).unwrap();
+        damaged[17..25].copy_from_slice(&0u64.to_be_bytes());
+        std::fs::write(&enc, &damaged).unwrap();
+        std::fs::write(&dst, b"original destination").unwrap();
+        for key in [roundtrip_key(), [9; 32]] {
+            assert!(copy_decrypt_file(&key, &enc, &dst).is_err());
+            assert_eq!(std::fs::read(&dst).unwrap(), b"original destination");
+            assert!(copy_decrypt_file(&key, &enc, &dir.path().join("new")).is_err());
+            assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
+            assert_eq!(std::fs::read(&enc).unwrap(), damaged);
+        }
+    }
+
     #[cfg(unix)]
     #[test]
     fn plaintext_copies_are_private_for_encrypted_and_legacy_sources() {

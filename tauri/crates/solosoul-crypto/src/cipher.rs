@@ -6,6 +6,8 @@ use std::io::{Read, Write};
 use zeroize::Zeroizing;
 
 mod ownership;
+#[cfg(test)]
+mod p058_tests;
 pub use ownership::{
     authenticate_nonempty_chunked_v2_stream, AuthenticatedChunkedV2, ChunkedOwnership,
     ChunkedOwnershipRetention,
@@ -115,7 +117,8 @@ const CHUNK_SIZE: usize = 64 * 1024; // 64 KB
 /// 分块格式魔数与版本（P105：头部纳入 GCM 认证）。
 ///
 /// - v2（当前）：`magic(4="SOLC") || version(1=0x02) || nonce(12) || chunk_count(8) || chunks`，
-///   每个 chunk 的 GCM 以 `nonce || chunk_count` 作为 AAD——篡改任意头部字节即整体解密失败。
+///   非空文件每个 chunk 的 GCM 以 `nonce || chunk_count` 作为 AAD。
+///   历史零块空文件仅有头部，没有认证标签；只能验证精确 EOF，不能证明密钥归属。
 /// - v1（遗留）：`nonce(12) || chunk_count(8) || chunks`，头部不参与认证，仅作向后兼容读取。
 const CHUNKED_MAGIC: [u8; 4] = [0x53, 0x4F, 0x4C, 0x43]; // "SOLC"
 const CHUNKED_VERSION: u8 = 0x02;
@@ -201,8 +204,10 @@ pub fn encrypt_chunked_stream<R: Read, W: Write>(
 ///
 /// Auto-detects the format by leading magic:
 /// - v2（当前，P105）：`SOLC(4) || version(1) || nonce(12) || chunk_count(8) || chunks`，
-///   每个 chunk 以 `nonce || chunk_count` 为 AAD 认证——篡改头部即解密失败。
+///   非空文件每个 chunk 以 `nonce || chunk_count` 为 AAD 认证。
 /// - v1（遗留）：`nonce(12) || chunk_count(8) || chunks`，头部不参与认证，仅向后兼容读取。
+///
+/// 零块仅接受精确空头；其没有认证标签，不证明密钥归属。末块最多 64 KiB 明文加标签。
 pub fn decrypt_chunked_from_bytes(
     key: &[u8; 32],
     ciphertext: &[u8],
@@ -226,7 +231,7 @@ pub fn decrypt_chunked_from_bytes(
                 ciphertext[17..25]
                     .try_into()
                     .map_err(|_| CipherError::InvalidCiphertext)?,
-            ) as usize;
+            );
             (true, nonce, count, NEW_HEADER_LEN)
         } else {
             let mut nonce = [0u8; 12];
@@ -235,19 +240,22 @@ pub fn decrypt_chunked_from_bytes(
                 ciphertext[12..20]
                     .try_into()
                     .map_err(|_| CipherError::InvalidCiphertext)?,
-            ) as usize;
+            );
             (false, nonce, count, LEGACY_HEADER_LEN)
         };
 
-    // P105：v2 格式的 AAD = nonce || chunk_count，篡改头部任一字节即整体认证失败。
-    let aad = chunked_aad(&base_nonce, chunk_count as u64);
+    // 块数保持 u64，避免 32 位目标上截断为零或改变认证头部。
+    let aad = chunked_aad(&base_nonce, chunk_count);
+    if chunk_count == 0 && ciphertext.len() != offset {
+        return Err(CipherError::InvalidCiphertext);
+    }
 
     let mut result = Vec::new();
     let mut cursor = offset;
 
     for i in 0..chunk_count {
         let mut nonce_bytes = base_nonce;
-        let idx_bytes = (i as u64).to_be_bytes();
+        let idx_bytes = i.to_be_bytes();
         for j in 0..8 {
             nonce_bytes[4 + j] ^= idx_bytes[j];
         }
@@ -261,10 +269,15 @@ pub fn decrypt_chunked_from_bytes(
             CHUNK_SIZE + 16
         };
 
-        if cursor + expected_chunk_ct_len > ciphertext.len() {
+        if !(16..=CHUNK_SIZE + 16).contains(&expected_chunk_ct_len) {
             return Err(CipherError::InvalidCiphertext);
         }
-        let chunk_ct = &ciphertext[cursor..cursor + expected_chunk_ct_len];
+        let end = cursor
+            .checked_add(expected_chunk_ct_len)
+            .ok_or(CipherError::InvalidCiphertext)?;
+        let chunk_ct = ciphertext
+            .get(cursor..end)
+            .ok_or(CipherError::InvalidCiphertext)?;
         let payload = if is_v2 {
             Payload {
                 msg: chunk_ct,
@@ -280,7 +293,7 @@ pub fn decrypt_chunked_from_bytes(
             .decrypt(nonce, payload)
             .map_err(|_| CipherError::DecryptionFailed)?;
         result.extend_from_slice(&pt);
-        cursor += expected_chunk_ct_len;
+        cursor = end;
     }
 
     Ok(Zeroizing::new(result))
@@ -304,7 +317,7 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
         .map_err(|_| CipherError::InvalidCiphertext)?;
     let is_v2 = magic == CHUNKED_MAGIC;
 
-    let (base_nonce, chunk_count, aad): ([u8; 12], usize, Option<[u8; 20]>) = if is_v2 {
+    let (base_nonce, chunk_count, aad): ([u8; 12], u64, Option<[u8; 20]>) = if is_v2 {
         let mut rest = [0u8; 21]; // version(1) + nonce(12) + chunk_count(8)
         reader
             .read_exact(&mut rest)
@@ -321,8 +334,8 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
             rest[13..21]
                 .try_into()
                 .map_err(|_| CipherError::InvalidCiphertext)?,
-        ) as usize;
-        let aad = chunked_aad(&nonce, count as u64);
+        );
+        let aad = chunked_aad(&nonce, count);
         (nonce, count, Some(aad))
     } else {
         // 遗留格式：已读的 4 字节是 nonce 的前 4 字节。
@@ -335,28 +348,42 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
         reader
             .read_exact(&mut count_buf)
             .map_err(|_| CipherError::InvalidCiphertext)?;
-        let count = u64::from_be_bytes(count_buf) as usize;
+        let count = u64::from_be_bytes(count_buf);
         (nonce, count, None)
     };
+
+    if chunk_count == 0 {
+        // 历史空文件没有标签。只允许精确 EOF，不能忽略被改为零块的非空密文。
+        let mut trailing = Vec::new();
+        reader
+            .take(1)
+            .read_to_end(&mut trailing)
+            .map_err(|e| CipherError::Io(e.to_string()))?;
+        return if trailing.is_empty() {
+            Ok(())
+        } else {
+            Err(CipherError::InvalidCiphertext)
+        };
+    }
 
     let mut chunk_buf = vec![0u8; CHUNK_SIZE + 16]; // plaintext + auth tag
     for i in 0..chunk_count {
         let mut nonce_bytes = base_nonce;
-        let idx_bytes = (i as u64).to_be_bytes();
+        let idx_bytes = i.to_be_bytes();
         for j in 0..8 {
             nonce_bytes[4 + j] ^= idx_bytes[j];
         }
         let nonce = Nonce::from_slice(&nonce_bytes);
 
         // For all but the last chunk, ciphertext is exactly CHUNK_SIZE + 16.
-        // For the last chunk, it's whatever remains.
+        // Last chunk: at most one ciphertext chunk plus one byte to detect overflow.
         let expected = if i == chunk_count - 1 {
-            // Read remaining bytes
             let mut remaining = Vec::new();
             reader
+                .take((CHUNK_SIZE + 16 + 1) as u64)
                 .read_to_end(&mut remaining)
                 .map_err(|e| CipherError::Io(e.to_string()))?;
-            if remaining.is_empty() {
+            if !(16..=CHUNK_SIZE + 16).contains(&remaining.len()) {
                 return Err(CipherError::InvalidCiphertext);
             }
             let payload = match &aad {
